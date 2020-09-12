@@ -1,5 +1,5 @@
 /**
- * File customizer.js.
+ * File customize-controls.js.
  *
  * Theme Customizer enhancements for a better user experience.
  *
@@ -27,4 +27,4 @@
 		});
 	});
 
-})( jQuery );
+})();

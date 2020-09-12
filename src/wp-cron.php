@@ -1,17 +1,17 @@
 <?php
 /**
- * A pseudo-CRON daemon for scheduling WordPress tasks
+ * A pseudo-cron daemon for scheduling WordPress tasks.
  *
- * WP Cron is triggered when the site receives a visit. In the scenario
+ * WP-Cron is triggered when the site receives a visit. In the scenario
  * where a site may not receive enough visits to execute scheduled tasks
  * in a timely manner, this file can be called directly or via a server
- * CRON daemon for X number of times.
+ * cron daemon for X number of times.
  *
  * Defining DISABLE_WP_CRON as true and calling this file directly are
  * mutually exclusive and the latter does not rely on the former to work.
  *
  * The HTTP request to this file will not slow down the visitor who happens to
- * visit when the cron job is needed to run.
+ * visit when a scheduled cron event runs.
  *
  * @package WordPress
  */
@@ -20,6 +20,11 @@ ignore_user_abort( true );
 
 /* Don't make the request block till we finish, if possible. */
 if ( function_exists( 'fastcgi_finish_request' ) && version_compare( phpversion(), '7.0.16', '>=' ) ) {
+	if ( ! headers_sent() ) {
+		header( 'Expires: Wed, 11 Jan 1984 05:00:00 GMT' );
+		header( 'Cache-Control: no-cache, must-revalidate, max-age=0' );
+	}
+
 	fastcgi_finish_request();
 }
 
@@ -28,7 +33,7 @@ if ( ! empty( $_POST ) || defined( 'DOING_AJAX' ) || defined( 'DOING_CRON' ) ) {
 }
 
 /**
- * Tell WordPress we are doing the CRON task.
+ * Tell WordPress we are doing the cron task.
  *
  * @var bool
  */
@@ -36,7 +41,7 @@ define( 'DOING_CRON', true );
 
 if ( ! defined( 'ABSPATH' ) ) {
 	/** Set up WordPress environment */
-	require_once( dirname( __FILE__ ) . '/wp-load.php' );
+	require_once __DIR__ . '/wp-load.php';
 }
 
 /**
@@ -81,14 +86,15 @@ $gmt_time = microtime( true );
 // The cron lock: a unix timestamp from when the cron was spawned.
 $doing_cron_transient = get_transient( 'doing_cron' );
 
-// Use global $doing_wp_cron lock otherwise use the GET lock. If no lock, trying grabbing a new lock.
+// Use global $doing_wp_cron lock, otherwise use the GET lock. If no lock, try to grab a new lock.
 if ( empty( $doing_wp_cron ) ) {
 	if ( empty( $_GET['doing_wp_cron'] ) ) {
 		// Called from external script/job. Try setting a lock.
 		if ( $doing_cron_transient && ( $doing_cron_transient + WP_CRON_LOCK_TIMEOUT > $gmt_time ) ) {
 			return;
 		}
-		$doing_cron_transient = $doing_wp_cron = sprintf( '%.22F', microtime( true ) );
+		$doing_wp_cron        = sprintf( '%.22F', microtime( true ) );
+		$doing_cron_transient = $doing_wp_cron;
 		set_transient( 'doing_cron', $doing_wp_cron );
 	} else {
 		$doing_wp_cron = $_GET['doing_wp_cron'];
@@ -99,7 +105,7 @@ if ( empty( $doing_wp_cron ) ) {
  * The cron lock (a unix timestamp set when the cron was spawned),
  * must match $doing_wp_cron (the "key").
  */
-if ( $doing_cron_transient != $doing_wp_cron ) {
+if ( $doing_cron_transient !== $doing_wp_cron ) {
 	return;
 }
 
@@ -114,9 +120,8 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 
 			$schedule = $v['schedule'];
 
-			if ( $schedule != false ) {
-				$new_args = array( $timestamp, $schedule, $hook, $v['args'] );
-				call_user_func_array( 'wp_reschedule_event', $new_args );
+			if ( $schedule ) {
+				wp_reschedule_event( $timestamp, $schedule, $hook, $v['args'] );
 			}
 
 			wp_unschedule_event( $timestamp, $hook, $v['args'] );
@@ -133,14 +138,14 @@ foreach ( $crons as $timestamp => $cronhooks ) {
 			do_action_ref_array( $hook, $v['args'] );
 
 			// If the hook ran too long and another cron process stole the lock, quit.
-			if ( _get_cron_lock() != $doing_wp_cron ) {
+			if ( _get_cron_lock() !== $doing_wp_cron ) {
 				return;
 			}
 		}
 	}
 }
 
-if ( _get_cron_lock() == $doing_wp_cron ) {
+if ( _get_cron_lock() === $doing_wp_cron ) {
 	delete_transient( 'doing_cron' );
 }
 

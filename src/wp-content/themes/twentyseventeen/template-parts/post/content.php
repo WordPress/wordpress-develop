@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Seventeen
- * @since 1.0
+ * @since Twenty Seventeen 1.0
  * @version 1.2
  */
 
@@ -51,9 +51,9 @@
 
 	<div class="entry-content">
 		<?php
-		/* translators: %s: Name of current post */
 		the_content(
 			sprintf(
+				/* translators: %s: Post title. */
 				__( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentyseventeen' ),
 				get_the_title()
 			)

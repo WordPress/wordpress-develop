@@ -4,7 +4,8 @@ Theme URI: https://wordpress.org/themes/twentyeleven/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: The 2011 theme for WordPress is sophisticated, lightweight, and adaptable. Make it yours with a custom menu, header image, and background -- then go further with available theme options for light or dark color scheme, custom link colors, and three layout choices. Twenty Eleven comes equipped with a Showcase page template that transforms your front page into a showcase to show off your best content, widget support galore (sidebar, three footer areas, and a Showcase page widget area), and a custom "Ephemera" widget to display your Aside, Link, Quote, or Status posts. Included are styles for print and for the admin editor, support for featured images (as custom header images on posts and pages and as large images on featured "sticky" posts), and special styles for six different post formats.
-Version: 3.3
+Version: 3.5
+Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, left-sidebar, right-sidebar, custom-background, custom-colors, custom-header, custom-menu, editor-style, featured-image-header, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready
@@ -502,23 +503,29 @@ a:hover {
 	height: 1px;
 	width: 1px;
 }
-#access a.assistive-text:focus,
+
+a.assistive-text:focus,
 .screen-reader-text:hover,
 .screen-reader-text:active,
 .screen-reader-text:focus {
-	background: #eee;
-	border-bottom: 1px solid #ddd;
-	color: #1982d1;
+	background-color: #f1f1f1;
+	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 	clip: auto !important;
-	font-size: 12px;
+	clip-path: none;
+	color: #21759b;
+	display: block;
+	font-size: 14px;
+	font-weight: bold;
 	height: auto;
-	position: absolute;
-	text-decoration: underline;
-	top: 0;
-	left: 7.6%;
+	left: 6px;
+	line-height: normal;
+	padding: 17px 22px 15px;
+	text-decoration: none;
+	top: 7px;
 	width: auto;
+	z-index: 100000;
+	/* Above WP toolbar. */
 }
-
 
 /* =Header
 ----------------------------------------------- */
@@ -1839,6 +1846,9 @@ video {
 .widget a:active {
 	text-decoration: underline;
 }
+.widget select {
+	max-width: 100%;
+ }
 
 /* Search Widget */
 .widget_search form {
@@ -1948,6 +1958,18 @@ section.ephemera .entry-title a span {
 	background: #f4f4f4;
 	border-top: 1px solid #ccc;
 	border-bottom: 1px solid #ccc;
+}
+.widget_calendar .wp-calendar-nav {
+	display: table;
+	width: 95%;
+}
+.widget_calendar .wp-calendar-nav span {
+	display: table-cell;
+	text-align: center;
+}
+.widget_calendar .wp-calendar-nav-prev,
+.widget_calendar .wp-calendar-nav-next {
+	width: 40%;
 }
 
 /* Text Widget */

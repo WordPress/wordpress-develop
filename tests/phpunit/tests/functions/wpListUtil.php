@@ -3,7 +3,8 @@
 /**
  * @group functions.php
  */
-class Tests_WP_List_Util extends WP_UnitTestCase {
+class Tests_Functions_wpListUtil extends WP_UnitTestCase {
+
 	public function data_test_wp_list_pluck() {
 		return array(
 			'arrays'                         => array(
@@ -72,9 +73,9 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 				'foo',
 				'key',
 				array(
+					'bar',
 					'bar'   => 'foo',
 					'value' => 'baz',
-					'bar',
 				),
 			),
 			'objects'                        => array(
@@ -143,9 +144,9 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 				'foo',
 				'key',
 				array(
+					'bar',
 					'bar'   => 'foo',
 					'value' => 'baz',
-					'bar',
 				),
 			),
 		);
@@ -160,7 +161,7 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 	 * @param array      $expected  Expected result.
 	 */
 	public function test_wp_list_pluck( $list, $field, $index_key, $expected ) {
-		$this->assertEqualSetsWithIndex( $expected, wp_list_pluck( $list, $field, $index_key ) );
+		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $list, $field, $index_key ) );
 	}
 
 	public function data_test_wp_list_filter() {
@@ -690,7 +691,7 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
 	public function test_wp_list_sort( $list, $orderby, $order, $expected ) {
-		$this->assertEquals( $expected, wp_list_sort( $list, $orderby, $order ) );
+		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order ) );
 	}
 
 	public function data_test_wp_list_sort_preserve_keys() {
@@ -1015,21 +1016,21 @@ class Tests_WP_List_Util extends WP_UnitTestCase {
 	 * @param string       $order   Either 'ASC' or 'DESC'.
 	 */
 	public function test_wp_list_sort_preserve_keys( $list, $orderby, $order, $expected ) {
-		$this->assertEquals( $expected, wp_list_sort( $list, $orderby, $order, true ) );
+		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order, true ) );
 	}
 
 	public function test_wp_list_util_get_input() {
 		$input = array( 'foo', 'bar' );
 		$util  = new WP_List_Util( $input );
 
-		$this->assertEqualSets( $input, $util->get_input() );
+		$this->assertSameSets( $input, $util->get_input() );
 	}
 
 	public function test_wp_list_util_get_output_immediately() {
 		$input = array( 'foo', 'bar' );
 		$util  = new WP_List_Util( $input );
 
-		$this->assertEqualSets( $input, $util->get_output() );
+		$this->assertSameSets( $input, $util->get_output() );
 	}
 
 	public function test_wp_list_util_get_output() {

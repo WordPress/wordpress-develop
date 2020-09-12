@@ -8,10 +8,10 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 /** WordPress Translation Installation API */
-require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 if ( ! current_user_can( 'manage_network_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to access this page.' ), 403 );
@@ -20,7 +20,7 @@ if ( ! current_user_can( 'manage_network_options' ) ) {
 $title       = __( 'Network Settings' );
 $parent_file = 'settings.php';
 
-// Handle network admin email change requests
+// Handle network admin email change requests.
 if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	$new_admin_details = get_site_option( 'network_admin_hash' );
 	$redirect          = 'settings.php?updated=false';
@@ -32,7 +32,7 @@ if ( ! empty( $_GET['network_admin_hash'] ) ) {
 	}
 	wp_redirect( network_admin_url( $redirect ) );
 	exit;
-} elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' == $_GET['dismiss'] ) {
+} elseif ( ! empty( $_GET['dismiss'] ) && 'new_network_admin_email' === $_GET['dismiss'] ) {
 	check_admin_referer( 'dismiss_new_network_admin_email' );
 	delete_site_option( 'network_admin_hash' );
 	delete_site_option( 'new_admin_email' );
@@ -132,10 +132,10 @@ if ( $_POST ) {
 	do_action( 'update_wpmu_options' );
 
 	wp_redirect( add_query_arg( 'updated', 'true', network_admin_url( 'settings.php' ) ) );
-	exit();
+	exit;
 }
 
-include( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( isset( $_GET['updated'] ) ) {
 	?><div id="message" class="updated notice is-dismissible"><p><?php _e( 'Settings saved.' ); ?></p></div>
@@ -161,17 +161,17 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<input name="new_admin_email" type="email" id="admin_email" aria-describedby="admin-email-desc" class="regular-text" value="<?php echo esc_attr( get_site_option( 'admin_email' ) ); ?>" />
 					<p class="description" id="admin-email-desc">
-						<?php _e( 'This address is used for admin purposes. If you change this we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
+						<?php _e( 'This address is used for admin purposes. If you change this, we will send you an email at your new address to confirm it. <strong>The new address will not become active until confirmed.</strong>' ); ?>
 					</p>
 					<?php
 					$new_admin_email = get_site_option( 'new_admin_email' );
-					if ( $new_admin_email && $new_admin_email != get_site_option( 'admin_email' ) ) :
+					if ( $new_admin_email && get_site_option( 'admin_email' ) !== $new_admin_email ) :
 						?>
 						<div class="updated inline">
 						<p>
 						<?php
 							printf(
-								/* translators: %s: new network admin email */
+								/* translators: %s: New network admin email. */
 								__( 'There is a pending change of the network admin email to %s.' ),
 								'<code>' . esc_html( $new_admin_email ) . '</code>'
 							);
@@ -207,8 +207,8 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					if ( is_subdomain_install() ) {
 						echo '<p class="description">';
-						/* translators: 1: NOBLOGREDIRECT, 2: wp-config.php */
 						printf(
+							/* translators: 1: NOBLOGREDIRECT, 2: wp-config.php */
 							__( 'If registration is disabled, please set %1$s in %2$s to a URL you will redirect visitors to if they visit a non-existent site.' ),
 							'<code>NOBLOGREDIRECT</code>',
 							'<code>wp-config.php</code>'
@@ -255,9 +255,13 @@ if ( isset( $_GET['updated'] ) ) {
 					<?php
 					$limited_email_domains = get_site_option( 'limited_email_domains' );
 					$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
+
+					if ( $limited_email_domains ) {
+						$limited_email_domains = implode( "\n", (array) $limited_email_domains );
+					}
 					?>
 					<textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5">
-<?php echo esc_textarea( $limited_email_domains == '' ? '' : implode( "\n", (array) $limited_email_domains ) ); ?></textarea>
+<?php echo esc_textarea( $limited_email_domains ); ?></textarea>
 					<p class="description" id="limited-email-domains-desc">
 						<?php _e( 'If you want to limit site registrations to certain domains. One domain per line.' ); ?>
 					</p>
@@ -267,8 +271,15 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><label for="banned_email_domains"><?php _e( 'Banned Email Domains' ); ?></label></th>
 				<td>
+					<?php
+					$banned_email_domains = get_site_option( 'banned_email_domains' );
+
+					if ( $banned_email_domains ) {
+						$banned_email_domains = implode( "\n", (array) $banned_email_domains );
+					}
+					?>
 					<textarea name="banned_email_domains" id="banned_email_domains" aria-describedby="banned-email-domains-desc" cols="45" rows="5">
-<?php echo esc_textarea( get_site_option( 'banned_email_domains' ) == '' ? '' : implode( "\n", (array) get_site_option( 'banned_email_domains' ) ) ); ?></textarea>
+<?php echo esc_textarea( $banned_email_domains ); ?></textarea>
 					<p class="description" id="banned-email-domains-desc">
 						<?php _e( 'If you want to ban domains from site registrations. One domain per line.' ); ?>
 					</p>
@@ -362,7 +373,15 @@ if ( isset( $_GET['updated'] ) ) {
 			<tr>
 				<th scope="row"><?php _e( 'Site upload space' ); ?></th>
 				<td>
-					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/> <?php printf( __( 'Limit total size of files uploaded to %s MB' ), '</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '" />' ); ?></label><br />
+					<label><input type="checkbox" id="upload_space_check_disabled" name="upload_space_check_disabled" value="0"<?php checked( (bool) get_site_option( 'upload_space_check_disabled' ), false ); ?>/>
+						<?php
+						printf(
+							/* translators: %s: Number of megabytes to limit uploads to. */
+							__( 'Limit total size of files uploaded to %s MB' ),
+							'</label><label><input name="blog_upload_space" type="number" min="0" style="width: 100px" id="blog_upload_space" aria-describedby="blog-upload-space-desc" value="' . esc_attr( get_site_option( 'blog_upload_space', 100 ) ) . '" />'
+						);
+						?>
+					</label><br />
 					<p class="screen-reader-text" id="blog-upload-space-desc">
 						<?php _e( 'Size in megabytes' ); ?>
 					</p>
@@ -384,7 +403,7 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<?php
 						printf(
-							/* translators: %s: File size in kilobytes */
+							/* translators: %s: File size in kilobytes. */
 							__( '%s KB' ),
 							'<input name="fileupload_maxk" type="number" min="0" style="width: 100px" id="fileupload_maxk" aria-describedby="fileupload-maxk-desc" value="' . esc_attr( get_site_option( 'fileupload_maxk', 300 ) ) . '" />'
 						);
@@ -408,7 +427,7 @@ if ( isset( $_GET['updated'] ) ) {
 					<td>
 						<?php
 						$lang = get_site_option( 'WPLANG' );
-						if ( ! in_array( $lang, $languages ) ) {
+						if ( ! in_array( $lang, $languages, true ) ) {
 							$lang = '';
 						}
 
@@ -430,41 +449,47 @@ if ( isset( $_GET['updated'] ) ) {
 		}
 		?>
 
-		<h2><?php _e( 'Menu Settings' ); ?></h2>
-		<table id="menu" class="form-table">
-			<tr>
-				<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
-				<td>
-			<?php
-			$menu_perms = get_site_option( 'menu_items' );
-			/**
-			 * Filters available network-wide administration menu options.
-			 *
-			 * Options returned to this filter are output as individual checkboxes that, when selected,
-			 * enable site administrator access to the specified administration menu in certain contexts.
-			 *
-			 * Adding options for specific menus here hinges on the appropriate checks and capabilities
-			 * being in place in the site dashboard on the other side. For instance, when the single
-			 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
-			 * screen in their individual sites' dashboards.
-			 *
-			 * @since MU (3.0.0)
-			 *
-			 * @param string[] $admin_menus Associative array of the menu items available.
-			 */
-			$menu_items = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
+		<?php
+		$menu_perms = get_site_option( 'menu_items' );
+		/**
+		 * Filters available network-wide administration menu options.
+		 *
+		 * Options returned to this filter are output as individual checkboxes that, when selected,
+		 * enable site administrator access to the specified administration menu in certain contexts.
+		 *
+		 * Adding options for specific menus here hinges on the appropriate checks and capabilities
+		 * being in place in the site dashboard on the other side. For instance, when the single
+		 * default option, 'plugins' is enabled, site administrators are granted access to the Plugins
+		 * screen in their individual sites' dashboards.
+		 *
+		 * @since MU (3.0.0)
+		 *
+		 * @param string[] $admin_menus Associative array of the menu items available.
+		 */
+		$menu_items = apply_filters( 'mu_menu_items', array( 'plugins' => __( 'Plugins' ) ) );
 
-			echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
-
-			foreach ( (array) $menu_items as $key => $val ) {
-				echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
-			}
-
-			echo '</fieldset>';
+		if ( $menu_items ) :
 			?>
-				</td>
-			</tr>
-		</table>
+			<h2><?php _e( 'Menu Settings' ); ?></h2>
+			<table id="menu" class="form-table">
+				<tr>
+					<th scope="row"><?php _e( 'Enable administration menus' ); ?></th>
+					<td>
+						<?php
+						echo '<fieldset><legend class="screen-reader-text">' . __( 'Enable menus' ) . '</legend>';
+
+						foreach ( (array) $menu_items as $key => $val ) {
+							echo "<label><input type='checkbox' name='menu_items[" . $key . "]' value='1'" . ( isset( $menu_perms[ $key ] ) ? checked( $menu_perms[ $key ], '1', false ) : '' ) . ' /> ' . esc_html( $val ) . '</label><br/>';
+						}
+
+						echo '</fieldset>';
+						?>
+					</td>
+				</tr>
+			</table>
+			<?php
+		endif;
+		?>
 
 		<?php
 		/**
@@ -478,4 +503,4 @@ if ( isset( $_GET['updated'] ) ) {
 	</form>
 </div>
 
-<?php include( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

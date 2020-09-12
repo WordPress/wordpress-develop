@@ -7,8 +7,6 @@
  * @since 4.7.0
  */
 
-trigger_error( __FILE__ . ' is deprecated since version 5.0.0 with no alternative available.' );
-
 /**
  * Class used to test accessing methods and properties
  *
@@ -37,6 +35,7 @@ class Basic_Object {
 		return call_user_func_array( array( $this, $name ), $arguments );
 	}
 
+	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 	private function callMe() {
 		return 'maybe';
 	}

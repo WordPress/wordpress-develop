@@ -22,7 +22,7 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_term() {
 		$taxonomies = array(
@@ -39,8 +39,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 			$term   = get_term( $insert['term_id'], $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_1 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_1 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_3 ), $term->description );
 
 			$insert = wp_insert_term(
 				$this->slash_3,
@@ -51,8 +51,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 			$term   = get_term( $insert['term_id'], $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_5 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_3 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_5 ), $term->description );
 
 			$insert = wp_insert_term(
 				$this->slash_2,
@@ -63,13 +63,13 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 			$term   = get_term( $insert['term_id'], $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_2 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_4 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_2 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_4 ), $term->description );
 		}
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_term() {
 		$taxonomies = array(
@@ -93,8 +93,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 			);
 
 			$term = get_term( $id, $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_1 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_1 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_3 ), $term->description );
 
 			$update = wp_update_term(
 				$id,
@@ -105,8 +105,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 			$term   = get_term( $id, $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_3 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_5 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_3 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_5 ), $term->description );
 
 			$update = wp_update_term(
 				$id,
@@ -117,8 +117,8 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 			$term   = get_term( $id, $taxonomy );
-			$this->assertEquals( wp_unslash( $this->slash_2 ), $term->name );
-			$this->assertEquals( wp_unslash( $this->slash_4 ), $term->description );
+			$this->assertSame( wp_unslash( $this->slash_2 ), $term->name );
+			$this->assertSame( wp_unslash( $this->slash_4 ), $term->description );
 		}
 	}
 }

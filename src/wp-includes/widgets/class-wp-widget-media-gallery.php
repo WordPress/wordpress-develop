@@ -51,6 +51,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
+	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
@@ -108,7 +109,6 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 	 * @since 4.9.0
 	 *
 	 * @param array $instance Widget instance props.
-	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
@@ -200,7 +200,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 											<?php
 											echo esc_attr(
 												sprintf(
-													/* translators: %s: the image file name. */
+													/* translators: %s: The image file name. */
 													__( 'The current image has no alternative text. The file name is: %s' ),
 													'{{ attachment.filename }}'
 												)
@@ -214,7 +214,7 @@ class WP_Widget_Media_Gallery extends WP_Widget_Media {
 										<p class="gallery-icon-placeholder-text" aria-label="
 										<?php
 											printf(
-												/* translators: %s: the amount of additional, not visible images in the gallery widget preview. */
+												/* translators: %s: The amount of additional, not visible images in the gallery widget preview. */
 												__( 'Additional images added to this gallery: %s' ),
 												'{{ data.ids.length - 5 }}'
 											);

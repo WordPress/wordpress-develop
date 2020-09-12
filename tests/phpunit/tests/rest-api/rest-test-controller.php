@@ -15,7 +15,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 	 *
 	 * @param mixed           $item    WordPress representation of the item.
 	 * @param WP_REST_Request $request Request object.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
 		$context  = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -39,11 +39,18 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 				'somestring'     => array(
 					'type'        => 'string',
 					'description' => 'A pretty string.',
+					'minLength'   => 3,
+					'maxLength'   => 3,
+					'pattern'     => '[a-zA-Z]+',
 					'context'     => array( 'view' ),
 				),
 				'someinteger'    => array(
-					'type'    => 'integer',
-					'context' => array( 'view' ),
+					'type'             => 'integer',
+					'minimum'          => 100,
+					'maximum'          => 200,
+					'exclusiveMinimum' => true,
+					'exclusiveMaximum' => true,
+					'context'          => array( 'view' ),
 				),
 				'someboolean'    => array(
 					'type'    => 'boolean',
@@ -64,6 +71,16 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'format'  => 'email',
 					'context' => array( 'view' ),
 				),
+				'somehex'        => array(
+					'type'    => 'string',
+					'format'  => 'hex-color',
+					'context' => array( 'view' ),
+				),
+				'someuuid'       => array(
+					'type'    => 'string',
+					'format'  => 'uuid',
+					'context' => array( 'view' ),
+				),
 				'someenum'       => array(
 					'type'    => 'string',
 					'enum'    => array( 'a', 'b', 'c' ),
@@ -82,6 +99,29 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'enum'    => array( 'a', 'b', 'c' ),
 					'context' => array( 'view' ),
 					'default' => 'a',
+				),
+				'somearray'      => array(
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'string',
+					),
+					'minItems'    => 1,
+					'maxItems'    => 10,
+					'uniqueItems' => true,
+					'context'     => array( 'view' ),
+				),
+				'someobject'     => array(
+					'type'                 => 'object',
+					'additionalProperties' => array(
+						'type' => 'string',
+					),
+					'properties'           => array(
+						'object_id' => array(
+							'type' => 'integer',
+						),
+					),
+					'ignored_prop'         => 'ignored_prop',
+					'context'              => array( 'view' ),
 				),
 			),
 		);

@@ -8,7 +8,7 @@
 
 /** Define ABSPATH as this file's directory */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+	define( 'ABSPATH', __DIR__ . '/' );
 }
 
 if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
@@ -17,20 +17,23 @@ if ( file_exists( ABSPATH . 'wp-includes/js/dist/edit-post.js' ) ) {
 }
 
 define( 'WPINC', 'wp-includes' );
-require_once( ABSPATH . WPINC . '/load.php' );
+require_once ABSPATH . WPINC . '/load.php';
 
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
-require_once( ABSPATH . WPINC . '/functions.php' );
+require_once ABSPATH . WPINC . '/functions.php';
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
-require_once( ABSPATH . WPINC . '/version.php' );
+require_once ABSPATH . WPINC . '/version.php';
 
 wp_check_php_mysql_versions();
 wp_load_translations_early();
 
-// Die with an error message
-$die = __( 'You are running WordPress without JavaScript and CSS files. These need to be built.' ) . '</p>';
+// Die with an error message.
+$die = sprintf(
+	'<p>%s</p>',
+	__( 'You are running WordPress without JavaScript and CSS files. These need to be built.' )
+);
 
 $die .= '<p>' . sprintf(
 	/* translators: %s: npm install */
@@ -48,8 +51,8 @@ $die .= '<code style="color: green;">npm run build</code></li>';
 $die .= '</ul>';
 
 $die .= '<p>' . sprintf(
-	/* translators: 1: NPM URL, 2: Handbook URL */
-	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Read more about setting up your local development environment</a>.' ),
+	/* translators: 1: NPM URL, 2: Handbook URL. */
+	__( 'This requires <a href="%1$s">NPM</a>. <a href="%2$s">Learn more about setting up your local development environment</a>.' ),
 	'https://www.npmjs.com/get-npm',
 	__( 'https://make.wordpress.org/core/handbook/tutorials/installing-wordpress-locally/' )
 ) . '</p>';

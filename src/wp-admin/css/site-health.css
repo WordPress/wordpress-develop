@@ -7,7 +7,7 @@
 .health-check-header h1 {
 	display: inline-block;
 	font-weight: 600;
-	margin: 1rem 0.8rem;
+	margin: 0 0.8rem 1rem;
 	font-size: 23px;
 	padding: 9px 0 4px 0;
 	line-height: 1.3;
@@ -37,10 +37,14 @@
 	clear: both;
 }
 
+.site-health-progress-wrapper {
+	margin-bottom: 1rem;
+}
+
 .site-health-progress {
 	display: inline-block;
-	height: 40px;
-	width: 40px;
+	height: 20px;
+	width: 20px;
 	margin: 0;
 	border-radius: 100%;
 	position: relative;
@@ -62,15 +66,7 @@
 	font-size: 2em;
 }
 
-.site-health-progress-count::after {
-	content: "";
-}
-
-.site-health-progress.loading .site-health-progress-count::after {
-	content: "···";
-}
-
-.site-health-progress.loading svg #bar {
+.loading .site-health-progress svg #bar {
 	stroke-dashoffset: 0;
 	stroke: #adc5d2;
 	animation: loadingPulse 3s infinite ease-in-out;
@@ -88,12 +84,24 @@
 	stroke: #dc3232;
 }
 
-.site-health-progress svg #bar.green {
+.green .site-health-progress #bar {
 	stroke: #46b450;
 }
+.green .site-health-progress .site-health-progress-label {
+	color: #46b450;
+}
 
-.site-health-progress svg #bar.orange {
+.orange .site-health-progress #bar {
 	stroke: #ffb900;
+}
+.orange .site-health-progress .site-health-progress-label {
+	color: #ffb900;
+}
+
+.site-health-progress-label {
+	font-weight: 600;
+	line-height: 20px;
+	margin-left: 0.3rem;
 }
 
 @keyframes loadingPulse {
@@ -108,13 +116,31 @@
 	}
 }
 
+.health-check-tabs-wrapper {
+	/* IE 11 */
+	display: -ms-inline-grid;
+	-ms-grid-columns: 1fr 1fr;
+	vertical-align: top;
+	/* modern browsers */
+	display: inline-grid;
+	grid-template-columns: 1fr 1fr;
+}
+
 .health-check-tab {
-	display: inline-block;
+	display: block; /* IE 11 */
 	text-decoration: none;
 	color: inherit;
 	padding: 0.5rem 1rem 1rem;
 	margin: 0 1rem;
 	transition: box-shadow 0.5s ease-in-out;
+}
+
+.health-check-tab:nth-child(1) {
+	-ms-grid-column: 1; /* IE 11 */
+}
+
+.health-check-tab:nth-child(2) {
+	-ms-grid-column: 2; /* IE 11 */
 }
 
 .health-check-tab:focus {
@@ -177,20 +203,14 @@
 }
 
 .site-health-copy-buttons .copy-button-wrapper {
+	display: inline-flex;
+	align-items: center;
 	margin: 0.5rem 0 1rem;
 }
 
 .site-health-copy-buttons .success {
-	display: none;
 	color: #40860a;
-	line-height: 1.8;
 	margin-left: 0.5rem;
-}
-
-.site-health-copy-buttons .success.visible {
-	display: inline-block;
-	height: 28px;
-	line-height: 2.2;
 }
 
 .site-status-has-issues.hide {
@@ -247,12 +267,12 @@
 }
 
 .health-check-accordion {
-	border: 1px solid #e2e4e7;
+	border: 1px solid #ccd0d4;
 }
 
 .health-check-accordion-heading {
 	margin: 0;
-	border-top: 1px solid #e2e4e7;
+	border-top: 1px solid #ccd0d4;
 	font-size: inherit;
 	line-height: inherit;
 	font-weight: 600;
@@ -278,6 +298,10 @@
 	width: 100%;
 	align-items: center;
 	justify-content: space-between;
+	-webkit-user-select: auto;
+	-moz-user-select: auto;
+	-ms-user-select: auto;
+	user-select: auto;
 }
 
 .wp-core-ui .button.site-health-view-passed {
@@ -295,8 +319,9 @@
 	color: #191e23;
 	border: none;
 	box-shadow: none;
-	outline-offset: -2px;
-	outline: 1px dotted #555d66;
+	outline-offset: -1px;
+	outline: 2px solid #0071a1;
+	background-color: #f8f9f9;
 }
 
 .health-check-accordion-trigger .title {
@@ -424,6 +449,10 @@
 		width: 100%;
 		padding-bottom: 0;
 		font-weight: 600;
+	}
+
+	.wp-core-ui .site-health-copy-buttons .copy-button {
+		margin-bottom: 0;
 	}
 }
 

@@ -4,7 +4,9 @@ Theme URI: https://wordpress.org/themes/twentyseventeen/
 Author: the WordPress team
 Author URI: https://wordpress.org/
 Description: Twenty Seventeen brings your site to life with header video and immersive featured images. With a focus on business sites, it features multiple sections on the front page as well as widgets, navigation and social menus, a logo, and more. Personalize its asymmetrical grid with a custom color scheme and showcase your multimedia content with post formats. Our default theme for 2017 works great in many languages, for any abilities, and on any device.
-Version: 2.2
+Version: 2.4
+Requires at least: 4.7
+Requires PHP: 5.2.4
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentyseventeen
@@ -1034,8 +1036,8 @@ input[type="submit"].secondary {
 	color: #222;
 }
 
-button:hover:not( .mejs-container > button ),
-button:focus,
+:not( .mejs-button ) > button:hover,
+:not( .mejs-button ) > button:focus,
 input[type="button"]:hover,
 input[type="button"]:focus,
 input[type="submit"]:hover,
@@ -1150,6 +1152,8 @@ td {
 	padding: 0.4em;
 }
 
+th,
+td,
 th:first-child,
 td:first-child {
 	padding-left: 0;
@@ -2802,8 +2806,29 @@ h2.widget-title {
 
 /* Calendar widget */
 
+.widget_calendar .wp-calendar-table {
+	margin-bottom: 0;
+}
+
+.widget_calendar .wp-calendar-nav {
+	display: table;
+	width: 100%;
+	margin: 0 0 1.5em;
+	padding: 0.4em 0;
+}
+
+.widget_calendar .wp-calendar-nav span {
+	display: table-cell;
+}
+
+.widget_calendar .wp-calendar-nav-prev,
+.widget_calendar .wp-calendar-nav-next {
+	width: 40%;
+}
+
 .widget_calendar th,
-.widget_calendar td {
+.widget_calendar td,
+.widget_calendar .wp-calendar-nav span {
 	text-align: center;
 }
 
@@ -3504,7 +3529,7 @@ p > object:only-child {
 		right: 0;
 		top: 0;
 		width: 100%;
-		z-index: 7;
+		z-index: 1000;
 	}
 
 	.admin-bar .site-navigation-fixed.navigation-top {

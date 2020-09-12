@@ -155,12 +155,12 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Customize_Manager $manager Bootstrap Customizer instance.
-	 * @param string               $id      An specific ID of the setting. Can be a
-	 *                                      theme mod or option name.
-	 * @param array                $args    Optional. Setting arguments.
-	 *
 	 * @throws Exception If $id is not valid for this setting type.
+	 *
+	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
+	 * @param string               $id      A specific ID of the setting.
+	 *                                      Can be a theme mod or option name.
+	 * @param array                $args    Optional. Setting arguments.
 	 */
 	public function __construct( WP_Customize_Manager $manager, $id, array $args = array() ) {
 		if ( empty( $manager->nav_menus ) ) {
@@ -211,7 +211,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @return array|false Instance data array, or false if the item is marked for deletion.
 	 */
 	public function value() {
-		if ( $this->is_previewed && $this->_previewed_blog_id === get_current_blog_id() ) {
+		if ( $this->is_previewed && get_current_blog_id() === $this->_previewed_blog_id ) {
 			$undefined  = new stdClass(); // Symbol.
 			$post_value = $this->post_value( $undefined );
 
@@ -274,7 +274,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 				$original_title = apply_filters( 'the_title', $original_object->post_title, $original_object->ID );
 
 				if ( '' === $original_title ) {
-					/* translators: %d: ID of a post */
+					/* translators: %d: ID of a post. */
 					$original_title = sprintf( __( '#%d (no title)' ), $original_object->ID );
 				}
 			}
@@ -299,7 +299,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 * @since 4.7.0
 	 *
 	 * @param object $item Nav menu item.
-	 * @returns string The type label.
+	 * @return string The type label.
 	 */
 	protected function get_type_label( $item ) {
 		if ( 'post_type' === $item->type ) {
@@ -477,8 +477,11 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 	 */
 	public function filter_wp_get_nav_menu_items( $items, $menu, $args ) {
 		$this_item                = $this->value();
-		$current_nav_menu_term_id = $this_item['nav_menu_term_id'];
-		unset( $this_item['nav_menu_term_id'] );
+		$current_nav_menu_term_id = null;
+		if ( isset( $this_item['nav_menu_term_id'] ) ) {
+			$current_nav_menu_term_id = $this_item['nav_menu_term_id'];
+			unset( $this_item['nav_menu_term_id'] );
+		}
 
 		$should_filter = (
 			$menu->term_id === $this->original_nav_menu_term_id
@@ -493,7 +496,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 		$should_remove = (
 			false === $this_item
 			||
-			true === $this_item['_invalid']
+			( isset( $this_item['_invalid'] ) && true === $this_item['_invalid'] )
 			||
 			(
 				$this->original_nav_menu_term_id === $menu->term_id
@@ -795,7 +798,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 					return;
 				}
 
-				if ( $nav_menu_setting->previous_term_id !== intval( $value['nav_menu_term_id'] ) ) {
+				if ( intval( $value['nav_menu_term_id'] ) !== $nav_menu_setting->previous_term_id ) {
 					$this->update_status = 'error';
 					$this->update_error  = new WP_Error( 'unexpected_previous_term_id' );
 					return;
@@ -821,7 +824,7 @@ class WP_Customize_Nav_Menu_Item_Setting extends WP_Customize_Setting {
 					return;
 				}
 
-				if ( $parent_nav_menu_item_setting->previous_post_id !== intval( $value['menu_item_parent'] ) ) {
+				if ( intval( $value['menu_item_parent'] ) !== $parent_nav_menu_item_setting->previous_post_id ) {
 					$this->update_status = 'error';
 					$this->update_error  = new WP_Error( 'unexpected_previous_post_id' );
 					return;

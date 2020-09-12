@@ -10,7 +10,7 @@
  * @requires jQuery
  */
 
-/* global ajaxurl, attachMediaBoxL10n, _wpMediaGridSettings, showNotice, findPosts */
+/* global ajaxurl, _wpMediaGridSettings, showNotice, findPosts */
 
 ( function( $ ){
 	window.findPosts = {
@@ -26,7 +26,7 @@
 		 * @param {string} af_name The name of the affected element.
 		 * @param {string} af_val The value of the affected post element.
 		 *
-		 * @returns {boolean} Always returns false.
+		 * @return {boolean} Always returns false.
 		 */
 		open: function( af_name, af_val ) {
 			var overlay = $( '.ui-find-overlay' );
@@ -65,7 +65,7 @@
 		 *
 		 * @memberOf findPosts
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		close: function() {
 			$('#find-posts-response').empty();
@@ -81,7 +81,7 @@
 		 *
 		 * @memberOf findPosts
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		overlay: function() {
 			$( '.ui-find-overlay' ).on( 'click', function () {
@@ -100,7 +100,7 @@
 		 *
 		 * @memberOf findPosts
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		send: function() {
 			var post = {
@@ -124,12 +124,12 @@
 				spinner.removeClass( 'is-active' );
 			}).done( function( x ) {
 				if ( ! x.success ) {
-					$( '#find-posts-response' ).text( attachMediaBoxL10n.error );
+					$( '#find-posts-response' ).text( wp.i18n.__( 'An error has occurred. Please reload the page and try again.' ) );
 				}
 
 				$( '#find-posts-response' ).html( x.data );
 			}).fail( function() {
-				$( '#find-posts-response' ).text( attachMediaBoxL10n.error );
+				$( '#find-posts-response' ).text( wp.i18n.__( 'An error has occurred. Please reload the page and try again.' ) );
 			});
 		}
 	};
@@ -138,7 +138,7 @@
 	 * Initializes the file once the DOM is fully loaded and attaches events to the
 	 * various form elements.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$( document ).ready( function() {
 		var settings, $mediaGridWrap = $( '#wp-media-grid' );
@@ -147,11 +147,14 @@
 		if ( $mediaGridWrap.length && window.wp && window.wp.media ) {
 			settings = _wpMediaGridSettings;
 
-			window.wp.media({
+			var frame = window.wp.media({
 				frame: 'manage',
 				container: $mediaGridWrap,
 				library: settings.queryVars
 			}).open();
+
+			// Fire a global ready event.
+			$mediaGridWrap.trigger( 'wp-media-grid-ready', frame );
 		}
 
 		// Prevents form submission if no post has been selected.
@@ -198,7 +201,7 @@
 		/**
 		 * Enables clicking on the entire table row.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$( '.find-box-inside' ).on( 'click', 'tr', function() {
 			$( this ).find( '.found-radio input' ).prop( 'checked', true );

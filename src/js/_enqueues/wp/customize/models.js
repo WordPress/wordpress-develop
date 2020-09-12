@@ -13,7 +13,7 @@
 	 * wp.customize.HeaderTool.ImageModel
 	 *
 	 * A header image. This is where saves via the Customizer API are
-	 * abstracted away, plus our own AJAX calls to add images to and remove
+	 * abstracted away, plus our own Ajax calls to add images to and remove
 	 * images from the user's recently uploaded images setting on the server.
 	 * These calls are made regardless of whether the user actually saves new
 	 * Customizer settings.
@@ -53,8 +53,8 @@
 			var data = this.get('header'),
 				curr = api.HeaderTool.currentHeader.get('header').attachment_id;
 
-			// If the image we're removing is also the current header, unset
-			// the latter
+			// If the image we're removing is also the current header,
+			// unset the latter.
 			if (curr && data.attachment_id === curr) {
 				api.HeaderTool.currentHeader.trigger('hide');
 			}
@@ -142,7 +142,7 @@
 	api.HeaderTool.ChoiceList = Backbone.Collection.extend({
 		model: api.HeaderTool.ImageModel,
 
-		// Ordered from most recently used to least
+		// Ordered from most recently used to least.
 		comparator: function(model) {
 			return -model.get('header').timestamp;
 		},
@@ -151,18 +151,18 @@
 			var current = api.HeaderTool.currentHeader.get('choice').replace(/^https?:\/\//, ''),
 				isRandom = this.isRandomChoice(api.get().header_image);
 
-			// Overridable by an extending class
+			// Overridable by an extending class.
 			if (!this.type) {
 				this.type = 'uploaded';
 			}
 
-			// Overridable by an extending class
+			// Overridable by an extending class.
 			if (typeof this.data === 'undefined') {
 				this.data = _wpCustomizeHeader.uploads;
 			}
 
 			if (isRandom) {
-				// So that when adding data we don't hide regular images
+				// So that when adding data we don't hide regular images.
 				current = api.get().header_image;
 			}
 

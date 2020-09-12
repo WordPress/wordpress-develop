@@ -39,7 +39,7 @@ function edit_link( $link_id = 0 ) {
 	$_POST['link_name']  = esc_html( $_POST['link_name'] );
 	$_POST['link_image'] = esc_html( $_POST['link_image'] );
 	$_POST['link_rss']   = esc_url( $_POST['link_rss'] );
-	if ( ! isset( $_POST['link_visible'] ) || 'N' != $_POST['link_visible'] ) {
+	if ( ! isset( $_POST['link_visible'] ) || 'N' !== $_POST['link_visible'] ) {
 		$_POST['link_visible'] = 'Y';
 	}
 
@@ -117,12 +117,12 @@ function wp_delete_link( $link_id ) {
 }
 
 /**
- * Retrieves the link categories associated with the link specified.
+ * Retrieves the link category IDs associated with the link specified.
  *
  * @since 2.1.0
  *
- * @param int $link_id Link ID to look up
- * @return array The requested link's categories
+ * @param int $link_id Link ID to look up.
+ * @return int[] The IDs of the requested link's categories.
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
@@ -162,50 +162,50 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 		'link_rating' => 0,
 	);
 
-	$args = wp_parse_args( $linkdata, $defaults );
-	$r    = wp_unslash( sanitize_bookmark( $args, 'db' ) );
+	$parsed_args = wp_parse_args( $linkdata, $defaults );
+	$parsed_args = wp_unslash( sanitize_bookmark( $parsed_args, 'db' ) );
 
-	$link_id   = $r['link_id'];
-	$link_name = $r['link_name'];
-	$link_url  = $r['link_url'];
+	$link_id   = $parsed_args['link_id'];
+	$link_name = $parsed_args['link_name'];
+	$link_url  = $parsed_args['link_url'];
 
 	$update = false;
 	if ( ! empty( $link_id ) ) {
 		$update = true;
 	}
 
-	if ( trim( $link_name ) == '' ) {
-		if ( trim( $link_url ) != '' ) {
+	if ( '' === trim( $link_name ) ) {
+		if ( '' !== trim( $link_url ) ) {
 			$link_name = $link_url;
 		} else {
 			return 0;
 		}
 	}
 
-	if ( trim( $link_url ) == '' ) {
+	if ( '' === trim( $link_url ) ) {
 		return 0;
 	}
 
-	$link_rating      = ( ! empty( $r['link_rating'] ) ) ? $r['link_rating'] : 0;
-	$link_image       = ( ! empty( $r['link_image'] ) ) ? $r['link_image'] : '';
-	$link_target      = ( ! empty( $r['link_target'] ) ) ? $r['link_target'] : '';
-	$link_visible     = ( ! empty( $r['link_visible'] ) ) ? $r['link_visible'] : 'Y';
-	$link_owner       = ( ! empty( $r['link_owner'] ) ) ? $r['link_owner'] : get_current_user_id();
-	$link_notes       = ( ! empty( $r['link_notes'] ) ) ? $r['link_notes'] : '';
-	$link_description = ( ! empty( $r['link_description'] ) ) ? $r['link_description'] : '';
-	$link_rss         = ( ! empty( $r['link_rss'] ) ) ? $r['link_rss'] : '';
-	$link_rel         = ( ! empty( $r['link_rel'] ) ) ? $r['link_rel'] : '';
-	$link_category    = ( ! empty( $r['link_category'] ) ) ? $r['link_category'] : array();
+	$link_rating      = ( ! empty( $parsed_args['link_rating'] ) ) ? $parsed_args['link_rating'] : 0;
+	$link_image       = ( ! empty( $parsed_args['link_image'] ) ) ? $parsed_args['link_image'] : '';
+	$link_target      = ( ! empty( $parsed_args['link_target'] ) ) ? $parsed_args['link_target'] : '';
+	$link_visible     = ( ! empty( $parsed_args['link_visible'] ) ) ? $parsed_args['link_visible'] : 'Y';
+	$link_owner       = ( ! empty( $parsed_args['link_owner'] ) ) ? $parsed_args['link_owner'] : get_current_user_id();
+	$link_notes       = ( ! empty( $parsed_args['link_notes'] ) ) ? $parsed_args['link_notes'] : '';
+	$link_description = ( ! empty( $parsed_args['link_description'] ) ) ? $parsed_args['link_description'] : '';
+	$link_rss         = ( ! empty( $parsed_args['link_rss'] ) ) ? $parsed_args['link_rss'] : '';
+	$link_rel         = ( ! empty( $parsed_args['link_rel'] ) ) ? $parsed_args['link_rel'] : '';
+	$link_category    = ( ! empty( $parsed_args['link_category'] ) ) ? $parsed_args['link_category'] : array();
 
 	// Make sure we set a valid category.
-	if ( ! is_array( $link_category ) || 0 == count( $link_category ) ) {
+	if ( ! is_array( $link_category ) || 0 === count( $link_category ) ) {
 		$link_category = array( get_option( 'default_link_category' ) );
 	}
 
 	if ( $update ) {
-		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ), compact( 'link_id' ) ) ) {
+		if ( false === $wpdb->update( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ), compact( 'link_id' ) ) ) {
 			if ( $wp_error ) {
-				return new WP_Error( 'db_update_error', __( 'Could not update link in the database' ), $wpdb->last_error );
+				return new WP_Error( 'db_update_error', __( 'Could not update link in the database.' ), $wpdb->last_error );
 			} else {
 				return 0;
 			}
@@ -213,7 +213,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
 	} else {
 		if ( false === $wpdb->insert( $wpdb->links, compact( 'link_url', 'link_name', 'link_image', 'link_target', 'link_description', 'link_visible', 'link_owner', 'link_rating', 'link_rel', 'link_notes', 'link_rss' ) ) ) {
 			if ( $wp_error ) {
-				return new WP_Error( 'db_insert_error', __( 'Could not insert link into the database' ), $wpdb->last_error );
+				return new WP_Error( 'db_insert_error', __( 'Could not insert link into the database.' ), $wpdb->last_error );
 			} else {
 				return 0;
 			}
@@ -257,7 +257,7 @@ function wp_insert_link( $linkdata, $wp_error = false ) {
  */
 function wp_set_link_cats( $link_id = 0, $link_categories = array() ) {
 	// If $link_categories isn't already an array, make it one:
-	if ( ! is_array( $link_categories ) || 0 == count( $link_categories ) ) {
+	if ( ! is_array( $link_categories ) || 0 === count( $link_categories ) ) {
 		$link_categories = array( get_option( 'default_link_category' ) );
 	}
 
@@ -286,7 +286,9 @@ function wp_update_link( $linkdata ) {
 	$link = wp_slash( $link );
 
 	// Passed link category list overwrites existing category list if not empty.
-	if ( isset( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] ) && 0 != count( $linkdata['link_category'] ) ) {
+	if ( isset( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] )
+		&& count( $linkdata['link_category'] ) > 0
+	) {
 		$link_cats = $linkdata['link_category'];
 	} else {
 		$link_cats = $link['link_category'];
@@ -309,7 +311,8 @@ function wp_update_link( $linkdata ) {
  */
 function wp_link_manager_disabled_message() {
 	global $pagenow;
-	if ( 'link-manager.php' != $pagenow && 'link-add.php' != $pagenow && 'link.php' != $pagenow ) {
+
+	if ( ! in_array( $pagenow, array( 'link-manager.php', 'link-add.php', 'link.php' ), true ) ) {
 		return;
 	}
 
@@ -319,7 +322,7 @@ function wp_link_manager_disabled_message() {
 
 	if ( $really_can_manage_links && current_user_can( 'install_plugins' ) ) {
 		$link = network_admin_url( 'plugin-install.php?tab=search&amp;s=Link+Manager' );
-		/* translators: %s: URL of link manager plugin */
+		/* translators: %s: URL to install the Link Manager plugin. */
 		wp_die( sprintf( __( 'If you are looking to use the link manager, please install the <a href="%s">Link Manager</a> plugin.' ), $link ) );
 	}
 

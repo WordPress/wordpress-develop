@@ -32,16 +32,16 @@
 		</div><!-- .entry-meta -->
 	</header><!-- .entry-header -->
 
-	<?php if ( is_search() ) : // Only display Excerpts for Search ?>
+	<?php if ( is_search() ) : // Only display excerpts for search. ?>
 	<div class="entry-summary">
 		<?php the_excerpt(); ?>
 	</div><!-- .entry-summary -->
 	<?php else : ?>
 	<div class="entry-content">
 		<?php
-			/* translators: %s: Name of current post */
 			the_content(
 				sprintf(
+					/* translators: %s: Post title. */
 					__( 'Continue reading %s <span class="meta-nav">&rarr;</span>', 'twentythirteen' ),
 					the_title( '<span class="screen-reader-text">', '</span>', false )
 				)

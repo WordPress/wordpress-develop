@@ -7,7 +7,7 @@
  */
 
 /** Load WordPress Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $parent_file  = 'edit-comments.php';
 $submenu_file = 'edit-comments.php';
@@ -22,18 +22,32 @@ if ( isset( $_POST['deletecomment'] ) ) {
 	$action = 'deletecomment';
 }
 
-if ( 'cdc' == $action ) {
+if ( 'cdc' === $action ) {
 	$action = 'delete';
-} elseif ( 'mac' == $action ) {
+} elseif ( 'mac' === $action ) {
 	$action = 'approve';
 }
 
 if ( isset( $_GET['dt'] ) ) {
-	if ( 'spam' == $_GET['dt'] ) {
+	if ( 'spam' === $_GET['dt'] ) {
 		$action = 'spam';
-	} elseif ( 'trash' == $_GET['dt'] ) {
+	} elseif ( 'trash' === $_GET['dt'] ) {
 		$action = 'trash';
 	}
+}
+
+if ( isset( $_REQUEST['c'] ) ) {
+	$comment_id = absint( $_REQUEST['c'] );
+	$comment    = get_comment( $comment_id );
+
+	// Prevent actions on a comment associated with a trashed post.
+	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+		wp_die(
+			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
+		);
+	}
+} else {
+	$comment = null;
 }
 
 switch ( $action ) {
@@ -46,23 +60,21 @@ switch ( $action ) {
 				'id'      => 'overview',
 				'title'   => __( 'Overview' ),
 				'content' =>
-					  '<p>' . __( 'You can edit the information left in a comment if needed. This is often useful when you notice that a commenter has made a typographical error.' ) . '</p>' .
-					  '<p>' . __( 'You can also moderate the comment from this screen using the Status box, where you can also change the timestamp of the comment.' ) . '</p>',
+					'<p>' . __( 'You can edit the information left in a comment if needed. This is often useful when you notice that a commenter has made a typographical error.' ) . '</p>' .
+					'<p>' . __( 'You can also moderate the comment from this screen using the Status box, where you can also change the timestamp of the comment.' ) . '</p>',
 			)
 		);
 
 		get_current_screen()->set_help_sidebar(
 			'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-			'<p>' . __( '<a href="https://codex.wordpress.org/Administration_Screens#Comments">Documentation on Comments</a>' ) . '</p>' .
+			'<p>' . __( '<a href="https://wordpress.org/support/article/comments-screen/">Documentation on Comments</a>' ) . '</p>' .
 			'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 		);
 
 		wp_enqueue_script( 'comment' );
-		require_once( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
-		$comment_id = absint( $_GET['c'] );
-
-		if ( ! $comment = get_comment( $comment_id ) ) {
+		if ( ! $comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'javascript:history.go(-1)' ) );
 		}
 
@@ -70,13 +82,13 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit this comment.' ) );
 		}
 
-		if ( 'trash' == $comment->comment_approved ) {
+		if ( 'trash' === $comment->comment_approved ) {
 			comment_footer_die( __( 'This comment is in the Trash. Please move it out of the Trash if you want to edit it.' ) );
 		}
 
 		$comment = get_comment_to_edit( $comment_id );
 
-		include( ABSPATH . 'wp-admin/edit-form-comment.php' );
+		require ABSPATH . 'wp-admin/edit-form-comment.php';
 
 		break;
 
@@ -86,9 +98,7 @@ switch ( $action ) {
 	case 'spam':
 		$title = __( 'Moderate Comment' );
 
-		$comment_id = absint( $_GET['c'] );
-
-		if ( ! $comment = get_comment( $comment_id ) ) {
+		if ( ! $comment ) {
 			wp_redirect( admin_url( 'edit-comments.php?error=1' ) );
 			die();
 		}
@@ -99,15 +109,15 @@ switch ( $action ) {
 		}
 
 		// No need to re-approve/re-trash/re-spam a comment.
-		if ( $action == str_replace( '1', 'approve', $comment->comment_approved ) ) {
+		if ( str_replace( '1', 'approve', $comment->comment_approved ) === $action ) {
 			wp_redirect( admin_url( 'edit-comments.php?same=' . $comment_id ) );
 			die();
 		}
 
-		require_once( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$formaction    = $action . 'comment';
-		$nonce_action  = 'approve' == $action ? 'approve-comment_' : 'delete-comment_';
+		$nonce_action  = ( 'approve' === $action ) ? 'approve-comment_' : 'delete-comment_';
 		$nonce_action .= $comment_id;
 
 		?>
@@ -119,7 +129,7 @@ switch ( $action ) {
 		switch ( $action ) {
 			case 'spam':
 				$caution_msg = __( 'You are about to mark the following comment as spam:' );
-				$button      = _x( 'Mark as Spam', 'comment' );
+				$button      = _x( 'Mark as spam', 'comment' );
 				break;
 			case 'trash':
 				$caution_msg = __( 'You are about to move the following comment to the Trash:' );
@@ -127,15 +137,15 @@ switch ( $action ) {
 				break;
 			case 'delete':
 				$caution_msg = __( 'You are about to delete the following comment:' );
-				$button      = __( 'Permanently Delete Comment' );
+				$button      = __( 'Permanently delete comment' );
 				break;
 			default:
 				$caution_msg = __( 'You are about to approve the following comment:' );
-				$button      = __( 'Approve Comment' );
+				$button      = __( 'Approve comment' );
 				break;
 		}
 
-		if ( $comment->comment_approved != '0' ) { // if not unapproved
+		if ( '0' !== $comment->comment_approved ) { // If not unapproved.
 			$message = '';
 			switch ( $comment->comment_approved ) {
 				case '1':
@@ -173,7 +183,7 @@ switch ( $action ) {
 </tr>
 <?php } ?>
 <tr>
-	<th scope="row"><?php /* translators: column name or table row header */ _e( 'In Response To' ); ?></th>
+	<th scope="row"><?php /* translators: Column name or table row header. */ _e( 'In response to' ); ?></th>
 	<td>
 		<?php
 		$post_id = $comment->comment_post_ID;
@@ -190,7 +200,7 @@ switch ( $action ) {
 			$parent_link = esc_url( get_comment_link( $parent ) );
 			$name        = get_comment_author( $parent );
 			printf(
-				/* translators: %s: comment link */
+				/* translators: %s: Comment link. */
 				' | ' . __( 'In reply to %s.' ),
 				'<a href="' . $parent_link . '">' . $name . '</a>'
 			);
@@ -202,11 +212,12 @@ switch ( $action ) {
 	<th scope="row"><?php _e( 'Submitted on' ); ?></th>
 	<td>
 		<?php
-		/* translators: 1: comment date, 2: comment time */
 		$submitted = sprintf(
+			/* translators: 1: Comment date, 2: Comment time. */
 			__( '%1$s at %2$s' ),
-			/* translators: comment date format. See https://secure.php.net/date */
+			/* translators: Comment date format. See https://www.php.net/date */
 			get_comment_date( __( 'Y/m/d' ), $comment ),
+			/* translators: Comment time format. See https://www.php.net/date */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
 		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
@@ -218,7 +229,7 @@ switch ( $action ) {
 		</td>
 	</tr>
 	<tr>
-	<th scope="row"><?php /* translators: field name in comment form */ _ex( 'Comment', 'noun' ); ?></th>
+	<th scope="row"><?php /* translators: Field name in comment form. */ _ex( 'Comment', 'noun' ); ?></th>
 	<td class="comment-content">
 		<?php comment_text( $comment ); ?>
 	<p class="edit-comment"><a href="<?php echo admin_url( "comment.php?action=editcomment&amp;c={$comment->comment_ID}" ); ?>"><?php esc_html_e( 'Edit' ); ?></a></p>
@@ -252,7 +263,7 @@ switch ( $action ) {
 	case 'unapprovecomment':
 		$comment_id = absint( $_REQUEST['c'] );
 
-		if ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ) ) ) {
+		if ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ), true ) ) {
 			check_admin_referer( 'approve-comment_' . $comment_id );
 		} else {
 			check_admin_referer( 'delete-comment_' . $comment_id );
@@ -260,18 +271,19 @@ switch ( $action ) {
 
 		$noredir = isset( $_REQUEST['noredir'] );
 
-		if ( ! $comment = get_comment( $comment_id ) ) {
+		$comment = get_comment( $comment_id );
+		if ( ! $comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'edit-comments.php' ) );
 		}
 		if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
-		if ( '' != wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
+		if ( wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
 			$redir = wp_get_referer();
-		} elseif ( '' != wp_get_original_referer() && ! $noredir ) {
+		} elseif ( wp_get_original_referer() && ! $noredir ) {
 			$redir = wp_get_original_referer();
-		} elseif ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ) ) ) {
+		} elseif ( in_array( $action, array( 'approvecomment', 'unapprovecomment' ), true ) ) {
 			$redir = admin_url( 'edit-comments.php?p=' . absint( $comment->comment_post_ID ) );
 		} else {
 			$redir = admin_url( 'edit-comments.php' );
@@ -331,7 +343,10 @@ switch ( $action ) {
 
 		check_admin_referer( 'update-comment_' . $comment_id );
 
-		edit_comment();
+		$updated = edit_comment();
+		if ( is_wp_error( $updated ) ) {
+			wp_die( $updated->get_error_message() );
+		}
 
 		$location = ( empty( $_POST['referredby'] ) ? "edit-comments.php?p=$comment_post_id" : $_POST['referredby'] ) . '#comment-' . $comment_id;
 
@@ -344,13 +359,13 @@ switch ( $action ) {
 		 * @param int $comment_id The ID of the comment being edited.
 		 */
 		$location = apply_filters( 'comment_edit_redirect', $location, $comment_id );
-		wp_redirect( $location );
 
-		exit();
+		wp_redirect( $location );
+		exit;
 
 	default:
 		wp_die( __( 'Unknown action.' ) );
 
-} // end switch
+} // End switch.
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

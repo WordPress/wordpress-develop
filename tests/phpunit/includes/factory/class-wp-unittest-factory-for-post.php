@@ -37,10 +37,10 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	/**
 	 * Updates an existing post object.
 	 *
-	 * @param int   $post_id The post id to update.
+	 * @param int   $post_id ID of the post to update.
 	 * @param array $fields  Post data.
 	 *
-	 * @return int|WP_Error The value 0 or WP_Error on failure. The post ID on success.
+	 * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
 	 */
 	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
@@ -48,11 +48,11 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	}
 
 	/**
-	 * Retrieves a object by an id.
+	 * Retrieves a post by a given ID.
 	 *
-	 * @param int   $post_id The post id to update.
+	 * @param int $post_id ID of the post to retrieve.
 	 *
-	 * @return null|WP_Post WP_Post on success or null on failure.
+	 * @return WP_Post|null WP_Post object on success, null on failure.
 	 */
 	public function get_object_by_id( $post_id ) {
 		return get_post( $post_id );

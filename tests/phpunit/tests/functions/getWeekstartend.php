@@ -11,7 +11,7 @@ class Tests_Functions_GetWeekstartend extends WP_UnitTestCase {
 			'end'   => 1455494399,
 		);
 
-		$this->assertEquals( $expected, get_weekstartend( '2016-02-12' ) );
+		$this->assertSame( $expected, get_weekstartend( '2016-02-12' ) );
 	}
 
 	public function test_start_of_week_sunday() {
@@ -20,7 +20,7 @@ class Tests_Functions_GetWeekstartend extends WP_UnitTestCase {
 			'end'   => 1455407999,
 		);
 
-		$this->assertEquals( $expected, get_weekstartend( '2016-02-12', 0 ) );
+		$this->assertSame( $expected, get_weekstartend( '2016-02-12', 0 ) );
 	}
 
 	public function test_start_of_week_should_fall_back_on_start_of_week_option() {
@@ -31,7 +31,7 @@ class Tests_Functions_GetWeekstartend extends WP_UnitTestCase {
 			'end'   => 1455580799,
 		);
 
-		$this->assertEquals( $expected, get_weekstartend( '2016-02-12' ) );
+		$this->assertSame( $expected, get_weekstartend( '2016-02-12' ) );
 	}
 
 	public function test_start_of_week_should_fall_back_on_sunday_when_option_is_missing() {
@@ -42,6 +42,6 @@ class Tests_Functions_GetWeekstartend extends WP_UnitTestCase {
 			'end'   => 1455407999,
 		);
 
-		$this->assertEquals( $expected, get_weekstartend( '2016-02-12' ) );
+		$this->assertSame( $expected, get_weekstartend( '2016-02-12' ) );
 	}
 }

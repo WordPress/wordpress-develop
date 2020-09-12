@@ -20,7 +20,7 @@ a {
 
 a:hover,
 a:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 a:focus {
@@ -28,10 +28,6 @@ a:focus {
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, 0.8);
-}
-
-.ie8 a:focus {
-	outline: #5b9dd9 solid 1px;
 }
 
 h1, h2 {
@@ -81,30 +77,24 @@ label {
 }
 
 #logo {
-	margin: 6px 0 14px 0;
-	padding: 0 0 7px 0;
-	border-bottom: none;
-	text-align: center
-}
-#logo a {
+	margin: -130px auto 25px;
+	padding: 0 0 25px 0;
+	width: 84px;
+	height: 84px;
+	overflow: hidden;
 	background-image: url(../images/w-logo-blue.png?ver=20131202);
 	background-image: none, url(../images/wordpress-logo.svg?ver=20131107);
 	background-size: 84px;
 	background-position: center top;
 	background-repeat: no-repeat;
 	color: #444; /* same as login.css */
-	height: 84px;
 	font-size: 20px;
 	font-weight: 400;
-	line-height: 1.3;
-	margin: -130px auto 25px;
-	padding: 0;
+	line-height: 1.3em;
 	text-decoration: none;
-	width: 84px;
+	text-align: center;
 	text-indent: -9999px;
 	outline: none;
-	overflow: hidden;
-	display: block;
 }
 
 .step {
@@ -115,10 +105,7 @@ label {
 	padding: 0;
 }
 .language-chooser.wp-core-ui .step .button.button-large {
-	height: 36px;
 	font-size: 14px;
-	line-height: 2.35714285;
-	vertical-align: middle;
 }
 textarea {
 	border: 1px solid #ddd;
@@ -174,8 +161,9 @@ submit {
 .form-table input[type=text],
 .form-table input[type=email],
 .form-table input[type=url],
-.form-table input[type=password] {
-	width: 206px;
+.form-table input[type=password],
+#pass-strength-result {
+	width: 218px;
 }
 
 .form-table th p {
@@ -212,66 +200,6 @@ submit {
 	font-family: Consolas, Monaco, monospace;
 }
 
-.wp-hide-pw > .dashicons {
-	line-height: inherit;
-}
-
-#pass-strength-result {
-	background-color: #eee;
-	border: 1px solid #ddd;
-	color: #23282d;
-	margin: -2px 5px 5px 0px;
-	padding: 3px 5px;
-	text-align: center;
-	width: 218px;
-	box-sizing: border-box;
-	opacity: 0;
-}
-
-#pass-strength-result.short {
-	background-color: #f1adad;
-	border-color: #e35b5b;
-	opacity: 1;
-}
-
-#pass-strength-result.bad {
-	background-color: #fbc5a9;
-	border-color: #f78b53;
-	opacity: 1;
-}
-
-#pass-strength-result.good {
-	background-color: #ffe399;
-	border-color: #ffc733;
-	opacity: 1;
-}
-
-#pass-strength-result.strong {
-	background-color: #c1e1b9;
-	border-color: #83c373;
-	opacity: 1;
-}
-
-#pass1.short, #pass1-text.short {
-	border-color: #e35b5b;
-}
-
-#pass1.bad, #pass1-text.bad {
-	border-color: #f78b53;
-}
-
-#pass1.good, #pass1-text.good {
-	border-color: #ffc733;
-}
-
-#pass1.strong, #pass1-text.strong {
-	border-color: #83c373;
-}
-
-.pw-weak {
-	display: none;
-}
-
 .message {
 	border-left: 4px solid #dc3232;
 	padding: .7em .6em;
@@ -289,20 +217,6 @@ submit {
 #pass1,
 #pass2 {
 	direction: ltr;
-}
-
-#pass1-text,
-.show-password #pass1 {
-	display: none;
-}
-
-.show-password #pass1-text
-{
-	display: inline-block;
-}
-
-.form-table span.description.important {
-	font-size: 12px;
 }
 
 
@@ -374,6 +288,17 @@ body.rtl,
 		box-sizing: border-box;
 	}
 
+	.wp-pwd #pass1 {
+		padding-right: 50px;
+	}
+
+	.wp-pwd .button.wp-hide-pw {
+		right: 0;
+	}
+
+	#pass-strength-result {
+		width: 100%;
+	}
 }
 
 body.language-chooser {
@@ -385,11 +310,20 @@ body.language-chooser {
 	width: 100%;
 	display: block;
 	border: 1px solid #ddd;
-	background-color: #fff;
+	background: #fff;
 	color: #32373c;
 	font-size: 16px;
 	font-family: Arial, sans-serif;
 	font-weight: 400;
+}
+
+.language-chooser select:focus {
+	color: #32373c;
+}
+
+.language-chooser select option:hover,
+.language-chooser select option:focus {
+	color: #016087;
 }
 
 .language-chooser p {

@@ -36,7 +36,7 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * @ticket 27042
 	 */
 	public function test_search_returns_results_for_pages() {
-		include_once ABSPATH . 'wp-admin/includes/nav-menu.php';
+		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
 		self::factory()->post->create_many(
 			3,
@@ -113,6 +113,32 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 		$request = array(
 			'type' => 'quick-search-posttype-post',
 			'q'    => 'FOO',
+		);
+		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
+
+		$this->assertNotEmpty( $output );
+		$results = explode( "\n", trim( $output ) );
+		$this->assertCount( 1, $results );
+	}
+
+	/**
+	 * Test that search displays terms that are not assigned to any posts.
+	 *
+	 * @ticket 45298
+	 */
+	public function test_search_should_return_unassigned_term_items() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$this->factory->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'foobar',
+			)
+		);
+
+		$request = array(
+			'type' => 'quick-search-taxonomy-wptests_tax',
+			'q'    => 'foobar',
 		);
 		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
 

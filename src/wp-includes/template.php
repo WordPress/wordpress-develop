@@ -428,7 +428,8 @@ function get_page_template() {
 	$pagename = get_query_var( 'pagename' );
 
 	if ( ! $pagename && $id ) {
-		// If a static page is set as the front page, $pagename will not be set. Retrieve it from the queried object
+		// If a static page is set as the front page, $pagename will not be set.
+		// Retrieve it from the queried object.
 		$post = get_queried_object();
 		if ( $post ) {
 			$pagename = $post->post_name;
@@ -643,13 +644,17 @@ function get_attachment_template() {
  * so that themes which inherit from a parent theme can just overload one file.
  *
  * @since 2.7.0
+ * @since 5.5.0 The `$args` parameter was added.
  *
  * @param string|array $template_names Template file(s) to search for, in order.
  * @param bool         $load           If true the template file will be loaded if it is found.
- * @param bool         $require_once   Whether to require_once or require. Default true. Has no effect if $load is false.
+ * @param bool         $require_once   Whether to require_once or require. Has no effect if `$load` is false.
+ *                                     Default true.
+ * @param array        $args           Optional. Additional arguments passed to the template.
+ *                                     Default empty array.
  * @return string The template filename if one is located.
  */
-function locate_template( $template_names, $load = false, $require_once = true ) {
+function locate_template( $template_names, $load = false, $require_once = true, $args = array() ) {
 	$located = '';
 	foreach ( (array) $template_names as $template_name ) {
 		if ( ! $template_name ) {
@@ -667,8 +672,8 @@ function locate_template( $template_names, $load = false, $require_once = true )
 		}
 	}
 
-	if ( $load && '' != $located ) {
-		load_template( $located, $require_once );
+	if ( $load && '' !== $located ) {
+		load_template( $located, $require_once, $args );
 	}
 
 	return $located;
@@ -682,23 +687,26 @@ function locate_template( $template_names, $load = false, $require_once = true )
  * also available.
  *
  * @since 1.5.0
+ * @since 5.5.0 The `$args` parameter was added.
  *
  * @global array      $posts
- * @global WP_Post    $post
+ * @global WP_Post    $post          Global post object.
  * @global bool       $wp_did_header
- * @global WP_Query   $wp_query
- * @global WP_Rewrite $wp_rewrite
- * @global wpdb       $wpdb
+ * @global WP_Query   $wp_query      WordPress Query object.
+ * @global WP_Rewrite $wp_rewrite    WordPress rewrite component.
+ * @global wpdb       $wpdb          WordPress database abstraction object.
  * @global string     $wp_version
- * @global WP         $wp
+ * @global WP         $wp            Current WordPress environment instance.
  * @global int        $id
- * @global WP_Comment $comment
+ * @global WP_Comment $comment       Global comment object.
  * @global int        $user_ID
  *
  * @param string $_template_file Path to template file.
  * @param bool   $require_once   Whether to require_once or require. Default true.
+ * @param array  $args           Optional. Additional arguments passed to the template.
+ *                               Default empty array.
  */
-function load_template( $_template_file, $require_once = true ) {
+function load_template( $_template_file, $require_once = true, $args = array() ) {
 	global $posts, $post, $wp_did_header, $wp_query, $wp_rewrite, $wpdb, $wp_version, $wp, $id, $comment, $user_ID;
 
 	if ( is_array( $wp_query->query_vars ) ) {
@@ -719,8 +727,8 @@ function load_template( $_template_file, $require_once = true ) {
 	}
 
 	if ( $require_once ) {
-		require_once( $_template_file );
+		require_once $_template_file;
 	} else {
-		require( $_template_file );
+		require $_template_file;
 	}
 }

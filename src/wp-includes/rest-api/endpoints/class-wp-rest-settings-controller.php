@@ -123,12 +123,15 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return mixed The prepared value.
 	 */
 	protected function prepare_value( $value, $schema ) {
-		// If the value is not valid by the schema, set the value to null. Null
-		// values are specifcally non-destructive so this will not cause overwriting
-		// the current invalid value to null.
+		/*
+		 * If the value is not valid by the schema, set the value to null.
+		 * Null values are specifically non-destructive, so this will not cause
+		 * overwriting the current invalid value to null.
+		 */
 		if ( is_wp_error( rest_validate_value_from_schema( $value, $schema ) ) ) {
 			return null;
 		}
+
 		return rest_sanitize_value_from_schema( $value, $schema );
 	}
 
@@ -190,6 +193,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				if ( is_wp_error( rest_validate_value_from_schema( get_option( $args['option_name'], false ), $args['schema'] ) ) ) {
 					return new WP_Error(
 						'rest_invalid_stored_value',
+						/* translators: %s: Property name. */
 						sprintf( __( 'The %s property has an invalid stored value, and cannot be updated to null.' ), $name ),
 						array( 'status' => 500 )
 					);
@@ -247,7 +251,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			}
 
 			/*
-			 * Whitelist the supported types for settings, as we don't want invalid types
+			 * Allow the supported types for settings, as we don't want invalid types
 			 * to be updated with arbitrary values that we can't do decent sanitizing for.
 			 */
 			if ( ! in_array( $rest_args['schema']['type'], array( 'number', 'integer', 'string', 'boolean', 'array', 'object' ), true ) ) {
@@ -270,6 +274,10 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->add_additional_fields_schema( $this->schema );
+		}
+
 		$options = $this->get_registered_options();
 
 		$schema = array(
@@ -286,7 +294,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			);
 		}
 
-		return $this->add_additional_fields_schema( $schema );
+		$this->schema = $schema;
+
+		return $this->add_additional_fields_schema( $this->schema );
 	}
 
 	/**
@@ -294,19 +304,20 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 	 *
 	 * By default, the schema of settings will throw an error if a value is set to
 	 * `null` as it's not a valid value for something like "type => string". We
-	 * provide a wrapper sanitizer to whitelist the use of `null`.
+	 * provide a wrapper sanitizer to allow the use of `null`.
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param  mixed           $value   The value for the setting.
-	 * @param  WP_REST_Request $request The request object.
-	 * @param  string          $param   The parameter name.
+	 * @param mixed           $value   The value for the setting.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The parameter name.
 	 * @return mixed|WP_Error
 	 */
 	public function sanitize_callback( $value, $request, $param ) {
 		if ( is_null( $value ) ) {
 			return $value;
 		}
+
 		return rest_parse_request_arg( $value, $request, $param );
 	}
 
@@ -328,6 +339,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 				foreach ( $schema['properties'] as $key => $child_schema ) {
 					$schema['properties'][ $key ] = $this->set_additional_properties_to_false( $child_schema );
 				}
+
 				$schema['additionalProperties'] = false;
 				break;
 			case 'array':

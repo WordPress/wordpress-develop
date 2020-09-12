@@ -15,8 +15,8 @@ var Selection = wp.media.model.Selection,
  * @augments Backbone.Model
  *
  * @param {object}                     [attributes]                         The attributes hash passed to the state.
- * @param {string}                     [attributes.id=library]      Unique identifier.
- * @param {string}                     attributes.title                    Title for the state. Displays in the frame's title region.
+ * @param {string}                     [attributes.id=library]              Unique identifier.
+ * @param {string}                     attributes.title                     Title for the state. Displays in the frame's title region.
  * @param {boolean}                    [attributes.multiple=add]            Whether multi-select is enabled. @todo 'add' doesn't seem do anything special, and gets used as a boolean.
  * @param {wp.media.model.Attachments} [attributes.library]                 The attachments collection to browse.
  *                                                                          If one is not supplied, a collection of attachments of the specified type will be created.
@@ -34,8 +34,8 @@ var Selection = wp.media.model.Selection,
  * @param {int}                        [attributes.priority=100]            The priority for the state link in the media menu.
  * @param {boolean}                    [attributes.syncSelection=false]     Whether the Attachments selection should be persisted from the last state.
  *                                                                          Defaults to false because for this state, because the library of the Edit Gallery state is the selection.
- * @param {string}                     attributes.type                   The collection's media type. (e.g. 'video').
- * @param {string}                     attributes.collectionType         The collection type. (e.g. 'playlist').
+ * @param {string}                     attributes.type                      The collection's media type. (e.g. 'video').
+ * @param {string}                     attributes.collectionType            The collection type. (e.g. 'playlist').
  */
 CollectionAdd = Library.extend(/** @lends wp.media.controller.CollectionAdd.prototype */{
 	defaults: _.defaults( {
@@ -87,9 +87,11 @@ CollectionAdd = Library.extend(/** @lends wp.media.controller.CollectionAdd.prot
 			return !! this.mirroring.get( attachment.cid ) && ! edit.get( attachment.cid ) && Selection.prototype.validator.apply( this, arguments );
 		};
 
-		// Reset the library to ensure that all attachments are re-added
-		// to the collection. Do so silently, as calling `observe` will
-		// trigger the `reset` event.
+		/*
+		 * Reset the library to ensure that all attachments are re-added
+		 * to the collection. Do so silently, as calling `observe` will
+		 * trigger the `reset` event.
+		 */
 		library.reset( library.mirroring.models, { silent: true });
 		library.observe( edit );
 		this.set('editLibrary', edit);

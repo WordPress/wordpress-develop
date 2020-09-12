@@ -11,7 +11,7 @@
  * Tests_Privacy_WpPrivacySendPersonalDataExportEmail class.
  *
  * @group privacy
- * @covers wp_privacy_send_personal_data_export_email
+ * @covers ::wp_privacy_send_personal_data_export_email
  *
  * @since 4.9.6
  */
@@ -104,8 +104,10 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should send an export link to the requester when the user request is confirmed.
 	 */
 	public function test_function_should_send_export_link_to_requester() {
-		$archive_url = wp_privacy_exports_url() . 'wp-personal-data-file-requester-at-example-com-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
-		update_post_meta( self::$request_id, '_export_file_url', $archive_url );
+		$exports_url      = wp_privacy_exports_url();
+		$export_file_name = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
+		$export_file_url  = $exports_url . $export_file_name;
+		update_post_meta( self::$request_id, '_export_file_name', $export_file_name );
 
 		$email_sent = wp_privacy_send_personal_data_export_email( self::$request_id );
 		$mailer     = tests_retrieve_phpmailer_instance();
@@ -113,7 +115,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 		$this->assertSame( 'request-confirmed', get_post_status( self::$request_id ) );
 		$this->assertSame( self::$requester_email, $mailer->get_recipient( 'to' )->address );
 		$this->assertContains( 'Personal Data Export', $mailer->get_sent()->subject );
-		$this->assertContains( $archive_url, $mailer->get_sent()->body );
+		$this->assertContains( $export_file_url, $mailer->get_sent()->body );
 		$this->assertContains( 'please download it', $mailer->get_sent()->body );
 		$this->assertTrue( $email_sent );
 	}
@@ -167,11 +169,63 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 4.9.6
 	 *
 	 * @param int $expiration The expiration age of the export, in seconds.
-	 * @return int $expiration The expiration age of the export, in seconds.
+	 * @return int The expiration age of the export, in seconds.
 	 */
 	public function modify_export_expiration( $expiration ) {
 		// Set date to always be "Mon, 18 Dec 2017 21:30:00 GMT", so can assert a fixed date.
 		return 1513632600 - time();
+	}
+
+	/**
+	 * The email address of the recipient of the personal data export notification should be filterable.
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_address_of_recipient_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_to', array( $this, 'filter_email_address' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( 'modified-' . self::$requester_email, $mailer->get_recipient( 'to' )->address );
+	}
+
+	/**
+	 * Filter callback that modifies the email address of the recipient of the personal data export notification.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param  string $user_email The email address of the notification recipient.
+	 * @return string The modified email address of the notification recipient.
+	 */
+	public function filter_email_address( $user_email ) {
+		return 'modified-' . $user_email;
+	}
+
+	/**
+	 * The email subject of the personal data export notification should be filterable.
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_subject_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_subject', array( $this, 'filter_email_subject' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertSame( 'Modified subject', $mailer->get_sent()->subject );
+	}
+
+	/**
+	 * Filter callback that modifies the email subject of the data erasure fulfillment notification.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $subject The email subject.
+	 * @return string The email subject.
+	 */
+	public function filter_email_subject( $subject ) {
+		return 'Modified subject';
 	}
 
 	/**
@@ -194,10 +248,83 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @param string $email_text Text in the email.
 	 * @param int    $request_id The request ID for this personal data export.
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function modify_email_content( $email_text, $request_id ) {
 		return 'Custom content for request ID: ' . $request_id;
+	}
+
+	/**
+	 * The email headers should be filterable.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @ticket 44501
+	 */
+	public function test_email_headers_should_be_filterable() {
+		add_filter( 'wp_privacy_personal_data_email_headers', array( $this, 'modify_email_headers' ) );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$mailer = tests_retrieve_phpmailer_instance();
+
+		$this->assertContains( 'From: Tester <tester@example.com>', $mailer->get_sent()->header );
+	}
+
+	/**
+	 * Filter callback to modify the headers of the email sent with a personal data export file.
+	 *
+	 * @since 5.4.0
+	 *
+	 * @param string|array $headers The email headers.
+	 * @return array The new email headers.
+	 */
+	public function modify_email_headers( $headers ) {
+		$headers = array(
+			'From: Tester <tester@example.com>',
+		);
+
+		return $headers;
+	}
+
+	/**
+	 * The email content should be filterable using the $email_data
+	 *
+	 * @ticket 46303
+	 */
+	public function test_email_content_should_be_filterable_using_email_data() {
+		add_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content_with_email_data' ), 10, 3 );
+		wp_privacy_send_personal_data_export_email( self::$request_id );
+
+		$site_url = home_url();
+		$mailer   = tests_retrieve_phpmailer_instance();
+		$this->assertContains( 'Custom content using the $site_url of $email_data: ' . $site_url, $mailer->get_sent()->body );
+	}
+
+	/**
+	 * Filter callback that modifies the text of the email by using the $email_data sent with a personal data export file.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param string $email_text Text in the email.
+	 * @param int    $request_id The request ID for this personal data export.
+	 * @param array  $email_data {
+	 *     Data relating to the account action email.
+	 *
+	 *     @type WP_User_Request $request           User request object.
+	 *     @type int             $expiration        The time in seconds until the export file expires.
+	 *     @type string          $expiration_date   The localized date and time when the export file expires.
+	 *     @type string          $message_recipient The address that the email will be sent to. Defaults
+	 *                                              to the value of `$request->email`, but can be changed
+	 *                                              by the `wp_privacy_personal_data_email_to` filter.
+	 *     @type string          $export_file_url   The export file URL.
+	 *     @type string          $sitename          The site name sending the mail.
+	 *     @type string          $siteurl           The site URL sending the mail.
+	 * }
+	 *
+	 * @return string Text in the email.
+	 */
+	public function modify_email_content_with_email_data( $email_text, $request_id, $email_data ) {
+		return 'Custom content using the $site_url of $email_data: ' . $email_data['siteurl'];
 	}
 
 	/**

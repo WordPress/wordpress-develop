@@ -33,7 +33,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPages( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPages( array( 1, 'contributor', 'contributor' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_user() {
@@ -50,13 +50,13 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 
 		foreach ( $results as $result ) {
 			$page = get_post( $result['page_id'] );
-			$this->assertEquals( $page->post_type, 'page' );
+			$this->assertSame( $page->post_type, 'page' );
 		}
 	}
 
 	function remove_editor_edit_page_cap( $caps, $cap, $user_id, $args ) {
-		if ( in_array( $cap, array( 'edit_page', 'edit_others_pages' ) ) ) {
-			if ( $user_id == self::$editor_id && $args[0] == self::$post_id ) {
+		if ( in_array( $cap, array( 'edit_page', 'edit_others_pages' ), true ) ) {
+			if ( $user_id === self::$editor_id && $args[0] === self::$post_id ) {
 				return array( false );
 			}
 		}
@@ -78,7 +78,7 @@ class Tests_XMLRPC_wp_getPages extends WP_XMLRPC_UnitTestCase {
 			// WP#20629
 			$this->assertNotIXRError( $result );
 
-			if ( $result['page_id'] == self::$post_id ) {
+			if ( $result['page_id'] === self::$post_id ) {
 				$found_incapable = true;
 				break;
 			}

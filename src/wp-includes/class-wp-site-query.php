@@ -59,7 +59,7 @@ class WP_Site_Query {
 	 * Date query container.
 	 *
 	 * @since 4.6.0
-	 * @var object WP_Date_Query
+	 * @var WP_Date_Query A date query instance.
 	 */
 	public $date_query = false;
 
@@ -198,7 +198,7 @@ class WP_Site_Query {
 			'search'                 => '',
 			'search_columns'         => array(),
 			'count'                  => false,
-			'date_query'             => null, // See WP_Date_Query
+			'date_query'             => null, // See WP_Date_Query.
 			'update_site_cache'      => true,
 			'update_site_meta_cache' => true,
 			'meta_query'             => '',
@@ -245,7 +245,7 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Site objects, a list of site ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                   or the number of sites when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
@@ -261,7 +261,7 @@ class WP_Site_Query {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array|int List of WP_Site objects, a list of site ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
 	 *                   or the number of sites when 'count' is passed as a query var.
 	 */
 	public function get_sites() {
@@ -288,51 +288,57 @@ class WP_Site_Query {
 			$this->meta_query_clauses = $this->meta_query->get_sql( 'blog', $wpdb->blogs, 'blog_id', $this );
 		}
 
-		$site_ids = null;
+		$site_data = null;
 
 		/**
-		 * Filter the sites array before the query takes place.
+		 * Filters the site data before the get_sites query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default site queries.
 		 *
+		 * The expected return type from this filter depends on the value passed in the request query_vars:
+		 * When `$this->query_vars['count']` is set, the filter should return the site count as an int.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of site IDs.
+		 * Otherwise the filter should return an array of WP_Site objects.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array|null    $site_ids Return an array of site data to short-circuit WP's site query,
-		 *                                or null to allow WP to run its normal queries.
-		 * @param WP_Site_Query $this The WP_Site_Query instance, passed by reference.
+		 * @param array|int|null $site_data Return an array of site data to short-circuit WP's site query,
+		 *                                  the site count as an integer if `$this->query_vars['count']` is set,
+		 *                                  or null to run the normal queries.
+		 * @param WP_Site_Query  $this      The WP_Site_Query instance, passed by reference.
 		 */
-		$site_ids = apply_filters_ref_array( 'sites_pre_query', array( $site_ids, &$this ) );
+		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
-		if ( null === $site_ids ) {
+		if ( null !== $site_data ) {
+			return $site_data;
+		}
 
-			// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
-			$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
+		// $args can include anything. Only use the args defined in the query_var_defaults to compute the key.
+		$_args = wp_array_slice_assoc( $this->query_vars, array_keys( $this->query_var_defaults ) );
 
-			// Ignore the $fields argument as the queried result will be the same regardless.
-			unset( $_args['fields'] );
+		// Ignore the $fields argument as the queried result will be the same regardless.
+		unset( $_args['fields'] );
 
-			$key          = md5( serialize( $_args ) );
-			$last_changed = wp_cache_get_last_changed( 'sites' );
+		$key          = md5( serialize( $_args ) );
+		$last_changed = wp_cache_get_last_changed( 'sites' );
 
-			$cache_key   = "get_sites:$key:$last_changed";
-			$cache_value = wp_cache_get( $cache_key, 'sites' );
+		$cache_key   = "get_sites:$key:$last_changed";
+		$cache_value = wp_cache_get( $cache_key, 'sites' );
 
-			if ( false === $cache_value ) {
-				$site_ids = $this->get_site_ids();
-				if ( $site_ids ) {
-					$this->set_found_sites();
-				}
-
-				$cache_value = array(
-					'site_ids'    => $site_ids,
-					'found_sites' => $this->found_sites,
-				);
-				wp_cache_add( $cache_key, $cache_value, 'sites' );
-			} else {
-				$site_ids          = $cache_value['site_ids'];
-				$this->found_sites = $cache_value['found_sites'];
+		if ( false === $cache_value ) {
+			$site_ids = $this->get_site_ids();
+			if ( $site_ids ) {
+				$this->set_found_sites();
 			}
+
+			$cache_value = array(
+				'site_ids'    => $site_ids,
+				'found_sites' => $this->found_sites,
+			);
+			wp_cache_add( $cache_key, $cache_value, 'sites' );
+		} else {
+			$site_ids          = $cache_value['site_ids'];
+			$this->found_sites = $cache_value['found_sites'];
 		}
 
 		if ( $this->found_sites && $this->query_vars['number'] ) {
@@ -347,7 +353,7 @@ class WP_Site_Query {
 
 		$site_ids = array_map( 'intval', $site_ids );
 
-		if ( 'ids' == $this->query_vars['fields'] ) {
+		if ( 'ids' === $this->query_vars['fields'] ) {
 			$this->sites = $site_ids;
 
 			return $this->sites;
@@ -361,7 +367,8 @@ class WP_Site_Query {
 		// Fetch full site objects from the primed cache.
 		$_sites = array();
 		foreach ( $site_ids as $site_id ) {
-			if ( $_site = get_site( $site_id ) ) {
+			$_site = get_site( $site_id );
+			if ( $_site ) {
 				$_sites[] = $_site;
 			}
 		}
@@ -689,7 +696,7 @@ class WP_Site_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @global wpdb  $wpdb WordPress database abstraction object.
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string   $string  Search string.
 	 * @param string[] $columns Array of columns to search.

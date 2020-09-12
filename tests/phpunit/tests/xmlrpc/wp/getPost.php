@@ -31,7 +31,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'username', 'password', 1 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_valid_post() {
@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
-		// Check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result['post_id'] );
 		$this->assertInternalType( 'string', $result['post_title'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_date'] );
@@ -63,17 +63,17 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'array', $result['post_thumbnail'] );
 		$this->assertInternalType( 'array', $result['custom_fields'] );
 
-		// Check expected values
+		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );
-		$this->assertEquals( $this->post_data['post_title'], $result['post_title'] );
-		$this->assertEquals( 'draft', $result['post_status'] );
-		$this->assertEquals( 'post', $result['post_type'] );
+		$this->assertSame( $this->post_data['post_title'], $result['post_title'] );
+		$this->assertSame( 'draft', $result['post_status'] );
+		$this->assertSame( 'post', $result['post_type'] );
 		$this->assertStringMatchesFormat( '%d', $result['post_author'] );
-		$this->assertEquals( $this->post_data['post_excerpt'], $result['post_excerpt'] );
-		$this->assertEquals( $this->post_data['post_content'], $result['post_content'] );
-		$this->assertEquals( url_to_postid( $result['link'] ), $this->post_id );
+		$this->assertSame( $this->post_data['post_excerpt'], $result['post_excerpt'] );
+		$this->assertSame( $this->post_data['post_content'], $result['post_content'] );
+		$this->assertSame( url_to_postid( $result['link'] ), $this->post_id );
 		$this->assertEquals( $this->post_custom_field['id'], $result['custom_fields'][0]['id'] );
-		$this->assertEquals( $this->post_custom_field['key'], $result['custom_fields'][0]['key'] );
+		$this->assertSame( $this->post_custom_field['key'], $result['custom_fields'][0]['key'] );
 		$this->assertEquals( $this->post_custom_field['value'], $result['custom_fields'][0]['value'] );
 
 		remove_theme_support( 'post-thumbnails' );
@@ -84,9 +84,9 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $this->post_id, $fields ) );
 		$this->assertNotIXRError( $result );
 
-		// when no fields are requested, only the IDs should be returned
-		$this->assertEquals( 1, count( $result ) );
-		$this->assertEquals( array( 'post_id' ), array_keys( $result ) );
+		// When no fields are requested, only the IDs should be returned.
+		$this->assertSame( 1, count( $result ) );
+		$this->assertSame( array( 'post_id' ), array_keys( $result ) );
 	}
 
 	function test_default_fields() {
@@ -94,7 +94,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		$this->assertArrayHasKey( 'post_id', $result );
-		$this->assertArrayHasKey( 'link', $result ); // random field from 'posts' group
+		$this->assertArrayHasKey( 'link', $result ); // Random field from 'posts' group.
 		$this->assertArrayHasKey( 'terms', $result );
 		$this->assertArrayHasKey( 'custom_fields', $result );
 	}
@@ -109,14 +109,14 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['post_modified_gmt'] );
 
-		$this->assertEquals( $this->post_date_ts, $result['post_date']->getTimestamp() );
-		$this->assertEquals( $this->post_date_ts, $result['post_modified']->getTimestamp() );
+		$this->assertSame( $this->post_date_ts, $result['post_date']->getTimestamp() );
+		$this->assertSame( $this->post_date_ts, $result['post_modified']->getTimestamp() );
 
 		$post_date_gmt     = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $this->post_data['post_date'], false ), 'Ymd\TH:i:s' ) );
 		$post_modified_gmt = strtotime( get_gmt_from_date( mysql2date( 'Y-m-d H:i:s', $this->post_data['post_date'], false ), 'Ymd\TH:i:s' ) );
 
-		$this->assertEquals( $post_date_gmt, $result['post_date_gmt']->getTimestamp() );
-		$this->assertEquals( $post_modified_gmt, $result['post_modified_gmt']->getTimestamp() );
+		$this->assertSame( $post_date_gmt, $result['post_date_gmt']->getTimestamp() );
+		$this->assertSame( $post_modified_gmt, $result['post_modified_gmt']->getTimestamp() );
 	}
 
 	/**
@@ -143,8 +143,8 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertInternalType( 'string', $result['guid'] );
 		$this->assertInternalType( 'string', $result['post_mime_type'] );
 
-		$this->assertEquals( 'page', $result['post_type'] );
+		$this->assertSame( 'page', $result['post_type'] );
 		$this->assertEquals( $parent_page_id, $result['post_parent'] );
-		$this->assertEquals( 2, $result['menu_order'] );
+		$this->assertSame( 2, $result['menu_order'] );
 	}
 }

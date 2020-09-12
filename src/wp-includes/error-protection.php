@@ -3,7 +3,7 @@
  * Error Protection API: Functions
  *
  * @package WordPress
- * @since   5.2.0
+ * @since 5.2.0
  */
 
 /**
@@ -42,7 +42,6 @@ function wp_paused_themes() {
  * @since 5.2.0
  *
  * @param array $error Error details {@see error_get_last()}
- *
  * @return string Formatted error description.
  */
 function wp_get_extension_error_description( $error ) {
@@ -60,7 +59,7 @@ function wp_get_extension_error_description( $error ) {
 		$error['type'] = $core_errors[ $error['type'] ];
 	}
 
-	/* translators: 1: error type, 2: error line number, 3: error file name, 4: error message */
+	/* translators: 1: Error type, 2: Error line number, 3: Error file name, 4: Error message. */
 	$error_message = __( 'An error of type %1$s was caused in line %2$s of the file %3$s. Error message: %4$s' );
 
 	return sprintf(

@@ -24,7 +24,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error   = $service->validate_recovery_mode_key( '', 'abcd', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'token_not_found', $error->get_error_code() );
+		$this->assertSame( 'token_not_found', $error->get_error_code() );
 	}
 
 	/**
@@ -37,7 +37,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error   = $service->validate_recovery_mode_key( '', 'abcd', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'token_not_found', $error->get_error_code() );
+		$this->assertSame( 'token_not_found', $error->get_error_code() );
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error   = $service->validate_recovery_mode_key( 'token', 'abcd', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_recovery_key_format', $error->get_error_code() );
+		$this->assertSame( 'invalid_recovery_key_format', $error->get_error_code() );
 	}
 
 
@@ -66,7 +66,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error   = $service->validate_recovery_mode_key( $token, 'abcd', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_recovery_key_format', $error->get_error_code() );
+		$this->assertSame( 'invalid_recovery_key_format', $error->get_error_code() );
 	}
 
 	/**
@@ -79,7 +79,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error = $service->validate_recovery_mode_key( $token, '', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'hash_mismatch', $error->get_error_code() );
+		$this->assertSame( 'hash_mismatch', $error->get_error_code() );
 	}
 
 	/**
@@ -92,7 +92,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error = $service->validate_recovery_mode_key( $token, 'abcd', HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'hash_mismatch', $error->get_error_code() );
+		$this->assertSame( 'hash_mismatch', $error->get_error_code() );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 		$error = $service->validate_recovery_mode_key( $token, $key, HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'key_expired', $error->get_error_code() );
+		$this->assertSame( 'key_expired', $error->get_error_code() );
 	}
 
 	/**
@@ -133,11 +133,11 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 
 		$this->assertTrue( $service->validate_recovery_mode_key( $token, $key, HOUR_IN_SECONDS ) );
 
-		// data should be remove by first call
+		// Data should be remove by first call.
 		$error = $service->validate_recovery_mode_key( $token, $key, HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'token_not_found', $error->get_error_code() );
+		$this->assertSame( 'token_not_found', $error->get_error_code() );
 	}
 
 	/**
@@ -146,7 +146,7 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 	public function test_validate_recovery_mode_key_returns_error_if_token_used_more_than_once_more_than_key_stored() {
 		$service = new WP_Recovery_Mode_Key_Service();
 
-		// create an extra key
+		// Create an extra key.
 		$token = $service->generate_recovery_mode_token();
 		$service->generate_and_store_recovery_mode_key( $token );
 
@@ -155,11 +155,11 @@ class Tests_Recovery_Mode_Key_Service extends WP_UnitTestCase {
 
 		$this->assertTrue( $service->validate_recovery_mode_key( $token, $key, HOUR_IN_SECONDS ) );
 
-		// data should be remove by first call
+		// Data should be remove by first call.
 		$error = $service->validate_recovery_mode_key( $token, $key, HOUR_IN_SECONDS );
 
 		$this->assertWPError( $error );
-		$this->assertEquals( 'token_not_found', $error->get_error_code() );
+		$this->assertSame( 'token_not_found', $error->get_error_code() );
 	}
 
 	/**

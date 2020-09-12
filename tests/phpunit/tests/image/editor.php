@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/base.php';
+require_once __DIR__ . '/base.php';
 
 /**
  * Test the WP_Image_Editor base class
@@ -15,9 +15,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Setup test fixture
 	 */
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 
-		include_once( DIR_TESTDATA . '/../includes/mock-image-editor.php' );
+		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		parent::setUp();
 	}
@@ -69,43 +69,43 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 */
 	public function test_set_quality() {
 
-		// Get an editor
+		// Get an editor.
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 		$editor->set_mime_type( 'image/jpeg' ); // Ensure mime-specific filters act properly.
 
-		// Check default value
-		$this->assertEquals( 82, $editor->get_quality() );
+		// Check default value.
+		$this->assertSame( 82, $editor->get_quality() );
 
 		// Ensure the quality filters do not have precedence if created after editor instantiation.
 		$func_100_percent = array( $this, 'return_integer_100' );
 		add_filter( 'wp_editor_set_quality', $func_100_percent );
-		$this->assertEquals( 82, $editor->get_quality() );
+		$this->assertSame( 82, $editor->get_quality() );
 
 		$func_95_percent = array( $this, 'return_integer_95' );
 		add_filter( 'jpeg_quality', $func_95_percent );
-		$this->assertEquals( 82, $editor->get_quality() );
+		$this->assertSame( 82, $editor->get_quality() );
 
-		// Ensure set_quality() works and overrides the filters
+		// Ensure set_quality() works and overrides the filters.
 		$this->assertTrue( $editor->set_quality( 75 ) );
-		$this->assertEquals( 75, $editor->get_quality() );
+		$this->assertSame( 75, $editor->get_quality() );
 
-		// Get a new editor to clear default quality state
+		// Get a new editor to clear default quality state.
 		unset( $editor );
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 		$editor->set_mime_type( 'image/jpeg' ); // Ensure mime-specific filters act properly.
 
 		// Ensure jpeg_quality filter applies if it exists before editor instantiation.
-		$this->assertEquals( 95, $editor->get_quality() );
+		$this->assertSame( 95, $editor->get_quality() );
 
-		// Get a new editor to clear jpeg_quality state
+		// Get a new editor to clear jpeg_quality state.
 		remove_filter( 'jpeg_quality', $func_95_percent );
 		unset( $editor );
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
 		// Ensure wp_editor_set_quality filter applies if it exists before editor instantiation.
-		$this->assertEquals( 100, $editor->get_quality() );
+		$this->assertSame( 100, $editor->get_quality() );
 
-		// Clean up
+		// Clean up.
 		remove_filter( 'wp_editor_set_quality', $func_100_percent );
 	}
 
@@ -116,7 +116,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 */
 	public function test_generate_filename() {
 
-		// Get an editor
+		// Get an editor.
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
 		$property = new ReflectionProperty( $editor, 'size' );
@@ -129,20 +129,20 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			)
 		);
 
-		// Test with no parameters
-		$this->assertEquals( 'canola-100x50.jpg', wp_basename( $editor->generate_filename() ) );
+		// Test with no parameters.
+		$this->assertSame( 'canola-100x50.jpg', wp_basename( $editor->generate_filename() ) );
 
-		// Test with a suffix only
-		$this->assertEquals( 'canola-new.jpg', wp_basename( $editor->generate_filename( 'new' ) ) );
+		// Test with a suffix only.
+		$this->assertSame( 'canola-new.jpg', wp_basename( $editor->generate_filename( 'new' ) ) );
 
-		// Test with a destination dir only
-		$this->assertEquals( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
+		// Test with a destination dir only.
+		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ), trailingslashit( realpath( dirname( $editor->generate_filename( null, get_temp_dir() ) ) ) ) );
 
-		// Test with a suffix only
-		$this->assertEquals( 'canola-100x50.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
+		// Test with a suffix only.
+		$this->assertSame( 'canola-100x50.png', wp_basename( $editor->generate_filename( null, null, 'png' ) ) );
 
 		// Combo!
-		$this->assertEquals( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
+		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
 	}
 
 	/**
@@ -154,10 +154,10 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
-		// Size should be false by default
+		// Size should be false by default.
 		$this->assertNull( $editor->get_size() );
 
-		// Set a size
+		// Set a size.
 		$size     = array(
 			'height' => 50,
 			'width'  => 100,
@@ -166,7 +166,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$property->setAccessible( true );
 		$property->setValue( $editor, $size );
 
-		$this->assertEquals( $size, $editor->get_size() );
+		$this->assertSame( $size, $editor->get_size() );
 	}
 
 	/**
@@ -177,10 +177,10 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	public function test_get_suffix() {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 
-		// Size should be false by default
+		// Size should be false by default.
 		$this->assertFalse( $editor->get_suffix() );
 
-		// Set a size
+		// Set a size.
 		$size     = array(
 			'height' => 50,
 			'width'  => 100,
@@ -189,6 +189,6 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 		$property->setAccessible( true );
 		$property->setValue( $editor, $size );
 
-		$this->assertEquals( '100x50', $editor->get_suffix() );
+		$this->assertSame( '100x50', $editor->get_suffix() );
 	}
 }

@@ -5,36 +5,34 @@
  *
  * @package    WordPress
  * @subpackage Unit Tests
- * @since      3.5
+ * @since      3.5.0
  * @group      deprecated
  */
-class Test_Functions_Deprecated extends WP_UnitTestCase {
+class Tests_Functions_Deprecated extends WP_UnitTestCase {
 
 	/**
-	 * List of functions that have been passed through _deprecated_function()
+	 * List of functions that have been passed through _deprecated_function().
 	 *
 	 * @var string[]
 	 */
 	protected $_deprecated_functions = array();
 
 	/**
-	 * List of arguments that have been passed through _deprecated_argument()
+	 * List of arguments that have been passed through _deprecated_argument().
 	 *
 	 * @var string[]
 	 */
 	protected $_deprecated_arguments = array();
 
 	/**
-	 * List of files that have been passed through _deprecated_file()
+	 * List of files that have been passed through _deprecated_file().
 	 *
 	 * @var string[]
 	 */
 	protected $_deprecated_files = array();
 
 	/**
-	 * Set up the test fixture
-	 *
-	 * @return void
+	 * Sets up the test fixture.
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -50,9 +48,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tear down the test fixture
-	 *
-	 * @return void
+	 * Tears down the test fixture.
 	 */
 	public function teardown() {
 		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function' ), 10, 3 );
@@ -65,12 +61,11 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Catch functions that have passed through _deprecated_function
+	 * Catches functions that have passed through _deprecated_function().
 	 *
 	 * @param string $function
 	 * @param string $replacement
 	 * @param float $version
-	 * @return void
 	 */
 	public function deprecated_function( $function, $replacement, $version ) {
 		$this->_deprecated_functions[] = array(
@@ -81,12 +76,11 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Catch arguments that have passed through _deprecated_argument
+	 * Catches arguments that have passed through _deprecated_argument().
 	 *
 	 * @param string $argument
 	 * @param string $message
 	 * @param float $version
-	 * @return void
 	 */
 	public function deprecated_argument( $argument, $message, $version ) {
 		$this->_deprecated_arguments[] = array(
@@ -97,12 +91,11 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Catch arguments that have passed through _deprecated_argument
+	 * Catches arguments that have passed through _deprecated_argument().
 	 *
 	 * @param string $argument
 	 * @param string $message
 	 * @param float $version
-	 * @return void
 	 */
 	public function deprecated_file( $file, $version, $replacement, $message ) {
 		$this->_deprecated_files[] = array(
@@ -114,7 +107,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Check if something was deprecated
+	 * Checks if something was deprecated.
 	 *
 	 * @param string $type argument|function|file
 	 * @param string $name
@@ -135,7 +128,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 				$key    = 'file';
 		}
 		foreach ( $search as $v ) {
-			if ( $name == $v[ $key ] ) {
+			if ( $name === $v[ $key ] ) {
 				return $v;
 			}
 		}
@@ -143,7 +136,7 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that wp_save_image_file has a deprecated argument when passed a GD resource
+	 * Tests that wp_save_image_file() has a deprecated argument when passed a GD resource.
 	 *
 	 * @ticket 6821
 	 * @expectedDeprecated wp_save_image_file
@@ -153,21 +146,21 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 			$this->fail( 'jpeg support unavailable' );
 		}
 
-		// Call wp_save_image_file
-		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
+		// Call wp_save_image_file().
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$file = wp_tempnam();
 		$img  = imagecreatefromjpeg( DIR_TESTDATA . '/images/canola.jpg' );
 		wp_save_image_file( $file, $img, 'image/jpeg', 1 );
 		imagedestroy( $img );
 		unlink( $file );
 
-		// Check if the arg was deprecated
+		// Check if the arg was deprecated.
 		$check = $this->was_deprecated( 'argument', 'wp_save_image_file' );
 		$this->assertNotEmpty( $check );
 	}
 
 	/**
-	 * Test that wp_save_image_file doesn't have a deprecated argument when passed a WP_Image_Editor
+	 * Tests that wp_save_image_file() doesn't have a deprecated argument when passed a WP_Image_Editor.
 	 *
 	 * @ticket 6821
 	 */
@@ -176,15 +169,15 @@ class Test_Functions_Deprecated extends WP_UnitTestCase {
 			$this->fail( 'jpeg support unavailable' );
 		}
 
-		// Call wp_save_image_file
-		include_once( ABSPATH . 'wp-admin/includes/image-edit.php' );
+		// Call wp_save_image_file().
+		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 		$file = wp_tempnam();
 		$img  = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
 		wp_save_image_file( $file, $img, 'image/jpeg', 1 );
 		unset( $img );
 		unlink( $file );
 
-		// Check if the arg was deprecated
+		// Check if the arg was deprecated.
 		$check = $this->was_deprecated( 'argument', 'wp_save_image_file' );
 		$this->assertFalse( $check );
 	}

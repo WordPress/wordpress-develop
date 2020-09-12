@@ -49,29 +49,29 @@ if ( is_multisite() ) :
 
 			self::$site_ids = array(
 				'wordpress.org/'          => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/'      => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'wordpress.org/foo/bar/'  => array(
-					'domain'  => 'wordpress.org',
-					'path'    => '/foo/bar/',
-					'site_id' => self::$network_ids['wordpress.org/'],
+					'domain'     => 'wordpress.org',
+					'path'       => '/foo/bar/',
+					'network_id' => self::$network_ids['wordpress.org/'],
 				),
 				'make.wordpress.org/'     => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 				'make.wordpress.org/foo/' => array(
-					'domain'  => 'make.wordpress.org',
-					'path'    => '/foo/',
-					'site_id' => self::$network_ids['make.wordpress.org/'],
+					'domain'     => 'make.wordpress.org',
+					'path'       => '/foo/',
+					'network_id' => self::$network_ids['make.wordpress.org/'],
 				),
 				'www.w.org/'              => array(
 					'domain' => 'www.w.org',
@@ -86,12 +86,10 @@ if ( is_multisite() ) :
 					'path'   => '/foo/bar/',
 				),
 				'www.w.org/make/'         => array(
-					'domain' => 'www.w.org',
-					'path'   => '/make/',
-					'meta'   => array(
-						'public'  => 1,
-						'lang_id' => 1,
-					),
+					'domain'  => 'www.w.org',
+					'path'    => '/make/',
+					'public'  => 1,
+					'lang_id' => 1,
 				),
 			);
 
@@ -105,7 +103,7 @@ if ( is_multisite() ) :
 			global $wpdb;
 
 			foreach ( self::$site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			foreach ( self::$network_ids as $id ) {
@@ -125,7 +123,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array( self::$site_ids['www.w.org/'] ), $found );
+			$this->assertSameSets( array( self::$site_ids['www.w.org/'] ), $found );
 		}
 
 		public function test_wp_site_query_by_number() {
@@ -137,7 +135,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( 3, count( $found ) );
+			$this->assertSame( 3, count( $found ) );
 		}
 
 		public function test_wp_site_query_by_site__in_with_single_id() {
@@ -151,7 +149,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_site__in_with_multiple_ids() {
@@ -165,7 +163,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		/**
@@ -183,7 +181,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( 2, $found );
+			$this->assertSame( 2, $found );
 		}
 
 		public function test_wp_site_query_by_site__not_in_with_single_id() {
@@ -201,7 +199,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_site__not_in_with_multiple_ids() {
@@ -219,7 +217,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_network_id_with_order() {
@@ -239,7 +237,7 @@ if ( is_multisite() ) :
 				self::$site_ids['wordpress.org/foo/bar/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 
 			$found = $q->query(
 				array(
@@ -250,7 +248,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( array_reverse( $expected ), $found );
+			$this->assertSame( array_reverse( $expected ), $found );
 		}
 
 		public function test_wp_site_query_by_network_id_with_existing_sites() {
@@ -267,7 +265,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_network_id_with_no_existing_sites() {
@@ -298,7 +296,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain_and_offset() {
@@ -317,7 +315,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain_and_number_and_offset() {
@@ -336,7 +334,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/foo/bar/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain__in_with_single_domain() {
@@ -353,7 +351,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain__in_with_multiple_domains() {
@@ -373,7 +371,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain__not_in_with_single_domain() {
@@ -394,7 +392,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_domain__not_in_with_multiple_domains() {
@@ -412,7 +410,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_path_with_expected_results() {
@@ -429,7 +427,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/foo/bar/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_path_with_no_expected_results() {
@@ -444,7 +442,7 @@ if ( is_multisite() ) :
 			$this->assertEmpty( $found );
 		}
 
-		// archived, mature, spam, deleted, public
+		// archived, mature, spam, deleted, public.
 
 		public function test_wp_site_query_by_archived() {
 			$q     = new WP_Site_Query();
@@ -457,7 +455,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_mature() {
@@ -471,7 +469,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_spam() {
@@ -485,7 +483,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_deleted() {
@@ -499,7 +497,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_deleted_with_no_results() {
@@ -525,7 +523,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_lang_id_with_zero() {
@@ -539,7 +537,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_diff( array_values( self::$site_ids ), array( self::$site_ids['www.w.org/make/'] ) ), $found );
+			$this->assertSameSets( array_diff( array_values( self::$site_ids ), array( self::$site_ids['www.w.org/make/'] ) ), $found );
 		}
 
 		public function test_wp_site_query_by_lang_id() {
@@ -555,7 +553,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_lang_id_with_no_results() {
@@ -583,7 +581,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_lang__in_with_multiple_ids() {
@@ -597,7 +595,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEqualSets( array_values( self::$site_ids ), $found );
+			$this->assertSameSets( array_values( self::$site_ids ), $found );
 		}
 
 		public function test_wp_site_query_by_lang__not_in() {
@@ -613,7 +611,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_lang__not_in_with_multiple_ids() {
@@ -642,7 +640,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_path() {
@@ -662,7 +660,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/foo/bar/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_path_and_domain() {
@@ -680,7 +678,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_path_and_domain_order_by_domain_desc() {
@@ -700,7 +698,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_path_exclude_domain_from_search() {
@@ -717,7 +715,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_text_in_domain_exclude_path_from_search() {
@@ -735,7 +733,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEquals( $expected, $found );
+			$this->assertSame( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_wildcard_in_text() {
@@ -753,7 +751,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_path_from_search() {
@@ -771,7 +769,7 @@ if ( is_multisite() ) :
 				self::$site_ids['make.wordpress.org/foo/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		public function test_wp_site_query_by_search_with_wildcard_in_text_exclude_domain_from_search() {
@@ -788,7 +786,7 @@ if ( is_multisite() ) :
 				self::$site_ids['www.w.org/make/'],
 			);
 
-			$this->assertEqualSets( $expected, $found );
+			$this->assertSameSets( $expected, $found );
 		}
 
 		/**
@@ -816,7 +814,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, $wpdb->num_queries );
 		}
 
 		/**
@@ -846,7 +844,7 @@ if ( is_multisite() ) :
 					'count'      => true,
 				)
 			);
-			$this->assertEquals( $number_of_queries, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries, $wpdb->num_queries );
 		}
 
 		/**
@@ -876,7 +874,7 @@ if ( is_multisite() ) :
 					'count'      => true,
 				)
 			);
-			$this->assertEquals( $number_of_queries + 1, $wpdb->num_queries );
+			$this->assertSame( $number_of_queries + 1, $wpdb->num_queries );
 		}
 
 		/**
@@ -905,15 +903,16 @@ if ( is_multisite() ) :
 			}
 
 			if ( $strict ) {
-				$this->assertEquals( $expected, $found );
+				$this->assertSame( $expected, $found );
 			} else {
-				$this->assertEqualSets( $expected, $found );
+				$this->assertSameSets( $expected, $found );
 			}
 		}
 
 
 		/**
 		 * @ticket 45749
+		 * @ticket 47599
 		 */
 		public function test_sites_pre_query_filter_should_bypass_database_query() {
 			global $wpdb;
@@ -923,11 +922,7 @@ if ( is_multisite() ) :
 			$num_queries = $wpdb->num_queries;
 
 			$q       = new WP_Site_Query();
-			$results = $q->query(
-				array(
-					'fields' => 'ids',
-				)
-			);
+			$results = $q->query( array() );
 
 			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
 
@@ -935,10 +930,10 @@ if ( is_multisite() ) :
 			$this->assertSame( $num_queries, $wpdb->num_queries );
 
 			// We manually inserted a non-existing site and overrode the results with it.
-			$this->assertSame( array( 555 ), $q->sites );
+			$this->assertSame( array( 555 ), $results );
 
 			// Make sure manually setting total_users doesn't get overwritten.
-			$this->assertEquals( 1, $q->found_sites );
+			$this->assertSame( 1, $q->found_sites );
 		}
 
 		public static function filter_sites_pre_query( $sites, $query ) {

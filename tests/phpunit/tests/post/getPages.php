@@ -20,18 +20,19 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
 
 		$pages = get_pages();
-		$this->assertEquals( 3, count( $pages ) );
-		$this->assertNotEmpty( $time1 = wp_cache_get( 'last_changed', 'posts' ) );
-		$num_queries                  = $wpdb->num_queries;
+		$this->assertSame( 3, count( $pages ) );
+		$time1 = wp_cache_get( 'last_changed', 'posts' );
+		$this->assertNotEmpty( $time1 );
+		$num_queries = $wpdb->num_queries;
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages();
-		$this->assertEquals( 3, count( $pages ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 3, count( $pages ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -39,9 +40,9 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		// Again with different args. last_changed should not increment because of
 		// different args to get_pages(). num_queries should bump by 1.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertEquals( 2, count( $pages ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( 2, count( $pages ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -50,18 +51,18 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertEquals( 2, count( $pages ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 2, count( $pages ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
 
 		// Do the first query again. The interim queries should not affect it.
 		$pages = get_pages();
-		$this->assertEquals( 3, count( $pages ) );
-		$this->assertEquals( $time1, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( 3, count( $pages ) );
+		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -74,9 +75,9 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		// last_changed bumped so num_queries should increment.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertEquals( 2, count( $pages ) );
-		$this->assertEquals( $time2, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( 2, count( $pages ) );
+		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -94,9 +95,9 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		// num_queries should bump after wp_delete_post() bumps last_changed.
 		$pages = get_pages();
-		$this->assertEquals( 2, count( $pages ) );
-		$this->assertEquals( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( 2, count( $pages ) );
+		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
 			$this->assertInstanceOf( 'WP_Post', $page );
 		}
@@ -123,7 +124,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $cached_ids );
+		$this->assertSameSets( array( $posts[0] ), $cached_ids );
 
 		add_post_meta( $posts[1], 'foo', 'bar' );
 
@@ -135,7 +136,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( $posts, $found_ids );
+		$this->assertSameSets( $posts, $found_ids );
 	}
 
 	/**
@@ -160,7 +161,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		update_post_meta( $posts[1], 'foo', 'baz' );
 
@@ -172,7 +173,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $found_ids );
+		$this->assertSameSets( array( $posts[0] ), $found_ids );
 	}
 
 	/**
@@ -197,7 +198,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		delete_post_meta( $posts[1], 'foo' );
 
@@ -209,7 +210,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array( $posts[0] ), $found_ids );
+		$this->assertSameSets( array( $posts[0] ), $found_ids );
 	}
 
 	/**
@@ -234,7 +235,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$cached_ids = wp_list_pluck( $cached, 'ID' );
-		$this->assertEqualSets( $posts, $cached_ids );
+		$this->assertSameSets( $posts, $cached_ids );
 
 		delete_post_meta_by_key( 'foo' );
 
@@ -246,7 +247,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$found_ids = wp_list_pluck( $found, 'ID' );
-		$this->assertEqualSets( array(), $found_ids );
+		$this->assertSameSets( array(), $found_ids );
 	}
 
 	/**
@@ -258,7 +259,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		add_post_meta( $posts[1], 'some-meta-key', '' );
 		add_post_meta( $posts[2], 'some-meta-key', '1' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			1,
 			count(
 				get_pages(
@@ -269,7 +270,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			1,
 			count(
 				get_pages(
@@ -280,7 +281,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertEquals( 3, count( get_pages( array( 'meta_key' => 'some-meta-key' ) ) ) );
+		$this->assertSame( 3, count( get_pages( array( 'meta_key' => 'some-meta-key' ) ) ) );
 	}
 
 	/**
@@ -301,12 +302,12 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		$include    = get_pages( array( 'include' => $inc ) );
 		$inc_result = wp_list_pluck( $include, 'ID' );
 		sort( $inc_result );
-		$this->assertEquals( $inc, $inc_result );
+		$this->assertSame( $inc, $inc_result );
 
 		$exclude    = get_pages( array( 'exclude' => $exc ) );
 		$exc_result = wp_list_pluck( $exclude, 'ID' );
 		sort( $exc_result );
-		$this->assertEquals( $inc, $exc_result );
+		$this->assertSame( $inc, $exc_result );
 	}
 
 	/**
@@ -339,7 +340,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages(
 			array(
@@ -347,7 +348,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages(
 			array(
@@ -355,16 +356,16 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'hierarchical' => false,
 			)
 		);
-		$this->assertEqualSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => 0 ) );
-		$this->assertEqualSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id1 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => $page_id1 ) );
-		$this->assertEqualSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 
 		$pages = get_pages( array( 'parent' => array( $page_id1, $page_id2 ) ) );
-		$this->assertEqualSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_id2, $page_id3, $page_id4 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -375,7 +376,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		preg_match_all( '#<option#', wp_dropdown_pages( 'echo=0' ), $matches );
 
-		$this->assertEquals( 5, count( $matches[0] ) );
+		$this->assertSame( 5, count( $matches[0] ) );
 	}
 
 	/**
@@ -391,7 +392,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 				'post_parent' => $post_id,
 			)
 		);
-		$this->assertEqualSets( $child_ids, $post_ids );
+		$this->assertSameSets( $child_ids, $post_ids );
 	}
 
 	/**
@@ -419,7 +420,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages              = get_pages(); // Defaults: hierarchical = true, parent = -1
+		$pages              = get_pages(); // Defaults: hierarchical = true, parent = -1.
 		$pages_default_args = get_pages(
 			array(
 				'hierarchical' => true,
@@ -441,7 +442,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * If it doesn't, they will be in the creation order, 1,2,3,4.
 		 */
 
-		$this->assertEqualSets( array( $page_1, $page_2, $page_4, $page_3 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2, $page_4, $page_3 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -463,7 +464,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages        = get_pages(); // Defaults: hierarchical = true, child_of = '', parent = -1
+		$pages        = get_pages(); // Defaults: hierarchical = true, child_of = '', parent = -1.
 		$default_args = get_pages(
 			array(
 				'hierarchical' => true,
@@ -487,7 +488,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => 0 ) );
 
-		$this->assertEqualSets( array( $page_1, $page_2 ), wp_list_pluck( $found_pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2 ), wp_list_pluck( $found_pages, 'ID' ) );
 	}
 
 	/**
@@ -509,7 +510,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 			)
 		);
 
-		$pages = get_pages( array( 'hierarchical' => false ) ); // child_of = '', parent = -1
+		$pages = get_pages( array( 'hierarchical' => false ) ); // child_of = '', parent = -1.
 
 		/*
 		 * Page tree:
@@ -523,7 +524,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * in order of creation: 1, 2, 3, 4, regardless of parent.
 		 */
 
-		$this->assertEqualSets( array( $page_1, $page_2, $page_3, $page_4 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_1, $page_2, $page_3, $page_4 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -566,7 +567,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * hierarchically in order of creation: 3, 4, 5.
 		 */
 
-		$this->assertEqualSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
 	}
 
 	/**
@@ -613,11 +614,11 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		 * If hierarchical is false, and child_of is not empty, pages will (apparently) be returned
 		 * hierarchically anyway in order of creation: 3, 4, 5.
 		 */
-		$this->assertEqualSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_4, $page_5 ), wp_list_pluck( $pages, 'ID' ) );
 
 		// How it should work.
 		$found_pages = wp_list_filter( $pages, array( 'post_parent' => $page_1 ) );
-		$this->assertEqualSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
+		$this->assertSameSets( array( $page_3, $page_5 ), wp_list_pluck( $found_pages, 'ID' ) );
 
 	}
 
@@ -636,7 +637,7 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$this->go_to( "/?p=$post_id&post_type=$type" );
 
-		$this->assertEquals( $post_id, get_queried_object_id() );
+		$this->assertSame( $post_id, get_queried_object_id() );
 
 		$output = wp_list_pages(
 			array(
@@ -647,9 +648,9 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 		);
 
 		$this->assertNotEmpty( $output );
-		$this->assertEquals( 2, substr_count( $output, 'class="page_item ' ) );
+		$this->assertSame( 2, substr_count( $output, 'class="page_item ' ) );
 		$this->assertContains( 'current_page_item', $output );
-		$this->assertEquals( 1, substr_count( $output, 'current_page_item' ) );
+		$this->assertSame( 1, substr_count( $output, 'current_page_item' ) );
 
 		_unregister_post_type( $type );
 	}
@@ -712,14 +713,14 @@ class Tests_Post_getPages extends WP_UnitTestCase {
 
 		$num_queries = $wpdb->num_queries;
 
-		$pages = get_pages(); // Database gets queried
+		$pages = get_pages(); // Database gets queried.
 
-		$this->assertEquals( $num_queries + 1, $wpdb->num_queries );
+		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
 		$num_queries = $wpdb->num_queries;
 
-		$pages = get_pages(); // Database should not get queried
+		$pages = get_pages(); // Database should not get queried.
 
-		$this->assertEquals( $num_queries, $wpdb->num_queries );
+		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 }

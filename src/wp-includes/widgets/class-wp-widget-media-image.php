@@ -40,11 +40,11 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				'replace_media'              => _x( 'Replace Image', 'label for button in the image widget; should preferably not be longer than ~13 characters long' ),
 				'edit_media'                 => _x( 'Edit Image', 'label for button in the image widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
-					/* translators: %s: URL to media library */
+					/* translators: %s: URL to media library. */
 					__( 'We can&#8217;t find that image. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: widget count */
+				/* translators: %d: Widget count. */
 				'media_library_state_multi'  => _n_noop( 'Image Widget (%d)', 'Image Widget (%d)' ),
 				'media_library_state_single' => __( 'Image Widget' ),
 			)
@@ -59,6 +59,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
+	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
@@ -172,7 +173,6 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 	 * @since 4.8.0
 	 *
 	 * @param array $instance Widget instance props.
-	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );
@@ -184,9 +184,11 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 		);
 
 		$attachment = null;
+
 		if ( $this->is_attachment_with_mime_type( $instance['attachment_id'], $this->widget_options['mime_type'] ) ) {
 			$attachment = get_post( $instance['attachment_id'] );
 		}
+
 		if ( $attachment ) {
 			$caption = '';
 			if ( ! isset( $instance['caption'] ) ) {
@@ -208,15 +210,18 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 			}
 
 			$size = $instance['size'];
+
 			if ( 'custom' === $size || ! in_array( $size, array_merge( get_intermediate_image_sizes(), array( 'full' ) ), true ) ) {
-				$size = array( $instance['width'], $instance['height'] );
+				$size  = array( $instance['width'], $instance['height'] );
+				$width = $instance['width'];
+			} else {
+				$caption_size = _wp_get_image_size_from_meta( $instance['size'], wp_get_attachment_metadata( $attachment->ID ) );
+				$width        = empty( $caption_size[0] ) ? 0 : $caption_size[0];
 			}
+
 			$image_attributes['class'] .= sprintf( ' attachment-%1$s size-%1$s', is_array( $size ) ? join( 'x', $size ) : $size );
 
 			$image = wp_get_attachment_image( $attachment->ID, $size, false, $image_attributes );
-
-			$caption_size = _wp_get_image_size_from_meta( $instance['size'], wp_get_attachment_metadata( $attachment->ID ) );
-			$width        = empty( $caption_size[0] ) ? 0 : $caption_size[0];
 
 		} else {
 			if ( empty( $instance['url'] ) ) {
@@ -335,7 +340,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 			<# if ( data.url ) { #>
 			<p class="media-widget-image-link">
 				<label for="{{ elementIdPrefix }}linkUrl"><?php esc_html_e( 'Link to:' ); ?></label>
-				<input id="{{ elementIdPrefix }}linkUrl" type="text" class="widefat link" value="{{ data.link_url }}" placeholder="http://" pattern="((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#).*">
+				<input id="{{ elementIdPrefix }}linkUrl" type="text" class="widefat link" value="{{ data.link_url }}" placeholder="https://" pattern="((\w+:)?\/\/\w.*|\w+:(?!\/\/$)|\/|\?|#).*">
 			</p>
 			<# } #>
 		</script>
@@ -355,7 +360,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 						<?php
 						echo esc_attr(
 							sprintf(
-								/* translators: %s: the image file name. */
+								/* translators: %s: The image file name. */
 								__( 'The current image has no alternative text. The file name is: %s' ),
 								'{{ data.currentFilename }}'
 							)

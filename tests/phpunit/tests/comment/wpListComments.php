@@ -27,7 +27,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		// comments_template() populates $wp_query->comments
+		// comments_template() populates $wp_query->comments.
 		get_echo( 'comments_template' );
 
 		$found = wp_list_comments(
@@ -65,7 +65,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		// comments_template() populates $wp_query->comments
+		// comments_template() populates $wp_query->comments.
 		get_echo( 'comments_template' );
 
 		$found = wp_list_comments(
@@ -103,7 +103,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		// comments_template() populates $wp_query->comments
+		// comments_template() populates $wp_query->comments.
 		get_echo( 'comments_template' );
 
 		$found1 = wp_list_comments(
@@ -195,7 +195,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		// comments_template() populates $wp_query->comments
+		// comments_template() populates $wp_query->comments.
 		get_echo( 'comments_template' );
 
 		$found = wp_list_comments(
@@ -243,7 +243,7 @@ class Tests_Comment_WpListComments extends WP_UnitTestCase {
 
 		$this->go_to( get_permalink( $p ) );
 
-		// comments_template() populates $wp_query->comments
+		// comments_template() populates $wp_query->comments.
 		get_echo( 'comments_template' );
 
 		$found = wp_list_comments(

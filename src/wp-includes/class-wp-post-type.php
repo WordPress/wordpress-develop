@@ -200,7 +200,7 @@ final class WP_Post_Type {
 	 * Do `remove_meta_box()` and `add_meta_box()` calls in the callback. Default null.
 	 *
 	 * @since 4.6.0
-	 * @var string $register_meta_box_cb
+	 * @var callable $register_meta_box_cb
 	 */
 	public $register_meta_box_cb = null;
 
@@ -250,7 +250,7 @@ final class WP_Post_Type {
 	/**
 	 * Whether to delete posts of this type when deleting a user.
 	 *
-	 * If true, posts of this type belonging to the user will be moved to trash when then user is deleted.
+	 * If true, posts of this type belonging to the user will be moved to Trash when then user is deleted.
 	 * If false, posts of this type belonging to the user will *not* be trashed or deleted.
 	 * If not set (the default), posts are trashed if post_type_supports( 'author' ).
 	 * Otherwise posts are not trashed or deleted. Default null.
@@ -336,6 +336,16 @@ final class WP_Post_Type {
 	public $rest_controller_class;
 
 	/**
+	 * The controller instance for this post type's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Post_Type::get_rest_controller()}.
+	 *
+	 * @since 5.3.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
+
+	/**
 	 * Constructor.
 	 *
 	 * Will populate object properties from the provided arguments and assign other
@@ -413,27 +423,27 @@ final class WP_Post_Type {
 
 		$args['name'] = $this->name;
 
-		// If not set, default to the setting for public.
+		// If not set, default to the setting for 'public'.
 		if ( null === $args['publicly_queryable'] ) {
 			$args['publicly_queryable'] = $args['public'];
 		}
 
-		// If not set, default to the setting for public.
+		// If not set, default to the setting for 'public'.
 		if ( null === $args['show_ui'] ) {
 			$args['show_ui'] = $args['public'];
 		}
 
-		// If not set, default to the setting for show_ui.
+		// If not set, default to the setting for 'show_ui'.
 		if ( null === $args['show_in_menu'] || ! $args['show_ui'] ) {
 			$args['show_in_menu'] = $args['show_ui'];
 		}
 
-		// If not set, default to the whether the full UI is shown.
+		// If not set, default to the setting for 'show_in_menu'.
 		if ( null === $args['show_in_admin_bar'] ) {
 			$args['show_in_admin_bar'] = (bool) $args['show_in_menu'];
 		}
 
-		// If not set, default to the setting for public.
+		// If not set, default to the setting for 'public'.
 		if ( null === $args['show_in_nav_menus'] ) {
 			$args['show_in_nav_menus'] = $args['public'];
 		}
@@ -444,7 +454,9 @@ final class WP_Post_Type {
 		}
 
 		// Back compat with quirky handling in version 3.0. #14122.
-		if ( empty( $args['capabilities'] ) && null === $args['map_meta_cap'] && in_array( $args['capability_type'], array( 'post', 'page' ) ) ) {
+		if ( empty( $args['capabilities'] )
+			&& null === $args['map_meta_cap'] && in_array( $args['capability_type'], array( 'post', 'page' ), true )
+		) {
 			$args['map_meta_cap'] = true;
 		}
 
@@ -473,7 +485,7 @@ final class WP_Post_Type {
 			}
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || '' != get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( ! is_array( $args['rewrite'] ) ) {
 				$args['rewrite'] = array();
 			}
@@ -513,7 +525,13 @@ final class WP_Post_Type {
 	 */
 	public function add_supports() {
 		if ( ! empty( $this->supports ) ) {
-			add_post_type_support( $this->name, $this->supports );
+			foreach ( $this->supports as $feature => $args ) {
+				if ( is_array( $args ) ) {
+					add_post_type_support( $this->name, $feature, $args );
+				} else {
+					add_post_type_support( $this->name, $args );
+				}
+			}
 			unset( $this->supports );
 		} elseif ( false !== $this->supports ) {
 			// Add default features.
@@ -526,7 +544,7 @@ final class WP_Post_Type {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @global WP_Rewrite $wp_rewrite WordPress Rewrite Component.
+	 * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
 	 * @global WP         $wp         Current WordPress environment instance.
 	 */
 	public function add_rewrite_rules() {
@@ -536,7 +554,7 @@ final class WP_Post_Type {
 			$wp->add_query_var( $this->query_var );
 		}
 
-		if ( false !== $this->rewrite && ( is_admin() || '' != get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $this->rewrite && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( $this->hierarchical ) {
 				add_rewrite_tag( "%$this->name%", '(.+?)', $this->query_var ? "{$this->query_var}=" : "post_type=$this->name&pagename=" );
 			} else {
@@ -675,5 +693,41 @@ final class WP_Post_Type {
 	 */
 	public function remove_hooks() {
 		remove_action( 'future_' . $this->name, '_future_post_hook', 5 );
+	}
+
+	/**
+	 * Gets the REST API controller for this post type.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the post type
+	 *                                 is set not to show in rest.
+	 */
+	public function get_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Posts_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->rest_controller ) {
+			$this->rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->rest_controller;
 	}
 }

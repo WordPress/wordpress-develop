@@ -7,7 +7,7 @@
 class Tests_Compat extends WP_UnitTestCase {
 	function utf8_string_lengths() {
 		return array(
-			//                     string, character_length, byte_length
+			// String, character_length, byte_length.
 			array( 'баба', 4, 8 ),
 			array( 'баб', 3, 6 ),
 			array( 'I am your б', 11, 12 ),
@@ -21,7 +21,7 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	function utf8_substrings() {
 		return array(
-			//               string, start, length, character_substring,   byte_substring
+			// String, start, length, character_substring, byte_substring.
 			array( 'баба', 0, 3, 'баб', "б\xD0" ),
 			array( 'баба', 0, -1, 'баб', "баб\xD0" ),
 			array( 'баба', 1, null, 'аба', "\xB1аба" ),
@@ -36,7 +36,7 @@ class Tests_Compat extends WP_UnitTestCase {
 	 * @dataProvider utf8_string_lengths
 	 */
 	function test_mb_strlen( $string, $expected_character_length ) {
-		$this->assertEquals( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
+		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
 	}
 
 	/**
@@ -44,7 +44,7 @@ class Tests_Compat extends WP_UnitTestCase {
 	 */
 	function test_mb_strlen_via_regex( $string, $expected_character_length ) {
 		_wp_can_use_pcre_u( false );
-		$this->assertEquals( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
+		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
 		_wp_can_use_pcre_u( 'reset' );
 	}
 
@@ -52,14 +52,14 @@ class Tests_Compat extends WP_UnitTestCase {
 	 * @dataProvider utf8_string_lengths
 	 */
 	function test_8bit_mb_strlen( $string, $expected_character_length, $expected_byte_length ) {
-		$this->assertEquals( $expected_byte_length, _mb_strlen( $string, '8bit' ) );
+		$this->assertSame( $expected_byte_length, _mb_strlen( $string, '8bit' ) );
 	}
 
 	/**
 	 * @dataProvider utf8_substrings
 	 */
 	function test_mb_substr( $string, $start, $length, $expected_character_substring ) {
-		$this->assertEquals( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
 	}
 
 	/**
@@ -67,7 +67,7 @@ class Tests_Compat extends WP_UnitTestCase {
 	 */
 	function test_mb_substr_via_regex( $string, $start, $length, $expected_character_substring ) {
 		_wp_can_use_pcre_u( false );
-		$this->assertEquals( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
+		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
 		_wp_can_use_pcre_u( 'reset' );
 	}
 
@@ -75,7 +75,7 @@ class Tests_Compat extends WP_UnitTestCase {
 	 * @dataProvider utf8_substrings
 	 */
 	function test_8bit_mb_substr( $string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
-		$this->assertEquals( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
+		$this->assertSame( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
 	}
 
 	function test_mb_substr_phpcore() {
@@ -83,12 +83,12 @@ class Tests_Compat extends WP_UnitTestCase {
 		$string_ascii = 'ABCDEF';
 		$string_mb    = base64_decode( '5pel5pys6Kqe44OG44Kt44K544OI44Gn44GZ44CCMDEyMzTvvJXvvJbvvJfvvJjvvJnjgII=' );
 
-		$this->assertEquals( 'DEF', _mb_substr( $string_ascii, 3 ) );
-		$this->assertEquals( 'DEF', _mb_substr( $string_ascii, 3, 5, 'ISO-8859-1' ) );
+		$this->assertSame( 'DEF', _mb_substr( $string_ascii, 3 ) );
+		$this->assertSame( 'DEF', _mb_substr( $string_ascii, 3, 5, 'ISO-8859-1' ) );
 
-		// specific latin-1 as that is the default the core php test opporates under
-		$this->assertEquals( 'peacrOiqng==', base64_encode( _mb_substr( $string_mb, 2, 7, 'latin-1' ) ) );
-		$this->assertEquals( '6Kqe44OG44Kt44K544OI44Gn44GZ', base64_encode( _mb_substr( $string_mb, 2, 7, 'utf-8' ) ) );
+		// Specific latin-1 as that is the default the core PHP test operates under.
+		$this->assertSame( 'peacrOiqng==', base64_encode( _mb_substr( $string_mb, 2, 7, 'latin-1' ) ) );
+		$this->assertSame( '6Kqe44OG44Kt44K544OI44Gn44GZ', base64_encode( _mb_substr( $string_mb, 2, 7, 'utf-8' ) ) );
 
 		/* https://github.com/php/php-src/blob/php-5.6.8/ext/mbstring/tests/mb_substr_variation1.phpt */
 		$start     = 0;
@@ -103,32 +103,32 @@ EOT;
 			1,
 			12345,
 			-2345,
-			// float data
+			// Float data.
 			10.5,
 			-10.5,
 			12.3456789000e10,
 			12.3456789000E-10,
 			.5,
-			// null data
+			// Null data.
 			null,
 			null,
-			// boolean data
+			// Boolean data.
 			true,
 			false,
 			true,
 			false,
-			// empty data
+			// Empty data.
 			'',
 			'',
-			// string data
+			// String data.
 			'string',
 			'string',
 			$heredoc,
-			// object data
-			new classA(),
-			// undefined data
+			// Object data.
+			new ClassA(),
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentionally undefined data
 			@$undefined_var,
-			// unset data
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- intentionally unset data
 			@$unset_var,
 		);
 		$outputs  = array(
@@ -158,33 +158,36 @@ EOT;
 		);
 		$iterator = 0;
 		foreach ( $inputs as $input ) {
-			$this->assertEquals( $outputs[ $iterator ], _mb_substr( $input, $start, $length ) );
+			$this->assertSame( $outputs[ $iterator ], _mb_substr( $input, $start, $length ) );
 			$iterator++;
 		}
 
 	}
 
 	function test_hash_hmac_simple() {
-		$this->assertEquals( '140d1cb79fa12e2a31f32d35ad0a2723', _hash_hmac( 'md5', 'simple', 'key' ) );
-		$this->assertEquals( '993003b95758e0ac2eba451a4c5877eb1bb7b92a', _hash_hmac( 'sha1', 'simple', 'key' ) );
+		$this->assertSame( '140d1cb79fa12e2a31f32d35ad0a2723', _hash_hmac( 'md5', 'simple', 'key' ) );
+		$this->assertSame( '993003b95758e0ac2eba451a4c5877eb1bb7b92a', _hash_hmac( 'sha1', 'simple', 'key' ) );
 	}
 
 	function test_hash_hmac_padding() {
-		$this->assertEquals( '3c1399103807cf12ec38228614416a8c', _hash_hmac( 'md5', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
-		$this->assertEquals( '4428826d20003e309d6c2a6515891370daf184ea', _hash_hmac( 'sha1', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
+		$this->assertSame( '3c1399103807cf12ec38228614416a8c', _hash_hmac( 'md5', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
+		$this->assertSame( '4428826d20003e309d6c2a6515891370daf184ea', _hash_hmac( 'sha1', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
 	}
 
 	function test_hash_hmac_output() {
-		$this->assertEquals( array( 1 => '140d1cb79fa12e2a31f32d35ad0a2723' ), unpack( 'H32', _hash_hmac( 'md5', 'simple', 'key', true ) ) );
-		$this->assertEquals( array( 1 => '993003b95758e0ac2eba451a4c5877eb1bb7b92a' ), unpack( 'H40', _hash_hmac( 'sha1', 'simple', 'key', true ) ) );
+		$this->assertSame( array( 1 => '140d1cb79fa12e2a31f32d35ad0a2723' ), unpack( 'H32', _hash_hmac( 'md5', 'simple', 'key', true ) ) );
+		$this->assertSame( array( 1 => '993003b95758e0ac2eba451a4c5877eb1bb7b92a' ), unpack( 'H40', _hash_hmac( 'sha1', 'simple', 'key', true ) ) );
 	}
 
+	/**
+	 * @expectedException PHPUnit_Framework_Error_Deprecated
+	 */
 	function test_json_encode_decode() {
-		require_once( ABSPATH . WPINC . '/class-json.php' );
+		require_once ABSPATH . WPINC . '/class-json.php';
 		$json = new Services_JSON();
 		// Super basic test to verify Services_JSON is intact and working.
-		$this->assertEquals( '["foo"]', $json->encodeUnsafe( array( 'foo' ) ) );
-		$this->assertEquals( array( 'foo' ), $json->decode( '["foo"]' ) );
+		$this->assertSame( '["foo"]', $json->encodeUnsafe( array( 'foo' ) ) );
+		$this->assertSame( array( 'foo' ), $json->decode( '["foo"]' ) );
 	}
 
 	/**
@@ -244,11 +247,6 @@ EOT;
 	function test_is_countable_ResourceBundle() {
 		if ( ! class_exists( 'ResourceBundle' ) ) {
 			$this->markTestSkipped( 'The intl extension is not loaded. ResourceBundle not tested for is_countable().' );
-		}
-
-		if ( version_compare( PHP_VERSION, '5.4', '<' ) ) {
-			$this->markTestSkipped( 'ResourceBundle is only countable in PHP 5.4+' );
-			return;
 		}
 
 		$this->assertTrue( is_countable( new ResourceBundle( 'en', null ) ) );
@@ -315,7 +313,7 @@ EOT;
 }
 
 /* used in test_mb_substr_phpcore */
-class classA {
+class ClassA {
 	public function __toString() {
 		return 'Class A object';
 	}

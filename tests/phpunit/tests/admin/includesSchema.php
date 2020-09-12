@@ -23,11 +23,12 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 		$blogmeta = self::$blogmeta;
 		$sitemeta = self::$sitemeta;
 
-		require_once( ABSPATH . 'wp-admin/includes/schema.php' );
+		require_once ABSPATH . 'wp-admin/includes/schema.php';
 
 		$charset_collate  = $wpdb->get_charset_collate();
 		$max_index_length = 191;
 
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query(
 			"
 			CREATE TABLE {$options} (
@@ -66,6 +67,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 			) {$charset_collate}
 			"
 		);
+		// phpcs:enable
 	}
 
 	/**
@@ -78,9 +80,11 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 		$blogmeta = self::$blogmeta;
 		$sitemeta = self::$sitemeta;
 
+		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$wpdb->query( "DROP TABLE IF EXISTS {$options}" );
 		$wpdb->query( "DROP TABLE IF EXISTS {$blogmeta}" );
 		$wpdb->query( "DROP TABLE IF EXISTS {$sitemeta}" );
+		// phpcs:enable
 	}
 
 	/**
@@ -106,7 +110,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 
 		$wpdb->options = $orig_options;
 
-		$this->assertEquals( $expected, $results );
+		$this->assertSame( $expected, $results );
 	}
 
 	public function data_populate_options() {
@@ -115,8 +119,8 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 				array(),
 				array(
 					// Random options to check.
-					'posts_per_rss'    => 10,
-					'rss_use_excerpt'  => 0,
+					'posts_per_rss'    => '10',
+					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
 					'mailserver_pass'  => 'password',
@@ -124,13 +128,13 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 			),
 			array(
 				array(
-					'posts_per_rss'   => 7,
-					'rss_use_excerpt' => 1,
+					'posts_per_rss'   => '7',
+					'rss_use_excerpt' => '1',
 				),
 				array(
 					// Random options to check.
-					'posts_per_rss'    => 7,
-					'rss_use_excerpt'  => 1,
+					'posts_per_rss'    => '7',
+					'rss_use_excerpt'  => '1',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
 					'mailserver_pass'  => 'password',
@@ -143,8 +147,8 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 				array(
 					// Random options to check.
 					'custom_option'    => '1',
-					'posts_per_rss'    => 10,
-					'rss_use_excerpt'  => 0,
+					'posts_per_rss'    => '10',
+					'rss_use_excerpt'  => '0',
 					'mailserver_url'   => 'mail.example.com',
 					'mailserver_login' => 'login@example.com',
 					'mailserver_pass'  => 'password',
@@ -155,7 +159,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 					'use_quicktags' => '1',
 				),
 				array(
-					// This option is on a blacklist and should never exist.
+					// This option is disallowed and should never exist.
 					'use_quicktags' => false,
 				),
 			),
@@ -196,7 +200,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 
 		$wpdb->blogmeta = $orig_blogmeta;
 
-		$this->assertEquals( $expected, $results );
+		$this->assertSame( $expected, $results );
 	}
 
 	public function data_populate_site_meta() {
@@ -244,7 +248,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 
 		$wpdb->sitemeta = $orig_sitemeta;
 
-		$this->assertEquals( $expected, $results );
+		$this->assertSame( $expected, $results );
 	}
 
 	public function data_populate_network_meta() {
@@ -254,8 +258,8 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 				array(
 					// Random meta to check.
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 				),
 			),
 			array(
@@ -267,8 +271,8 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 					// Random meta to check.
 					'site_name'         => 'My Great Network',
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 					'WPLANG'            => 'fr_FR',
 				),
 			),
@@ -280,8 +284,8 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 					// Random meta to check.
 					'custom_meta'       => '1',
 					'registration'      => 'none',
-					'blog_upload_space' => 100,
-					'fileupload_maxk'   => 1500,
+					'blog_upload_space' => '100',
+					'fileupload_maxk'   => '1500',
 				),
 			),
 		);

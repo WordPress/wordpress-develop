@@ -38,7 +38,7 @@ class WP_MatchesMapRegex {
 	 *
 	 * @var string
 	 */
-	public $_pattern = '(\$matches\[[1-9]+[0-9]*\])'; // magic number
+	public $_pattern = '(\$matches\[[1-9]+[0-9]*\])'; // Magic number.
 
 	/**
 	 * constructor
@@ -79,7 +79,7 @@ class WP_MatchesMapRegex {
 	/**
 	 * preg_replace_callback hook
 	 *
-	 * @param  array $matches preg_replace regexp matches
+	 * @param array $matches preg_replace regexp matches
 	 * @return string
 	 */
 	public function callback( $matches ) {

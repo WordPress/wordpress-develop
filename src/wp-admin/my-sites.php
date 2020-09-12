@@ -7,7 +7,7 @@
  * @since 3.0.0
  */
 
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! is_multisite() ) {
 	wp_die( __( 'Multisite support is not enabled.' ) );
@@ -22,7 +22,7 @@ $action = isset( $_POST['action'] ) ? $_POST['action'] : 'splash';
 $blogs = get_blogs_of_user( $current_user->ID );
 
 $updated = false;
-if ( 'updateblogsettings' == $action && isset( $_POST['primary_blog'] ) ) {
+if ( 'updateblogsettings' === $action && isset( $_POST['primary_blog'] ) ) {
 	check_admin_referer( 'update-my-sites' );
 
 	$blog = get_site( (int) $_POST['primary_blog'] );
@@ -52,7 +52,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 if ( $updated ) { ?>
 	<div id="message" class="updated notice is-dismissible"><p><strong><?php _e( 'Settings saved.' ); ?></strong></p></div>
@@ -66,7 +66,7 @@ echo esc_html( $title );
 </h1>
 
 <?php
-if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ) ) ) {
+if ( in_array( get_site_option( 'registration' ), array( 'all', 'blog' ), true ) ) {
 	/** This filter is documented in wp-login.php */
 	$sign_up_url = apply_filters( 'wp_signup_location', network_site_url( 'wp-signup.php' ) );
 	printf( ' <a href="%s" class="page-title-action">%s</a>', esc_url( $sign_up_url ), esc_html_x( 'Add New', 'site' ) );
@@ -104,13 +104,15 @@ else :
 	 * @since MU (3.0.0)
 	 *
 	 * @param string $settings_html The settings HTML markup. Default empty.
-	 * @param object $context       Context of the setting (global or site-specific). Default 'global'.
+	 * @param string $context       Context of the setting (global or site-specific). Default 'global'.
 	 */
 	$settings_html = apply_filters( 'myblogs_options', '', 'global' );
-	if ( $settings_html != '' ) {
+
+	if ( $settings_html ) {
 		echo '<h3>' . __( 'Global Settings' ) . '</h3>';
 		echo $settings_html;
 	}
+
 	reset( $blogs );
 
 	foreach ( $blogs as $user_blog ) {
@@ -134,10 +136,12 @@ else :
 		 * @param object $user_blog An object containing the site data.
 		 */
 		$actions = apply_filters( 'myblogs_blog_actions', $actions, $user_blog );
+
 		echo "<p class='my-sites-actions'>" . $actions . '</p>';
 
 		/** This filter is documented in wp-admin/my-sites.php */
 		echo apply_filters( 'myblogs_options', '', $user_blog );
+
 		echo '</li>';
 
 		restore_current_blog();
@@ -157,4 +161,4 @@ else :
 <?php endif; ?>
 	</div>
 <?php
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

@@ -27,16 +27,16 @@ define( 'WP_SETUP_CONFIG', true );
 error_reporting( 0 );
 
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( dirname( __FILE__ ) ) . '/' );
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
-require( ABSPATH . 'wp-settings.php' );
+require ABSPATH . 'wp-settings.php';
 
 /** Load WordPress Administration Upgrade API */
-require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 /** Load WordPress Translation Installation API */
-require_once( ABSPATH . 'wp-admin/includes/translation-install.php' );
+require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 nocache_headers();
 
@@ -55,7 +55,7 @@ if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 	);
 }
 
-// Check if wp-config.php has been created
+// Check if wp-config.php has been created.
 if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 	wp_die(
 		'<p>' . sprintf(
@@ -63,11 +63,12 @@ if ( file_exists( ABSPATH . 'wp-config.php' ) ) {
 			__( 'The file %1$s already exists. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
-		) . '</p>'
+		) . '</p>',
+		409
 	);
 }
 
-// Check if wp-config.php exists above the root directory but is not part of another installation
+// Check if wp-config.php exists above the root directory but is not part of another installation.
 if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '../wp-settings.php' ) ) {
 	wp_die(
 		'<p>' . sprintf(
@@ -75,7 +76,8 @@ if ( @file_exists( ABSPATH . '../wp-config.php' ) && ! @file_exists( ABSPATH . '
 			__( 'The file %1$s already exists one level above your WordPress installation. If you need to reset any of the configuration items in this file, please delete it first. You may try <a href="%2$s">installing now</a>.' ),
 			'<code>wp-config.php</code>',
 			'install.php'
-		) . '</p>'
+		) . '</p>',
+		409
 	);
 }
 
@@ -87,8 +89,8 @@ $step = isset( $_GET['step'] ) ? (int) $_GET['step'] : -1;
  * @ignore
  * @since 2.3.0
  *
- * @global string    $wp_local_package
- * @global WP_Locale $wp_locale
+ * @global string    $wp_local_package Locale code of the package.
+ * @global WP_Locale $wp_locale        WordPress date and time locale object.
  *
  * @param string|array $body_classes
  */
@@ -104,7 +106,7 @@ function setup_config_display_header( $body_classes = array() ) {
 	header( 'Content-Type: text/html; charset=utf-8' );
 	?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"<?php echo $dir_attr; ?>>
+<html<?php echo $dir_attr; ?>>
 <head>
 	<meta name="viewport" content="width=device-width" />
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -113,9 +115,9 @@ function setup_config_display_header( $body_classes = array() ) {
 	<?php wp_admin_css( 'install', true ); ?>
 </head>
 <body class="<?php echo implode( ' ', $body_classes ); ?>">
-<p id="logo"><a href="<?php echo esc_url( __( 'https://wordpress.org/' ) ); ?>"><?php _e( 'WordPress' ); ?></a></p>
+<p id="logo"><?php _e( 'WordPress' ); ?></p>
 	<?php
-} // end function setup_config_display_header();
+} // End function setup_config_display_header();
 
 $language = '';
 if ( ! empty( $_REQUEST['language'] ) ) {
@@ -126,13 +128,16 @@ if ( ! empty( $_REQUEST['language'] ) ) {
 
 switch ( $step ) {
 	case -1:
-		if ( wp_can_install_language_pack() && empty( $language ) && ( $languages = wp_get_available_translations() ) ) {
-			setup_config_display_header( 'language-chooser' );
-			echo '<h1 class="screen-reader-text">Select a default language</h1>';
-			echo '<form id="setup" method="post" action="?step=0">';
-			wp_install_language_form( $languages );
-			echo '</form>';
-			break;
+		if ( wp_can_install_language_pack() && empty( $language ) ) {
+			$languages = wp_get_available_translations();
+			if ( $languages ) {
+				setup_config_display_header( 'language-chooser' );
+				echo '<h1 class="screen-reader-text">Select a default language</h1>';
+				echo '<form id="setup" method="post" action="?step=0">';
+				wp_install_language_form( $languages );
+				echo '</form>';
+				break;
+			}
 		}
 
 		// Deliberately fall through if we can't reach the translations API.
@@ -166,16 +171,16 @@ switch ( $step ) {
 </ol>
 <p>
 		<?php
-		/* translators: %s: wp-config.php */
 		printf(
+			/* translators: %s: wp-config.php */
 			__( 'We&#8217;re going to use this information to create a %s file.' ),
 			'<code>wp-config.php</code>'
 		);
 		?>
 	<strong>
 		<?php
-		/* translators: 1: wp-config-sample.php, 2: wp-config.php */
 		printf(
+			/* translators: 1: wp-config-sample.php, 2: wp-config.php */
 			__( 'If for any reason this automatic file creation doesn&#8217;t work, don&#8217;t worry. All this does is fill in the database information to a configuration file. You may also simply open %1$s in a text editor, fill in your information, and save it as %2$s.' ),
 			'<code>wp-config-sample.php</code>',
 			'<code>wp-config.php</code>'
@@ -183,10 +188,10 @@ switch ( $step ) {
 		?>
 	</strong>
 		<?php
-		/* translators: %s: Codex URL */
 		printf(
+			/* translators: %s: Documentation URL. */
 			__( 'Need more help? <a href="%s">We got it</a>.' ),
-			__( 'https://codex.wordpress.org/Editing_wp-config.php' )
+			__( 'https://wordpress.org/support/article/editing-wp-config-php/' )
 		);
 		?>
 </p>
@@ -275,15 +280,15 @@ switch ( $step ) {
 		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
-			wp_die( __( '<strong>ERROR</strong>: "Table Prefix" must not be empty.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error</strong>: "Table Prefix" must not be empty.' ) . $tryagain_link );
 		}
 
 		// Validate $prefix: it can only contain letters, numbers and underscores.
 		if ( preg_match( '|[^a-z0-9_]|i', $prefix ) ) {
-			wp_die( __( '<strong>ERROR</strong>: "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
+			wp_die( __( '<strong>Error</strong>: "Table Prefix" can only contain numbers, letters, and underscores.' ) . $tryagain_link );
 		}
 
-		// Test the db connection.
+		// Test the DB connection.
 		/**#@+
 		 *
 		 * @ignore
@@ -313,7 +318,7 @@ switch ( $step ) {
 		$wpdb->show_errors( $errors );
 		if ( ! $wpdb->last_error ) {
 			// MySQL was able to parse the prefix as a value, which we don't want. Bail.
-			wp_die( __( '<strong>ERROR</strong>: "Table Prefix" is invalid.' ) );
+			wp_die( __( '<strong>Error</strong>: "Table Prefix" is invalid.' ) );
 		}
 
 		// Generate keys and salts using secure CSPRNG; fallback to API if enabled; further fallback to original wp_generate_password().
@@ -349,7 +354,7 @@ switch ( $step ) {
 
 		$key = 0;
 		foreach ( $config_file as $line_num => $line ) {
-			if ( '$table_prefix =' == substr( $line, 0, 15 ) ) {
+			if ( '$table_prefix =' === substr( $line, 0, 15 ) ) {
 				$config_file[ $line_num ] = '$table_prefix = \'' . addcslashes( $prefix, "\\'" ) . "';\r\n";
 				continue;
 			}
@@ -393,7 +398,7 @@ switch ( $step ) {
 	<p>
 			<?php
 			/* translators: %s: wp-config.php */
-			printf( __( 'Sorry, but I can&#8217;t write the %s file.' ), '<code>wp-config.php</code>' );
+			printf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
 			?>
 </p>
 <p>

@@ -1,9 +1,8 @@
 === Twenty Fifteen ===
 Contributors: wordpressdotorg
 Requires at least: WordPress 4.1
-Tested up to: WordPress 5.0
-Requires PHP: 5.2.4
-Version: 2.5
+Tested up to: 5.5
+Version: 2.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, two-columns, left-sidebar, accessibility-ready, custom-background, custom-colors, custom-header, custom-logo, custom-menu, editor-style, featured-images, microformats, post-formats, rtl-language-support, sticky-post, threaded-comments, translation-ready
@@ -19,19 +18,19 @@ Our 2015 default theme is clean, blog-focused, and designed for clarity. Twenty 
 * Post Formats
 * The GPL v2.0 or later license. :) Use it to make something cool.
 
-For more information about Twenty Fifteen please go to https://codex.wordpress.org/Twenty_Fifteen.
+For more information about Twenty Fifteen please go to https://wordpress.org/support/article/twenty-fifteen/.
 
 == Installation ==
 
 1. In your admin panel, go to Appearance -> Themes and click the 'Add New' button.
 2. Type in Twenty Fifteen in the search form and press the 'Enter' key on your keyboard.
 3. Click on the 'Activate' button to use your new theme right away.
-4. Go to https://codex.wordpress.org/Twenty_Fifteen for a guide on how to customize this theme.
+4. Go to https://wordpress.org/support/article/twenty-fifteen/ for a guide on how to customize this theme.
 5. Navigate to Appearance > Customize in your admin panel and customize to taste.
 
 == Copyright ==
 
-Twenty Fifteen WordPress Theme, Copyright 2014-2018 WordPress.org & Automattic.com
+Twenty Fifteen WordPress Theme, Copyright 2014-2020 WordPress.org & Automattic.com
 Twenty Fifteen is distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -55,6 +54,16 @@ License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
 == Changelog ==
+
+= 2.7 =
+* Released: August 11, 2020
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_2.7
+
+= 2.6 =
+* Released: March 31, 2020
+
+https://codex.wordpress.org/Twenty_Fifteen_Theme_Changelog#Version_2.6
 
 = 2.5 =
 * Released: May 7, 2019

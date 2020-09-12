@@ -6,13 +6,13 @@
 class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 
 	/**
-	 * Non-ASCII UTF-8 characters should be percent encoded. Spaces etc.
+	 * Non-ASCII UTF-8 characters should be percent-encoded. Spaces etc.
 	 * are dealt with elsewhere.
 	 *
 	 * @dataProvider data
 	 */
 	function test_percent_encodes_non_reserved_characters( $utf8, $urlencoded ) {
-		$this->assertEquals( $urlencoded, utf8_uri_encode( $utf8 ) );
+		$this->assertSame( $urlencoded, utf8_uri_encode( $utf8 ) );
 	}
 
 	/**

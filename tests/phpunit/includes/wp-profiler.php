@@ -1,21 +1,20 @@
 <?php
 
 /*
-A simple manually-instrumented profiler for WordPress.
-
-This records basic execution time, and a summary of the actions and SQL queries run within each block.
-
-start() and stop() must be called in pairs, for example:
-
-function something_to_profile() {
-	wppf_start(__FUNCTION__);
-	do_stuff();
-	wppf_stop();
-}
-
-Multiple profile blocks are permitted, and they may be nested.
-
-*/
+ * A simple manually-instrumented profiler for WordPress.
+ *
+ * This records basic execution time, and a summary of the actions and SQL queries run within each block.
+ *
+ * start() and stop() must be called in pairs, for example:
+ *
+ * function something_to_profile() {
+ * 	wppf_start(__FUNCTION__);
+ * 	do_stuff();
+ * 	wppf_stop();
+ * }
+ *
+ * Multiple profile blocks are permitted, and they may be nested.
+ */
 
 class WPProfiler {
 	public $stack;
@@ -33,11 +32,11 @@ class WPProfiler {
 		$time = $this->microtime();
 
 		if ( ! $this->stack ) {
-			// log all actions and filters
+			// Log all actions and filters.
 			add_filter( 'all', array( $this, 'log_filter' ) );
 		}
 
-		// reset the wpdb queries log, storing it on the profile stack if necessary
+		// Reset the wpdb queries log, storing it on the profile stack if necessary.
 		global $wpdb;
 		if ( $this->stack ) {
 			$this->stack[ count( $this->stack ) - 1 ]['queries'] = $wpdb->queries;
@@ -114,10 +113,10 @@ class WPProfiler {
 	public function log_filter( $tag ) {
 		if ( $this->stack ) {
 			global $wp_actions;
-			if ( $tag == end( $wp_actions ) ) {
-				@$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ] ++;
+			if ( end( $wp_actions ) === $tag ) {
+				$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
 			} else {
-				@$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ] ++;
+				$this->stack[ count( $this->stack ) - 1 ]['filters'][ $tag ]++;
 			}
 		}
 		return $arg;
@@ -125,7 +124,7 @@ class WPProfiler {
 
 	public function log_action( $tag ) {
 		if ( $this->stack ) {
-			@$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ] ++;
+			$this->stack[ count( $this->stack ) - 1 ]['actions'][ $tag ]++;
 		}
 	}
 
@@ -144,20 +143,20 @@ class WPProfiler {
 			$sql = preg_replace( '/(WHERE \w+ =) \d+/', '$1 x', $sql );
 			$sql = preg_replace( '/(WHERE \w+ =) \'\[-\w]+\'/', '$1 \'xxx\'', $sql );
 
-			@$out[ $sql ] ++;
+			$out[ $sql ] ++;
 		}
 		asort( $out );
 		return;
 	}
 
 	public function _query_count( $queries ) {
-		// this requires the savequeries patch at https://core.trac.wordpress.org/ticket/5218
+		// This requires the SAVEQUERIES patch at https://core.trac.wordpress.org/ticket/5218
 		$out = array();
 		foreach ( $queries as $q ) {
 			if ( empty( $q[2] ) ) {
-				@$out['unknown'] ++;
+				$out['unknown']++;
 			} else {
-				@$out[ $q[2] ] ++;
+				$out[ $q[2] ]++;
 			}
 		}
 		return $out;

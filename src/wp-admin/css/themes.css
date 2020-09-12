@@ -34,9 +34,6 @@ body.js .theme-browser.search-loading {
 	left: 20px;
 	margin: 0;
 	width: 280px;
-	font-size: 16px;
-	font-weight: 300;
-	line-height: 1.5;
 }
 
 /* Position admin messages */
@@ -62,11 +59,6 @@ body.js .theme-browser.search-loading {
 	border: 1px solid #ddd;
 	box-shadow: 0 1px 1px -1px rgba(0, 0, 0, 0.1);
 	box-sizing: border-box;
-}
-
-.ie8 .theme-browser .theme {
-	width: 30%;
-	margin: 0 3% 4% 0;
 }
 
 .theme-browser .theme:nth-child(3n) {
@@ -232,7 +224,7 @@ body.js .theme-browser.search-loading {
 	top: 50%;
 	transform: translateY(-50%);
 	right: 0;
-	padding: 10px 15px;
+	padding: 9px 15px;
 	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -257,7 +249,6 @@ body.js .theme-browser.search-loading {
 
 .theme-browser .theme.display-author .theme-author a {
 	color: inherit;
-	text-decoration: none;
 }
 
 /**
@@ -507,10 +498,6 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	border-top: 1px solid #eee;
 }
 
-.ie8 .theme-overlay .theme-actions {
-	border: 1px solid #eee;
-}
-
 .theme-overlay .theme-actions a {
 	margin-right: 5px;
 	margin-bottom: 5px;
@@ -691,8 +678,21 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	line-height: inherit;
 }
 
-.theme-overlay .theme-author a {
+.theme-overlay .toggle-auto-update {
+	/* Better align spin icon and text. */
+	display: inline-flex;
+	align-items: center;
+	/* Prevents content after the auto-update toggler from jumping down and up. */
+	min-height: 20px; /* Same height as the spinning dashicon. */
+	vertical-align: top;
+}
+
+.theme-overlay .theme-autoupdate .toggle-auto-update {
 	text-decoration: none;
+}
+
+.theme-overlay .theme-autoupdate .toggle-auto-update .label {
+	text-decoration: underline;
 }
 
 .theme-overlay .theme-description {
@@ -826,7 +826,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 }
 
 /* Admin menu is folded */
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 960px) {
 	.theme-overlay .theme-wrap {
 		left: 65px;
 	}
@@ -898,6 +898,15 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	.theme-browser .theme:nth-child(2n),
 	.theme-browser .theme:nth-child(3n) {
 		margin-right: 0;
+	}
+
+	.theme-overlay .theme-about {
+		bottom: 105px;
+	}
+
+	.theme-overlay .theme-actions {
+		padding-left: 4%;
+		padding-right: 4%;
 	}
 }
 
@@ -986,10 +995,15 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
   16.2 - Install Themes
 ------------------------------------------------------------------------------*/
 
+.update-php .wrap {
+	max-width: 40rem;
+}
+
 /* Already installed theme */
 .theme-browser .theme .theme-installed {
 	background: #0073aa;
 }
+
 .theme-browser .theme .notice-success p:before {
 	color: #79ba49;
 	content: "\f147";
@@ -1032,10 +1046,7 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 	overflow: hidden;
 	position: relative;
 	top: 10px;
-}
-
-.upload-plugin-wrap {
-	display: none;
+	text-align: center;
 }
 
 .show-upload-view .upload-theme,
@@ -1048,11 +1059,19 @@ body.folded .theme-browser ~ .theme-overlay .theme-wrap {
 .upload-theme .wp-upload-form,
 .upload-plugin .wp-upload-form {
 	background: #fafafa;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	padding: 30px;
 	margin: 30px auto;
-	max-width: 380px;
+	display: inline-flex;
+	justify-content: space-between;
+	align-items: center;
 }
+
+.upload-theme .wp-upload-form input[type="file"],
+.upload-plugin .wp-upload-form input[type="file"] {
+	margin-right: 10px;
+}
+
 .upload-theme .install-help,
 .upload-plugin .install-help {
 	color: #555d66; /* #f1f1f1 background */
@@ -1091,7 +1110,6 @@ p.no-themes-local {
 	.upload-theme .install-help {
 		font-size: 15px;
 		padding: 20px 0 0;
-		text-align: left;
 	}
 }
 
@@ -1112,6 +1130,43 @@ p.no-themes-local {
 .theme-details .no-rating {
 	display: block;
 	line-height: 1.9;
+}
+
+.update-from-upload-comparison {
+	border-top: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	text-align: left;
+	margin: 1rem 0 1.4rem;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+.update-from-upload-comparison tr:last-child td {
+	height: 1.4rem;
+    vertical-align: top;
+}
+
+.update-from-upload-comparison tr:first-child th {
+	font-weight: bold;
+	height: 1.4rem;
+    vertical-align: bottom;
+}
+
+.update-from-upload-comparison td.name-label {
+	text-align: right;
+}
+
+.update-from-upload-comparison td,
+.update-from-upload-comparison th {
+	padding: 0.4rem 1.4rem;
+}
+
+.update-from-upload-comparison td.warning {
+	color: #a00;
+}
+
+.update-from-upload-actions {
+	margin-top: 1.4rem;
 }
 
 /*------------------------------------------------------------------------------
@@ -1416,7 +1471,6 @@ body.full-overlay-active {
 	float: left;
 	width: 45px;
 	height: 45px;
-	padding-right: 2px;
 	background: #eee;
 	border-right: 1px solid #ddd;
 	color: #444;
@@ -1810,8 +1864,6 @@ body.full-overlay-active {
 .theme-install-overlay .wp-full-overlay-header .button {
 	float: right;
 	margin: 8px 10px 0 0;
-	/* For when .theme-install is a span rather than a.button-primary (already installed theme) */
-	line-height: 2;
 }
 
 .theme-install-overlay .wp-full-overlay-sidebar {
@@ -1896,9 +1948,10 @@ body.full-overlay-active {
 		width: 100%;
 	}
 
-	.theme-install-overlay .wp-full-overlay-header .theme-install {
-		margin-top: 6px;
-		line-height: normal;
+	.theme-install-overlay .wp-full-overlay-header .button {
+		font-size: 13px;
+		line-height: 2.15384615;
+		min-height: 30px;
 	}
 
 	.theme-browser .theme .theme-actions .button {
@@ -1907,8 +1960,13 @@ body.full-overlay-active {
 
 	.theme-browser .theme.active .theme-actions,
 	.theme-browser .theme .theme-actions {
-		padding-top: 8px;
-		padding-bottom: 8px;
+		padding-top: 4px;
+		padding-bottom: 4px;
+	}
+
+	.upload-theme .wp-upload-form,
+	.upload-plugin .wp-upload-form {
+		display: block;
 	}
 }
 

@@ -1,5 +1,4 @@
-var $ = jQuery,
-	MenuItem;
+var MenuItem;
 
 /**
  * wp.media.view.MenuItem
@@ -12,36 +11,28 @@ var $ = jQuery,
  * @augments Backbone.View
  */
 MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
-	tagName:   'a',
+	tagName:   'button',
 	className: 'media-menu-item',
 
 	attributes: {
-		href: '#'
+		type: 'button',
+		role: 'tab'
 	},
 
 	events: {
 		'click': '_click'
 	},
-	/**
-	 * @param {Object} event
-	 */
-	_click: function( event ) {
-		var clickOverride = this.options.click;
 
-		if ( event ) {
-			event.preventDefault();
-		}
+	/**
+	 * Allows to override the click event.
+	 */
+	_click: function() {
+		var clickOverride = this.options.click;
 
 		if ( clickOverride ) {
 			clickOverride.call( this );
 		} else {
 			this.click();
-		}
-
-		// When selecting a tab along the left side,
-		// focus should be transferred into the main panel
-		if ( ! wp.media.isTouchDevice ) {
-			$('.media-frame-content input').first().focus();
 		}
 	},
 
@@ -50,20 +41,26 @@ MenuItem = wp.media.View.extend(/** @lends wp.media.view.MenuItem.prototype */{
 
 		if ( state ) {
 			this.controller.setState( state );
-			this.views.parent.$el.removeClass( 'visible' ); // TODO: or hide on any click, see below
+			// Toggle the menu visibility in the responsive view.
+			this.views.parent.$el.removeClass( 'visible' ); // @todo Or hide on any click, see below.
 		}
 	},
+
 	/**
-	 * @returns {wp.media.view.MenuItem} returns itself to allow chaining
+	 * @return {wp.media.view.MenuItem} returns itself to allow chaining.
 	 */
 	render: function() {
-		var options = this.options;
+		var options = this.options,
+			menuProperty = options.state || options.contentMode;
 
 		if ( options.text ) {
 			this.$el.text( options.text );
 		} else if ( options.html ) {
 			this.$el.html( options.html );
 		}
+
+		// Set the menu item ID based on the frame state associated to the menu item.
+		this.$el.attr( 'id', 'menu-item-' + menuProperty );
 
 		return this;
 	}

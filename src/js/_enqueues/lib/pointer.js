@@ -2,8 +2,6 @@
  * @output wp-includes/js/wp-pointer.js
  */
 
-/* global wpPointerL10n */
-
 /**
  * Initializes the wp-pointer widget using jQuery UI Widget Factory.
  */
@@ -19,8 +17,7 @@
 				return $(this).text();
 			},
 			buttons: function( event, t ) {
-				var close  = ( wpPointerL10n ) ? wpPointerL10n.dismiss : 'Dismiss',
-					button = $('<a class="close" href="#">' + close + '</a>');
+				var button = $('<a class="close" href="#"></a>').text( wp.i18n.__( 'Dismiss' ) );
 
 				return button.bind( 'click.pointer', function(e) {
 					e.preventDefault();
@@ -90,11 +87,11 @@
 			var o   = this.options,
 				tip = this.pointer;
 
-			// Handle document transfer
+			// Handle document transfer.
 			if ( key === 'document' && value !== o.document ) {
 				tip.detach().appendTo( value.body );
 
-			// Handle class change
+			// Handle class change.
 			} else if ( key === 'pointerClass' ) {
 				tip.removeClass( o.pointerClass ).addClass( value );
 			}
@@ -102,11 +99,11 @@
 			// Call super method.
 			$.Widget.prototype._setOption.apply( this, arguments );
 
-			// Reposition automatically
+			// Reposition automatically.
 			if ( key === 'position' ) {
 				this.reposition();
 
-			// Update content automatically if pointer is open
+			// Update content automatically if pointer is open.
 			} else if ( key === 'content' && this.active ) {
 				this.update();
 			}
@@ -234,7 +231,7 @@
 			}).show().position($.extend({
 				of: this.element,
 				collision: 'fit none'
-			}, position )); // the object comes before this.options.position so the user can override position.of.
+			}, position )); // The object comes before this.options.position so the user can override position.of.
 
 			this.repoint();
 		},

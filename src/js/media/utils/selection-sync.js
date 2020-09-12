@@ -22,10 +22,12 @@ var selectionSync = {
 			return;
 		}
 
-		// If the selection supports multiple items, validate the stored
-		// attachments based on the new selection's conditions. Record
-		// the attachments that are not included; we'll maintain a
-		// reference to those. Other attachments are considered in flux.
+		/*
+		 * If the selection supports multiple items, validate the stored
+		 * attachments based on the new selection's conditions. Record
+		 * the attachments that are not included; we'll maintain a
+		 * reference to those. Other attachments are considered in flux.
+		 */
 		if ( selection.multiple ) {
 			selection.reset( [], { silent: true });
 			selection.validateAll( manager.attachments );

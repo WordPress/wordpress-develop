@@ -9,7 +9,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$x->_baba = 5;
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'_baba' => 5,
 				'yZ'    => 'baba',
@@ -18,19 +18,19 @@ class Tests_Functions extends WP_UnitTestCase {
 			wp_parse_args( $x )
 		);
 		$y = new MockClass;
-		$this->assertEquals( array(), wp_parse_args( $y ) );
+		$this->assertSame( array(), wp_parse_args( $y ) );
 	}
 
 	function test_wp_parse_args_array() {
-		// arrays
+		// Arrays.
 		$a = array();
-		$this->assertEquals( array(), wp_parse_args( $a ) );
+		$this->assertSame( array(), wp_parse_args( $a ) );
 		$b = array(
 			'_baba' => 5,
 			'yZ'    => 'baba',
 			'a'     => array( 5, 111, 'x' ),
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'_baba' => 5,
 				'yZ'    => 'baba',
@@ -46,7 +46,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$x->yZ    = 'baba'; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		$x->a     = array( 5, 111, 'x' );
 		$d        = array( 'pu' => 'bu' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'pu'    => 'bu',
 				'_baba' => 5,
@@ -56,7 +56,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			wp_parse_args( $x, $d )
 		);
 		$e = array( '_baba' => 6 );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'_baba' => 5,
 				'yZ'    => 'baba',
@@ -69,10 +69,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_parse_args_other() {
 		$b = true;
 		wp_parse_str( $b, $s );
-		$this->assertEquals( $s, wp_parse_args( $b ) );
+		$this->assertSame( $s, wp_parse_args( $b ) );
 		$q = 'x=5&_baba=dudu&';
 		wp_parse_str( $q, $ss );
-		$this->assertEquals( $ss, wp_parse_args( $q ) );
+		$this->assertSame( $ss, wp_parse_args( $q ) );
 	}
 
 	/**
@@ -136,26 +136,27 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @dataProvider data_wp_normalize_path
 	 */
 	function test_wp_normalize_path( $path, $expected ) {
-		$this->assertEquals( $expected, wp_normalize_path( $path ) );
+		$this->assertSame( $expected, wp_normalize_path( $path ) );
 	}
+
 	function data_wp_normalize_path() {
 		return array(
-			// Windows paths
+			// Windows paths.
 			array( 'C:\\www\\path\\', 'C:/www/path/' ),
 			array( 'C:\\www\\\\path\\', 'C:/www/path/' ),
 			array( 'c:/www/path', 'C:/www/path' ),
-			array( 'c:\\www\\path\\', 'C:/www/path/' ), // uppercase drive letter
+			array( 'c:\\www\\path\\', 'C:/www/path/' ), // Uppercase drive letter.
 			array( 'c:\\\\www\\path\\', 'C:/www/path/' ),
 			array( '\\\\Domain\\DFSRoots\\share\\path\\', '//Domain/DFSRoots/share/path/' ),
 			array( '\\\\Server\\share\\path', '//Server/share/path' ),
 			array( '\\\\Server\\share', '//Server/share' ),
 
-			// Linux paths
+			// Linux paths.
 			array( '/www/path/', '/www/path/' ),
 			array( '/www/path/////', '/www/path/' ),
 			array( '/www/path', '/www/path' ),
 
-			// PHP Stream wrappers
+			// PHP stream wrappers.
 			array( 'php://input', 'php://input' ),
 			array( 'http://example.com//path.ext', 'http://example.com/path.ext' ),
 			array( 'file://c:\\www\\path\\', 'file://C:/www/path/' ),
@@ -166,67 +167,173 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$testdir = DIR_TESTDATA . '/images/';
 
-		// sanity check
-		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Sanitiy check failed' );
+		// Sanity check.
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcdefg.png' ), 'Sanitiy check failed' );
 
-		// check number is appended for file already exists
+		// Check number is appended for file already exists.
 		$this->assertFileExists( $testdir . 'test-image.png', 'Test image does not exist' );
-		$this->assertEquals( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
+		$this->assertSame( 'test-image-1.png', wp_unique_filename( $testdir, 'test-image.png' ), 'Number not appended correctly' );
 		$this->assertFileNotExists( $testdir . 'test-image-1.png' );
 
-		// check special chars
-		$this->assertEquals( 'testtést-imagé.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
+		// Check special chars.
+		$this->assertSame( 'testtest-image.png', wp_unique_filename( $testdir, 'testtést-imagé.png' ), 'Filename with special chars failed' );
 
-		// check special chars with potential conflicting name
-		$this->assertEquals( 'tést-imagé.png', wp_unique_filename( $testdir, 'tést-imagé.png' ), 'Filename with special chars failed' );
+		// Check special chars with potential conflicting name.
+		$this->assertSame( 'test-image-1.png', wp_unique_filename( $testdir, 'tést-imagé.png' ), 'Filename with special chars failed' );
 
-		// check with single quotes in name (somehow)
-		$this->assertEquals( 'abcdefgh.png', wp_unique_filename( $testdir, "abcdefg'h.png" ), 'File with quote failed' );
+		// Check with single quotes in name (somehow).
+		$this->assertSame( 'abcdefgh.png', wp_unique_filename( $testdir, "abcdefg'h.png" ), 'File with quote failed' );
 
-		// check with single quotes in name (somehow)
-		$this->assertEquals( 'abcdefgh.png', wp_unique_filename( $testdir, 'abcdefg"h.png' ), 'File with quote failed' );
+		// Check with double quotes in name (somehow).
+		$this->assertSame( 'abcdefgh.png', wp_unique_filename( $testdir, 'abcdefg"h.png' ), 'File with quote failed' );
 
-		// test crazy name (useful for regression tests)
-		$this->assertEquals( '12af34567890@..^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
+		// Test crazy name (useful for regression tests).
+		$this->assertSame( '12af34567890@..^_qwerty-fghjkl-zx.png', wp_unique_filename( $testdir, '12%af34567890#~!@#$..%^&*()|_+qwerty  fgh`jkl zx<>?:"{}[]="\'/?.png' ), 'Failed crazy file name' );
 
-		// test slashes in names
-		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
-		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
-		$this->assertEquals( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
+		// Test slashes in names.
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\fg.png' ), 'Slash not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\fg.png' ), 'Double slashed not removed' );
+		$this->assertSame( 'abcdefg.png', wp_unique_filename( $testdir, 'abcde\\\fg.png' ), 'Tripple slashed not removed' );
 	}
 
-	function test_is_serialized() {
-		$cases = array(
-			serialize( null ),
-			serialize( true ),
-			serialize( false ),
-			serialize( -25 ),
-			serialize( 25 ),
-			serialize( 1.1 ),
-			serialize( 'this string will be serialized' ),
-			serialize( "a\nb" ),
-			serialize( array() ),
-			serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ),
-			serialize(
+	/**
+	 * @ticket 42437
+	 */
+	function test_unique_filename_with_dimension_like_filename() {
+		$testdir = DIR_TESTDATA . '/images/';
+
+		add_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+
+		// Test collision with "dimension-like" original filename.
+		$this->assertSame( 'one-blue-pixel-100x100-1.png', wp_unique_filename( $testdir, 'one-blue-pixel-100x100.png' ) );
+		// Test collision with existing sub-size filename.
+		// Existing files: one-blue-pixel-100x100.png, one-blue-pixel-1-100x100.png.
+		$this->assertSame( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.png' ) );
+		// Same as above with upper case extension.
+		$this->assertSame( 'one-blue-pixel-2.png', wp_unique_filename( $testdir, 'one-blue-pixel.PNG' ) );
+
+		remove_filter( 'upload_dir', array( $this, 'upload_dir_patch_basedir' ) );
+	}
+
+	// Callback to patch "basedir" when used in `wp_unique_filename()`.
+	function upload_dir_patch_basedir( $upload_dir ) {
+		$upload_dir['basedir'] = DIR_TESTDATA . '/images/';
+		return $upload_dir;
+	}
+
+	/**
+	 * @dataProvider data_is_not_serialized
+	 */
+	function test_maybe_serialize( $value ) {
+		if ( is_array( $value ) || is_object( $value ) ) {
+			$expected = serialize( $value );
+		} else {
+			$expected = $value;
+		}
+
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
+
+	/**
+	 * @dataProvider data_is_serialized
+	 */
+	function test_maybe_serialize_with_double_serialization( $value ) {
+		$expected = serialize( $value );
+
+		$this->assertSame( $expected, maybe_serialize( $value ) );
+	}
+
+	/**
+	 * @dataProvider data_is_serialized
+	 * @dataProvider data_is_not_serialized
+	 */
+	function test_maybe_unserialize( $value, $is_serialized ) {
+		if ( $is_serialized ) {
+			$expected = unserialize( trim( $value ) );
+		} else {
+			$expected = $value;
+		}
+
+		if ( is_object( $expected ) ) {
+			$this->assertEquals( $expected, maybe_unserialize( $value ) );
+		} else {
+			$this->assertSame( $expected, maybe_unserialize( $value ) );
+		}
+	}
+
+	/**
+	 * @dataProvider data_is_serialized
+	 * @dataProvider data_is_not_serialized
+	 */
+	function test_is_serialized( $value, $expected ) {
+		$this->assertSame( $expected, is_serialized( $value ) );
+	}
+
+	function data_is_serialized() {
+		return array(
+			array( serialize( null ), true ),
+			array( serialize( true ), true ),
+			array( serialize( false ), true ),
+			array( serialize( -25 ), true ),
+			array( serialize( 25 ), true ),
+			array( serialize( 1.1 ), true ),
+			array( serialize( 'this string will be serialized' ), true ),
+			array( serialize( "a\nb" ), true ),
+			array( serialize( array() ), true ),
+			array( serialize( array( 1, 1, 2, 3, 5, 8, 13 ) ), true ),
+			array(
+				serialize(
+					(object) array(
+						'test' => true,
+						'3',
+						4,
+					)
+				),
+				true,
+			),
+			array( '   s:25:"this string is serialized";   ', true ),
+		);
+	}
+
+	function data_is_not_serialized() {
+		return array(
+			array( null, false ),
+			array( true, false ),
+			array( false, false ),
+			array( -25, false ),
+			array( 25, false ),
+			array( 1.1, false ),
+			array( 'this string will be serialized', false ),
+			array( "a\nb", false ),
+			array( array(), false ),
+			array( array( 1, 1, 2, 3, 5, 8, 13 ), false ),
+			array(
 				(object) array(
 					'test' => true,
 					'3',
 					4,
-				)
+				),
+				false,
 			),
+			array( 'a string', false ),
+			array( 'garbage:a:0:garbage;', false ),
+			array( 's:4:test;', false ),
 		);
-		foreach ( $cases as $case ) {
-			$this->assertTrue( is_serialized( $case ), "Serialized data: $case" );
-		}
+	}
 
-		$not_serialized = array(
-			'a string',
-			'garbage:a:0:garbage;',
-			's:4:test;',
+	/**
+	 * @ticket 46570
+	 * @dataProvider data_is_serialized_should_return_true_for_large_floats
+	 */
+	function test_is_serialized_should_return_true_for_large_floats( $value ) {
+		$this->assertTrue( is_serialized( $value ) );
+	}
+
+	function data_is_serialized_should_return_true_for_large_floats() {
+		return array(
+			array( serialize( 1.7976931348623157E+308 ) ),
+			array( serialize( array( 1.7976931348623157E+308, 1.23e50 ) ) ),
 		);
-		foreach ( $not_serialized as $case ) {
-			$this->assertFalse( is_serialized( $case ), "Test data: $case" );
-		}
 	}
 
 	/**
@@ -235,7 +342,6 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_no_new_serializable_types() {
 		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
-
 
 	/**
 	 * @group add_query_arg
@@ -262,9 +368,9 @@ class Tests_Functions extends WP_UnitTestCase {
 		foreach ( $urls as $url ) {
 			$_SERVER['REQUEST_URI'] = 'nothing';
 
-			$this->assertEquals( "$url?foo=1", add_query_arg( 'foo', '1', $url ) );
-			$this->assertEquals( "$url?foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertEquals(
+			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1', $url ) );
+			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
+			$this->assertSame(
 				"$url?foo=2",
 				add_query_arg(
 					array(
@@ -274,7 +380,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					$url
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
 					array(
@@ -287,9 +393,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$_SERVER['REQUEST_URI'] = $url;
 
-			$this->assertEquals( "$url?foo=1", add_query_arg( 'foo', '1' ) );
-			$this->assertEquals( "$url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertEquals(
+			$this->assertSame( "$url?foo=1", add_query_arg( 'foo', '1' ) );
+			$this->assertSame( "$url?foo=1", add_query_arg( array( 'foo' => '1' ) ) );
+			$this->assertSame(
 				"$url?foo=2",
 				add_query_arg(
 					array(
@@ -298,7 +404,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					)
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url?foo=1&bar=2",
 				add_query_arg(
 					array(
@@ -313,9 +419,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			$_SERVER['REQUEST_URI'] = 'nothing';
 			$url                    = str_replace( '#frag', '', $frag_url );
 
-			$this->assertEquals( "$url?foo=1#frag", add_query_arg( 'foo', '1', $frag_url ) );
-			$this->assertEquals( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ), $frag_url ) );
-			$this->assertEquals(
+			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1', $frag_url ) );
+			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ), $frag_url ) );
+			$this->assertSame(
 				"$url?foo=2#frag",
 				add_query_arg(
 					array(
@@ -325,7 +431,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					$frag_url
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
 					array(
@@ -338,9 +444,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$_SERVER['REQUEST_URI'] = $frag_url;
 
-			$this->assertEquals( "$url?foo=1#frag", add_query_arg( 'foo', '1' ) );
-			$this->assertEquals( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertEquals(
+			$this->assertSame( "$url?foo=1#frag", add_query_arg( 'foo', '1' ) );
+			$this->assertSame( "$url?foo=1#frag", add_query_arg( array( 'foo' => '1' ) ) );
+			$this->assertSame(
 				"$url?foo=2#frag",
 				add_query_arg(
 					array(
@@ -349,7 +455,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					)
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url?foo=1&bar=2#frag",
 				add_query_arg(
 					array(
@@ -375,9 +481,9 @@ class Tests_Functions extends WP_UnitTestCase {
 		foreach ( $qs_urls as $url ) {
 			$_SERVER['REQUEST_URI'] = 'nothing';
 
-			$this->assertEquals( "$url&foo=1", add_query_arg( 'foo', '1', $url ) );
-			$this->assertEquals( "$url&foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
-			$this->assertEquals(
+			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1', $url ) );
+			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ), $url ) );
+			$this->assertSame(
 				"$url&foo=2",
 				add_query_arg(
 					array(
@@ -387,7 +493,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					$url
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
 					array(
@@ -400,9 +506,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 			$_SERVER['REQUEST_URI'] = $url;
 
-			$this->assertEquals( "$url&foo=1", add_query_arg( 'foo', '1' ) );
-			$this->assertEquals( "$url&foo=1", add_query_arg( array( 'foo' => '1' ) ) );
-			$this->assertEquals(
+			$this->assertSame( "$url&foo=1", add_query_arg( 'foo', '1' ) );
+			$this->assertSame( "$url&foo=1", add_query_arg( array( 'foo' => '1' ) ) );
+			$this->assertSame(
 				"$url&foo=2",
 				add_query_arg(
 					array(
@@ -411,7 +517,7 @@ class Tests_Functions extends WP_UnitTestCase {
 					)
 				)
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				"$url&foo=1&bar=2",
 				add_query_arg(
 					array(
@@ -430,7 +536,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_add_query_arg_numeric_keys() {
 		$url = add_query_arg( array( 'foo' => 'bar' ), '1=1' );
-		$this->assertEquals( '1=1&foo=bar', $url );
+		$this->assertSame( '1=1&foo=bar', $url );
 
 		$url = add_query_arg(
 			array(
@@ -439,10 +545,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			),
 			'1=1'
 		);
-		$this->assertEquals( '1=2&foo=bar', $url );
+		$this->assertSame( '1=2&foo=bar', $url );
 
 		$url = add_query_arg( array( '1' => '2' ), 'foo=bar' );
-		$this->assertEquals( 'foo=bar&1=2', $url );
+		$this->assertSame( 'foo=bar&1=2', $url );
 	}
 
 	/**
@@ -484,7 +590,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $mimes );
 		$this->assertNotEmpty( $mimes );
 
-		// upload_mimes shouldn't affect wp_get_mime_types()
+		// 'upload_mimes' should not affect wp_get_mime_types().
 		add_filter( 'upload_mimes', '__return_empty_array' );
 		$mimes = wp_get_mime_types();
 		$this->assertInternalType( 'array', $mimes );
@@ -494,7 +600,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$mimes2 = wp_get_mime_types();
 		$this->assertInternalType( 'array', $mimes2 );
 		$this->assertNotEmpty( $mimes2 );
-		$this->assertEquals( $mimes2, $mimes );
+		$this->assertSame( $mimes2, $mimes );
 	}
 
 	/**
@@ -504,32 +610,32 @@ class Tests_Functions extends WP_UnitTestCase {
 		$orig_blog_charset = get_option( 'blog_charset' );
 
 		update_option( 'blog_charset', 'utf8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
+		$this->assertSame( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'utf-8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
+		$this->assertSame( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'UTF8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
+		$this->assertSame( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'UTF-8' );
-		$this->assertEquals( 'UTF-8', get_option( 'blog_charset' ) );
+		$this->assertSame( 'UTF-8', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'ISO-8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
+		$this->assertSame( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'ISO8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
+		$this->assertSame( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'iso8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
+		$this->assertSame( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', 'iso-8859-1' );
-		$this->assertEquals( 'ISO-8859-1', get_option( 'blog_charset' ) );
+		$this->assertSame( 'ISO-8859-1', get_option( 'blog_charset' ) );
 
 		// Arbitrary strings are passed through.
 		update_option( 'blog_charset', 'foobarbaz' );
-		$this->assertEquals( 'foobarbaz', get_option( 'blog_charset' ) );
+		$this->assertSame( 'foobarbaz', get_option( 'blog_charset' ) );
 
 		update_option( 'blog_charset', $orig_blog_charset );
 	}
@@ -600,52 +706,52 @@ class Tests_Functions extends WP_UnitTestCase {
 		$_SERVER['HTTP_USER_AGENT'] = $user_agent;
 		$actual                     = _device_can_upload();
 		unset( $_SERVER['HTTP_USER_AGENT'] );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	function data_device_can_upload() {
 		return array(
-			// iPhone iOS 5.0.1, Safari 5.1
+			// iPhone iOS 5.0.1, Safari 5.1.
 			array(
 				'Mozilla/5.0 (iPhone; CPU iPhone OS 5_0_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9A406)',
 				false,
 			),
-			// iPad iOS 3.2, Safari 4.0.4
+			// iPad iOS 3.2, Safari 4.0.4.
 			array(
 				'Mozilla/5.0 (iPad; U; CPU OS 3_2 like Mac OS X; en-us) AppleWebKit/531.21.10 (KHTML, like Gecko) Version/4.0.4 Mobile/7B334b Safari/531.21.10',
 				false,
 			),
-			// iPod iOS 4.3.3, Safari 5.0.2
+			// iPod iOS 4.3.3, Safari 5.0.2.
 			array(
 				'Mozilla/5.0 (iPod; U; CPU iPhone OS 4_3_3 like Mac OS X; ja-jp) AppleWebKit/533.17.9 (KHTML, like Gecko) Version/5.0.2 Mobile/8J2 Safari/6533.18.5',
 				false,
 			),
-			// iPhone iOS 6.0.0, Safari 6.0
+			// iPhone iOS 6.0.0, Safari 6.0.
 			array(
 				'Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25',
 				true,
 			),
-			// iPad iOS 6.0.0, Safari 6.0
+			// iPad iOS 6.0.0, Safari 6.0.
 			array(
 				'Mozilla/5.0 (iPad; CPU OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25',
 				true,
 			),
-			// Android 2.2, Android Webkit Browser
+			// Android 2.2, Android Webkit Browser.
 			array(
 				'Mozilla/5.0 (Android 2.2; Windows; U; Windows NT 6.1; en-US) AppleWebKit/533.19.4 (KHTML, like Gecko) Version/5.0.3 Safari/533.19.4',
 				true,
 			),
-			// BlackBerry 9900, BlackBerry browser
+			// BlackBerry 9900, BlackBerry browser.
 			array(
 				'Mozilla/5.0 (BlackBerry; U; BlackBerry 9900; en) AppleWebKit/534.11+ (KHTML, like Gecko) Version/7.1.0.346 Mobile Safari/534.11+',
 				true,
 			),
-			// Windows Phone 8.0, Internet Explorer 10.0;
+			// Windows Phone 8.0, Internet Explorer 10.0.
 			array(
 				'Mozilla/5.0 (compatible; MSIE 10.0; Windows Phone 8.0; Trident/6.0; IEMobile/10.0; ARM; Touch; NOKIA; Lumia 920)',
 				true,
 			),
-			// Ubuntu desktop, Firefox 41.0
+			// Ubuntu desktop, Firefox 41.0.
 			array(
 				'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0',
 				true,
@@ -675,10 +781,10 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://българия.icom.museum',
 			'http://تشادر.icom.museum',
 			'http://中国.icom.museum',
-			#'http://القمر.icom.museum', // Comoros	http://القمر.icom.museum
-			#'http://κυπρος.icom.museum', Cyprus 	http://κυπρος.icom.museum
+			// 'http://القمر.icom.museum',         // Comoros http://القمر.icom.museum
+			// 'http://κυπρος.icom.museum',        // Cyprus  http://κυπρος.icom.museum
 			'http://českárepublika.icom.museum',
-			#'http://مصر.icom.museum', // Egypt	http://مصر.icom.museum
+			// 'http://مصر.icom.museum',           // Egypt   http://مصر.icom.museum
 			'http://ελλάδα.icom.museum',
 			'http://magyarország.icom.museum',
 			'http://ísland.icom.museum',
@@ -694,12 +800,12 @@ class Tests_Functions extends WP_UnitTestCase {
 			'http://ລາວ.icom.museum',
 			'http://لبنان.icom.museum',
 			'http://македонија.icom.museum',
-			#'http://موريتانيا.icom.museum', // Mauritania	http://موريتانيا.icom.museum
+			// 'http://موريتانيا.icom.museum',     // Mauritania http://موريتانيا.icom.museum
 			'http://méxico.icom.museum',
 			'http://монголулс.icom.museum',
-			#'http://المغرب.icom.museum', // Morocco	http://المغرب.icom.museum
+			// 'http://المغرب.icom.museum',        // Morocco    http://المغرب.icom.museum
 			'http://नेपाल.icom.museum',
-			#'http://عمان.icom.museum', // Oman	http://عمان.icom.museum
+			// 'http://عمان.icom.museum',          // Oman       http://عمان.icom.museum
 			'http://قطر.icom.museum',
 			'http://românia.icom.museum',
 			'http://россия.иком.museum',
@@ -782,14 +888,14 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $urls );
 		$this->assertInternalType( 'array', $urls );
 		$this->assertCount( count( $original_urls ), $urls );
-		$this->assertEquals( $original_urls, $urls );
+		$this->assertSame( $original_urls, $urls );
 
 		$exploded = array_values( array_filter( array_map( 'trim', explode( "\n", $blob ) ) ) );
-		// wp_extract_urls calls html_entity_decode
+		// wp_extract_urls() calls html_entity_decode().
 		$decoded = array_map( 'html_entity_decode', $exploded );
 
-		$this->assertEquals( $decoded, $urls );
-		$this->assertEquals( $original_urls, $decoded );
+		$this->assertSame( $decoded, $urls );
+		$this->assertSame( $original_urls, $decoded );
 
 		$blob = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 			incididunt ut labore http://woo.com/1,2,3,4,5,6/-1-2-3-4-/woo.html et dolore magna aliqua.
@@ -803,7 +909,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $urls );
 		$this->assertInternalType( 'array', $urls );
 		$this->assertCount( 8, $urls );
-		$this->assertEquals( array_slice( $original_urls, 0, 8 ), $urls );
+		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
 
 		$blob = 'Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
 			incididunt ut labore <a href="http://woo.com/1,2,3,4,5,6/-1-2-3-4-/woo.html">343462^</a> et dolore magna aliqua.
@@ -817,21 +923,21 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $urls );
 		$this->assertInternalType( 'array', $urls );
 		$this->assertCount( 8, $urls );
-		$this->assertEquals( array_slice( $original_urls, 0, 8 ), $urls );
+		$this->assertSame( array_slice( $original_urls, 0, 8 ), $urls );
 	}
 
 	/**
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode() {
-		$this->assertEquals( wp_json_encode( 'a' ), '"a"' );
+		$this->assertSame( wp_json_encode( 'a' ), '"a"' );
 	}
 
 	/**
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode_utf8() {
-		$this->assertEquals( wp_json_encode( '这' ), '"\u8fd9"' );
+		$this->assertSame( wp_json_encode( '这' ), '"\u8fd9"' );
 	}
 
 	/**
@@ -842,8 +948,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'mbstring extension not available.' );
 		}
 
-		$old_charsets = $charsets = mb_detect_order();
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		$charsets     = mb_detect_order();
+		$old_charsets = $charsets;
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -851,9 +958,9 @@ class Tests_Functions extends WP_UnitTestCase {
 		$eucjp = mb_convert_encoding( 'aあb', 'EUC-JP', 'UTF-8' );
 		$utf8  = mb_convert_encoding( $eucjp, 'UTF-8', 'EUC-JP' );
 
-		$this->assertEquals( 'aあb', $utf8 );
+		$this->assertSame( 'aあb', $utf8 );
 
-		$this->assertEquals( '"a\u3042b"', wp_json_encode( $eucjp ) );
+		$this->assertSame( '"a\u3042b"', wp_json_encode( $eucjp ) );
 
 		mb_detect_order( $old_charsets );
 	}
@@ -866,8 +973,9 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'mbstring extension not available.' );
 		}
 
-		$old_charsets = $charsets = mb_detect_order();
-		if ( ! in_array( 'EUC-JP', $charsets ) ) {
+		$charsets     = mb_detect_order();
+		$old_charsets = $charsets;
+		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
 			$charsets[] = 'EUC-JP';
 			mb_detect_order( $charsets );
 		}
@@ -875,9 +983,9 @@ class Tests_Functions extends WP_UnitTestCase {
 		$eucjp = mb_convert_encoding( 'aあb', 'EUC-JP', 'UTF-8' );
 		$utf8  = mb_convert_encoding( $eucjp, 'UTF-8', 'EUC-JP' );
 
-		$this->assertEquals( 'aあb', $utf8 );
+		$this->assertSame( 'aあb', $utf8 );
 
-		$this->assertEquals( '["c","a\u3042b"]', wp_json_encode( array( 'c', $eucjp ) ) );
+		$this->assertSame( '["c","a\u3042b"]', wp_json_encode( array( 'c', $eucjp ) ) );
 
 		mb_detect_order( $old_charsets );
 	}
@@ -886,7 +994,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode_array() {
-		$this->assertEquals( wp_json_encode( array( 'a' ) ), '["a"]' );
+		$this->assertSame( wp_json_encode( array( 'a' ) ), '["a"]' );
 	}
 
 	/**
@@ -895,17 +1003,13 @@ class Tests_Functions extends WP_UnitTestCase {
 	function test_wp_json_encode_object() {
 		$object    = new stdClass;
 		$object->a = 'b';
-		$this->assertEquals( wp_json_encode( $object ), '{"a":"b"}' );
+		$this->assertSame( wp_json_encode( $object ), '{"a":"b"}' );
 	}
 
 	/**
 	 * @ticket 28786
 	 */
 	function test_wp_json_encode_depth() {
-		if ( version_compare( PHP_VERSION, '5.5', '<' ) ) {
-			$this->markTestSkipped( 'json_encode() supports the $depth parameter in PHP 5.5+' );
-		};
-
 		$data = array( array( array( 1, 2, 3 ) ) );
 		$json = wp_json_encode( $data, 0, 1 );
 		$this->assertFalse( $json );
@@ -924,7 +1028,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 		$this->assertTrue( is_string( $date_return ), 'The date return must be a string' );
 		$this->assertNotEmpty( $date_return, 'The date return could not be an empty string' );
-		$this->assertEquals( $expected, $date_return, 'The date does not match' );
+		$this->assertSame( $expected, $date_return, 'The date does not match' );
 		$this->assertEquals( new DateTime( $expected ), new DateTime( $date_return ), 'The date is not the same after the call method' );
 	}
 
@@ -963,10 +1067,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	public function test_wp_ext2type() {
 		$extensions = wp_get_ext_types();
 
-		foreach ( $extensions as $type => $extensionList ) {
-			foreach ( $extensionList as $extension ) {
-				$this->assertEquals( $type, wp_ext2type( $extension ) );
-				$this->assertEquals( $type, wp_ext2type( strtoupper( $extension ) ) );
+		foreach ( $extensions as $type => $extension_list ) {
+			foreach ( $extension_list as $extension ) {
+				$this->assertSame( $type, wp_ext2type( $extension ) );
+				$this->assertSame( $type, wp_ext2type( strtoupper( $extension ) ) );
 			}
 		}
 
@@ -991,7 +1095,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		$ini_limit_after  = ini_get( 'memory_limit' );
 
 		$this->assertSame( $ini_limit_before, $ini_limit_after );
-		$this->assertSame( false, $raised_limit );
+		$this->assertFalse( $raised_limit );
 		$this->assertEquals( WP_MAX_MEMORY_LIMIT, $ini_limit_after );
 	}
 
@@ -1010,7 +1114,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		}
 
 		$unique_uuids = array_unique( $uuids );
-		$this->assertEquals( $uuids, $unique_uuids );
+		$this->assertSame( $uuids, $unique_uuids );
 	}
 
 	/**
@@ -1079,7 +1183,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->assertTrue( is_numeric( $id ) );
 			$ids[] = $id;
 		}
-		$this->assertEquals( $ids, array_unique( $ids ) );
+		$this->assertSame( $ids, array_unique( $ids ) );
 
 		// Test with prefix.
 		$ids = array();
@@ -1088,7 +1192,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->assertRegExp( '/^foo-\d+$/', $id );
 			$ids[] = $id;
 		}
-		$this->assertEquals( $ids, array_unique( $ids ) );
+		$this->assertSame( $ids, array_unique( $ids ) );
 	}
 
 	/**
@@ -1100,7 +1204,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
 		}
 
-		$this->assertEquals( $expected, wp_get_image_mime( $file ) );
+		$this->assertSame( $expected, wp_get_image_mime( $file ) );
 	}
 
 	/**
@@ -1112,7 +1216,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
 		}
 
-		$this->assertEquals( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
 	/**
@@ -1134,7 +1238,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 
 		add_filter( 'upload_mimes', array( $this, '_filter_mime_types_svg' ) );
-		$this->assertEquals( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 
 		// Cleanup.
 		remove_filter( 'upload_mimes', array( $this, '_test_add_mime_types_svg' ) );
@@ -1159,7 +1263,7 @@ class Tests_Functions extends WP_UnitTestCase {
 		);
 
 		add_filter( 'upload_mimes', array( $this, '_filter_mime_types_woff' ) );
-		$this->assertEquals( $expected, wp_check_filetype_and_ext( $file, $filename ) );
+		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 
 		// Cleanup.
 		remove_filter( 'upload_mimes', array( $this, '_test_add_mime_types_woff' ) );
@@ -1310,15 +1414,15 @@ class Tests_Functions extends WP_UnitTestCase {
 				$data,
 				array(
 					// Standard non-image file.
-					 array(
-						 DIR_TESTDATA . '/formatting/big5.txt',
-						 'big5.txt',
-						 array(
-							 'ext'             => 'txt',
-							 'type'            => 'text/plain',
-							 'proper_filename' => false,
-						 ),
-					 ),
+					array(
+						DIR_TESTDATA . '/formatting/big5.txt',
+						'big5.txt',
+						array(
+							'ext'             => 'txt',
+							'type'            => 'text/plain',
+							'proper_filename' => false,
+						),
+					),
 					// Non-image file with wrong sub-type.
 					array(
 						DIR_TESTDATA . '/uploads/pages-to-word.docx',
@@ -1625,17 +1729,17 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 1, false ),
 			array( '00', false ),
 			array( '30:-10', false ),
-			array( ':30:00', false ), // Missing HH.
+			array( ':30:00', false ),   // Missing HH.
 			array( 'MM:30:00', false ), // Invalid HH.
 			array( '30:MM:00', false ), // Invalid ii.
 			array( '30:30:MM', false ), // Invalid ss.
-			array( '30:MM', false ), // Invalid ss.
-			array( 'MM:00', false ), // Invalid ii.
-			array( 'MM:MM', false ), // Invalid ii and ss.
-			array( '10 :30', false ), // Containing a space.
-			array( '59:61', false ), // Out of bound.
-			array( '61:59', false ), // Out of bound.
-			array( '3:59:61', false ), // Out of bound.
+			array( '30:MM', false ),    // Invalid ss.
+			array( 'MM:00', false ),    // Invalid ii.
+			array( 'MM:MM', false ),    // Invalid ii and ss.
+			array( '10 :30', false ),   // Containing a space.
+			array( '59:61', false ),    // Out of bound.
+			array( '61:59', false ),    // Out of bound.
+			array( '3:59:61', false ),  // Out of bound.
 			array( '03:61:59', false ), // Out of bound.
 		);
 	}

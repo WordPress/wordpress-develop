@@ -62,13 +62,6 @@
 	text-align: center;
 }
 
-.ie8 .column-response .comment-count-no-comments,
-.ie8 .column-response .comment-count-approved,
-.ie8 .column-comments .comment-count-no-comments,
-.ie8 .column-comments .comment-count-approved {
-	min-width: 0;
-}
-
 .column-response .post-com-count-no-comments:after,
 .column-response .post-com-count-approved:after,
 .column-comments .post-com-count-no-comments:after,
@@ -82,17 +75,17 @@
 	border-right: 5px solid transparent;
 }
 
-.column-response .post-com-count-approved:hover .comment-count-approved,
-.column-response .post-com-count-approved:focus .comment-count-approved,
-.column-comments .post-com-count-approved:hover .comment-count-approved,
-.column-comments .post-com-count-approved:focus .comment-count-approved {
+.column-response a.post-com-count-approved:hover .comment-count-approved,
+.column-response a.post-com-count-approved:focus .comment-count-approved,
+.column-comments a.post-com-count-approved:hover .comment-count-approved,
+.column-comments a.post-com-count-approved:focus .comment-count-approved {
 	background: #0073aa;
 }
 
-.column-response .post-com-count-approved:hover:after,
-.column-response .post-com-count-approved:focus:after,
-.column-comments .post-com-count-approved:hover:after,
-.column-comments .post-com-count-approved:focus:after {
+.column-response a.post-com-count-approved:hover:after,
+.column-response a.post-com-count-approved:focus:after,
+.column-comments a.post-com-count-approved:hover:after,
+.column-comments a.post-com-count-approved:focus:after {
 	border-top-color: #0073aa;
 }
 
@@ -302,12 +295,20 @@ table.fixed {
 }
 
 .fixed .column-posts,
-.fixed .column-date,
 .fixed .column-parent,
 .fixed .column-links,
 .fixed .column-author,
 .fixed .column-format {
 	width: 10%;
+}
+
+.fixed .column-date {
+	width: 14%;
+}
+
+.column-date span[title] {
+	-webkit-text-decoration: dotted underline;
+	text-decoration: dotted underline;
 }
 
 .fixed .column-posts {
@@ -392,10 +393,6 @@ table.media .column-title .filename {
 	width: 20%;
 }
 
-#comments-form .fixed .column-date {
-	width: 14%;
-}
-
 #commentsdiv.postbox .inside {
 	margin: 0;
 	padding: 0;
@@ -431,7 +428,6 @@ table.media .column-title .filename {
 #commentsdiv .comments-box thead td {
 	background: transparent;
 	padding: 0 7px 4px;
-	font-style: italic;
 }
 
 #commentsdiv .comments-box tr:last-child td {
@@ -507,10 +503,6 @@ th.asc a:focus span.sorting-indicator:before {
 	box-shadow:
 		0 0 0 1px #5b9dd9,
 		0 0 2px 1px rgba(30, 140, 190, 0.8);
-}
-
-.ie8 .wp-list-table .toggle-row:focus:before {
-	outline: #5b9dd9 solid 1px;
 }
 
 .wp-list-table .toggle-row:active {
@@ -617,8 +609,6 @@ th.asc a:focus span.sorting-indicator {
 
 .tablenav-pages .current-page {
 	margin: 0 2px 0 0;
-	padding-top: 5px;
-	padding-bottom: 5px;
 	font-size: 13px;
 	text-align: center;
 }
@@ -635,6 +625,7 @@ th.asc a:focus span.sorting-indicator {
 	clear: both;
 	height: 30px;
 	margin: 6px 0 4px;
+	padding-top: 5px;
 	vertical-align: middle;
 }
 
@@ -644,7 +635,7 @@ th.asc a:focus span.sorting-indicator {
 
 .tablenav .tablenav-pages {
 	float: right;
-	margin: 3px 0 9px;
+	margin: 0 0 9px;
 }
 
 .tablenav .no-pages,
@@ -656,12 +647,12 @@ th.asc a:focus span.sorting-indicator {
 .tablenav .tablenav-pages .tablenav-pages-navspan {
 	display: inline-block;
 	vertical-align: baseline;
-	min-width: 28px;
-	min-height: 28px;
+	min-width: 30px;
+	min-height: 30px;
 	margin: 0;
 	padding: 0 4px;
 	font-size: 16px;
-	line-height: 1.5;
+	line-height: 1.625; /* 26px */
 	text-align: center;
 }
 
@@ -675,8 +666,7 @@ th.asc a:focus span.sorting-indicator {
 }
 
 .tablenav .actions {
-	overflow: hidden;
-	padding: 2px 8px 0 0;
+	padding: 0 8px 0 0;
 }
 
 .wp-filter .actions {
@@ -945,8 +935,8 @@ tr.inline-edit-row td,
 .inline-edit-row fieldset.inline-edit-date label {
 	display: inline-block;
 	margin: 0;
-	line-height: 1.5;
 	vertical-align: baseline;
+	line-height: 2;
 }
 
 .inline-edit-row fieldset label.inline-edit-tags {
@@ -968,11 +958,6 @@ tr.inline-edit-row td,
 
 #posts-filter fieldset.inline-edit-date legend {
 	padding: 0;
-}
-
-.inline-edit-row fieldset.inline-edit-date select {
-	margin: 1px;
-	line-height: 2;
 }
 
 .inline-edit-row fieldset label span.input-text-wrap,
@@ -1022,11 +1007,6 @@ tr.inline-edit-row td,
 	text-transform: uppercase;
 }
 
-.inline-edit-row fieldset span.title,
-.inline-edit-row fieldset span.checkbox-title {
-	font-style: italic;
-}
-
 /*	Specific Elements */
 .inline-edit-row fieldset .inline-edit-date {
 	float: left;
@@ -1034,14 +1014,11 @@ tr.inline-edit-row td,
 
 .inline-edit-row fieldset input[name=jj],
 .inline-edit-row fieldset input[name=hh],
-.inline-edit-row fieldset input[name=mn] {
-	font-size: 12px;
-	width: 2.3em;
-}
-
+.inline-edit-row fieldset input[name=mn],
 .inline-edit-row fieldset input[name=aa] {
-	font-size: 12px;
-	width: 3.5em;
+	vertical-align: middle;
+	text-align: center;
+	padding: 0 4px;
 }
 
 .inline-edit-row fieldset label input.inline-edit-password-input {
@@ -1089,11 +1066,6 @@ ul.cat-checklist {
 .inline-edit-row #post_parent,
 .inline-edit-row select[name="page_template"] {
 	max-width: 80%;
-}
-
-.ie8 .inline-edit-row #post_parent,
-.ie8 .inline-edit-row select[name="page_template"] {
-	width: 250px;
 }
 
 .quick-edit-row-post fieldset label.inline-edit-status {
@@ -1263,6 +1235,10 @@ ul.cat-checklist {
 	width: 85px;
 }
 
+.plugins .column-auto-updates {
+	width: 14.2em;
+}
+
 .plugins .inactive .plugin-title strong {
 	font-weight: 400;
 }
@@ -1323,8 +1299,7 @@ ul.cat-checklist {
 .plugins .paused .error-display p,
 .plugins .paused .error-display code {
 	font-size: 90%;
-	font-style: italic;
-	color: rgb( 0, 0, 0, 0.7 );
+	color: rgba( 0, 0, 0, 0.7 );
 }
 
 .plugins .resume-link {
@@ -1465,7 +1440,7 @@ div.action-links,
 }
 
 .plugin-card h3 {
-	margin: 0 0 12px;
+	margin: 0 12px 12px 0;
 	font-size: 18px;
 	line-height: 1.3;
 }
@@ -1473,7 +1448,7 @@ div.action-links,
 .plugin-card .name,
 .plugin-card .desc {
 	margin-left: 148px; /* icon + margin */
-	margin-right: 120px; /* action links */
+	margin-right: 128px; /* action links + margin */
 }
 
 .plugin-card .action-links {
@@ -1486,7 +1461,6 @@ div.action-links,
 .plugin-action-buttons {
 	clear: right;
 	float: right;
-	margin-left: 2em;
 	margin-bottom: 1em;
 	text-align: right;
 }
@@ -1646,6 +1620,10 @@ div.action-links,
 		margin-right: 20px;
 	}
 
+	.plugin-card h3 {
+		margin-right: 24px;
+	}
+
 	.plugin-card .name,
 	.plugin-card .desc {
 		margin-right: 0;
@@ -1653,10 +1631,6 @@ div.action-links,
 
 	.plugin-card .desc p:first-of-type {
 		margin-top: 0;
-	}
-
-	.fixed .column-date {
-		width: 14%;
 	}
 }
 
@@ -1750,10 +1724,6 @@ div.action-links,
 		display: none;
 	}
 
-	.comment-count {
-		font-size: 14px;
-	}
-
 	.wp-list-table th.column-primary ~ th,
 	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td.column-primary ~ td:not(.check-column) {
 		display: none;
@@ -1766,7 +1736,10 @@ div.action-links,
 	/* Checkboxes need to show */
 	.wp-list-table tr th.check-column {
 		display: table-cell;
-		width: 35px;
+	}
+
+	.wp-list-table .check-column {
+		width: 2.5em;
 	}
 
 	.wp-list-table .column-primary .toggle-row {
@@ -1776,7 +1749,6 @@ div.action-links,
 	.wp-list-table tr:not(.inline-edit-row):not(.no-items) td:not(.check-column) {
 		position: relative;
 		clear: both;
-		display: block;
 		width: auto !important; /* needs to override some columns that are more specifically targeted */
 	}
 
@@ -1897,10 +1869,6 @@ div.action-links,
 		padding-top: 10px;
 	}
 
-	.widefat * {
-		word-wrap: normal;
-	}
-
 	/* Make row actions more easy to select on mobile */
 	body:not(.plugins-php) .row-actions {
 		display: -ms-grid;
@@ -1918,6 +1886,7 @@ div.action-links,
 	.row-actions span .button-link {
 		display: inline-block;
 		padding: 4px 0;
+		line-height: 1.5;
 	}
 
 	.row-actions span.approve:before,
@@ -1955,6 +1924,15 @@ div.action-links,
 		box-sizing: border-box;
 	}
 
+	.inline-edit-row fieldset input[name=jj],
+	.inline-edit-row fieldset input[name=hh],
+	.inline-edit-row fieldset input[name=mn],
+	.inline-edit-row fieldset input[name=aa] {
+		font-size: 16px;
+		line-height: 2;
+		padding: 3px 4px;
+	}
+
 	.inline-edit-row fieldset ul.cat-checklist label,
 	.inline-edit-row #bulk-titles div {
 		font-size: 16px;
@@ -1976,16 +1954,6 @@ div.action-links,
 	.inline-edit-row fieldset label span.input-text-wrap,
 	.inline-edit-row fieldset .timestamp-wrap {
 		margin-left: 0;
-	}
-
-	.inline-edit-row fieldset input[name=jj],
-	.inline-edit-row fieldset input[name=hh],
-	.inline-edit-row fieldset input[name=mn] {
-		width: 3em;
-	}
-
-	.inline-edit-row fieldset input[name=aa] {
-		width: 4.5em;
 	}
 
 	.inline-edit-row .inline-edit-or {
@@ -2124,6 +2092,16 @@ div.action-links,
 	.wp-list-table.plugins .theme-title strong {
 		font-size: 1.4em;
 		line-height: 1.5;
+	}
+
+	.plugins tbody th.check-column {
+		padding: 8px 0 0 5px;
+	}
+
+	.plugins thead td.check-column,
+	.plugins tfoot td.check-column,
+	.plugins .inactive th.check-column {
+		padding-left: 9px;
 	}
 
 	/* Add New plugins page */

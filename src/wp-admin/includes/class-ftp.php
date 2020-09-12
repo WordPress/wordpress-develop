@@ -8,8 +8,8 @@
  * @version 1.0
  * @copyright Alexey Dotsenko
  * @author Alexey Dotsenko
- * @link http://www.phpclasses.org/browse/package/1743.html Site
- * @license LGPL http://www.opensource.org/licenses/lgpl-license.html
+ * @link https://www.phpclasses.org/package/1743-PHP-FTP-client-in-pure-PHP.html
+ * @license LGPL https://opensource.org/licenses/lgpl-license.html
  */
 
 /**
@@ -185,8 +185,8 @@ class ftp_base {
 			$lcount=count($lucifer);
 			if ($lcount<8) return '';
 			$b = array();
-			$b['isdir'] = $lucifer[0]{0} === "d";
-			$b['islink'] = $lucifer[0]{0} === "l";
+			$b['isdir'] = $lucifer[0][0] === "d";
+			$b['islink'] = $lucifer[0][0] === "l";
 			if ( $b['isdir'] )
 				$b['type'] = 'd';
 			elseif ( $b['islink'] )
@@ -899,11 +899,11 @@ class ftp_base {
 $mod_sockets = extension_loaded( 'sockets' );
 if ( ! $mod_sockets && function_exists( 'dl' ) && is_callable( 'dl' ) ) {
 	$prefix = ( PHP_SHLIB_SUFFIX == 'dll' ) ? 'php_' : '';
-	@dl( $prefix . 'sockets.' . PHP_SHLIB_SUFFIX );
+	@dl( $prefix . 'sockets.' . PHP_SHLIB_SUFFIX ); // phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.dlDeprecated
 	$mod_sockets = extension_loaded( 'sockets' );
 }
 
-require_once dirname( __FILE__ ) . "/class-ftp-" . ( $mod_sockets ? "sockets" : "pure" ) . ".php";
+require_once __DIR__ . "/class-ftp-" . ( $mod_sockets ? "sockets" : "pure" ) . ".php";
 
 if ( $mod_sockets ) {
 	class ftp extends ftp_sockets {}

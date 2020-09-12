@@ -7,15 +7,15 @@
  * @group media
  * @group wp-image-editor-gd
  */
-require_once( dirname( __FILE__ ) . '/base.php' );
+require_once __DIR__ . '/base.php';
 
 class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public $editor_engine = 'WP_Image_Editor_GD';
 
 	public function setUp() {
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor.php' );
-		require_once( ABSPATH . WPINC . '/class-wp-image-editor-gd.php' );
+		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
+		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
 		parent::setUp();
 	}
@@ -34,20 +34,20 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public function test_supports_mime_type_jpeg() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
-		$expected        = imagetypes() & IMG_JPG;
-		$this->assertEquals( $expected, $gd_image_editor->supports_mime_type( 'image/jpeg' ) );
+		$expected        = (bool) ( imagetypes() & IMG_JPG );
+		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/jpeg' ) );
 	}
 
 	public function test_supports_mime_type_png() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
-		$expected        = imagetypes() & IMG_PNG;
-		$this->assertEquals( $expected, $gd_image_editor->supports_mime_type( 'image/png' ) );
+		$expected        = (bool) ( imagetypes() & IMG_PNG );
+		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/png' ) );
 	}
 
 	public function test_supports_mime_type_gif() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
-		$expected        = imagetypes() & IMG_GIF;
-		$this->assertEquals( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
+		$expected        = (bool) ( imagetypes() & IMG_GIF );
+		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/gif' ) );
 	}
 
 	/**
@@ -61,7 +61,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$gd_image_editor->resize( 100, 50 );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'width'  => 75,
 				'height' => 50,
@@ -98,9 +98,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected_array, $resized );
+		$this->assertSame( $expected_array, $resized );
 
-		// Now, verify real dimensions are as expected
+		// Now, verify real dimensions are as expected.
 		$image_path = DIR_TESTDATA . '/images/' . $resized[0]['file'];
 		$this->assertImageDimensions(
 			$image_path,
@@ -370,12 +370,12 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		);
 
 		$this->assertNotNull( $resized );
-		$this->assertEquals( $expected_array, $resized );
+		$this->assertSame( $expected_array, $resized );
 
 		foreach ( $resized as $key => $image_data ) {
 			$image_path = DIR_TESTDATA . '/images/' . $image_data['file'];
 
-			// Now, verify real dimensions are as expected
+			// Now, verify real dimensions are as expected.
 			$this->assertImageDimensions(
 				$image_path,
 				$expected_array[ $key ]['width'],
@@ -395,7 +395,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$gd_image_editor->resize( 100, 50, true );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'width'  => 100,
 				'height' => 50,
@@ -415,7 +415,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$gd_image_editor->crop( 0, 0, 50, 50 );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'width'  => 50,
 				'height' => 50,
@@ -440,7 +440,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$gd_image_editor->rotate( 180 );
 
-		$this->assertEquals( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 99, 99 ) );
+		$this->assertSame( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 99, 99 ) );
 	}
 
 	/**
@@ -459,7 +459,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$gd_image_editor->flip( true, false );
 
-		$this->assertEquals( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 0, 99 ) );
+		$this->assertSame( $color_top_left, imagecolorat( $property->getValue( $gd_image_editor ), 0, 99 ) );
 	}
 
 	/**

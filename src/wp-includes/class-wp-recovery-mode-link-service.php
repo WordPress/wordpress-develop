@@ -3,7 +3,7 @@
  * Error Protection API: WP_Recovery_Mode_Link_Handler class
  *
  * @package WordPress
- * @since   5.2.0
+ * @since 5.2.0
  */
 
 /**
@@ -114,7 +114,7 @@ class WP_Recovery_Mode_Link_Service {
 		);
 
 		/**
-		 * Filter the URL to begin recovery mode.
+		 * Filters the URL to begin recovery mode.
 		 *
 		 * @since 5.2.0
 		 *

@@ -12,8 +12,8 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 		wp_set_current_user( $this->author_id );
 
-		// it is important to test with both even and odd numbered slashes as
-		// kses does a strip-then-add slashes in some of its function calls
+		// It is important to test with both even and odd numbered slashes,
+		// as KSES does a strip-then-add slashes in some of its function calls.
 		$this->slash_1 = 'String with 1 slash \\';
 		$this->slash_2 = 'String with 2 slashes \\\\';
 		$this->slash_3 = 'String with 3 slashes \\\\\\';
@@ -24,7 +24,7 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the controller function that expects slashed data
+	 * Tests the controller function that expects slashed data.
 	 */
 	function test_edit_post() {
 		$id = self::factory()->post->create();
@@ -34,32 +34,34 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		$_POST['post_title'] = $this->slash_1;
 		$_POST['content']    = $this->slash_5;
 		$_POST['excerpt']    = $this->slash_7;
-		$_POST               = add_magic_quotes( $_POST ); // the edit_post() function will strip slashes
+
+		$_POST = add_magic_quotes( $_POST ); // The edit_post() function will strip slashes.
 
 		$post_id = edit_post();
 		$post    = get_post( $post_id );
 
-		$this->assertEquals( $this->slash_1, $post->post_title );
-		$this->assertEquals( $this->slash_5, $post->post_content );
-		$this->assertEquals( $this->slash_7, $post->post_excerpt );
+		$this->assertSame( $this->slash_1, $post->post_title );
+		$this->assertSame( $this->slash_5, $post->post_content );
+		$this->assertSame( $this->slash_7, $post->post_excerpt );
 
 		$_POST               = array();
 		$_POST['post_ID']    = $id;
 		$_POST['post_title'] = $this->slash_2;
 		$_POST['content']    = $this->slash_4;
 		$_POST['excerpt']    = $this->slash_6;
-		$_POST               = add_magic_quotes( $_POST );
+
+		$_POST = add_magic_quotes( $_POST ); // The edit_post() function will strip slashes.
 
 		$post_id = edit_post();
 		$post    = get_post( $post_id );
 
-		$this->assertEquals( $this->slash_2, $post->post_title );
-		$this->assertEquals( $this->slash_4, $post->post_content );
-		$this->assertEquals( $this->slash_6, $post->post_excerpt );
+		$this->assertSame( $this->slash_2, $post->post_title );
+		$this->assertSame( $this->slash_4, $post->post_content );
+		$this->assertSame( $this->slash_6, $post->post_excerpt );
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_post() {
 		$id   = wp_insert_post(
@@ -74,9 +76,9 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_1 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $post->post_content );
-		$this->assertEquals( wp_unslash( $this->slash_5 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_1 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $post->post_content );
+		$this->assertSame( wp_unslash( $this->slash_5 ), $post->post_excerpt );
 
 		$id   = wp_insert_post(
 			array(
@@ -89,13 +91,13 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $post->post_content );
-		$this->assertEquals( wp_unslash( $this->slash_6 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $post->post_content );
+		$this->assertSame( wp_unslash( $this->slash_6 ), $post->post_excerpt );
 	}
 
 	/**
-	 * Tests the model function that expects slashed data
+	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_post() {
 		$id = self::factory()->post->create();
@@ -110,9 +112,9 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_1 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $post->post_content );
-		$this->assertEquals( wp_unslash( $this->slash_5 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_1 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $post->post_content );
+		$this->assertSame( wp_unslash( $this->slash_5 ), $post->post_excerpt );
 
 		wp_update_post(
 			array(
@@ -124,9 +126,9 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 		);
 		$post = get_post( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $post->post_title );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $post->post_content );
-		$this->assertEquals( wp_unslash( $this->slash_6 ), $post->post_excerpt );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $post->post_title );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $post->post_content );
+		$this->assertSame( wp_unslash( $this->slash_6 ), $post->post_excerpt );
 	}
 
 	/**
@@ -145,17 +147,17 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 		$post = get_post( $id );
 
-		$this->assertEquals( $this->slash_1, $post->post_title );
-		$this->assertEquals( $this->slash_3, $post->post_content );
-		$this->assertEquals( $this->slash_5, $post->post_excerpt );
+		$this->assertSame( $this->slash_1, $post->post_title );
+		$this->assertSame( $this->slash_3, $post->post_content );
+		$this->assertSame( $this->slash_5, $post->post_excerpt );
 
 		$untrashed = wp_untrash_post( $id );
 		$this->assertNotEmpty( $untrashed );
 
 		$post = get_post( $id );
 
-		$this->assertEquals( $this->slash_1, $post->post_title );
-		$this->assertEquals( $this->slash_3, $post->post_content );
-		$this->assertEquals( $this->slash_5, $post->post_excerpt );
+		$this->assertSame( $this->slash_1, $post->post_title );
+		$this->assertSame( $this->slash_3, $post->post_content );
+		$this->assertSame( $this->slash_5, $post->post_excerpt );
 	}
 }

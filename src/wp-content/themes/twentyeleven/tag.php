@@ -17,6 +17,7 @@ get_header(); ?>
 				<header class="page-header">
 					<h1 class="page-title">
 					<?php
+						/* translators: %s: Tag title. */
 						printf( __( 'Tag Archives: %s', 'twentyeleven' ), '<span>' . single_tag_title( '', false ) . '</span>' );
 					?>
 					</h1>
@@ -25,7 +26,7 @@ get_header(); ?>
 						$tag_description = tag_description();
 					if ( ! empty( $tag_description ) ) {
 						/**
-						 * Filter the default Twenty Eleven tag description.
+						 * Filters the default Twenty Eleven tag description.
 						 *
 						 * @since Twenty Eleven 1.0
 						 *
@@ -38,8 +39,8 @@ get_header(); ?>
 
 				<?php twentyeleven_content_nav( 'nav-above' ); ?>
 
-				<?php /* Start the Loop */ ?>
 				<?php
+				// Start the Loop.
 				while ( have_posts() ) :
 					the_post();
 					?>

@@ -4,7 +4,7 @@
  *
  * Displays posts from Aside, Quote, Video, Audio, Image, Gallery, and Link formats.
  *
- * @link https://codex.wordpress.org/Widgets_API#Developing_Widgets
+ * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
  * @package WordPress
  * @subpackage Twenty_Fourteen
@@ -71,7 +71,11 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * @param array $instance An array of settings for this widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$format = isset( $instance['format'] ) && in_array( $instance['format'], $this->formats ) ? $instance['format'] : 'aside';
+		$format = isset( $instance['format'] ) ? $instance['format'] : '';
+
+		if ( ! $format || ! in_array( $format, $this->formats, true ) ) {
+			$format = 'aside';
+		}
 
 		switch ( $format ) {
 			case 'image':
@@ -105,8 +109,9 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 				break;
 		}
 
-		$number = empty( $instance['number'] ) ? 2 : absint( $instance['number'] );
-		$title  = apply_filters( 'widget_title', empty( $instance['title'] ) ? $format_string : $instance['title'], $instance, $this->id_base );
+		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
+		$title  = ! empty( $instance['title'] ) ? $instance['title'] : $format_string;
+		$title  = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
 		$ephemera = new WP_Query(
 			array(
@@ -189,6 +194,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 						<p class="wp-caption-text">
 								<?php
 								printf(
+									/* translators: 1: Post permalink, 2: Number of images in the gallery. */
 									_n( 'This gallery contains <a href="%1$s" rel="bookmark">%2$s photo</a>.', 'This gallery contains <a href="%1$s" rel="bookmark">%2$s photos</a>.', $total_images, 'twentyfourteen' ),
 									esc_url( get_permalink() ),
 									number_format_i18n( $total_images )
@@ -233,7 +239,7 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 			</ol>
 			<a class="post-format-archive-link" href="<?php echo esc_url( get_post_format_link( $format ) ); ?>">
 				<?php
-					/* translators: used with More archives link */
+					/* translators: Used with More archives link. */
 					printf( __( '%s <span class="meta-nav">&rarr;</span>', 'twentyfourteen' ), $format_string_more );
 				?>
 			</a>
@@ -264,7 +270,8 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	function update( $new_instance, $instance ) {
 		$instance['title']  = strip_tags( $new_instance['title'] );
 		$instance['number'] = empty( $new_instance['number'] ) ? 2 : absint( $new_instance['number'] );
-		if ( in_array( $new_instance['format'], $this->formats ) ) {
+
+		if ( in_array( $new_instance['format'], $this->formats, true ) ) {
 			$instance['format'] = $new_instance['format'];
 		}
 
@@ -279,9 +286,13 @@ class Twenty_Fourteen_Ephemera_Widget extends WP_Widget {
 	 * @param array $instance
 	 */
 	function form( $instance ) {
-		$title  = empty( $instance['title'] ) ? '' : esc_attr( $instance['title'] );
-		$number = empty( $instance['number'] ) ? 2 : absint( $instance['number'] );
-		$format = isset( $instance['format'] ) && in_array( $instance['format'], $this->formats ) ? $instance['format'] : 'aside';
+		$title  = ! empty( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
+		$number = ! empty( $instance['number'] ) ? absint( $instance['number'] ) : 2;
+		$format = isset( $instance['format'] ) ? $instance['format'] : '';
+
+		if ( ! $format || ! in_array( $format, $this->formats, true ) ) {
+			$format = 'aside';
+		}
 		?>
 			<p><label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:', 'twentyfourteen' ); ?></label>
 			<input id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" class="widefat" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>"></p>

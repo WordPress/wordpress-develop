@@ -5,22 +5,12 @@
 		beStrictAboutTestsThatDoNotTestAnything="true"
 		>
 	<testsuites>
-		<!-- Default test suite to run all tests -->
+		<!-- Default test suite to run all tests. -->
 		<testsuite name="default">
 			<directory suffix=".php">tests/phpunit/tests</directory>
-			<file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-			<file phpVersion="5.3.0">tests/phpunit/tests/oembed/headers.php</file>
-			<exclude>tests/phpunit/tests/actions/closures.php</exclude>
-			<exclude>tests/phpunit/tests/image/editor.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorGd.php</exclude>
-			<exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
-			<exclude>tests/phpunit/tests/oembed/headers.php</exclude>
 			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
 		</testsuite>
-		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last -->
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
 		<testsuite name="restapi-autosave">
 			<file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
 		</testsuite>
@@ -52,35 +42,38 @@
 	</listeners>
 	<filter>
 		<whitelist addUncoveredFilesFromWhitelist="true">
-			<directory suffix=".php">src</directory>
+			<directory suffix=".php">build</directory>
 			<exclude>
-				<!-- Third party library exclusions -->
-				<directory suffix=".php">src/wp-includes/ID3</directory>
-				<directory suffix=".php">src/wp-includes/IXR</directory>
-				<directory suffix=".php">src/wp-includes/random_compat</directory>
-				<directory suffix=".php">src/wp-includes/Requests</directory>
-				<directory suffix=".php">src/wp-includes/SimplePie</directory>
-				<directory suffix=".php">src/wp-includes/Text</directory>
+				<!-- Third party library exclusions. -->
+				<directory suffix=".php">build/wp-includes/ID3</directory>
+				<directory suffix=".php">build/wp-includes/IXR</directory>
+				<directory suffix=".php">build/wp-includes/random_compat</directory>
+				<directory suffix=".php">build/wp-includes/PHPMailer</directory>
+				<directory suffix=".php">build/wp-includes/Requests</directory>
+				<directory suffix=".php">build/wp-includes/SimplePie</directory>
+				<directory suffix=".php">build/wp-includes/sodium_compat</directory>
+				<directory suffix=".php">build/wp-includes/Text</directory>
 
-				<file>src/wp-admin/includes/class-ftp*</file>
-				<file>src/wp-admin/includes/class-pclzip.php</file>
-				<file>src/wp-admin/includes/deprecated.php</file>
-				<file>src/wp-admin/includes/ms-deprecated.php</file>
+				<!-- Plugins and themes. -->
+				<directory suffix=".php">build/wp-content/</directory>
 
-				<file>src/wp-includes/atomlib.php</file>
-				<file>src/wp-includes/class-IXR.php</file>
-				<file>src/wp-includes/class-json.php</file>
-				<file>src/wp-includes/class-phpass.php</file>
-				<file>src/wp-includes/class-phpmailer.php</file>
-				<file>src/wp-includes/class-pop3.php</file>
-				<file>src/wp-includes/class-requests.php</file>
-				<file>src/wp-includes/class-simplepie.php</file>
-				<file>src/wp-includes/class-smtp.php</file>
-				<file>src/wp-includes/class-snoopy.php</file>
-				<file>src/wp-includes/deprecated.php</file>
-				<file>src/wp-includes/ms-deprecated.php</file>
-				<file>src/wp-includes/pluggable-deprecated.php</file>
-				<file>src/wp-includes/rss.php</file>
+				<file>build/wp-admin/includes/class-ftp*</file>
+				<file>build/wp-admin/includes/class-pclzip.php</file>
+				<file>build/wp-admin/includes/deprecated.php</file>
+				<file>build/wp-admin/includes/ms-deprecated.php</file>
+
+				<file>build/wp-includes/atomlib.php</file>
+				<file>build/wp-includes/class-IXR.php</file>
+				<file>build/wp-includes/class-json.php</file>
+				<file>build/wp-includes/class-phpass.php</file>
+				<file>build/wp-includes/class-pop3.php</file>
+				<file>build/wp-includes/class-requests.php</file>
+				<file>build/wp-includes/class-simplepie.php</file>
+				<file>build/wp-includes/class-snoopy.php</file>
+				<file>build/wp-includes/deprecated.php</file>
+				<file>build/wp-includes/ms-deprecated.php</file>
+				<file>build/wp-includes/pluggable-deprecated.php</file>
+				<file>build/wp-includes/rss.php</file>
 			</exclude>
 		</whitelist>
 	</filter>

@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_privacy_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage privacy on this site.' ) );
@@ -38,18 +38,18 @@ if ( ! empty( $action ) ) {
 				&& current_theme_supports( 'menus' )
 			) {
 				$privacy_page_updated_message = sprintf(
-					/* translators: %s: URL to Customizer -> Menus */
+					/* translators: %s: URL to Customizer -> Menus. */
 					__( 'Privacy Policy page setting updated successfully. Remember to <a href="%s">update your menus</a>!' ),
 					esc_url( add_query_arg( 'autofocus[panel]', 'nav_menus', admin_url( 'customize.php' ) ) )
 				);
 			}
 		}
 
-		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, 'updated' );
+		add_settings_error( 'page_for_privacy_policy', 'page_for_privacy_policy', $privacy_page_updated_message, 'success' );
 	} elseif ( 'create-privacy-page' === $action ) {
 
 		if ( ! class_exists( 'WP_Privacy_Policy_Content' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php' );
+			require_once ABSPATH . 'wp-admin/includes/class-wp-privacy-policy-content.php';
 		}
 
 		$privacy_policy_page_content = WP_Privacy_Policy_Content::get_default_content();
@@ -100,8 +100,8 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 				'page_for_privacy_policy',
 				'page_for_privacy_policy',
 				sprintf(
-					/* translators: URL to Pages Trash */
-					__( 'The currently selected Privacy Policy page is in the trash. Please create or select a new Privacy Policy page or <a href="%s">restore the current page</a>.' ),
+					/* translators: %s: URL to Pages Trash. */
+					__( 'The currently selected Privacy Policy page is in the Trash. Please create or select a new Privacy Policy page or <a href="%s">restore the current page</a>.' ),
 					'edit.php?post_status=trash&post_type=page'
 				),
 				'error'
@@ -115,7 +115,7 @@ if ( ! empty( $privacy_policy_page_id ) ) {
 $title       = __( 'Privacy Settings' );
 $parent_file = 'options-general.php';
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 <div class="wrap">
@@ -150,14 +150,14 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 			<?php
 			if ( 'publish' === get_post_status( $privacy_policy_page_id ) ) {
 				printf(
-					/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page */
+					/* translators: 1: URL to edit Privacy Policy page, 2: URL to view Privacy Policy page. */
 					__( '<a href="%1$s">Edit</a> or <a href="%2$s">view</a> your Privacy Policy page content.' ),
 					esc_url( $edit_href ),
 					esc_url( $view_href )
 				);
 			} else {
 				printf(
-					/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page */
+					/* translators: 1: URL to edit Privacy Policy page, 2: URL to preview Privacy Policy page. */
 					__( '<a href="%1$s">Edit</a> or <a href="%2$s">preview</a> your Privacy Policy page content.' ),
 					esc_url( $edit_href ),
 					esc_url( $view_href )
@@ -171,7 +171,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 	<p>
 		<?php
 		printf(
-			/* translators: 1: Privacy Policy guide URL, 2: additional link attributes, 3: accessibility text */
+			/* translators: 1: Privacy Policy guide URL, 2: Additional link attributes, 3: Accessibility text. */
 			__( 'Need help putting together your new Privacy Policy page? <a href="%1$s" %2$s>Check out our guide%3$s</a> for recommendations on what content to include, along with policies suggested by your plugins and theme.' ),
 			esc_url( admin_url( 'privacy-policy-guide.php' ) ),
 			'',
@@ -234,7 +234,7 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 					<span>
 						<?php
 						if ( $has_pages ) {
-							_e( 'Or:' );
+							_e( 'Or' );
 						} else {
 							_e( 'There are no pages.' );
 						}
@@ -252,4 +252,4 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 </div>
 <?php
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

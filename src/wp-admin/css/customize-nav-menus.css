@@ -269,7 +269,8 @@
 
 .customize-screen-options-toggle:focus,
 #customize-controls .customize-info .customize-help-toggle:focus {
-	outline: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .customize-screen-options-toggle:before {
@@ -473,10 +474,6 @@
 	font: normal 20px/1 dashicons;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-.ie8 .menu-item-bar .item-delete:before {
-	top: -10px;
 }
 
 .menu-item-bar .item-delete:hover,

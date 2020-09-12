@@ -21,20 +21,26 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
 		$object = $scripts->query( 'jquery', 'registered' );
 		$this->assertInstanceOf( '_WP_Dependency', $object );
-		$this->assertEqualSets( $object->deps, array_keys( $jquery_scripts ) );
+
+		// As of 5.5 jQuery 1.12.4 is loaded without Migrate 1.4.1.
+		// Disable, but keep the following test for 5.6 when jQuery would be updated to 3.5.1+ and
+		// the latest Migrate will be used.
+		/*
+		$this->assertSameSets( $object->deps, array_keys( $jquery_scripts ) );
 		foreach ( $object->deps as $dep ) {
 			$o = $scripts->query( $dep, 'registered' );
 			$this->assertInstanceOf( '_WP_Dependency', $object );
 			$this->assertTrue( isset( $jquery_scripts[ $dep ] ) );
-			$this->assertEquals( $jquery_scripts[ $dep ], $o->src );
+			$this->assertSame( $jquery_scripts[ $dep ], $o->src );
 		}
+		*/
 	}
 
 	function test_presence_of_jquery_no_conflict() {
 		$contents   = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
 		$noconflict = 'jQuery.noConflict();';
 		$end        = substr( $contents, - strlen( $noconflict ) );
-		$this->assertEquals( $noconflict, $end );
+		$this->assertSame( $noconflict, $end );
 	}
 
 	/**
@@ -113,7 +119,8 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 			$scripts->add_data( $dep, 'group', 1 );
 		}
 
-		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n){2}$/' );
+		// Match only one script tag for 5.5, revert to `{2}` for 5.6.
+		$this->expectOutputRegex( '/^(?:<script[^>]+><\/script>\\n){1}$/' );
 
 		$scripts->do_items( false, 0 );
 		$this->assertNotContains( 'jquery', $scripts->done );
@@ -122,7 +129,11 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
 		$scripts->do_items( false, 1 );
 		$this->assertContains( 'jquery', $scripts->done );
+
+		// Disable for 5.5 but keep for use in 5.6. See test_location_of_jquery() above.
+		/*
 		$this->assertContains( 'jquery-core', $scripts->done, 'jquery-core in footer' );
 		$this->assertContains( 'jquery-migrate', $scripts->done, 'jquery-migrate in footer' );
+		*/
 	}
 }

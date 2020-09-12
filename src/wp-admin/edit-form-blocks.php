@@ -1,6 +1,6 @@
 <?php
 /**
- * The Block Editor page.
+ * The block editor page.
  *
  * @since 5.0.0
  *
@@ -8,7 +8,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * @global string       $post_type
  * @global WP_Post_Type $post_type_object
- * @global WP_Post      $post
+ * @global WP_Post      $post             Global post object.
  * @global string       $title
  * @global array        $editor_styles
  * @global array        $wp_meta_boxes
@@ -49,6 +49,7 @@ $preload_paths = array(
 	sprintf( '/wp/v2/users/me?post_type=%s&context=edit', $post_type ),
 	array( '/wp/v2/media', 'OPTIONS' ),
 	array( '/wp/v2/blocks', 'OPTIONS' ),
+	sprintf( '/wp/v2/%s/%d/autosaves?context=edit', $rest_base, $post->ID ),
 );
 
 /**
@@ -58,8 +59,8 @@ $preload_paths = array(
  *
  * @since 5.0.0
  *
- * @param array  $preload_paths Array of paths to preload.
- * @param object $post          The post resource data.
+ * @param string[] $preload_paths Array of paths to preload.
+ * @param WP_Post  $post          Post being edited.
  */
 $preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
 
@@ -68,7 +69,7 @@ $preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $p
  * Because API preloading can call the_content and other filters, plugins
  * can unexpectedly modify $post.
  */
-$backup_global_post = $post;
+$backup_global_post = clone $post;
 
 $preload_data = array_reduce(
 	$preload_paths,
@@ -124,16 +125,23 @@ $meta_box_url = add_query_arg(
 	),
 	$meta_box_url
 );
-wp_localize_script( 'wp-editor', '_wpMetaBoxUrl', $meta_box_url );
+wp_add_inline_script(
+	'wp-editor',
+	sprintf( 'var _wpMetaBoxUrl = %s;', wp_json_encode( $meta_box_url ) ),
+	'before'
+);
 
 
 /*
  * Initialize the editor.
  */
 
-$align_wide    = get_theme_support( 'align-wide' );
-$color_palette = current( (array) get_theme_support( 'editor-color-palette' ) );
-$font_sizes    = current( (array) get_theme_support( 'editor-font-sizes' ) );
+$align_wide         = get_theme_support( 'align-wide' );
+$color_palette      = current( (array) get_theme_support( 'editor-color-palette' ) );
+$font_sizes         = current( (array) get_theme_support( 'editor-font-sizes' ) );
+$gradient_presets   = current( (array) get_theme_support( 'editor-gradient-presets' ) );
+$custom_line_height = get_theme_support( 'custom-line-height' );
+$custom_units       = get_theme_support( 'custom-units' );
 
 /**
  * Filters the allowed block types for the editor, defaulting to true (all
@@ -143,14 +151,16 @@ $font_sizes    = current( (array) get_theme_support( 'editor-font-sizes' ) );
  *
  * @param bool|array $allowed_block_types Array of block type slugs, or
  *                                        boolean to enable/disable all.
- * @param object $post                    The post resource data.
+ * @param WP_Post    $post                The post resource data.
  */
 $allowed_block_types = apply_filters( 'allowed_block_types', true, $post );
 
-// Get all available templates for the post/page attributes meta-box.
-// The "Default template" array element should only be added if the array is
-// not empty so we do not trigger the template select element without any options
-// besides the default value.
+/*
+ * Get all available templates for the post/page attributes meta-box.
+ * The "Default template" array element should only be added if the array is
+ * not empty so we do not trigger the template select element without any options
+ * besides the default value.
+ */
 $available_templates = wp_get_theme()->get_page_templates( get_post( $post->ID ) );
 $available_templates = ! empty( $available_templates ) ? array_merge(
 	array(
@@ -175,7 +185,7 @@ $styles = array(
 	),
 );
 
-/* Translators: Use this to specify the CSS font family for the default font */
+/* translators: Use this to specify the CSS font family for the default font. */
 $locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
 $styles[]           = array(
 	'css' => "body { font-family: '$locale_font_family' }",
@@ -192,7 +202,7 @@ if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 			}
 		} else {
 			$file = get_theme_file_path( $style );
-			if ( file_exists( $file ) ) {
+			if ( is_file( $file ) ) {
 				$styles[] = array(
 					'css'     => file_get_contents( $file ),
 					'baseURL' => get_theme_file_uri( $style ),
@@ -223,9 +233,20 @@ foreach ( $image_size_names as $image_size_slug => $image_size_name ) {
 	);
 }
 
+$image_dimensions = array();
+$all_sizes        = wp_get_registered_image_subsizes();
+foreach ( $available_image_sizes as $size ) {
+	$key = $size['slug'];
+	if ( isset( $all_sizes[ $key ] ) ) {
+		$image_dimensions[ $key ] = $all_sizes[ $key ];
+	}
+}
+
 // Lock settings.
 $user_id = wp_check_post_lock( $post->ID );
 if ( $user_id ) {
+	$locked = false;
+
 	/** This filter is documented in wp-admin/includes/post.php */
 	if ( apply_filters( 'show_post_locked_dialog', true, $post, $user_id ) ) {
 		$locked = true;
@@ -268,32 +289,38 @@ if ( $user_id ) {
 $body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block' ), $post );
 
 $editor_settings = array(
-	'alignWide'              => $align_wide,
-	'availableTemplates'     => $available_templates,
-	'allowedBlockTypes'      => $allowed_block_types,
-	'disableCustomColors'    => get_theme_support( 'disable-custom-colors' ),
-	'disableCustomFontSizes' => get_theme_support( 'disable-custom-font-sizes' ),
-	'disablePostFormats'     => ! current_theme_supports( 'post-formats' ),
+	'alignWide'                            => $align_wide,
+	'availableTemplates'                   => $available_templates,
+	'allowedBlockTypes'                    => $allowed_block_types,
+	'disableCustomColors'                  => get_theme_support( 'disable-custom-colors' ),
+	'disableCustomFontSizes'               => get_theme_support( 'disable-custom-font-sizes' ),
+	'disableCustomGradients'               => get_theme_support( 'disable-custom-gradients' ),
+	'disablePostFormats'                   => ! current_theme_supports( 'post-formats' ),
 	/** This filter is documented in wp-admin/edit-form-advanced.php */
-	'titlePlaceholder'       => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
-	'bodyPlaceholder'        => $body_placeholder,
-	'isRTL'                  => is_rtl(),
-	'autosaveInterval'       => AUTOSAVE_INTERVAL,
-	'maxUploadFileSize'      => $max_upload_size,
-	'allowedMimeTypes'       => get_allowed_mime_types(),
-	'styles'                 => $styles,
-	'imageSizes'             => $available_image_sizes,
-	'richEditingEnabled'     => user_can_richedit(),
-	'postLock'               => $lock_details,
-	'postLockUtils'          => array(
+	'titlePlaceholder'                     => apply_filters( 'enter_title_here', __( 'Add title' ), $post ),
+	'bodyPlaceholder'                      => $body_placeholder,
+	'isRTL'                                => is_rtl(),
+	'autosaveInterval'                     => AUTOSAVE_INTERVAL,
+	'maxUploadFileSize'                    => $max_upload_size,
+	'allowedMimeTypes'                     => get_allowed_mime_types(),
+	'styles'                               => $styles,
+	'imageSizes'                           => $available_image_sizes,
+	'imageDimensions'                      => $image_dimensions,
+	'richEditingEnabled'                   => user_can_richedit(),
+	'postLock'                             => $lock_details,
+	'postLockUtils'                        => array(
 		'nonce'       => wp_create_nonce( 'lock-post_' . $post->ID ),
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
+	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
+	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
 	// field so that we're not always loading its assets.
-	'enableCustomFields'     => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+	'enableCustomFields'                   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
+	'enableCustomLineHeight'               => $custom_line_height,
+	'enableCustomUnits'                    => $custom_units,
 );
 
 $autosave = wp_get_post_autosave( $post_ID );
@@ -313,6 +340,10 @@ if ( false !== $color_palette ) {
 
 if ( false !== $font_sizes ) {
 	$editor_settings['fontSizes'] = $font_sizes;
+}
+
+if ( false !== $gradient_presets ) {
+	$editor_settings['gradients'] = $gradient_presets;
 }
 
 if ( ! empty( $post_type_object->template ) ) {
@@ -339,6 +370,7 @@ wp_enqueue_media(
 wp_tinymce_inline_scripts();
 wp_enqueue_editor();
 
+
 /**
  * Styles
  */
@@ -358,7 +390,7 @@ wp_enqueue_style( 'wp-format-library' );
 do_action( 'enqueue_block_editor_assets' );
 
 // In order to duplicate classic meta box behaviour, we need to run the classic meta box actions.
-require_once( ABSPATH . 'wp-admin/includes/meta-boxes.php' );
+require_once ABSPATH . 'wp-admin/includes/meta-boxes.php';
 register_and_do_post_meta_boxes( $post );
 
 // Check if the Custom Fields meta box has been removed at some point.
@@ -396,7 +428,7 @@ $script = sprintf(
 );
 wp_add_inline_script( 'wp-edit-post', $script );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="block-editor">
@@ -413,9 +445,9 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 			<p>
 				<?php
 					$message = sprintf(
-						/* translators: %s: Classic Editor plugin URL */
+						/* translators: %s: A link to install the Classic Editor plugin. */
 						__( 'The block editor requires JavaScript. Please enable JavaScript in your browser settings, or try the <a href="%s">Classic Editor plugin</a>.' ),
-						__( 'https://wordpress.org/plugins/classic-editor/' )
+						esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
 					);
 
 					/**

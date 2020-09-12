@@ -19,7 +19,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	initialize: function() {
 		_.bindAll(this, 'success');
 		this.players = [];
-		this.listenTo( this.controller, 'close', wp.media.mixin.unsetPlayers );
+		this.listenTo( this.controller.states, 'close', wp.media.mixin.unsetPlayers );
 		this.on( 'ready', this.setPlayer );
 		this.on( 'media:setting:remove', wp.media.mixin.unsetPlayers, this );
 		this.on( 'media:setting:remove', this.render );
@@ -123,13 +123,13 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	},
 
 	/**
-	 * @returns {media.view.MediaDetails} Returns itself to allow chaining
+	 * @return {media.view.MediaDetails} Returns itself to allow chaining.
 	 */
 	render: function() {
 		AttachmentDisplay.prototype.render.apply( this, arguments );
 
 		setTimeout( _.bind( function() {
-			this.resetFocus();
+			this.scrollToTop();
 		}, this ), 10 );
 
 		this.settings = _.defaults( {
@@ -139,7 +139,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 		return this.setMedia();
 	},
 
-	resetFocus: function() {
+	scrollToTop: function() {
 		this.$( '.embed-media-settings' ).scrollTop( 0 );
 	}
 },/** @lends wp.media.view.MediaDetails */{
@@ -148,7 +148,7 @@ MediaDetails = AttachmentDisplay.extend(/** @lends wp.media.view.MediaDetails.pr
 	 * When multiple players in the DOM contain the same src, things get weird.
 	 *
 	 * @param {HTMLElement} elem
-	 * @returns {HTMLElement}
+	 * @return {HTMLElement}
 	 */
 	prepareSrc : function( elem ) {
 		var i = MediaDetails.instances++;

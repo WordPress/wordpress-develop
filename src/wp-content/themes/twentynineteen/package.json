@@ -1,26 +1,25 @@
 {
   "name": "twentynineteen",
-  "version": "1.0.0",
+  "version": "1.7.0",
   "description": "Default WP Theme",
   "bugs": {
     "url": "https://github.com/WordPress/twentynineteen/issues"
   },
   "homepage": "https://github.com/WordPress/twentynineteen#readme",
   "devDependencies": {
-    "@wordpress/browserslist-config": "^2.2.2",
-    "autoprefixer": "^9.1.5",
-    "chokidar-cli": "^1.2.1",
-    "node-sass": "^4.9.3",
+    "@wordpress/browserslist-config": "^2.7.0",
+    "autoprefixer": "^9.8.5",
+    "chokidar-cli": "^2.1.0",
+    "node-sass": "^4.14.1",
     "npm-run-all": "^4.1.5",
-    "postcss-cli": "^6.0.1",
+    "postcss-cli": "^7.0.0",
     "postcss-focus-within": "^3.0.0",
-    "rtlcss": "^2.4.0"
+    "rtlcss": "^2.5.0"
   },
   "rtlcssConfig": {
     "options": {
       "autoRename": false,
       "autoRenameStrict": false,
-      "blacklist": {},
       "clean": true,
       "greedy": false,
       "processUrls": false,

@@ -1,6 +1,6 @@
 <?php
 
-// Thanks WordPress..
+// Thanks WordPress...
 function is_ssl() {
 	if ( isset($_SERVER['HTTPS']) ) {
 		if ( 'on' == strtolower($_SERVER['HTTPS']) )
@@ -73,7 +73,7 @@ if ( isset( $_GET['location-with-200'] ) ) {
 		echo 'PASS';
 		exit;
 	}
-	// Redirection was followed
+	// Redirection was followed.
 	echo 'FAIL';
 	exit;
 }

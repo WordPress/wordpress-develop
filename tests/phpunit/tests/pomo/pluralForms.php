@@ -60,7 +60,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 		$plural_expressions = array();
 		foreach ( $locales as $slug => $locale ) {
 			$plural_expression = $locale->plural_expression;
-			if ( $plural_expression !== 'n != 1' ) {
+			if ( 'n != 1' !== $plural_expression ) {
 				$plural_expressions[] = array( $slug, $locale->nplurals, $plural_expression );
 			}
 		}
@@ -74,22 +74,18 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @group external-http
 	 */
 	public function test_regression( $lang, $nplurals, $expression ) {
-		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
-			$this->markTestSkipped( 'Lambda functions are deprecated in PHP 7.2' );
-		}
-
-		require_once dirname( dirname( dirname( __FILE__ ) ) ) . '/includes/plural-form-function.php';
+		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
 
 		$parenthesized = self::parenthesize_plural_expression( $expression );
 		$old_style     = tests_make_plural_form_function( $nplurals, $parenthesized );
-		$pluralForms   = new Plural_Forms( $expression );
+		$plural_forms  = new Plural_Forms( $expression );
 
 		$generated_old = array();
 		$generated_new = array();
 
 		foreach ( range( 0, 200 ) as $i ) {
 			$generated_old[] = $old_style( $i );
-			$generated_new[] = $pluralForms->get( $i );
+			$generated_new[] = $plural_forms->get( $i );
 		}
 
 		$this->assertSame( $generated_old, $generated_new );
@@ -110,7 +106,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				),
 			),
 			array(
-				// Ternary
+				// Ternary.
 				'n ? 1 : 2',
 				array(
 					-1 => 1,
@@ -120,7 +116,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				),
 			),
 			array(
-				// Comparison
+				// Comparison.
 				'n > 1 ? 1 : 2',
 				array(
 					-2 => 2,
@@ -151,10 +147,10 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @dataProvider simple_provider
 	 */
 	public function test_simple( $expression, $expected ) {
-		$pluralForms = new Plural_Forms( $expression );
-		$actual      = array();
+		$plural_forms = new Plural_Forms( $expression );
+		$actual       = array();
 		foreach ( array_keys( $expected ) as $num ) {
-			$actual[ $num ] = $pluralForms->get( $num );
+			$actual[ $num ] = $plural_forms->get( $num );
 		}
 
 		$this->assertSame( $expected, $actual );
@@ -163,9 +159,9 @@ class PluralFormsTest extends WP_UnitTestCase {
 	public function data_exceptions() {
 		return array(
 			array(
-				'n # 2',              // Invalid expression to parse
-				'Unknown symbol "#"', // Expected exception message
-				false,                // Whether to call the get() method or not
+				'n # 2',              // Invalid expression to parse.
+				'Unknown symbol "#"', // Expected exception message.
+				false,                // Whether to call the get() method or not.
 			),
 			array(
 				'n & 1',
@@ -212,12 +208,12 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 */
 	public function test_exceptions( $expression, $expected_exception, $call_get ) {
 		try {
-			$pluralForms = new Plural_Forms( $expression );
+			$plural_forms = new Plural_Forms( $expression );
 			if ( $call_get ) {
-				$pluralForms->get( 1 );
+				$plural_forms->get( 1 );
 			}
 		} catch ( Exception $e ) {
-			$this->assertEquals( $expected_exception, $e->getMessage() );
+			$this->assertSame( $expected_exception, $e->getMessage() );
 			return;
 		}
 
@@ -240,6 +236,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 		$first  = $mock->get( 2 );
 		$second = $mock->get( 2 );
-		$this->assertEquals( $first, $second );
+		$this->assertSame( $first, $second );
 	}
 }

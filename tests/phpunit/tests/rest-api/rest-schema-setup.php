@@ -99,6 +99,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/pages/(?P<parent>[\\d]+)/autosaves/(?P<id>[\\d]+)',
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
+			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
+			'/wp/v2/media/(?P<id>[\\d]+)/edit',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
@@ -119,21 +121,18 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
 			'/wp/v2/search',
-			'/wp/v2/block-renderer/(?P<name>core/block)',
-			'/wp/v2/block-renderer/(?P<name>core/latest-comments)',
-			'/wp/v2/block-renderer/(?P<name>core/archives)',
-			'/wp/v2/block-renderer/(?P<name>core/calendar)',
-			'/wp/v2/block-renderer/(?P<name>core/categories)',
-			'/wp/v2/block-renderer/(?P<name>core/latest-posts)',
-			'/wp/v2/block-renderer/(?P<name>core/rss)',
-			'/wp/v2/block-renderer/(?P<name>core/search)',
-			'/wp/v2/block-renderer/(?P<name>core/shortcode)',
-			'/wp/v2/block-renderer/(?P<name>core/tag-cloud)',
+			'/wp/v2/block-renderer/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
+			'/wp/v2/block-types',
+			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)',
+			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
+			'/wp/v2/plugins',
+			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
+			'/wp/v2/block-directory/search',
 		);
 
-		$this->assertEquals( $expected_routes, $routes );
+		$this->assertSame( $expected_routes, $routes );
 	}
 
 	private function is_builtin_route( $route ) {
@@ -227,7 +226,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 
 		$media_id = $this->factory->attachment->create_object(
-			'/tmp/canola.jpg',
+			get_temp_dir() . 'canola.jpg',
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -442,23 +441,21 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			$status   = $response->get_status();
 			$data     = $response->get_data();
 
-			$this->assertEquals(
+			$this->assertSame(
 				200,
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )
 			);
 			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
 
-			if ( version_compare( PHP_VERSION, '5.4', '>=' ) ) {
-				$fixture           = $this->normalize_fixture( $data, $route['name'] );
-				$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
-					. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
-					. ";\n";
-			}
+			$fixture           = $this->normalize_fixture( $data, $route['name'] );
+			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '
+				. json_encode( $fixture, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES )
+				. ";\n";
 		}
 
 		// Only generate API client fixtures in single site and when required JSON_* constants are supported.
-		if ( ! is_multisite() && version_compare( PHP_VERSION, '5.4', '>=' ) ) {
+		if ( ! is_multisite() ) {
 			// Save the route object for QUnit tests.
 			$file = dirname( DIR_TESTROOT ) . '/qunit/fixtures/wp-api-generated.js';
 			file_put_contents( $file, $mocked_responses );

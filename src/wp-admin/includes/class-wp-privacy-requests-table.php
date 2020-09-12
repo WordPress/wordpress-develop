@@ -35,7 +35,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array Array of columns.
+	 * @return string[] Array of column titles keyed by their column name.
 	 */
 	public function get_columns() {
 		$columns = array(
@@ -73,9 +73,11 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return array Default sortable columns.
 	 */
 	protected function get_sortable_columns() {
-		// The initial sorting is by 'Requested' (post_date) and descending.
-		// With initial sorting, the first click on 'Requested' should be ascending.
-		// With 'Requester' sorting active, the next click on 'Requested' should be descending.
+		/*
+		 * The initial sorting is by 'Requested' (post_date) and descending.
+		 * With initial sorting, the first click on 'Requested' should be ascending.
+		 * With 'Requester' sorting active, the next click on 'Requested' should be descending.
+		 */
 		$desc_first = isset( $_GET['orderby'] );
 
 		return array(
@@ -137,7 +139,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array Associative array of views in the format of $view_name => $view_markup.
+	 * @return string[] An array of HTML links keyed by their view.
 	 */
 	protected function get_views() {
 		$current_status = isset( $_REQUEST['filter-status'] ) ? sanitize_text_field( $_REQUEST['filter-status'] ) : '';
@@ -146,12 +148,12 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$counts         = $this->get_request_counts();
 		$total_requests = absint( array_sum( (array) $counts ) );
 
-		// Normalized admin URL
+		// Normalized admin URL.
 		$admin_url = $this->get_admin_url();
 
 		$current_link_attributes = empty( $current_status ) ? ' class="current" aria-current="page"' : '';
 		$status_label            = sprintf(
-			/* translators: %s: all requests count */
+			/* translators: %s: Number of requests. */
 			_nx(
 				'All <span class="count">(%s)</span>',
 				'All <span class="count">(%s)</span>',
@@ -177,6 +179,10 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 			$current_link_attributes = $status === $current_status ? ' class="current" aria-current="page"' : '';
 			$total_status_requests   = absint( $counts->{$status} );
 
+			if ( ! $total_status_requests ) {
+				continue;
+			}
+
 			$status_label = sprintf(
 				translate_nooped_plural( $post_status->label_count, $total_status_requests ),
 				number_format_i18n( $total_status_requests )
@@ -200,12 +206,12 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 *
 	 * @since 4.9.6
 	 *
-	 * @return array List of bulk actions.
+	 * @return string[] Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
 		return array(
-			'delete' => __( 'Remove' ),
-			'resend' => __( 'Resend email' ),
+			'delete' => __( 'Delete Requests' ),
+			'resend' => __( 'Resend Confirmation Requests' ),
 		);
 	}
 
@@ -235,9 +241,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 				add_settings_error(
 					'bulk_action',
 					'bulk_action',
-					/* translators: %d: number of requests */
+					/* translators: %d: Number of requests. */
 					sprintf( _n( 'Deleted %d request', 'Deleted %d requests', $count ), $count ),
-					'updated'
+					'success'
 				);
 				break;
 			case 'resend':
@@ -252,9 +258,9 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 				add_settings_error(
 					'bulk_action',
 					'bulk_action',
-					/* translators: %d: number of requests */
+					/* translators: %d: Number of requests. */
 					sprintf( _n( 'Re-sent %d request', 'Re-sent %d requests', $count ), $count ),
-					'updated'
+					'success'
 				);
 				break;
 		}
@@ -267,8 +273,6 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @since 5.1.0 Added support for column sorting.
 	 */
 	public function prepare_items() {
-		global $wpdb;
-
 		$this->items    = array();
 		$posts_per_page = $this->get_items_per_page( $this->request_type . '_requests_per_page' );
 		$args           = array(
@@ -302,7 +306,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$requests       = $requests_query->posts;
 
 		foreach ( $requests as $request ) {
-			$this->items[] = wp_get_user_request_data( $request->ID );
+			$this->items[] = wp_get_user_request( $request->ID );
 		}
 
 		$this->items = array_filter( $this->items );
@@ -380,7 +384,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 		$time_diff = time() - $timestamp;
 
 		if ( $time_diff >= 0 && $time_diff < DAY_IN_SECONDS ) {
-			/* translators: human readable timestamp */
+			/* translators: %s: Human-readable time difference. */
 			return sprintf( __( '%s ago' ), human_time_diff( $timestamp ) );
 		}
 

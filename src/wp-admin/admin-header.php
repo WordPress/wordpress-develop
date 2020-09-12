@@ -6,9 +6,9 @@
  * @subpackage Administration
  */
 
-@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
+header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 if ( ! defined( 'WP_ADMIN' ) ) {
-	require_once( dirname( __FILE__ ) . '/admin.php' );
+	require_once __DIR__ . '/admin.php';
 }
 
 /**
@@ -16,8 +16,8 @@ if ( ! defined( 'WP_ADMIN' ) ) {
  *
  * @global string    $title
  * @global string    $hook_suffix
- * @global WP_Screen $current_screen
- * @global WP_Locale $wp_locale
+ * @global WP_Screen $current_screen     WordPress current screen object.
+ * @global WP_Locale $wp_locale          WordPress date and time locale object.
  * @global string    $pagenow
  * @global string    $update_title
  * @global int       $total_update_count
@@ -32,23 +32,23 @@ if ( empty( $current_screen ) ) {
 }
 
 get_admin_page_title();
-$title = esc_html( strip_tags( $title ) );
+$title = strip_tags( $title );
 
 if ( is_network_admin() ) {
-	/* translators: Network admin screen title. %s: Network name */
-	$admin_title = sprintf( __( 'Network Admin: %s' ), esc_html( get_network()->site_name ) );
+	/* translators: Network admin screen title. %s: Network title. */
+	$admin_title = sprintf( __( 'Network Admin: %s' ), get_network()->site_name );
 } elseif ( is_user_admin() ) {
-	/* translators: User dashboard screen title. %s: Network name */
-	$admin_title = sprintf( __( 'User Dashboard: %s' ), esc_html( get_network()->site_name ) );
+	/* translators: User dashboard screen title. %s: Network title. */
+	$admin_title = sprintf( __( 'User Dashboard: %s' ), get_network()->site_name );
 } else {
 	$admin_title = get_bloginfo( 'name' );
 }
 
-if ( $admin_title == $title ) {
-	/* translators: Admin screen title. %s: Admin screen name */
+if ( $admin_title === $title ) {
+	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
-	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name */
+	/* translators: Admin screen title. 1: Admin screen name, 2: Network or site name. */
 	$admin_title = sprintf( __( '%1$s &lsaquo; %2$s &#8212; WordPress' ), $title, $admin_title );
 }
 
@@ -71,18 +71,17 @@ wp_user_settings();
 
 _wp_admin_html_begin();
 ?>
-<title><?php echo $admin_title; ?></title>
+<title><?php echo esc_html( $admin_title ); ?></title>
 <?php
 
 wp_enqueue_style( 'colors' );
-wp_enqueue_style( 'ie' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 ?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
 var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
 	pagenow = '<?php echo $current_screen->id; ?>',
 	typenow = '<?php echo $current_screen->post_type; ?>',
@@ -91,7 +90,6 @@ var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
 	decimalPoint = '<?php echo addslashes( $wp_locale->number_format['decimal_point'] ); ?>',
 	isRtl = <?php echo (int) is_rtl(); ?>;
 </script>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <?php
 
 /**
@@ -108,7 +106,7 @@ do_action( 'admin_enqueue_scripts', $hook_suffix );
  *
  * @since 2.6.0
  */
-do_action( "admin_print_styles-{$hook_suffix}" );
+do_action( "admin_print_styles-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires when styles are printed for all admin pages.
@@ -122,7 +120,7 @@ do_action( 'admin_print_styles' );
  *
  * @since 2.1.0
  */
-do_action( "admin_print_scripts-{$hook_suffix}" );
+do_action( "admin_print_scripts-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires when scripts are printed for all admin pages.
@@ -139,7 +137,7 @@ do_action( 'admin_print_scripts' );
  *
  * @since 2.1.0
  */
-do_action( "admin_head-{$hook_suffix}" );
+do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 /**
  * Fires in head section for all admin pages.
@@ -148,7 +146,7 @@ do_action( "admin_head-{$hook_suffix}" );
  */
 do_action( 'admin_head' );
 
-if ( get_user_setting( 'mfold' ) == 'f' ) {
+if ( 'f' === get_user_setting( 'mfold' ) ) {
 	$admin_body_class .= ' folded';
 }
 
@@ -200,6 +198,19 @@ if ( $current_screen->is_block_editor() ) {
 	}
 }
 
+$error_get_last = error_get_last();
+
+// Print a CSS class to make PHP errors visible.
+if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors' )
+	// Don't print the class for PHP notices in wp-config.php, as they happen before WP_DEBUG takes effect,
+	// and should not be displayed with the `error_reporting` level previously set in wp-load.php.
+	&& ( E_NOTICE !== $error_get_last['type'] || 'wp-config.php' !== wp_basename( $error_get_last['file'] ) )
+) {
+	$admin_body_class .= ' php-error';
+}
+
+unset( $error_get_last );
+
 ?>
 </head>
 <?php
@@ -233,7 +244,7 @@ if ( current_user_can( 'customize' ) ) {
 ?>
 
 <div id="wpwrap">
-<?php require( ABSPATH . 'wp-admin/menu-header.php' ); ?>
+<?php require ABSPATH . 'wp-admin/menu-header.php'; ?>
 <div id="wpcontent">
 
 <?php
@@ -288,6 +299,6 @@ if ( is_network_admin() ) {
  */
 do_action( 'all_admin_notices' );
 
-if ( $parent_file == 'options-general.php' ) {
-	require( ABSPATH . 'wp-admin/options-head.php' );
+if ( 'options-general.php' === $parent_file ) {
+	require ABSPATH . 'wp-admin/options-head.php';
 }

@@ -23,7 +23,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		foreach ( $default_headers as $name => $value ) {
 			$this->assertTrue( isset( $data[ $name ] ) );
-			$this->assertEquals( $value, $data[ $name ] );
+			$this->assertSame( $value, $data[ $name ] );
 		}
 	}
 
@@ -32,7 +32,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'siteurl', 'http://example.com' );
 
-		// add some pages
+		// Add some pages.
 		add_options_page( 'Test Settings', 'Test Settings', 'manage_options', 'testsettings', 'mt_settings_page' );
 		add_management_page( 'Test Tools', 'Test Tools', 'manage_options', 'testtools', 'mt_tools_page' );
 		add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
@@ -51,10 +51,269 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$expected['testpages']           = 'http://example.com/wp-admin/edit.php?post_type=page&#038;page=testpages';
 
 		foreach ( $expected as $name => $value ) {
-			$this->assertEquals( $value, menu_page_url( $name, false ) );
+			$this->assertSame( $value, menu_page_url( $name, false ) );
 		}
 
 		wp_set_current_user( $current_user );
+	}
+
+	/**
+	 * Tests the priority parameter.
+	 *
+	 * @ticket 39776
+	 *
+	 * @covers ::add_submenu_page
+	 *
+	 * @param int $priority          The position of the new item.
+	 * @param int $expected_position Where the new item is expected to appear.
+	 *
+	 * @dataProvider data_submenu_priority
+	 */
+	function test_submenu_priority( $priority, $expected_position ) {
+		global $submenu;
+		global $menu;
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		$parent = add_menu_page( 'Test Toplevel', 'Test Toplevel', 'manage_options', 'mt-top-level-handle', 'mt_toplevel_page' );
+		foreach ( $this->submenus_to_add() as $menu_to_add ) {
+			add_submenu_page( $parent, $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $menu_to_add[3], $menu_to_add[4] );
+		}
+
+		// Insert the new page.
+		add_submenu_page( $parent, 'New Page', 'New Page', 'manage_options', 'custom-position', 'custom_pos', $priority );
+		wp_set_current_user( $current_user );
+
+		// Clean up the temporary user.
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted at the expected position.
+		$this->assertSame( 'custom-position', $submenu[ $parent ][ $expected_position ][2] );
+	}
+
+	/**
+	 * Tests the priority parameter for menu helper functions.
+	 *
+	 * @ticket 39776
+	 * @group ms-excluded
+	 *
+	 * @covers ::add_management_page
+	 * @covers ::add_options_page
+	 * @covers ::add_theme_page
+	 * @covers ::add_plugins_page
+	 * @covers ::add_users_page
+	 * @covers ::add_dashboard_page
+	 * @covers ::add_posts_page
+	 * @covers ::add_media_page
+	 * @covers ::add_links_page
+	 * @covers ::add_pages_page
+	 * @covers ::add_comments_page
+	 *
+	 * @param int $priority          The position of the new item.
+	 * @param int $expected_position Where the new item is expected to appear.
+	 *
+	 * @dataProvider data_submenu_priority
+	 */
+	function test_submenu_helpers_priority( $priority, $expected_position ) {
+		global $submenu;
+		global $menu;
+
+		// Reset menus.
+		$submenu = array();
+		$menu    = array();
+
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Test the helper functions that use `add_submenu_page`. Each helper adds to a specific menu root.
+		$helper_functions = array(
+			array(
+				'callback'  => 'add_management_page',
+				'menu_root' => 'tools.php',
+			),
+			array(
+				'callback'  => 'add_options_page',
+				'menu_root' => 'options-general.php',
+			),
+			array(
+				'callback'  => 'add_theme_page',
+				'menu_root' => 'themes.php',
+			),
+			array(
+				'callback'  => 'add_plugins_page',
+				'menu_root' => 'plugins.php',
+			),
+			array(
+				'callback'  => 'add_users_page',
+				'menu_root' => 'users.php',
+			),
+			array(
+				'callback'  => 'add_dashboard_page',
+				'menu_root' => 'index.php',
+			),
+			array(
+				'callback'  => 'add_posts_page',
+				'menu_root' => 'edit.php',
+			),
+			array(
+				'callback'  => 'add_media_page',
+				'menu_root' => 'upload.php',
+			),
+			array(
+				'callback'  => 'add_links_page',
+				'menu_root' => 'link-manager.php',
+			),
+			array(
+				'callback'  => 'add_pages_page',
+				'menu_root' => 'edit.php?post_type=page',
+			),
+			array(
+				'callback'  => 'add_comments_page',
+				'menu_root' => 'edit-comments.php',
+			),
+		);
+
+		$actual_positions = array();
+
+		foreach ( $helper_functions as $helper_function ) {
+
+			// Build up demo pages on the menu root.
+			foreach ( $this->submenus_to_add() as $menu_to_add ) {
+				add_menu_page( $menu_to_add[0], $menu_to_add[1], $menu_to_add[2], $helper_function['menu_root'], $helper_function['menu_root'] );
+			}
+
+			$test = 'test_' . $helper_function['callback'];
+
+			// Call the helper function, passing the desired priority.
+			call_user_func_array( $helper_function['callback'], array( $test, $test, 'manage_options', 'custom-position', '', $priority ) );
+
+			$actual_positions[ $test ] = $submenu[ $helper_function['menu_root'] ][ $expected_position ][2];
+		}
+
+		// Clean up the temporary user.
+		wp_delete_user( $admin_user );
+
+		foreach ( $actual_positions as $test => $actual_position ) {
+			// Verify the menu was inserted at the expected position.
+			$this->assertSame( 'custom-position', $actual_position, 'Menu not inserted at the expected position with ' . $test );
+		}
+	}
+
+	/**
+	 * Helper to store the menus that are to be added, so getting the length is programmatically done.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string Page title.
+	 *         @type string Menu_title.
+	 *         @type string Capability.
+	 *         @type string Menu slug.
+	 *         @type string Function.
+	 *     }
+	 * }
+	 */
+	function submenus_to_add() {
+		return array(
+			array( 'Submenu Priority', 'Submenu Priority', 'manage_options', 'sub-page', '' ),
+			array( 'Submenu Priority 2', 'Submenu Priority 2', 'manage_options', 'sub-page2', '' ),
+			array( 'Submenu Priority 3', 'Submenu Priority 3', 'manage_options', 'sub-page3', '' ),
+			array( 'Submenu Priority 4', 'Submenu Priority 4', 'manage_options', 'sub-page4', '' ),
+			array( 'Submenu Priority 5', 'Submenu Priority 5', 'manage_options', 'sub-page5', '' ),
+		);
+	}
+
+	/**
+	 * Data provider for test_submenu_helpers_priority().
+	 *
+	 * @since 5.3.0
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type int|null Priority.
+	 *         @type int      Expected position.
+	 *     }
+	 * }
+	 */
+	function data_submenu_priority() {
+		$menu_count = count( $this->submenus_to_add() );
+		return array(
+			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
+			array( 0, 0 ),                     // Insert at the beginning of the menu if 0 is passed.
+			array( -1, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( -7, 0 ),                    // Negative numbers are treated the same as passing 0.
+			array( 1, 1 ),                     // Insert as the second item.
+			array( 3, 3 ),                     // Insert as the 4th item.
+			array( $menu_count, $menu_count ), // Numbers equal to the number of items are added at the end.
+			array( 123456, $menu_count ),      // Numbers higher than the number of items are added at the end.
+		);
+	}
+
+	/**
+	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the priority.
+	 *
+	 * @ticket 48599
+	 */
+	function test_priority_when_parent_slug_child_slug_are_the_same() {
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'main_slug', 'submenu_callback_1', 1 );
+		add_submenu_page( 'main_slug', 'SubMenu 2', 'SubMenu 2', 'manage_options', 'submenu_page2', 'submenu_callback_2', 2 );
+		add_submenu_page( 'main_slug', 'SubMenu 3', 'SubMenu 3', 'manage_options', 'submenu_page3', 'submenu_callback_3', 3 );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted at the expected position.
+		$this->assertSame( 'main_slug', $submenu['main_slug'][0][2] );
+		$this->assertSame( 'submenu_page2', $submenu['main_slug'][1][2] );
+		$this->assertSame( 'submenu_page3', $submenu['main_slug'][2][2] );
+	}
+
+	/**
+	 * Passing a string as priority will fail.
+	 *
+	 * @ticket 48599
+	 */
+	function test_passing_string_as_priority_fires_doing_it_wrong() {
+		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
+		global $submenu, $menu;
+
+		// Reset menus.
+		$submenu      = array();
+		$menu         = array();
+		$current_user = get_current_user_id();
+		$admin_user   = self::factory()->user->create( array( 'role' => 'administrator' ) );
+		wp_set_current_user( $admin_user );
+		set_current_screen( 'dashboard' );
+
+		// Setup a menu with some items.
+		add_menu_page( 'Main Menu', 'Main Menu', 'manage_options', 'main_slug', 'main_page_callback' );
+		add_submenu_page( 'main_slug', 'SubMenu 1', 'SubMenu 1', 'manage_options', 'submenu_page_1', 'submenu_callback_1', '2' );
+
+		// Clean up the temporary user.
+		wp_set_current_user( $current_user );
+		wp_delete_user( $admin_user );
+
+		// Verify the menu was inserted at the expected position.
+		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
 	}
 
 	function test_is_plugin_active_true() {
@@ -90,7 +349,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 */
 	public function test_get_plugin_files_single() {
 		$name = 'hello.php';
-		$this->assertEquals( array( $name ), get_plugin_files( $name ) );
+		$this->assertSame( array( $name ), get_plugin_files( $name ) );
 	}
 
 	/**
@@ -102,15 +361,15 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$plugin = $this->_create_plugin( null, 'list_files_test_plugin.php', $plugin_dir );
 
 		$sub_dir = trailingslashit( dirname( $plugin[1] ) ) . 'subdir';
-		@mkdir( $sub_dir );
-		@file_put_contents( $sub_dir . '/subfile.php', '<?php // Silence.' );
+		mkdir( $sub_dir );
+		file_put_contents( $sub_dir . '/subfile.php', '<?php // Silence.' );
 
 		$plugin_files = get_plugin_files( plugin_basename( $plugin[1] ) );
 		$expected     = array(
 			'list_files_test_plugin/list_files_test_plugin.php',
 			'list_files_test_plugin/subdir/subfile.php',
 		);
-		$this->assertEquals( $expected, $plugin_files );
+		$this->assertSame( $expected, $plugin_files );
 
 		unlink( $sub_dir . '/subfile.php' );
 		unlink( $plugin[1] );
@@ -130,7 +389,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			mkdir( WPMU_PLUGIN_DIR );
 		}
 
-		$this->assertEquals( array(), get_mu_plugins() );
+		$this->assertSame( array(), get_mu_plugins() );
 
 		// Clean up.
 		if ( $exists ) {
@@ -151,7 +410,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			rmdir( WPMU_PLUGIN_DIR );
 		}
 
-		$this->assertEquals( array(), get_mu_plugins() );
+		$this->assertSame( array(), get_mu_plugins() );
 
 		// Clean up.
 		if ( $exists ) {
@@ -173,7 +432,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		}
 
 		$this->_create_plugin( '<?php\n//Silence is golden.', 'index.php', WPMU_PLUGIN_DIR );
-		$this->assertEquals( array(), get_mu_plugins() );
+		$this->assertSame( array(), get_mu_plugins() );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
@@ -198,7 +457,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		$this->_create_plugin( '<?php\n//Silence is not golden.', 'index.php', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertEquals( array( 'index.php' ), array_keys( $found ) );
+		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
@@ -224,7 +483,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$this->_create_plugin( '<?php\n//Test', 'foo.php', WPMU_PLUGIN_DIR );
 		$this->_create_plugin( '<?php\n//Test 2', 'bar.txt', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertEquals( array( 'foo.php' ), array_keys( $found ) );
+		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/foo.php' );
@@ -242,7 +501,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test__sort_uname_callback() {
 		$this->assertLessThan( 0, _sort_uname_callback( array( 'Name' => 'a' ), array( 'Name' => 'b' ) ) );
 		$this->assertGreaterThan( 0, _sort_uname_callback( array( 'Name' => 'c' ), array( 'Name' => 'b' ) ) );
-		$this->assertEquals( 0, _sort_uname_callback( array( 'Name' => 'a' ), array( 'Name' => 'a' ) ) );
+		$this->assertSame( 0, _sort_uname_callback( array( 'Name' => 'a' ), array( 'Name' => 'a' ) ) );
 	}
 
 	/**
@@ -251,7 +510,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_get_dropins_empty() {
 		$this->_back_up_drop_ins();
 
-		$this->assertEquals( array(), get_dropins() );
+		$this->assertSame( array(), get_dropins() );
 
 		// Clean up.
 		$this->_restore_drop_ins();
@@ -267,7 +526,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$p2 = $this->_create_plugin( "<?php\n//Test", 'not-a-dropin.php', WP_CONTENT_DIR );
 
 		$dropins = get_dropins();
-		$this->assertEquals( array( 'advanced-cache.php' ), array_keys( $dropins ) );
+		$this->assertSame( array( 'advanced-cache.php' ), array_keys( $dropins ) );
 
 		unlink( $p1[1] );
 		unlink( $p2[1] );
@@ -331,7 +590,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @covers ::validate_active_plugins
 	 */
 	public function test_validate_active_plugins_empty() {
-		$this->assertEquals( array(), validate_active_plugins() );
+		$this->assertSame( array(), validate_active_plugins() );
 	}
 
 	/**
@@ -406,7 +665,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			}
 
 			$files_to_move = array();
-			if ( $mu_plugins = opendir( WPMU_PLUGIN_DIR ) ) {
+			$mu_plugins    = opendir( WPMU_PLUGIN_DIR );
+			if ( $mu_plugins ) {
 				while ( false !== $plugin = readdir( $mu_plugins ) ) {
 					if ( 0 !== strpos( $plugin, '.' ) ) {
 						$files_to_move[] = $plugin;
@@ -414,7 +674,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 				}
 			}
 
-			@closedir( $mu_plugins );
+			closedir( $mu_plugins );
 
 			foreach ( $files_to_move as $file_to_move ) {
 				$f = rename( WPMU_PLUGIN_DIR . '/' . $file_to_move, $mu_bu_dir . '/' . $file_to_move );
@@ -432,7 +692,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	private function _restore_mu_plugins() {
 		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
 		$files_to_move = array();
-		if ( is_dir( $mu_bu_dir ) && $mu_plugins = opendir( $mu_bu_dir ) ) {
+		$mu_plugins    = @opendir( $mu_bu_dir );
+		if ( $mu_plugins ) {
 			while ( false !== $plugin = readdir( $mu_plugins ) ) {
 				if ( 0 !== strpos( $plugin, '.' ) ) {
 					$files_to_move[] = $plugin;
@@ -440,7 +701,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			}
 		}
 
-		@closedir( $mu_plugins );
+		closedir( $mu_plugins );
 
 		foreach ( $files_to_move as $file_to_move ) {
 			rename( $mu_bu_dir . '/' . $file_to_move, WPMU_PLUGIN_DIR . '/' . $file_to_move );

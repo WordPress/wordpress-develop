@@ -110,7 +110,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			'relation' => 'AND',
 		);
 
-		$this->assertEquals( $expected, $q->queries );
+		$this->assertSame( $expected, $q->queries );
 	}
 
 	public function test_get_compare_empty() {
@@ -321,19 +321,19 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Single integer
+		// Single integer.
 		$found = $q->build_value( 'IN', 4 );
 		$this->assertSame( '(4)', $found );
 
-		// Single non-integer
+		// Single non-integer.
 		$found = $q->build_value( 'IN', 'foo' );
 		$this->assertFalse( $found );
 
-		// Array of integers
+		// Array of integers.
 		$found = $q->build_value( 'IN', array( 1, 4, 7 ) );
 		$this->assertSame( '(1,4,7)', $found );
 
-		// Array containing non-integers
+		// Array containing non-integers.
 		$found = $q->build_value( 'IN', array( 1, 'foo', 7 ) );
 		$this->assertSame( '(1,7)', $found );
 	}
@@ -344,19 +344,19 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_value_compare_not_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Single integer
+		// Single integer.
 		$found = $q->build_value( 'NOT IN', 4 );
 		$this->assertSame( '(4)', $found );
 
-		// Single non-integer
+		// Single non-integer.
 		$found = $q->build_value( 'NOT IN', 'foo' );
 		$this->assertFalse( $found );
 
-		// Array of integers
+		// Array of integers.
 		$found = $q->build_value( 'NOT IN', array( 1, 4, 7 ) );
 		$this->assertSame( '(1,4,7)', $found );
 
-		// Array containing non-integers
+		// Array containing non-integers.
 		$found = $q->build_value( 'NOT IN', array( 1, 'foo', 7 ) );
 		$this->assertSame( '(1,7)', $found );
 	}
@@ -503,46 +503,87 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_mysql_datetime_datetime_non_array() {
 		$q = new WP_Date_Query( array() );
 
-		// This might be a fragile test if it takes longer than 1 second to run
+		// This might be a fragile test if it takes longer than 1 second to run.
 		$found    = $q->build_mysql_datetime( 'foo' );
 		$expected = gmdate( 'Y-m-d H:i:s', false );
 		$this->assertSame( $expected, $found );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_true() {
+	/**
+	 * @ticket 41782
+	 *
+	 * @dataProvider mysql_datetime_input_provider
+	 *
+	 * @param array|string $datetime       Array or string date input.
+	 * @param string       $expected       Expected built result.
+	 * @param bool         $default_to_max Flag to default missing values to max.
+	 */
+	public function test_build_mysql_datetime( $datetime, $expected, $default_to_max = false ) {
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			true
-		);
-		$this->assertSame( '2011-12-31 23:59:59', $found );
+		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_false() {
-		$q = new WP_Date_Query( array() );
-
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			false
+	public function mysql_datetime_input_provider() {
+		return array(
+			array( '2019-06-04T08:18:24+03:00', '2019-06-04 05:18:24' ),
+			array( '2019-06-04T05:18:24+00:00', '2019-06-04 05:18:24' ),
+			array( array(), current_time( 'Y' ) . '-01-01 00:00:00' ),
+			array( array( 'year' => 2011 ), '2011-12-31 23:59:59', true ),
+			array( array( 'year' => 2011 ), '2011-01-01 00:00:00' ),
+			array( '2011', '2011-01-01 00:00:00' ),
+			array( '2011-02', '2011-02-01 00:00:00' ),
+			array( '2011-02-03', '2011-02-03 00:00:00' ),
+			array( '2011-02-03 13:30', '2011-02-03 13:30:00' ),
+			array( '2011-02-03 13:30:35', '2011-02-03 13:30:35' ),
 		);
-		$this->assertSame( '2011-01-01 00:00:00', $found );
 	}
 
-	public function test_build_mysql_datetime_default_to_max_default_to_false() {
+	/**
+	 * @ticket 41782
+	 *
+	 * @dataProvider mysql_datetime_input_provider_custom_timezone
+	 *
+	 * @param array|string $datetime       Array or string date input.
+	 * @param string       $expected       Expected built result.
+	 * @param bool         $default_to_max Flag to default missing values to max.
+	 */
+	public function test_build_mysql_datetime_with_custom_timezone( $datetime, $expected, $default_to_max = false ) {
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
 		$q = new WP_Date_Query( array() );
 
-		$found = $q->build_mysql_datetime(
-			array(
-				'year' => 2011,
-			),
-			false
+		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
+
+	}
+
+	public function mysql_datetime_input_provider_custom_timezone() {
+		return array(
+			array( '2019-06-04T08:18:24+03:00', '2019-06-04 08:18:24' ),
+			array( '2019-06-04T05:18:24+00:00', '2019-06-04 08:18:24' ),
 		);
-		$this->assertSame( '2011-01-01 00:00:00', $found );
+	}
+
+	/**
+	 * @ticket 41782
+	 */
+	public function test_build_mysql_datetime_with_relative_date() {
+		update_option( 'timezone_string', 'Europe/Kiev' );
+
+		$q = new WP_Date_Query( array() );
+
+		$yesterday = new DateTimeImmutable( '-1 day', wp_timezone() );
+		$expected  = $yesterday->format( 'Y-m-d H:i:s' );
+		$found     = $q->build_mysql_datetime( '-1 day' );
+
+		$message = "Expected {$expected}, got {$found}";
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
 	public function test_build_time_query_insufficient_time_values() {
@@ -566,15 +607,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2)', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ), null, 6 );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2) AND SECOND( post_date ) IN (6)', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'IN', array( 1, 2 ), array( 3, 4, 5 ), 6 );
 		$this->assertSame( 'HOUR( post_date ) IN (1,2) AND MINUTE( post_date ) IN (3,4,5) AND SECOND( post_date ) IN (6)', $found );
 	}
@@ -582,15 +623,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_not_in() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2)', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ), null, 6 );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2) AND SECOND( post_date ) NOT IN (6)', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'NOT IN', array( 1, 2 ), array( 3, 4, 5 ), 6 );
 		$this->assertSame( 'HOUR( post_date ) NOT IN (1,2) AND MINUTE( post_date ) NOT IN (3,4,5) AND SECOND( post_date ) NOT IN (6)', $found );
 	}
@@ -598,15 +639,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_between() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ), null, array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2 AND SECOND( post_date ) BETWEEN 6 AND 7', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'BETWEEN', array( 1, 2 ), array( 3, 4 ), array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) BETWEEN 1 AND 2 AND MINUTE( post_date ) BETWEEN 3 AND 4 AND SECOND( post_date ) BETWEEN 6 AND 7', $found );
 	}
@@ -614,15 +655,15 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 	public function test_build_time_query_compare_not_between() {
 		$q = new WP_Date_Query( array() );
 
-		// Just hour
+		// Just hour.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2', $found );
 
-		// Skip minute
+		// Skip minute.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ), null, array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2 AND SECOND( post_date ) NOT BETWEEN 6 AND 7', $found );
 
-		// All three
+		// All three.
 		$found = $q->build_time_query( 'post_date', 'NOT BETWEEN', array( 1, 2 ), array( 3, 4 ), array( 6, 7 ) );
 		$this->assertSame( 'HOUR( post_date ) NOT BETWEEN 1 AND 2 AND MINUTE( post_date ) NOT BETWEEN 3 AND 4 AND SECOND( post_date ) NOT BETWEEN 6 AND 7', $found );
 	}
@@ -662,7 +703,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', 5, 15 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i' \) = 5\.150*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
@@ -673,7 +714,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', 5, 15, 35 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '%H\.%i%s' \) = 5\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
@@ -684,7 +725,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_time_query( 'post_date', '=', null, 15, 35 );
 
 		// $compare value is floating point - use regex to account for
-		// varying precision on different PHP installations
+		// varying precision on different PHP installations.
 		$this->assertRegExp( "/DATE_FORMAT\( post_date, '0\.%i%s' \) = 0\.15350*/", $wpdb->remove_placeholder_escape( $found ) );
 	}
 
@@ -1014,7 +1055,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		// Invalid values.
 		$days_of_year = array( -1, 0, 367 );
 		foreach ( $days_of_year as $day_of_year ) {
-			$this->assertFalse( @$this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
+			$this->assertFalse( $this->q->validate_date_values( array( 'dayofyear' => $day_of_year ) ) );
 		}
 	}
 
@@ -1037,7 +1078,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -1059,7 +1100,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -1083,7 +1124,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		);
 
 		// MySQL ignores the invalid clause.
-		$this->assertEquals( array( $p1, $p2 ), $q->posts );
+		$this->assertSame( array( $p1, $p2 ), $q->posts );
 	}
 
 	/** Helpers */

@@ -127,7 +127,7 @@ define( 'EP_ALL', EP_PERMALINK | EP_ATTACHMENT | EP_ROOT | EP_COMMENTS | EP_SEAR
  * @since 2.1.0
  * @since 4.4.0 Array support was added to the `$query` parameter.
  *
- * @global WP_Rewrite $wp_rewrite WordPress Rewrite Component.
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string       $regex Regular expression to match request against.
  * @param string|array $query The corresponding query vars for this rewrite rule.
@@ -143,22 +143,22 @@ function add_rewrite_rule( $regex, $query, $after = 'bottom' ) {
 /**
  * Add a new rewrite tag (like %postname%).
  *
- * The $query parameter is optional. If it is omitted you must ensure that
- * you call this on, or before, the {@see 'init'} hook. This is because $query defaults
- * to "$tag=", and for this to work a new query var has to be added.
+ * The `$query` parameter is optional. If it is omitted you must ensure that you call
+ * this on, or before, the {@see 'init'} hook. This is because `$query` defaults to
+ * `$tag=`, and for this to work a new query var has to be added.
  *
  * @since 2.1.0
  *
- * @global WP_Rewrite $wp_rewrite
- * @global WP         $wp
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP         $wp         Current WordPress environment instance.
  *
  * @param string $tag   Name of the new rewrite tag.
  * @param string $regex Regular expression to substitute the tag for in rewrite rules.
  * @param string $query Optional. String to append to the rewritten query. Must end in '='. Default empty.
  */
 function add_rewrite_tag( $tag, $regex, $query = '' ) {
-	// validate the tag's name
-	if ( strlen( $tag ) < 3 || $tag[0] != '%' || $tag[ strlen( $tag ) - 1 ] != '%' ) {
+	// Validate the tag's name.
+	if ( strlen( $tag ) < 3 || '%' !== $tag[0] || '%' !== $tag[ strlen( $tag ) - 1 ] ) {
 		return;
 	}
 
@@ -238,7 +238,7 @@ function remove_permastruct( $name ) {
  *
  * @since 2.1.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string   $feedname Feed name.
  * @param callable $function Callback to run on feed display.
@@ -247,13 +247,13 @@ function remove_permastruct( $name ) {
 function add_feed( $feedname, $function ) {
 	global $wp_rewrite;
 
-	if ( ! in_array( $feedname, $wp_rewrite->feeds ) ) {
+	if ( ! in_array( $feedname, $wp_rewrite->feeds, true ) ) {
 		$wp_rewrite->feeds[] = $feedname;
 	}
 
 	$hook = 'do_feed_' . $feedname;
 
-	// Remove default function hook
+	// Remove default function hook.
 	remove_action( $hook, $hook );
 
 	add_action( $hook, $function, 10, 2 );
@@ -266,14 +266,17 @@ function add_feed( $feedname, $function ) {
  *
  * @since 3.0.0
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param bool $hard Whether to update .htaccess (hard flush) or just update
- *                   rewrite_rules transient (soft flush). Default is true (hard).
+ *                   rewrite_rules option (soft flush). Default is true (hard).
  */
 function flush_rewrite_rules( $hard = true ) {
 	global $wp_rewrite;
-	$wp_rewrite->flush_rules( $hard );
+
+	if ( is_callable( array( $wp_rewrite, 'flush_rules' ) ) ) {
+		$wp_rewrite->flush_rules( $hard );
+	}
 }
 
 /**
@@ -301,7 +304,7 @@ function flush_rewrite_rules( $hard = true ) {
  * @since 2.1.0
  * @since 4.3.0 Added support for skipping query var registration by passing `false` to `$query_var`.
  *
- * @global WP_Rewrite $wp_rewrite
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
  *
  * @param string      $name      Name of the endpoint.
  * @param int         $places    Endpoint mask describing the places the endpoint should be added.
@@ -361,7 +364,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 
 	// Identify the 'postname' position in the permastruct array.
 	$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
-	$postname_index = array_search( '%postname%', $permastructs );
+	$postname_index = array_search( '%postname%', $permastructs, true );
 
 	if ( false === $postname_index ) {
 		return $query_vars;
@@ -417,7 +420,7 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
 	} elseif ( 'monthnum' === $compare && isset( $query_vars['day'] ) ) {
 		$maybe_page = $query_vars['day'];
 	}
-	// Bug found in #11694 - 'page' was returning '/4'
+	// Bug found in #11694 - 'page' was returning '/4'.
 	$maybe_page = (int) trim( $maybe_page, '/' );
 
 	$post_page_count = substr_count( $post->post_content, '<!--nextpage-->' ) + 1;
@@ -456,8 +459,8 @@ function wp_resolve_numeric_slug_conflicts( $query_vars = array() ) {
  *
  * @since 1.0.0
  *
- * @global WP_Rewrite $wp_rewrite
- * @global WP         $wp
+ * @global WP_Rewrite $wp_rewrite WordPress rewrite component.
+ * @global WP         $wp         Current WordPress environment instance.
  *
  * @param string $url Permalink to check.
  * @return int Post ID, or 0 on failure.
@@ -482,7 +485,7 @@ function url_to_postid( $url ) {
 		return 0;
 	}
 
-	// First, check to see if there is a 'p=N' or 'page_id=N' to match against
+	// First, check to see if there is a 'p=N' or 'page_id=N' to match against.
 	if ( preg_match( '#[?&](p|page_id|attachment_id)=(\d+)#', $url, $values ) ) {
 		$id = absint( $values[2] );
 		if ( $id ) {
@@ -490,11 +493,11 @@ function url_to_postid( $url ) {
 		}
 	}
 
-	// Get rid of the #anchor
+	// Get rid of the #anchor.
 	$url_split = explode( '#', $url );
 	$url       = $url_split[0];
 
-	// Get rid of URL ?query=string
+	// Get rid of URL ?query=string.
 	$url_split = explode( '?', $url );
 	$url       = $url_split[0];
 
@@ -502,17 +505,17 @@ function url_to_postid( $url ) {
 	$scheme = parse_url( home_url(), PHP_URL_SCHEME );
 	$url    = set_url_scheme( $url, $scheme );
 
-	// Add 'www.' if it is absent and should be there
+	// Add 'www.' if it is absent and should be there.
 	if ( false !== strpos( home_url(), '://www.' ) && false === strpos( $url, '://www.' ) ) {
 		$url = str_replace( '://', '://www.', $url );
 	}
 
-	// Strip 'www.' if it is present and shouldn't be
+	// Strip 'www.' if it is present and shouldn't be.
 	if ( false === strpos( home_url(), '://www.' ) ) {
 		$url = str_replace( '://www.', '://', $url );
 	}
 
-	if ( trim( $url, '/' ) === home_url() && 'page' == get_option( 'show_on_front' ) ) {
+	if ( trim( $url, '/' ) === home_url() && 'page' === get_option( 'show_on_front' ) ) {
 		$page_on_front = get_option( 'page_on_front' );
 
 		if ( $page_on_front && get_post( $page_on_front ) instanceof WP_Post ) {
@@ -520,30 +523,30 @@ function url_to_postid( $url ) {
 		}
 	}
 
-	// Check to see if we are using rewrite rules
+	// Check to see if we are using rewrite rules.
 	$rewrite = $wp_rewrite->wp_rewrite_rules();
 
-	// Not using rewrite rules, and 'p=N' and 'page_id=N' methods failed, so we're out of options
+	// Not using rewrite rules, and 'p=N' and 'page_id=N' methods failed, so we're out of options.
 	if ( empty( $rewrite ) ) {
 		return 0;
 	}
 
-	// Strip 'index.php/' if we're not using path info permalinks
+	// Strip 'index.php/' if we're not using path info permalinks.
 	if ( ! $wp_rewrite->using_index_permalinks() ) {
 		$url = str_replace( $wp_rewrite->index . '/', '', $url );
 	}
 
 	if ( false !== strpos( trailingslashit( $url ), home_url( '/' ) ) ) {
-		// Chop off http://domain.com/[path]
+		// Chop off http://domain.com/[path].
 		$url = str_replace( home_url(), '', $url );
 	} else {
-		// Chop off /path/to/blog
+		// Chop off /path/to/blog.
 		$home_path = parse_url( home_url( '/' ) );
 		$home_path = isset( $home_path['path'] ) ? $home_path['path'] : '';
 		$url       = preg_replace( sprintf( '#^%s#', preg_quote( $home_path ) ), '', trailingslashit( $url ) );
 	}
 
-	// Trim leading and lagging slashes
+	// Trim leading and lagging slashes.
 	$url = trim( $url, '/' );
 
 	$request              = $url;
@@ -559,8 +562,8 @@ function url_to_postid( $url ) {
 	$request_match = $request;
 	foreach ( (array) $rewrite as $match => $query ) {
 
-		// If the requesting file is the anchor of the match, prepend it
-		// to the path info.
+		// If the requesting file is the anchor of the match,
+		// prepend it to the path info.
 		if ( ! empty( $url ) && ( $url != $request ) && ( strpos( $match, $url ) === 0 ) ) {
 			$request_match = $url . '/' . $request;
 		}
@@ -588,12 +591,12 @@ function url_to_postid( $url ) {
 			// Substitute the substring matches into the query.
 			$query = addslashes( WP_MatchesMapRegex::apply( $query, $matches ) );
 
-			// Filter out non-public query vars
+			// Filter out non-public query vars.
 			global $wp;
 			parse_str( $query, $query_vars );
 			$query = array();
 			foreach ( (array) $query_vars as $key => $value ) {
-				if ( in_array( $key, $wp->public_query_vars ) ) {
+				if ( in_array( (string) $key, $wp->public_query_vars, true ) ) {
 					$query[ $key ] = $value;
 					if ( isset( $post_type_query_vars[ $key ] ) ) {
 						$query['post_type'] = $post_type_query_vars[ $key ];
@@ -605,7 +608,7 @@ function url_to_postid( $url ) {
 			// Resolve conflicts between posts with numeric slugs and date archive queries.
 			$query = wp_resolve_numeric_slug_conflicts( $query );
 
-			// Do the query
+			// Do the query.
 			$query = new WP_Query( $query );
 			if ( ! empty( $query->posts ) && $query->is_singular ) {
 				return $query->post->ID;

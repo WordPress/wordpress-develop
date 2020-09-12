@@ -34,7 +34,7 @@ if ( is_multisite() ) :
 
 		public static function wpTearDownAfterClass() {
 			foreach ( self::$site_ids as $id ) {
-				wpmu_delete_blog( $id, true );
+				wp_delete_site( $id );
 			}
 
 			wp_update_network_site_counts();
@@ -45,7 +45,7 @@ if ( is_multisite() ) :
 			$site = get_site();
 			restore_current_blog();
 
-			$this->assertEquals( self::$site_ids['wordpress.org/foo/'], $site->id );
+			$this->assertSame( self::$site_ids['wordpress.org/foo/'], $site->id );
 		}
 
 	}

@@ -30,9 +30,10 @@ class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 	}
 
 	public function data_canonical_category() {
-		/* Data format:
+		/*
+		 * Data format:
 		 * [0]: Test URL.
-		 * [1]: expected results: Any of the following can be used
+		 * [1]: Expected results: Any of the following can be used.
 		 *      array( 'url': expected redirection location, 'qv': expected query vars to be set via the rewrite AND $_GET );
 		 *      array( expected query vars to be set, same as 'qv' above )
 		 *      (string) expected redirect location

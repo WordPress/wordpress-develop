@@ -159,6 +159,7 @@ body:not(.ready) #customize-save-button-wrapper .save {
 	float: left;
 	transform: none;
 	margin-top: 0;
+	line-height: 2;
 }
 
 body:not(.ready) #publish-settings,
@@ -284,12 +285,14 @@ body.trashing #publish-settings {
 }
 
 #customize-control-changeset_preview_link input {
-	line-height: 2.5;
+	line-height: 2.85714286; /* 40px */
 	border-top: 1px solid #ddd;
 	border-left: none;
 	border-right: none;
 	text-indent: -999px;
 	color: #fff;
+	/* Only necessary for IE11 */
+	min-height: 40px;
 }
 
 #customize-control-changeset_preview_link label {
@@ -347,7 +350,7 @@ body.trashing #publish-settings {
 }
 
 .date-time-fields .date-input.year {
-	width: 60px;
+	width: 65px;
 }
 
 .date-time-fields .date-input.meridian {
@@ -357,11 +360,6 @@ body.trashing #publish-settings {
 
 .date-time-fields .time-row {
 	margin-top: 12px;
-}
-
-.date-time-fields .date-timezone {
-	line-height: 2.2;
-	text-decoration: none;
 }
 
 #customize-control-changeset_preview_link {
@@ -844,10 +842,16 @@ h3.customize-section-title {
 	background: #fff;
 	color: #0073aa;
 	border-top-color: #0073aa;
-	outline: none;
 	box-shadow: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
+#customize-theme-controls .accordion-section-title:focus .customize-action {
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
+	outline-offset: 1px;
+}
 
 .customize-panel-back:hover,
 .customize-panel-back:focus,
@@ -856,8 +860,10 @@ h3.customize-section-title {
 	color: #0073aa;
 	background: #f3f3f5;
 	border-left-color: #0073aa;
-	outline: none;
 	box-shadow: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 2px solid transparent;
+	outline-offset: -2px;
 }
 
 .customize-controls-close:before {
@@ -903,22 +909,11 @@ p.customize-section-description {
 	text-align: right;
 }
 
-.section-description-buttons button.button-link {
-	color: #0073aa;
-	text-decoration: underline;
-}
-
 .customize-control {
 	width: 100%;
 	float: left;
 	clear: both;
 	margin-bottom: 12px;
-}
-
-.customize-control select,
-.customize-control input[type="radio"],
-.customize-control input[type="checkbox"] {
-	line-height: 2;
 }
 
 .customize-control input[type="text"],
@@ -929,7 +924,6 @@ p.customize-section-description {
 .customize-control input[type="tel"],
 .customize-control input[type="url"] {
 	width: 100%;
-	line-height: 1.3;
 	margin: 0;
 }
 
@@ -944,8 +938,6 @@ p.customize-section-description {
 
 .customize-control select {
 	width: 100%;
-	height: 28px;
-	line-height: 2;
 }
 
 .customize-control select[multiple] {
@@ -1403,12 +1395,11 @@ p.customize-section-description {
 
 .customize-control .attachment-media-view .button-add-media:focus {
 	background-color: #fbfbfc;
+	border-color: #007cba;
 	border-style: solid;
-	border-color: #5b9dd9;
-	box-shadow: 0 0 3px rgba( 0, 115, 170, .8 );
+	box-shadow: 0 0 0 1px #007cba;
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
-	outline-offset: -2px;
 }
 
 .customize-control-header .inner {
@@ -1644,7 +1635,7 @@ p.customize-section-description {
 
 .theme-browser .theme.active .theme-actions,
 .wp-customizer .theme-browser .theme .theme-actions {
-	padding: 10px 15px;
+	padding: 9px 15px;
 	box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -1808,7 +1799,6 @@ p.customize-section-description {
 	background: #eee;
 	border-color: #999;
 	box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
-	transform: translateY(1px);
 }
 
 .themes-filter-bar .feature-filter-toggle .filter-count-filters {
@@ -2226,8 +2216,10 @@ p.customize-section-description {
 		color: #0073aa;
 		background: #f3f3f5;
 		border-left-color: #0073aa;
-		outline: none;
 		box-shadow: none;
+		/* Only visible in Windows High Contrast mode */
+		outline: 2px solid transparent;
+		outline-offset: -2px;
 	}
 
 	.showing-themes #customize-header-actions {
@@ -2594,9 +2586,9 @@ body.adding-widget .add-new-widget:before,
 #available-widgets-filter input,
 #available-menu-items-search input {
 	width: 100%;
-	height: 32px;
+	min-height: 32px;
 	margin: 1px 0;
-	padding: 6px 30px;
+	padding: 0 30px;
 }
 
 #available-widgets-filter input::-ms-clear,
@@ -2784,10 +2776,6 @@ body.adding-widget .add-new-widget:before,
 		width: 80px;
 	}
 
-	.date-time-fields .date-timezone {
-		line-height: 3.2;
-	}
-
 	#customize-control-changeset_preview_link a {
 		bottom: 16px;
 	}
@@ -2880,15 +2868,11 @@ body.adding-widget .add-new-widget:before,
 	}
 
 	.wp-core-ui.wp-customizer .button {
-		padding: 6px 14px;
-		line-height: normal;
+		min-height: 30px;
+		padding: 0 14px;
+		line-height: 2;
 		font-size: 14px;
 		vertical-align: middle;
-		height: auto;
-	}
-
-	#publish-settings {
-		height: 31px;
 	}
 
 	#customize-control-changeset_status .customize-inside-control-row {
@@ -2959,21 +2943,9 @@ body.adding-widget .add-new-widget:before,
 	.wp-core-ui .themes-filter-bar .feature-filter-toggle {
 		margin: 0;
 	}
-
-	.theme-browser .theme.active .theme-actions,
-	.wp-customizer .theme-browser .theme .theme-actions {
-		padding: 9px 15px;
-		box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.1);
-	}
 }
 
 @media screen and (max-width: 600px) {
-	.theme-browser .theme.active .theme-actions,
-	.wp-customizer .theme-browser .theme .theme-actions {
-		padding: 8px 15px;
-		box-shadow: none;
-	}
-
 	.wp-full-overlay.expanded {
 		margin-left: 0;
 	}

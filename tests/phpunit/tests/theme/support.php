@@ -25,7 +25,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'admin-bar', array( 'callback' => '__return_false' ) );
 		$this->assertTrue( current_theme_supports( 'admin-bar' ) );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 0 => array( 'callback' => '__return_false' ) ),
 			get_theme_support( 'admin-bar' )
 		);
@@ -61,24 +61,15 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		add_theme_support( 'post-thumbnails', array( 'page' ) );
 		$this->assertTrue( current_theme_supports( 'post-thumbnails', 'post' ) );
 		$this->assertFalse( current_theme_supports( 'post-thumbnails', 'book' ) );
-		$this->assertEquals(
+		$this->assertSame(
 			array( 0 => array( 'post', 'page' ) ),
 			get_theme_support( 'post-thumbnails' )
 		);
 
 		add_theme_support( 'post-thumbnails' );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails', 'book' ) );
+		$this->assertTrue( current_theme_supports( 'post-thumbnails', 'any-type' ) );
 
 		// Reset post-thumbnails theme support.
-		remove_theme_support( 'post-thumbnails' );
-		$this->assertFalse( current_theme_supports( 'post-thumbnails' ) );
-	}
-
-	public function test_post_thumbnails_types_true() {
-		// array of arguments, with the key of 'types' holding the post types.
-		add_theme_support( 'post-thumbnails', array( 'types' => true ) );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails' ) );
-		$this->assertTrue( current_theme_supports( 'post-thumbnails', rand_str() ) ); // any type
 		remove_theme_support( 'post-thumbnails' );
 		$this->assertFalse( current_theme_supports( 'post-thumbnails' ) );
 	}
@@ -142,7 +133,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	}
 
 	function supports_foobar( $yesno, $args, $feature ) {
-		if ( $args[0] == $feature[0] ) {
+		if ( $args[0] === $feature[0] ) {
 			return true;
 		}
 		return false;
@@ -167,7 +158,7 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 	 * @ticket 26900
 	 */
 	function test_supports_menus() {
-		// Start fresh
+		// Start fresh.
 		foreach ( get_registered_nav_menus() as $location => $desc ) {
 			unregister_nav_menu( $location );
 		}

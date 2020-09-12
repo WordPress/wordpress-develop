@@ -50,7 +50,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 		}
 	},
 	/**
-	 * @returns {wp.media.view.Toolbar} Returns itsef to allow chaining
+	 * @return {wp.media.view.Toolbar} Returns itsef to allow chaining
 	 */
 	dispose: function() {
 		if ( this.selection ) {
@@ -74,7 +74,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	 * @param {string} id
 	 * @param {Backbone.View|Object} view
 	 * @param {Object} [options={}]
-	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining
+	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	set: function( id, view, options ) {
 		var list;
@@ -108,7 +108,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	},
 	/**
 	 * @param {string} id
-	 * @returns {wp.media.view.Button}
+	 * @return {wp.media.view.Button}
 	 */
 	get: function( id ) {
 		return this._views[ id ];
@@ -116,7 +116,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 	/**
 	 * @param {string} id
 	 * @param {Object} options
-	 * @returns {wp.media.view.Toolbar} Returns itself to allow chaining
+	 * @return {wp.media.view.Toolbar} Returns itself to allow chaining.
 	 */
 	unset: function( id, options ) {
 		delete this._views[ id ];
@@ -142,7 +142,7 @@ Toolbar = View.extend(/** @lends wp.media.view.Toolbar.prototype */{
 			var requires = button.options.requires,
 				disabled = false;
 
-			// Prevent insertion of attachments if any of them are still uploading
+			// Prevent insertion of attachments if any of them are still uploading.
 			if ( selection && selection.models ) {
 				disabled = _.some( selection.models, function( attachment ) {
 					return attachment.get('uploading') === true;

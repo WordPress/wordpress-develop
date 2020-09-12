@@ -4,17 +4,17 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 get_header();
 ?>
 
-	<section id="primary" class="content-area">
+	<div id="primary" class="content-area">
 		<main id="main" class="site-main">
 
 			<?php
-				// Start the loop.
+			// Start the Loop.
 			while ( have_posts() ) :
 				the_post();
 				?>
@@ -30,7 +30,7 @@ get_header();
 						<figure class="entry-attachment wp-block-image">
 						<?php
 							/**
-							 * Filter the default twentynineteen image attachment size.
+							 * Filters the default twentynineteen image attachment size.
 							 *
 							 * @since Twenty Sixteen 1.0
 							 *
@@ -98,7 +98,7 @@ get_header();
 			?>
 
 		</main><!-- .site-main -->
-	</section><!-- .content-area -->
+	</div><!-- .content-area -->
 
 <?php
 get_footer();

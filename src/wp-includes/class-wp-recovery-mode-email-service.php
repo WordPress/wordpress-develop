@@ -3,7 +3,7 @@
  * Error Protection API: WP_Recovery_Mode_Email_Link class
  *
  * @package WordPress
- * @since   5.2.0
+ * @since 5.2.0
  */
 
 /**
@@ -41,9 +41,11 @@ final class WP_Recovery_Mode_Email_Service {
 	 *
 	 * @param int   $rate_limit Number of seconds before another email can be sent.
 	 * @param array $error      Error details from {@see error_get_last()}
-	 * @param array $extension  The extension that caused the error. {
-	 *      @type string $slug The extension slug. The plugin or theme's directory.
-	 *      @type string $type The extension type. Either 'plugin' or 'theme'.
+	 * @param array $extension {
+	 *     The extension that caused the error.
+	 *
+	 *     @type string $slug The extension slug. The plugin or theme's directory.
+	 *     @type string $type The extension type. Either 'plugin' or 'theme'.
 	 * }
 	 * @return true|WP_Error True if email sent, WP_Error otherwise.
 	 */
@@ -73,7 +75,7 @@ final class WP_Recovery_Mode_Email_Service {
 		}
 
 		$err_message = sprintf(
-			/* translators: 1. Last sent as a human time diff 2. Wait time as a human time diff. */
+			/* translators: 1: Last sent as a human time diff, 2: Wait time as a human time diff. */
 			__( 'A recovery link was already sent %1$s ago. Please wait another %2$s before requesting a new email.' ),
 			human_time_diff( $last_sent ),
 			human_time_diff( $last_sent + $rate_limit )
@@ -101,7 +103,6 @@ final class WP_Recovery_Mode_Email_Service {
 	 * @param int   $rate_limit Number of seconds before another email can be sent.
 	 * @param array $error      Error details from {@see error_get_last()}
 	 * @param array $extension  Extension that caused the error.
-	 *
 	 * @return bool Whether the email was sent successfully.
 	 */
 	private function send_recovery_mode_email( $rate_limit, $error, $extension ) {
@@ -134,11 +135,20 @@ final class WP_Recovery_Mode_Email_Service {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param $message string The Message to include in the email.
+		 * @param string $message The Message to include in the email.
 		 */
 		$support = apply_filters( 'recovery_email_support_info', __( 'Please contact your host for assistance with investigating this issue further.' ) );
 
-		/* translators: Do not translate LINK, EXPIRES, CAUSE, DETAILS, SITEURL, PAGEURL, SUPPORT: those are placeholders. */
+		/**
+		 * Filters the debug information included in the fatal error protection email.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @param array $message An associative array of debug information.
+		 */
+		$debug = apply_filters( 'recovery_email_debug_info', $this->get_debug( $extension ) );
+
+		/* translators: Do not translate LINK, EXPIRES, CAUSE, DETAILS, SITEURL, PAGEURL, SUPPORT. DEBUG: those are placeholders. */
 		$message = __(
 			'Howdy!
 
@@ -154,6 +164,9 @@ If your site appears broken and you can\'t access your dashboard normally, WordP
 
 To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry about that, though: a new link will be emailed to you if the error occurs again after it expires.
 
+When seeking help with this issue, you may be asked for some of the following information:
+###DEBUG###
+
 ###DETAILS###'
 		);
 		$message = str_replace(
@@ -165,6 +178,7 @@ To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry abo
 				'###SITEURL###',
 				'###PAGEURL###',
 				'###SUPPORT###',
+				'###DEBUG###',
 			),
 			array(
 				$url,
@@ -174,24 +188,34 @@ To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry abo
 				home_url( '/' ),
 				home_url( $_SERVER['REQUEST_URI'] ),
 				$support,
+				implode( "\r\n", $debug ),
 			),
 			$message
 		);
 
 		$email = array(
-			'to'      => $this->get_recovery_mode_email_address(),
-			/* translators: %s: site name */
-			'subject' => __( '[%s] Your Site is Experiencing a Technical Issue' ),
-			'message' => $message,
-			'headers' => '',
+			'to'          => $this->get_recovery_mode_email_address(),
+			/* translators: %s: Site title. */
+			'subject'     => __( '[%s] Your Site is Experiencing a Technical Issue' ),
+			'message'     => $message,
+			'headers'     => '',
+			'attachments' => '',
 		);
 
 		/**
-		 * Filter the contents of the Recovery Mode email.
+		 * Filters the contents of the Recovery Mode email.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array  $email Used to build wp_mail().
+		 * @param array  $email {
+		 *     Used to build a call to wp_mail().
+		 *
+		 *     @type string|array $to          Array or comma-separated list of email addresses to send message.
+		 *     @type string       $subject     Email subject
+		 *     @type string       $message     Message contents
+		 *     @type string|array $headers     Optional. Additional headers.
+		 *     @type string|array $attachments Optional. Files to attach.
+		 * }
 		 * @param string $url   URL to enter recovery mode.
 		 */
 		$email = apply_filters( 'recovery_mode_email', $email, $url );
@@ -200,7 +224,8 @@ To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry abo
 			$email['to'],
 			wp_specialchars_decode( sprintf( $email['subject'], $blogname ) ),
 			$email['message'],
-			$email['headers']
+			$email['headers'],
+			$email['attachments']
 		);
 
 		if ( $switched_locale ) {
@@ -236,40 +261,103 @@ To keep your site safe, this link will expire in ###EXPIRES###. Don\'t worry abo
 	private function get_cause( $extension ) {
 
 		if ( 'plugin' === $extension['type'] ) {
-			if ( ! function_exists( 'get_plugins' ) ) {
-				require_once ABSPATH . 'wp-admin/includes/plugin.php';
-			}
+			$plugin = $this->get_plugin( $extension );
 
-			$plugins = get_plugins();
-
-			$name = '';
-
-			// Assume plugin main file name first since it is a common convention.
-			if ( isset( $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ] ) ) {
-				$name = $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ]['Name'];
-			} else {
-				foreach ( $plugins as $file => $plugin_data ) {
-					if ( 0 === strpos( $file, "{$extension['slug']}/" ) || $file === $extension['slug'] ) {
-						$name = $plugin_data['Name'];
-						break;
-					}
-				}
-			}
-
-			if ( empty( $name ) ) {
+			if ( false === $plugin ) {
 				$name = $extension['slug'];
+			} else {
+				$name = $plugin['Name'];
 			}
 
-			/* translators: %s: plugin name */
+			/* translators: %s: Plugin name. */
 			$cause = sprintf( __( 'In this case, WordPress caught an error with one of your plugins, %s.' ), $name );
 		} else {
 			$theme = wp_get_theme( $extension['slug'] );
 			$name  = $theme->exists() ? $theme->display( 'Name' ) : $extension['slug'];
 
-			/* translators: %s: theme name */
+			/* translators: %s: Theme name. */
 			$cause = sprintf( __( 'In this case, WordPress caught an error with your theme, %s.' ), $name );
 		}
 
 		return $cause;
+	}
+
+	/**
+	 * Return the details for a single plugin based on the extension data from an error.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param array $extension The extension that caused the error.
+	 * @return bool|array A plugin array {@see get_plugins()} or `false` if no plugin was found.
+	 */
+	private function get_plugin( $extension ) {
+		if ( ! function_exists( 'get_plugins' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		}
+
+		$plugins = get_plugins();
+
+		// Assume plugin main file name first since it is a common convention.
+		if ( isset( $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ] ) ) {
+			return $plugins[ "{$extension['slug']}/{$extension['slug']}.php" ];
+		} else {
+			foreach ( $plugins as $file => $plugin_data ) {
+				if ( 0 === strpos( $file, "{$extension['slug']}/" ) || $file === $extension['slug'] ) {
+					return $plugin_data;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Return debug information in an easy to manipulate format.
+	 *
+	 * @since 5.3.0
+	 *
+	 * @param array $extension The extension that caused the error.
+	 * @return array An associative array of debug information.
+	 */
+	private function get_debug( $extension ) {
+		$theme      = wp_get_theme();
+		$wp_version = get_bloginfo( 'version' );
+
+		if ( $extension ) {
+			$plugin = $this->get_plugin( $extension );
+		} else {
+			$plugin = null;
+		}
+
+		$debug = array(
+			/* translators: %s: Current WordPress version number. */
+			'wp'    => sprintf(
+				__( 'WordPress version %s' ),
+				$wp_version
+			),
+			'theme' => sprintf(
+				/* translators: 1: Current active theme name. 2: Current active theme version. */
+				__( 'Current theme: %1$s (version %2$s)' ),
+				$theme->get( 'Name' ),
+				$theme->get( 'Version' )
+			),
+		);
+
+		if ( null !== $plugin ) {
+			$debug['plugin'] = sprintf(
+				/* translators: 1: The failing plugins name. 2: The failing plugins version. */
+				__( 'Current plugin: %1$s (version %2$s)' ),
+				$plugin['Name'],
+				$plugin['Version']
+			);
+		}
+
+		$debug['php'] = sprintf(
+			/* translators: %s: The currently used PHP version. */
+			__( 'PHP version %s' ),
+			PHP_VERSION
+		);
+
+		return $debug;
 	}
 }

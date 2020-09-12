@@ -9,7 +9,7 @@
 define( 'IFRAME_REQUEST', true );
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 function wp_load_press_this() {
 	$plugin_slug = 'press-this';
@@ -22,7 +22,7 @@ function wp_load_press_this() {
 			403
 		);
 	} elseif ( is_plugin_active( $plugin_file ) ) {
-		include( WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php' );
+		include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
 		$wp_press_this = new WP_Press_This_Plugin();
 		$wp_press_this->html();
 	} elseif ( current_user_can( 'activate_plugins' ) ) {
@@ -64,7 +64,7 @@ function wp_load_press_this() {
 				);
 			} else {
 				$action = sprintf(
-					/* translators: URL to wp-admin/press-this.php */
+					/* translators: %s: URL to Press This bookmarklet on the main site. */
 					__( 'Press This is not installed. Please install Press This from <a href="%s">the main site</a>.' ),
 					get_admin_url( get_current_network_id(), 'press-this.php' )
 				);

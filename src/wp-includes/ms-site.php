@@ -69,13 +69,15 @@ function wp_insert_site( array $data ) {
 		return new WP_Error( 'db_insert_error', __( 'Could not insert site into the database.' ), $wpdb->last_error );
 	}
 
-	$new_site = get_site( $wpdb->insert_id );
+	$site_id = (int) $wpdb->insert_id;
+
+	clean_blog_cache( $site_id );
+
+	$new_site = get_site( $site_id );
 
 	if ( ! $new_site ) {
 		return new WP_Error( 'get_site_error', __( 'Could not retrieve site data.' ) );
 	}
-
-	clean_blog_cache( $new_site );
 
 	/**
 	 * Fires once a site has been inserted into the database.
@@ -112,16 +114,16 @@ function wp_insert_site( array $data ) {
 			$meta['WPLANG'] = get_network_option( $new_site->network_id, 'WPLANG' );
 		}
 
-		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using whitelisted keys.
-		// The `$site_data_whitelist` matches the one used in `wpmu_create_blog()`.
-		$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
-		$meta                = array_merge( array_intersect_key( $data, array_flip( $site_data_whitelist ) ), $meta );
+		// Rebuild the data expected by the `wpmu_new_blog` hook prior to 5.1.0 using allowed keys.
+		// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+		$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+		$meta                = array_merge( array_intersect_key( $data, array_flip( $allowed_data_fields ) ), $meta );
 
 		/**
 		 * Fires immediately after a new site is created.
 		 *
 		 * @since MU (3.0.0)
-		 * @deprecated 5.1.0 Use wp_insert_site
+		 * @deprecated 5.1.0 Use {@see 'wp_insert_site'} instead.
 		 *
 		 * @param int    $site_id    Site ID.
 		 * @param int    $user_id    User ID.
@@ -130,7 +132,12 @@ function wp_insert_site( array $data ) {
 		 * @param int    $network_id Network ID. Only relevant on multi-network installations.
 		 * @param array  $meta       Meta data. Used to set initial site options.
 		 */
-		do_action_deprecated( 'wpmu_new_blog', array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ), '5.1.0', 'wp_insert_site' );
+		do_action_deprecated(
+			'wpmu_new_blog',
+			array( $new_site->id, $user_id, $new_site->domain, $new_site->path, $new_site->network_id, $meta ),
+			'5.1.0',
+			'wp_insert_site'
+		);
 	}
 
 	return (int) $new_site->id;
@@ -238,7 +245,7 @@ function wp_delete_site( $site_id ) {
 	 * @deprecated 5.1.0
 	 *
 	 * @param int  $site_id The site ID.
-	 * @param bool $drop    True if site's table should be dropped. Default is false.
+	 * @param bool $drop    True if site's table should be dropped. Default false.
 	 */
 	do_action_deprecated( 'delete_blog', array( $old_site->id, true ), '5.1.0' );
 
@@ -280,7 +287,7 @@ function wp_delete_site( $site_id ) {
 	 * @deprecated 5.1.0
 	 *
 	 * @param int  $site_id The site ID.
-	 * @param bool $drop    True if site's tables should be dropped. Default is false.
+	 * @param bool $drop    True if site's tables should be dropped. Default false.
 	 */
 	do_action_deprecated( 'deleted_blog', array( $old_site->id, true ), '5.1.0' );
 
@@ -328,7 +335,7 @@ function get_site( $site = null ) {
 }
 
 /**
- * Adds any sites from the given ids to the cache that do not already exist in cache.
+ * Adds any sites from the given IDs to the cache that do not already exist in cache.
  *
  * @since 4.6.0
  * @since 5.1.0 Introduced the `$update_meta_cache` parameter.
@@ -385,7 +392,7 @@ function update_site_cache( $sites, $update_meta_cache = true ) {
  * @since 5.1.0
  *
  * @param array $site_ids List of site IDs.
- * @return array|false Returns false if there is nothing to update. Returns an array of metadata on success.
+ * @return array|false An array of metadata on success, false if there is nothing to update.
  */
 function update_sitemeta_cache( $site_ids ) {
 	// Ensure this filter is hooked in even if the function is called early.
@@ -448,7 +455,7 @@ function update_sitemeta_cache( $site_ids ) {
  *                                           Default empty array.
  *     @type bool         $update_site_cache Whether to prime the cache for found sites. Default true.
  * }
- * @return array|int List of WP_Site objects, a list of site ids when 'fields' is set to 'ids',
+ * @return array|int List of WP_Site objects, a list of site IDs when 'fields' is set to 'ids',
  *                   or the number of sites when 'count' is passed as a query var.
  */
 function get_sites( $args = array() ) {
@@ -490,8 +497,8 @@ function wp_prepare_site_data( $data, $defaults, $old_site = null ) {
 	 */
 	$data = apply_filters( 'wp_normalize_site_data', $data );
 
-	$whitelist = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
-	$data      = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $whitelist ) );
+	$allowed_data_fields = array( 'domain', 'path', 'network_id', 'registered', 'last_updated', 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+	$data                = array_intersect_key( wp_parse_args( $data, $defaults ), array_flip( $allowed_data_fields ) );
 
 	$errors = new WP_Error();
 
@@ -688,7 +695,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 		$args,
 		array(
 			'user_id' => 0,
-			/* translators: %d: site ID */
+			/* translators: %d: Site ID. */
 			'title'   => sprintf( __( 'Site %d' ), $site->id ),
 			'options' => array(),
 			'meta'    => array(),
@@ -717,7 +724,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 		switch_to_blog( $site->id );
 	}
 
-	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+	require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 	// Set up the database tables.
 	make_db_current_silent( 'blog' );
@@ -761,8 +768,8 @@ function wp_initialize_site( $site_id, array $args = array() ) {
 
 	// Remove all permissions that may exist for the site.
 	$table_prefix = $wpdb->get_blog_prefix();
-	delete_metadata( 'user', 0, $table_prefix . 'user_level', null, true ); // delete all
-	delete_metadata( 'user', 0, $table_prefix . 'capabilities', null, true ); // delete all
+	delete_metadata( 'user', 0, $table_prefix . 'user_level', null, true );   // Delete all.
+	delete_metadata( 'user', 0, $table_prefix . 'capabilities', null, true ); // Delete all.
 
 	// Install default site content.
 	wp_install_defaults( $args['user_id'] );
@@ -863,7 +870,7 @@ function wp_uninitialize_site( $site_id ) {
 	$index   = 0;
 
 	while ( $index < count( $stack ) ) {
-		// Get indexed directory from stack
+		// Get indexed directory from stack.
 		$dir = $stack[ $index ];
 
 		// phpcs:disable WordPress.PHP.NoSilencedErrors.Discouraged
@@ -889,7 +896,7 @@ function wp_uninitialize_site( $site_id ) {
 		$index++;
 	}
 
-	$stack = array_reverse( $stack ); // Last added dirs are deepest
+	$stack = array_reverse( $stack ); // Last added directories are deepest.
 	foreach ( (array) $stack as $dir ) {
 		if ( $dir != $top_dir ) {
 			@rmdir( $dir );
@@ -932,7 +939,8 @@ function wp_is_site_initialized( $site_id ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param bool|null $pre     The value to return, if not null.
+	 * @param bool|null $pre     The value to return instead. Default null
+	 *                           to continue with the check.
 	 * @param int       $site_id The site ID that is being checked.
 	 */
 	$pre = apply_filters( 'pre_wp_is_site_initialized', null, $site_id );
@@ -1005,8 +1013,6 @@ function clean_blog_cache( $blog ) {
 	wp_cache_delete( $blog_id . 'short', 'blog-details' );
 	wp_cache_delete( $domain_path_key, 'blog-lookup' );
 	wp_cache_delete( $domain_path_key, 'blog-id-cache' );
-	wp_cache_delete( 'current_blog_' . $blog->domain, 'site-options' );
-	wp_cache_delete( 'current_blog_' . $blog->domain . $blog->path, 'site-options' );
 	wp_cache_delete( $blog_id, 'blog_meta' );
 
 	/**
@@ -1026,7 +1032,7 @@ function clean_blog_cache( $blog ) {
 	 * Fires after the blog details cache is cleared.
 	 *
 	 * @since 3.4.0
-	 * @deprecated 4.9.0 Use clean_site_cache
+	 * @deprecated 4.9.0 Use {@see 'clean_site_cache'} instead.
 	 *
 	 * @param int $blog_id Blog ID.
 	 */
@@ -1060,8 +1066,9 @@ function add_site_meta( $site_id, $meta_key, $meta_value, $unique = false ) {
  *
  * @param int    $site_id    Site ID.
  * @param string $meta_key   Metadata name.
- * @param mixed  $meta_value Optional. Metadata value. Must be serializable if
- *                           non-scalar. Default empty.
+ * @param mixed  $meta_value Optional. Metadata value. If provided,
+ *                           rows will only be removed that match the value.
+ *                           Must be serializable if non-scalar. Default empty.
  * @return bool True on success, false on failure.
  */
 function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
@@ -1074,11 +1081,13 @@ function delete_site_meta( $site_id, $meta_key, $meta_value = '' ) {
  * @since 5.1.0
  *
  * @param int    $site_id Site ID.
- * @param string $key     Optional. The meta key to retrieve. By default, returns
- *                        data for all keys. Default empty.
- * @param bool   $single  Optional. Whether to return a single value. Default false.
- * @return mixed Will be an array if $single is false. Will be value of meta data
- *               field if $single is true.
+ * @param string $key     Optional. The meta key to retrieve. By default,
+ *                        returns data for all keys. Default empty.
+ * @param bool   $single  Optional. Whether to return a single value.
+ *                        This parameter has no effect if $key is not specified.
+ *                        Default false.
+ * @return mixed An array if $single is false. The value of meta data field
+ *               if $single is true. False for an invalid $site_id.
  */
 function get_site_meta( $site_id, $key = '', $single = false ) {
 	return get_metadata( 'blog', $site_id, $key, $single );
@@ -1097,10 +1106,12 @@ function get_site_meta( $site_id, $key = '', $single = false ) {
  * @param int    $site_id    Site ID.
  * @param string $meta_key   Metadata key.
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
- * @param mixed  $prev_value Optional. Previous value to check before removing.
- *                           Default empty.
+ * @param mixed  $prev_value Optional. Previous value to check before updating.
+ *                           If specified, only update existing metadata entries with
+ *                           this value. Otherwise, update all entries. Default empty.
  * @return int|bool Meta ID if the key didn't exist, true on successful update,
- *                  false on failure.
+ *                  false on failure or if the value passed to the function
+ *                  is the same as the one that is already in the database.
  */
 function update_site_meta( $site_id, $meta_key, $meta_value, $prev_value = '' ) {
 	return update_metadata( 'blog', $site_id, $meta_key, $meta_value, $prev_value );
@@ -1319,7 +1330,7 @@ function wp_cache_set_sites_last_changed() {
  */
 function wp_check_site_meta_support_prefilter( $check ) {
 	if ( ! is_site_meta_supported() ) {
-		/* translators: %s: database table name */
+		/* translators: %s: Database table name. */
 		_doing_it_wrong( __FUNCTION__, sprintf( __( 'The %s table is not installed. Please run the network database upgrade.' ), $GLOBALS['wpdb']->blogmeta ), '5.1.0' );
 		return false;
 	}

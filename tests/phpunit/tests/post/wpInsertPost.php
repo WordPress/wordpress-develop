@@ -77,7 +77,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 		wp_trash_post( $trashed_about_page_id );
-		$this->assertEquals( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
 	}
 
 	/**
@@ -93,7 +93,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 		wp_trash_post( $trashed_about_page_id );
-		$this->assertEquals( 'foo__trashed__foo__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'foo__trashed__foo__trashed', get_post( $trashed_about_page_id )->post_name );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		wp_trash_post( $about_page_id );
 
 		wp_untrash_post( $about_page_id );
-		$this->assertEquals( 'about', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -133,8 +133,8 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
-		$this->assertEquals( 'about', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -160,8 +160,8 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 
 		wp_untrash_post( $about_page_id );
 
-		$this->assertEquals( 'about', get_post( $another_about_page_id )->post_name );
-		$this->assertEquals( 'about-2', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $another_about_page_id )->post_name );
+		$this->assertSame( 'about-2', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -302,4 +302,29 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 25347
+	 */
+	function test_scheduled_post_with_a_past_date_should_be_published() {
+
+		$now = new DateTimeImmutable( 'now', new DateTimeZone( 'UTC' ) );
+
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_date_gmt' => $now->modify( '-1 year' )->format( 'Y-m-d H:i:s' ),
+				'post_status'   => 'future',
+			)
+		);
+
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
+
+		$post_id = $this->factory()->post->create(
+			array(
+				'post_date_gmt' => $now->modify( '+50 years' )->format( 'Y-m-d H:i:s' ),
+				'post_status'   => 'future',
+			)
+		);
+
+		$this->assertSame( 'future', get_post_status( $post_id ) );
+	}
 }

@@ -71,7 +71,8 @@
 	color: #72777c;
 	position: absolute;
 	font-size: 1.7em;
-	padding: 11px 10px;
+	padding: 10px;
+	pointer-events: none;
 }
 
 input#link_description,
@@ -146,14 +147,26 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 /* Post Screen */
-#post-body #normal-sortables {
-	min-height: 50px;
+
+/* Only highlight drop zones when dragging and only in the 2 columns layout. */
+.is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
+	outline: 3px dashed #606a73;
+	/* Prevent margin on the child from collapsing with margin on the parent. */
+	display: flow-root;
+	/*
+	 * This min-height is meant to limit jumpiness while dragging. It's equivalent
+	 * to the minimum height of the sortable-placeholder which is given by the height
+	 * of a collapsed post box (36px + 1px top and bottom borders) + the placeholder
+	 * bottom margin (20px) + 2 additional pixels to compensate browsers rounding.
+	 */
+	min-height: 60px;
+	margin-bottom: 20px;
 }
 
 .postbox {
 	position: relative;
 	min-width: 255px;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	background: #fff;
 }
@@ -309,7 +322,7 @@ form#tags-filter {
 #post-status-info {
 	width: 100%;
 	border-spacing: 0;
-	border: 1px solid #e5e5e5;
+	border: 1px solid #ccd0d4;
 	border-top: none;
 	background-color: #f7f7f7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
@@ -360,7 +373,7 @@ form#tags-filter {
 
 .wp-editor-expand #wp-content-editor-tools {
 	z-index: 1000;
-	border-bottom: 1px solid #e5e5e5;
+	border-bottom: 1px solid #ccd0d4;
 }
 
 .wp-editor-expand #wp-content-editor-container {
@@ -377,7 +390,7 @@ form#tags-filter {
 }
 
 .wp-editor-expand #post-status-info {
-	border-top: 1px solid #e5e5e5;
+	border-top: 1px solid #ccd0d4;
 }
 
 .wp-editor-expand div.mce-toolbar-grp {
@@ -418,16 +431,15 @@ form#tags-filter {
 }
 
 #timestampdiv select {
-	height: 21px;
-	line-height: 1.16666666;
-	padding: 0;
 	vertical-align: top;
 	font-size: 12px;
+	line-height: 2.33333333; /* 28px */
 }
 
 #aa, #jj, #hh, #mn {
-	padding: 1px;
+	padding: 6px 1px;
 	font-size: 12px;
+	line-height: 1.16666666; /* 14px */
 }
 
 #jj, #hh, #mn {
@@ -448,14 +460,17 @@ form#tags-filter {
 #post-body #visibility:before,
 .curtime #timestamp:before,
 #post-body .misc-pub-revisions:before,
-span.wp-media-buttons-icon:before {
+#post-body .misc-pub-response-to:before,
+#post-body .misc-pub-comment-status:before {
 	color: #82878c;
 }
 
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
-#post-body .misc-pub-revisions:before {
+#post-body .misc-pub-revisions:before,
+#post-body .misc-pub-response-to:before,
+#post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
 	speak: none;
 	display: inline-block;
@@ -466,7 +481,8 @@ span.wp-media-buttons-icon:before {
 	-moz-osx-font-smoothing: grayscale;
 }
 
-#post-body .misc-pub-post-status:before {
+#post-body .misc-pub-post-status:before,
+#post-body .misc-pub-comment-status:before {
 	content: "\f173";
 }
 
@@ -484,6 +500,10 @@ span.wp-media-buttons-icon:before {
 	content: "\f321";
 }
 
+#post-body .misc-pub-response-to:before {
+	content: "\f101";
+}
+
 #timestampdiv {
 	padding-top: 5px;
 	line-height: 1.76923076;
@@ -494,8 +514,6 @@ span.wp-media-buttons-icon:before {
 }
 
 #timestampdiv input {
-	border-width: 1px;
-	border-style: solid;
 	text-align: center;
 }
 
@@ -612,6 +630,10 @@ span.wp-media-buttons-icon:before {
 	padding: 8px 10px;
 }
 
+#poststuff .stuffbox > h2 {
+	border-bottom: 1px solid #eee;
+}
+
 #poststuff .inside {
 	margin: 6px 0 0 0;
 }
@@ -625,11 +647,6 @@ span.wp-media-buttons-icon:before {
 	max-width: 100%;
 }
 
-.ie8 #poststuff .inside #parent_id,
-.ie8 #poststuff .inside #page_template {
-	width: 250px;
-}
-
 .post-attributes-label-wrapper {
 	margin-bottom: 0.5em;
 }
@@ -639,7 +656,8 @@ span.wp-media-buttons-icon:before {
 	font-weight: 600;
 }
 
-#post-visibility-select {
+#post-visibility-select,
+#comment-status-radio {
 	line-height: 1.5;
 	margin-top: 3px;
 }
@@ -653,6 +671,12 @@ span.wp-media-buttons-icon:before {
 #post-body-content,
 .edit-form-section {
 	margin-bottom: 20px;
+}
+
+.wp_attachment_details .attachment-content-description {
+	margin-top: 0.5385em;
+	display: inline-block;
+	min-height: 1.6923em;
 }
 
 /* Suggested text for privacy policy */
@@ -700,15 +724,28 @@ span.wp-media-buttons-icon:before {
 }
 
 .text-removed .policy-text {
-	font-style: italic;
 	color: #666;
 	font-weight: 600;
 }
 
 .privacy-text-actions {
+	display: inline-block;
+	width: 100%;
 	height: 32px;
 	line-height: 2.46153846;
 	padding-bottom: 6px;
+}
+
+.privacy-text-actions .success {
+	display: none;
+	color: #40860a;
+	float: right;
+	padding-right: 1em;
+}
+
+.privacy-text-actions .success.visible {
+	display: inline-block;
+	height: 32px;
 }
 
 .wp-privacy-policy-guide .policy-text h2 {
@@ -720,22 +757,62 @@ span.wp-media-buttons-icon:before {
 	font-style: italic;
 }
 
-.privacy-text-section a.return-to-top {
+.privacy-text-section .return-to-top {
 	float: right;
 	margin-right: -250px;
 	margin-top: 6px;
 }
 
+#wpbody:target:before {
+	content: "";
+	display: block;
+	padding-top: 50px;
+	margin-top: -50px;
+}
+
+.hide-privacy-policy-tutorial {
+	background-color: #fff;
+}
+
+.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
 .hide-privacy-policy-tutorial .privacy-policy-tutorial {
-	visibility: hidden;
+	display: none;
 }
 
-.wp-suggested-text p {
-	font-style: italic;
+.policy-text {
+	margin-bottom: 1em;
 }
 
-.wp-suggested-text p.privacy-policy-tutorial {
-	font-style: normal;
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
+	background-color: #fff;
+	margin: 0;
+	padding: 1em;
+}
+
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
+	padding-top: 0;
+}
+
+.hide-privacy-policy-tutorial > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
+	margin: 1em 0;
+	padding: 0;
+}
+
+.policy-text ul li,
+.policy-text ol li {
+	margin-left: 2em;
+}
+
+.policy-text ul {
+	list-style: disc;
+}
+
+strong.wp-policy-help, /* For back-compat, see #49282 */
+strong.privacy-policy-tutorial {
+	display: block;
+	margin: 0 0 1em;
 }
 
 .notice.wp-pp-notice {
@@ -878,7 +955,7 @@ span.wp-media-buttons-icon:before {
 }
 
 a.post-format-icon:hover:before {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #post-formats-select {
@@ -976,6 +1053,11 @@ div.tabs-panel-inactive {
 	display: none;
 }
 
+div.tabs-panel-active:focus {
+	box-shadow: inset 0 0 0 1px #5b9dd9, inset 0 0 2px 1px rgba(30, 140, 190, 0.8);
+	outline: 0 none;
+}
+
 #front-page-warning,
 #front-static-pages ul,
 ul.export-filters,
@@ -1020,6 +1102,11 @@ ul.categorychecklist li {
 	width: 95%;
 }
 
+.form-field select,
+.form-field p {
+	max-width: 95%;
+}
+
 p.description,
 .form-wrap p {
 	margin: 2px 0 5px;
@@ -1031,7 +1118,6 @@ p.description,
 span.description,
 .form-wrap p {
 	font-size: 13px;
-	font-style: italic;
 }
 
 p.description code {
@@ -1041,10 +1127,6 @@ p.description code {
 .form-wrap .form-field {
 	margin: 1em 0;
 	padding: 0;
-}
-
-.form-wrap .form-field #parent {
-	max-width: 100%;
 }
 
 .col-wrap h2 {
@@ -1117,7 +1199,7 @@ p.popular-tags a {
 	margin: 5px 0 10px;
 	padding: 8px;
 	border: 1px solid #ddd;
-	line-height: 1.8;
+	line-height: 1.2;
 	word-spacing: 3px;
 }
 
@@ -1161,6 +1243,11 @@ p.popular-tags a {
 
 .ac_match {
 	text-decoration: underline;
+}
+
+#addtag .spinner {
+	float: none;
+	vertical-align: top;
 }
 
 #edittag {
@@ -1378,6 +1465,49 @@ table.links-table {
 	}
 }
 
+/*
+ * The edit attachment screen auto-switches to one column layout when the
+ * viewport is smaller than 1200 pixels.
+ */
+@media only screen and (max-width: 1200px) {
+	.post-type-attachment #poststuff {
+		min-width: 0;
+	}
+
+	.post-type-attachment #wpbody-content #poststuff #post-body {
+		margin: 0;
+	}
+
+	.post-type-attachment #wpbody-content #post-body.columns-2 #postbox-container-1 {
+		margin-right: 0;
+		width: 100%;
+	}
+
+	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
+	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
+		outline: none;
+		height: 0;
+		min-height: 0;
+	}
+
+	.post-type-attachment #poststuff #post-body.columns-2 #side-sortables {
+		min-height: 0;
+		width: auto;
+	}
+
+	.is-dragging-metaboxes.post-type-attachment #post-body .meta-box-sortables {
+		outline: none;
+		min-height: 0;
+		margin-bottom: 0;
+	}
+
+	/* hide the radio buttons for column prefs */
+	.post-type-attachment .screen-layout,
+	.post-type-attachment .columns-prefs {
+		display: none;
+	}
+}
+
 /* one column on the post write/edit screen */
 @media only screen and (max-width: 850px) {
 	#poststuff {
@@ -1395,7 +1525,6 @@ table.links-table {
 
 	#poststuff #postbox-container-1 .empty-container,
 	#poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1403,6 +1532,15 @@ table.links-table {
 	#poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
+	.is-dragging-metaboxes #poststuff #postbox-container-1 .empty-container,
+	.is-dragging-metaboxes #poststuff #postbox-container-1 #side-sortables:empty,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 #side-sortables,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 .meta-box-sortables {
+		height: auto;
+		min-height: 60px;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1654,10 +1792,11 @@ table.links-table {
 		float: none;
 		width: auto;
 		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
-	.privacy-text-section a.return-to-top {
-		float: none;
-		margin: 0;
+	.privacy-text-section .return-to-top {
+		margin: 2em 0 0;
 	}
 }

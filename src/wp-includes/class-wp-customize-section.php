@@ -77,10 +77,10 @@ class WP_Customize_Section {
 	public $capability = 'edit_theme_options';
 
 	/**
-	 * Theme feature support for the section.
+	 * Theme features required to support the section.
 	 *
 	 * @since 3.4.0
-	 * @var string|array
+	 * @var string|string[]
 	 */
 	public $theme_supports = '';
 
@@ -149,8 +149,25 @@ class WP_Customize_Section {
 	 * @since 3.4.0
 	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
-	 * @param string               $id      An specific ID of the section.
-	 * @param array                $args    Section arguments.
+	 * @param string               $id      A specific ID of the section.
+	 * @param array                $args    {
+	 *     Optional. Array of properties for the new Section object. Default empty array.
+	 *
+	 *     @type int             $priority           Priority of the section, defining the display order
+	 *                                               of panels and sections. Default 160.
+	 *     @type string          $panel              The panel this section belongs to (if any).
+	 *                                               Default empty.
+	 *     @type string          $capability         Capability required for the section.
+	 *                                               Default 'edit_theme_options'
+	 *     @type string|string[] $theme_supports     Theme features required to support the section.
+	 *     @type string          $title              Title of the section to show in UI.
+	 *     @type string          $description        Description to show in the UI.
+	 *     @type string          $type               Type of the section.
+	 *     @type callable        $active_callback    Active callback.
+	 *     @type bool            $description_hidden Hide the description behind a help icon,
+	 *                                               instead of inline above the first control.
+	 *                                               Default false.
+	 * }
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		$keys = array_keys( get_object_vars( $this ) );
@@ -224,7 +241,7 @@ class WP_Customize_Section {
 		$array['instanceNumber'] = $this->instance_number;
 
 		if ( $this->panel ) {
-			/* translators: &#9656; is the unicode right-pointing triangle, and %s is the section title in the Customizer */
+			/* translators: &#9656; is the unicode right-pointing triangle. %s: Section title in the Customizer. */
 			$array['customizeAction'] = sprintf( __( 'Customizing &#9656; %s' ), esc_html( $this->manager->get_panel( $this->panel )->title ) );
 		} else {
 			$array['customizeAction'] = __( 'Customizing' );
@@ -242,11 +259,11 @@ class WP_Customize_Section {
 	 * @return bool False if theme doesn't support the section or user doesn't have the capability.
 	 */
 	final public function check_capabilities() {
-		if ( $this->capability && ! call_user_func_array( 'current_user_can', (array) $this->capability ) ) {
+		if ( $this->capability && ! current_user_can( $this->capability ) ) {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
 			return false;
 		}
 
@@ -376,21 +393,10 @@ class WP_Customize_Section {
 }
 
 /** WP_Customize_Themes_Section class */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-themes-section.php';
 
 /** WP_Customize_Sidebar_Section class */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-sidebar-section.php';
 
 /** WP_Customize_Nav_Menu_Section class */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php' );
-
-/**
- * WP_Customize_New_Menu_Section class
- *
- * As this file is deprecated, it will trigger a deprecation notice if instantiated. In a subsequent
- * release, the require_once() here will be removed and _deprecated_file() will be called if file is
- * required at all.
- *
- * @deprecated 4.9.0 This file is no longer used due to new menu creation UX.
- */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-new-menu-section.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menu-section.php';

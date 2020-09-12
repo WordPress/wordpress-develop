@@ -17,7 +17,7 @@ window.wp = window.wp || {};
  * @memberOf wp
  * @namespace
  *
- * @param  {object} attributes The properties passed to the main media controller.
+ * @param {Object} attributes The properties passed to the main media controller.
  * @return {wp.media.view.MediaFrame} A media workflow.
  */
 media = wp.media = function( attributes ) {
@@ -86,13 +86,13 @@ media.model.Selection = require( '../../../media/models/selection.js' );
  *
  * Used to order models within a collection - @see wp.media.model.Attachments.comparator().
  *
- * @param  {mixed}  a  The primary parameter to compare.
- * @param  {mixed}  b  The primary parameter to compare.
- * @param  {string} ac The fallback parameter to compare, a's cid.
- * @param  {string} bc The fallback parameter to compare, b's cid.
- * @return {number}    -1: a should come before b.
- *                      0: a and b are of the same rank.
- *                      1: b should come before a.
+ * @param {mixed}  a  The primary parameter to compare.
+ * @param {mixed}  b  The primary parameter to compare.
+ * @param {string} ac The fallback parameter to compare, a's cid.
+ * @param {string} bc The fallback parameter to compare, b's cid.
+ * @return {number} -1: a should come before b.
+ *                   0: a and b are of the same rank.
+ *                   1: b should come before a.
  */
 media.compare = function( a, b, ac, bc ) {
 	if ( _.isEqual( a, b ) ) {
@@ -138,7 +138,7 @@ _.extend( media, /** @lends wp.media */{
 	 * Scales a set of dimensions to fit within bounding dimensions.
 	 *
 	 * @param {Object} dimensions
-	 * @returns {Object}
+	 * @return {Object}
 	 */
 	fit: function( dimensions ) {
 		var width     = dimensions.width,
@@ -147,9 +147,11 @@ _.extend( media, /** @lends wp.media */{
 			maxHeight = dimensions.maxHeight,
 			constraint;
 
-		// Compare ratios between the two values to determine which
-		// max to constrain by. If a max value doesn't exist, then the
-		// opposite side is the constraint.
+		/*
+		 * Compare ratios between the two values to determine
+		 * which max to constrain by. If a max value doesn't exist,
+		 * then the opposite side is the constraint.
+		 */
 		if ( ! _.isUndefined( maxWidth ) && ! _.isUndefined( maxHeight ) ) {
 			constraint = ( width / height > maxWidth / maxHeight ) ? 'width' : 'height';
 		} else if ( _.isUndefined( maxHeight ) ) {
@@ -181,10 +183,10 @@ _.extend( media, /** @lends wp.media */{
 	 * Truncates a string by injecting an ellipsis into the middle.
 	 * Useful for filenames.
 	 *
-	 * @param {String} string
-	 * @param {Number} [length=30]
-	 * @param {String} [replacement=&hellip;]
-	 * @returns {String} The string, unless length is greater than string.length.
+	 * @param {string} string
+	 * @param {number} [length=30]
+	 * @param {string} [replacement=&hellip;]
+	 * @return {string} The string, unless length is greater than string.length.
 	 */
 	truncate: function( string, length, replacement ) {
 		length = length || 30;
@@ -207,8 +209,8 @@ _.extend( media, /** @lends wp.media */{
  * wp.media.attachment
  *
  * @static
- * @param {String} id A string used to identify a model.
- * @returns {wp.media.model.Attachment}
+ * @param {string} id A string used to identify a model.
+ * @return {wp.media.model.Attachment}
  */
 media.attachment = function( id ) {
 	return Attachment.get( id );
@@ -227,8 +229,8 @@ Attachments.all = new Attachments();
  *
  * Shorthand for creating a new Attachments Query.
  *
- * @param {object} [props]
- * @returns {wp.media.model.Attachments}
+ * @param {Object} [props]
+ * @return {wp.media.model.Attachments}
  */
 media.query = function( props ) {
 	return new Attachments( null, {
@@ -236,7 +238,7 @@ media.query = function( props ) {
 	});
 };
 
-// Clean up. Prevents mobile browsers caching
+// Clean up. Prevents mobile browsers caching.
 $(window).on('unload', function(){
 	window.wp = null;
 });

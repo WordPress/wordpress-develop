@@ -1,7 +1,7 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/factory.php';
-require_once dirname( __FILE__ ) . '/trac.php';
+require_once __DIR__ . '/factory.php';
+require_once __DIR__ . '/trac.php';
 
 /**
  * Defines a basic fixture to run multiple tests.
@@ -12,7 +12,7 @@ require_once dirname( __FILE__ ) . '/trac.php';
  *
  * All WordPress unit tests should inherit from this class.
  */
-abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
+abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 
 	protected static $forced_tickets   = array();
 	protected $expected_deprecated     = array();
@@ -49,21 +49,12 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	/**
 	 * Retrieves the name of the class the static method is called in.
 	 *
+	 * @deprecated 5.3.0 Use the PHP native get_called_class() function instead.
+	 *
 	 * @return string The class name.
 	 */
 	public static function get_called_class() {
-		if ( function_exists( 'get_called_class' ) ) {
-			return get_called_class();
-		}
-
-		// PHP 5.2 only
-		$backtrace = debug_backtrace();
-		// [0] WP_UnitTestCase::get_called_class()
-		// [1] WP_UnitTestCase::setUpBeforeClass()
-		if ( 'call_user_func' === $backtrace[2]['function'] ) {
-			return $backtrace[2]['args'][0][0];
-		}
-		return $backtrace[2]['class'];
+		return get_called_class();
 	}
 
 	/**
@@ -79,7 +70,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
 			self::commit_transaction();
 			return;
@@ -99,7 +90,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = self::get_called_class();
+		$c = get_called_class();
 		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
 			self::commit_transaction();
 			return;
@@ -170,6 +161,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$GLOBALS[ $global ] = null;
 		}
 
+		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		$GLOBALS['wp_sitemaps'] = null;
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
@@ -189,22 +183,21 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped on some automated runs
+	 * Allow tests to be skipped on some automated runs.
 	 *
 	 * For test runs on Travis for something other than trunk/master
 	 * we want to skip tests that only need to run for master.
 	 */
 	public function skipOnAutomatedBranches() {
-		// gentenv can be disabled
-		if ( ! function_exists( 'getenv' ) ) {
-			return false;
-		}
-
 		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
 		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
 		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
 
-		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
+		if ( ! $travis_branch || ! $travis_pull_request ) {
+			return;
+		}
+
+		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
 			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
 		}
 	}
@@ -229,6 +222,29 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		if ( is_multisite() ) {
 			$this->markTestSkipped( 'Test does not run on Multisite' );
 		}
+	}
+
+	/**
+	 * Allow tests to be skipped if the HTTP request times out.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 */
+	public function skipTestOnTimeout( $response ) {
+		if ( ! is_wp_error( $response ) ) {
+			return;
+		}
+		if ( 'connect() timed out!' === $response->get_error_message() ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
 	}
 
 	/**
@@ -486,7 +502,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$errors[] = "Unexpected incorrect usage notice for $unexpected";
 		}
 
-		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings
+		// Perform an assertion, but only if there are expected or unexpected deprecated calls or wrongdoings.
 		if ( ! empty( $this->expected_deprecated ) ||
 			! empty( $this->expected_doing_it_wrong ) ||
 			! empty( $this->caught_deprecated ) ||
@@ -596,7 +612,6 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		$this->assertNotInstanceOf( 'WP_Error', $actual, $message );
 	}
 
-
 	/**
 	 * Asserts that the given value is an instance of IXR_Error.
 	 *
@@ -645,6 +660,45 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Asserts that two values have the same type and value, with EOL differences discarded.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
+	public function assertSameIgnoreEOL( $expected, $actual ) {
+		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+	}
+
+	/**
+	 * Asserts that two values are equal, with EOL differences discarded.
+	 *
+	 * @since 5.4.0
+	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
+	public function assertEqualsIgnoreEOL( $expected, $actual ) {
+		$this->assertSameIgnoreEOL( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSets( $expected, $actual ) {
+		sort( $expected );
+		sort( $actual );
+		$this->assertSame( $expected, $actual );
+	}
+
+	/**
 	 * Asserts that the contents of two un-keyed, single arrays are equal, without accounting for the order of elements.
 	 *
 	 * @since 3.5.0
@@ -656,6 +710,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSetsWithIndex( $expected, $actual ) {
+		ksort( $expected );
+		ksort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -703,11 +771,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * @param string $url The URL for the request.
 	 */
 	public function go_to( $url ) {
-		// note: the WP and WP_Query classes like to silently fetch parameters
-		// from all over the place (globals, GET, etc), which makes it tricky
-		// to run them more than once without very carefully clearing everything
-		$_GET = $_POST = array();
-		foreach ( array( 'query_string', 'id', 'postdata', 'authordata', 'day', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages', 'pagenow' ) as $v ) {
+		/*
+		 * Note: the WP and WP_Query classes like to silently fetch parameters
+		 * from all over the place (globals, GET, etc), which makes it tricky
+		 * to run them more than once without very carefully clearing everything.
+		 */
+		$_GET  = array();
+		$_POST = array();
+		foreach ( array( 'query_string', 'id', 'postdata', 'authordata', 'day', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages', 'pagenow', 'current_screen' ) as $v ) {
 			if ( isset( $GLOBALS[ $v ] ) ) {
 				unset( $GLOBALS[ $v ] );
 			}
@@ -717,7 +788,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			$req = isset( $parts['path'] ) ? $parts['path'] : '';
 			if ( isset( $parts['query'] ) ) {
 				$req .= '?' . $parts['query'];
-				// parse the url query vars into $_GET
+				// Parse the URL query vars into $_GET.
 				parse_str( $parts['query'], $_GET );
 			}
 		} else {
@@ -752,8 +823,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 *
 	 * This is a custom extension of the PHPUnit requirements handling.
 	 *
-	 * Contains legacy code for skipping tests that are associated with an open Trac ticket. Core tests no longer
-	 * support this behaviour.
+	 * Contains legacy code for skipping tests that are associated with an open Trac ticket.
+	 * Core tests no longer support this behaviour.
 	 *
 	 * @since 3.5.0
 	 */
@@ -780,7 +851,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			}
 		}
 
-		// Core tests no longer check against open Trac tickets, but others using WP_UnitTestCase may do so.
+		// Core tests no longer check against open Trac tickets,
+		// but others using WP_UnitTestCase may do so.
 		if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
 			return;
 		}
@@ -885,16 +957,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	public function temp_filename() {
 		$tmp_dir = '';
 		$dirs    = array( 'TMP', 'TMPDIR', 'TEMP' );
+
 		foreach ( $dirs as $dir ) {
 			if ( isset( $_ENV[ $dir ] ) && ! empty( $_ENV[ $dir ] ) ) {
 				$tmp_dir = $dir;
 				break;
 			}
 		}
+
 		if ( empty( $tmp_dir ) ) {
-			$tmp_dir = '/tmp';
+			$tmp_dir = get_temp_dir();
 		}
+
 		$tmp_dir = realpath( $tmp_dir );
+
 		return tempnam( $tmp_dir, 'wpunit' );
 	}
 
@@ -902,17 +978,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 	 * Checks each of the WP_Query is_* functions/properties against expected boolean value.
 	 *
 	 * Any properties that are listed by name as parameters will be expected to be true; all others are
-	 * expected to be false. For example, assertQueryTrue('is_single', 'is_feed') means is_single()
+	 * expected to be false. For example, assertQueryTrue( 'is_single', 'is_feed' ) means is_single()
 	 * and is_feed() must be true and everything else must be false to pass.
 	 *
 	 * @since 2.5.0
 	 * @since 3.8.0 Moved from `Tests_Query_Conditionals` to `WP_UnitTestCase`.
+	 * @since 5.3.0 Formalized the existing `...$prop` parameter by adding it
+	 *              to the function signature.
 	 *
 	 * @param string ...$prop Any number of WP_Query properties that are expected to be true for the current request.
 	 */
-	public function assertQueryTrue() {
+	public function assertQueryTrue( ...$prop ) {
 		global $wp_query;
-		$all  = array(
+
+		$all = array(
 			'is_404',
 			'is_admin',
 			'is_archive',
@@ -934,6 +1013,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_posts_page',
 			'is_preview',
 			'is_robots',
+			'is_favicon',
 			'is_search',
 			'is_single',
 			'is_singular',
@@ -943,9 +1023,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 			'is_trackback',
 			'is_year',
 		);
-		$true = func_get_args();
 
-		foreach ( $true as $true_thing ) {
+		foreach ( $prop as $true_thing ) {
 			$this->assertContains( $true_thing, $all, "Unknown conditional: {$true_thing}." );
 		}
 
@@ -955,7 +1034,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit_Framework_TestCase {
 		foreach ( $all as $query_thing ) {
 			$result = is_callable( $query_thing ) ? call_user_func( $query_thing ) : $wp_query->$query_thing;
 
-			if ( in_array( $query_thing, $true, true ) ) {
+			if ( in_array( $query_thing, $prop, true ) ) {
 				if ( ! $result ) {
 					$message .= $query_thing . ' is false but is expected to be true. ' . PHP_EOL;
 					$passed   = false;

@@ -7,11 +7,11 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	function data_sanitize_text_field() {
 		return array(
 			array(
-				'оРангутанг', //Ensure UTF8 text is safe the Р is D0 A0 and A0 is the non-breaking space.
+				'оРангутанг', // Ensure UTF-8 text is safe. The Р is D0 A0 and A0 is the non-breaking space.
 				'оРангутанг',
 			),
 			array(
-				'САПР', //Ensure UTF8 text is safe the Р is D0 A0 and A0 is the non-breaking space.
+				'САПР',       // Ensure UTF-8 text is safe. the Р is D0 A0 and A0 is the non-breaking space.
 				'САПР',
 			),
 			array(
@@ -82,8 +82,8 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 				),
 			),
 			array(
-				'%AB%BC%DE', //Just octets
-				'', //Emtpy as we strip all the octets out
+				'%AB%BC%DE', // Just octets.
+				'',          // Emtpy as we strip all the octets out.
 			),
 			array(
 				'Invalid octects remain %II',
@@ -133,10 +133,11 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 			$expected_oneline   = $expected['oneline'];
 			$expected_multiline = $expected['multiline'];
 		} else {
-			$expected_oneline = $expected_multiline = $expected;
+			$expected_oneline   = $expected;
+			$expected_multiline = $expected;
 		}
-		$this->assertEquals( $expected_oneline, sanitize_text_field( $string ) );
-		$this->assertEquals( $expected_multiline, sanitize_textarea_field( $string ) );
+		$this->assertSame( $expected_oneline, sanitize_text_field( $string ) );
+		$this->assertSameIgnoreEOL( $expected_multiline, sanitize_textarea_field( $string ) );
 
 	}
 }

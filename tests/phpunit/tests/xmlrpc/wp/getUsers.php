@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 403, $results->code );
+		$this->assertSame( 403, $results->code );
 	}
 
 	function test_incapable_user() {
@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 401, $results->code );
+		$this->assertSame( 401, $results->code );
 	}
 
 	function test_capable_user() {
@@ -26,7 +26,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator' ) );
 		$this->assertNotIXRError( $result );
 
-		// check data types
+		// Check data types.
 		$this->assertInternalType( 'string', $result[0]['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result[0]['user_id'] );
 		$this->assertInternalType( 'string', $result[0]['username'] );
@@ -51,7 +51,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		$filter  = array( 'role' => 'invalidrole' );
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertIXRError( $results );
-		$this->assertEquals( 403, $results->code );
+		$this->assertSame( 403, $results->code );
 	}
 
 	function test_role_filter() {
@@ -62,14 +62,14 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 			grant_super_admin( $administrator_id );
 		}
 
-		// test a single role ('editor')
+		// Test a single role ('editor').
 		$filter  = array( 'role' => 'editor' );
 		$results = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter ) );
 		$this->assertNotIXRError( $results );
 		$this->assertCount( 1, $results );
 		$this->assertEquals( $editor_id, $results[0]['user_id'] );
 
-		// test 'authors', which should return all non-subscribers
+		// Test 'authors', which should return all non-subscribers.
 		$filter2  = array( 'who' => 'authors' );
 		$results2 = $this->myxmlrpcserver->wp_getUsers( array( 1, 'administrator', 'administrator', $filter2 ) );
 		$this->assertNotIXRError( $results2 );
@@ -101,8 +101,8 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 			$filter['offset'] += $page_size;
 		} while ( count( $presults ) > 0 );
 
-		// verify that $user_ids matches $users_found
-		$this->assertEquals( 0, count( array_diff( $user_ids, $users_found ) ) );
+		// Verify that $user_ids matches $users_found.
+		$this->assertSame( 0, count( array_diff( $user_ids, $users_found ) ) );
 	}
 
 	function test_order_filters() {

@@ -22,49 +22,56 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	static $child_four;
 
 	public static function wpSetUpBeforeClass( $factory ) {
-		self::$cat_ids[] = $cat_a = $factory->term->create(
+		$cat_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-a',
 			)
 		);
-		self::$cat_ids[] = $cat_b = $factory->term->create(
+		self::$cat_ids[] = $cat_a;
+		$cat_b           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-b',
 			)
 		);
-		self::$cat_ids[] = $cat_c = $factory->term->create(
+		self::$cat_ids[] = $cat_b;
+		$cat_c           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
 				'name'     => 'cat-c',
 			)
 		);
+		self::$cat_ids[] = $cat_c;
 
-		self::$tag_ids[] = $tag_a = $factory->term->create(
+		$tag_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-a',
 			)
 		);
-		self::$tag_ids[] = $tag_b = $factory->term->create(
+		self::$tag_ids[] = $tag_a;
+		$tag_b           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-b',
 			)
 		);
-		self::$tag_ids[] = $tag_c = $factory->term->create(
+		self::$tag_ids[] = $tag_b;
+		$tag_c           = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-c',
 			)
 		);
-		self::$tag_ids[] = $tag_nun = $factory->term->create(
+		self::$tag_ids[] = $tag_c;
+		$tag_nun         = $factory->term->create(
 			array(
 				'taxonomy' => 'post_tag',
 				'name'     => 'tag-נ',
 			)
 		);
+		self::$tag_ids[] = $tag_nun;
 
 		self::$post_ids[] = $factory->post->create(
 			array(
@@ -232,52 +239,59 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		self::$post_ids[] = self::$parent_one = $factory->post->create(
+		self::$parent_one   = $factory->post->create(
 			array(
 				'post_title' => 'parent-one',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$parent_two = $factory->post->create(
+		self::$post_ids[]   = self::$parent_one;
+		self::$parent_two   = $factory->post->create(
 			array(
 				'post_title' => 'parent-two',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$parent_three = $factory->post->create(
+		self::$post_ids[]   = self::$parent_two;
+		self::$parent_three = $factory->post->create(
 			array(
 				'post_title' => 'parent-three',
 				'post_date'  => '2007-01-01 00:00:00',
 			)
 		);
-		self::$post_ids[] = self::$child_one = $factory->post->create(
+		self::$post_ids[]   = self::$parent_three;
+		self::$child_one    = $factory->post->create(
 			array(
 				'post_title'  => 'child-one',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:01',
 			)
 		);
-		self::$post_ids[] = self::$child_two = $factory->post->create(
+		self::$post_ids[]   = self::$child_one;
+		self::$child_two    = $factory->post->create(
 			array(
 				'post_title'  => 'child-two',
 				'post_parent' => self::$parent_one,
 				'post_date'   => '2007-01-01 00:00:02',
 			)
 		);
-		self::$post_ids[] = self::$child_three = $factory->post->create(
+		self::$post_ids[]   = self::$child_two;
+		self::$child_three  = $factory->post->create(
 			array(
 				'post_title'  => 'child-three',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:03',
 			)
 		);
-		self::$post_ids[] = self::$child_four = $factory->post->create(
+		self::$post_ids[]   = self::$child_three;
+		self::$child_four   = $factory->post->create(
 			array(
 				'post_title'  => 'child-four',
 				'post_parent' => self::$parent_two,
 				'post_date'   => '2007-01-01 00:00:04',
 			)
 		);
+		self::$post_ids[]   = self::$child_four;
 	}
 
 	function setUp() {
@@ -290,7 +304,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_default() {
 		$posts = $this->q->query( '' );
 
-		// the output should be the most recent 10 posts as listed here
+		// The output should be the most recent 10 posts as listed here.
 		$expected = array(
 			0 => 'tags-a-and-c',
 			1 => 'tags-b-and-c',
@@ -304,29 +318,29 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			9 => 'embedded-video',
 		);
 
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	function test_query_tag_a() {
 		$posts = $this->q->query( 'tag=tag-a' );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
-		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
-		$this->assertEquals( 'tag-a', $posts[2]->post_name );
-		$this->assertEquals( 'tags-a-b-c', $posts[3]->post_name );
+		$this->assertSame( 'tags-a-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tags-a-and-b', $posts[1]->post_name );
+		$this->assertSame( 'tag-a', $posts[2]->post_name );
+		$this->assertSame( 'tags-a-b-c', $posts[3]->post_name );
 	}
 
 	function test_query_tag_b() {
 		$posts = $this->q->query( 'tag=tag-b' );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
-		$this->assertEquals( 'tags-b-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
-		$this->assertEquals( 'tag-b', $posts[2]->post_name );
-		$this->assertEquals( 'tags-a-b-c', $posts[3]->post_name );
+		$this->assertSame( 'tags-b-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tags-a-and-b', $posts[1]->post_name );
+		$this->assertSame( 'tag-b', $posts[2]->post_name );
+		$this->assertSame( 'tags-a-b-c', $posts[3]->post_name );
 	}
 
 	/**
@@ -335,34 +349,34 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_tag_nun() {
 		$posts = $this->q->query( 'tag=tag-נ' );
 
-		// there is 1 post with Tag נ
+		// There is 1 post with Tag נ.
 		$this->assertCount( 1, $posts );
-		$this->assertEquals( 'tag-%d7%a0', $posts[0]->post_name );
+		$this->assertSame( 'tag-%d7%a0', $posts[0]->post_name );
 	}
 
 	function test_query_tag_id() {
 		$tag   = tag_exists( 'tag-a' );
 		$posts = $this->q->query( 'tag_id=' . $tag['term_id'] );
 
-		// there are 4 posts with Tag A
+		// There are 4 posts with Tag A.
 		$this->assertCount( 4, $posts );
-		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tags-a-and-b', $posts[1]->post_name );
-		$this->assertEquals( 'tag-a', $posts[2]->post_name );
-		$this->assertEquals( 'tags-a-b-c', $posts[3]->post_name );
+		$this->assertSame( 'tags-a-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tags-a-and-b', $posts[1]->post_name );
+		$this->assertSame( 'tag-a', $posts[2]->post_name );
+		$this->assertSame( 'tags-a-b-c', $posts[3]->post_name );
 	}
 
 	function test_query_tag_slug__in() {
 		$posts = $this->q->query( 'tag_slug__in[]=tag-b&tag_slug__in[]=tag-c' );
 
-		// there are 4 posts with either Tag B or Tag C
+		// There are 4 posts with either Tag B or Tag C.
 		$this->assertCount( 6, $posts );
-		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tags-b-and-c', $posts[1]->post_name );
-		$this->assertEquals( 'tags-a-and-b', $posts[2]->post_name );
-		$this->assertEquals( 'tag-c', $posts[3]->post_name );
-		$this->assertEquals( 'tag-b', $posts[4]->post_name );
-		$this->assertEquals( 'tags-a-b-c', $posts[5]->post_name );
+		$this->assertSame( 'tags-a-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tags-b-and-c', $posts[1]->post_name );
+		$this->assertSame( 'tags-a-and-b', $posts[2]->post_name );
+		$this->assertSame( 'tag-c', $posts[3]->post_name );
+		$this->assertSame( 'tag-b', $posts[4]->post_name );
+		$this->assertSame( 'tags-a-b-c', $posts[5]->post_name );
 	}
 
 
@@ -371,22 +385,22 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag_b = tag_exists( 'tag-b' );
 		$posts = $this->q->query( 'tag__in[]=' . $tag_a['term_id'] . '&tag__in[]=' . $tag_b['term_id'] );
 
-		// there are 6 posts with either Tag A or Tag B
+		// There are 6 posts with either Tag A or Tag B.
 		$this->assertCount( 6, $posts );
-		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tags-b-and-c', $posts[1]->post_name );
-		$this->assertEquals( 'tags-a-and-b', $posts[2]->post_name );
-		$this->assertEquals( 'tag-b', $posts[3]->post_name );
-		$this->assertEquals( 'tag-a', $posts[4]->post_name );
-		$this->assertEquals( 'tags-a-b-c', $posts[5]->post_name );
+		$this->assertSame( 'tags-a-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tags-b-and-c', $posts[1]->post_name );
+		$this->assertSame( 'tags-a-and-b', $posts[2]->post_name );
+		$this->assertSame( 'tag-b', $posts[3]->post_name );
+		$this->assertSame( 'tag-a', $posts[4]->post_name );
+		$this->assertSame( 'tags-a-b-c', $posts[5]->post_name );
 	}
 
 	function test_query_tag__not_in() {
 		$tag_a = tag_exists( 'tag-a' );
 		$posts = $this->q->query( 'tag__not_in[]=' . $tag_a['term_id'] );
 
-		// the most recent 10 posts with Tag A excluded
-		// (note the different between this and test_query_default)
+		// The most recent 10 posts with Tag A excluded
+		// (note the different between this and test_query_default).
 		$expected = array(
 			0 => 'tags-b-and-c',
 			1 => 'tag-c',
@@ -400,7 +414,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			9 => 'many-trackbacks',
 		);
 
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	function test_query_tag__in_but__not_in() {
@@ -408,10 +422,10 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		$tag_b = tag_exists( 'tag-b' );
 		$posts = $this->q->query( 'tag__in[]=' . $tag_a['term_id'] . '&tag__not_in[]=' . $tag_b['term_id'] );
 
-		// there are 4 posts with Tag A, only 2 when we exclude Tag B
+		// There are 4 posts with Tag A, only 2 when we exclude Tag B.
 		$this->assertCount( 2, $posts );
-		$this->assertEquals( 'tags-a-and-c', $posts[0]->post_name );
-		$this->assertEquals( 'tag-a', $posts[1]->post_name );
+		$this->assertSame( 'tags-a-and-c', $posts[0]->post_name );
+		$this->assertSame( 'tag-a', $posts[1]->post_name );
 	}
 
 
@@ -419,24 +433,24 @@ class Tests_Query_Results extends WP_UnitTestCase {
 	function test_query_category_name() {
 		$posts = $this->q->query( 'category_name=cat-a' );
 
-		// there are 4 posts with Cat A, we'll check for them by name
+		// There are 4 posts with Cat A, we'll check for them by name.
 		$this->assertCount( 4, $posts );
-		$this->assertEquals( 'cat-a', $posts[0]->post_name );
-		$this->assertEquals( 'cats-a-and-c', $posts[1]->post_name );
-		$this->assertEquals( 'cats-a-and-b', $posts[2]->post_name );
-		$this->assertEquals( 'cats-a-b-c', $posts[3]->post_name );
+		$this->assertSame( 'cat-a', $posts[0]->post_name );
+		$this->assertSame( 'cats-a-and-c', $posts[1]->post_name );
+		$this->assertSame( 'cats-a-and-b', $posts[2]->post_name );
+		$this->assertSame( 'cats-a-b-c', $posts[3]->post_name );
 	}
 
 	function test_query_cat() {
 		$cat   = category_exists( 'cat-b' );
 		$posts = $this->q->query( "cat=$cat" );
 
-		// there are 4 posts with Cat B
+		// There are 4 posts with Cat B.
 		$this->assertCount( 4, $posts );
-		$this->assertEquals( 'cat-b', $posts[0]->post_name );
-		$this->assertEquals( 'cats-b-and-c', $posts[1]->post_name );
-		$this->assertEquals( 'cats-a-and-b', $posts[2]->post_name );
-		$this->assertEquals( 'cats-a-b-c', $posts[3]->post_name );
+		$this->assertSame( 'cat-b', $posts[0]->post_name );
+		$this->assertSame( 'cats-b-and-c', $posts[1]->post_name );
+		$this->assertSame( 'cats-a-and-b', $posts[2]->post_name );
+		$this->assertSame( 'cats-a-b-c', $posts[3]->post_name );
 	}
 
 	function test_query_posts_per_page() {
@@ -451,7 +465,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 5, $posts );
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	function test_query_offset() {
@@ -471,7 +485,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 		);
 
 		$this->assertCount( 10, $posts );
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	function test_query_paged() {
@@ -492,7 +506,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 		$this->assertCount( 10, $posts );
 		$this->assertTrue( $this->q->is_paged() );
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	function test_query_paged_and_posts_per_page() {
@@ -507,14 +521,14 @@ class Tests_Query_Results extends WP_UnitTestCase {
 
 		$this->assertCount( 4, $posts );
 		$this->assertTrue( $this->q->is_paged() );
-		$this->assertEquals( $expected, wp_list_pluck( $posts, 'post_name' ) );
+		$this->assertSame( $expected, wp_list_pluck( $posts, 'post_name' ) );
 	}
 
 	/**
 	 * @ticket 11056
 	 */
 	function test_query_post_parent__in() {
-		// Query for first parent's children
+		// Query for first parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_one ),
@@ -523,7 +537,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'child-one',
 				'child-two',
@@ -531,7 +545,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Second parent's children
+		// Second parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_two ),
@@ -540,7 +554,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'child-three',
 				'child-four',
@@ -548,7 +562,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Both first and second parent's children
+		// Both first and second parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_one, self::$parent_two ),
@@ -557,7 +571,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'child-one',
 				'child-two',
@@ -567,14 +581,14 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			wp_list_pluck( $posts, 'post_title' )
 		);
 
-		// Third parent's children
+		// Third parent's children.
 		$posts = $this->q->query(
 			array(
 				'post_parent__in' => array( self::$parent_three ),
 			)
 		);
 
-		$this->assertEquals( array(), wp_list_pluck( $posts, 'post_title' ) );
+		$this->assertSame( array(), wp_list_pluck( $posts, 'post_title' ) );
 	}
 
 	/**
@@ -589,7 +603,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'child-three',
 				'child-four',
@@ -615,8 +629,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// order=desc does not influence the order of returned results (returns same order as order=asc)
-		$this->assertEquals( $expected_returned_array, wp_list_pluck( $posts, 'post_title' ) );
+		// 'order=desc' does not influence the order of returned results (returns same order as 'order=asc').
+		$this->assertSame( $expected_returned_array, wp_list_pluck( $posts, 'post_title' ) );
 	}
 
 	/**
@@ -634,7 +648,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Expect post ids in the same order as post__in array when no 'order' param is passed in
+		// Expect post IDs in the same order as post__in array when no 'order' param is passed in.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -654,7 +668,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Expect post ids in the same order as post__in array when order=asc is passed in
+		// Expect post IDs in the same order as post__in array when order=asc is passed in.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -674,8 +688,8 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// Note that results are returned in the order specified in the post__in array
-		// Order=desc does not have an effect on the order of returned results
+		// Note that results are returned in the order specified in the post__in array.
+		// 'order=desc' does not influence the order of returned results.
 		$this->assertSame( $expected_returned_array, $q->posts );
 	}
 
@@ -710,7 +724,7 @@ class Tests_Query_Results extends WP_UnitTestCase {
 			)
 		);
 
-		// order=desc does not influence the order of returned results (returns same order as order=asc)
+		// 'order=desc' does not influence the order of returned results (returns same order as 'order=asc').
 		$this->assertSame( $post_name__in_array, array_unique( wp_list_pluck( $q->posts, 'post_title' ) ) );
 	}
 

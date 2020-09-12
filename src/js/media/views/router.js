@@ -20,6 +20,11 @@ Router = Menu.extend(/** @lends wp.media.view.Router.prototype */{
 	ItemView:  wp.media.view.RouterItem,
 	region:    'router',
 
+	attributes: {
+		role:               'tablist',
+		'aria-orientation': 'horizontal'
+	},
+
 	initialize: function() {
 		this.controller.on( 'content:render', this.update, this );
 		// Call 'initialize' directly on the parent class.

@@ -1,7 +1,7 @@
 <?php
 /**
  * @group post
- * @group navmenus
+ * @group menu
  */
 class Test_Nav_Menus extends WP_UnitTestCase {
 	/**
@@ -40,7 +40,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 0, strpos( $menu, '<ul' ) );
+		$this->assertSame( 0, strpos( $menu, '<ul' ) );
 	}
 
 	function test_wp_get_associated_nav_menu_items() {
@@ -83,7 +83,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// Item without menu-item-object arg
+		// Item without menu-item-object arg.
 		$post_2_insert = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
@@ -106,35 +106,35 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 
 		$tag_items = wp_get_associated_nav_menu_items( $tag_id, 'taxonomy', 'post_tag' );
-		$this->assertEqualSets( array( $tag_insert ), $tag_items );
+		$this->assertSameSets( array( $tag_insert ), $tag_items );
 		$cat_items = wp_get_associated_nav_menu_items( $cat_id, 'taxonomy', 'category' );
-		$this->assertEqualSets( array( $cat_insert ), $cat_items );
+		$this->assertSameSets( array( $cat_insert ), $cat_items );
 		$post_items = wp_get_associated_nav_menu_items( $post_id );
-		$this->assertEqualSets( array( $post_insert ), $post_items );
+		$this->assertSameSets( array( $post_insert ), $post_items );
 		$post_2_items = wp_get_associated_nav_menu_items( $post_2_id );
-		$this->assertEqualSets( array( $post_2_insert ), $post_2_items );
+		$this->assertSameSets( array( $post_2_insert ), $post_2_items );
 		$page_items = wp_get_associated_nav_menu_items( $page_id );
-		$this->assertEqualSets( array( $page_insert ), $page_items );
+		$this->assertSameSets( array( $page_insert ), $page_items );
 
 		wp_delete_term( $tag_id, 'post_tag' );
 		$tag_items = wp_get_associated_nav_menu_items( $tag_id, 'taxonomy', 'post_tag' );
-		$this->assertEqualSets( array(), $tag_items );
+		$this->assertSameSets( array(), $tag_items );
 
 		wp_delete_term( $cat_id, 'category' );
 		$cat_items = wp_get_associated_nav_menu_items( $cat_id, 'taxonomy', 'category' );
-		$this->assertEqualSets( array(), $cat_items );
+		$this->assertSameSets( array(), $cat_items );
 
 		wp_delete_post( $post_id, true );
 		$post_items = wp_get_associated_nav_menu_items( $post_id );
-		$this->assertEqualSets( array(), $post_items );
+		$this->assertSameSets( array(), $post_items );
 
 		wp_delete_post( $post_2_id, true );
 		$post_2_items = wp_get_associated_nav_menu_items( $post_2_id );
-		$this->assertEqualSets( array(), $post_2_items );
+		$this->assertSameSets( array(), $post_2_items );
 
 		wp_delete_post( $page_id, true );
 		$page_items = wp_get_associated_nav_menu_items( $page_id );
-		$this->assertEqualSets( array(), $page_items );
+		$this->assertSameSets( array(), $page_items );
 	}
 
 	/**
@@ -142,23 +142,23 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	 */
 	function test_orphan_nav_menu_item() {
 
-		// Create an orphan nav menu item
+		// Create an orphan nav menu item.
 		$custom_item_id = wp_update_nav_menu_item(
 			0,
 			0,
 			array(
 				'menu-item-type'   => 'custom',
 				'menu-item-title'  => 'Wordpress.org',
-				'menu-item-link'   => 'http://wordpress.org',
+				'menu-item-url'    => 'http://wordpress.org',
 				'menu-item-status' => 'publish',
 			)
 		);
 
-		// Confirm it saved properly
+		// Confirm it saved properly.
 		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
-		$this->assertEquals( 'Wordpress.org', $custom_item->title );
+		$this->assertSame( 'Wordpress.org', $custom_item->title );
 
-		// Update the orphan with an associated nav menu
+		// Update the orphan with an associated nav menu.
 		wp_update_nav_menu_item(
 			$this->menu_id,
 			$custom_item_id,
@@ -169,7 +169,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$menu_items  = wp_get_nav_menu_items( $this->menu_id );
 		$custom_item = wp_filter_object_list( $menu_items, array( 'db_id' => $custom_item_id ) );
 		$custom_item = array_pop( $custom_item );
-		$this->assertEquals( 'WordPress.org', $custom_item->title );
+		$this->assertSame( 'WordPress.org', $custom_item->title );
 
 	}
 
@@ -218,21 +218,21 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$locations['primary'] = $menu_obj->term_id;
 		set_theme_mod( 'nav_menu_locations', $locations );
 
-		$this->assertEquals( 'My Menu', wp_get_nav_menu_name( 'primary' ) );
+		$this->assertSame( 'My Menu', wp_get_nav_menu_name( 'primary' ) );
 	}
 
 	/**
 	 * @ticket 29460
 	 */
 	function test_orderby_name_by_default() {
-		// We are going to create a random number of menus (min 2, max 10)
+		// We are going to create a random number of menus (min 2, max 10).
 		$menus_no = rand( 2, 10 );
 
 		for ( $i = 0; $i <= $menus_no; $i++ ) {
 			wp_create_nav_menu( rand_str() );
 		}
 
-		// This is the expected array of menu names
+		// This is the expected array of menu names.
 		$expected_nav_menus_names = wp_list_pluck(
 			get_terms(
 				'nav_menu',
@@ -244,10 +244,10 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			'name'
 		);
 
-		// And this is what we got when calling wp_get_nav_menus()
+		// And this is what we got when calling wp_get_nav_menus().
 		$nav_menus_names = wp_list_pluck( wp_get_nav_menus(), 'name' );
 
-		$this->assertEquals( $nav_menus_names, $expected_nav_menus_names );
+		$this->assertSame( $nav_menus_names, $expected_nav_menus_names );
 	}
 
 	/**
@@ -279,8 +279,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 		$post_type_archive_item    = wp_setup_nav_menu_item( get_post( $post_type_archive_item_id ) );
 
-		$this->assertEquals( $post_type_slug, $post_type_archive_item->title );
-		$this->assertEquals( $post_type_description, $post_type_archive_item->description );
+		$this->assertSame( $post_type_slug, $post_type_archive_item->title );
+		$this->assertSame( $post_type_description, $post_type_archive_item->description );
 	}
 
 	/**
@@ -310,8 +310,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 		$post_type_archive_item    = wp_setup_nav_menu_item( get_post( $post_type_archive_item_id ) );
 
-		$this->assertEquals( $post_type_slug, $post_type_archive_item->title );
-		$this->assertEquals( $post_type_description, $post_type_archive_item->description ); //fail!!!
+		$this->assertSame( $post_type_slug, $post_type_archive_item->title );
+		$this->assertSame( $post_type_description, $post_type_archive_item->description ); // Fail!
 	}
 
 	/**
@@ -345,8 +345,8 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 		$post_type_archive_item    = wp_setup_nav_menu_item( get_post( $post_type_archive_item_id ) );
 
-		$this->assertEquals( $post_type_slug, $post_type_archive_item->title );
-		$this->assertEquals( $menu_item_description, $post_type_archive_item->description );
+		$this->assertSame( $post_type_slug, $post_type_archive_item->title );
+		$this->assertSame( $menu_item_description, $post_type_archive_item->description );
 	}
 
 	/**
@@ -416,7 +416,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		$post_inser2 = wp_update_nav_menu_item(
+		$post_insert2 = wp_update_nav_menu_item(
 			$this->menu_id,
 			0,
 			array(
@@ -459,11 +459,11 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// The markup should include whitespace between <li>s
+		// The markup should include whitespace between <li>'s.
 		$this->assertRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertNotRegExp( '/<\/li><li.*>/U', $menu );
 
-		// Whitepsace suppressed.
+		// Whitespace suppressed.
 		$menu = wp_nav_menu(
 			array(
 				'echo'         => false,
@@ -472,7 +472,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 
-		// The markup should not include whitespace around <li>s
+		// The markup should not include whitespace around <li>'s.
 		$this->assertNotRegExp( '/\s<li.*>|<\/li>\s/U', $menu );
 		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
 	}
@@ -651,9 +651,9 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		);
 		$tag_id  = self::factory()->tag->create();
 
-		$wpdb->query( "UPDATE $wpdb->posts SET ID=$new_id WHERE ID=$page_id" );
-		$wpdb->query( "UPDATE $wpdb->terms SET term_id=$new_id WHERE term_id=$tag_id" );
-		$wpdb->query( "UPDATE $wpdb->term_taxonomy SET term_id=$new_id WHERE term_id=$tag_id" );
+		$wpdb->update( $wpdb->posts, array( 'ID' => $new_id ), array( 'ID' => $page_id ) );
+		$wpdb->update( $wpdb->terms, array( 'term_id' => $new_id ), array( 'term_id' => $tag_id ) );
+		$wpdb->update( $wpdb->term_taxonomy, array( 'term_id' => $new_id ), array( 'term_id' => $tag_id ) );
 
 		update_option( 'page_on_front', $new_id );
 
@@ -679,7 +679,7 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 	/**
 	 * Test _wp_delete_customize_changeset_dependent_auto_drafts.
 	 *
-	 * @covers ::_wp_delete_customize_changeset_dependent_auto_drafts()
+	 * @covers ::_wp_delete_customize_changeset_dependent_auto_drafts
 	 */
 	function test_wp_delete_customize_changeset_dependent_auto_drafts() {
 		$auto_draft_post_id = $this->factory()->post->create(
@@ -723,13 +723,13 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 				'data' => $data,
 			)
 		);
-		$this->assertEquals( 'auto-draft', get_post_status( $auto_draft_post_id ) );
-		$this->assertEquals( 'draft', get_post_status( $draft_post_id ) );
-		$this->assertEquals( 'private', get_post_status( $private_post_id ) );
+		$this->assertSame( 'auto-draft', get_post_status( $auto_draft_post_id ) );
+		$this->assertSame( 'draft', get_post_status( $draft_post_id ) );
+		$this->assertSame( 'private', get_post_status( $private_post_id ) );
 		wp_delete_post( $wp_customize->changeset_post_id(), true );
 		$this->assertFalse( get_post_status( $auto_draft_post_id ) );
-		$this->assertEquals( 'trash', get_post_status( $draft_post_id ) );
-		$this->assertEquals( 'private', get_post_status( $private_post_id ) );
+		$this->assertSame( 'trash', get_post_status( $draft_post_id ) );
+		$this->assertSame( 'private', get_post_status( $private_post_id ) );
 	}
 
 	/**
@@ -926,4 +926,70 @@ class Test_Nav_Menus extends WP_UnitTestCase {
 		$this->assertContains( 'menu-item-privacy-policy', $classes );
 	}
 
+	/**
+	 * @ticket 47723
+	 * @dataProvider data_trim_url_for_custom_item
+	 */
+	function test_trim_url_for_custom_item( $custom_url, $correct_url ) {
+		$custom_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'   => 'custom',
+				'menu-item-title'  => 'WordPress.org',
+				'menu-item-url'    => $custom_url,
+				'menu-item-status' => 'publish',
+			)
+		);
+
+		$custom_item = wp_setup_nav_menu_item( get_post( $custom_item_id ) );
+		$this->assertSame( $correct_url, $custom_item->url );
+	}
+
+	/**
+	 * Provides data for test_trim_url_for_custom_item().
+	 */
+	function data_trim_url_for_custom_item() {
+		return array(
+			array( 'https://wordpress.org ', 'https://wordpress.org' ),
+			array( ' https://wordpress.org', 'https://wordpress.org' ),
+		);
+	}
+
+	/**
+	 * Tests `wp_update_nav_menu_item()` with special characters in a category name.
+	 *
+	 * When inserting a category as a nav item, the `post_title` property should
+	 * be empty, as the item should get the title from the category object itself.
+	 *
+	 * @ticket 48011
+	 */
+	function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
+		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';
+
+		$category = self::factory()->category->create_and_get(
+			array(
+				'name' => $category_name,
+			)
+		);
+
+		$category_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-object'    => 'category',
+				'menu-item-object-id' => $category->term_id,
+				'menu-item-status'    => 'publish',
+				/*
+				 * Interestingly enough, if we use `$cat->name` for the menu item title,
+				 * we won't be able to replicate the bug because it's in htmlentities form.
+				 */
+				'menu-item-title'     => $category_name,
+			)
+		);
+
+		$category_item = get_post( $category_item_id );
+		$this->assertEmpty( $category_item->post_title );
+	}
 }

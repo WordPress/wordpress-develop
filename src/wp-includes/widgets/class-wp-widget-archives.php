@@ -40,13 +40,14 @@ class WP_Widget_Archives extends WP_Widget {
 	 * @param array $instance Settings for the current Archives widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'Archives' );
+		$default_title = __( 'Archives' );
+		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
 
-		$c = ! empty( $instance['count'] ) ? '1' : '0';
-		$d = ! empty( $instance['dropdown'] ) ? '1' : '0';
+		$count    = ! empty( $instance['count'] ) ? '1' : '0';
+		$dropdown = ! empty( $instance['dropdown'] ) ? '1' : '0';
 
 		echo $args['before_widget'];
 
@@ -54,7 +55,7 @@ class WP_Widget_Archives extends WP_Widget {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
 
-		if ( $d ) {
+		if ( $dropdown ) {
 			$dropdown_id = "{$this->id_base}-dropdown-{$this->number}";
 			?>
 		<label class="screen-reader-text" for="<?php echo esc_attr( $dropdown_id ); ?>"><?php echo $title; ?></label>
@@ -76,7 +77,7 @@ class WP_Widget_Archives extends WP_Widget {
 				array(
 					'type'            => 'monthly',
 					'format'          => 'option',
-					'show_post_count' => $c,
+					'show_post_count' => $count,
 				),
 				$instance
 			);
@@ -98,14 +99,16 @@ class WP_Widget_Archives extends WP_Widget {
 					$label = __( 'Select Post' );
 					break;
 			}
+
+			$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
 			?>
 
-			<option value=""><?php echo esc_attr( $label ); ?></option>
+			<option value=""><?php echo esc_html( $label ); ?></option>
 			<?php wp_get_archives( $dropdown_args ); ?>
 
 		</select>
 
-<script type='text/javascript'>
+<script<?php echo $type_attr; ?>>
 /* <![CDATA[ */
 (function() {
 	var dropdown = document.getElementById( "<?php echo esc_js( $dropdown_id ); ?>" );
@@ -118,34 +121,51 @@ class WP_Widget_Archives extends WP_Widget {
 })();
 /* ]]> */
 </script>
+			<?php
+		} else {
+			$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
 
-		<?php } else { ?>
-		<ul>
-			<?php
-			/**
-			 * Filters the arguments for the Archives widget.
-			 *
-			 * @since 2.8.0
-			 * @since 4.9.0 Added the `$instance` parameter.
-			 *
-			 * @see wp_get_archives()
-			 *
-			 * @param array $args     An array of Archives option arguments.
-			 * @param array $instance Array of settings for the current widget.
-			 */
-			wp_get_archives(
-				apply_filters(
-					'widget_archives_args',
-					array(
-						'type'            => 'monthly',
-						'show_post_count' => $c,
-					),
-					$instance
-				)
-			);
+			/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
+			$format = apply_filters( 'navigation_widgets_format', $format );
+
+			if ( 'html5' === $format ) {
+				// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+				$title      = trim( strip_tags( $title ) );
+				$aria_label = $title ? $title : $default_title;
+				echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+			}
 			?>
-		</ul>
+
+			<ul>
+				<?php
+				wp_get_archives(
+					/**
+					 * Filters the arguments for the Archives widget.
+					 *
+					 * @since 2.8.0
+					 * @since 4.9.0 Added the `$instance` parameter.
+					 *
+					 * @see wp_get_archives()
+					 *
+					 * @param array $args     An array of Archives option arguments.
+					 * @param array $instance Array of settings for the current widget.
+					 */
+					apply_filters(
+						'widget_archives_args',
+						array(
+							'type'            => 'monthly',
+							'show_post_count' => $count,
+						),
+						$instance
+					)
+				);
+				?>
+			</ul>
+
 			<?php
+			if ( 'html5' === $format ) {
+				echo '</nav>';
+			}
 		}
 
 		echo $args['after_widget'];
@@ -195,11 +215,16 @@ class WP_Widget_Archives extends WP_Widget {
 			)
 		);
 		?>
-		<p><label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" /></p>
 		<p>
-			<input class="checkbox" type="checkbox"<?php checked( $instance['dropdown'] ); ?> id="<?php echo $this->get_field_id( 'dropdown' ); ?>" name="<?php echo $this->get_field_name( 'dropdown' ); ?>" /> <label for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown' ); ?></label>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+		</p>
+		<p>
+			<input class="checkbox" type="checkbox"<?php checked( $instance['dropdown'] ); ?> id="<?php echo $this->get_field_id( 'dropdown' ); ?>" name="<?php echo $this->get_field_name( 'dropdown' ); ?>" />
+			<label for="<?php echo $this->get_field_id( 'dropdown' ); ?>"><?php _e( 'Display as dropdown' ); ?></label>
 			<br/>
-			<input class="checkbox" type="checkbox"<?php checked( $instance['count'] ); ?> id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" /> <label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
+			<input class="checkbox" type="checkbox"<?php checked( $instance['count'] ); ?> id="<?php echo $this->get_field_id( 'count' ); ?>" name="<?php echo $this->get_field_name( 'count' ); ?>" />
+			<label for="<?php echo $this->get_field_id( 'count' ); ?>"><?php _e( 'Show post counts' ); ?></label>
 		</p>
 		<?php
 	}

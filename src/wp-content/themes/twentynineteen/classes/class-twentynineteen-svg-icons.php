@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 /**
@@ -17,7 +17,7 @@
  * All icons are assumed to have equal width and height, hence the option
  * to only specify a `$size` parameter in the svg methods.
  *
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 class TwentyNineteen_SVG_Icons {
 
@@ -25,9 +25,9 @@ class TwentyNineteen_SVG_Icons {
 	 * Gets the SVG code for a given icon.
 	 */
 	public static function get_svg( $group, $icon, $size ) {
-		if ( 'ui' == $group ) {
+		if ( 'ui' === $group ) {
 			$arr = self::$ui_icons;
-		} elseif ( 'social' == $group ) {
+		} elseif ( 'social' === $group ) {
 			$arr = self::$social_icons;
 		} else {
 			$arr = array();
@@ -36,7 +36,7 @@ class TwentyNineteen_SVG_Icons {
 			$repl = sprintf( '<svg class="svg-icon" width="%d" height="%d" aria-hidden="true" role="img" focusable="false" ', $size, $size );
 			$svg  = preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
 			$svg  = preg_replace( "/([\n\t]+)/", ' ', $svg ); // Remove newlines & tabs.
-			$svg  = preg_replace( '/>\s*</', '><', $svg ); // Remove white space between SVG tags.
+			$svg  = preg_replace( '/>\s*</', '><', $svg );    // Remove whitespace between SVG tags.
 			return $svg;
 		}
 		return null;
@@ -155,13 +155,13 @@ class TwentyNineteen_SVG_Icons {
 </svg>',
 
 		'keyboard_arrow_left'      => /* material-design – keyboard_arrow_left */ '
-<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 	<path d="M14 7l-5 5 5 5V7z"></path>
 	<path fill="none" d="M24 0v24H0V0h24z"></path>
 </svg>',
 
 		'arrow_drop_down_ellipsis' => /* custom – arrow_drop_down_ellipsis */ '
-<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg">
     <g fill="none" fill-rule="evenodd">
         <path d="M0 0h24v24H0z"/>
         <path fill="currentColor" fill-rule="nonzero" d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM6 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm6 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>

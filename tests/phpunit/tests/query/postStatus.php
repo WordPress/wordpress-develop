@@ -82,7 +82,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			self::$author_private_post,
 		);
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_private_should_not_be_included_for_non_author_if_perm_is_not_false() {
@@ -112,7 +112,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			self::$author_private_post,
 		);
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_private_should_be_included_for_all_users_if_perm_is_readable_and_user_can_read_others_posts() {
@@ -130,7 +130,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			self::$editor_private_post,
 		);
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_private_should_be_included_only_for_current_user_if_perm_is_editable_and_user_cannot_read_others_posts() {
@@ -147,7 +147,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			self::$author_private_post,
 		);
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_private_should_be_included_for_all_users_if_perm_is_editable_and_user_can_read_others_posts() {
@@ -165,7 +165,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			self::$editor_private_post,
 		);
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_all_public_post_stati_should_be_included_when_no_post_status_is_provided() {
@@ -262,6 +262,27 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		$this->assertEmpty( $q->posts );
 	}
 
+	public function test_single_post_with_nonpublic_status_should_not_be_shown_for_any_user() {
+		register_post_type( 'foo_pt' );
+		register_post_status( 'foo_ps', array( 'public' => false ) );
+		$p = self::factory()->post->create(
+			array(
+				'post_status' => 'foo_ps',
+				'post_author' => self::$author_user_id,
+			)
+		);
+
+		wp_set_current_user( self::$editor_user_id );
+
+		$q = new WP_Query(
+			array(
+				'p' => $p,
+			)
+		);
+
+		$this->assertEmpty( $q->posts );
+	}
+
 	public function test_single_post_with_nonpublic_and_protected_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
 		register_post_type( 'foo_pt' );
 		register_post_status(
@@ -313,7 +334,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	public function test_single_post_with_nonpublic_and_private_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
@@ -367,18 +388,47 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
-	public function test_single_post_with_nonpublic_and_protected_status_should_not_be_shown_for_any_user() {
+	/**
+	 * @ticket 48653
+	 */
+	public function test_single_post_with_nonexisting_status_should_not_be_shown_for_user_who_cannot_edit_others_posts() {
 		register_post_type( 'foo_pt' );
-		register_post_status( 'foo_ps', array( 'public' => false ) );
+		register_post_status( 'foo_ps', array( 'public' => true ) );
+		$p = self::factory()->post->create(
+			array(
+				'post_status' => 'foo_ps',
+				'post_author' => self::$editor_user_id,
+			)
+		);
+		_unregister_post_status( 'foo_ps' );
+
+		wp_set_current_user( self::$author_user_id );
+
+		$q = new WP_Query(
+			array(
+				'p' => $p,
+			)
+		);
+
+		$this->assertEmpty( $q->posts );
+	}
+
+	/**
+	 * @ticket 48653
+	 */
+	public function test_single_post_with_nonexisting_status_should_be_shown_for_user_who_can_edit_others_posts() {
+		register_post_type( 'foo_pt' );
+		register_post_status( 'foo_ps', array( 'public' => true ) );
 		$p = self::factory()->post->create(
 			array(
 				'post_status' => 'foo_ps',
 				'post_author' => self::$author_user_id,
 			)
 		);
+		_unregister_post_status( 'foo_ps' );
 
 		wp_set_current_user( self::$editor_user_id );
 
@@ -388,7 +438,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEmpty( $q->posts );
+		$this->assertSame( array( $p ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
 	/**

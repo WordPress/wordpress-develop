@@ -29,7 +29,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		parent::setUp();
 		$this->has_setup_template = false;
 		add_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
-		// reregister the route as we now have a template available.
+		// Re-register the route as we now have a template available.
 		$GLOBALS['wp_rest_server']->override_by_default = true;
 		$controller                                     = new WP_REST_Posts_Controller( 'page' );
 		$controller->register_routes();
@@ -45,19 +45,19 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_context_param() {
-		// Collection
+		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
-		// Single
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		// Single.
 		$page_id  = $this->factory->post->create( array( 'post_type' => 'page' ) );
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/pages/' . $page_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_registered_query_params() {
@@ -66,7 +66,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'after',
 				'author',
@@ -107,8 +107,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( $id1, $data[0]['id'] );
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( $id1, $data[0]['id'] );
 	}
 
 	public function test_get_items_parent_query() {
@@ -125,18 +125,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+		$this->assertSame( 2, count( $data ) );
+
+		// Filter to parent.
 		$request->set_param( 'parent', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( $id2, $data[0]['id'] );
-		// Invalid parent should fail
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( $id2, $data[0]['id'] );
+
+		// Invalid 'parent' should error.
 		$request->set_param( 'parent', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -169,17 +172,19 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id3,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 4, count( $data ) );
-		// Filter to parents
+		$this->assertSame( 4, count( $data ) );
+
+		// Filter to parents.
 		$request->set_param( 'parent', array( $id1, $id3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		$this->assertEqualSets( array( $id2, $id4 ), wp_list_pluck( $data, 'id' ) );
+		$this->assertSame( 2, count( $data ) );
+		$this->assertSameSets( array( $id2, $id4 ), wp_list_pluck( $data, 'id' ) );
 	}
 
 	public function test_get_items_parent_exclude_query() {
@@ -196,18 +201,21 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'post_parent' => $id1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 2, count( $data ) );
-		// Filter to parent
+		$this->assertSame( 2, count( $data ) );
+
+		// Filter to parent.
 		$request->set_param( 'parent_exclude', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( $id1, $data[0]['id'] );
-		// Invalid parent_exclude should error
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( $id1, $data[0]['id'] );
+
+		// Invalid 'parent_exclude' should error.
 		$request->set_param( 'parent_exclude', 'some-slug' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
@@ -241,27 +249,31 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'menu_order'  => 1,
 			)
 		);
-		// No parent
+
+		// No parent.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEqualSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Filter to menu_order
+		$this->assertSameSets( array( $id1, $id2, $id3, $id4 ), wp_list_pluck( $data, 'id' ) );
+
+		// Filter to 'menu_order'.
 		$request->set_param( 'menu_order', 1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEqualSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
-		// Order by menu order
+		$this->assertSameSets( array( $id4 ), wp_list_pluck( $data, 'id' ) );
+
+		// Order by 'menu order'.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'orderby', 'menu_order' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( $id1, $data[0]['id'] );
-		$this->assertEquals( $id4, $data[1]['id'] );
-		$this->assertEquals( $id2, $data[2]['id'] );
-		$this->assertEquals( $id3, $data[3]['id'] );
-		// Invalid menu_order should fail
+		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertSame( $id4, $data[1]['id'] );
+		$this->assertSame( $id2, $data[2]['id'] );
+		$this->assertSame( $id3, $data[3]['id'] );
+
+		// Invalid 'menu_order' should error.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'menu_order', 'top-first' );
 		$response = rest_get_server()->dispatch( $request );
@@ -274,7 +286,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 		$data = $response->get_data();
-		// Safe format for 4.4 and 4.5 https://core.trac.wordpress.org/ticket/35028
+		// Safe format for 4.4 and 4.5. See https://core.trac.wordpress.org/ticket/35028
 		$first_error = array_shift( $data['data']['params'] );
 		$this->assertContains( 'per_page must be between 1 (inclusive) and 100 (inclusive)', $first_error );
 		$request->set_param( 'per_page', 101 );
@@ -286,7 +298,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function test_get_items_private_filter_query_var() {
-		// Private query vars inaccessible to unauthorized users
+		// Private query vars inaccessible to unauthorized users.
 		wp_set_current_user( 0 );
 		$page_id  = $this->factory->post->create(
 			array(
@@ -305,12 +317,12 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 
-		// But they are accessible to authorized users
+		// But they are accessible to authorized users.
 		wp_set_current_user( self::$editor_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $draft_id, $data[0]['id'] );
+		$this->assertSame( $draft_id, $data[0]['id'] );
 	}
 
 	public function test_get_items_invalid_date() {
@@ -346,7 +358,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $post2, $data[0]['id'] );
+		$this->assertSame( $post2, $data[0]['id'] );
 	}
 
 	public function test_get_item() {
@@ -357,7 +369,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$post_id  = $this->factory->post->create();
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_create_item() {
@@ -378,8 +390,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( 'page-my-test-template.php', $data['template'] );
-		$this->assertEquals( 'page-my-test-template.php', get_page_template_slug( $new_post->ID ) );
+		$this->assertSame( 'page-my-test-template.php', $data['template'] );
+		$this->assertSame( 'page-my-test-template.php', get_page_template_slug( $new_post->ID ) );
 	}
 
 	public function test_create_page_with_parent() {
@@ -399,15 +411,15 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_body_params( $params );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 201, $response->get_status() );
+		$this->assertSame( 201, $response->get_status() );
 
 		$links = $response->get_links();
 		$this->assertArrayHasKey( 'up', $links );
 
 		$data     = $response->get_data();
 		$new_post = get_post( $data['id'] );
-		$this->assertEquals( $page_id, $data['parent'] );
-		$this->assertEquals( $page_id, $new_post->post_parent );
+		$this->assertSame( $page_id, $data['parent'] );
+		$this->assertSame( $page_id, $new_post->post_parent );
 	}
 
 	public function test_create_page_with_invalid_parent() {
@@ -442,10 +454,10 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( 'force', 'false' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'Deleted page', $data['title']['raw'] );
-		$this->assertEquals( 'trash', $data['status'] );
+		$this->assertSame( 'Deleted page', $data['title']['raw'] );
+		$this->assertSame( 'trash', $data['status'] );
 	}
 
 	public function test_prepare_item() {
@@ -466,7 +478,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param( '_fields', 'id,slug' );
 		$obj      = get_post( $page_id );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id',
 				'slug',
@@ -492,16 +504,16 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$headers = $response->get_headers();
-		$this->assertEquals( 8, $headers['X-WP-Total'] );
-		$this->assertEquals( 2, $headers['X-WP-TotalPages'] );
+		$this->assertSame( 8, $headers['X-WP-Total'] );
+		$this->assertSame( 2, $headers['X-WP-TotalPages'] );
 
 		$all_data = $response->get_data();
-		$this->assertEquals( 4, count( $all_data ) );
+		$this->assertSame( 4, count( $all_data ) );
 		foreach ( $all_data as $post ) {
-			$this->assertEquals( 'page', $post['type'] );
+			$this->assertSame( 'page', $post['type'] );
 		}
 	}
 
@@ -525,7 +537,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( 1, $new_data['menu_order'] );
+		$this->assertSame( 1, $new_data['menu_order'] );
 	}
 
 	public function test_update_page_menu_order_to_zero() {
@@ -549,7 +561,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$new_data = $response->get_data();
-		$this->assertEquals( 0, $new_data['menu_order'] );
+		$this->assertSame( 0, $new_data['menu_order'] );
 	}
 
 	public function test_update_page_parent_non_zero() {
@@ -572,7 +584,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( $page_id1, $new_data['parent'] );
+		$this->assertSame( $page_id1, $new_data['parent'] );
 	}
 
 	public function test_update_page_parent_zero() {
@@ -596,7 +608,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
-		$this->assertEquals( 0, $new_data['parent'] );
+		$this->assertSame( 0, $new_data['parent'] );
 	}
 
 	public function test_get_page_with_password() {
@@ -611,9 +623,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertSame( '', $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( '', $data['excerpt']['rendered'] );
+		$this->assertSame( '', $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -633,9 +645,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( wpautop( $page->post_content ), $data['content']['rendered'] );
+		$this->assertSame( wpautop( $page->post_content ), $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( wpautop( $page->post_excerpt ), $data['excerpt']['rendered'] );
+		$this->assertSame( wpautop( $page->post_excerpt ), $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -667,9 +679,9 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/pages/%d', $page_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( '', $data['content']['rendered'] );
+		$this->assertSame( '', $data['content']['rendered'] );
 		$this->assertTrue( $data['content']['protected'] );
-		$this->assertEquals( '', $data['excerpt']['rendered'] );
+		$this->assertSame( '', $data['excerpt']['rendered'] );
 		$this->assertTrue( $data['excerpt']['protected'] );
 	}
 
@@ -678,7 +690,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 24, count( $properties ) );
+		$this->assertSame( 24, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );

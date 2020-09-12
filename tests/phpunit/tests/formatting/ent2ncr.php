@@ -10,7 +10,7 @@ class Tests_Formatting_Ent2NCR extends WP_UnitTestCase {
 	function test_converts_named_entities_to_numeric_character_references( $entity, $ncr ) {
 		$entity = '&' . $entity . ';';
 		$ncr    = '&#' . $ncr . ';';
-		$this->assertEquals( $ncr, ent2ncr( $entity ), $entity );
+		$this->assertSame( $ncr, ent2ncr( $entity ), $entity );
 	}
 
 	/**
@@ -21,7 +21,7 @@ class Tests_Formatting_Ent2NCR extends WP_UnitTestCase {
 		$entities      = file( DIR_TESTDATA . '/formatting/entities.txt' );
 		$data_provided = array();
 		foreach ( $entities as $line ) {
-			// comment
+			// Comment.
 			$commentpos = strpos( $line, '###' );
 			if ( false !== $commentpos ) {
 				$line = trim( substr( $line, 0, $commentpos ) );
