@@ -427,7 +427,7 @@ class Tests_DB extends WP_UnitTestCase {
 
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged,WordPress.DB.PreparedSQL
 		$prepared = @$wpdb->prepare( $query, ...$args );
-		$this->assertEquals( $expected, $prepared );
+		$this->assertSame( $expected, $prepared );
 	}
 
 	public function data_prepare_incorrect_arg_count() {
@@ -442,7 +442,7 @@ class Tests_DB extends WP_UnitTestCase {
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %%%d AND user_login = %s",
 				array( 1 ),
-				false,
+				'',
 			),
 			array(
 				"SELECT * FROM $wpdb->users WHERE id = %d AND user_login = %s",
