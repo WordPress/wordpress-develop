@@ -776,7 +776,6 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = $this->factory->post->create( array( 'post_status' => 'auto-draft' ) );
 
 		wp_publish_post( $post_id );
-		// wp_update_post( [ 'ID' => $post_id, 'post_status' => 'publish' ] );
 
 		$post_terms = get_the_terms( $post_id, 'tax_51292' );
 		$this->assertNotEmpty( $post_terms );
