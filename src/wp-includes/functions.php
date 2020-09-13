@@ -1819,11 +1819,13 @@ function wp_nonce_url( $actionurl, $action = -1, $name = '_wpnonce' ) {
  * @param string     $name    Optional. Nonce name. Default '_wpnonce'.
  * @param bool       $referer Optional. Whether to set the referer field for validation. Default true.
  * @param bool       $echo    Optional. Whether to display or return hidden form field. Default true.
+ * @param string     $class   Optional. Add additional class to the nonce hidden field.
  * @return string Nonce field HTML markup.
  */
-function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true ) {
+function wp_nonce_field( $action = -1, $name = '_wpnonce', $referer = true, $echo = true, $class = '' ) {
 	$name        = esc_attr( $name );
-	$nonce_field = '<input type="hidden" id="' . $name . '" name="' . $name . '" value="' . wp_create_nonce( $action ) . '" />';
+	$class       = ! empty( $class ) ? ' class="' . esc_attr( $class ) . '"' : '';
+	$nonce_field = '<input type="hidden" id="' . $name . '"' . $class .' name="' . $name . '" value="' . wp_create_nonce( $action ) . '" />';
 
 	if ( $referer ) {
 		$nonce_field .= wp_referer_field( false );
