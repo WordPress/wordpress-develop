@@ -183,7 +183,7 @@ class WP_Error {
 	public function add( $code, $message, $data = '' ) {
 		$this->errors[ $code ][] = $message;
 
-		if ( ! empty($data) ){
+		if ( ! empty( $data ) ) {
 			$this->add_data( $data, $code );
 		}
 
