@@ -403,7 +403,7 @@ class WP_Comment_Query {
 		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
 		if ( null !== $comment_data ) {
-			if ( is_array( $comment_data ) && empty( $this->query_vars['count'] ) ) {
+			if ( is_array( $comment_data ) && ! $this->query_vars['count'] ) {
 				$this->comments = $comment_data;
 			}
 			return $comment_data;
