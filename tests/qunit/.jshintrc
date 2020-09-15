@@ -1,5 +1,6 @@
 {
 	"globals": {
+		"QUnit"          : false,
 		"_"              : false,
 		"jQuery"         : false
 	}
