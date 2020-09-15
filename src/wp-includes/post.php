@@ -4391,11 +4391,15 @@ function wp_publish_post( $post ) {
 		}
 
 		if ( 'category' === $taxonomy ) {
-			$default_term_id = (int) get_option( 'default_category' );
+			$default_term_id = (int) get_option( 'default_category', 0 );
 		} else {
-			$default_term_id = (int) get_option( 'default_term_' . $taxonomy );
+			$default_term_id = (int) get_option( 'default_term_' . $taxonomy, 0 );
 		}
-		wp_set_post_terms( $post->ID, $default_term_id, $taxonomy );
+
+		if ( ! $default_term_id ) {
+			continue;
+		}
+		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
