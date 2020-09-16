@@ -1127,6 +1127,7 @@ module.exports = function(grunt) {
 				files: [
 					SOURCE_DIR + '**',
 					'!' + SOURCE_DIR + 'js/**/*.js',
+					'!' + SOURCE_DIR + 'wp-content/**',
 					// Ignore version control directories.
 					'!' + SOURCE_DIR + '**/.{svn,git}/**'
 				],
