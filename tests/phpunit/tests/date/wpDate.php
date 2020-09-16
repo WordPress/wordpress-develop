@@ -43,7 +43,7 @@ class Tests_Date_WP_Date extends WP_UnitTestCase {
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$this->assertEquals( '10月', wp_date( 'F', $datetime->getTimestamp(), $utc ) );
+		$this->assertSame( '10月', wp_date( 'F', $datetime->getTimestamp(), $utc ) );
 	}
 
 	/**
@@ -58,6 +58,6 @@ class Tests_Date_WP_Date extends WP_UnitTestCase {
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$this->assertEquals( $string, wp_date( 'F', $datetime->getTimestamp(), $utc ) );
+		$this->assertSame( $string, wp_date( 'F', $datetime->getTimestamp(), $utc ) );
 	}
 }

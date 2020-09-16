@@ -25,7 +25,7 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 			'yesorno'       => 'yes',
 		);
 
-		$this->assertEquals( $expected, $_POST );
+		$this->assertSame( $expected, $_POST );
 	}
 
 	public function test_multidimensional_nested_array_should_expand() {
@@ -55,7 +55,7 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 				),
 			),
 		);
-		$this->assertEquals( $expected, $_POST );
+		$this->assertSame( $expected, $_POST );
 	}
 
 	public function test_multidimensional_nested_array_should_expand_and_merge() {
@@ -100,6 +100,6 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $_POST );
+		$this->assertSame( $expected, $_POST );
 	}
 }

@@ -231,7 +231,7 @@ class Tests_Template extends WP_UnitTestCase {
 	}
 
 	public function test_front_page_template_hierarchy_with_posts_on_front() {
-		$this->assertEquals( 'posts', get_option( 'show_on_front' ) );
+		$this->assertSame( 'posts', get_option( 'show_on_front' ) );
 		$this->assertTemplateHierarchy(
 			home_url(),
 			array(
@@ -461,7 +461,7 @@ class Tests_Template extends WP_UnitTestCase {
 		$this->go_to( $url );
 		$hierarchy = $this->get_template_hierarchy();
 
-		$this->assertEquals( $expected, $hierarchy, $message );
+		$this->assertSame( $expected, $hierarchy, $message );
 	}
 
 	protected static function get_query_template_conditions() {

@@ -211,7 +211,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	function test_wp_embed_excerpt_more_no_embed() {
 		$GLOBALS['wp_query'] = new WP_Query();
 
-		$this->assertEquals( 'foo bar', wp_embed_excerpt_more( 'foo bar' ) );
+		$this->assertSame( 'foo bar', wp_embed_excerpt_more( 'foo bar' ) );
 	}
 
 	function test_wp_embed_excerpt_more() {
@@ -222,7 +222,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( '', wp_embed_excerpt_more( '' ) );
+		$this->assertSame( '', wp_embed_excerpt_more( '' ) );
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -233,7 +233,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			get_the_permalink()
 		);
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	function test_is_embed_post() {

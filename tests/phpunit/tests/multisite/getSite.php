@@ -45,7 +45,7 @@ if ( is_multisite() ) :
 			$site = get_site();
 			restore_current_blog();
 
-			$this->assertEquals( self::$site_ids['wordpress.org/foo/'], $site->id );
+			$this->assertSame( self::$site_ids['wordpress.org/foo/'], $site->id );
 		}
 
 	}

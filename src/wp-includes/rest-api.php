@@ -20,7 +20,8 @@ define( 'REST_API_VERSION', '2.0' );
  * Note: Do not use before the {@see 'rest_api_init'} hook.
  *
  * @since 4.4.0
- * @since 5.1.0 Added a _doing_it_wrong() notice when not called on or after the rest_api_init hook.
+ * @since 5.1.0 Added a `_doing_it_wrong()` notice when not called on or after the `rest_api_init` hook.
+ * @since 5.5.0 Added a `_doing_it_wrong()` notice when the required `permission_callback` argument is not set.
  *
  * @param string $namespace The first URL segment after core prefix. Should be unique to your package/plugin.
  * @param string $route     The base URL for route you are adding.
@@ -1314,7 +1315,7 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
-	return round( floatval( $maybe_integer ) ) === floatval( $maybe_integer );
+	return is_numeric( $maybe_integer ) && round( floatval( $maybe_integer ) ) === floatval( $maybe_integer );
 }
 
 /**
@@ -2256,4 +2257,89 @@ function rest_get_queried_resource_route() {
 	 * @param string $link The route with a leading slash, or an empty string.
 	 */
 	return apply_filters( 'rest_queried_resource_route', $route );
+}
+
+/**
+ * Retrieves an array of endpoint arguments from the item schema and endpoint method.
+ *
+ * @since 5.6.0
+ *
+ * @param array  $schema The full JSON schema for the endpoint.
+ * @param string $method Optional. HTTP method of the endpoint. The arguments for `CREATABLE` endpoints are
+ *                       checked for required values and may fall-back to a given default, this is not done
+ *                       on `EDITABLE` endpoints. Default WP_REST_Server::CREATABLE.
+ * @return array The endpoint arguments.
+ */
+function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::CREATABLE ) {
+
+	$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
+	$endpoint_args           = array();
+	$valid_schema_properties = array(
+		'type',
+		'format',
+		'enum',
+		'items',
+		'properties',
+		'additionalProperties',
+		'minimum',
+		'maximum',
+		'exclusiveMinimum',
+		'exclusiveMaximum',
+		'minLength',
+		'maxLength',
+		'pattern',
+		'minItems',
+		'maxItems',
+		'uniqueItems',
+	);
+
+	foreach ( $schema_properties as $field_id => $params ) {
+
+		// Arguments specified as `readonly` are not allowed to be set.
+		if ( ! empty( $params['readonly'] ) ) {
+			continue;
+		}
+
+		$endpoint_args[ $field_id ] = array(
+			'validate_callback' => 'rest_validate_request_arg',
+			'sanitize_callback' => 'rest_sanitize_request_arg',
+		);
+
+		if ( isset( $params['description'] ) ) {
+			$endpoint_args[ $field_id ]['description'] = $params['description'];
+		}
+
+		if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
+			$endpoint_args[ $field_id ]['default'] = $params['default'];
+		}
+
+		if ( WP_REST_Server::CREATABLE === $method && ! empty( $params['required'] ) ) {
+			$endpoint_args[ $field_id ]['required'] = true;
+		}
+
+		foreach ( $valid_schema_properties as $schema_prop ) {
+			if ( isset( $params[ $schema_prop ] ) ) {
+				$endpoint_args[ $field_id ][ $schema_prop ] = $params[ $schema_prop ];
+			}
+		}
+
+		// Merge in any options provided by the schema property.
+		if ( isset( $params['arg_options'] ) ) {
+
+			// Only use required / default from arg_options on CREATABLE endpoints.
+			if ( WP_REST_Server::CREATABLE !== $method ) {
+				$params['arg_options'] = array_diff_key(
+					$params['arg_options'],
+					array(
+						'required' => '',
+						'default'  => '',
+					)
+				);
+			}
+
+			$endpoint_args[ $field_id ] = array_merge( $endpoint_args[ $field_id ], $params['arg_options'] );
+		}
+	}
+
+	return $endpoint_args;
 }

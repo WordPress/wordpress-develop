@@ -319,7 +319,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 40188
 	 */
-	public function test_filter_comment_status_dropdown_should_be_shown_if_there_are_comments() {
+	public function test_filter_comment_type_dropdown_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create(
 			array(

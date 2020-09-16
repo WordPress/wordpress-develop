@@ -17,20 +17,20 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 1, count( $result ) );
+		$this->assertSame( 1, count( $result ) );
 
 		$format = get_post_format( $post_id );
-		$this->assertEquals( 'aside', $format );
+		$this->assertSame( 'aside', $format );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 	}
 
 	/**
@@ -45,7 +45,7 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 1, count( $result ) );
+		$this->assertSame( 1, count( $result ) );
 		// The format can be set but not retrieved until it is registered.
 		$format = get_post_format( $post_id );
 		$this->assertFalse( $format );
@@ -53,17 +53,17 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		add_post_type_support( 'page', 'post-formats' );
 		// The previous set can now be retrieved.
 		$format = get_post_format( $post_id );
-		$this->assertEquals( 'aside', $format );
+		$this->assertSame( 'aside', $format );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 
 		$result = set_post_format( $post_id, '' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 
 		remove_post_type_support( 'page', 'post-formats' );
 	}
@@ -77,13 +77,13 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		$result = set_post_format( $post_id, 'aside' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 1, count( $result ) );
+		$this->assertSame( 1, count( $result ) );
 		$this->assertTrue( has_post_format( 'aside', $post_id ) );
 
 		$result = set_post_format( $post_id, 'standard' );
 		$this->assertNotWPError( $result );
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 		// Standard is a special case. It shows as false when set.
 		$this->assertFalse( has_post_format( 'standard', $post_id ) );
 
@@ -113,47 +113,47 @@ $commentary
 DATA;
 		$link_post_id         = self::factory()->post->create( array( 'post_content' => $link ) );
 		$content_link         = get_url_in_content( get_post_field( 'post_content', $link_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$link_with_post_id = self::factory()->post->create( array( 'post_content' => $link_with_commentary ) );
 		$content_link      = get_url_in_content( get_post_field( 'post_content', $link_with_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$content_link = get_url_in_content( get_post_field( 'post_content', $link_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$content_link = get_url_in_content( get_post_field( 'post_content', $link_with_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$empty_post_id = self::factory()->post->create( array( 'post_content' => '' ) );
 		$content_link  = get_url_in_content( get_post_field( 'post_content', $empty_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$comm_post_id = self::factory()->post->create( array( 'post_content' => $commentary ) );
 		$content_link = get_url_in_content( get_post_field( 'post_content', $comm_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		// Now with an href.
 		$href_post_id = self::factory()->post->create( array( 'post_content' => $href ) );
 		$content_link = get_url_in_content( get_post_field( 'post_content', $href_post_id ) );
-		$this->assertEquals( $link, $content_link );
+		$this->assertSame( $link, $content_link );
 
 		$href_with_post_id = self::factory()->post->create( array( 'post_content' => $href_with_commentary ) );
 		$content_link      = get_url_in_content( get_post_field( 'post_content', $href_with_post_id ) );
-		$this->assertEquals( $link, $content_link );
+		$this->assertSame( $link, $content_link );
 
 		$content_link = get_url_in_content( get_post_field( 'post_content', $href_post_id ) );
-		$this->assertEquals( $link, $content_link );
+		$this->assertSame( $link, $content_link );
 
 		$content_link = get_url_in_content( get_post_field( 'post_content', $href_with_post_id ) );
-		$this->assertEquals( $link, $content_link );
+		$this->assertSame( $link, $content_link );
 
 		$empty_post_id = self::factory()->post->create( array( 'post_content' => '' ) );
 		$content_link  = get_url_in_content( get_post_field( 'post_content', $empty_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 
 		$comm_post_id = self::factory()->post->create( array( 'post_content' => $commentary ) );
 		$content_link = get_url_in_content( get_post_field( 'post_content', $comm_post_id ) );
-		$this->assertEquals( false, $content_link );
+		$this->assertFalse( $content_link );
 	}
 }

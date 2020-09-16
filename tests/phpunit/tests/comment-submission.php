@@ -774,7 +774,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
 
 		$this->assertNotWPError( $comment );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,
@@ -782,9 +782,11 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 				'comment_author_url'   => $user->user_url,
 				'comment_content'      => $data['comment'],
 				'comment_type'         => 'comment',
-				'comment_parent'       => '0',
+				'comment_parent'       => 0,
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
+				'comment_author_IP'    => '127.0.0.1',
+				'comment_agent'        => '',
 			),
 			$this->preprocess_comment_data
 		);

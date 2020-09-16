@@ -36,7 +36,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertEquals( $expected, $post->post_content );
+		$this->assertSame( $expected, $post->post_content );
 	}
 
 	// A simple test to make sure unbalanced tags are fixed.
@@ -53,7 +53,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertEquals( $expected, $post->post_content );
+		$this->assertSame( $expected, $post->post_content );
 	}
 
 	// Test KSES filtering of disallowed attribute.
@@ -70,7 +70,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertEquals( $expected, $post->post_content );
+		$this->assertSame( $expected, $post->post_content );
 	}
 
 	/**
@@ -90,7 +90,7 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertEquals( $expected, $post->post_content );
+		$this->assertSame( $expected, $post->post_content );
 	}
 
 	// Make sure unbalanced tags are untouched when the balance option is off.
@@ -110,6 +110,6 @@ EOF;
 		$id   = self::factory()->post->create( array( 'post_content' => $content ) );
 		$post = get_post( $id );
 
-		$this->assertEquals( $content, $post->post_content );
+		$this->assertSame( $content, $post->post_content );
 	}
 }

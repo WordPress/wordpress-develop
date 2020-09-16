@@ -13,7 +13,7 @@ class Tests_XMLRPC_wp_setOptions extends WP_XMLRPC_UnitTestCase {
 		$escaped_string_with_quote = esc_html( $string_with_quote ); // Title is passed through esc_html().
 
 		update_option( 'default_comment_status', 'closed' );
-		$this->assertEquals( 'closed', get_option( 'default_comment_status' ) );
+		$this->assertSame( 'closed', get_option( 'default_comment_status' ) );
 		$result = $this->myxmlrpcserver->wp_setOptions(
 			array(
 				1,
@@ -27,7 +27,7 @@ class Tests_XMLRPC_wp_setOptions extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$this->assertInternalType( 'array', $result );
-		$this->assertEquals( $escaped_string_with_quote, $result['blog_title']['value'] );
-		$this->assertEquals( 'open', $result['default_comment_status']['value'] );
+		$this->assertSame( $escaped_string_with_quote, $result['blog_title']['value'] );
+		$this->assertSame( 'open', $result['default_comment_status']['value'] );
 	}
 }

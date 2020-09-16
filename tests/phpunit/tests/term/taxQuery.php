@@ -94,7 +94,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( 'foo' ), $tq->queries[0]['terms'] );
+		$this->assertSame( array( 'foo' ), $tq->queries[0]['terms'] );
 	}
 
 	/**
@@ -237,7 +237,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 		);
 		$tq->transform_query( $tq->queries[0], 'term_id' );
 
-		$this->assertEquals( array( $t1 ), $tq->queries[0]['terms'] );
+		$this->assertSame( array( $t1 ), $tq->queries[0]['terms'] );
 		$this->assertSame( 'term_id', $tq->queries[0]['field'] );
 	}
 

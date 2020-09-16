@@ -57,7 +57,7 @@ class Tests_Functions_MaybeDeclineDate extends WP_UnitTestCase {
 
 		remove_filter( 'gettext_with_context', array( $this, 'filter__enable_months_names_declension' ), 10 );
 
-		$this->assertEquals( $output, $declined_date );
+		$this->assertSame( $output, $declined_date );
 	}
 
 	public function filter__enable_months_names_declension( $translation, $text, $context ) {

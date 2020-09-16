@@ -26,7 +26,7 @@ class Tests_WP_Hook_Iterator extends WP_UnitTestCase {
 				$functions[] = $the_['function'];
 			}
 		}
-		$this->assertEqualSets( array( $priority, $priority + 1 ), $priorities );
-		$this->assertEqualSets( array( $callback_one, $callback_two ), $functions );
+		$this->assertSameSets( array( $priority, $priority + 1 ), $priorities );
+		$this->assertSameSets( array( $callback_one, $callback_two ), $functions );
 	}
 }

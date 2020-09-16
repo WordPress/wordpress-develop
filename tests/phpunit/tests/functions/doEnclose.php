@@ -12,7 +12,7 @@
  *
  * @group functions.php
  * @group post
- * @covers do_enclose
+ * @covers ::do_enclose
  *
  * @since 5.3.0
  */

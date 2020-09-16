@@ -9,7 +9,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'username', 'password', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -17,7 +17,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'contributor', 'contributor', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_user() {
@@ -31,7 +31,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		foreach ( $results as $result ) {
 			$comment = get_comment( $result['comment_id'], ARRAY_A );
-			$this->assertEquals( $comment['comment_post_ID'], $result['post_id'] );
+			$this->assertSame( $comment['comment_post_ID'], $result['post_id'] );
 		}
 	}
 
@@ -134,7 +134,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'contributor', 'contributor' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_author_capabilities() {

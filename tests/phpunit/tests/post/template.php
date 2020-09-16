@@ -21,7 +21,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 		$expected = '<p class="post-nav-links">Pages: <span class="post-page-numbers current" aria-current="page">1</span> ' . $page2 . '2</a> ' . $page3 . '3</a></p>';
 		$output   = wp_link_pages( array( 'echo' => 0 ) );
 
-		$this->assertEquals( $expected, $output );
+		$this->assertSame( $expected, $output );
 
 		$before_after = " <span class=\"post-page-numbers current\" aria-current=\"page\">1</span> {$page2}2</a> {$page3}3</a>";
 		$output       = wp_link_pages(
@@ -32,7 +32,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $before_after, $output );
+		$this->assertSame( $before_after, $output );
 
 		$separator = " <span class=\"post-page-numbers current\" aria-current=\"page\">1</span>{$page2}2</a>{$page3}3</a>";
 		$output    = wp_link_pages(
@@ -44,7 +44,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $separator, $output );
+		$this->assertSame( $separator, $output );
 
 		$link   = " <span class=\"post-page-numbers current\" aria-current=\"page\"><em>1</em></span>{$page2}<em>2</em></a>{$page3}<em>3</em></a>";
 		$output = wp_link_pages(
@@ -58,7 +58,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $link, $output );
+		$this->assertSame( $link, $output );
 
 		$next   = "{$page2}<em>Next page</em></a>";
 		$output = wp_link_pages(
@@ -73,7 +73,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $next, $output );
+		$this->assertSame( $next, $output );
 
 		$GLOBALS['page'] = 2;
 		$next_prev       = "{$permalink}<em>Previous page</em></a>{$page3}<em>Next page</em></a>";
@@ -89,7 +89,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $next_prev, $output );
+		$this->assertSame( $next_prev, $output );
 
 		$next_prev_link = "{$permalink}Woo page</a>{$page3}Hoo page</a>";
 		$output         = wp_link_pages(
@@ -104,7 +104,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $next_prev_link, $output );
+		$this->assertSame( $next_prev_link, $output );
 
 		$GLOBALS['page'] = 1;
 		$separator       = "<p class=\"post-nav-links\">Pages: <span class=\"post-page-numbers current\" aria-current=\"page\">1</span> | {$page2}2</a> | {$page3}3</a></p>";
@@ -115,7 +115,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $separator, $output );
+		$this->assertSame( $separator, $output );
 
 		$pagelink = " <span class=\"post-page-numbers current\" aria-current=\"page\">Page 1</span> | {$page2}Page 2</a> | {$page3}Page 3</a>";
 		$output   = wp_link_pages(
@@ -128,7 +128,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $pagelink, $output );
+		$this->assertSame( $pagelink, $output );
 	}
 
 	function test_wp_dropdown_pages() {
@@ -164,7 +164,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 LINEAGE;
 
 		$output = wp_dropdown_pages( array( 'echo' => 0 ) );
-		$this->assertEqualsIgnoreEOL( $lineage, $output );
+		$this->assertSameIgnoreEOL( $lineage, $output );
 
 		$depth = <<<DEPTH
 <select name='page_id' id='page_id'>
@@ -179,7 +179,7 @@ DEPTH;
 				'depth' => 1,
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $depth, $output );
+		$this->assertSameIgnoreEOL( $depth, $output );
 
 		$option_none = <<<NONE
 <select name='page_id' id='page_id'>
@@ -197,7 +197,7 @@ NONE;
 				'option_none_value' => 'Woo',
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $option_none, $output );
+		$this->assertSameIgnoreEOL( $option_none, $output );
 
 		$option_no_change = <<<NO
 <select name='page_id' id='page_id'>
@@ -217,7 +217,7 @@ NO;
 				'show_option_no_change' => 'Burrito',
 			)
 		);
-		$this->assertEqualsIgnoreEOL( $option_no_change, $output );
+		$this->assertSameIgnoreEOL( $option_no_change, $output );
 	}
 
 	/**
@@ -353,13 +353,13 @@ NO;
 			)
 		);
 
-		$this->assertEquals( '', get_page_template_slug( $page_id ) );
+		$this->assertSame( '', get_page_template_slug( $page_id ) );
 
 		update_post_meta( $page_id, '_wp_page_template', 'default' );
-		$this->assertEquals( '', get_page_template_slug( $page_id ) );
+		$this->assertSame( '', get_page_template_slug( $page_id ) );
 
 		update_post_meta( $page_id, '_wp_page_template', 'example.php' );
-		$this->assertEquals( 'example.php', get_page_template_slug( $page_id ) );
+		$this->assertSame( 'example.php', get_page_template_slug( $page_id ) );
 	}
 
 	/**
@@ -375,7 +375,7 @@ NO;
 		update_post_meta( $page_id, '_wp_page_template', 'example.php' );
 		$this->go_to( get_permalink( $page_id ) );
 
-		$this->assertEquals( 'example.php', get_page_template_slug() );
+		$this->assertSame( 'example.php', get_page_template_slug() );
 	}
 
 	/**
@@ -385,14 +385,14 @@ NO;
 	public function test_get_page_template_slug_non_page() {
 		$post_id = self::factory()->post->create();
 
-		$this->assertEquals( '', get_page_template_slug( $post_id ) );
+		$this->assertSame( '', get_page_template_slug( $post_id ) );
 
 		update_post_meta( $post_id, '_wp_page_template', 'default' );
 
-		$this->assertEquals( '', get_page_template_slug( $post_id ) );
+		$this->assertSame( '', get_page_template_slug( $post_id ) );
 
 		update_post_meta( $post_id, '_wp_page_template', 'example.php' );
-		$this->assertEquals( 'example.php', get_page_template_slug( $post_id ) );
+		$this->assertSame( 'example.php', get_page_template_slug( $post_id ) );
 	}
 
 	/**
@@ -405,7 +405,7 @@ NO;
 
 		$this->go_to( get_permalink( $post_id ) );
 
-		$this->assertEquals( 'example.php', get_page_template_slug() );
+		$this->assertSame( 'example.php', get_page_template_slug() );
 	}
 
 	/**

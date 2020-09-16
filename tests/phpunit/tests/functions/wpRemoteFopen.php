@@ -29,6 +29,6 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 		$response = wp_remote_fopen( $url );
 
 		$this->assertInternalType( 'string', $response );
-		$this->assertEquals( 40148, strlen( $response ) );
+		$this->assertSame( 40148, strlen( $response ) );
 	}
 }

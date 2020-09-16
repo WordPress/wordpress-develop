@@ -32,18 +32,18 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 		$json_translations = file_get_contents( DIR_TESTDATA . '/languages/en_US-813e104eb47e13dd4cc5af844c618754.json' );
 
 		wp_enqueue_script( 'test-example-root', '/wp-includes/js/script.js', array(), null );
-		$this->assertEquals( $json_translations, load_script_textdomain( 'test-example-root', 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame( $json_translations, load_script_textdomain( 'test-example-root', 'default', DIR_TESTDATA . '/languages' ) );
 
 		// Assets on a CDN.
 		add_filter( 'load_script_textdomain_relative_path', array( $this, 'relative_path_from_cdn' ), 10, 2 );
 		wp_enqueue_script( 'test-example-cdn', 'https://my-cdn.com/wordpress/wp-includes/js/script.js', array(), null );
-		$this->assertEquals( $json_translations, load_script_textdomain( 'test-example-cdn', 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame( $json_translations, load_script_textdomain( 'test-example-cdn', 'default', DIR_TESTDATA . '/languages' ) );
 		remove_filter( 'load_script_textdomain_relative_path', array( $this, 'relative_path_from_cdn' ) );
 
 		// Test for WordPress installs in a subdirectory.
 		add_filter( 'site_url', array( $this, 'site_url_subdirectory' ) );
 		wp_enqueue_script( 'test-example-subdir', '/wp/wp-includes/js/script.js', array(), null );
-		$this->assertEquals( $json_translations, load_script_textdomain( 'test-example-subdir', 'default', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame( $json_translations, load_script_textdomain( 'test-example-subdir', 'default', DIR_TESTDATA . '/languages' ) );
 		remove_filter( 'site_url', array( $this, 'site_url_subdirectory' ) );
 	}
 
@@ -55,7 +55,7 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 
 		add_filter( 'plugins_url', array( $this, 'plugins_url_custom_domain' ) );
 		wp_enqueue_script( 'plugin-example-1', 'https://plugins.example.com/my-plugin/js/script.js', array(), null );
-		$this->assertEquals( $json_translations, load_script_textdomain( 'plugin-example-1', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame( $json_translations, load_script_textdomain( 'plugin-example-1', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
 		remove_filter( 'plugins_url', array( $this, 'plugins_url_custom_domain' ) );
 	}
 
@@ -67,7 +67,7 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 
 		add_filter( 'content_url', array( $this, 'content_url_custom_domain_with_no_path' ) );
 		wp_enqueue_script( 'plugin-example-2', 'https://content.example.com/plugins/my-plugin/js/script.js', array(), null );
-		$this->assertEquals( $json_translations, load_script_textdomain( 'plugin-example-2', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
+		$this->assertSame( $json_translations, load_script_textdomain( 'plugin-example-2', 'internationalized-plugin', DIR_TESTDATA . '/languages' ) );
 		remove_filter( 'content_url', array( $this, 'content_url_custom_domain_with_no_path' ) );
 	}
 }

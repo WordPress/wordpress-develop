@@ -66,4 +66,19 @@ class Tests_Formatting_WpTrimExcerpt extends WP_UnitTestCase {
 			}
 		}
 	}
+
+	/**
+	 * @ticket 51042
+	 */
+	public function test_should_generate_excerpt_for_empty_values() {
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => 'Post content',
+			)
+		);
+
+		$this->assertSame( 'Post content', wp_trim_excerpt( '', $post ) );
+		$this->assertSame( 'Post content', wp_trim_excerpt( null, $post ) );
+		$this->assertSame( 'Post content', wp_trim_excerpt( false, $post ) );
+	}
 }

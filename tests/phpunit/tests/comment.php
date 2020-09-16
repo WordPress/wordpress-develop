@@ -52,7 +52,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_parent' => $comments[1],
 			)
 		);
-		$this->assertEquals( 1, $result );
+		$this->assertSame( 1, $result );
 
 		$comment = get_comment( $comments[0] );
 		$this->assertEquals( $comments[1], $comment->comment_parent );
@@ -63,7 +63,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_parent' => $comments[1],
 			)
 		);
-		$this->assertEquals( 0, $result );
+		$this->assertSame( 0, $result );
 
 		$result = wp_update_comment(
 			array(
@@ -90,7 +90,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		);
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( 'pingback', $comment->comment_type );
+		$this->assertSame( 'pingback', $comment->comment_type );
 	}
 
 	/**
@@ -109,7 +109,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'fire', get_comment_meta( $comment_id, 'sauce', true ) );
+		$this->assertSame( 'fire', get_comment_meta( $comment_id, 'sauce', true ) );
 	}
 
 	/**
@@ -147,7 +147,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		$this->assertSame( 1, $update );
 
 		$comment = get_comment( $comment_id );
-		$this->assertEquals( $updated_comment_text, $comment->comment_content );
+		$this->assertSame( $updated_comment_text, $comment->comment_content );
 	}
 
 	/**
@@ -162,7 +162,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID' => self::$post_id,
 			)
 		);
-		$this->assertSame( false, $update );
+		$this->assertFalse( $update );
 
 		$update = wp_update_comment(
 			array(
@@ -170,7 +170,7 @@ class Tests_Comment extends WP_UnitTestCase {
 				'comment_post_ID' => -1,
 			)
 		);
-		$this->assertSame( false, $update );
+		$this->assertFalse( $update );
 	}
 
 	/**
@@ -290,8 +290,8 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( $data['comment_date'], $comment->comment_date );
-		$this->assertEquals( $data['comment_date_gmt'], $comment->comment_date_gmt );
+		$this->assertSame( $data['comment_date'], $comment->comment_date );
+		$this->assertSame( $data['comment_date_gmt'], $comment->comment_date_gmt );
 	}
 
 	/**
@@ -312,7 +312,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( $data['comment_author_IP'], $comment->comment_author_IP );
+		$this->assertSame( $data['comment_author_IP'], $comment->comment_author_IP );
 	}
 
 	/**
@@ -333,7 +333,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( $data['comment_author_IP'], $comment->comment_author_IP );
+		$this->assertSame( $data['comment_author_IP'], $comment->comment_author_IP );
 	}
 
 	/**
@@ -355,7 +355,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( $data['comment_agent'], $comment->comment_agent );
+		$this->assertSame( $data['comment_agent'], $comment->comment_agent );
 	}
 
 	/**
@@ -377,7 +377,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53 Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16 Mozilla/5.0 (Macintosh; U; PPC Mac OS ', $comment->comment_agent );
+		$this->assertSame( 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53 Opera/9.80 (X11; Linux i686; Ubuntu/14.10) Presto/2.12.388 Version/12.16 Mozilla/5.0 (Macintosh; U; PPC Mac OS ', $comment->comment_agent );
 	}
 
 	/**
@@ -399,7 +399,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( $data['comment_agent'], $comment->comment_agent );
+		$this->assertSame( $data['comment_agent'], $comment->comment_agent );
 	}
 
 
@@ -419,7 +419,7 @@ class Tests_Comment extends WP_UnitTestCase {
 
 		$comment = get_comment( $id );
 
-		$this->assertEquals( strlen( $comment->comment_content ), 65535 );
+		$this->assertSame( strlen( $comment->comment_content ), 65535 );
 	}
 
 	/**
@@ -568,7 +568,7 @@ class Tests_Comment extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'fire', get_comment_meta( $c, 'sauce', true ) );
+		$this->assertSame( 'fire', get_comment_meta( $c, 'sauce', true ) );
 	}
 
 	/**

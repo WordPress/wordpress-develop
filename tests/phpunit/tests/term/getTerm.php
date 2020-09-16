@@ -72,11 +72,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_passing_term_string_that_casts_to_int_0_should_return_null() {
-		$this->assertSame( null, get_term( 'abc', 'wptests_tax' ) );
+		$this->assertNull( get_term( 'abc', 'wptests_tax' ) );
 	}
 
 	public function test_should_return_null_for_invalid_term_id() {
-		$this->assertSame( null, get_term( 99999999, 'wptests_tax' ) );
+		$this->assertNull( get_term( 99999999, 'wptests_tax' ) );
 	}
 
 	public function test_cache_should_be_populated_by_successful_fetch() {

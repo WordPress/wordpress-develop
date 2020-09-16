@@ -22,7 +22,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_2 ), $q->terms );
+		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
 	public function test_taxonomy_should_accept_taxonomy_array() {
@@ -40,7 +40,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_2 ), $q->terms );
+		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $q->terms );
+		$this->assertSameSets( array( $terms[0] ), $q->terms );
 	}
 
 	/**
@@ -102,7 +102,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[2] ), $q->terms );
+		$this->assertSameSets( array( $terms[0], $terms[2] ), $q->terms );
 	}
 
 	/**
@@ -243,7 +243,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t ), $query->terms );
+		$this->assertSameSets( array( $t ), $query->terms );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t ), $query->terms );
+		$this->assertSameSets( array( $t ), $query->terms );
 	}
 
 	/**
@@ -374,7 +374,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$found = $query->get_terms();
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		wp_set_object_terms( $p, array( $terms[1] ), 'wptests_tax_1' );
 
@@ -387,7 +387,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$found = $query->get_terms();
 
-		$this->assertEqualSets( array( $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[1] ), $found );
 	}
 
 	/**
@@ -480,11 +480,11 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$post_id  = self::factory()->post->create();
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
-		$this->assertEquals( array( $term_ids[0], $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[0], $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
 		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
-		$this->assertEquals( array( $term_ids[1], $term_ids[0] ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[1], $term_ids[0] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
 	/**
@@ -510,11 +510,11 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$post_id  = self::factory()->post->create();
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
-		$this->assertEquals( array( $term_ids[0], $term_ids[1], 1 ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[0], $term_ids[1], 1 ), wp_list_pluck( $terms, 'term_id' ) );
 		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
-		$this->assertEquals( array( $term_ids[1], $term_ids[0], 1 ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[1], $term_ids[0], 1 ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
 	/**
@@ -690,7 +690,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$expected = array( $terms[0], $terms[2] );
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
 	}
 
 	public function filter_term_to_null( $term ) {
@@ -727,7 +727,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$expected = array( $terms[0], $terms[2] );
 
-		$this->assertEqualSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
 	}
 
 	public function filter_term_to_wp_error( $term ) {

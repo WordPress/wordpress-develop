@@ -33,7 +33,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$value  = __FUNCTION__;
 
 		add_network_option( $id, $option, $value );
-		$this->assertEquals( $value, get_network_option( $id, $option, false ) );
+		$this->assertSame( $value, get_network_option( $id, $option, false ) );
 	}
 
 	/**
@@ -47,7 +47,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		add_site_option( $option, $value );
 		add_network_option( $id, $option, $value );
 		delete_site_option( $option );
-		$this->assertEquals( $value, get_network_option( $id, $option, false ) );
+		$this->assertSame( $value, get_network_option( $id, $option, false ) );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$option = rand_str();
 		$value  = rand_str();
 
-		$this->assertEquals( $expected_response, add_network_option( $network_id, $option, $value ) );
+		$this->assertSame( $expected_response, add_network_option( $network_id, $option, $value ) );
 	}
 
 	/**
@@ -100,7 +100,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 	function test_get_network_option_network_id_parameter( $network_id, $expected_response ) {
 		$option = rand_str();
 
-		$this->assertEquals( $expected_response, get_network_option( $network_id, $option, true ) );
+		$this->assertSame( $expected_response, get_network_option( $network_id, $option, true ) );
 	}
 
 	function data_network_id_parameter() {
@@ -203,6 +203,6 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 		$this->assertFalse( update_network_option( null, 'array_w_object', $array_w_object_2 ) );
 
 		// Check that no new database queries were performed.
-		$this->assertEquals( $num_queries_pre_update, get_num_queries() );
+		$this->assertSame( $num_queries_pre_update, get_num_queries() );
 	}
 }

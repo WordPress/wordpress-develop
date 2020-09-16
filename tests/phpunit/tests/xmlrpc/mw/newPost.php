@@ -9,7 +9,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$post   = array();
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -18,7 +18,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$post   = array();
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'subscriber', 'subscriber', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_no_content() {
@@ -27,8 +27,8 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$post   = array();
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 500, $result->code );
-		$this->assertEquals( 'Content, title, and excerpt are empty.', $result->message );
+		$this->assertSame( 500, $result->code );
+		$this->assertSame( 'Content, title, and excerpt are empty.', $result->message );
 	}
 
 	function test_basic_content() {
@@ -72,7 +72,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_other_author() {
@@ -97,7 +97,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	/**
@@ -112,7 +112,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 404, $result->code );
+		$this->assertSame( 404, $result->code );
 	}
 
 	function test_empty_author() {
@@ -125,7 +125,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$out = get_post( $result );
 		$this->assertEquals( $my_author_id, $out->post_author );
-		$this->assertEquals( 'Test', $out->post_title );
+		$this->assertSame( 'Test', $out->post_title );
 	}
 
 	function test_post_thumbnail() {
@@ -157,7 +157,7 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->mw_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_set_post_type_as_page() {
@@ -172,8 +172,8 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 
 		$out = get_post( $result );
-		$this->assertEquals( 'Test', $out->post_title );
-		$this->assertEquals( 'page', $out->post_type );
+		$this->assertSame( 'Test', $out->post_title );
+		$this->assertSame( 'page', $out->post_type );
 	}
 
 
@@ -193,8 +193,8 @@ class Tests_XMLRPC_mw_newPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result );
 
 		$out = get_post( $result );
-		$this->assertEquals( 'post', $out->post_type );
-		$this->assertEquals( 'draft', $out->post_status );
-		$this->assertEquals( '0000-00-00 00:00:00', $out->post_date_gmt );
+		$this->assertSame( 'post', $out->post_type );
+		$this->assertSame( 'draft', $out->post_status );
+		$this->assertSame( '0000-00-00 00:00:00', $out->post_date_gmt );
 	}
 }

@@ -20,10 +20,10 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 
 		$this->assertFalse( get_transient( 'doesnotexist' ) );
 		$this->assertTrue( set_transient( $key, $value ) );
-		$this->assertEquals( $value, get_transient( $key ) );
+		$this->assertSame( $value, get_transient( $key ) );
 		$this->assertFalse( set_transient( $key, $value ) );
 		$this->assertTrue( set_transient( $key, $value2 ) );
-		$this->assertEquals( $value2, get_transient( $key ) );
+		$this->assertSame( $value2, get_transient( $key ) );
 		$this->assertTrue( delete_transient( $key ) );
 		$this->assertFalse( get_transient( $key ) );
 		$this->assertFalse( delete_transient( $key ) );
@@ -37,7 +37,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( set_transient( $key, $value ) );
-		$this->assertEquals( $value, get_transient( $key ) );
+		$this->assertSame( $value, get_transient( $key ) );
 
 		$value = (object) $value;
 		$this->assertTrue( set_transient( $key, $value ) );
@@ -74,7 +74,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$value  = rand_str();
 		$value2 = rand_str();
 		$this->assertTrue( set_transient( $key, $value ) );
-		$this->assertEquals( $value, get_transient( $key ) );
+		$this->assertSame( $value, get_transient( $key ) );
 
 		$this->assertFalse( get_option( '_transient_timeout_' . $key ) );
 
@@ -96,7 +96,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		// Create a bogus a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );
-		$this->assertEquals( 'test', get_transient( $key ) );
+		$this->assertSame( 'test', get_transient( $key ) );
 
 		// Useful variables for tracking.
 		$transient_timeout = '_transient_timeout_' . $key;
@@ -114,7 +114,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		get_transient( $key );
 
 		// Make sure 'delete_option' was not called for both the transient and the timeout.
-		$this->assertEquals( 0, $a->get_call_count() );
+		$this->assertSame( 0, $a->get_call_count() );
 	}
 
 	/**
@@ -124,7 +124,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		// Create a transient.
 		$key = 'test_transient';
 		set_transient( $key, 'test', 60 * 10 );
-		$this->assertEquals( 'test', get_transient( $key ) );
+		$this->assertSame( 'test', get_transient( $key ) );
 
 		// Make sure the timeout option returns false.
 		$timeout          = '_transient_timeout_' . $key;
@@ -141,7 +141,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		get_transient( $key );
 
 		// Make sure 'delete_option' was called for both the transient and the timeout.
-		$this->assertEquals( 2, $a->get_call_count() );
+		$this->assertSame( 2, $a->get_call_count() );
 
 		$expected = array(
 			array(
@@ -155,6 +155,6 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 				'args'   => array( $timeout ),
 			),
 		);
-		$this->assertEquals( $expected, $a->get_events() );
+		$this->assertSame( $expected, $a->get_events() );
 	}
 }

@@ -213,7 +213,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				$plural_forms->get( 1 );
 			}
 		} catch ( Exception $e ) {
-			$this->assertEquals( $expected_exception, $e->getMessage() );
+			$this->assertSame( $expected_exception, $e->getMessage() );
 			return;
 		}
 
@@ -236,6 +236,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 		$first  = $mock->get( 2 );
 		$second = $mock->get( 2 );
-		$this->assertEquals( $first, $second );
+		$this->assertSame( $first, $second );
 	}
 }

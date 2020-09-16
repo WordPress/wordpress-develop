@@ -29,13 +29,13 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test get_instance_schema method.
 	 *
-	 * @covers WP_Widget_Media_Video::get_instance_schema()
+	 * @covers WP_Widget_Media_Video::get_instance_schema
 	 */
 	function test_get_instance_schema() {
 		$widget = new WP_Widget_Media_Video();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				array(
 					'attachment_id',
@@ -86,7 +86,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Video::__construct()
+	 * @covers WP_Widget_Media_Video::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Video();
@@ -95,8 +95,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'video', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'video', $widget->widget_options['mime_type'] );
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',
@@ -115,7 +115,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test get_instance_schema method.
 	 *
-	 * @covers WP_Widget_Media_Video::update()
+	 * @covers WP_Widget_Media_Video::update
 	 */
 	function test_update() {
 		$widget   = new WP_Widget_Media_Video();
@@ -215,8 +215,8 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test render_media method.
 	 *
-	 * @covers WP_Widget_Media_Video::render_media()
-	 * @covers WP_Widget_Media_Video::inject_video_max_width_style()
+	 * @covers WP_Widget_Media_Video::render_media
+	 * @covers WP_Widget_Media_Video::inject_video_max_width_style
 	 */
 	function test_render_media() {
 		$test_movie_file = __FILE__ . '../../data/uploads/small-video.m4v';
@@ -303,7 +303,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
-	 * @covers WP_Widget_Media_Video::enqueue_preview_scripts()
+	 * @covers WP_Widget_Media_Video::enqueue_preview_scripts
 	 */
 	function test_enqueue_preview_scripts() {
 		global $wp_scripts, $wp_styles;
@@ -328,7 +328,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test enqueue_admin_scripts method.
 	 *
-	 * @covers WP_Widget_Media_Video::enqueue_admin_scripts()
+	 * @covers WP_Widget_Media_Video::enqueue_admin_scripts
 	 */
 	function test_enqueue_admin_scripts() {
 		set_current_screen( 'widgets.php' );
@@ -341,7 +341,7 @@ class Test_WP_Widget_Media_Video extends WP_UnitTestCase {
 	/**
 	 * Test render_control_template_scripts method.
 	 *
-	 * @covers WP_Widget_Media_Video::render_control_template_scripts()
+	 * @covers WP_Widget_Media_Video::render_control_template_scripts
 	 */
 	function test_render_control_template_scripts() {
 		$widget = new WP_Widget_Media_Video();

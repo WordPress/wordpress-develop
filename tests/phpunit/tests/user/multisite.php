@@ -52,7 +52,7 @@ if ( is_multisite() ) :
 			$blog_ids_of_user = array_keys( get_blogs_of_user( $user1_id ) );
 
 			// User should be a member of the created sites and the network's initial site.
-			$this->assertEquals( $blog_ids, $blog_ids_of_user );
+			$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_ids[0] ) );
 			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_ids[2] ) );
@@ -67,11 +67,11 @@ if ( is_multisite() ) :
 
 			// The user should still be a member of all remaining sites.
 			$blog_ids_of_user = array_keys( $blogs_of_user );
-			$this->assertEquals( $blog_ids, $blog_ids_of_user );
+			$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 			// Each site retrieved should match the expected structure.
 			foreach ( $blogs_of_user as $blog_id => $blog ) {
-				$this->assertEquals( $blog_id, $blog->userblog_id );
+				$this->assertSame( $blog_id, $blog->userblog_id );
 				$this->assertTrue( isset( $blog->userblog_id ) );
 				$this->assertTrue( isset( $blog->blogname ) );
 				$this->assertTrue( isset( $blog->domain ) );
@@ -91,7 +91,7 @@ if ( is_multisite() ) :
 			// Passing true as the second parameter should retrieve ALL sites, even if marked.
 			$blogs_of_user    = get_blogs_of_user( $user1_id, true );
 			$blog_ids_of_user = array_keys( $blogs_of_user );
-			$this->assertEquals( $blog_ids, $blog_ids_of_user );
+			$this->assertSame( $blog_ids, $blog_ids_of_user );
 
 			// Check if sites are flagged as expected.
 			$this->assertEquals( 1, $blogs_of_user[ $blog_ids[0] ]->spam );
@@ -105,7 +105,7 @@ if ( is_multisite() ) :
 
 			// Passing false (the default) as the second parameter should retrieve only good sites.
 			$blog_ids_of_user = array_keys( get_blogs_of_user( $user1_id, false ) );
-			$this->assertEquals( $blog_ids, $blog_ids_of_user );
+			$this->assertSame( $blog_ids, $blog_ids_of_user );
 		}
 
 		/**
@@ -369,7 +369,7 @@ if ( is_multisite() ) :
 		public function test_should_return_false_for_object_user_id() {
 			$u_obj = self::factory()->user->create_and_get();
 			$this->assertFalse( wpmu_delete_user( $u_obj ) );
-			$this->assertEquals( $u_obj->ID, username_exists( $u_obj->user_login ) );
+			$this->assertSame( $u_obj->ID, username_exists( $u_obj->user_login ) );
 		}
 
 		/**

@@ -43,7 +43,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $admin_bar->get_nodes();
 		$this->assertFalse( $nodes['new-content']->parent );
-		$this->assertEquals( 'new-content', $nodes['add-new-content']->parent );
+		$this->assertSame( 'new-content', $nodes['add-new-content']->parent );
 
 		_unregister_post_type( 'content' );
 	}
@@ -64,7 +64,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 
 		$node1 = $admin_bar->get_node( 'test-node' );
-		$this->assertEquals( array( 'class' => 'test-class' ), $node1->meta );
+		$this->assertSame( array( 'class' => 'test-class' ), $node1->meta );
 
 		$admin_bar->add_node(
 			array(
@@ -74,7 +74,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 
 		$node2 = $admin_bar->get_node( 'test-node' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'class'     => 'test-class',
 				'some-meta' => 'value',
@@ -100,7 +100,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Site menu points to the home page instead of the admin URL.
-		$this->assertEquals( home_url( '/' ), $node_site_name->href );
+		$this->assertSame( home_url( '/' ), $node_site_name->href );
 
 		// No profile links as the user doesn't have any permissions on the site.
 		$this->assertFalse( $node_my_account->href );
@@ -125,14 +125,14 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$node_edit_profile = $wp_admin_bar->get_node( 'edit-profile' );
 
 		// Site menu points to the admin URL.
-		$this->assertEquals( admin_url( '/' ), $node_site_name->href );
+		$this->assertSame( admin_url( '/' ), $node_site_name->href );
 
 		$profile_url = admin_url( 'profile.php' );
 
 		// Profile URLs point to profile.php.
-		$this->assertEquals( $profile_url, $node_my_account->href );
-		$this->assertEquals( $profile_url, $node_user_info->href );
-		$this->assertEquals( $profile_url, $node_edit_profile->href );
+		$this->assertSame( $profile_url, $node_my_account->href );
+		$this->assertSame( $profile_url, $node_user_info->href );
+		$this->assertSame( $profile_url, $node_edit_profile->href );
 	}
 
 	/**
@@ -177,9 +177,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertNotEquals( $primary_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
-		$this->assertEquals( $primary_profile_url, $node_my_account->href );
-		$this->assertEquals( $primary_profile_url, $node_user_info->href );
-		$this->assertEquals( $primary_profile_url, $node_edit_profile->href );
+		$this->assertSame( $primary_profile_url, $node_my_account->href );
+		$this->assertSame( $primary_profile_url, $node_user_info->href );
+		$this->assertSame( $primary_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
@@ -232,9 +232,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$this->assertNotEquals( $user_profile_url, admin_url( 'profile.php' ) );
 
 		// Profile URLs should go to the user's primary blog.
-		$this->assertEquals( $user_profile_url, $node_my_account->href );
-		$this->assertEquals( $user_profile_url, $node_user_info->href );
-		$this->assertEquals( $user_profile_url, $node_edit_profile->href );
+		$this->assertSame( $user_profile_url, $node_my_account->href );
+		$this->assertSame( $user_profile_url, $node_user_info->href );
+		$this->assertSame( $user_profile_url, $node_edit_profile->href );
 
 		restore_current_blog();
 	}
@@ -463,7 +463,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$about_node   = $wp_admin_bar->get_node( 'about' );
 
 		$this->assertNotNull( $wp_logo_node );
-		$this->assertSame( false, $wp_logo_node->href );
+		$this->assertFalse( $wp_logo_node->href );
 		$this->assertArrayHasKey( 'tabindex', $wp_logo_node->meta );
 		$this->assertSame( 0, $wp_logo_node->meta['tabindex'] );
 		$this->assertNull( $about_node );
@@ -687,7 +687,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$parsed_url   = wp_parse_url( $node->href );
 		$query_params = array();
 		wp_parse_str( $parsed_url['query'], $query_params );
-		$this->assertEquals( $uuid, $query_params['changeset_uuid'] );
+		$this->assertSame( $uuid, $query_params['changeset_uuid'] );
 		$this->assertNotContains( 'changeset_uuid', $query_params['url'] );
 	}
 

@@ -28,10 +28,10 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 		$cpage = get_query_var( 'cpage' );
 		set_query_var( 'cpage', '' );
 
-		$link = get_previous_comments_link( 'Next', 5 );
+		$link = get_previous_comments_link( 'Next' );
 
 		// Technically, it returns null here.
-		$this->assertEquals( '', $link );
+		$this->assertNull( $link );
 
 		set_query_var( 'cpage', $cpage );
 	}

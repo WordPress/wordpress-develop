@@ -7,7 +7,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	function test_munges_extensions() {
 		# r17990
 		$file_name = sanitize_file_name( 'test.phtml.txt' );
-		$this->assertEquals( 'test.phtml_.txt', $file_name );
+		$this->assertSame( 'test.phtml_.txt', $file_name );
 	}
 
 	function test_removes_special_chars() {
@@ -17,7 +17,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 			$string .= $char;
 		}
 		$string .= 'test';
-		$this->assertEquals( 'testtest', sanitize_file_name( $string ) );
+		$this->assertSame( 'testtest', sanitize_file_name( $string ) );
 	}
 
 	/**
@@ -26,7 +26,7 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	function test_removes_accents() {
 		$in  = 'àáâãäåæçèéêëìíîïñòóôõöøùúûüýÿ';
 		$out = 'aaaaaaaeceeeeiiiinoooooouuuuyy';
-		$this->assertEquals( $out, sanitize_file_name( $in ) );
+		$this->assertSame( $out, sanitize_file_name( $in ) );
 	}
 
 	/**
@@ -43,46 +43,46 @@ class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 		);
 
 		foreach ( $urls as $test => $expected ) {
-			$this->assertEquals( $expected, sanitize_file_name( $test ) );
+			$this->assertSame( $expected, sanitize_file_name( $test ) );
 		}
 	}
 
 	function test_replaces_any_number_of_hyphens_with_one_hyphen() {
-		$this->assertEquals( 'a-t-t', sanitize_file_name( 'a----t----t' ) );
+		$this->assertSame( 'a-t-t', sanitize_file_name( 'a----t----t' ) );
 	}
 
 	function test_trims_trailing_hyphens() {
-		$this->assertEquals( 'a-t-t', sanitize_file_name( 'a----t----t----' ) );
+		$this->assertSame( 'a-t-t', sanitize_file_name( 'a----t----t----' ) );
 	}
 
 	function test_replaces_any_amount_of_whitespace_with_one_hyphen() {
-		$this->assertEquals( 'a-t', sanitize_file_name( 'a          t' ) );
-		$this->assertEquals( 'a-t', sanitize_file_name( "a    \n\n\nt" ) );
+		$this->assertSame( 'a-t', sanitize_file_name( 'a          t' ) );
+		$this->assertSame( 'a-t', sanitize_file_name( "a    \n\n\nt" ) );
 	}
 
 	/**
 	 * @ticket 16226
 	 */
 	function test_replaces_percent_sign() {
-		$this->assertEquals( 'a22b.jpg', sanitize_file_name( 'a%22b.jpg' ) );
+		$this->assertSame( 'a22b.jpg', sanitize_file_name( 'a%22b.jpg' ) );
 	}
 
 	function test_replaces_unnamed_file_extensions() {
 		// Test filenames with both supported and unsupported extensions.
-		$this->assertEquals( 'unnamed-file.exe', sanitize_file_name( '_.exe' ) );
-		$this->assertEquals( 'unnamed-file.jpg', sanitize_file_name( '_.jpg' ) );
+		$this->assertSame( 'unnamed-file.exe', sanitize_file_name( '_.exe' ) );
+		$this->assertSame( 'unnamed-file.jpg', sanitize_file_name( '_.jpg' ) );
 	}
 
 	function test_replaces_unnamed_file_extensionless() {
 		// Test a filenames that becomes extensionless.
-		$this->assertEquals( 'no-extension', sanitize_file_name( '_.no-extension' ) );
+		$this->assertSame( 'no-extension', sanitize_file_name( '_.no-extension' ) );
 	}
 
 	/**
 	 * @dataProvider data_wp_filenames
 	 */
 	function test_replaces_invalid_utf8_characters( $input, $expected ) {
-		$this->assertEquals( $expected, sanitize_file_name( $input ) );
+		$this->assertSame( $expected, sanitize_file_name( $input ) );
 	}
 
 	function data_wp_filenames() {

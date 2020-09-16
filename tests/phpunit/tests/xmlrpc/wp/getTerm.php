@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'username', 'password', 'category', 1 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_empty_taxonomy() {
@@ -26,8 +26,8 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', '', 0 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	function test_invalid_taxonomy() {
@@ -35,8 +35,8 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'not_existing', 0 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	function test_incapable_user() {
@@ -44,8 +44,8 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'subscriber', 'subscriber', 'category', self::$term_id ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
-		$this->assertEquals( __( 'Sorry, you are not allowed to assign this term.' ), $result->message );
+		$this->assertSame( 401, $result->code );
+		$this->assertSame( __( 'Sorry, you are not allowed to assign this term.' ), $result->message );
 	}
 
 
@@ -54,8 +54,8 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', '' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 500, $result->code );
-		$this->assertEquals( __( 'Empty Term.' ), $result->message );
+		$this->assertSame( 500, $result->code );
+		$this->assertSame( __( 'Empty Term.' ), $result->message );
 	}
 
 	function test_invalid_term() {
@@ -63,8 +63,8 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerm( array( 1, 'editor', 'editor', 'category', 9999 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 404, $result->code );
-		$this->assertEquals( __( 'Invalid term ID.' ), $result->message );
+		$this->assertSame( 404, $result->code );
+		$this->assertSame( __( 'Invalid term ID.' ), $result->message );
 	}
 
 	function test_valid_term() {
@@ -92,11 +92,11 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result['parent'] );
 
 		// Check data.
-		$this->assertEquals( 0, $result['count'] );
-		$this->assertEquals( $term['name'], $result['name'] );
-		$this->assertEquals( $term['slug'], $result['slug'] );
-		$this->assertEquals( 'category', $result['taxonomy'] );
-		$this->assertEquals( $term['description'], $result['description'] );
+		$this->assertSame( 0, $result['count'] );
+		$this->assertSame( $term['name'], $result['name'] );
+		$this->assertSame( $term['slug'], $result['slug'] );
+		$this->assertSame( 'category', $result['taxonomy'] );
+		$this->assertSame( $term['description'], $result['description'] );
 	}
 
 	/**
@@ -123,6 +123,6 @@ class Tests_XMLRPC_wp_getTerm extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertInternalType( 'array', $result['custom_fields'] );
 		$term_meta = get_term_meta( self::$term_id, '', true );
-		$this->assertEquals( $term_meta['foo'][0], $result['custom_fields'][0]['value'] );
+		$this->assertSame( $term_meta['foo'][0], $result['custom_fields'][0]['value'] );
 	}
 }

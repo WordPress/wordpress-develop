@@ -62,7 +62,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 		$image = get_header_image();
 		$this->assertTrue( has_header_image() );
-		$this->assertEquals( $default, $image );
+		$this->assertSame( $default, $image );
 	}
 
 	function test_get_header_image_from_theme_mod() {
@@ -72,7 +72,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 		set_theme_mod( 'header_image', $custom );
 		$image = get_header_image();
-		$this->assertEquals( $custom, $image );
+		$this->assertSame( $custom, $image );
 		$this->assertTrue( has_header_image() );
 
 		set_theme_mod( 'header_image', 'remove-header' );
@@ -129,7 +129,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		// The container should always be returned in the Customizer preview.
 		$this->_set_customize_previewing( true );
 		$html = get_custom_header_markup();
-		$this->assertEquals( '<div id="wp-custom-header" class="wp-custom-header"></div>', $html );
+		$this->assertSame( '<div id="wp-custom-header" class="wp-custom-header"></div>', $html );
 	}
 
 	function test_get_custom_header_markup_with_registered_default_image() {
@@ -147,7 +147,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		$this->assertFalse( has_header_video() );
 		set_theme_mod( 'header_video', self::$header_video_id );
 		$this->assertTrue( has_header_video() );
-		$this->assertEquals( wp_get_attachment_url( self::$header_video_id ), get_header_video_url() );
+		$this->assertSame( wp_get_attachment_url( self::$header_video_id ), get_header_video_url() );
 	}
 
 	function test_get_external_header_video_url() {
@@ -157,7 +157,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		$this->assertFalse( has_header_video() );
 		set_theme_mod( 'external_header_video', $external );
 		$this->assertTrue( has_header_video() );
-		$this->assertEquals( $external, get_header_video_url() );
+		$this->assertSame( $external, get_header_video_url() );
 	}
 
 	function test_get_header_video_url_prefers_local_video() {
@@ -166,7 +166,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 		set_theme_mod( 'header_video', self::$header_video_id );
 		set_theme_mod( 'external_header_video', $external );
-		$this->assertEquals( wp_get_attachment_url( self::$header_video_id ), get_header_video_url() );
+		$this->assertSame( wp_get_attachment_url( self::$header_video_id ), get_header_video_url() );
 	}
 
 	function test_get_custom_header_markup_with_video_and_without_an_image() {
@@ -182,7 +182,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 		$html = get_custom_header_markup();
 		$this->assertTrue( has_header_video() );
 		$this->assertTrue( has_custom_header() );
-		$this->assertEquals( '<div id="wp-custom-header" class="wp-custom-header"></div>', $html );
+		$this->assertSame( '<div id="wp-custom-header" class="wp-custom-header"></div>', $html );
 	}
 
 	function test_header_script_is_not_enqueued_by_the_custom_header_markup_without_video() {

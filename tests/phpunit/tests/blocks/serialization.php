@@ -25,7 +25,7 @@ class WP_Test_Block_Serialization extends WP_UnitTestCase {
 		$actual   = serialize_blocks( $blocks );
 		$expected = $original;
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	function data_serialize_identity_from_parsed() {
@@ -51,10 +51,10 @@ class WP_Test_Block_Serialization extends WP_UnitTestCase {
 	}
 
 	function test_serialized_block_name() {
-		$this->assertEquals( null, strip_core_block_namespace( null ) );
-		$this->assertEquals( 'example', strip_core_block_namespace( 'example' ) );
-		$this->assertEquals( 'example', strip_core_block_namespace( 'core/example' ) );
-		$this->assertEquals( 'plugin/example', strip_core_block_namespace( 'plugin/example' ) );
+		$this->assertNull( strip_core_block_namespace( null ) );
+		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );
+		$this->assertSame( 'example', strip_core_block_namespace( 'core/example' ) );
+		$this->assertSame( 'plugin/example', strip_core_block_namespace( 'plugin/example' ) );
 	}
 
 }

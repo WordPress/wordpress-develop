@@ -42,7 +42,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 	 * @ticket 13905
 	 */
 	function test_capability_type_post_with_invalid_id() {
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'do_not_allow' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id + 1 )
 		);
@@ -60,29 +60,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertTrue( $post_type_object->map_meta_cap );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_posts', 'edit_private_posts' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_posts', 'edit_private_posts' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -99,29 +99,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$post_type_object = get_post_type_object( self::$post_type );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_books', 'edit_private_books' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_books', 'edit_private_books' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_books' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_books' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_books', 'delete_private_books' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_books', 'delete_private_books' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -140,29 +140,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertFalse( $post_type_object->map_meta_cap );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_post' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_post' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_post' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_post' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_post' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_post' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -185,29 +185,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertTrue( $post_type_object->map_meta_cap );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_books', 'edit_private_posts' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_books', 'edit_private_posts' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -230,29 +230,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertFalse( $post_type_object->map_meta_cap );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_book' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_book' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_book' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_book' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_book' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_book' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -276,29 +276,29 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 
 		$this->assertTrue( $post_type_object->map_meta_cap );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_posts', 'edit_private_posts' ),
 			map_meta_cap( 'edit_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'edit_others_posts', 'edit_private_posts' ),
 			map_meta_cap( $post_type_object->cap->edit_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( 'read_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'read_private_posts' ),
 			map_meta_cap( $post_type_object->cap->read_post, self::$user_id, self::$post_id )
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( 'delete_post', self::$user_id, self::$post_id )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'delete_others_posts', 'delete_private_posts' ),
 			map_meta_cap( $post_type_object->cap->delete_post, self::$user_id, self::$post_id )
 		);
@@ -319,7 +319,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		$post_type_object = get_post_type_object( self::$post_type );
 
 		$this->assertFalse( $post_type_object->map_meta_cap );
-		$this->assertEquals( 'delete_posts', $post_type_object->cap->delete_posts );
+		$this->assertSame( 'delete_posts', $post_type_object->cap->delete_posts );
 	}
 
 	function test_unfiltered_html_cap() {
@@ -328,10 +328,10 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		}
 
 		if ( is_multisite() ) {
-			$this->assertEquals( array( 'do_not_allow' ), map_meta_cap( 'unfiltered_html', 0 ) );
-			$this->assertEquals( array( 'unfiltered_html' ), map_meta_cap( 'unfiltered_html', self::$user_id ) );
+			$this->assertSame( array( 'do_not_allow' ), map_meta_cap( 'unfiltered_html', 0 ) );
+			$this->assertSame( array( 'unfiltered_html' ), map_meta_cap( 'unfiltered_html', self::$user_id ) );
 		} else {
-			$this->assertEquals( array( 'unfiltered_html' ), map_meta_cap( 'unfiltered_html', self::$user_id ) );
+			$this->assertSame( array( 'unfiltered_html' ), map_meta_cap( 'unfiltered_html', self::$user_id ) );
 		}
 	}
 
@@ -347,8 +347,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		}
 
 		$this->assertTrue( DISALLOW_UNFILTERED_HTML );
-		$this->assertEquals( array( 'update_core' ), map_meta_cap( 'update_core', self::$user_id ) );
-		$this->assertEquals( array( 'edit_plugins' ), map_meta_cap( 'edit_plugins', self::$user_id ) );
+		$this->assertSame( array( 'update_core' ), map_meta_cap( 'update_core', self::$user_id ) );
+		$this->assertSame( array( 'edit_plugins' ), map_meta_cap( 'edit_plugins', self::$user_id ) );
 	}
 
 	/**
@@ -366,8 +366,8 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		);
 		$editor  = self::factory()->user->create( array( 'role' => 'editor' ) );
 
-		$this->assertEquals( array( 'edit_others_posts', 'edit_published_posts' ), map_meta_cap( 'edit_post', $editor, $post_id ) );
-		$this->assertEquals( array( 'delete_others_posts', 'delete_published_posts' ), map_meta_cap( 'delete_post', $editor, $post_id ) );
+		$this->assertSame( array( 'edit_others_posts', 'edit_published_posts' ), map_meta_cap( 'edit_post', $editor, $post_id ) );
+		$this->assertSame( array( 'delete_others_posts', 'delete_published_posts' ), map_meta_cap( 'delete_post', $editor, $post_id ) );
 
 	}
 
@@ -388,7 +388,7 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		$caps = map_meta_cap( 'delete_page', self::$user_id, $post_id );
 		delete_option( 'page_on_front' );
 
-		$this->assertEquals( array( 'manage_options' ), $caps );
+		$this->assertSame( array( 'manage_options' ), $caps );
 	}
 
 	/**
@@ -408,6 +408,6 @@ class Tests_User_MapMetaCap extends WP_UnitTestCase {
 		$caps = map_meta_cap( 'delete_page', self::$user_id, $post_id );
 		delete_option( 'page_for_posts' );
 
-		$this->assertEquals( array( 'manage_options' ), $caps );
+		$this->assertSame( array( 'manage_options' ), $caps );
 	}
 }

@@ -12,7 +12,7 @@
  *
  * @group privacy
  * @group user
- * @covers _wp_privacy_send_request_confirmation_notification()
+ * @covers ::_wp_privacy_send_request_confirmation_notification
  */
 class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**

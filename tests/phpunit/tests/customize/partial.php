@@ -47,15 +47,15 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	function test_construct_default_args() {
 		$partial_id = 'blogname';
 		$partial    = new WP_Customize_Partial( $this->selective_refresh, $partial_id );
-		$this->assertEquals( $partial_id, $partial->id );
-		$this->assertEquals( $this->selective_refresh, $partial->component );
-		$this->assertEquals( 'default', $partial->type );
+		$this->assertSame( $partial_id, $partial->id );
+		$this->assertSame( $this->selective_refresh, $partial->component );
+		$this->assertSame( 'default', $partial->type );
 		$this->assertEmpty( $partial->selector );
-		$this->assertEquals( array( $partial_id ), $partial->settings );
-		$this->assertEquals( $partial_id, $partial->primary_setting );
-		$this->assertEquals( array( $partial, 'render_callback' ), $partial->render_callback );
-		$this->assertEquals( false, $partial->container_inclusive );
-		$this->assertEquals( true, $partial->fallback_refresh );
+		$this->assertSame( array( $partial_id ), $partial->settings );
+		$this->assertSame( $partial_id, $partial->primary_setting );
+		$this->assertSame( array( $partial, 'render_callback' ), $partial->render_callback );
+		$this->assertFalse( $partial->container_inclusive );
+		$this->assertTrue( $partial->fallback_refresh );
 	}
 
 	/**
@@ -102,15 +102,15 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 			'fallback_refresh'    => false,
 		);
 		$partial    = new WP_Customize_Partial( $this->selective_refresh, $partial_id, $args );
-		$this->assertEquals( $partial_id, $partial->id );
-		$this->assertEquals( $this->selective_refresh, $partial->component );
-		$this->assertEquals( $args['type'], $partial->type );
-		$this->assertEquals( $args['selector'], $partial->selector );
-		$this->assertEqualSets( $args['settings'], $partial->settings );
-		$this->assertEquals( $args['primary_setting'], $partial->primary_setting );
-		$this->assertEquals( $args['render_callback'], $partial->render_callback );
-		$this->assertEquals( false, $partial->container_inclusive );
-		$this->assertEquals( false, $partial->fallback_refresh );
+		$this->assertSame( $partial_id, $partial->id );
+		$this->assertSame( $this->selective_refresh, $partial->component );
+		$this->assertSame( $args['type'], $partial->type );
+		$this->assertSame( $args['selector'], $partial->selector );
+		$this->assertSameSets( $args['settings'], $partial->settings );
+		$this->assertSame( $args['primary_setting'], $partial->primary_setting );
+		$this->assertSame( $args['render_callback'], $partial->render_callback );
+		$this->assertFalse( $partial->container_inclusive );
+		$this->assertFalse( $partial->fallback_refresh );
 		$this->assertContains( 'Lorem Ipsum', $partial->render() );
 
 		$partial = new WP_Customize_Partial(
@@ -120,8 +120,8 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 				'settings' => 'blogdescription',
 			)
 		);
-		$this->assertEquals( array( 'blogdescription' ), $partial->settings );
-		$this->assertEquals( 'blogdescription', $partial->primary_setting );
+		$this->assertSame( array( 'blogdescription' ), $partial->settings );
+		$this->assertSame( 'blogdescription', $partial->primary_setting );
 	}
 
 	/**
@@ -132,13 +132,13 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	function test_id_data() {
 		$partial = new WP_Customize_Partial( $this->selective_refresh, 'foo' );
 		$id_data = $partial->id_data();
-		$this->assertEquals( 'foo', $id_data['base'] );
-		$this->assertEquals( array(), $id_data['keys'] );
+		$this->assertSame( 'foo', $id_data['base'] );
+		$this->assertSame( array(), $id_data['keys'] );
 
 		$partial = new WP_Customize_Partial( $this->selective_refresh, 'bar[baz][quux]' );
 		$id_data = $partial->id_data();
-		$this->assertEquals( 'bar', $id_data['base'] );
-		$this->assertEquals( array( 'baz', 'quux' ), $id_data['keys'] );
+		$this->assertSame( 'bar', $id_data['base'] );
+		$this->assertSame( array( 'baz', 'quux' ), $id_data['keys'] );
 	}
 
 	/**
@@ -180,7 +180,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 * @return string|false Content.
 	 */
 	function filter_customize_partial_render_with_id( $rendered, $partial, $container_context ) {
-		$this->assertEquals( sprintf( 'customize_partial_render_%s', $partial->id ), current_filter() );
+		$this->assertSame( sprintf( 'customize_partial_render_%s', $partial->id ), current_filter() );
 		$this->assertTrue( false === $rendered || is_string( $rendered ) );
 		$this->assertInstanceOf( 'WP_Customize_Partial', $partial );
 		$this->assertInternalType( 'array', $container_context );
@@ -249,9 +249,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		add_filter( 'customize_partial_render', array( $this, 'filter_customize_partial_render' ), 10, 3 );
 		add_filter( "customize_partial_render_{$partial->id}", array( $this, 'filter_customize_partial_render_with_id' ), 10, 3 );
 		$rendered = $partial->render();
-		$this->assertEquals( 'foo', $rendered );
-		$this->assertEquals( $count_filter_customize_partial_render + 1, $this->count_filter_customize_partial_render );
-		$this->assertEquals( $count_filter_customize_partial_render_with_id + 1, $this->count_filter_customize_partial_render_with_id );
+		$this->assertSame( 'foo', $rendered );
+		$this->assertSame( $count_filter_customize_partial_render + 1, $this->count_filter_customize_partial_render );
+		$this->assertSame( $count_filter_customize_partial_render_with_id + 1, $this->count_filter_customize_partial_render_with_id );
 	}
 
 	/**
@@ -272,9 +272,9 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 		add_filter( 'customize_partial_render', array( $this, 'filter_customize_partial_render' ), 10, 3 );
 		add_filter( "customize_partial_render_{$partial->id}", array( $this, 'filter_customize_partial_render_with_id' ), 10, 3 );
 		$rendered = $partial->render();
-		$this->assertEquals( 'bar', $rendered );
-		$this->assertEquals( $count_filter_customize_partial_render + 1, $this->count_filter_customize_partial_render );
-		$this->assertEquals( $count_filter_customize_partial_render_with_id + 1, $this->count_filter_customize_partial_render_with_id );
+		$this->assertSame( 'bar', $rendered );
+		$this->assertSame( $count_filter_customize_partial_render + 1, $this->count_filter_customize_partial_render );
+		$this->assertSame( $count_filter_customize_partial_render_with_id + 1, $this->count_filter_customize_partial_render_with_id );
 	}
 
 	/**

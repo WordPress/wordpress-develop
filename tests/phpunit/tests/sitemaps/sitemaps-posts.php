@@ -24,7 +24,7 @@ class Test_WP_Sitemaps_Posts extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -37,7 +37,7 @@ class Test_WP_Sitemaps_Posts extends WP_UnitTestCase {
 		add_filter( 'wp_sitemaps_post_types', '__return_empty_array' );
 		$subtypes = $posts_provider->get_object_subtypes();
 
-		$this->assertEquals( array(), $subtypes, 'Could not filter posts subtypes.' );
+		$this->assertSame( array(), $subtypes, 'Could not filter posts subtypes.' );
 	}
 
 	/**
@@ -51,7 +51,7 @@ class Test_WP_Sitemaps_Posts extends WP_UnitTestCase {
 
 		$url_list = $posts_provider->get_url_list( 1, 'page' );
 
-		$this->assertEquals( array(), $url_list );
+		$this->assertSame( array(), $url_list );
 
 		update_option( 'show_on_front', 'posts' );
 

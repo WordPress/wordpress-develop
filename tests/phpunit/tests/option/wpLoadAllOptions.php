@@ -33,7 +33,7 @@ class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 		$after = $wpdb->num_queries;
 
 		// Database has not been hit.
-		$this->assertEquals( $before, $after );
+		$this->assertSame( $before, $after );
 	}
 
 	/**
@@ -50,7 +50,7 @@ class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 		$after = $wpdb->num_queries;
 
 		// Database has been hit.
-		$this->assertEquals( $before + 1, $after );
+		$this->assertSame( $before + 1, $after );
 	}
 
 	/**
@@ -76,7 +76,7 @@ class Tests_Option_WP_Load_Alloptions extends WP_UnitTestCase {
 		wp_installing( $temp );
 
 		// Filter was called.
-		$this->assertEquals( $this->alloptions, $all_options );
+		$this->assertSame( $this->alloptions, $all_options );
 	}
 
 	/**

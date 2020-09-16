@@ -19,13 +19,13 @@ class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
 
 		// Confirm the setup.
 		$terms = wp_get_object_terms( $object_id, array( 'wptests_tax1', 'wptests_tax2' ), array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $t1, $t2 ), $terms );
+		$this->assertSameSets( array( $t1, $t2 ), $terms );
 
 		// wp_delete_object_term_relationships() doesn't have a return value.
 		wp_delete_object_term_relationships( $object_id, 'wptests_tax2' );
 		$terms = wp_get_object_terms( $object_id, array( 'wptests_tax1', 'wptests_tax2' ), array( 'fields' => 'ids' ) );
 
-		$this->assertEqualSets( array( $t1 ), $terms );
+		$this->assertSameSets( array( $t1 ), $terms );
 	}
 
 	public function test_array_of_taxonomies() {
@@ -45,12 +45,12 @@ class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {
 
 		// Confirm the setup.
 		$terms = wp_get_object_terms( $object_id, array( 'wptests_tax1', 'wptests_tax2', 'wptests_tax3' ), array( 'fields' => 'ids' ) );
-		$this->assertEqualSets( array( $t1, $t2, $t3 ), $terms );
+		$this->assertSameSets( array( $t1, $t2, $t3 ), $terms );
 
 		// wp_delete_object_term_relationships() doesn't have a return value.
 		wp_delete_object_term_relationships( $object_id, array( 'wptests_tax1', 'wptests_tax3' ) );
 		$terms = wp_get_object_terms( $object_id, array( 'wptests_tax1', 'wptests_tax2', 'wptests_tax3' ), array( 'fields' => 'ids' ) );
 
-		$this->assertEqualSets( array( $t2 ), $terms );
+		$this->assertSameSets( array( $t2 ), $terms );
 	}
 }

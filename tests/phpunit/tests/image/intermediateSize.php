@@ -56,9 +56,9 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
 		$this->assertInternalType( 'array', $image );
-		$this->assertEquals( 100, $image['width'] );
-		$this->assertEquals( 75, $image['height'] );
-		$this->assertEquals( 'image/jpeg', $image['mime-type'] );
+		$this->assertSame( 100, $image['width'] );
+		$this->assertSame( 75, $image['height'] );
+		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
 		$this->assertFalse( isset( $image['path'] ) );
 

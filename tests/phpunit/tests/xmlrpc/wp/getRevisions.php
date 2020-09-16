@@ -8,7 +8,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'username', 'password', 0 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -18,7 +18,7 @@ class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getRevisions( array( 1, 'subscriber', 'subscriber', $post_id ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_user() {

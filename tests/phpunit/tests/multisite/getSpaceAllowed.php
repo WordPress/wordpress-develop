@@ -48,7 +48,7 @@ if ( is_multisite() ) :
 			delete_option( 'blog_upload_space' );
 			delete_site_option( 'blog_upload_space' );
 
-			$this->assertEquals( 100, get_space_allowed() );
+			$this->assertSame( 100, get_space_allowed() );
 		}
 
 		/**
@@ -59,7 +59,7 @@ if ( is_multisite() ) :
 			delete_site_option( 'blog_upload_space' );
 			update_site_option( 'blog_upload_space', 200 );
 
-			$this->assertEquals( 200, get_space_allowed() );
+			$this->assertSame( 200, get_space_allowed() );
 		}
 
 		/**
@@ -73,7 +73,7 @@ if ( is_multisite() ) :
 			update_option( 'blog_upload_space', $site_option );
 			update_site_option( 'blog_upload_space', $network_option );
 
-			$this->assertEquals( $expected, get_space_allowed() );
+			$this->assertSame( $expected, get_space_allowed() );
 		}
 
 		public function data_blog_upload_space() {
@@ -108,7 +108,7 @@ if ( is_multisite() ) :
 			$space_allowed = get_space_allowed();
 			remove_filter( 'get_space_allowed', array( $this, '_filter_space_allowed' ) );
 
-			$this->assertEquals( 999, $space_allowed );
+			$this->assertSame( 999, $space_allowed );
 		}
 
 		public function _filter_space_allowed() {

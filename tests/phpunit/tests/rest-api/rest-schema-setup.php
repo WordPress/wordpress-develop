@@ -132,7 +132,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-directory/search',
 		);
 
-		$this->assertEquals( $expected_routes, $routes );
+		$this->assertSame( $expected_routes, $routes );
 	}
 
 	private function is_builtin_route( $route ) {
@@ -441,7 +441,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			$status   = $response->get_status();
 			$data     = $response->get_data();
 
-			$this->assertEquals(
+			$this->assertSame(
 				200,
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )

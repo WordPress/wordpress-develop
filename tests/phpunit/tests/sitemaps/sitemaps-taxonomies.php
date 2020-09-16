@@ -114,7 +114,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
 
-		$this->assertEquals( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
+		$this->assertSame( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
 	}
 
 	/**
@@ -216,6 +216,6 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		add_filter( 'wp_sitemaps_taxonomies', '__return_empty_array' );
 		$subtypes = $taxonomies_provider->get_object_subtypes();
 
-		$this->assertEquals( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
+		$this->assertSame( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
 	}
 }

@@ -54,12 +54,12 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertEquals( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertEquals( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
 	}
 
 	/**
@@ -112,12 +112,12 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertEquals( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertEquals( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
 
 		$wpsmiliestrans = $trans_orig; // Reset original translations array.
 	}
@@ -153,7 +153,7 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 		update_option( 'use_smilies', 1 );
 		smilies_init();
 
-		$this->assertEquals( $exp_str, convert_smilies( $in_str ) );
+		$this->assertSame( $exp_str, convert_smilies( $in_str ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
@@ -205,12 +205,12 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 		update_option( 'use_smilies', 1 );
 		smilies_init();
 
-		$this->assertEquals( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
 
 		// Custom smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertEquals( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
 	}
 
 	/**
@@ -260,12 +260,12 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertEquals( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
 
-		$this->assertEquals( $in_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $in_txt, convert_smilies( $in_txt ) );
 
 		$wpsmiliestrans = $orig_trans; // Reset original translations array.
 	}
@@ -305,7 +305,7 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
 		smilies_init();
 
-		$this->assertEquals( $converted_txt, convert_smilies( $in_txt ) );
+		$this->assertSame( $converted_txt, convert_smilies( $in_txt ) );
 
 		// Standard smilies, use_smilies: OFF.
 		update_option( 'use_smilies', 0 );
@@ -323,7 +323,7 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 
 		$txt = ':oops: I did it again';
 
-		$this->assertEquals( $txt, convert_smilies( $txt ) );
+		$this->assertSame( $txt, convert_smilies( $txt ) );
 	}
 
 	/**
@@ -339,7 +339,7 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 		$txt          = 'You played with my <3';
 		$expected_txt = 'You played with my \xe2\x9d\xa4';
 
-		$this->assertEquals( $expected_txt, convert_smilies( $txt ) );
+		$this->assertSame( $expected_txt, convert_smilies( $txt ) );
 	}
 
 

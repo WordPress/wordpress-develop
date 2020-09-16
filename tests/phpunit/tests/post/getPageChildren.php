@@ -68,28 +68,28 @@ class Tests_Post_GetPageChildren extends WP_UnitTestCase {
 	public function test_page_id_0_should_return_all_pages_in_tree_and_exclude_pages_not_in_tree() {
 		$expected = array( 100, 101, 102, 103, 105, 106, 107, 108 );
 		$actual   = get_page_children( 0, $this->pages );
-		$this->assertEqualSets( $expected, wp_list_pluck( $actual, 'ID' ) );
+		$this->assertSameSets( $expected, wp_list_pluck( $actual, 'ID' ) );
 	}
 
 	public function test_hierarchical_order_should_be_respected_in_results() {
 		$expected = array( 100, 101, 103, 102, 106, 107, 108, 105 );
 		$actual   = get_page_children( 0, $this->pages );
-		$this->assertEquals( $expected, wp_list_pluck( $actual, 'ID' ) );
+		$this->assertSame( $expected, wp_list_pluck( $actual, 'ID' ) );
 	}
 
 	public function test_not_all_pages_should_be_returned_when_page_id_is_in_the_middle_of_the_tree() {
 		$expected = array( 106, 107, 108 );
 		$actual   = get_page_children( 102, $this->pages );
-		$this->assertEquals( $expected, wp_list_pluck( $actual, 'ID' ) );
+		$this->assertSame( $expected, wp_list_pluck( $actual, 'ID' ) );
 	}
 
 	public function test_page_id_that_is_a_leaf_should_return_empty_array() {
 		$actual = get_page_children( 103, $this->pages );
-		$this->assertEquals( array(), $actual );
+		$this->assertSame( array(), $actual );
 	}
 
 	public function test_nonzero_page_id_not_matching_any_actual_post_id_should_return_empty_array() {
 		$actual = get_page_children( 200, $this->pages );
-		$this->assertEquals( array(), $actual );
+		$this->assertSame( array(), $actual );
 	}
 }

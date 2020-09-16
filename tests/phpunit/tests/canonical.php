@@ -252,7 +252,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			}
 		);
 		$this->go_to( '/child-page-1' );
-		$this->assertEquals( 'wp', redirect_guess_404_permalink() );
+		$this->assertSame( 'wp', redirect_guess_404_permalink() );
 	}
 
 	/**
@@ -268,7 +268,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( 'strict-redirect' );
 
 		// Test default 'non-strict' redirect guess.
-		$this->assertEquals( get_permalink( $post ), redirect_guess_404_permalink() );
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
 
 		// Test 'strict' redirect guess.
 		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );

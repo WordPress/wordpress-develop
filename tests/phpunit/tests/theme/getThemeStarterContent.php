@@ -148,14 +148,14 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 			$this->assertInternalType( 'array', $widget[1] );
 			$this->assertArrayHasKey( 'title', $widget[1] );
 		}
-		$this->assertEquals( 'text', $hydrated_starter_content['widgets']['sidebar-1'][1][0], 'Core content extended' );
-		$this->assertEquals( 'Our Story', $hydrated_starter_content['widgets']['sidebar-1'][1][1]['title'], 'Core content extended' );
+		$this->assertSame( 'text', $hydrated_starter_content['widgets']['sidebar-1'][1][0], 'Core content extended' );
+		$this->assertSame( 'Our Story', $hydrated_starter_content['widgets']['sidebar-1'][1][1]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['nav_menus']['top']['items'] as $nav_menu_item ) {
 			$this->assertInternalType( 'array', $nav_menu_item );
 			$this->assertTrue( ! empty( $nav_menu_item['object_id'] ) || ! empty( $nav_menu_item['url'] ) );
 		}
-		$this->assertEquals( 'Email Us', $hydrated_starter_content['nav_menus']['top']['items'][4]['title'], 'Core content extended' );
+		$this->assertSame( 'Email Us', $hydrated_starter_content['nav_menus']['top']['items'][4]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
 			$this->assertInternalType( 'string', $key );
@@ -164,9 +164,9 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 			$this->assertArrayHasKey( 'post_type', $post );
 			$this->assertArrayHasKey( 'post_title', $post );
 		}
-		$this->assertEquals( 'Extended', $hydrated_starter_content['posts']['blog']['post_excerpt'], 'Core content extended' );
-		$this->assertEquals( 'blog.php', $hydrated_starter_content['posts']['blog']['template'], 'Core content extended' );
-		$this->assertEquals( '{{featured-image-logo}}', $hydrated_starter_content['posts']['custom']['thumbnail'], 'Core content extended' );
+		$this->assertSame( 'Extended', $hydrated_starter_content['posts']['blog']['post_excerpt'], 'Core content extended' );
+		$this->assertSame( 'blog.php', $hydrated_starter_content['posts']['blog']['template'], 'Core content extended' );
+		$this->assertSame( '{{featured-image-logo}}', $hydrated_starter_content['posts']['custom']['thumbnail'], 'Core content extended' );
 	}
 
 	/**
@@ -189,7 +189,7 @@ class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
 		$starter_content = get_theme_starter_content();
 
 		$this->assertCount( 2, $starter_content['widgets']['sidebar-1'] );
-		$this->assertEquals( 'Filtered Widget', $starter_content['widgets']['sidebar-1'][1][1]['title'] );
+		$this->assertSame( 'Filtered Widget', $starter_content['widgets']['sidebar-1'][1][1]['title'] );
 	}
 
 	/**

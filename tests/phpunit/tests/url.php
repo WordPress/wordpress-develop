@@ -77,8 +77,8 @@ class Tests_URL extends WP_UnitTestCase {
 		$siteurl_https   = set_url_scheme( $siteurl_http, 'https' );
 		$admin_url_https = admin_url( $url );
 
-		$this->assertEquals( $siteurl_http . $expected, $admin_url_http );
-		$this->assertEquals( $siteurl_https . $expected, $admin_url_https );
+		$this->assertSame( $siteurl_http . $expected, $admin_url_http );
+		$this->assertSame( $siteurl_https . $expected, $admin_url_https );
 	}
 
 	function data_admin_urls() {
@@ -145,8 +145,8 @@ class Tests_URL extends WP_UnitTestCase {
 		$homeurl_https  = set_url_scheme( $homeurl_http, 'https' );
 		$home_url_https = home_url( $url );
 
-		$this->assertEquals( $homeurl_http . $expected, $home_url_http );
-		$this->assertEquals( $homeurl_https . $expected, $home_url_https );
+		$this->assertSame( $homeurl_http . $expected, $home_url_http );
+		$this->assertSame( $homeurl_https . $expected, $home_url_https );
 	}
 
 	function data_home_urls() {
@@ -207,17 +207,17 @@ class Tests_URL extends WP_UnitTestCase {
 
 		// home_url() should return http when in the admin.
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		// If not in the admin, is_ssl() should determine the scheme.
 		set_current_screen( 'front' );
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 		$_SERVER['HTTPS'] = 'on';
 		$home             = str_replace( 'http://', 'https://', $home );
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		// Test with https in home.
 		update_option( 'home', set_url_scheme( $home, 'https' ) );
@@ -228,18 +228,18 @@ class Tests_URL extends WP_UnitTestCase {
 
 		// home_url() should return whatever scheme is set in the home option when in the admin.
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		// If not in the admin, is_ssl() should determine the scheme unless https hard-coded in home.
 		set_current_screen( 'front' );
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 		$_SERVER['HTTPS'] = 'off';
-		$this->assertEquals( $home, home_url() );
+		$this->assertSame( $home, home_url() );
 
 		update_option( 'home', set_url_scheme( $home, 'http' ) );
 
@@ -254,19 +254,19 @@ class Tests_URL extends WP_UnitTestCase {
 		$home = network_home_url();
 
 		// home_url() should return http when in the admin.
-		$this->assertEquals( 0, strpos( $home, 'http://' ) );
+		$this->assertSame( 0, strpos( $home, 'http://' ) );
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertEquals( $home, network_home_url() );
+		$this->assertSame( $home, network_home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
-		$this->assertEquals( $home, network_home_url() );
+		$this->assertSame( $home, network_home_url() );
 
 		// If not in the admin, is_ssl() should determine the scheme.
 		set_current_screen( 'front' );
-		$this->assertEquals( $home, network_home_url() );
+		$this->assertSame( $home, network_home_url() );
 		$_SERVER['HTTPS'] = 'on';
 		$home             = str_replace( 'http://', 'https://', $home );
-		$this->assertEquals( $home, network_home_url() );
+		$this->assertSame( $home, network_home_url() );
 
 		$GLOBALS['current_screen'] = $screen;
 	}
@@ -307,27 +307,27 @@ class Tests_URL extends WP_UnitTestCase {
 		$forced_admin = force_ssl_admin();
 		$i            = 0;
 		foreach ( $links as $link ) {
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link, 'https' ) );
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link, 'http' ) );
-			$this->assertEquals( $relative_links[ $i ], set_url_scheme( $link, 'relative' ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link, 'https' ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'http' ) );
+			$this->assertSame( $relative_links[ $i ], set_url_scheme( $link, 'relative' ) );
 
 			$_SERVER['HTTPS'] = 'on';
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link ) );
 
 			$_SERVER['HTTPS'] = 'off';
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link ) );
 
 			force_ssl_admin( true );
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link, 'admin' ) );
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link, 'login_post' ) );
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link, 'login' ) );
-			$this->assertEquals( $https_links[ $i ], set_url_scheme( $link, 'rpc' ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link, 'admin' ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link, 'login_post' ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link, 'login' ) );
+			$this->assertSame( $https_links[ $i ], set_url_scheme( $link, 'rpc' ) );
 
 			force_ssl_admin( false );
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link, 'admin' ) );
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link, 'login_post' ) );
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link, 'login' ) );
-			$this->assertEquals( $http_links[ $i ], set_url_scheme( $link, 'rpc' ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'admin' ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'login_post' ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'login' ) );
+			$this->assertSame( $http_links[ $i ], set_url_scheme( $link, 'rpc' ) );
 
 			$i++;
 		}
@@ -348,16 +348,16 @@ class Tests_URL extends WP_UnitTestCase {
 
 		$p = get_adjacent_post();
 		$this->assertInstanceOf( 'WP_Post', $p );
-		$this->assertEquals( $post_id, $p->ID );
+		$this->assertSame( $post_id, $p->ID );
 
 		// The same again to make sure a cached query returns the same result.
 		$p = get_adjacent_post();
 		$this->assertInstanceOf( 'WP_Post', $p );
-		$this->assertEquals( $post_id, $p->ID );
+		$this->assertSame( $post_id, $p->ID );
 
 		// Test next.
 		$p = get_adjacent_post( false, '', false );
-		$this->assertEquals( '', $p );
+		$this->assertSame( '', $p );
 
 		unset( $GLOBALS['post'] );
 		$this->assertNull( get_adjacent_post() );
@@ -398,7 +398,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( $p2 );
 
 		$p = get_adjacent_post();
-		$this->assertEquals( $p1, $p->ID );
+		$this->assertSame( $p1, $p->ID );
 
 		$GLOBALS['post'] = $orig_post;
 		wp_set_current_user( $old_uid );
@@ -436,7 +436,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( $p2 );
 
 		$p = get_adjacent_post();
-		$this->assertEquals( $p1, $p->ID );
+		$this->assertSame( $p1, $p->ID );
 
 		$GLOBALS['post'] = $orig_post;
 		wp_set_current_user( $old_uid );
@@ -480,7 +480,7 @@ class Tests_URL extends WP_UnitTestCase {
 		$GLOBALS['post'] = get_post( $p3 );
 
 		$p = get_adjacent_post();
-		$this->assertEquals( $p1, $p->ID );
+		$this->assertSame( $p1, $p->ID );
 
 		$GLOBALS['post'] = $orig_post;
 		wp_set_current_user( $old_uid );
@@ -506,11 +506,11 @@ class Tests_URL extends WP_UnitTestCase {
 		);
 
 		foreach ( $functions as $function ) {
-			$this->assertEquals(
+			$this->assertSame(
 				call_user_func( $function, '/' ) . '../',
 				call_user_func( $function, '../' )
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				call_user_func( $function, '/' ) . 'something...here',
 				call_user_func( $function, 'something...here' )
 			);
@@ -518,11 +518,11 @@ class Tests_URL extends WP_UnitTestCase {
 
 		// These functions accept a blog ID argument.
 		foreach ( array( 'get_site_url', 'get_home_url', 'get_admin_url' ) as $function ) {
-			$this->assertEquals(
+			$this->assertSame(
 				call_user_func( $function, null, '/' ) . '../',
 				call_user_func( $function, null, '../' )
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				call_user_func( $function, null, '/' ) . 'something...here',
 				call_user_func( $function, null, 'something...here' )
 			);

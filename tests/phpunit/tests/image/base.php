@@ -48,7 +48,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 
 		$colors = imagecolorsforindex( $im, $rgb );
 
-		$this->assertEquals( $alpha, $colors['alpha'] );
+		$this->assertSame( $alpha, $colors['alpha'] );
 	}
 
 	/**
@@ -62,7 +62,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 		$im    = new Imagick( $image_path );
 		$pixel = $im->getImagePixelColor( $point[0], $point[1] );
 		$color = $pixel->getColorValue( imagick::COLOR_ALPHA );
-		$this->assertEquals( $expected, $color );
+		$this->assertSame( $expected, $color );
 	}
 
 	/**
@@ -85,7 +85,7 @@ abstract class WP_Image_UnitTestCase extends WP_UnitTestCase {
 			$detected_height = $image_size[1];
 		}
 
-		$this->assertEquals( $width, $detected_width );
-		$this->assertEquals( $height, $detected_height );
+		$this->assertSame( $width, $detected_width );
+		$this->assertSame( $height, $detected_height );
 	}
 }

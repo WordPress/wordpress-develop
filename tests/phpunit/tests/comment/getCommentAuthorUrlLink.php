@@ -27,7 +27,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 	public function test_no_comment() {
 		$url_link = get_comment_author_url_link();
 
-		$this->assertEquals( "<a href='' rel='external'></a>", $url_link );
+		$this->assertSame( "<a href='' rel='external'></a>", $url_link );
 	}
 
 	public function test_global_comment() {
@@ -36,7 +36,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link();
 		$link     = $this->parseCommentAuthorUrl( $comment );
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 
 	public function test_comment_arg() {
@@ -44,7 +44,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link( '', '', '', $comment );
 		$link     = $this->parseCommentAuthorUrl( $comment );
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 
 	public function test_linktext() {
@@ -52,7 +52,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link( 'Burrito', '', '', $comment );
 		$link     = $this->parseCommentAuthorUrl( $comment, 'Burrito' );
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 
 	public function test_before() {
@@ -60,7 +60,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link( 'Burrito', 'I would love a ', '', $comment );
 		$link     = 'I would love a ' . $this->parseCommentAuthorUrl( $comment, 'Burrito' );
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 
 	public function test_after() {
@@ -68,7 +68,7 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link( 'Burrito', '', ' is my favorite word.', $comment );
 		$link     = $this->parseCommentAuthorUrl( $comment, 'Burrito' ) . ' is my favorite word.';
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 
 	public function test_before_after() {
@@ -76,6 +76,6 @@ class Tests_Comment_GetCommentAuthorUrlLink extends WP_UnitTestCase {
 
 		$url_link = get_comment_author_url_link( 'Burrito', 'I would love a ', ' right now.', $comment );
 		$link     = 'I would love a ' . $this->parseCommentAuthorUrl( $comment, 'Burrito' ) . ' right now.';
-		$this->assertEquals( $link, $url_link );
+		$this->assertSame( $link, $url_link );
 	}
 }

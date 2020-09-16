@@ -918,9 +918,10 @@ function file_is_displayable_image( $path ) {
  * @since 2.9.0
  *
  * @param string $attachment_id Attachment ID.
- * @param string $mime_type Image mime type.
- * @param string $size Optional. Image size, defaults to 'full'.
- * @return resource|false The resulting image resource on success, false on failure.
+ * @param string $mime_type     Image mime type.
+ * @param string $size          Optional. Image size. Default 'full'.
+ * @return resource|GdImage|false The resulting image resource or GdImage instance on success,
+ *                                false on failure.
  */
 function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 	$filepath = _load_image_to_edit_path( $attachment_id, $size );
@@ -942,22 +943,25 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 			$image = false;
 			break;
 	}
-	if ( is_resource( $image ) ) {
+
+	if ( is_gd_image( $image ) ) {
 		/**
 		 * Filters the current image being loaded for editing.
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param resource $image         Current image.
-		 * @param string   $attachment_id Attachment ID.
-		 * @param string   $size          Image size.
+		 * @param resource|GdImage $image         Current image.
+		 * @param string           $attachment_id Attachment ID.
+		 * @param string           $size          Image size.
 		 */
 		$image = apply_filters( 'load_image_to_edit', $image, $attachment_id, $size );
+
 		if ( function_exists( 'imagealphablending' ) && function_exists( 'imagesavealpha' ) ) {
 			imagealphablending( $image, false );
 			imagesavealpha( $image, true );
 		}
 	}
+
 	return $image;
 }
 
@@ -971,7 +975,7 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
  * @access private
  *
  * @param string $attachment_id Attachment ID.
- * @param string $size Optional. Image size, defaults to 'full'.
+ * @param string $size          Optional. Image size. Default 'full'.
  * @return string|false File path or url on success, false on failure.
  */
 function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {

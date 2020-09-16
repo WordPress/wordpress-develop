@@ -28,7 +28,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	 * @param string $expected
 	 */
 	public function test_urlencode_deep_should_encode_individual_value( $actual, $expected ) {
-		$this->assertEquals( $expected, urlencode_deep( $actual ) );
+		$this->assertSame( $expected, urlencode_deep( $actual ) );
 	}
 
 	/**
@@ -40,7 +40,7 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 		$actual   = wp_list_pluck( $data, 0 );
 		$expected = wp_list_pluck( $data, 1 );
 
-		$this->assertEquals( $expected, urlencode_deep( $actual ) );
+		$this->assertSame( $expected, urlencode_deep( $actual ) );
 	}
 
 }

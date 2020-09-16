@@ -77,7 +77,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 		wp_trash_post( $trashed_about_page_id );
-		$this->assertEquals( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
 	}
 
 	/**
@@ -93,7 +93,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 		wp_trash_post( $trashed_about_page_id );
-		$this->assertEquals( 'foo__trashed__foo__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'foo__trashed__foo__trashed', get_post( $trashed_about_page_id )->post_name );
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		wp_trash_post( $about_page_id );
 
 		wp_untrash_post( $about_page_id );
-		$this->assertEquals( 'about', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -133,8 +133,8 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
-		$this->assertEquals( 'about', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -160,8 +160,8 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 
 		wp_untrash_post( $about_page_id );
 
-		$this->assertEquals( 'about', get_post( $another_about_page_id )->post_name );
-		$this->assertEquals( 'about-2', get_post( $about_page_id )->post_name );
+		$this->assertSame( 'about', get_post( $another_about_page_id )->post_name );
+		$this->assertSame( 'about-2', get_post( $about_page_id )->post_name );
 	}
 
 	/**
@@ -316,7 +316,7 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'publish', get_post_status( $post_id ) );
+		$this->assertSame( 'publish', get_post_status( $post_id ) );
 
 		$post_id = $this->factory()->post->create(
 			array(
@@ -325,6 +325,6 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'future', get_post_status( $post_id ) );
+		$this->assertSame( 'future', get_post_status( $post_id ) );
 	}
 }

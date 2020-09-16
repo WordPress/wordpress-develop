@@ -81,6 +81,6 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 
 		// 'wptests_tax_2' terms should have been added successfully.
 		$post_terms_2 = wp_get_object_terms( $post->ID, 'wptests_tax_2' );
-		$this->assertEqualSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
+		$this->assertSameSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
 	}
 }

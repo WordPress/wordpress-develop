@@ -11,7 +11,7 @@ class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 		$actual = remove_query_arg( $keys_to_remove, $url );
 
 		$this->assertNotEmpty( $actual );
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	public function remove_query_arg_provider() {

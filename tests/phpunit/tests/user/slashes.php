@@ -46,11 +46,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$id   = add_user();
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( $this->slash_1, $user->first_name );
-		$this->assertEquals( $this->slash_3, $user->last_name );
-		$this->assertEquals( $this->slash_5, $user->nickname );
-		$this->assertEquals( $this->slash_7, $user->display_name );
-		$this->assertEquals( $this->slash_3, $user->description );
+		$this->assertSame( $this->slash_1, $user->first_name );
+		$this->assertSame( $this->slash_3, $user->last_name );
+		$this->assertSame( $this->slash_5, $user->nickname );
+		$this->assertSame( $this->slash_7, $user->display_name );
+		$this->assertSame( $this->slash_3, $user->description );
 
 		$_POST                 = array();
 		$_GET                  = array();
@@ -71,11 +71,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$id   = add_user();
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( $this->slash_2, $user->first_name );
-		$this->assertEquals( $this->slash_4, $user->last_name );
-		$this->assertEquals( $this->slash_6, $user->nickname );
-		$this->assertEquals( $this->slash_2, $user->display_name );
-		$this->assertEquals( $this->slash_4, $user->description );
+		$this->assertSame( $this->slash_2, $user->first_name );
+		$this->assertSame( $this->slash_4, $user->last_name );
+		$this->assertSame( $this->slash_6, $user->nickname );
+		$this->assertSame( $this->slash_2, $user->display_name );
+		$this->assertSame( $this->slash_4, $user->description );
 	}
 
 	/**
@@ -100,11 +100,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$id   = edit_user( $id );
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( $this->slash_1, $user->first_name );
-		$this->assertEquals( $this->slash_3, $user->last_name );
-		$this->assertEquals( $this->slash_5, $user->nickname );
-		$this->assertEquals( $this->slash_7, $user->display_name );
-		$this->assertEquals( $this->slash_3, $user->description );
+		$this->assertSame( $this->slash_1, $user->first_name );
+		$this->assertSame( $this->slash_3, $user->last_name );
+		$this->assertSame( $this->slash_5, $user->nickname );
+		$this->assertSame( $this->slash_7, $user->display_name );
+		$this->assertSame( $this->slash_3, $user->description );
 
 		$_POST                 = array();
 		$_GET                  = array();
@@ -122,11 +122,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$id   = edit_user( $id );
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( $this->slash_2, $user->first_name );
-		$this->assertEquals( $this->slash_4, $user->last_name );
-		$this->assertEquals( $this->slash_6, $user->nickname );
-		$this->assertEquals( $this->slash_2, $user->display_name );
-		$this->assertEquals( $this->slash_4, $user->description );
+		$this->assertSame( $this->slash_2, $user->first_name );
+		$this->assertSame( $this->slash_4, $user->last_name );
+		$this->assertSame( $this->slash_6, $user->nickname );
+		$this->assertSame( $this->slash_2, $user->display_name );
+		$this->assertSame( $this->slash_4, $user->description );
 	}
 
 	/**
@@ -148,11 +148,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		);
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_1 ), $user->first_name );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->last_name );
-		$this->assertEquals( wp_unslash( $this->slash_5 ), $user->nickname );
-		$this->assertEquals( wp_unslash( $this->slash_7 ), $user->display_name );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->description );
+		$this->assertSame( wp_unslash( $this->slash_1 ), $user->first_name );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $user->last_name );
+		$this->assertSame( wp_unslash( $this->slash_5 ), $user->nickname );
+		$this->assertSame( wp_unslash( $this->slash_7 ), $user->display_name );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $user->description );
 
 		$id   = wp_insert_user(
 			array(
@@ -169,11 +169,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		);
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->first_name );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $user->last_name );
-		$this->assertEquals( wp_unslash( $this->slash_6 ), $user->nickname );
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->display_name );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $user->description );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $user->first_name );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $user->last_name );
+		$this->assertSame( wp_unslash( $this->slash_6 ), $user->nickname );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $user->display_name );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $user->description );
 	}
 
 	/**
@@ -194,11 +194,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		);
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_1 ), $user->first_name );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->last_name );
-		$this->assertEquals( wp_unslash( $this->slash_5 ), $user->nickname );
-		$this->assertEquals( wp_unslash( $this->slash_7 ), $user->display_name );
-		$this->assertEquals( wp_unslash( $this->slash_3 ), $user->description );
+		$this->assertSame( wp_unslash( $this->slash_1 ), $user->first_name );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $user->last_name );
+		$this->assertSame( wp_unslash( $this->slash_5 ), $user->nickname );
+		$this->assertSame( wp_unslash( $this->slash_7 ), $user->display_name );
+		$this->assertSame( wp_unslash( $this->slash_3 ), $user->description );
 
 		$id   = wp_update_user(
 			array(
@@ -213,11 +213,11 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		);
 		$user = get_user_to_edit( $id );
 
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->first_name );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $user->last_name );
-		$this->assertEquals( wp_unslash( $this->slash_6 ), $user->nickname );
-		$this->assertEquals( wp_unslash( $this->slash_2 ), $user->display_name );
-		$this->assertEquals( wp_unslash( $this->slash_4 ), $user->description );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $user->first_name );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $user->last_name );
+		$this->assertSame( wp_unslash( $this->slash_6 ), $user->nickname );
+		$this->assertSame( wp_unslash( $this->slash_2 ), $user->display_name );
+		$this->assertSame( wp_unslash( $this->slash_4 ), $user->description );
 	}
 
 }

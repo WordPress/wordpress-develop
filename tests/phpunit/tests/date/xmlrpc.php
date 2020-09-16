@@ -34,7 +34,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time with explicit time zone into mw_newPost'
@@ -55,7 +55,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'Local time w/o time zone into mw_newPost'
@@ -76,7 +76,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time into mw_newPost'
@@ -97,7 +97,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'Local time into wp_newPost'
@@ -118,7 +118,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$post->post_date,
 			'UTC time into wp_newPost'
@@ -158,7 +158,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_post = get_post( $post_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_post->post_date,
 			'Local time into mw_editPost'
@@ -185,7 +185,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_post = get_post( $post_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_post->post_date,
 			'UTC time into mw_editPost'
@@ -231,7 +231,7 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 		$fetched_comment = get_comment( $comment_id );
 
 		$this->assertTrue( $result );
-		$this->assertEquals(
+		$this->assertSame(
 			$datetime->format( 'Y-m-d H:i:s' ),
 			$fetched_comment->comment_date,
 			'UTC time into wp_editComment'

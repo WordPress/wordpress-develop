@@ -259,27 +259,27 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Block', 'post type singular name' ),
-				'menu_name'                => _x( 'Blocks', 'admin menu' ),
-				'name_admin_bar'           => _x( 'Block', 'add new on admin bar' ),
-				'add_new'                  => _x( 'Add New', 'Block' ),
-				'add_new_item'             => __( 'Add New Block' ),
-				'new_item'                 => __( 'New Block' ),
-				'edit_item'                => __( 'Edit Block' ),
-				'view_item'                => __( 'View Block' ),
-				'all_items'                => __( 'All Blocks' ),
-				'search_items'             => __( 'Search Blocks' ),
-				'not_found'                => __( 'No blocks found.' ),
-				'not_found_in_trash'       => __( 'No blocks found in Trash.' ),
-				'filter_items_list'        => __( 'Filter blocks list' ),
-				'items_list_navigation'    => __( 'Blocks list navigation' ),
-				'items_list'               => __( 'Blocks list' ),
-				'item_published'           => __( 'Block published.' ),
-				'item_published_privately' => __( 'Block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Block reverted to draft.' ),
-				'item_scheduled'           => __( 'Block scheduled.' ),
-				'item_updated'             => __( 'Block updated.' ),
+				'name'                     => _x( 'Reusable Blocks', 'post type general name' ),
+				'singular_name'            => _x( 'Reusable Block', 'post type singular name' ),
+				'menu_name'                => _x( 'Reusable Blocks', 'admin menu' ),
+				'name_admin_bar'           => _x( 'Reusable Block', 'add new on admin bar' ),
+				'add_new'                  => _x( 'Add New', 'Reusable Block' ),
+				'add_new_item'             => __( 'Add New Reusable Block' ),
+				'new_item'                 => __( 'New Reusable Block' ),
+				'edit_item'                => __( 'Edit Reusable Block' ),
+				'view_item'                => __( 'View Reusable Block' ),
+				'all_items'                => __( 'All Reusable Blocks' ),
+				'search_items'             => __( 'Search Reusable Blocks' ),
+				'not_found'                => __( 'No reusable blocks found.' ),
+				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
+				'filter_items_list'        => __( 'Filter reusable blocks list' ),
+				'items_list_navigation'    => __( 'Reusable Blocks list navigation' ),
+				'items_list'               => __( 'Reusable Blocks list' ),
+				'item_published'           => __( 'Reusable Block published.' ),
+				'item_published_privately' => __( 'Reusable Block published privately.' ),
+				'item_reverted_to_draft'   => __( 'Reusable Block reverted to draft.' ),
+				'item_scheduled'           => __( 'Reusable Block scheduled.' ),
+				'item_updated'             => __( 'Reusable Block updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -796,12 +796,12 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 }
 
 /**
- * Retrieve ancestors of a post.
+ * Retrieves the IDs of the ancestors of a post.
  *
  * @since 2.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return int[] Ancestor IDs or empty array if none are found.
+ * @return int[] Array of ancestor IDs or empty array if there are none.
  */
 function get_post_ancestors( $post ) {
 	$post = get_post( $post );
@@ -5854,6 +5854,8 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
  * Deletes all files that belong to the given attachment.
  *
  * @since 4.9.7
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int    $post_id      Attachment ID.
  * @param array  $meta         The attachment's meta data.

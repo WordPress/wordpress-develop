@@ -72,7 +72,7 @@ if ( is_multisite() ) :
 
 			$missing_keys = array_diff_key( array_flip( $keys ), $sites[0] );
 
-			$this->assertEquals( array(), $missing_keys, 'Keys are missing from site arrays.' );
+			$this->assertSame( array(), $missing_keys, 'Keys are missing from site arrays.' );
 		}
 
 		/**

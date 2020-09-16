@@ -16,7 +16,7 @@ class Tests_Post_Embed_URL extends WP_UnitTestCase {
 		$permalink = get_permalink( $post_id );
 		$embed_url = get_post_embed_url( $post_id );
 
-		$this->assertEquals( $permalink . '/embed', $embed_url );
+		$this->assertSame( $permalink . '/embed', $embed_url );
 	}
 
 	function test_with_ugly_permalinks() {
@@ -24,7 +24,7 @@ class Tests_Post_Embed_URL extends WP_UnitTestCase {
 		$permalink = get_permalink( $post_id );
 		$embed_url = get_post_embed_url( $post_id );
 
-		$this->assertEquals( $permalink . '&embed=true', $embed_url );
+		$this->assertSame( $permalink . '&embed=true', $embed_url );
 	}
 
 	/**

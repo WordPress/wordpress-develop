@@ -39,7 +39,7 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getMediaItem( array( 1, 'username', 'password', 0 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_valid_media_item() {
@@ -62,8 +62,8 @@ class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 
 		// Check expected values.
 		$this->assertStringMatchesFormat( '%d', $result['attachment_id'] );
-		$this->assertEquals( $this->attachment_data['post_title'], $result['title'] );
-		$this->assertEquals( wp_get_attachment_url( $this->attachment_id ), $result['link'] );
-		$this->assertEquals( wp_get_attachment_thumb_url( $this->attachment_id ), $result['thumbnail'] );
+		$this->assertSame( $this->attachment_data['post_title'], $result['title'] );
+		$this->assertSame( wp_get_attachment_url( $this->attachment_id ), $result['link'] );
+		$this->assertSame( wp_get_attachment_thumb_url( $this->attachment_id ), $result['thumbnail'] );
 	}
 }

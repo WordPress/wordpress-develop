@@ -120,7 +120,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	$args['list_only'] = ! empty( $parsed_args['list_only'] );
 
 	if ( is_array( $parsed_args['selected_cats'] ) ) {
-		$args['selected_cats'] = $parsed_args['selected_cats'];
+		$args['selected_cats'] = array_map( 'intval', $parsed_args['selected_cats'] );
 	} elseif ( $post_id ) {
 		$args['selected_cats'] = wp_get_object_terms( $post_id, $taxonomy, array_merge( $args, array( 'fields' => 'ids' ) ) );
 	} else {
@@ -128,7 +128,7 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	}
 
 	if ( is_array( $parsed_args['popular_cats'] ) ) {
-		$args['popular_cats'] = $parsed_args['popular_cats'];
+		$args['popular_cats'] = array_map( 'intval', $parsed_args['popular_cats'] );
 	} else {
 		$args['popular_cats'] = get_terms(
 			array(
@@ -2223,6 +2223,9 @@ function get_post_states( $post ) {
 	 *
 	 * @since 2.8.0
 	 * @since 3.6.0 Added the `$post` parameter.
+	 * @since 5.5.0 Also applied in the Customizer context. If any admin functions
+	 *              are used within the filter, their existence should be checked
+	 *              with `function_exists()` before being used.
 	 *
 	 * @param string[] $post_states An array of post display states.
 	 * @param WP_Post  $post        The current post object.

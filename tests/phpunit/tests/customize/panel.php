@@ -32,16 +32,16 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	function test_construct_default_args() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
 		$this->assertInternalType( 'int', $panel->instance_number );
-		$this->assertEquals( $this->manager, $panel->manager );
-		$this->assertEquals( 'foo', $panel->id );
-		$this->assertEquals( 160, $panel->priority );
-		$this->assertEquals( 'edit_theme_options', $panel->capability );
-		$this->assertEquals( '', $panel->theme_supports );
-		$this->assertEquals( '', $panel->title );
-		$this->assertEquals( '', $panel->description );
+		$this->assertSame( $this->manager, $panel->manager );
+		$this->assertSame( 'foo', $panel->id );
+		$this->assertSame( 160, $panel->priority );
+		$this->assertSame( 'edit_theme_options', $panel->capability );
+		$this->assertSame( '', $panel->theme_supports );
+		$this->assertSame( '', $panel->title );
+		$this->assertSame( '', $panel->description );
 		$this->assertEmpty( $panel->sections );
-		$this->assertEquals( 'default', $panel->type );
-		$this->assertEquals( array( $panel, 'active_callback' ), $panel->active_callback );
+		$this->assertSame( 'default', $panel->type );
+		$this->assertSame( array( $panel, 'active_callback' ), $panel->active_callback );
 	}
 
 	/**
@@ -60,7 +60,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 		$panel = new WP_Customize_Panel( $this->manager, 'foo', $args );
 		foreach ( $args as $key => $value ) {
-			$this->assertEquals( $value, $panel->$key );
+			$this->assertSame( $value, $panel->$key );
 		}
 	}
 
@@ -69,7 +69,7 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	 */
 	function test_construct_custom_type() {
 		$panel = new Custom_Panel_Test( $this->manager, 'foo' );
-		$this->assertEquals( 'titleless', $panel->type );
+		$this->assertSame( 'titleless', $panel->type );
 	}
 
 	/**
@@ -119,9 +119,9 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		);
 		$panel = new WP_Customize_Panel( $this->manager, 'foo', $args );
 		$data  = $panel->json();
-		$this->assertEquals( 'foo', $data['id'] );
+		$this->assertSame( 'foo', $data['id'] );
 		foreach ( array( 'title', 'description', 'priority', 'type' ) as $key ) {
-			$this->assertEquals( $args[ $key ], $data[ $key ] );
+			$this->assertSame( $args[ $key ], $data[ $key ] );
 		}
 		$this->assertEmpty( $data['content'] );
 		$this->assertTrue( $data['active'] );
@@ -167,8 +167,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 		$content = ob_get_clean();
 		$this->assertTrue( $panel->check_capabilities() );
 		$this->assertEmpty( $content );
-		$this->assertEquals( $customize_render_panel_count + 1, did_action( 'customize_render_panel' ), 'Unexpected did_action count for customize_render_panel' );
-		$this->assertEquals( 1, did_action( "customize_render_panel_{$panel->id}" ), "Unexpected did_action count for customize_render_panel_{$panel->id}" );
+		$this->assertSame( $customize_render_panel_count + 1, did_action( 'customize_render_panel' ), 'Unexpected did_action count for customize_render_panel' );
+		$this->assertSame( 1, did_action( "customize_render_panel_{$panel->id}" ), "Unexpected did_action count for customize_render_panel_{$panel->id}" );
 	}
 
 	/**

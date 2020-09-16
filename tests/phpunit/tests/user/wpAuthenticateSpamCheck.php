@@ -14,7 +14,7 @@ class Tests_User_WpAuthenticateSpamCheck extends WP_UnitTestCase {
 		$actual_user = wp_authenticate_spam_check( $user );
 		wp_delete_user( $user_id );
 
-		$this->assertEquals( $user->user_login, $actual_user->user_login );
+		$this->assertSame( $user->user_login, $actual_user->user_login );
 	}
 
 	/**
@@ -26,7 +26,7 @@ class Tests_User_WpAuthenticateSpamCheck extends WP_UnitTestCase {
 		$actual_user = wp_authenticate_spam_check( $user );
 		wpmu_delete_user( $user_id );
 
-		$this->assertEquals( $user->user_login, $actual_user->user_login );
+		$this->assertSame( $user->user_login, $actual_user->user_login );
 	}
 
 	/**

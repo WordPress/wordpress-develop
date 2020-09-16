@@ -101,7 +101,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'foo' );
 			$current_site = $original_network;
 
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		/**
@@ -122,7 +122,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'foo' );
 			$current_site = $original_network;
 
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 
 		public function test_get_id_from_blogname_invalid_slug() {
@@ -134,7 +134,7 @@ if ( is_multisite() ) :
 			$result       = get_id_from_blogname( 'bar' );
 			$current_site = $original_network;
 
-			$this->assertEquals( null, $result );
+			$this->assertNull( $result );
 		}
 
 	}

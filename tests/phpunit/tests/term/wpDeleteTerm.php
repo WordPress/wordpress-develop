@@ -28,11 +28,11 @@ class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 		add_action( 'delete_term', array( $this, 'catch_deleted_term' ), 10, 5 );
 
 		wp_delete_term( $terms[0], 'wptests_tax' );
-		$this->assertEquals( 1, $this->deleted_term->count );
+		$this->assertSame( 1, $this->deleted_term->count );
 		$this->assertSame( $this->object_ids, array( "$post_id" ) );
 
 		wp_delete_term( $terms[1], 'wptests_tax' );
-		$this->assertEquals( 0, $this->deleted_term->count );
+		$this->assertSame( 0, $this->deleted_term->count );
 		$this->assertSame( $this->object_ids, array() );
 	}
 

@@ -48,7 +48,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$expected  = '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 		$expected .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
+		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
 	function test_add_oembed_discovery_links_to_page() {
@@ -63,7 +63,7 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$expected  = '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 		$expected .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
+		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
 	function test_add_oembed_discovery_links_to_attachment() {
@@ -83,6 +83,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$expected  = '<link rel="alternate" type="application/json+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink() ) ) . '" />' . "\n";
 		$expected .= '<link rel="alternate" type="text/xml+oembed" href="' . esc_url( get_oembed_endpoint_url( get_permalink(), 'xml' ) ) . '" />' . "\n";
 
-		$this->assertEquals( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
+		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 }

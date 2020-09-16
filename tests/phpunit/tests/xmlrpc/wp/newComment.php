@@ -41,7 +41,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_new_comment_post_closed() {
@@ -52,7 +52,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'closed', $post->comment_status );
+		$this->assertSame( 'closed', $post->comment_status );
 
 		$result = $this->myxmlrpcserver->wp_newComment(
 			array(
@@ -67,7 +67,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_new_comment_duplicated() {
@@ -92,7 +92,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
 
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 }
