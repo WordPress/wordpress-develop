@@ -69,11 +69,9 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$options = $this->get_registered_options();
 
 		foreach ( $options as $name => $args ) {
-			if ( isset( $args['read_permission_callback'] ) && is_callable( $args['read_permission_callback'] ) ) {
-				$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
-				if ( $test ) {
-					return true;
-				}
+			$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
+			if ( $test ) {
+				return true;
 			}
 		}
 
@@ -91,7 +89,7 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$options = $this->get_registered_options();
 
 		foreach ( $options as $name => $args ) {
-			if ( isset( $request[ $name ] ) && isset( $args['edit_permission_callback'] ) && is_callable( $args['edit_permission_callback'] ) ) {
+			if ( isset( $request[ $name ] ) ) {
 				$test = call_user_func_array( $args['edit_permission_callback'], array( $name ) );
 				if ( ! $test ) {
 					return false;
@@ -115,12 +113,11 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 		$response = array();
 
 		foreach ( $options as $name => $args ) {
-			if ( isset( $args['read_permission_callback'] ) && is_callable( $args['read_permission_callback'] ) ) {
-				$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
-				if ( ! $test ) {
-					continue;
-				}
+			$test = call_user_func_array( $args['read_permission_callback'], array( $name ) );
+			if ( ! $test ) {
+				continue;
 			}
+
 			/**
 			 * Filters the value of a setting recognized by the REST API.
 			 *
@@ -276,6 +273,14 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 			);
 
 			$rest_args = array_merge( $defaults, $rest_args );
+
+			if( ! is_callable( $args['edit_permission_callback'] ) ) {
+				$rest_args['edit_permission_callback'] = array( $this, 'default_edit_permission_callback' ),;
+			}
+
+			if( ! is_callable( $args['read_permission_callback'] ) ) {
+				$rest_args['read_permission_callback'] = array( $this, 'default_read_permission_callback' ),;
+			}
 
 			$default_schema = array(
 				'type'        => empty( $args['type'] ) ? null : $args['type'],
