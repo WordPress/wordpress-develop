@@ -261,42 +261,40 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Test: get_events() should return the events with the WordCamp pinned in the prepared list.
 	 *
+	 * @covers WP_Community_Events::trim_events
+	 *
 	 * @since 4.9.7
+	 * @since {todo} Tests `trim_events()` directly instead of indirectly via `get_events()`.
 	 */
-	public function test_get_events_pin_wordcamp() {
-		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response_unpinned_wordcamp' ) );
+	public function test_trim_events_pin_wordcamp() {
+		// Make the `protected` method callable.
+		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
+		$trim_events->setAccessible( true );
 
-		$response_body = $this->instance->get_events();
+
+		$actual = $trim_events->invoke( $this->instance, $this->_events_with_unpinned_wordcamp() );
 
 		/*
-		 * San Diego was at position 3 in the mock API response, but pinning puts it at position 2,
+		 * San Diego was at index 3 in the mock API response, but pinning puts it at index 2,
 		 * so that it remains in the list. The other events should remain unchanged.
 		 */
-		$this->assertCount( 3, $response_body['events'] );
-		$this->assertSame( $response_body['events'][0]['title'], 'Flexbox + CSS Grid: Magic for Responsive Layouts' );
-		$this->assertSame( $response_body['events'][1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
-		$this->assertSame( $response_body['events'][2]['title'], 'WordCamp San Diego' );
-
-		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response_unpinned_wordcamp' ) );
+		$this->assertCount( 3, $actual );
+		$this->assertSame( $actual[0]['title'], 'Flexbox + CSS Grid: Magic for Responsive Layouts' );
+		$this->assertSame( $actual[1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
+		$this->assertSame( $actual[2]['title'], 'WordCamp San Diego' );
 	}
 
 	/**
-	 * Simulates a valid HTTP response where a WordCamp needs to be pinned higher than it's default position.
+	 * Simulates a scenario where a WordCamp needs to be pinned higher than it's default position.
 	 *
 	 * @since 4.9.7
+	 * @since {todo} Accepts and returns only the events, rather than an entire HTTP response.
 	 *
-	 * @return array A mock HTTP response.
+	 * @return array A list of mock events.
 	 */
-	public function _http_request_valid_response_unpinned_wordcamp() {
+	public function _events_with_unpinned_wordcamp() {
+		// todo reformat in separate coding standards commit at the end, to avoid diff noise
 		return array(
-			'headers'  => '',
-			'response' => array( 'code' => 200 ),
-			'cookies'  => '',
-			'filename' => '',
-			'body'     => wp_json_encode(
-				array(
-					'location' => $this->get_user_location(),
-					'events'   => array(
 						array(
 							'type'       => 'meetup',
 							'title'      => 'Flexbox + CSS Grid: Magic for Responsive Layouts',
@@ -304,6 +302,11 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Monday 1pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Monday 2pm' ) ),
+							'start_unix_timestamp' => strtotime( 'next Monday 1pm' ),
+							'end_unix_timestamp'   => strtotime( 'next Monday 2pm' ),
+								// todo convert to utc, same for all the others
+
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -318,6 +321,10 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 1:30pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 2:30pm' ) ),
+							'start_unix_timestamp' => strtotime( 'next Tuesday 1:30pm' ),
+							'end_unix_timestamp'   => strtotime( 'next Tuesday 2:30pm' ),
+
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -332,6 +339,10 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'The San Jose WordPress Meetup',
 							'meetup_url' => 'https://www.meetup.com/sanjosewp/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 5:30pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 6:30pm' ) ),
+							'start_unix_timestamp' => strtotime( 'next Wednesday 5:30pm' ),
+							'end_unix_timestamp'   => strtotime( 'next Wednesday 6:30pm' ),
+
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -346,6 +357,10 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => null,
 							'meetup_url' => null,
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 9am' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 10am' ) ),
+							'start_unix_timestamp' => strtotime( 'next Thursday 9am' ),
+							'end_unix_timestamp'   => strtotime( 'next Thursday 10am' ),
+
 							'location'   => array(
 								'location'  => 'San Diego, CA',
 								'country'   => 'US',
@@ -353,9 +368,6 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 								'longitude' => -117.1534513,
 							),
 						),
-					),
-				)
-			),
 		);
 	}
 
