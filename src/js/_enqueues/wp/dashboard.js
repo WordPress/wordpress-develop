@@ -485,11 +485,16 @@ jQuery( function( $ ) {
 				'.community-events-results'          : false
 			};
 
+			// somewhere in here, convert the utc date to browser's timezone w/ wp.date ?
+			// can use online-events page as example
+			// wp.date.format( 'whatever you want', 'the int timestamp as actual utc' ); // does this convert to browser timezone automatically?
+
 			/*
 			 * Determine which templates should be rendered and which elements
 			 * should be displayed.
 			 */
 			if ( templateParams.location.ip ) {
+				// todo all the ui stuff should be a separate commit, for reviewables sake
 				/*
 				 * If the API determined the location by geolocating an IP, it will
 				 * provide events, but not a specific location.

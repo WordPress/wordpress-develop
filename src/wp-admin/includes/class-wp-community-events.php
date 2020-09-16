@@ -369,6 +369,9 @@ class WP_Community_Events {
 	 * @return array The response with dates and times formatted.
 	 */
 	protected function format_event_data_time( $response_body ) {
+		// port this whole thing to JS, b/c will need to set there now?
+		// if not redo using end_date_timestamp. make separate commit from trim_events
+
 		if ( isset( $response_body['events'] ) ) {
 			foreach ( $response_body['events'] as $key => $event ) {
 				$timestamp = strtotime( $event['date'] );

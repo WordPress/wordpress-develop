@@ -1369,7 +1369,7 @@ function wp_print_community_events_templates() {
 
 	<script id="tmpl-community-events-event-list" type="text/template">
 		<# _.each( data.events, function( event ) { #>
-			<li class="event event-{{ event.type }} wp-clearfix">
+			<li class="event event-{{ event.type }} wp-clearfix" data-date-utc="{{event.date_utc}}">
 				<div class="event-info">
 					<div class="dashicons event-icon" aria-hidden="true"></div>
 					<div class="event-info-inner">
@@ -1381,7 +1381,9 @@ function wp_print_community_events_templates() {
 				<div class="event-date-time">
 					<span class="event-date">{{ event.formatted_date }}</span>
 					<# if ( 'meetup' === event.type ) { #>
-						<span class="event-time">{{ event.formatted_time }}</span>
+						<span class="event-time">
+							{{ event.formatted_time }} TZID
+						</span>
 					<# } #>
 				</div>
 			</li>

@@ -199,6 +199,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * @return array A mock HTTP response with valid data.
 	 */
 	public function _http_request_valid_response() {
+		// todo need to add `start_unix_timestamp` and end to all tests, otherwise not testing the new functionality
+
 		return array(
 			'headers'  => '',
 			'body'     => wp_json_encode(
@@ -212,6 +214,14 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Sunday 1pm' ) ),
+								// this doesn't match real data, b/c `date` field returns WP timestamp, but strtotime() returns Unix timestamp?
+								// maybe just remove the date/end_date fields, since won't be used in tests anyway?
+									// have to wait until format() function is updated though
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Sunday 2pm' ) ),
+
+							'start_unix_timestamp' => strtotime( 'next Sunday 1pm' ),
+							'end_unix_timestamp'   => strtotime( 'next Sunday 2pm' ),
+
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -226,6 +236,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 2:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -240,6 +251,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => null,
 							'meetup_url' => null,
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Saturday' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Saturday 8pm' ) ),
 							'location'   => array(
 								'location'  => 'Kansas City, MO',
 								'country'   => 'US',
@@ -380,6 +392,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	public function test_get_events_dont_pin_multiple_wordcamps() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response_multiple_wordcamps' ) );
 
+		// convert this to just testing trim_events?
+
 		$response_body = $this->instance->get_events();
 
 		/*
@@ -418,7 +432,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'url'        => 'https://www.meetup.com/Eastbay-WordPress-Meetup/events/236031233/',
 							'meetup'     => 'The East Bay WordPress Meetup Group',
 							'meetup_url' => 'https://www.meetup.com/Eastbay-WordPress-Meetup/',
-							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
+							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) - HOUR_IN_SECONDS ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( '2 days ago' ) ),
 							'location'   => array(
 								'location'  => 'Oakland, CA, USA',
 								'country'   => 'us',
@@ -433,6 +448,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => null,
 							'meetup_url' => null,
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 9am' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Tuesday 10am' ) ),
 							'location'   => array(
 								'location'  => 'San Diego, CA',
 								'country'   => 'US',
@@ -447,6 +463,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'WordPress Bay Area Foothills Group',
 							'meetup_url' => 'https://www.meetup.com/Wordpress-Bay-Area-CA-Foothills/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 1:30pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Wednesday 2:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -461,6 +478,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => 'The San Jose WordPress Meetup',
 							'meetup_url' => 'https://www.meetup.com/sanjosewp/',
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 5:30pm' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Thursday 6:30pm' ) ),
 							'location'   => array(
 								'location'  => 'Milpitas, CA, USA',
 								'country'   => 'us',
@@ -475,6 +493,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 							'meetup'     => null,
 							'meetup_url' => null,
 							'date'       => gmdate( 'Y-m-d H:i:s', strtotime( 'next Friday 9am' ) ),
+							'end_date'   => gmdate( 'Y-m-d H:i:s', strtotime( 'next Friday 10am' ) ),
 							'location'   => array(
 								'location'  => 'Los Angeles, CA',
 								'country'   => 'US',
@@ -487,6 +506,20 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 			),
 		);
 	}
+
+	// migrate/add tests for format...() just like did for tirm..(), unless porting to JS
+
+		// test an event where the local time vs utc time matters
+			// like around expiration, like api still serving event that's 11.5 hours past end date?
+				// er, no, have 11.5 hour old cache, but event finished 10 minutes ago
+
+	// discard expired meetups
+		// discard expired wordcamps
+		// pin wordcamp upcoming
+
+	// maybe test this against the old function to make sure continuity?
+
+	// make sure test all paths in the function
 
 	/**
 	 * Test that get_unsafe_client_ip() properly anonymizes all possible address formats
