@@ -379,7 +379,6 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	function test_prepare_sprintf_invalid_args() {
 		global $wpdb;
@@ -402,7 +401,6 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	function test_prepare_vsprintf_invalid_args() {
 		global $wpdb;
@@ -420,7 +418,6 @@ class Tests_DB extends WP_UnitTestCase {
 	 * @ticket 42040
 	 * @dataProvider data_prepare_incorrect_arg_count
 	 * @expectedIncorrectUsage wpdb::prepare
-	 * @requires PHP < 8.0
 	 */
 	public function test_prepare_incorrect_arg_count( $query, $args, $expected ) {
 		global $wpdb;
