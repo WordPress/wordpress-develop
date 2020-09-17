@@ -1264,7 +1264,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function handle_status_param( $post_status, $post_type, $post_id = 0 ) {
 
-		if ( $post_id !== 0 ) {
+		if ( 0 !== $post_id ) {
 			$existing_post = $this->get_post( $post_id );
 
 			switch ( $post_status ) {
@@ -1282,13 +1282,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				case 'publish':
 				case 'future':
 					if (
-						! ( in_array( $existing_post->post_status, array( 'publish', 'future' ), true ) && current_user_can( 'edit_post', $post_id ) ) 
+						! ( in_array( $existing_post->post_status, array( 'publish', 'future' ), true ) && current_user_can( 'edit_post', $post_id ) )
 						&& ! current_user_can( 'publish_post', $post_id )
 					) {
 						return new WP_Error(
 							'rest_cannot_publish',
-							__( 'Sorry, you are not allowed to publish posts in this post type.' ), 
-							array( 'status' => rest_authorization_required_code() ) 
+							__( 'Sorry, you are not allowed to publish posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
 						);
 					}
 					break;
@@ -1317,8 +1317,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					if ( ! current_user_can( $post_type->cap->publish_posts ) ) {
 						return new WP_Error(
 							'rest_cannot_publish',
-							__( 'Sorry, you are not allowed to publish posts in this post type.' ), 
-							array( 'status' => rest_authorization_required_code() ) 
+							__( 'Sorry, you are not allowed to publish posts in this post type.' ),
+							array( 'status' => rest_authorization_required_code() )
 						);
 					}
 					break;
@@ -1329,7 +1329,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					break;
 			}
 		}
-
 
 		return $post_status;
 	}
@@ -2020,7 +2019,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'attachment' !== $this->post_type && ( ( 'publish' == $post->post_status && current_user_can( $post_type->cap->edit_published_posts ) ) || current_user_can( $post_type->cap->publish_posts ) )  ) {
+		if ( 'attachment' !== $this->post_type && ( ( 'publish' === $post->post_status && current_user_can( $post_type->cap->edit_published_posts ) ) || current_user_can( $post_type->cap->publish_posts ) ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
