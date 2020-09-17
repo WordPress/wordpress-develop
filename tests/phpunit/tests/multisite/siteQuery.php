@@ -909,39 +909,6 @@ if ( is_multisite() ) :
 			}
 		}
 
-
-		/**
-		 * @ticket 45749
-		 * @ticket 47599
-		 */
-		public function test_sites_pre_query_filter_should_bypass_database_query() {
-			global $wpdb;
-
-			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
-
-			$num_queries = $wpdb->num_queries;
-
-			$q       = new WP_Site_Query();
-			$results = $q->query( array() );
-
-			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
-
-			// Make sure no queries were executed.
-			$this->assertSame( $num_queries, $wpdb->num_queries );
-
-			// We manually inserted a non-existing site and overrode the results with it.
-			$this->assertSame( array( 555 ), $results );
-
-			// Make sure manually setting found_sites doesn't get overwritten.
-			$this->assertSame( 1, $q->found_sites );
-		}
-
-		public static function filter_sites_pre_query( $sites, $query ) {
-			$query->found_sites = 1;
-
-			return array( 555 );
-		}
-
 		public function data_wp_site_query_meta_query() {
 			return array(
 				array(
@@ -1095,6 +1062,38 @@ if ( is_multisite() ) :
 					true,
 				),
 			);
+		}
+
+		/**
+		 * @ticket 45749
+		 * @ticket 47599
+		 */
+		public function test_sites_pre_query_filter_should_bypass_database_query() {
+			global $wpdb;
+
+			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
+
+			$num_queries = $wpdb->num_queries;
+
+			$q       = new WP_Site_Query();
+			$results = $q->query( array() );
+
+			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
+
+			// Make sure no queries were executed.
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+
+			// We manually inserted a non-existing site and overrode the results with it.
+			$this->assertSame( array( 555 ), $results );
+
+			// Make sure manually setting found_sites doesn't get overwritten.
+			$this->assertSame( 1, $q->found_sites );
+		}
+
+		public static function filter_sites_pre_query( $sites, $query ) {
+			$query->found_sites = 1;
+
+			return array( 555 );
 		}
 	}
 
