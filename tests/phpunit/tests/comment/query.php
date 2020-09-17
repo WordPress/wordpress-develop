@@ -4916,4 +4916,33 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 
 		return array( 555 );
 	}
+
+	/**
+	 * @ticket 50521
+	 */
+	public function test_comments_pre_query_filter_should_set_comments_property() {
+		add_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10, 2 );
+
+		$q       = new WP_Comment_Query();
+		$results = $q->query( array() );
+
+		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10, 2 );
+
+		// Make sure the comments property is the same as the results.
+		$this->assertSame( $results, $q->comments );
+
+		// Make sure the comment type is `foobar`.
+		$this->assertSame( 'foobar', $q->comments[0]->comment_type );
+	}
+
+	public static function filter_comments_pre_query_and_set_comments( $comments, $query ) {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_type'     => 'foobar',
+				'comment_approved' => '1',
+			)
+		);
+
+		return array( get_comment( $c ) );
+	}
 }
