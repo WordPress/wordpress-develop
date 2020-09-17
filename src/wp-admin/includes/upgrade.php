@@ -2208,11 +2208,10 @@ function upgrade_550() {
  */
 function upgrade_560() {
 	// Prevent an extra database query on each page-load if the WPLANG option doesn't exist.
-	if ( is_multisite() ) {
-		if ( false === get_site_option( 'WPLANG' ) ) {
-			update_site_option( 'WPLANG', '' );
-		}
-	} elseif ( false === get_option( 'WPLANG' ) ) {
+	if ( is_multisite() && false === get_site_option( 'WPLANG' ) ) {
+		update_site_option( 'WPLANG', '' );
+	}
+	if ( false === get_option( 'WPLANG' ) ) {
 		update_option( 'WPLANG', '' );
 	}
 }
