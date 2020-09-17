@@ -185,12 +185,6 @@ module.exports = function(grunt) {
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
-					},
-					{
-						expand: true,
-						cwd: './node_modules/jquery-ui/ui/',
-						src: '*.js',
-						dest: SOURCE_DIR + 'wp-includes/js/jquery/ui/'
 					}
 				]
 			},
@@ -727,7 +721,7 @@ module.exports = function(grunt) {
 				ext: '.min.js',
 				src: ['wp-includes/js/wp-embed.js']
 			},
-			jqueryui: {
+			'jquery-ui': {
 				options: {
 					// Preserve comments that start with a bang.
 					output: {
@@ -735,7 +729,7 @@ module.exports = function(grunt) {
 					}
 				},
 				expand: true,
-				cwd: 'node_modules/jquery-ui/ui/',
+				cwd: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				ext: '.min.js',
 				src: ['*.js']
@@ -1385,7 +1379,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
 		'uglify:embed',
-		'uglify:jqueryui',
+		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment'
