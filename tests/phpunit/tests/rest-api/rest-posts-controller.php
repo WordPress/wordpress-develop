@@ -4876,6 +4876,63 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
+	/**
+	 * @ticket 47443
+	 */
+	public function test_edit_published_post_without_publish_posts_capability() {
+		wp_set_current_user( self::$editor_id );
+		$user = wp_get_current_user();
+		$user->add_cap( 'publish_posts', false );
+		$user->add_cap( 'edit_published_posts', true );
+
+		// Flush capabilities, https://core.trac.wordpress.org/ticket/28374
+		$user->get_role_caps();
+		$user->update_user_level_from_caps();
+
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params = $this->set_post_data(
+			array(
+				'title'   => 'Hello World',
+				'content' => 'Hello, world.',
+				'excerpt' => 'Hello',
+				'name'    => 'test',
+				'status'  => 'future',
+				'author'  => get_current_user_id(),
+				'type'    => 'post',
+			)
+		);
+
+		$request->set_body_params( $params );
+		$response = rest_get_server()->dispatch( $request );
+		$this->check_update_post_response( $response );
+		$new_data = $response->get_data();
+
+		$this->assertEquals( self::$post_id, $new_data['id'] );
+		$this->assertEquals( $params['title'], $new_data['title']['raw'] );
+		$this->assertEquals( $params['content'], $new_data['content']['raw'] );
+		$this->assertEquals( $params['excerpt'], $new_data['excerpt']['raw'] );
+		$post = get_post( self::$post_id );
+		$this->assertEquals( 'Hello World', $post->post_title );
+		$this->assertEquals( 'Hello, world.', $post->post_content );
+		$this->assertEquals( 'Hello', $post->post_excerpt );
+
+		$request2 = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request2->add_header( 'content-type', 'application/x-www-form-urlencoded' );
+		$params2 = $this->set_post_data(
+			array(
+				'content' => 'Hello again.',
+				'status'  => 'future',
+			)
+		);
+		$request2->set_body_params( $params2 );
+		$response2 = rest_get_server()->dispatch( $request2 );
+		$this->check_update_post_response( $response2 );
+		$data2 = $response2->get_data();
+		$post2 = get_post( self::$post_id );
+		$this->assertEquals( 'Hello again.', $post2->post_content );
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeme' );
