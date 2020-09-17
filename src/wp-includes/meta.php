@@ -155,7 +155,6 @@ function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique =
  *                  and was therefore added, true on successful update,
  *                  false on failure or if the value passed to the function
  *                  is the same as the one that is already in the database.
-
  */
 function update_metadata( $meta_type, $object_id, $meta_key, $meta_value, $prev_value = '' ) {
 	global $wpdb;
@@ -485,7 +484,8 @@ function delete_metadata( $meta_type, $object_id, $meta_key, $meta_value = '', $
  * or an array of values if it's false.
  *
  * If the meta field does not exist, the result depends on get_metadata_default().
- * By default, an empty string is returned if `$single` is true, or an empty array if it's false.
+ * By default, an empty string is returned if `$single` is true, or an empty array
+ * if it's false.
  *
  * @since 2.9.0
  *
@@ -543,6 +543,13 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
 	 *
+	 * Possible filter names include:
+	 *
+	 *  - `get_post_metadata`
+	 *  - `get_comment_metadata`
+	 *  - `get_term_metadata`
+	 *  - `get_user_metadata`
+	 *
 	 * @since 3.1.0
 	 * @since 5.5.0 Added the `$meta_type` parameter.
 	 *
@@ -590,9 +597,10 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 }
 
 /**
- * Retrieves default metadata value for the specified object.
+ * Retrieves default metadata value for the specified meta key and object.
  *
- * By default, an empty string is returned if `$single` is true, or an empty array if it's false.
+ * By default, an empty string is returned if `$single` is true, or an empty array
+ * if it's false.
  *
  * @since 5.5.0
  *
@@ -612,10 +620,17 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
 	}
 
 	/**
-	 * Filter the default value for a specified object.
+	 * Filters the default metadata value for a specified meta key and object.
 	 *
 	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible filter names include:
+	 *
+	 *  - `default_post_metadata`
+	 *  - `default_comment_metadata`
+	 *  - `default_term_metadata`
+	 *  - `default_user_metadata`
 	 *
 	 * @since 5.5.0
 	 *
@@ -1098,7 +1113,7 @@ function wp_metadata_lazyloader() {
  *
  * @see WP_Meta_Query
  *
- * @param array $meta_query         A meta query.
+ * @param array  $meta_query        A meta query.
  * @param string $type              Type of meta.
  * @param string $primary_table     Primary database table name.
  * @param string $primary_id_column Primary ID column name.
@@ -1226,11 +1241,12 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *              `$sanitize_callback` and `$auth_callback` have been folded into this array.
  * @since 4.9.8 The `$object_subtype` argument was added to the arguments array.
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
+ * @since 5.5.0 The `$default` argument was added to the arguments array.
  *
- * @param string $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
- *                            or any other object type with an associated meta table.
- * @param string $meta_key    Meta key to register.
- * @param array  $args {
+ * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
+ *                                  or any other object type with an associated meta table.
+ * @param string       $meta_key    Meta key to register.
+ * @param array        $args {
  *     Data used to describe the meta key when registered.
  *
  *     @type string     $object_subtype    A subtype; e.g. if the object type is "post", the post type. If left empty,
@@ -1414,7 +1430,7 @@ function filter_default_metadata( $value, $object_id, $meta_key, $single, $meta_
 		return $value;
 	}
 
-	// If this meta type does not have sub types, then the default is keyed as an empty string.
+	// If this meta type does not have subtypes, then the default is keyed as an empty string.
 	if ( isset( $defaults[''] ) ) {
 		$metadata = $defaults[''];
 	} else {

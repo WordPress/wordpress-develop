@@ -31,12 +31,12 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 
 	function test_wp_get_archives_default() {
 		$expected['default'] = "<li><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a></li>';
-		$this->assertEquals( $expected['default'], trim( wp_get_archives( array( 'echo' => false ) ) ) );
+		$this->assertSame( $expected['default'], trim( wp_get_archives( array( 'echo' => false ) ) ) );
 	}
 
 	function test_wp_get_archives_type() {
 		$expected['type'] = "<li><a href='" . $this->year_url . "'>" . gmdate( 'Y' ) . '</a></li>';
-		$this->assertEquals(
+		$this->assertSame(
 			$expected['type'],
 			trim(
 				wp_get_archives(
@@ -71,7 +71,7 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	<li><a href='$link4'>$title4</a></li>
 	<li><a href='$link5'>$title5</a></li>
 EOF;
-		$this->assertEqualsIgnoreEOL(
+		$this->assertSameIgnoreEOL(
 			$expected['limit'],
 			trim(
 				wp_get_archives(
@@ -87,7 +87,7 @@ EOF;
 
 	function test_wp_get_archives_format() {
 		$expected['format'] = "<option value='" . $this->month_url . "'> " . gmdate( 'F Y' ) . ' </option>';
-		$this->assertEquals(
+		$this->assertSame(
 			$expected['format'],
 			trim(
 				wp_get_archives(
@@ -102,7 +102,7 @@ EOF;
 
 	function test_wp_get_archives_before_and_after() {
 		$expected['before_and_after'] = "<div><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a></div>';
-		$this->assertEquals(
+		$this->assertSame(
 			$expected['before_and_after'],
 			trim(
 				wp_get_archives(
@@ -119,7 +119,7 @@ EOF;
 
 	function test_wp_get_archives_show_post_count() {
 		$expected['show_post_count'] = "<li><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a>&nbsp;(8)</li>';
-		$this->assertEquals(
+		$this->assertSame(
 			$expected['show_post_count'],
 			trim(
 				wp_get_archives(
@@ -153,7 +153,7 @@ EOF;
 <li><a href='{$oct_url}'>October 2012</a></li>
 	<li><a href='{$this->month_url}'>$date_full</a></li>
 EOF;
-		$this->assertEqualsIgnoreEOL(
+		$this->assertSameIgnoreEOL(
 			$expected['order_asc'],
 			trim(
 				wp_get_archives(
@@ -169,7 +169,7 @@ EOF;
 <li><a href='{$this->month_url}'>$date_full</a></li>
 	<li><a href='{$oct_url}'>October 2012</a></li>
 EOF;
-		$this->assertEqualsIgnoreEOL(
+		$this->assertSameIgnoreEOL(
 			$expected['order_desc'],
 			trim(
 				wp_get_archives(
@@ -204,6 +204,6 @@ EOF;
 				'post_type' => 'taco',
 			)
 		);
-		$this->assertEquals( $expected, trim( $archives ) );
+		$this->assertSame( $expected, trim( $archives ) );
 	}
 }

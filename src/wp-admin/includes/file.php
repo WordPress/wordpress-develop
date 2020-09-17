@@ -555,7 +555,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			$url = admin_url();
 		}
 
-		if ( PHP_SESSION_ACTIVE === session_status() ) {
+		if ( function_exists( 'session_status' ) && PHP_SESSION_ACTIVE === session_status() ) {
 			// Close any active session to prevent HTTP requests from timing out
 			// when attempting to connect back to the site.
 			session_write_close();
@@ -1125,7 +1125,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			}
 
 			/**
-			 * Filter the URL where the signature for a file is located.
+			 * Filters the URL where the signature for a file is located.
 			 *
 			 * @since 5.2.0
 			 *
@@ -1394,7 +1394,7 @@ function wp_trusted_keys() {
 	// TODO: Add key #2 with longer expiration.
 
 	/**
-	 * Filter the valid signing keys used to verify the contents of files.
+	 * Filters the valid signing keys used to verify the contents of files.
 	 *
 	 * @since 5.2.0
 	 *
@@ -2356,7 +2356,7 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	}
 
 	// Verify that file to be invalidated has a PHP extension.
-	if ( ! preg_match( '/\.(?:php)$/i', $filepath ) ) {
+	if ( '.php' !== strtolower( substr( $filepath, -4 ) ) ) {
 		return false;
 	}
 
@@ -2365,8 +2365,8 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param bool   $will_invalidate Whether WordPress will invalidate `$filename`. Default true.
-	 * @param string $filename        The PHP filename to invalidate.
+	 * @param bool   $will_invalidate Whether WordPress will invalidate `$filepath`. Default true.
+	 * @param string $filepath        The path to the PHP file to invalidate.
 	 */
 	if ( apply_filters( 'wp_opcache_invalidate_file', true, $filepath ) ) {
 		return opcache_invalidate( $filepath, $force );

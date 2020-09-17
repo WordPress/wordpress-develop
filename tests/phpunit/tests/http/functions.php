@@ -25,9 +25,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		$this->assertInternalType( 'array', $response );
 
-		$this->assertEquals( 'image/jpeg', $headers['content-type'] );
-		$this->assertEquals( '40148', $headers['content-length'] );
-		$this->assertEquals( '200', wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/jpeg', $headers['content-type'] );
+		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_head_redirect() {
@@ -36,7 +36,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
-		$this->assertEquals( '301', wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 301, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_head_404() {
@@ -44,7 +44,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$response = wp_remote_head( $url );
 
 		$this->skipTestOnTimeout( $response );
-		$this->assertEquals( '404', wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 404, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_get_request() {
@@ -59,9 +59,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertEquals( 'image/jpeg', $headers['content-type'] );
-		$this->assertEquals( '40148', $headers['content-length'] );
-		$this->assertEquals( '200', wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/jpeg', $headers['content-type'] );
+		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_get_redirect() {
@@ -75,9 +75,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$headers = wp_remote_retrieve_headers( $response );
 
 		// Should return the same headers as a HEAD request.
-		$this->assertEquals( 'image/jpeg', $headers['content-type'] );
-		$this->assertEquals( '40148', $headers['content-length'] );
-		$this->assertEquals( '200', wp_remote_retrieve_response_code( $response ) );
+		$this->assertSame( 'image/jpeg', $headers['content-type'] );
+		$this->assertSame( '40148', $headers['content-length'] );
+		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
 	function test_get_redirect_limit_exceeded() {
@@ -196,7 +196,7 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 		// Check the host_only flag in the resulting WP_Http_Cookie.
 		$cookie = wp_remote_retrieve_cookie( $response, 'test' );
-		$this->assertEquals( $cookie->domain, 'wordpress.org' );
+		$this->assertSame( $cookie->domain, 'wordpress.org' );
 		$this->assertFalse( $cookie->host_only, 'host-only flag not set' );
 
 		// Regurgitate (Requests_Cookie -> WP_Http_Cookie -> Requests_Cookie).

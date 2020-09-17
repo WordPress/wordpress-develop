@@ -227,6 +227,8 @@ function wp_save_post_revision( $post_id ) {
  *
  * @since 2.6.0
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int $post_id The post ID.
  * @param int $user_id Optional The post author ID.
  * @return WP_Post|false The autosaved data or false on failure or when no autosave exists.
@@ -354,8 +356,9 @@ function _wp_put_post_revision( $post = null, $autosave = false ) {
  * @since 2.6.0
  *
  * @param int|WP_Post $post   The post ID or object.
- * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                            a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                            correspond to a WP_Post object, an associative array, or a numeric array,
+ *                            respectively. Default OBJECT.
  * @param string      $filter Optional sanitation filter. See sanitize_post().
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */

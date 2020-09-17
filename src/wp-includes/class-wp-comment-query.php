@@ -28,7 +28,7 @@ class WP_Comment_Query {
 	 * Metadata query container
 	 *
 	 * @since 3.5.0
-	 * @var object WP_Meta_Query
+	 * @var WP_Meta_Query A meta query instance.
 	 */
 	public $meta_query = false;
 
@@ -69,7 +69,7 @@ class WP_Comment_Query {
 	 * Date query container
 	 *
 	 * @since 3.7.0
-	 * @var object WP_Date_Query
+	 * @var WP_Date_Query A date query instance.
 	 */
 	public $date_query = false;
 
@@ -118,8 +118,8 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -382,7 +382,7 @@ class WP_Comment_Query {
 		$comment_data = null;
 
 		/**
-		 * Filter the comments data before the query takes place.
+		 * Filters the comments data before the query takes place.
 		 *
 		 * Return a non-null value to bypass WordPress's default comment queries.
 		 *
@@ -1085,7 +1085,7 @@ class WP_Comment_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $string
-	 * @param array $cols
+	 * @param array  $cols
 	 * @return string
 	 */
 	protected function get_search_sql( $string, $cols ) {

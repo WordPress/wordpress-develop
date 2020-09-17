@@ -6,7 +6,7 @@
 class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	function test_mailto_xss() {
 		$in = 'testzzz@"STYLE="behavior:url(\'#default#time2\')"onBegin="alert(\'refresh-XSS\')"';
-		$this->assertEquals( $in, make_clickable( $in ) );
+		$this->assertSame( $in, make_clickable( $in ) );
 	}
 
 	function test_valid_mailto() {
@@ -18,7 +18,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'foo@example-example.com',
 		);
 		foreach ( $valid_emails as $email ) {
-			$this->assertEquals( '<a href="mailto:' . $email . '">' . $email . '</a>', make_clickable( $email ) );
+			$this->assertSame( '<a href="mailto:' . $email . '">' . $email . '</a>', make_clickable( $email ) );
 		}
 	}
 
@@ -32,7 +32,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'foo@example',
 		);
 		foreach ( $invalid_emails as $email ) {
-			$this->assertEquals( $email, make_clickable( $email ) );
+			$this->assertSame( $email, make_clickable( $email ) );
 		}
 	}
 
@@ -59,7 +59,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		);
 
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -88,7 +88,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		);
 
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -115,7 +115,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		);
 
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -142,7 +142,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		);
 
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -161,7 +161,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'<a href="http://example.com/?a=баба&#038;b=дядо" rel="nofollow">http://example.com/?a=баба&#038;b=дядо</a>',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -198,7 +198,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			Richard Hamming wrote about people getting more done with their doors closed, but',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -221,7 +221,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'In his famous speech “You and Your research” (here: <a href="http://www.cs.virginia.edu/~robins/YouAndYourResearch.html" rel="nofollow">http://www.cs.virginia.edu/~robins/YouAndYourResearch.html</a>) Richard Hamming wrote about people getting more done with their doors closed...',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -240,7 +240,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'This is a really good tweet <a href="http://twitter.com/#!/wordpress/status/25907440233" rel="nofollow">http://twitter.com/#!/wordpress/status/25907440233</a>!',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -256,7 +256,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'mailto wrapped in angle brackets <foo@example.com>',
 		);
 		foreach ( $before as $key => $url ) {
-			$this->assertEquals( $expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -278,7 +278,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'Question mark then URL?<a href="http://example.com/" rel="nofollow">http://example.com/</a>',
 		);
 		foreach ( $before as $key => $url ) {
-			$this->assertEquals( $expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -302,7 +302,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'<a href="http://example.com/example.gif" title="Image from http://example.com">Look at this image!</a>',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -343,7 +343,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		);
 
 		foreach ( $before as $key => $url ) {
-			$this->assertEquals( $expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -360,7 +360,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			'<p><a href="http://example.com/" rel="nofollow">http://example.com/</a></p>',
 		);
 		foreach ( $urls_before as $key => $url ) {
-			$this->assertEquals( $urls_expected[ $key ], make_clickable( $url ) );
+			$this->assertSame( $urls_expected[ $key ], make_clickable( $url ) );
 		}
 	}
 
@@ -370,7 +370,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 			// '<a href="http://wordpress.org">This is already a link www.wordpress.org</a>', // Fails in 3.3.1 too.
 		);
 		foreach ( $in as $text ) {
-			$this->assertEquals( $text, make_clickable( $text ) );
+			$this->assertSame( $text, make_clickable( $text ) );
 		}
 	}
 
@@ -380,7 +380,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	function test_no_segfault() {
 		$in  = str_repeat( 'http://example.com/2011/03/18/post-title/', 256 );
 		$out = make_clickable( $in );
-		$this->assertEquals( $in, $out );
+		$this->assertSame( $in, $out );
 	}
 
 	/**
@@ -389,7 +389,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	function test_line_break_in_existing_clickable_link() {
 		$html = "<a
 				  href='mailto:someone@example.com'>someone@example.com</a>";
-		$this->assertEquals( $html, make_clickable( $html ) );
+		$this->assertSame( $html, make_clickable( $html ) );
 	}
 
 	/**
@@ -397,7 +397,7 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	 * @dataProvider data_script_and_style_tags
 	 */
 	public function test_dont_link_script_and_style_tags( $tag ) {
-		$this->assertEquals( $tag, make_clickable( $tag ) );
+		$this->assertSame( $tag, make_clickable( $tag ) );
 	}
 
 	public function data_script_and_style_tags() {

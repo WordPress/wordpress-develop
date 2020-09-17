@@ -36,14 +36,18 @@ if ( isset( $_GET['dt'] ) ) {
 	}
 }
 
-$comment_id = absint( $_GET['c'] );
-$comment    = get_comment( $comment_id );
+if ( isset( $_REQUEST['c'] ) ) {
+	$comment_id = absint( $_REQUEST['c'] );
+	$comment    = get_comment( $comment_id );
 
-// Prevent actions on a comment associated with a trashed post.
-if ( 'trash' === get_post_status( $comment->comment_post_ID ) ) {
-	wp_die(
-		__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
-	);
+	// Prevent actions on a comment associated with a trashed post.
+	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+		wp_die(
+			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
+		);
+	}
+} else {
+	$comment = null;
 }
 
 switch ( $action ) {
@@ -129,7 +133,7 @@ switch ( $action ) {
 				break;
 			case 'trash':
 				$caution_msg = __( 'You are about to move the following comment to the Trash:' );
-				$button      = __( 'Move to trash' );
+				$button      = __( 'Move to Trash' );
 				break;
 			case 'delete':
 				$caution_msg = __( 'You are about to delete the following comment:' );

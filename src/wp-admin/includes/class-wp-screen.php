@@ -467,7 +467,7 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @param WP_Screen $screen A screen object.
-	 * @param string $help Help text.
+	 * @param string    $help   Help text.
 	 */
 	public static function add_old_compat_help( $screen, $help ) {
 		self::$_old_compat_help[ $screen->id ] = $help;
@@ -496,8 +496,8 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param string $option Option ID
-	 * @param mixed $args Option-dependent arguments.
+	 * @param string $option Option ID.
+	 * @param mixed  $args   Option-dependent arguments.
 	 */
 	public function add_option( $option, $args = array() ) {
 		$this->_options[ $option ] = $args;
@@ -1041,7 +1041,9 @@ final class WP_Screen {
 	 * @since 3.3.0
 	 *
 	 * @param array $options {
-	 *     @type bool $wrap  Whether the screen-options-wrap div will be included. Defaults to true.
+	 *     Options for the tab.
+	 *
+	 *     @type bool $wrap Whether the screen-options-wrap div will be included. Defaults to true.
 	 * }
 	 */
 	public function render_screen_options( $options = array() ) {
@@ -1311,41 +1313,23 @@ final class WP_Screen {
 			return;
 		}
 
-		$mode = get_user_setting( 'posts_list_mode', 'list' );
-
-		/**
-		 * Filters the current view mode.
-		 *
-		 * @since 5.5.0
-		 *
-		 * @param string $mode The current selected mode. Defaults to the value
-		 *                     of 'posts_list_mode' user setting.
-		 */
-		$mode = apply_filters( 'table_view_mode', $mode );
+		if ( ! isset( $mode ) ) {
+			$mode = get_user_setting( 'posts_list_mode', 'list' );
+		}
 
 		// This needs a submit button.
 		add_filter( 'screen_options_show_submit', '__return_true' );
 		?>
 		<fieldset class="metabox-prefs view-mode">
-		<legend><?php _e( 'View mode' ); ?></legend>
-				<label for="list-view-mode">
-					<input id="list-view-mode" type="radio" name="mode" value="list" <?php checked( 'list', $mode ); ?> />
-					<?php _e( 'Compact view' ); ?>
-				</label>
-				<label for="excerpt-view-mode">
-					<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" <?php checked( 'excerpt', $mode ); ?> />
-					<?php _e( 'Extended view' ); ?>
-				</label>
-				<?php
-				/**
-				 * Fires at the end of the table view modes screen option.
-				 *
-				 * @since 5.5.0
-				 *
-				 * @param string $mode The currently selected mode.
-				 */
-				do_action( 'wp_table_view_modes', $mode );
-				?>
+			<legend><?php _e( 'View mode' ); ?></legend>
+			<label for="list-view-mode">
+				<input id="list-view-mode" type="radio" name="mode" value="list" <?php checked( 'list', $mode ); ?> />
+				<?php _e( 'Compact view' ); ?>
+			</label>
+			<label for="excerpt-view-mode">
+				<input id="excerpt-view-mode" type="radio" name="mode" value="excerpt" <?php checked( 'excerpt', $mode ); ?> />
+				<?php _e( 'Extended view' ); ?>
+			</label>
 		</fieldset>
 		<?php
 	}

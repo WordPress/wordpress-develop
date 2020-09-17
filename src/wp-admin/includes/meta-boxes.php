@@ -17,8 +17,8 @@
  *
  * @global string $action
  *
- * @param WP_Post  $post Current post object.
- * @param array    $args {
+ * @param WP_Post $post Current post object.
+ * @param array   $args {
  *     Array of arguments for building the post submit meta box.
  *
  *     @type string   $id       Meta box 'id' attribute.
@@ -334,7 +334,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 			if ( ! EMPTY_TRASH_DAYS ) {
 				$delete_text = __( 'Delete permanently' );
 			} else {
-				$delete_text = __( 'Move to trash' );
+				$delete_text = __( 'Move to Trash' );
 			}
 			?>
 			<a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
@@ -438,7 +438,7 @@ function attachment_submit_meta_box( $post ) {
 	<?php
 	if ( current_user_can( 'delete_post', $post->ID ) ) {
 		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
-			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to trash' ) . '</a>';
+			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
 			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
 			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
@@ -998,7 +998,7 @@ function page_attributes_meta_box( $post ) {
 		 * @param string $context Where the option label is displayed. Possible values
 		 *                        include 'meta-box' or 'quick-edit'.
 		 */
-		$default_title = apply_filters( 'default_page_template_title', __( 'Default Template' ), 'meta-box' );
+		$default_title = apply_filters( 'default_page_template_title', __( 'Default template' ), 'meta-box' );
 		?>
 <option value="default"><?php echo esc_html( $default_title ); ?></option>
 		<?php page_template_dropdown( $template, $post->post_type ); ?>
@@ -1185,7 +1185,7 @@ function link_target_meta_box( $link ) {
  *
  * @param string $class
  * @param string $value
- * @param mixed $deprecated Never used.
+ * @param mixed  $deprecated Never used.
  */
 function xfn_check( $class, $value = '', $deprecated = '' ) {
 	global $link;

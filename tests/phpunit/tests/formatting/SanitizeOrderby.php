@@ -10,7 +10,7 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	 * @dataProvider valid_orderbys
 	 */
 	function test_valid( $orderby ) {
-		$this->assertEquals( $orderby, sanitize_sql_orderby( $orderby ) );
+		$this->assertSame( $orderby, sanitize_sql_orderby( $orderby ) );
 	}
 	function valid_orderbys() {
 		return array(

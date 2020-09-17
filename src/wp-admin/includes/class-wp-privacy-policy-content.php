@@ -87,7 +87,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Remove the extra values added to the meta.
 		foreach ( $old as $key => $data ) {
-			if ( ! empty( $data['removed'] ) ) {
+			if ( ! is_array( $data ) || ! empty( $data['removed'] ) ) {
 				unset( $old[ $key ] );
 				continue;
 			}
@@ -155,6 +155,8 @@ final class WP_Privacy_Policy_Content {
 	 *
 	 * @since 4.9.6
 	 * @access private
+	 *
+	 * @param int $post_id The ID of the updated post.
 	 */
 	public static function _policy_page_updated( $post_id ) {
 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
@@ -422,7 +424,7 @@ final class WP_Privacy_Policy_Content {
 				$content .= '</div>';
 			}
 
-			$content .= '<a href="#wpbody" class="return-to-top"><span aria-hidden="true">&uarr; </span> ' . __( 'Return to Top' ) . '</a>';
+			$content .= '<a href="#wpbody" class="return-to-top"><span aria-hidden="true">&uarr; </span> ' . __( 'Return to top' ) . '</a>';
 
 			$content .= '</div>'; // End of .privacy-text-section.
 		}

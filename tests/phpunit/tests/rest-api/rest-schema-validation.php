@@ -390,7 +390,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( 'some random string', $schema );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'Invalid date.', $error->get_error_message() );
+		$this->assertSame( 'Invalid date.', $error->get_error_message() );
 	}
 
 	public function test_object_or_string() {
@@ -408,7 +408,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema );
 		$this->assertWPError( $error );
-		$this->assertEquals( '[raw] is not of type string.', $error->get_error_message() );
+		$this->assertSame( '[raw] is not of type string.', $error->get_error_message() );
 	}
 
 	/**
@@ -427,7 +427,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( 30, $schema, 'param' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+		$this->assertSame( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
 	}
 
 	/**
@@ -1040,4 +1040,20 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$data[1] = array_reverse( $data[1] );
 		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_string_or_integer() {
+		$schema = array(
+			'type' => array( 'integer', 'string' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'garbage', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15.5', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
+	}
+
 }

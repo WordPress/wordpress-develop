@@ -152,7 +152,7 @@ function get_blog_post( $blog_id, $post_id ) {
 }
 
 /**
- * Adds a user to a blog.
+ * Adds a user to a blog, along with specifying the user's role.
  *
  * Use the {@see 'add_user_to_blog'} action to fire an event when users are added to a blog.
  *
@@ -160,7 +160,7 @@ function get_blog_post( $blog_id, $post_id ) {
  *
  * @param int    $blog_id ID of the blog the user is being added to.
  * @param int    $user_id ID of the user being added.
- * @param string $role    The role you want the user to have
+ * @param string $role    The role you want the user to have.
  * @return true|WP_Error True on success or a WP_Error object if the user doesn't exist
  *                       or could not be added.
  */
@@ -952,7 +952,7 @@ function wpmu_signup_blog_notification( $domain, $path, $title, $user_login, $us
 	$admin_email = get_site_option( 'admin_email' );
 
 	if ( '' === $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
 	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
@@ -1079,7 +1079,7 @@ function wpmu_signup_user_notification( $user_login, $user_email, $key, $meta = 
 	$admin_email = get_site_option( 'admin_email' );
 
 	if ( '' === $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
 	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
@@ -1663,7 +1663,7 @@ We hope you enjoy your new site. Thanks!
 	$admin_email = get_site_option( 'admin_email' );
 
 	if ( '' === $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
 	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';
@@ -1755,7 +1755,7 @@ function wpmu_welcome_user_notification( $user_id, $password, $meta = array() ) 
 	$admin_email = get_site_option( 'admin_email' );
 
 	if ( '' === $admin_email ) {
-		$admin_email = 'support@' . $_SERVER['SERVER_NAME'];
+		$admin_email = 'support@' . wp_parse_url( network_home_url(), PHP_URL_HOST );
 	}
 
 	$from_name       = ( '' !== get_site_option( 'site_name' ) ) ? esc_html( get_site_option( 'site_name' ) ) : 'WordPress';

@@ -12,7 +12,7 @@
  *
  * @group functions.php
  * @group post
- * @covers do_enclose
+ * @covers ::do_enclose
  *
  * @since 5.3.0
  */
@@ -134,6 +134,10 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 								'https://example.com/wp-content/uploads/2018/06/movie.mp4',
 				'expected' => "https://example.com/wp-content/uploads/2018/06/audio.ogg\n321\naudio/ogg\n" .
 								"https://example.com/wp-content/uploads/2018/06/movie.mp4\n123\nvideo/mp4\n",
+			),
+			'no-path'               => array(
+				'content'  => 'https://example.com?test=1',
+				'expected' => '',
 			),
 		);
 	}

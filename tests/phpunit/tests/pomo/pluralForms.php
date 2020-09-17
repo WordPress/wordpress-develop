@@ -74,10 +74,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @group external-http
 	 */
 	public function test_regression( $lang, $nplurals, $expression ) {
-		if ( version_compare( phpversion(), '7.2', '>=' ) ) {
-			$this->markTestSkipped( 'Lambda functions are deprecated in PHP 7.2' );
-		}
-
 		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
 
 		$parenthesized = self::parenthesize_plural_expression( $expression );
@@ -217,7 +213,7 @@ class PluralFormsTest extends WP_UnitTestCase {
 				$plural_forms->get( 1 );
 			}
 		} catch ( Exception $e ) {
-			$this->assertEquals( $expected_exception, $e->getMessage() );
+			$this->assertSame( $expected_exception, $e->getMessage() );
 			return;
 		}
 
@@ -240,6 +236,6 @@ class PluralFormsTest extends WP_UnitTestCase {
 
 		$first  = $mock->get( 2 );
 		$second = $mock->get( 2 );
-		$this->assertEquals( $first, $second );
+		$this->assertSame( $first, $second );
 	}
 }

@@ -175,11 +175,14 @@ window.addComment = ( function( window ) {
 		var headingText = temporaryElement.textContent;
 		temporaryElement.parentNode.replaceChild( respondElement, temporaryElement );
 		cancelLink.style.display = 'none';
-		var replyHeadingElement = getElementById( config.commentReplyTitleId );
+
+		var replyHeadingElement  = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
+
 		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE && headingText ) {
 			replyHeadingTextNode.textContent = headingText;
 		}
+
 		event.preventDefault();
 	}
 
@@ -265,9 +268,9 @@ window.addComment = ( function( window ) {
 	 * @since 5.1.0
 	 *
 	 * @param {HTMLElement} Element DOM element with the attribute.
-	 * @param {String}      Attribute the attribute to get.
+	 * @param {string}      Attribute the attribute to get.
 	 *
-	 * @return {String}
+	 * @return {string}
 	 */
 	function getDataAttribute( element, attribute ) {
 		if ( supportsDataset ) {
@@ -298,11 +301,11 @@ window.addComment = ( function( window ) {
 	 *
 	 * @memberOf addComment
 	 *
-	 * @param {String} addBelowId HTML ID of element the form follows.
-	 * @param {String} commentId  Database ID of comment being replied to.
-	 * @param {String} respondId  HTML ID of 'respond' element.
-	 * @param {String} postId     Database ID of the post.
-	 * @param {String} replyTo    Form heading content.
+	 * @param {string} addBelowId HTML ID of element the form follows.
+	 * @param {string} commentId  Database ID of comment being replied to.
+	 * @param {string} respondId  HTML ID of 'respond' element.
+	 * @param {string} postId     Database ID of the post.
+	 * @param {string} replyTo    Form heading content.
 	 */
 	function moveForm( addBelowId, commentId, respondId, postId, replyTo ) {
 		// Get elements based on their IDs.
@@ -314,7 +317,7 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
-		var replyHeading = getElementById( config.commentReplyTitleId );
+		var replyHeading         = getElementById( config.commentReplyTitleId );
 		var replyHeadingTextNode = replyHeading && replyHeading.firstChild;
 
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
@@ -337,9 +340,11 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
-		if ( replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
+
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
 			replyHeadingTextNode.textContent = replyTo;
 		}
+
 		/*
 		 * This is for backward compatibility with third party commenting systems
 		 * hooking into the event using older techniques.
@@ -408,7 +413,7 @@ window.addComment = ( function( window ) {
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
 		var replyElement = getElementById( config.commentReplyTitleId );
-		var initialHeadingText = ( 'undefined' !== typeof replyElement ) ? replyElement.firstChild.textContent : '';
+		var initialHeadingText = replyElement ? replyElement.firstChild.textContent : '';
 
 		if ( temporaryElement ) {
 			// The element already exists, no need to recreate.

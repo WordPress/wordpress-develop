@@ -13,7 +13,7 @@
  *
  * @group privacy
  * @group user
- * @covers wp_send_user_request
+ * @covers ::wp_send_user_request
  */
 class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
@@ -292,7 +292,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -401,6 +401,6 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 }

@@ -25,7 +25,7 @@ class Tests_XMLRPC_wp_getPageList extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getPageList( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -33,7 +33,7 @@ class Tests_XMLRPC_wp_getPageList extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getPageList( array( 1, 'contributor', 'contributor' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_date() {
@@ -49,8 +49,8 @@ class Tests_XMLRPC_wp_getPageList extends WP_XMLRPC_UnitTestCase {
 			$this->assertInstanceOf( 'IXR_Date', $result->dateCreated );
 			$this->assertInstanceOf( 'IXR_Date', $result->date_created_gmt );
 
-			$this->assertEquals( strtotime( $page->post_date ), $result->dateCreated->getTimestamp() );
-			$this->assertEquals( $date_gmt, $result->date_created_gmt->getTimestamp() );
+			$this->assertSame( strtotime( $page->post_date ), $result->dateCreated->getTimestamp() );
+			$this->assertSame( $date_gmt, $result->date_created_gmt->getTimestamp() );
 		}
 	}
 }

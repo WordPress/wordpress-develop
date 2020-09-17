@@ -105,7 +105,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	);
 
 	/**
-	 * Filter the query arguments sent as part of the core version check.
+	 * Filters the query arguments sent as part of the core version check.
 	 *
 	 * WARNING: Changing this data may result in your site not receiving security updates.
 	 * Please exercise extreme caution.
@@ -621,6 +621,7 @@ function wp_update_themes( $extra_stats = array() ) {
 
 	if ( is_array( $response ) ) {
 		$new_update->response     = $response['themes'];
+		$new_update->no_update    = $response['no_update'];
 		$new_update->translations = $response['translations'];
 	}
 

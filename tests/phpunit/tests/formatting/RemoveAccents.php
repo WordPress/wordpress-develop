@@ -5,7 +5,7 @@
  */
 class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_accents_simple() {
-		$this->assertEquals( 'abcdefghijkl', remove_accents( 'abcdefghijkl' ) );
+		$this->assertSame( 'abcdefghijkl', remove_accents( 'abcdefghijkl' ) );
 	}
 
 	/**
@@ -15,23 +15,23 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
 		$output = 'aoAAAAAAAECEEEEIIIIDNOOOOOOUUUUYTHsaaaaaaaeceeeeiiiidnoooooouuuuythy';
 
-		$this->assertEquals( $output, remove_accents( $input ), 'remove_accents replaces Latin-1 Supplement' );
+		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin-1 Supplement' );
 	}
 
 	public function test_remove_accents_latin_extended_a() {
 		$input  = 'ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ';
 		$output = 'AaAaAaCcCcCcCcDdDdEeEeEeEeEeGgGgGgGgHhHhIiIiIiIiIiIJijJjKkkLlLlLlLlLlNnNnNnnNnOoOoOoOEoeRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUuWwYyYZzZzZzs';
 
-		$this->assertEquals( $output, remove_accents( $input ), 'remove_accents replaces Latin Extended A' );
+		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin Extended A' );
 	}
 
 	public function test_remove_accents_latin_extended_b() {
-		$this->assertEquals( 'SsTt', remove_accents( 'ȘșȚț' ), 'remove_accents replaces Latin Extended B' );
+		$this->assertSame( 'SsTt', remove_accents( 'ȘșȚț' ), 'remove_accents replaces Latin Extended B' );
 	}
 
 	public function test_remove_accents_euro_pound_signs() {
-		$this->assertEquals( 'E', remove_accents( '€' ), 'remove_accents replaces euro sign' );
-		$this->assertEquals( '', remove_accents( '£' ), 'remove_accents replaces pound sign' );
+		$this->assertSame( 'E', remove_accents( '€' ), 'remove_accents replaces euro sign' );
+		$this->assertSame( '', remove_accents( '£' ), 'remove_accents replaces pound sign' );
 	}
 
 	public function test_remove_accents_iso8859() {
@@ -41,7 +41,7 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$input  = trim( $input );
 		$output = 'EfSZszYcYuAAAAAACEEEEIIIINOOOOOOUUUUYaaaaaaceeeeiiiinoooooouuuuyyOEoeAEDHTHssaedhth';
 
-		$this->assertEquals( $output, remove_accents( $input ), 'remove_accents from ISO-8859-1 text' );
+		$this->assertSame( $output, remove_accents( $input ), 'remove_accents from ISO-8859-1 text' );
 	}
 
 	/**
@@ -50,17 +50,17 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_accents_vowels_diacritic() {
 		// Vowels with diacritic.
 		// Unmarked.
-		$this->assertEquals( 'OoUu', remove_accents( 'ƠơƯư' ) );
+		$this->assertSame( 'OoUu', remove_accents( 'ƠơƯư' ) );
 		// Grave accent.
-		$this->assertEquals( 'AaAaEeOoOoUuYy', remove_accents( 'ẦầẰằỀềỒồỜờỪừỲỳ' ) );
+		$this->assertSame( 'AaAaEeOoOoUuYy', remove_accents( 'ẦầẰằỀềỒồỜờỪừỲỳ' ) );
 		// Hook.
-		$this->assertEquals( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẢảẨẩẲẳẺẻỂểỈỉỎỏỔổỞởỦủỬửỶỷ' ) );
+		$this->assertSame( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẢảẨẩẲẳẺẻỂểỈỉỎỏỔổỞởỦủỬửỶỷ' ) );
 		// Tilde.
-		$this->assertEquals( 'AaAaEeEeOoOoUuYy', remove_accents( 'ẪẫẴẵẼẽỄễỖỗỠỡỮữỸỹ' ) );
+		$this->assertSame( 'AaAaEeEeOoOoUuYy', remove_accents( 'ẪẫẴẵẼẽỄễỖỗỠỡỮữỸỹ' ) );
 		// Acute accent.
-		$this->assertEquals( 'AaAaEeOoOoUu', remove_accents( 'ẤấẮắẾếỐốỚớỨứ' ) );
+		$this->assertSame( 'AaAaEeOoOoUu', remove_accents( 'ẤấẮắẾếỐốỚớỨứ' ) );
 		// Dot below.
-		$this->assertEquals( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẠạẬậẶặẸẹỆệỊịỌọỘộỢợỤụỰựỴỵ' ) );
+		$this->assertSame( 'AaAaAaEeEeIiOoOoOoUuUuYy', remove_accents( 'ẠạẬậẶặẸẹỆệỊịỌọỘộỢợỤụỰựỴỵ' ) );
 	}
 
 	/**
@@ -69,15 +69,15 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_accents_hanyu_pinyin() {
 		// Vowels with diacritic (Chinese, Hanyu Pinyin).
 		// Macron.
-		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'āēīōūǖĀĒĪŌŪǕ' ) );
+		$this->assertSame( 'aeiouuAEIOUU', remove_accents( 'āēīōūǖĀĒĪŌŪǕ' ) );
 		// Acute accent.
-		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'áéíóúǘÁÉÍÓÚǗ' ) );
+		$this->assertSame( 'aeiouuAEIOUU', remove_accents( 'áéíóúǘÁÉÍÓÚǗ' ) );
 		// Caron.
-		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'ǎěǐǒǔǚǍĚǏǑǓǙ' ) );
+		$this->assertSame( 'aeiouuAEIOUU', remove_accents( 'ǎěǐǒǔǚǍĚǏǑǓǙ' ) );
 		// Grave accent.
-		$this->assertEquals( 'aeiouuAEIOUU', remove_accents( 'àèìòùǜÀÈÌÒÙǛ' ) );
+		$this->assertSame( 'aeiouuAEIOUU', remove_accents( 'àèìòùǜÀÈÌÒÙǛ' ) );
 		// Unmarked.
-		$this->assertEquals( 'aaeiouuAEIOUU', remove_accents( 'aɑeiouüAEIOUÜ' ) );
+		$this->assertSame( 'aaeiouuAEIOUU', remove_accents( 'aɑeiouüAEIOUÜ' ) );
 	}
 
 	function _remove_accents_germanic_umlauts_cb() {
@@ -90,7 +90,7 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_accents_germanic_umlauts() {
 		add_filter( 'locale', array( $this, '_remove_accents_germanic_umlauts_cb' ) );
 
-		$this->assertEquals( 'AeOeUeaeoeuess', remove_accents( 'ÄÖÜäöüß' ) );
+		$this->assertSame( 'AeOeUeaeoeuess', remove_accents( 'ÄÖÜäöüß' ) );
 
 		remove_filter( 'locale', array( $this, '_remove_accents_germanic_umlauts_cb' ) );
 	}
@@ -105,7 +105,7 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_danish_accents() {
 		add_filter( 'locale', array( $this, '_set_locale_to_danish' ) );
 
-		$this->assertEquals( 'AeOeAaaeoeaa', remove_accents( 'ÆØÅæøå' ) );
+		$this->assertSame( 'AeOeAaaeoeaa', remove_accents( 'ÆØÅæøå' ) );
 
 		remove_filter( 'locale', array( $this, '_set_locale_to_danish' ) );
 	}
@@ -120,11 +120,11 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_remove_catalan_middot() {
 		add_filter( 'locale', array( $this, '_set_locale_to_catalan' ) );
 
-		$this->assertEquals( 'allallalla', remove_accents( 'al·lallaŀla' ) );
+		$this->assertSame( 'allallalla', remove_accents( 'al·lallaŀla' ) );
 
 		remove_filter( 'locale', array( $this, '_set_locale_to_catalan' ) );
 
-		$this->assertEquals( 'al·lallalla', remove_accents( 'al·lallaŀla' ) );
+		$this->assertSame( 'al·lallalla', remove_accents( 'al·lallaŀla' ) );
 	}
 
 	public function _set_locale_to_serbian() {
@@ -137,10 +137,10 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 	public function test_transcribe_serbian_crossed_d() {
 		add_filter( 'locale', array( $this, '_set_locale_to_serbian' ) );
 
-		$this->assertEquals( 'DJdj', remove_accents( 'Đđ' ) );
+		$this->assertSame( 'DJdj', remove_accents( 'Đđ' ) );
 
 		remove_filter( 'locale', array( $this, '_set_locale_to_serbian' ) );
 
-		$this->assertEquals( 'Dd', remove_accents( 'Đđ' ) );
+		$this->assertSame( 'Dd', remove_accents( 'Đđ' ) );
 	}
 }

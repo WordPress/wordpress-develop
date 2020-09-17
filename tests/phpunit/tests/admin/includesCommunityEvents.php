@@ -152,7 +152,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test: With a valid response, get_events() should return an associated array containing a location array and
+	 * Test: With a valid response, get_events() should return an associative array containing a location array and
 	 * an events array with individual events that have formatted time and date.
 	 *
 	 * @since 4.8.0
@@ -163,9 +163,9 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		$response = $this->instance->get_events();
 
 		$this->assertNotWPError( $response );
-		$this->assertEqualSetsWithIndex( $this->get_user_location(), $response['location'] );
-		$this->assertEquals( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $response['events'][0]['formatted_date'] );
-		$this->assertEquals( '1:00 pm', $response['events'][0]['formatted_time'] );
+		$this->assertSameSetsWithIndex( $this->get_user_location(), $response['location'] );
+		$this->assertSame( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $response['events'][0]['formatted_date'] );
+		$this->assertSame( '1:00 pm', $response['events'][0]['formatted_time'] );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
 	}
@@ -184,9 +184,9 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		$cached_events = $this->instance->get_cached_events();
 
 		$this->assertNotWPError( $cached_events );
-		$this->assertEqualSetsWithIndex( $this->get_user_location(), $cached_events['location'] );
-		$this->assertEquals( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $cached_events['events'][0]['formatted_date'] );
-		$this->assertEquals( '1:00 pm', $cached_events['events'][0]['formatted_time'] );
+		$this->assertSameSetsWithIndex( $this->get_user_location(), $cached_events['location'] );
+		$this->assertSame( gmdate( 'l, M j, Y', strtotime( 'next Sunday 1pm' ) ), $cached_events['events'][0]['formatted_date'] );
+		$this->assertSame( '1:00 pm', $cached_events['events'][0]['formatted_time'] );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
 	}
@@ -273,9 +273,9 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		 * so that it remains in the list. The other events should remain unchanged.
 		 */
 		$this->assertCount( 3, $response_body['events'] );
-		$this->assertEquals( $response_body['events'][0]['title'], 'Flexbox + CSS Grid: Magic for Responsive Layouts' );
-		$this->assertEquals( $response_body['events'][1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
-		$this->assertEquals( $response_body['events'][2]['title'], 'WordCamp San Diego' );
+		$this->assertSame( $response_body['events'][0]['title'], 'Flexbox + CSS Grid: Magic for Responsive Layouts' );
+		$this->assertSame( $response_body['events'][1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
+		$this->assertSame( $response_body['events'][2]['title'], 'WordCamp San Diego' );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response_unpinned_wordcamp' ) );
 	}
@@ -375,9 +375,9 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		 * WordCamp LA should not be stuck to the list, because San Diego already appears naturally.
 		 */
 		$this->assertCount( 3, $response_body['events'] );
-		$this->assertEquals( $response_body['events'][0]['title'], 'WordCamp San Diego' );
-		$this->assertEquals( $response_body['events'][1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
-		$this->assertEquals( $response_body['events'][2]['title'], 'WordPress Q&A' );
+		$this->assertSame( $response_body['events'][0]['title'], 'WordCamp San Diego' );
+		$this->assertSame( $response_body['events'][1]['title'], 'Part 3- Site Maintenance - Tools to Make It Easy' );
+		$this->assertSame( $response_body['events'][2]['title'], 'WordPress Q&A' );
 
 		remove_filter( 'pre_http_request', array( $this, '_http_request_valid_response_multiple_wordcamps' ) );
 	}
@@ -488,7 +488,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 		$_SERVER['HTTP_CLIENT_IP'] = $raw_ip;
 		$actual_result             = WP_Community_Events::get_unsafe_client_ip();
 
-		$this->assertEquals( $expected_result, $actual_result );
+		$this->assertSame( $expected_result, $actual_result );
 	}
 
 	/**

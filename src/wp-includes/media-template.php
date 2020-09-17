@@ -310,10 +310,10 @@ function wp_print_media_templates() {
 	<?php // Template for the view switchers, used for example in the Media Grid. ?>
 	<script type="text/html" id="tmpl-media-library-view-switcher">
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'list', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-list">
-			<span class="screen-reader-text"><?php _e( 'List View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'List view' ); ?></span>
 		</a>
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'grid', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-grid current" aria-current="page">
-			<span class="screen-reader-text"><?php _e( 'Grid View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'Grid view' ); ?></span>
 		</a>
 	</script>
 
@@ -518,9 +518,9 @@ function wp_print_media_templates() {
 				<# if ( ! data.uploading && data.can.remove ) { #> |
 					<?php if ( MEDIA_TRASH ) : ?>
 						<# if ( 'trash' === data.status ) { #>
-							<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from trash' ); ?></button>
+							<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from Trash' ); ?></button>
 						<# } else { #>
-							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to trash' ); ?></button>
+							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 						<# } #>
 					<?php else : ?>
 						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
@@ -639,9 +639,9 @@ function wp_print_media_templates() {
 				<# if ( ! data.uploading && data.can.remove ) { #>
 					<?php if ( MEDIA_TRASH ) : ?>
 					<# if ( 'trash' === data.status ) { #>
-						<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from trash' ); ?></button>
+						<button type="button" class="button-link untrash-attachment"><?php _e( 'Restore from Trash' ); ?></button>
 					<# } else { #>
-						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to trash' ); ?></button>
+						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 					<# } #>
 					<?php else : ?>
 						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>

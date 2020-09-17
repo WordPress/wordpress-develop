@@ -54,7 +54,7 @@ if ( is_multisite() ) :
 			wp_delete_site( $site_id_one );
 			wp_delete_site( $site_id_two );
 
-			$this->assertEquals( $primary_site_id, $result->id );
+			$this->assertSame( $primary_site_id, $result->id );
 		}
 
 		/**
@@ -71,7 +71,7 @@ if ( is_multisite() ) :
 
 			wp_delete_site( $primary_site_id );
 
-			$this->assertEquals( $primary_site_id, $result->id );
+			$this->assertSame( $primary_site_id, $result->id );
 		}
 
 		/**
@@ -94,7 +94,7 @@ if ( is_multisite() ) :
 
 			wp_delete_site( $site_id );
 
-			$this->assertEquals( $current_site_id, $result->id );
+			$this->assertSame( $current_site_id, $result->id );
 		}
 	}
 

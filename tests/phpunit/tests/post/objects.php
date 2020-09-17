@@ -10,28 +10,28 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 		$post = get_post( $id );
 		$this->assertInstanceOf( 'WP_Post', $post );
-		$this->assertEquals( $id, $post->ID );
+		$this->assertSame( $id, $post->ID );
 		$this->assertTrue( isset( $post->ancestors ) );
-		$this->assertEquals( array(), $post->ancestors );
+		$this->assertSame( array(), $post->ancestors );
 
 		// Unset and then verify that the magic method fills the property again.
 		unset( $post->ancestors );
-		$this->assertEquals( array(), $post->ancestors );
+		$this->assertSame( array(), $post->ancestors );
 
 		// Magic get should make meta accessible as properties.
 		add_post_meta( $id, 'test', 'test' );
-		$this->assertEquals( 'test', get_post_meta( $id, 'test', true ) );
-		$this->assertEquals( 'test', $post->test );
+		$this->assertSame( 'test', get_post_meta( $id, 'test', true ) );
+		$this->assertSame( 'test', $post->test );
 
 		// Make sure meta does not eclipse true properties.
 		add_post_meta( $id, 'post_type', 'dummy' );
-		$this->assertEquals( 'dummy', get_post_meta( $id, 'post_type', true ) );
-		$this->assertEquals( 'post', $post->post_type );
+		$this->assertSame( 'dummy', get_post_meta( $id, 'post_type', true ) );
+		$this->assertSame( 'post', $post->post_type );
 
 		// Excercise the output argument.
 		$post = get_post( $id, ARRAY_A );
 		$this->assertInternalType( 'array', $post );
-		$this->assertEquals( 'post', $post['post_type'] );
+		$this->assertSame( 'post', $post['post_type'] );
 
 		$post = get_post( $id, ARRAY_N );
 		$this->assertInternalType( 'array', $post );
@@ -41,13 +41,13 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post = get_post( $id );
 		$post = get_post( $post, ARRAY_A );
 		$this->assertInternalType( 'array', $post );
-		$this->assertEquals( 'post', $post['post_type'] );
-		$this->assertEquals( $id, $post['ID'] );
+		$this->assertSame( 'post', $post['post_type'] );
+		$this->assertSame( $id, $post['ID'] );
 
 		// Should default to OBJECT when given invalid output argument.
 		$post = get_post( $id, 'invalid-output-value' );
 		$this->assertInstanceOf( 'WP_Post', $post );
-		$this->assertEquals( $id, $post->ID );
+		$this->assertSame( $id, $post->ID );
 
 		// Make sure stdClass in $GLOBALS['post'] is handled.
 		$post_std = $post->to_array();
@@ -56,7 +56,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$GLOBALS['post'] = $post_std;
 		$post            = get_post( null );
 		$this->assertInstanceOf( 'WP_Post', $post );
-		$this->assertEquals( $id, $post->ID );
+		$this->assertSame( $id, $post->ID );
 		unset( $GLOBALS['post'] );
 
 		// If no global post and passing empty value, expect null.
@@ -76,26 +76,26 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 				'post_parent' => $parent_id,
 			)
 		);
-		$this->assertEquals( $updated, $child_id );
+		$this->assertSame( $updated, $child_id );
 		$updated = wp_update_post(
 			array(
 				'ID'          => $grandchild_id,
 				'post_parent' => $child_id,
 			)
 		);
-		$this->assertEquals( $updated, $grandchild_id );
+		$this->assertSame( $updated, $grandchild_id );
 
-		$this->assertEquals( array( $parent_id ), get_post( $child_id )->ancestors );
-		$this->assertEquals( array( $parent_id ), get_post_ancestors( $child_id ) );
-		$this->assertEquals( array( $parent_id ), get_post_ancestors( get_post( $child_id ) ) );
+		$this->assertSame( array( $parent_id ), get_post( $child_id )->ancestors );
+		$this->assertSame( array( $parent_id ), get_post_ancestors( $child_id ) );
+		$this->assertSame( array( $parent_id ), get_post_ancestors( get_post( $child_id ) ) );
 
-		$this->assertEquals( array( $child_id, $parent_id ), get_post( $grandchild_id )->ancestors );
-		$this->assertEquals( array( $child_id, $parent_id ), get_post_ancestors( $grandchild_id ) );
-		$this->assertEquals( array( $child_id, $parent_id ), get_post_ancestors( get_post( $grandchild_id ) ) );
+		$this->assertSame( array( $child_id, $parent_id ), get_post( $grandchild_id )->ancestors );
+		$this->assertSame( array( $child_id, $parent_id ), get_post_ancestors( $grandchild_id ) );
+		$this->assertSame( array( $child_id, $parent_id ), get_post_ancestors( get_post( $grandchild_id ) ) );
 
-		$this->assertEquals( array(), get_post( $parent_id )->ancestors );
-		$this->assertEquals( array(), get_post_ancestors( $parent_id ) );
-		$this->assertEquals( array(), get_post_ancestors( get_post( $parent_id ) ) );
+		$this->assertSame( array(), get_post( $parent_id )->ancestors );
+		$this->assertSame( array(), get_post_ancestors( $parent_id ) );
+		$this->assertSame( array(), get_post_ancestors( get_post( $parent_id ) ) );
 	}
 
 	/**
@@ -104,7 +104,7 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	function test_get_post_ancestors_with_falsey_values() {
 		foreach ( array( null, 0, false, '0', '' ) as $post_id ) {
 			$this->assertInternalType( 'array', get_post_ancestors( $post_id ) );
-			$this->assertEquals( array(), get_post_ancestors( $post_id ) );
+			$this->assertSame( array(), get_post_ancestors( $post_id ) );
 		}
 	}
 
@@ -113,18 +113,18 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		$this->assertInternalType( 'array', $post->post_category );
-		$this->assertEquals( 1, count( $post->post_category ) );
+		$this->assertSame( 1, count( $post->post_category ) );
 		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = wp_insert_term( 'Bar', 'category' );
 		$term3 = wp_insert_term( 'Baz', 'category' );
 		wp_set_post_categories( $post_id, array( $term1['term_id'], $term2['term_id'], $term3['term_id'] ) );
-		$this->assertEquals( 3, count( $post->post_category ) );
-		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post->post_category );
+		$this->assertSame( 3, count( $post->post_category ) );
+		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post->post_category );
 
 		$post = get_post( $post_id, ARRAY_A );
-		$this->assertEquals( 3, count( $post['post_category'] ) );
-		$this->assertEquals( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
+		$this->assertSame( 3, count( $post['post_category'] ) );
+		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
 	}
 
 	function test_get_tags_input_property() {
@@ -135,13 +135,13 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertEmpty( $post->tags_input );
 		wp_set_post_tags( $post_id, 'Foo, Bar, Baz' );
 		$this->assertInternalType( 'array', $post->tags_input );
-		$this->assertEquals( 3, count( $post->tags_input ) );
-		$this->assertEquals( array( 'Bar', 'Baz', 'Foo' ), $post->tags_input );
+		$this->assertSame( 3, count( $post->tags_input ) );
+		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post->tags_input );
 
 		$post = get_post( $post_id, ARRAY_A );
 		$this->assertInternalType( 'array', $post['tags_input'] );
-		$this->assertEquals( 3, count( $post['tags_input'] ) );
-		$this->assertEquals( array( 'Bar', 'Baz', 'Foo' ), $post['tags_input'] );
+		$this->assertSame( 3, count( $post['tags_input'] ) );
+		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post['tags_input'] );
 	}
 
 	function test_get_page_template_property() {
@@ -150,11 +150,11 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 		$this->assertInternalType( 'string', $post->page_template );
 		$template = get_post_meta( $post->ID, '_wp_page_template', true );
-		$this->assertEquals( $template, $post->page_template );
+		$this->assertSame( $template, $post->page_template );
 		update_post_meta( $post_id, '_wp_page_template', 'foo.php' );
 		$template = get_post_meta( $post->ID, '_wp_page_template', true );
-		$this->assertEquals( 'foo.php', $template );
-		$this->assertEquals( $template, $post->page_template );
+		$this->assertSame( 'foo.php', $template );
+		$this->assertSame( $template, $post->page_template );
 	}
 
 	function test_get_post_filter() {
@@ -166,22 +166,22 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'raw', $post->filter );
+		$this->assertSame( 'raw', $post->filter );
 		$this->assertInternalType( 'int', $post->post_parent );
 
 		$display_post = get_post( $post, OBJECT, 'js' );
-		$this->assertEquals( 'js', $display_post->filter );
-		$this->assertEquals( esc_js( "Mary's home" ), $display_post->post_title );
+		$this->assertSame( 'js', $display_post->filter );
+		$this->assertSame( esc_js( "Mary's home" ), $display_post->post_title );
 
 		// Pass a js filtered WP_Post to get_post() with the filter set to raw.
 		// The post should be fetched from cache instead of using the passed object.
 		$raw_post = get_post( $display_post, OBJECT, 'raw' );
-		$this->assertEquals( 'raw', $raw_post->filter );
+		$this->assertSame( 'raw', $raw_post->filter );
 		$this->assertNotEquals( esc_js( "Mary's home" ), $raw_post->post_title );
 
 		$raw_post->filter( 'js' );
-		$this->assertEquals( 'js', $post->filter );
-		$this->assertEquals( esc_js( "Mary's home" ), $raw_post->post_title );
+		$this->assertSame( 'js', $post->filter );
+		$this->assertSame( esc_js( "Mary's home" ), $raw_post->post_title );
 	}
 
 	function test_get_post_identity() {
@@ -189,8 +189,8 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 		$post->foo = 'bar';
 
-		$this->assertEquals( 'bar', get_post( $post )->foo );
-		$this->assertEquals( 'bar', get_post( $post, OBJECT, 'display' )->foo );
+		$this->assertSame( 'bar', get_post( $post )->foo );
+		$this->assertSame( 'bar', get_post( $post, OBJECT, 'display' )->foo );
 	}
 
 	function test_get_post_array() {
@@ -198,9 +198,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 		$post = get_post( $id, ARRAY_A );
 
-		$this->assertEquals( $id, $post['ID'] );
+		$this->assertSame( $id, $post['ID'] );
 		$this->assertInternalType( 'array', $post['ancestors'] );
-		$this->assertEquals( 'raw', $post['filter'] );
+		$this->assertSame( 'raw', $post['filter'] );
 	}
 
 	/**
