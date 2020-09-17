@@ -37,6 +37,23 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	/**
 	 * @group ms-required
 	 */
+	public function test_local_option_empty_should_not_take_precedence_on_multisite() {
+		global $locale;
+		$old_locale = $locale;
+		$locale     = null;
+
+		update_option( 'WPLANG', '' );
+		update_site_option( 'WPLANG', 'es_ES' );
+
+		$found  = get_locale();
+		$locale = $old_locale;
+
+		$this->assertSame( 'en_ES', $found );
+	}
+
+	/**
+	 * @group ms-required
+	 */
 	public function test_network_option_should_be_fallback_on_multisite() {
 		if ( ! is_multisite() ) {
 			$this->markTestSkipped( 'This test requires Multisite.' );
