@@ -1282,7 +1282,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				case 'publish':
 				case 'future':
 					if (
-						! ( in_array($existing_post->post_status, array( 'publish', 'future' ) ) && current_user_can( 'edit_post', $post_id ) ) 
+						! ( in_array( $existing_post->post_status, array( 'publish', 'future' ), true ) && current_user_can( 'edit_post', $post_id ) ) 
 						&& ! current_user_can( 'publish_post', $post_id )
 					) {
 						return new WP_Error(
