@@ -1102,7 +1102,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		// Post status.
 		if ( ! empty( $schema['properties']['status'] ) && isset( $request['status'] ) ) {
-			$status = $this->handle_status_param( $request['status'], $post_type, $request['id'] );
+			$status = $this->handle_status_param( $request['status'], $post_type, $request['id'] ? $request['id'] : 0 );
 
 			if ( is_wp_error( $status ) ) {
 				return $status;
@@ -1264,7 +1264,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	protected function handle_status_param( $post_status, $post_type, $post_id = 0 ) {
 
-		if( $post_id !== 0 ) {
+		if ( $post_id !== 0 ) {
 			$existing_post = $this->get_post( $post_id );
 
 			switch ( $post_status ) {
