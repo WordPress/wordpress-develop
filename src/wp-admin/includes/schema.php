@@ -535,9 +535,6 @@ function populate_options( array $options = array() ) {
 		'disallowed_keys'                 => '',
 		'comment_previously_approved'     => 1,
 		'auto_plugin_theme_update_emails' => array(),
-
-		// 5.6.0
-		'WPLANG'                          => '',
 	);
 
 	// 3.3.0
