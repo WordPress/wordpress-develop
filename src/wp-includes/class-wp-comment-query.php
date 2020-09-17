@@ -384,12 +384,15 @@ class WP_Comment_Query {
 		/**
 		 * Filters the comments data before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default comment queries.
+		 * Return a non-null value to bypass WordPress' default comment queries.
 		 *
-		 * The expected return type from this filter depends on the value passed in the request query_vars.
-		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment IDs.
-		 * Otherwise the filter should return an array of WP_Comment objects.
+		 * The expected return type from this filter depends on the value passed
+		 * in the request query vars:
+		 * - When `$this->query_vars['count']` is set, the filter should return
+		 *   the comment count as an integer.
+		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
+		 *   an array of comment IDs.
+		 * - Otherwise the filter should return an array of WP_Comment objects.
 		 *
 		 * @since 5.3.0
 		 *

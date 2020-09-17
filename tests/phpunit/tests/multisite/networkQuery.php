@@ -545,7 +545,7 @@ if ( is_multisite() ) :
 			// We manually inserted a non-existing site and overrode the results with it.
 			$this->assertSame( array( 555 ), $results );
 
-			// Make sure manually setting total_users doesn't get overwritten.
+			// Make sure manually setting found_networks doesn't get overwritten.
 			$this->assertSame( 1, $q->found_networks );
 		}
 

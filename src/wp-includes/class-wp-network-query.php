@@ -202,12 +202,15 @@ class WP_Network_Query {
 		/**
 		 * Filters the network data before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default network queries.
+		 * Return a non-null value to bypass WordPress' default network queries.
 		 *
-		 * The expected return type from this filter depends on the value passed in the request query_vars.
-		 * When `$this->query_vars['count']` is set, the filter should return the network count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network IDs.
-		 * Otherwise the filter should return an array of WP_Network objects.
+		 * The expected return type from this filter depends on the value passed
+		 * in the request query vars:
+		 * - When `$this->query_vars['count']` is set, the filter should return
+		 *   the network count as an integer.
+		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
+		 *   an array of network IDs.
+		 * - Otherwise the filter should return an array of WP_Network objects.
 		 *
 		 * @since 5.2.0
 		 *
