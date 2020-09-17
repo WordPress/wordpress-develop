@@ -57,7 +57,7 @@ function get_locale() {
 			$ms_locale = get_site_option( 'WPLANG' );
 		} else {
 			$ms_locale = get_option( 'WPLANG' );
-			if ( false === $ms_locale ) {
+			if ( ! $ms_locale ) {
 				$ms_locale = get_site_option( 'WPLANG' );
 			}
 		}
