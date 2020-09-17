@@ -2255,7 +2255,6 @@ function upgrade_560() {
  * @since 5.6.0
  */
 function upgrade_590() {
-
 	// Prevent an extra database query on each page-load if the WPLANG option doesn't exist.
 	if ( ! get_option( 'WPLANG' ) ) {
 		update_option( 'WPLANG', '' );
