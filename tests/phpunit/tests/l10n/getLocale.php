@@ -48,7 +48,7 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 		$found  = get_locale();
 		$locale = $old_locale;
 
-		$this->assertSame( 'en_ES', $found );
+		$this->assertSame( 'en_US', $found );
 	}
 
 	/**
