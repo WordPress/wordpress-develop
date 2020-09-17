@@ -1255,14 +1255,16 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Determines validity and normalizes the given status parameter.
 	 *
 	 * @since 4.7.0
+	 * @since 5.6.0 The `$post_id` parameter was added.
 	 *
 	 * @param string       $post_status Post status.
 	 * @param WP_Post_Type $post_type   Post type.
+	 * @param int          $post_id     Post ID
 	 * @return string|WP_Error Post status or WP_Error if lacking the proper permission.
 	 */
-	protected function handle_status_param( $post_status, $post_type, $post_id = null ) {
+	protected function handle_status_param( $post_status, $post_type, $post_id = 0 ) {
 
-		if( $post_id ) {
+		if( $post_id !== 0 ) {
 			$existing_post = $this->get_post( $post_id );
 
 			switch ( $post_status ) {
