@@ -2255,9 +2255,12 @@ function upgrade_560() {
  * @since 5.6.0
  */
 function upgrade_590() {
-	// Prevent an extra database query on each page-load if the WPLANG option doesn't exist.
-	if ( ! get_option( 'WPLANG' ) ) {
-		update_option( 'WPLANG', '' );
+	if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
+		if ( defined( 'WPLANG' ) && ( '' !== WPLANG ) && in_array( WPLANG, get_available_languages(), true ) ) {
+			update_option( 'WPLANG', WPLANG );
+		} else {
+			update_option( 'WPLANG', '' );
+		}
 	}
 }
 
