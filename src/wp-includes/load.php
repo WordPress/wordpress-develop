@@ -1458,15 +1458,17 @@ function wp_doing_cron() {
 function is_wp_error( $thing ) {
 	$is = ( $thing instanceof WP_Error );
 
-	/**
-	 * Fires when `is_wp_error()` is called.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param mixed $thing Parameter passed to `is_wp_error()`.
-	 * @param bool  $is    Whether the variable is an instance of WP_Error.
-	 */
-	do_action( 'wp_error_checked', $thing, $is );
+	if ( $is ) {
+		/**
+		 * Fires when `is_wp_error()` is called and WP_Error.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param mixed $thing Parameter passed to `is_wp_error()`.
+		 * @param bool  $is    Whether the variable is an instance of WP_Error.
+		 */
+		do_action( 'wp_error_checked', $thing, $is );
+	}
 
 	return $is;
 }
