@@ -545,6 +545,9 @@ function populate_options( array $options = array() ) {
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
+
+		// 5.9.0
+		'WPLANG'                          => '',
 	);
 
 	// 3.3.0
