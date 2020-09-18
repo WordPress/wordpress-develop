@@ -721,8 +721,6 @@ function upgrade_all() {
 		upgrade_230_options_table();
 	}
 
-	upgrade_560();
-
 	populate_options();
 
 	if ( $wp_current_db_version < 2541 ) {
@@ -2199,20 +2197,6 @@ function upgrade_550() {
 	if ( $wp_current_db_version < 48748 ) {
 		update_option( 'finished_updating_comment_type', 0 );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
-	}
-}
-
-/**
- * Executes changes made in WordPress 5.6.0.
- *
- * @ignore
- * @since 5.6.0
- */
-function upgrade_560() {
-	// On multisite installations if the site's WPLANG is not defined we need to get the network option.
-	if ( is_multisite() && false === get_option( 'WPLANG' ) ) {
-		$ms_locale = get_site_option( 'WPLANG' );
-		update_option( 'WPLANG', $ms_locale );
 	}
 }
 
