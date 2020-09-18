@@ -1460,14 +1460,13 @@ function is_wp_error( $thing ) {
 
 	if ( $is ) {
 		/**
-		 * Fires when `is_wp_error()` is called and WP_Error.
+		 * Fires when `is_wp_error()` is called and it's an instance of `WP_Error`.
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param mixed $thing Parameter passed to `is_wp_error()`.
-		 * @param bool  $is    Whether the variable is an instance of WP_Error.
+		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
 		 */
-		do_action( 'wp_error_checked', $thing, $is );
+		do_action( 'wp_error_checked', $thing );
 	}
 
 	return $is;
