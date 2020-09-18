@@ -52,10 +52,9 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 		$this->assertSame( 1, $result );
 	}
 
-	/**
-	 * @expectedException WPDieException
-	 */
 	public function test_die_as_duplicate_if_comment_author_name_and_emails_match() {
+		$this->expectException( 'WPDieException' );
+
 		$now          = time();
 		$comment_data = array(
 			'comment_post_ID'      => self::$post_id,

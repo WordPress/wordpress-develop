@@ -10,11 +10,9 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @group ajax
  */
 class Tests_Ajax_Update_Plugin extends WP_Ajax_UnitTestCase {
-	/**
-	 * @expectedException WPAjaxDieStopException
-	 * @expectedExceptionMessage -1
-	 */
+
 	public function test_missing_nonce() {
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'update-plugin' );
 	}
 
