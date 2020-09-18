@@ -416,6 +416,12 @@ function update_option( $option, $value, $autoload = null ) {
 		return add_option( $option, $value, '', $autoload );
 	}
 
+	// From this point on, we will to update DB, so validate the current entry first, we'll use autoload data here to manage cache
+	$row = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s", $option ) );
+	if ( is_null( $row ) ) {
+		return false;
+	}
+
 	$serialized_value = maybe_serialize( $value );
 
 	/**
@@ -451,10 +457,22 @@ function update_option( $option, $value, $autoload = null ) {
 
 	if ( ! wp_installing() ) {
 		$alloptions = wp_load_alloptions( true );
-		if ( isset( $alloptions[ $option ] ) ) {
+
+		/**
+		 * Reorganize `alloptions` cache based on actual autoload flag
+		 *
+		 * @see https://core.trac.wordpress.org/ticket/51352#ticket
+		 */
+		$autoload = isset( $update_args['autoload'] ) ? $update_args['autoload'] : $row->autoload;
+		if ( 'yes' === $autoload ) {
+			wp_cache_delete( $option, 'options' ); // delete from singe key based
 			$alloptions[ $option ] = $serialized_value;
 			wp_cache_set( 'alloptions', $alloptions, 'options' );
 		} else {
+			if ( isset( $alloptions[ $option ] ) ) { // delete from alloptions key based
+				unset( $alloptions[ $option ] );
+				wp_cache_set( 'alloptions', $alloptions, 'options' );
+			}
 			wp_cache_set( $option, $serialized_value, 'options' );
 		}
 	}
