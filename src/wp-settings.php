@@ -288,6 +288,9 @@ require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-patterns.php';
 
+require ABSPATH . WPINC . '/class-wp-application-passwords.php';
+WP_Application_Passwords::add_hooks(); // Should be moved to `wp-includes/default-filters.php`
+
 $GLOBALS['wp_embed'] = new WP_Embed();
 
 // Load multisite-specific files.

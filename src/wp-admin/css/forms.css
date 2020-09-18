@@ -841,6 +841,20 @@ table.form-table td .updated p {
 	cursor: pointer;
 }
 
+.app-pass-dialog-background {
+	opacity: 1.0;
+	background: rgba(0,0,0,0.7);
+}
+
+.app-pass-dialog {
+	padding: 20px;
+}
+
+.new-application-password-content {
+	padding-bottom: 20px;
+	padding-top: 10px;
+}
+
 /*------------------------------------------------------------------------------
   19.0 - Tools
 ------------------------------------------------------------------------------*/
