@@ -140,4 +140,39 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$actual = $wpdb->get_row( $wpdb->prepare( "SELECT autoload FROM $wpdb->options WHERE option_name = %s LIMIT 1", $name ) );
 		$this->assertSame( $expected, $actual->autoload );
 	}
+
+	/**
+	 * update_option should respect autoload flag whenever applicable
+	 * when autoload was changed, ensure delete_option and get_option won't processing / giving stale data
+	 *
+	 * @ticket 51352
+	 */
+	function test_option_autoload_changes() {
+		// from yes to no
+		update_option( 'a_dynamic_option', 'foo', 'yes' );
+		$this->assertSame( 'foo', get_option( 'a_dynamic_option' ) );
+
+		update_option( 'a_dynamic_option', 'bar', 'no' );
+		$this->assertSame( 'bar', get_option( 'a_dynamic_option' ) );
+
+		delete_option( 'a_dynamic_option' );
+		$this->assertFalse( get_option( 'a_dynamic_option' ) );
+
+		update_option( 'a_dynamic_option', 'foobar', 'no' );
+		$this->assertSame( 'foobar', get_option( 'a_dynamic_option' ) );
+
+		// from no to yes
+		update_option( 'a_reverse_dynamic_option', 'foo', 'no' );
+		$this->assertSame( 'foo', get_option( 'a_reverse_dynamic_option' ) );
+
+		update_option( 'a_reverse_dynamic_option', 'bar', 'yes' );
+		$this->assertSame( 'bar', get_option( 'a_reverse_dynamic_option' ) );
+
+		delete_option( 'a_reverse_dynamic_option' );
+		$this->assertFalse( get_option( 'a_reverse_dynamic_option' ) );
+
+		update_option( 'a_reverse_dynamic_option', 'foobar' );
+		$this->assertSame( 'foobar', get_option( 'a_reverse_dynamic_option' ) );
+
+	}
 }
