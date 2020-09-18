@@ -545,9 +545,6 @@ function populate_options( array $options = array() ) {
 
 		// 5.8.0
 		'wp_force_deactivated_plugins'    => array(),
-
-		// 5.9.0
-		'WPLANG'                          => is_multisite() ? get_site_option( 'WPLANG', '' ) : '',
 	);
 
 	// 3.3.0
@@ -561,6 +558,11 @@ function populate_options( array $options = array() ) {
 		/* translators: %s: Network title. */
 		$defaults['blogdescription']     = sprintf( __( 'Just another %s site' ), get_network()->site_name );
 		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
+	}
+
+	// 5.9.0
+	if ( ! is_multisite() ) {
+		$defaults['WPLANG'] = '';
 	}
 
 	$options = wp_parse_args( $options, $defaults );

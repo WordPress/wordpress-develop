@@ -830,8 +830,6 @@ function upgrade_all() {
 		upgrade_560();
 	}
 
-	upgrade_590();
-
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2245,20 +2243,6 @@ function upgrade_560() {
 			$network_id = get_main_network_id();
 			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
 		}
-	}
-}
-
-/**
- * Executes changes made in WordPress 5.9.0.
- *
- * @ignore
- * @since 5.9.0
- */
-function upgrade_590() {
-	// On multisite installations if the site's WPLANG is not defined we need to get the network option.
-	if ( is_multisite() && false === get_option( 'WPLANG' ) ) {
-		$ms_locale = get_site_option( 'WPLANG' );
-		update_option( 'WPLANG', $ms_locale );
 	}
 }
 
