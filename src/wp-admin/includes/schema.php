@@ -547,7 +547,7 @@ function populate_options( array $options = array() ) {
 		'wp_force_deactivated_plugins'    => array(),
 
 		// 5.9.0
-		'WPLANG'                          => '',
+		'WPLANG'                          => is_multisite() ? get_site_option( 'WPLANG', '' ) : '',
 	);
 
 	// 3.3.0
