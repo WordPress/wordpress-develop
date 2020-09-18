@@ -537,7 +537,7 @@ function populate_options( array $options = array() ) {
 		'auto_plugin_theme_update_emails' => array(),
 
 		// 5.6.0
-		'WPLANG'                          => '',
+		'WPLANG'                          => is_multisite() ? get_site_option( 'WPLANG', '' ) : '',
 	);
 
 	// 3.3.0
