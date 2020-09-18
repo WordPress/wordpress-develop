@@ -27,6 +27,21 @@ if ( ! $user_id && IS_PROFILE_PAGE ) {
 
 wp_enqueue_script( 'user-profile' );
 
+wp_enqueue_script( 'application-passwords-js' );
+wp_localize_script(
+	'application-passwords-js',
+	'appPass',
+	array(
+		'root'      => esc_url_raw( rest_url() ),
+		'namespace' => '2fa/v1',
+		'nonce'     => wp_create_nonce( 'wp_rest' ),
+		'user_id'   => $user_id,
+		'text'      => array(
+			'no_credentials' => __( 'Due to a potential server misconfiguration, it seems that HTTP Basic Authorization may not work for the REST API on this site: `Authorization` headers are not being sent to WordPress by the web server. <a href="https://github.com/georgestephanis/application-passwords/wiki/Basic-Authorization-Header----Missing">You can learn more about this problem, and a possible solution, on our GitHub Wiki.</a>' ),
+		),
+	)
+);
+
 if ( IS_PROFILE_PAGE ) {
 	$title = __( 'Profile' );
 } else {
@@ -663,6 +678,27 @@ endif;
 </tr>
 	<?php endif; ?>
 
+<tr class="application-passwords hide-if-no-js" id="application-passwords-section">
+	<th><?php esc_html_e( 'Application Passwords' ); ?></th>
+	<td>
+		<p><?php esc_html_e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+		<div class="create-application-password">
+			<input type="text" size="30" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
+			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
+		</div>
+
+		<div class="application-passwords-list-table-wrapper">
+		<?php
+			require_once ABSPATH . 'wp-admin/includes/class.wp-application-passwords-list-table.php';
+			$application_passwords_list_table = new WP_Application_Passwords_List_Table();
+			$application_passwords_list_table->items = array_reverse( WP_Application_Passwords::get_user_application_passwords( $profileuser->ID ) );
+			$application_passwords_list_table->prepare_items();
+			$application_passwords_list_table->display();
+		?>
+		</div>
+	</td>
+</div>
+
 		<?php
 		if ( IS_PROFILE_PAGE && count( $sessions->get_all() ) === 1 ) :
 			?>
@@ -786,6 +822,51 @@ endif;
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
+</script>
+
+<script type="text/html" id="tmpl-new-application-password">
+	<div class="new-application-password notification-dialog-wrap">
+		<div class="app-pass-dialog-background notification-dialog-background">
+			<div class="app-pass-dialog notification-dialog">
+				<div class="new-application-password-content">
+					<?php
+					printf(
+						// translators: application, password.
+						esc_html_x( 'Your new password for %1$s is: %2$s', 'application, password' ),
+						'<strong>{{ data.name }}</strong>',
+						'<kbd>{{ data.password }}</kbd>'
+					);
+					?>
+				</div>
+				<p><?php esc_attr_e( 'Be sure to save this in a safe location.  You will not be able to retrieve it.' ); ?></p>
+				<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
+			</div>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" id="tmpl-application-password-row">
+	<tr data-slug="{{ data.slug }}">
+		<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
+			{{ data.name }}
+		</td>
+		<td class="created column-created" data-colname="<?php esc_attr_e( 'Created' ); ?>">
+			{{ data.created }}
+		</td>
+		<td class="last_used column-last_used" data-colname="<?php esc_attr_e( 'Last Used' ); ?>">
+			{{ data.last_used }}
+		</td>
+		<td class="last_ip column-last_ip" data-colname="<?php esc_attr_e( 'Last IP' ); ?>">
+			{{ data.last_ip }}
+		</td>
+		<td class="revoke column-revoke" data-colname="<?php esc_attr_e( 'Revoke' ); ?>">
+			<input type="submit" name="revoke-application-password" class="button delete" value="<?php esc_attr_e( 'Revoke' ); ?>">
+		</td>
+	</tr>
+</script>
+
+<script type="text/html" id="tmpl-application-password-notice">
+	<div class="notice notice-{{ data.type }}"><p>{{{ data.message }}}</p></div>
 </script>
 <?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';
