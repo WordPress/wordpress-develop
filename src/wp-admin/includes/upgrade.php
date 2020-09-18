@@ -2201,19 +2201,6 @@ function upgrade_550() {
 }
 
 /**
- * Executes changes made in WordPress 5.6.0.
- *
- * @ignore
- * @since 5.6.0
- */
-function upgrade_560() {
-	// Prevent an extra database query on each page-load if the WPLANG option doesn't exist.
-	if ( ! is_multisite() && false === get_option( 'WPLANG' ) ) {
-		update_option( 'WPLANG', '' );
-	}
-}
-
-/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
