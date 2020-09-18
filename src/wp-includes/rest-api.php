@@ -479,6 +479,23 @@ function rest_get_server() {
 	/* @var WP_REST_Server $wp_rest_server */
 	global $wp_rest_server;
 
+	/* @var WP_User|null $current_user */
+	global $current_user;
+
+	if ( $current_user instanceof WP_User && 0 === $current_user->ID ) {
+		/*
+		 * If there is no current user authenticated via other means, clear
+		 * the cached lack of user, so that an authenticate check can set it
+		 * properly.
+		 *
+		 * This is done because for authentications such as Application
+		 * Passwords, we don't want it to be accepted unless the current HTTP
+		 * request is an API request, which can't always be identified early
+		 * enough in evaluation.
+		 */
+		$current_user = null;
+	}
+
 	if ( empty( $wp_rest_server ) ) {
 		/**
 		 * Filters the REST Server Class.

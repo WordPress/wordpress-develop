@@ -35,39 +35,9 @@ class WP_Application_Passwords {
 		add_action( 'edit_user_profile', array( __CLASS__, 'show_user_profile' ) );
 		add_action( 'rest_api_init', array( __CLASS__, 'rest_api_init' ) );
 		add_filter( 'determine_current_user', array( __CLASS__, 'rest_api_auth_handler' ), 20 );
-		add_filter( 'wp_rest_server_class', array( __CLASS__, 'wp_rest_server_class' ) );
 		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
 		add_action( 'admin_post_authorize_application_password', array( __CLASS__, 'authorize_application_password' ) );
 		self::fallback_populate_username_password();
-	}
-
-	/**
-	 * Prevent caching of unauthenticated status.  See comment below.
-	 *
-	 * We don't actually care about the `wp_rest_server_class` filter, it just
-	 * happens right after the constant we do care about is defined.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 */
-	public static function wp_rest_server_class( $class ) {
-		global $current_user;
-		if ( defined( 'REST_REQUEST' )
-			&& REST_REQUEST
-			&& $current_user instanceof WP_User
-			&& 0 === $current_user->ID ) {
-			/*
-			 * For our authentication to work, we need to remove the cached lack
-			 * of a current user, so the next time it checks, we can detect that
-			 * this is a rest api request and allow our override to happen.  This
-			 * is because the constant is defined later than the first get current
-			 * user call may run.
-			 */
-			$current_user = null;
-		}
-		return $class;
 	}
 
 	/**
