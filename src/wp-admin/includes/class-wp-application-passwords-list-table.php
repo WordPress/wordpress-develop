@@ -40,11 +40,14 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * @since ?.?.0
 	 */
 	public function prepare_items() {
+		global $user_id;
 		$columns  = $this->get_columns();
 		$hidden   = array();
 		$sortable = array();
 		$primary  = 'name';
+
 		$this->_column_headers = array( $columns, $hidden, $sortable, $primary );
+		$this->items           = array_reverse( WP_Application_Passwords::get_user_application_passwords( $user_id ) );
 	}
 
 	/**
@@ -55,6 +58,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @param object $item The current item.
 	 * @param string $column_name The current column name.
+	 * @return string
 	 */
 	protected function column_default( $item, $column_name ) {
 		switch ( $column_name ) {
@@ -64,12 +68,12 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 				if ( empty( $item['created'] ) ) {
 					return '&mdash;';
 				}
-				return date( get_option( 'date_format', 'r' ), $item['created'] );
+				return gmdate( get_option( 'date_format', 'r' ), $item['created'] );
 			case 'last_used':
 				if ( empty( $item['last_used'] ) ) {
 					return '&mdash;';
 				}
-				return date( get_option( 'date_format', 'r' ), $item['last_used'] );
+				return gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
 			case 'last_ip':
 				if ( empty( $item['last_ip'] ) ) {
 					return '&mdash;';
@@ -124,5 +128,16 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		echo '<tr data-slug="' . esc_attr( WP_Application_Passwords::password_unique_slug( $item ) ) . '">';
 		$this->single_row_columns( $item );
 		echo '</tr>';
+	}
+
+	/**
+	 * Gets the name of the default primary column.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @return string Name of the default primary column, in this case, 'name'.
+	 */
+	protected function get_default_primary_column_name() {
+		return 'name';
 	}
 }

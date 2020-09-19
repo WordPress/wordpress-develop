@@ -678,27 +678,6 @@ endif;
 </tr>
 	<?php endif; ?>
 
-<tr class="application-passwords hide-if-no-js" id="application-passwords-section">
-	<th><?php esc_html_e( 'Application Passwords' ); ?></th>
-	<td>
-		<p><?php esc_html_e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-		<div class="create-application-password">
-			<input type="text" size="30" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
-			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
-		</div>
-
-		<div class="application-passwords-list-table-wrapper">
-		<?php
-			require_once ABSPATH . 'wp-admin/includes/class.wp-application-passwords-list-table.php';
-			$application_passwords_list_table = new WP_Application_Passwords_List_Table();
-			$application_passwords_list_table->items = array_reverse( WP_Application_Passwords::get_user_application_passwords( $profileuser->ID ) );
-			$application_passwords_list_table->prepare_items();
-			$application_passwords_list_table->display();
-		?>
-		</div>
-	</td>
-</div>
-
 		<?php
 		if ( IS_PROFILE_PAGE && count( $sessions->get_all() ) === 1 ) :
 			?>
@@ -737,6 +716,24 @@ endif;
 <?php endif; ?>
 
 	</table>
+
+
+<div class="application-passwords hide-if-no-js" id="application-passwords-section">
+	<h2><?php esc_html_e( 'Application Passwords' ); ?></h2>
+	<p><?php esc_html_e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+	<div class="create-application-password">
+		<input type="text" size="30" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
+		<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
+	</div>
+
+	<div class="application-passwords-list-table-wrapper">
+		<?php
+		$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table' );
+		$application_passwords_list_table->prepare_items();
+		$application_passwords_list_table->display();
+		?>
+	</div>
+</div>
 
 		<?php
 		if ( IS_PROFILE_PAGE ) {

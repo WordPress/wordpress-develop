@@ -46,44 +46,64 @@ class WP_Application_Passwords {
 	 */
 	public static function rest_api_init() {
 		// List existing application passwords.
-		register_rest_route( '2fa/v1', '/application-passwords/(?P<user_id>[\d]+)', array(
-			'methods' => WP_REST_Server::READABLE,
-			'callback' => __CLASS__ . '::rest_list_application_passwords',
-			'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-		) );
+		register_rest_route(
+			'2fa/v1',
+			'/application-passwords/(?P<user_id>[\d]+)',
+			array(
+				'methods'             => WP_REST_Server::READABLE,
+				'callback'            => __CLASS__ . '::rest_list_application_passwords',
+				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
+			)
+		);
 
 		// Add new application passwords.
-		register_rest_route( '2fa/v1', '/application-passwords/(?P<user_id>[\d]+)/add', array(
-			'methods' => WP_REST_Server::CREATABLE,
-			'callback' => __CLASS__ . '::rest_add_application_password',
-			'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-			'args' => array(
-				'name' => array(
-					'required' => true,
+		register_rest_route(
+			'2fa/v1',
+			'/application-passwords/(?P<user_id>[\d]+)/add',
+			array(
+				'methods'             => WP_REST_Server::CREATABLE,
+				'callback'            => __CLASS__ . '::rest_add_application_password',
+				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
+				'args'                => array(
+					'name' => array(
+						'required' => true,
+					),
 				),
-			),
-		) );
+			)
+		);
 
 		// Delete an application password.
-		register_rest_route( '2fa/v1', '/application-passwords/(?P<user_id>[\d]+)/(?P<slug>[\da-fA-F]{12})', array(
-			'methods' => WP_REST_Server::DELETABLE,
-			'callback' => __CLASS__ . '::rest_delete_application_password',
-			'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-		) );
+		register_rest_route(
+			'2fa/v1',
+			'/application-passwords/(?P<user_id>[\d]+)/(?P<slug>[\da-fA-F]{12})',
+			array(
+				'methods'             => WP_REST_Server::DELETABLE,
+				'callback'            => __CLASS__ . '::rest_delete_application_password',
+				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
+			)
+		);
 
 		// Delete all application passwords for a given user.
-		register_rest_route( '2fa/v1', '/application-passwords/(?P<user_id>[\d]+)', array(
-			'methods' => WP_REST_Server::DELETABLE,
-			'callback' => __CLASS__ . '::rest_delete_all_application_passwords',
-			'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-		) );
+		register_rest_route(
+			'2fa/v1',
+			'/application-passwords/(?P<user_id>[\d]+)',
+			array(
+				'methods'             => WP_REST_Server::DELETABLE,
+				'callback'            => __CLASS__ . '::rest_delete_all_application_passwords',
+				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
+			)
+		);
 
 		// Some hosts that run PHP in FastCGI mode won't be given the Authentication header.
-		register_rest_route( '2fa/v1', '/test-basic-authorization-header/', array(
-			'methods' => WP_REST_Server::READABLE . ', ' . WP_REST_Server::CREATABLE,
-			'callback' => __CLASS__ . '::rest_test_basic_authorization_header',
-			'permission_callback' => '__return_true',
-		) );
+		register_rest_route(
+			'2fa/v1',
+			'/test-basic-authorization-header/',
+			array(
+				'methods'             => WP_REST_Server::READABLE . ', ' . WP_REST_Server::CREATABLE,
+				'callback'            => __CLASS__ . '::rest_test_basic_authorization_header',
+				'permission_callback' => '__return_true',
+			)
+		);
 	}
 
 	/**
@@ -100,24 +120,23 @@ class WP_Application_Passwords {
 	 */
 	public static function rest_list_application_passwords( $data ) {
 		$application_passwords = self::get_user_application_passwords( $data['user_id'] );
-		$with_slugs = array();
+		$with_slugs            = array();
 
 		if ( $application_passwords ) {
 			foreach ( $application_passwords as $item ) {
 				$item['slug'] = self::password_unique_slug( $item );
-				unset( $item['raw'] );
-				unset( $item['password'] );
+				unset( $item['raw'], $item['password'] );
 
-				$item['created'] = date( get_option( 'date_format', 'r' ), $item['created'] );
+				$item['created'] = gmdate( get_option( 'date_format', 'r' ), $item['created'] );
 
 				if ( empty( $item['last_used'] ) ) {
-					$item['last_used'] =  '—';
+					$item['last_used'] = '—';
 				} else {
-					$item['last_used'] = date( get_option( 'date_format', 'r' ), $item['last_used'] );
+					$item['last_used'] = gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
 				}
 
 				if ( empty( $item['last_ip'] ) ) {
-					$item['last_ip'] =  '—';
+					$item['last_ip'] = '—';
 				}
 
 				$with_slugs[ $item['slug'] ] = $item;
@@ -144,14 +163,14 @@ class WP_Application_Passwords {
 
 		// Some tidying before we return it.
 		$new_item['slug']      = self::password_unique_slug( $new_item );
-		$new_item['created']   = date( get_option( 'date_format', 'r' ), $new_item['created'] );
+		$new_item['created']   = gmdate( get_option( 'date_format', 'r' ), $new_item['created'] );
 		$new_item['last_used'] = '—';
 		$new_item['last_ip']   = '—';
 		unset( $new_item['password'] );
 
 		return array(
 			'row'      => $new_item,
-			'password' => self::chunk_password( $new_password )
+			'password' => self::chunk_password( $new_password ),
 		);
 	}
 
@@ -215,7 +234,7 @@ class WP_Application_Passwords {
 	 *
 	 * @return WP_User|bool
 	 */
-	public static function rest_api_auth_handler( $input_user ){
+	public static function rest_api_auth_handler( $input_user ) {
 		// Don't authenticate twice.
 		if ( ! empty( $input_user ) ) {
 			return $input_user;
@@ -353,8 +372,8 @@ class WP_Application_Passwords {
 
 		foreach ( $hashed_passwords as $key => $item ) {
 			if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
-				$item['last_used'] = time();
-				$item['last_ip']   = $_SERVER['REMOTE_ADDR'];
+				$item['last_used']        = time();
+				$item['last_ip']          = $_SERVER['REMOTE_ADDR'];
 				$hashed_passwords[ $key ] = $item;
 				update_user_meta( $user->ID, self::USERMETA_KEY_APPLICATION_PASSWORDS, $hashed_passwords );
 

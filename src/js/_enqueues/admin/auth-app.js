@@ -1,4 +1,9 @@
+/**
+ * @output wp-admin/js/auth-app.js
+ */
+
 /* global authApp */
+
 ( function( $, authApp ) {
 	var $appNameField = $( '#app_name' ),
 		$approveBtn = $( '#approve' ),

@@ -1,4 +1,9 @@
-/* global appPass, wp */
+/**
+ * @output wp-admin/js/application-passwords.js
+ */
+
+/* global appPass */
+
 ( function( $, appPass ) {
 	var $appPassSection = $( '#application-passwords-section' ),
 		$newAppPassForm = $appPassSection.find( '.create-application-password' ),
