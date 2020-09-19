@@ -37,7 +37,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 
 		// Not testing comment_author_email or comment_author_url
 		// as slashes are not permitted in that data.
-		$data = array(
+		$data       = array(
 			'comment_post_ID'      => $post_id,
 			'comment_author'       => $this->slash_1,
 			'comment_author_url'   => '',
@@ -45,14 +45,14 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 			'comment_type'         => '',
 			'comment_content'      => $this->slash_7,
 		);
-		$id   = wp_new_comment( $data );
+		$comment_id = wp_new_comment( $data );
 
-		$comment = get_comment( $id );
+		$comment = get_comment( $comment_id );
 
 		$this->assertSame( wp_unslash( $this->slash_1 ), $comment->comment_author );
 		$this->assertSame( wp_unslash( $this->slash_7 ), $comment->comment_content );
 
-		$data = array(
+		$data       = array(
 			'comment_post_ID'      => $post_id,
 			'comment_author'       => $this->slash_2,
 			'comment_author_url'   => '',
@@ -60,9 +60,9 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 			'comment_type'         => '',
 			'comment_content'      => $this->slash_4,
 		);
-		$id   = wp_new_comment( $data );
+		$comment_id = wp_new_comment( $data );
 
-		$comment = get_comment( $id );
+		$comment = get_comment( $comment_id );
 
 		$this->assertSame( wp_unslash( $this->slash_2 ), $comment->comment_author );
 		$this->assertSame( wp_unslash( $this->slash_4 ), $comment->comment_content );

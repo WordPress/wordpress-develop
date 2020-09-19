@@ -82,14 +82,14 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 			'post_tag',
 		);
 		foreach ( $taxonomies as $taxonomy ) {
-			$id = self::factory()->term->create(
+			$term_id = self::factory()->term->create(
 				array(
 					'taxonomy' => $taxonomy,
 				)
 			);
 
 			$update = wp_update_term(
-				$id,
+				$term_id,
 				$taxonomy,
 				array(
 					'name'        => $this->slash_1,
@@ -97,31 +97,31 @@ class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
 				)
 			);
 
-			$term = get_term( $id, $taxonomy );
+			$term = get_term( $term_id, $taxonomy );
 			$this->assertSame( wp_unslash( $this->slash_1 ), $term->name );
 			$this->assertSame( wp_unslash( $this->slash_3 ), $term->description );
 
 			$update = wp_update_term(
-				$id,
+				$term_id,
 				$taxonomy,
 				array(
 					'name'        => $this->slash_3,
 					'description' => $this->slash_5,
 				)
 			);
-			$term   = get_term( $id, $taxonomy );
+			$term   = get_term( $term_id, $taxonomy );
 			$this->assertSame( wp_unslash( $this->slash_3 ), $term->name );
 			$this->assertSame( wp_unslash( $this->slash_5 ), $term->description );
 
 			$update = wp_update_term(
-				$id,
+				$term_id,
 				$taxonomy,
 				array(
 					'name'        => $this->slash_2,
 					'description' => $this->slash_4,
 				)
 			);
-			$term   = get_term( $id, $taxonomy );
+			$term   = get_term( $term_id, $taxonomy );
 			$this->assertSame( wp_unslash( $this->slash_2 ), $term->name );
 			$this->assertSame( wp_unslash( $this->slash_4 ), $term->description );
 		}
