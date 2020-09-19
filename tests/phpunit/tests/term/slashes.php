@@ -6,11 +6,16 @@
  * @ticket 21767
  */
 class Tests_Term_Slashes extends WP_Ajax_UnitTestCase {
+	protected static $author_id;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	function setUp() {
 		parent::setUp();
-		$this->author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
-		wp_set_current_user( $this->author_id );
+		wp_set_current_user( self::$author_id );
 
 		$this->slash_1 = 'String with 1 slash \\';
 		$this->slash_2 = 'String with 2 slashes \\\\';

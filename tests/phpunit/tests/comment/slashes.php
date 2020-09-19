@@ -6,11 +6,17 @@
  * @ticket 21767
  */
 class Tests_Comment_Slashes extends WP_UnitTestCase {
+	protected static $author_id;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		// We need an admin user to bypass comment flood protection.
+		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
+	}
+
 	function setUp() {
 		parent::setUp();
-		// We need an admin user to bypass comment flood protection.
-		$this->author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
-		wp_set_current_user( $this->author_id );
+
+		wp_set_current_user( self::$author_id );
 
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
