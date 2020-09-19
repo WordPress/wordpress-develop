@@ -7,9 +7,11 @@
  */
 class Tests_Post_Slashes extends WP_UnitTestCase {
 	protected static $author_id;
+	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$author_id = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$post_id   = $factory->post->create();
 	}
 
 	function setUp() {
@@ -32,7 +34,7 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 	 * Tests the controller function that expects slashed data.
 	 */
 	function test_edit_post() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
 		$_POST               = array();
 		$_POST['post_ID']    = $post_id;
@@ -105,7 +107,7 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_post() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
 		wp_update_post(
 			array(

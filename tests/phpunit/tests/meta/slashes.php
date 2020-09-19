@@ -9,11 +9,13 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	protected static $editor_id;
 	protected static $post_id;
 	protected static $comment_id;
+	protected static $user_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$post_id    = $factory->post->create();
 		self::$comment_id = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );
+		self::$user_id    = $factory->user->create();
 	}
 
 	function setUp() {
@@ -34,7 +36,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	 * Tests the controller function that expects slashed data.
 	 */
 	function test_edit_post() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
 		if ( function_exists( 'wp_add_post_meta' ) ) {
 			$meta_1 = wp_add_post_meta( $post_id, 'slash_test_1', 'foo' );
@@ -111,7 +113,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	 * Tests the legacy model function that expects slashed data.
 	 */
 	function test_add_post_meta() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
 		add_post_meta( $post_id, 'slash_test_1', addslashes( $this->slash_1 ) );
 		add_post_meta( $post_id, 'slash_test_2', addslashes( $this->slash_3 ) );
@@ -126,7 +128,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	 * Tests the legacy model function that expects slashed data.
 	 */
 	function test_update_post_meta() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
 		update_post_meta( $post_id, 'slash_test_1', addslashes( $this->slash_1 ) );
 		update_post_meta( $post_id, 'slash_test_2', addslashes( $this->slash_3 ) );
@@ -191,7 +193,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_add_user_meta() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		add_user_meta( $user_id, 'slash_test_1', $this->slash_1 );
 		add_user_meta( $user_id, 'slash_test_2', $this->slash_3 );
@@ -214,7 +216,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_update_user_meta() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		add_user_meta( $user_id, 'slash_test_1', 'foo' );
 		add_user_meta( $user_id, 'slash_test_2', 'foo' );
