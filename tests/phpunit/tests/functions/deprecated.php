@@ -3,10 +3,13 @@
 /**
  * Test cases for deprecated functions, arguments, and files
  *
- * @package    WordPress
+ * @package WordPress
  * @subpackage Unit Tests
- * @since      3.5.0
- * @group      deprecated
+ *
+ * @since 3.5.0
+ *
+ * @group functions.php
+ * @group deprecated
  */
 class Tests_Functions_Deprecated extends WP_UnitTestCase {
 
@@ -140,6 +143,8 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @expectedDeprecated wp_save_image_file
+	 *
+	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_deprecated_with_gd_resource() {
 		if ( ! function_exists( 'imagejpeg' ) ) {
@@ -163,6 +168,8 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	 * Tests that wp_save_image_file() doesn't have a deprecated argument when passed a WP_Image_Editor.
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file_not_deprecated_with_wp_image_editor() {
 		if ( ! function_exists( 'imagejpeg' ) ) {

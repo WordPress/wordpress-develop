@@ -10,12 +10,14 @@
 /**
  * Class Tests_Functions_Anonymization.
  *
+ * @since 4.9.6
+ *
  * @group functions.php
  * @group privacy
- *
- * @since 4.9.6
+ * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
+
 	/**
 	 * Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
 	 *
