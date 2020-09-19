@@ -25,7 +25,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	} elseif ( isset( $_POST['approve'] ) ) {
 		list( $new_password, $new_item ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), $app_name );
 		if ( empty( $success_url ) ) {
-			wp_die( '<h1>' . esc_html__( 'Your New Application Password:' ) . '</h1><h3><kbd>' . esc_html( self::chunk_password( $new_password ) ) . '</kbd></h3>' );
+			wp_die( '<h1>' . __( 'Your New Application Password:' ) . '</h1><h3><kbd>' . esc_html( self::chunk_password( $new_password ) ) . '</kbd></h3>' );
 		}
 		$redirect = add_query_arg(
 			array(
@@ -65,16 +65,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<h1><?php echo esc_html( $title ); ?></h1>
 
 	<div class="card js-auth-app-card">
-		<h2 class="title"><?php esc_html_e( 'An application would like to connect to your account.' ); ?></h2>
+		<h2 class="title"><?php __( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
 			<p>
 			<?php
-			// translators: application name.
-			printf( esc_html__( 'Would you like to give the application identifying itself as %1$s access to your account?  You should only do this if you trust the app in question.' ), '<strong>' . esc_html( $app_name ) . '</strong>' );
+			/* translators: Application Name */
+			printf( __( 'Would you like to give the application identifying itself as %s access to your account?  You should only do this if you trust the app in question.' ), '<strong>' . esc_html( $app_name ) . '</strong>' );
 			?>
 			</p>
 		<?php else : ?>
-			<p><?php esc_html_e( 'Would you like to give this application access to your account?  You should only do this if you trust the app in question.' ); ?></p>
+			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the app in question.' ); ?></p>
 		<?php endif; ?>
 		<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post">
 			<?php wp_nonce_field( 'authorize_application_password' ); ?>
@@ -90,8 +90,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				if ( $success_url ) {
 					printf(
-						// translators: url.
-						esc_html_x( 'You will be sent to %1$s', '%1$s is a url' ),
+						/* translators: The URL the user is being redirected to. */
+						__( 'You will be sent to %s' ),
 						'<strong><kbd>' . esc_html(
 							add_query_arg(
 								array(
@@ -103,7 +103,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						) . '</kbd></strong>'
 					);
 				} else {
-					esc_html_e( 'You will be given a password to manually enter into the application in question.' );
+					_e( 'You will be given a password to manually enter into the application in question.' );
 				}
 				?>
 				</em>
@@ -114,8 +114,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 				if ( $reject_url ) {
 					printf(
-						// translators: url.
-						esc_html_x( 'You will be sent to %1$s', '%1$s is a url' ),
+						/* translators: The URL the user is being redirected to. */
+						__( 'You will be sent to %s' ),
 						'<strong><kbd>' . esc_html(
 							add_query_arg(
 								array(
@@ -126,7 +126,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						) . '</kbd></strong>'
 					);
 				} else {
-					esc_html_e( 'You will be returned to the WordPress Dashboard, and we will never speak of this again.' );
+					_e( 'You will be returned to the WordPress Dashboard, and we will never speak of this again.' );
 				}
 				?>
 				</em>

@@ -706,8 +706,8 @@ endif;
 
 
 <div class="application-passwords hide-if-no-js" id="application-passwords-section">
-	<h2><?php esc_html_e( 'Application Passwords' ); ?></h2>
-	<p><?php esc_html_e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+	<h2><?php _e( 'Application Passwords' ); ?></h2>
+	<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
 	<div class="create-application-password">
 		<input type="text" size="30" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
 		<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
