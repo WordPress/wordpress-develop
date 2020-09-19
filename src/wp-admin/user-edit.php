@@ -848,9 +848,5 @@ endif;
 		</td>
 	</tr>
 </script>
-
-<script type="text/html" id="tmpl-application-password-notice">
-	<div class="notice notice-{{ data.type }}"><p>{{{ data.message }}}</p></div>
-</script>
 <?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';

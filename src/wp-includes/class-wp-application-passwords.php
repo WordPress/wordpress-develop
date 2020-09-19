@@ -31,29 +31,7 @@ class WP_Application_Passwords {
 	 */
 	public static function add_hooks() {
 		add_filter( 'authenticate', array( __CLASS__, 'authenticate' ), 10, 3 );
-		add_action( 'rest_api_init', array( __CLASS__, 'rest_api_init' ) );
 		add_filter( 'determine_current_user', array( __CLASS__, 'rest_api_auth_handler' ), 20 );
-	}
-
-	/**
-	 * Handle declaration of REST API endpoints.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 */
-	public static function rest_api_init() {
-		// Some hosts that run PHP in FastCGI mode won't be given the Authentication header.
-		register_rest_route(
-			'2fa/v1',
-			'/test-basic-authorization-header/',
-			array(
-				'methods'             => WP_REST_Server::READABLE . ', ' . WP_REST_Server::CREATABLE,
-				'callback'            => __CLASS__ . '::rest_test_basic_authorization_header',
-				'permission_callback' => '__return_true',
-			)
-		);
 	}
 
 	/**
@@ -87,29 +65,6 @@ class WP_Application_Passwords {
 
 		// If it wasn't a user what got returned, just pass on what we had received originally.
 		return $input_user;
-	}
-
-	/**
-	 * Test whether PHP can see Basic Authorization headers passed to the web server.
-	 *
-	 * @return WP_Error|array
-	 */
-	public static function rest_test_basic_authorization_header() {
-		$response = array();
-
-		if ( isset( $_SERVER['PHP_AUTH_USER'] ) ) {
-			$response['PHP_AUTH_USER'] = $_SERVER['PHP_AUTH_USER'];
-		}
-
-		if ( isset( $_SERVER['PHP_AUTH_PW'] ) ) {
-			$response['PHP_AUTH_PW'] = $_SERVER['PHP_AUTH_PW'];
-		}
-
-		if ( empty( $response ) ) {
-			return new WP_Error( 'no-credentials', __( 'No HTTP Basic Authorization credentials were found submitted with this request.' ), array( 'status' => 404 ) );
-		}
-
-		return $response;
 	}
 
 	/**

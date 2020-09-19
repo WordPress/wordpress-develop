@@ -13,39 +13,8 @@
 		$removeAllBtn = $( '#revoke-all-application-passwords' ),
 		tmplNewAppPass = wp.template( 'new-application-password' ),
 		tmplAppPassRow = wp.template( 'application-password-row' ),
-		tmplNotice = wp.template( 'application-password-notice' ),
-		testBasicAuthUser = Math.random().toString( 36 ).replace( /[^a-z]+/g, '' ),
-		testBasicAuthPassword = Math.random().toString( 36 ).replace( /[^a-z]+/g, '' ),
 		dateFormat = wp.date.__experimentalGetSettings().formats.date,
-		userId = $( '#user_id' ).val(),
-		noCredentials = wp.i18n.__( 'Due to a potential server misconfiguration, it seems that HTTP Basic Authorization may not work for the REST API on this site: `Authorization` headers are not being sent to WordPress by the web server.' ) +
-			' <a href="https://github.com/georgestephanis/application-passwords/wiki/Basic-Authorization-Header----Missing">' +
-			wp.i18n.__( 'You can learn more about this problem, and a possible solution, on our GitHub Wiki.' ) +
-			'</a>';
-
-	wp.apiRequest( {
-		path: '2fa/v1/test-basic-authorization-header',
-		method: 'POST',
-		headers: {
-			Authorization: 'Basic ' + btoa( testBasicAuthUser + ':' + testBasicAuthPassword )
-		}
-	} ).done( function( response ) {
-		if ( response.PHP_AUTH_USER === testBasicAuthUser && response.PHP_AUTH_PW === testBasicAuthPassword ) {
-			// Save the success in SessionStorage or the like, so we don't do it on every page load?
-		} else {
-			$newAppPassForm.before( tmplNotice( {
-				type: 'error',
-				message: noCredentials
-			} ) );
-		}
-	} ).fail( function( jqXHR ) {
-		if ( 404 === jqXHR.status ) {
-			$newAppPassForm.before( tmplNotice( {
-				type: 'error',
-				message: noCredentials
-			} ) );
-		}
-	} );
+		userId = $( '#user_id' ).val();
 
 	$newAppPassButton.click( function( e ) {
 		e.preventDefault();
