@@ -23,12 +23,9 @@
 		$appNameField.prop( 'disabled', true );
 		$approveBtn.prop( 'disabled', true );
 
-		$.ajax( {
-			url: authApp.root + authApp.namespace + '/application-passwords/' + authApp.user_id + '/add',
+		wp.apiRequest( {
+			path: '/wp/v2/users/me/application-passwords',
 			method: 'POST',
-			beforeSend: function( xhr ) {
-				xhr.setRequestHeader( 'X-WP-Nonce', authApp.nonce );
-			},
 			data: {
 				name: name
 			}
@@ -45,10 +42,13 @@
 			} else {
 				// Should we maybe just reuse the js template modal from the profile page?
 				$form.replaceWith( '<p class="js-password-display">' +
-					authApp.strings.new_pass
-						.replace( '%1$s', '<strong></strong>' )
-						.replace( '%2$s', '<kbd></kbd>' ) +
-					'</p>' );
+					/* translators: 1: Application Name, 2: Password */
+					wp.i18n.sprintf(
+						wp.i18n.__( 'Your new password for %1$s is: %2$s' ),
+						'<strong></strong>',
+						'<kbd></kbd>'
+					)
+					+ '</p>' );
 
 				$display = $( '.js-password-display' );
 

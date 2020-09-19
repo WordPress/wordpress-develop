@@ -45,55 +45,6 @@ class WP_Application_Passwords {
 	 * @static
 	 */
 	public static function rest_api_init() {
-		// List existing application passwords.
-		register_rest_route(
-			'2fa/v1',
-			'/application-passwords/(?P<user_id>[\d]+)',
-			array(
-				'methods'             => WP_REST_Server::READABLE,
-				'callback'            => __CLASS__ . '::rest_list_application_passwords',
-				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-			)
-		);
-
-		// Add new application passwords.
-		register_rest_route(
-			'2fa/v1',
-			'/application-passwords/(?P<user_id>[\d]+)/add',
-			array(
-				'methods'             => WP_REST_Server::CREATABLE,
-				'callback'            => __CLASS__ . '::rest_add_application_password',
-				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-				'args'                => array(
-					'name' => array(
-						'required' => true,
-					),
-				),
-			)
-		);
-
-		// Delete an application password.
-		register_rest_route(
-			'2fa/v1',
-			'/application-passwords/(?P<user_id>[\d]+)/(?P<slug>[\da-fA-F]{12})',
-			array(
-				'methods'             => WP_REST_Server::DELETABLE,
-				'callback'            => __CLASS__ . '::rest_delete_application_password',
-				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-			)
-		);
-
-		// Delete all application passwords for a given user.
-		register_rest_route(
-			'2fa/v1',
-			'/application-passwords/(?P<user_id>[\d]+)',
-			array(
-				'methods'             => WP_REST_Server::DELETABLE,
-				'callback'            => __CLASS__ . '::rest_delete_all_application_passwords',
-				'permission_callback' => __CLASS__ . '::rest_edit_user_callback',
-			)
-		);
-
 		// Some hosts that run PHP in FastCGI mode won't be given the Authentication header.
 		register_rest_route(
 			'2fa/v1',
@@ -104,122 +55,6 @@ class WP_Application_Passwords {
 				'permission_callback' => '__return_true',
 			)
 		);
-	}
-
-	/**
-	 * REST API endpoint to list existing application passwords for a user.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $data
-	 *
-	 * @return array
-	 */
-	public static function rest_list_application_passwords( $data ) {
-		$application_passwords = self::get_user_application_passwords( $data['user_id'] );
-		$with_slugs            = array();
-
-		if ( $application_passwords ) {
-			foreach ( $application_passwords as $item ) {
-				$item['slug'] = self::password_unique_slug( $item );
-				unset( $item['raw'], $item['password'] );
-
-				$item['created'] = gmdate( get_option( 'date_format', 'r' ), $item['created'] );
-
-				if ( empty( $item['last_used'] ) ) {
-					$item['last_used'] = '—';
-				} else {
-					$item['last_used'] = gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
-				}
-
-				if ( empty( $item['last_ip'] ) ) {
-					$item['last_ip'] = '—';
-				}
-
-				$with_slugs[ $item['slug'] ] = $item;
-			}
-		}
-
-		return $with_slugs;
-	}
-
-	/**
-	 * REST API endpoint to add a new application password for a user.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $data
-	 *
-	 * @return array
-	 */
-	public static function rest_add_application_password( $data ) {
-		list( $new_password, $new_item ) = self::create_new_application_password( $data['user_id'], $data['name'] );
-
-		// Some tidying before we return it.
-		$new_item['slug']      = self::password_unique_slug( $new_item );
-		$new_item['created']   = gmdate( get_option( 'date_format', 'r' ), $new_item['created'] );
-		$new_item['last_used'] = '—';
-		$new_item['last_ip']   = '—';
-		unset( $new_item['password'] );
-
-		return array(
-			'row'      => $new_item,
-			'password' => self::chunk_password( $new_password ),
-		);
-	}
-
-	/**
-	 * REST API endpoint to delete a given application password.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $data
-	 *
-	 * @return bool
-	 */
-	public static function rest_delete_application_password( $data ) {
-		return self::delete_application_password( $data['user_id'], $data['slug'] );
-	}
-
-	/**
-	 * REST API endpoint to delete all of a user's application passwords.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $data
-	 *
-	 * @return int The number of deleted passwords
-	 */
-	public static function rest_delete_all_application_passwords( $data ) {
-		return self::delete_all_application_passwords( $data['user_id'] );
-	}
-
-	/**
-	 * Whether or not the current user can edit the specified user.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param $data
-	 *
-	 * @return bool
-	 */
-	public static function rest_edit_user_callback( $data ) {
-		return current_user_can( 'edit_user', $data['user_id'] );
 	}
 
 	/**
@@ -523,6 +358,27 @@ class WP_Application_Passwords {
 			return array();
 		}
 		return $passwords;
+	}
+
+	/**
+	 * Gets a user's application password with the given slug.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param int    $user_id The user id.
+	 * @param string $slug    The slug.
+	 * @return array|null
+	 */
+	public static function get_user_application_password( $user_id, $slug ) {
+		$passwords = self::get_user_application_passwords( $user_id );
+
+		foreach ( $passwords as $password ) {
+			if ( self::password_unique_slug( $password ) === $slug ) {
+				return $password;
+			}
+		}
+
+		return null;
 	}
 
 	/**

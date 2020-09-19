@@ -1042,8 +1042,8 @@ function wp_default_scripts( $scripts ) {
 	);
 	$scripts->set_translations( 'password-strength-meter' );
 
-	$scripts->add( 'application-passwords-js', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util' ), false, 1 );
-	$scripts->add( 'auth-app', "/wp-admin/js/auth-app$suffix.js", array( 'jquery' ), false, 1 );
+	$scripts->add( 'application-passwords-js', "/wp-admin/js/application-passwords$suffix.js", array( 'jquery', 'wp-util', 'wp-api-request', 'wp-date', 'wp-i18n' ), false, 1 );
+	$scripts->add( 'auth-app', "/wp-admin/js/auth-app$suffix.js", array( 'jquery', 'wp-api-request', 'wp-i18n' ), false, 1 );
 	// localization currently happens in the `WP_Application_Passwords` class.
 
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );

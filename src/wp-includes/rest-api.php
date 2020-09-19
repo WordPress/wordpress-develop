@@ -306,6 +306,8 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Directory_Controller();
 	$controller->register_routes();
 
+	$controller = new WP_REST_Application_Passwords_Controller();
+	$controller->register_routes();
 }
 
 /**

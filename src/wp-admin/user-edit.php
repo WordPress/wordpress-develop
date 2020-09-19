@@ -28,19 +28,6 @@ if ( ! $user_id && IS_PROFILE_PAGE ) {
 wp_enqueue_script( 'user-profile' );
 
 wp_enqueue_script( 'application-passwords-js' );
-wp_localize_script(
-	'application-passwords-js',
-	'appPass',
-	array(
-		'root'      => esc_url_raw( rest_url() ),
-		'namespace' => '2fa/v1',
-		'nonce'     => wp_create_nonce( 'wp_rest' ),
-		'user_id'   => $user_id,
-		'text'      => array(
-			'no_credentials' => __( 'Due to a potential server misconfiguration, it seems that HTTP Basic Authorization may not work for the REST API on this site: `Authorization` headers are not being sent to WordPress by the web server. <a href="https://github.com/georgestephanis/application-passwords/wiki/Basic-Authorization-Header----Missing">You can learn more about this problem, and a possible solution, on our GitHub Wiki.</a>' ),
-		),
-	)
-);
 
 if ( IS_PROFILE_PAGE ) {
 	$title = __( 'Profile' );

@@ -17,29 +17,34 @@
 		tmplAppPassRow = wp.template( 'application-password-row' ),
 		tmplNotice = wp.template( 'application-password-notice' ),
 		testBasicAuthUser = Math.random().toString( 36 ).replace( /[^a-z]+/g, '' ),
-		testBasicAuthPassword = Math.random().toString( 36 ).replace( /[^a-z]+/g, '' );
+		testBasicAuthPassword = Math.random().toString( 36 ).replace( /[^a-z]+/g, '' ),
+		dateFormat = wp.date.__experimentalGetSettings().formats.date,
+		userId = $( '#user_id' ).val(),
+		noCredentials = wp.i18n.__( 'Due to a potential server misconfiguration, it seems that HTTP Basic Authorization may not work for the REST API on this site: `Authorization` headers are not being sent to WordPress by the web server.' ) +
+			' <a href="https://github.com/georgestephanis/application-passwords/wiki/Basic-Authorization-Header----Missing">' +
+			wp.i18n.__( 'You can learn more about this problem, and a possible solution, on our GitHub Wiki.' ) +
+			'</a>';
 
-	$.ajax( {
-		url: appPass.root + appPass.namespace + '/test-basic-authorization-header',
+	wp.apiRequest( {
+		path: '2fa/v1/test-basic-authorization-header',
 		method: 'POST',
-		beforeSend: function( xhr ) {
-			xhr.setRequestHeader( 'Authorization', 'Basic ' + btoa( testBasicAuthUser + ':' + testBasicAuthPassword ) );
+		headers: {
+			Authorization: 'Basic ' + btoa( testBasicAuthUser + ':' + testBasicAuthPassword ),
 		},
-		error: function( jqXHR ) {
-			if ( 404 === jqXHR.status ) {
-				$newAppPassForm.before( tmplNotice( {
-					type: 'error',
-					message: appPass.text.no_credentials
-				} ) );
-			}
-		}
 	} ).done( function( response ) {
 		if ( response.PHP_AUTH_USER === testBasicAuthUser && response.PHP_AUTH_PW === testBasicAuthPassword ) {
 			// Save the success in SessionStorage or the like, so we don't do it on every page load?
 		} else {
 			$newAppPassForm.before( tmplNotice( {
 				type: 'error',
-				message: appPass.text.no_credentials
+				message: noCredentials
+			} ) );
+		}
+	} ).fail( function( jqXHR ) {
+		if ( 404 === jqXHR.status ) {
+			$newAppPassForm.before( tmplNotice( {
+				type: 'error',
+				message: noCredentials
 			} ) );
 		}
 	} );
@@ -56,14 +61,11 @@
 		$newAppPassField.prop( 'disabled', true );
 		$newAppPassButton.prop( 'disabled', true );
 
-		$.ajax( {
-			url: appPass.root + appPass.namespace + '/application-passwords/' + appPass.user_id + '/add',
+		wp.apiRequest( {
+			path: '/wp/v2/users/' + userId + '/application-passwords',
 			method: 'POST',
-			beforeSend: function( xhr ) {
-				xhr.setRequestHeader( 'X-WP-Nonce', appPass.nonce );
-			},
 			data: {
-				name: name
+				name: name,
 			}
 		} ).done( function( response ) {
 			$newAppPassField.prop( 'disabled', false ).val( '' );
@@ -74,7 +76,13 @@
 				password: response.password
 			} ) );
 
-			$appPassTbody.prepend( tmplAppPassRow( response.row ) );
+			$appPassTbody.prepend( tmplAppPassRow( {
+				name: response.name,
+				slug: response.slug,
+				created: wp.date.dateI18n( dateFormat, response.created ),
+				last_used: response.last_used ? wp.date.dateI18n( dateFormat, response.last_used ) : '—',
+				last_ip: response.last_ip ? response.last_ip : '—',
+			} ) );
 
 			$appPassTwrapper.show();
 			$appPassTrNoItems.remove();
@@ -86,14 +94,11 @@
 		var $tr = $( e.target ).closest( 'tr' ),
 			slug = $tr.data( 'slug' );
 
-		$.ajax( {
-			url: appPass.root + appPass.namespace + '/application-passwords/' + appPass.user_id + '/' + slug,
+		wp.apiRequest( {
+			path: '/wp/v2/users/' + userId + '/application-passwords/' + slug,
 			method: 'DELETE',
-			beforeSend: function( xhr ) {
-				xhr.setRequestHeader( 'X-WP-Nonce', appPass.nonce );
-			}
 		} ).done( function( response ) {
-			if ( response ) {
+			if ( response.deleted ) {
 				if ( 0 === $tr.siblings().length ) {
 					$appPassTwrapper.hide();
 				}
@@ -105,14 +110,11 @@
 	$removeAllBtn.on( 'click', function( e ) {
 		e.preventDefault();
 
-		$.ajax( {
-			url: appPass.root + appPass.namespace + '/application-passwords/' + appPass.user_id,
+		wp.apiRequest( {
+			path: '/wp/v2/users/' + userId + '/application-passwords',
 			method: 'DELETE',
-			beforeSend: function( xhr ) {
-				xhr.setRequestHeader( 'X-WP-Nonce', appPass.nonce );
-			}
 		} ).done( function( response ) {
-			if ( parseInt( response, 10 ) > 0 ) {
+			if ( response.deleted ) {
 				$appPassTbody.children().remove();
 				$appPassSection.children( '.new-application-password' ).remove();
 				$appPassTwrapper.hide();
