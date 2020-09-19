@@ -298,6 +298,107 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 }
 
 /**
+ * Authenticate the user using an application password.
+ *
+ * @since ?.?.0
+ *
+ * @param WP_User|WP_Error|null $input_user User to authenticate.
+ * @param string                $username   User login.
+ * @param string                $password   User password.
+ * @return WP_User|WP_Error|null The authenticated user, an error, or null if the auth method was not used.
+ */
+function wp_authenticate_application_password( $input_user, $username, $password ) {
+	$is_api_request = ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
+
+	/**
+	 * Filters whether this is an API request that Application Passwords can be used on.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param bool $is_api_request Whether this is an API request.
+	 */
+	$is_api_request = apply_filters( 'application_password_is_api_request', $is_api_request );
+
+	if ( ! $is_api_request ) {
+		return $input_user;
+	}
+
+	$user = get_user_by( 'login', $username );
+
+	if ( ! $user && is_email( $username ) ) {
+		$user = get_user_by( 'email', $username );
+	}
+
+	// If the login name is invalid, short circuit.
+	if ( ! $user ) {
+		return $input_user;
+	}
+
+	/*
+	 * Strip out anything non-alphanumeric. This is so passwords can be used with
+	 * or without spaces to indicate the groupings for readability.
+	 *
+	 * Generated application passwords are exclusively alphanumeric.
+	 */
+	$password = preg_replace( '/[^a-z\d]/i', '', $password );
+
+	$hashed_passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
+
+	foreach ( $hashed_passwords as $key => $item ) {
+		if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
+			$item['last_used']        = time();
+			$item['last_ip']          = $_SERVER['REMOTE_ADDR'];
+			$hashed_passwords[ $key ] = $item;
+			update_user_meta( $user->ID, WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS, $hashed_passwords );
+
+			/**
+			 * Fires after an application password was used for authentication.
+			 *
+			 * @since ?.?.0
+			 *
+			 * @param WP_User $user The user who was authenticated.
+			 * @param array   $item The application password used.
+			 */
+			do_action( 'application_password_did_authenticate', $user, $item );
+
+			return $user;
+		}
+	}
+
+	// By default, return what we've been passed.
+	return $input_user;
+}
+
+/**
+ * Validates the application password credentials passed via Basic Authentication.
+ *
+ * @since ?.?.0
+ *
+ * @param int|bool $input_user User ID if one has been determined, false otherwise.
+ * @return WP_User|bool
+ */
+function wp_validate_application_password( $input_user ) {
+	// Don't authenticate twice.
+	if ( ! empty( $input_user ) ) {
+		return $input_user;
+	}
+
+	// Check that we're trying to authenticate
+	if ( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+		return $input_user;
+	}
+
+	$user = wp_authenticate_application_password( null, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+
+	if ( $user instanceof WP_User ) {
+		return $user->ID;
+	}
+
+	// If it wasn't a user what got returned, just pass on what we had received originally.
+	return $input_user;
+}
+
+/**
  * For Multisite blogs, check if the authenticated user has been marked as a
  * spammer, or if the user's primary blog has been marked as spam.
  *

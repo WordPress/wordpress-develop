@@ -425,11 +425,13 @@ add_filter( 'heartbeat_send', 'wp_auth_check' );
 add_filter( 'heartbeat_nopriv_send', 'wp_auth_check' );
 
 // Default authentication filters.
+add_filter( 'authenticate', 'wp_authenticate_application_password', 10, 3 );
 add_filter( 'authenticate', 'wp_authenticate_username_password', 20, 3 );
 add_filter( 'authenticate', 'wp_authenticate_email_password', 20, 3 );
 add_filter( 'authenticate', 'wp_authenticate_spam_check', 99 );
 add_filter( 'determine_current_user', 'wp_validate_auth_cookie' );
 add_filter( 'determine_current_user', 'wp_validate_logged_in_cookie', 20 );
+add_filter( 'determine_current_user', 'wp_validate_application_password', 20 );
 
 // Split term updates.
 add_action( 'admin_init', '_wp_check_for_scheduled_split_terms' );
