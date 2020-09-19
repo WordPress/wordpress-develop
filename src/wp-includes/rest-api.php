@@ -264,6 +264,10 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Users_Controller;
 	$controller->register_routes();
 
+	// Application Passwords
+	$controller = new WP_REST_Application_Passwords_Controller();
+	$controller->register_routes();
+
 	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
@@ -304,9 +308,6 @@ function create_initial_rest_routes() {
 
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
-	$controller->register_routes();
-
-	$controller = new WP_REST_Application_Passwords_Controller();
 	$controller->register_routes();
 }
 
