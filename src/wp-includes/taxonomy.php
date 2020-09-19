@@ -2561,6 +2561,25 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
+	$taxonomy_object = get_taxonomy( $taxonomy );
+
+	$object_types = (array) $taxonomy_object->object_type;
+	foreach ( $object_types as &$object_type ) {
+		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			list( $object_type ) = explode( ':', $object_type );
+		}
+	}
+
+	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
+		// This taxonomy applies to non-posts, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} elseif ( 'publish' === get_post_status( $object_id ) ) {
+		// Published post, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} else {
+		$do_recount = false;
+	}
+
 	if ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -2646,7 +2665,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$new_tt_ids[] = $tt_id;
 	}
 
-	if ( $new_tt_ids ) {
+	if ( $new_tt_ids && $do_recount ) {
 		wp_increment_term_count( $new_tt_ids, $taxonomy );
 	}
 
@@ -2665,9 +2684,7 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		}
 	}
 
-	$t = get_taxonomy( $taxonomy );
-
-	if ( ! $append && isset( $t->sort ) && $t->sort ) {
+	if ( ! $append && isset( $taxonomy_object->sort ) && $taxonomy_object->sort ) {
 		$values     = array();
 		$term_order = 0;
 
@@ -2748,6 +2765,25 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
+	$taxonomy_object = get_taxonomy( $taxonomy );
+
+	$object_types = (array) $taxonomy_object->object_type;
+	foreach ( $object_types as &$object_type ) {
+		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
+			list( $object_type ) = explode( ':', $object_type );
+		}
+	}
+
+	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
+		// This taxonomy applies to non-posts, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} elseif ( 'publish' === get_post_status( $object_id ) ) {
+		// Published post, count changes now.
+		$do_recount = ! _wp_prevent_term_counting();
+	} else {
+		$do_recount = false;
+	}
+
 	if ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -2806,7 +2842,9 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		 */
 		do_action( 'deleted_term_relationships', $object_id, $tt_ids, $taxonomy );
 
-		wp_decrement_term_count( $tt_ids, $taxonomy );
+		if ( $do_recount ) {
+			wp_decrement_term_count( $tt_ids, $taxonomy );
+		}
 
 		return (bool) $deleted;
 	}
@@ -3232,6 +3270,28 @@ function wp_defer_term_counting( $defer = null ) {
 	}
 
 	return $_defer;
+}
+
+/**
+ * Prevents add/removing a term from modifying a term count.
+ *
+ * This is used by functions calling wp_transition_post_status() to indicate the
+ * term count will be handled during the post's transition.
+ *
+ * @private
+ * @since 5.6.0
+ *
+ * @param bool $new_setting The new setting for preventing term counts.
+ * @return bool Whether term count prevention is enabled or disabled.
+ */
+function _wp_prevent_term_counting( $new_setting = null ) {
+	static $prevent = false;
+
+	if ( is_bool( $new_setting ) ) {
+		$prevent = $new_setting;
+	}
+
+	return $prevent;
 }
 
 /**

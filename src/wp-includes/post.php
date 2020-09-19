@@ -4035,6 +4035,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		clean_post_cache( $post_ID );
 	}
 
+	// Allow term counts to be handled by transitioning post type.
+	_wp_prevent_term_counting( true );
 	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
 		wp_set_post_categories( $post_ID, $post_category );
 	}
@@ -4091,6 +4093,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 			}
 		}
 	}
+	// Restore term counting.
+	_wp_prevent_term_counting( false );
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
 		foreach ( $postarr['meta_input'] as $field => $value ) {
@@ -4399,7 +4403,9 @@ function wp_publish_post( $post ) {
 		if ( ! $default_term_id ) {
 			continue;
 		}
+		_wp_prevent_term_counting( true );
 		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
+		_wp_prevent_term_counting( false );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
@@ -7281,7 +7287,16 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 		return;
 	}
 
-	// Update counts for the post's terms.
+	/*
+	 * Update counts for the post's terms.
+	 *
+	 * Term counting is deferred while incrementing/decrementing the counts to
+	 * reduce the number of database queries required. Once the counts are
+	 * complete the updates are performed if term counting wasn't previously
+	 * deferred.
+	 */
+	$previous_deferred_setting = wp_defer_term_counting();
+	wp_defer_term_counting( true );
 	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
 		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
 
@@ -7317,8 +7332,8 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 			$check_attachments = true;
 		}
 
+		wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by );
 		if ( ! $check_attachments ) {
-			wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by );
 			continue;
 		}
 
@@ -7332,14 +7347,15 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 				'post_status'            => 'inherit',
 				'post_type'              => 'attachment',
 				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'fields'                 => 'ids',
+				'update_post_term_cache' => true,
 			)
 		);
 
-		$modify_by = $modify_by + ( count( $attachments ) );
-		wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by );
+		foreach ( $attachments as $attachment ) {
+			_update_term_count_on_transition_post_status( $new_status, $old_status, $attachment );
+		}
 	}
+	wp_defer_term_counting( $previous_deferred_setting );
 }
 
 /**
