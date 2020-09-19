@@ -2777,7 +2777,13 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
 		// This taxonomy applies to non-posts, count changes now.
 		$do_recount = ! _wp_prevent_term_counting();
-	} elseif ( 'publish' === get_post_status( $object_id ) ) {
+	} elseif (
+		'publish' === get_post_status( $object_id ) ||
+		(
+			'inherit' === get_post_status( $object_id ) &&
+			'publish' === get_post_status( wp_get_post_parent_id( $object_id ) )
+		)
+	) {
 		// Published post, count changes now.
 		$do_recount = ! _wp_prevent_term_counting();
 	} else {
