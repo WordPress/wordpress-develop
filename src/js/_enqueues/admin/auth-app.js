@@ -47,8 +47,7 @@
 						wp.i18n.__( 'Your new password for %1$s is: %2$s' ),
 						'<strong></strong>',
 						'<kbd></kbd>'
-					)
-					+ '</p>' );
+					) + '</p>' );
 
 				$display = $( '.js-password-display' );
 

@@ -2,9 +2,7 @@
  * @output wp-admin/js/application-passwords.js
  */
 
-/* global appPass */
-
-( function( $, appPass ) {
+( function( $ ) {
 	var $appPassSection = $( '#application-passwords-section' ),
 		$newAppPassForm = $appPassSection.find( '.create-application-password' ),
 		$newAppPassField = $newAppPassForm.find( '.input' ),
@@ -29,8 +27,8 @@
 		path: '2fa/v1/test-basic-authorization-header',
 		method: 'POST',
 		headers: {
-			Authorization: 'Basic ' + btoa( testBasicAuthUser + ':' + testBasicAuthPassword ),
-		},
+			Authorization: 'Basic ' + btoa( testBasicAuthUser + ':' + testBasicAuthPassword )
+		}
 	} ).done( function( response ) {
 		if ( response.PHP_AUTH_USER === testBasicAuthUser && response.PHP_AUTH_PW === testBasicAuthPassword ) {
 			// Save the success in SessionStorage or the like, so we don't do it on every page load?
@@ -65,7 +63,7 @@
 			path: '/wp/v2/users/' + userId + '/application-passwords',
 			method: 'POST',
 			data: {
-				name: name,
+				name: name
 			}
 		} ).done( function( response ) {
 			$newAppPassField.prop( 'disabled', false ).val( '' );
@@ -81,7 +79,7 @@
 				slug: response.slug,
 				created: wp.date.dateI18n( dateFormat, response.created ),
 				last_used: response.last_used ? wp.date.dateI18n( dateFormat, response.last_used ) : '—',
-				last_ip: response.last_ip ? response.last_ip : '—',
+				last_ip: response.last_ip ? response.last_ip : '—'
 			} ) );
 
 			$appPassTwrapper.show();
@@ -96,7 +94,7 @@
 
 		wp.apiRequest( {
 			path: '/wp/v2/users/' + userId + '/application-passwords/' + slug,
-			method: 'DELETE',
+			method: 'DELETE'
 		} ).done( function( response ) {
 			if ( response.deleted ) {
 				if ( 0 === $tr.siblings().length ) {
@@ -112,7 +110,7 @@
 
 		wp.apiRequest( {
 			path: '/wp/v2/users/' + userId + '/application-passwords',
-			method: 'DELETE',
+			method: 'DELETE'
 		} ).done( function( response ) {
 			if ( response.deleted ) {
 				$appPassTbody.children().remove();
@@ -132,4 +130,4 @@
 	if ( 0 === $appPassTbody.children( 'tr' ).not( $appPassTrNoItems ).length ) {
 		$appPassTwrapper.hide();
 	}
-}( jQuery, appPass ) );
+}( jQuery ) );
