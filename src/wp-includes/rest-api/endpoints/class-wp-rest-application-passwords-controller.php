@@ -319,7 +319,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
-		$data = array(
+		$prepared = array(
 			'slug'      => $item['slug'],
 			'name'      => $item['name'],
 			'created'   => gmdate( 'Y-m-d\TH:i:s', $item['created'] ),
@@ -328,10 +328,12 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		);
 
 		if ( isset( $item['new_password'] ) ) {
-			$data['password'] = $item['new_password'];
+			$prepared['password'] = $item['new_password'];
 		}
 
-		$response = new WP_REST_Response( $data );
+		$prepared = $this->add_additional_fields_to_object( $prepared, $request );
+
+		$response = new WP_REST_Response( $prepared );
 		$response->add_links( $this->prepare_links( $this->get_user( $request ), $item ) );
 
 		/**
