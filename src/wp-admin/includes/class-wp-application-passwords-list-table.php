@@ -54,9 +54,8 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * Generates content for a single row of the table
 	 *
 	 * @since ?.?.0
-	 * @access protected
 	 *
-	 * @param object $item The current item.
+	 * @param array  $item        The current item.
 	 * @param string $column_name The current column name.
 	 * @return string
 	 */
@@ -90,7 +89,6 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * Generates custom table navigation to prevent conflicting nonces.
 	 *
 	 * @since ?.?.0
-	 * @access protected
 	 *
 	 * @param string $which The location of the bulk actions: 'top' or 'bottom'.
 	 */

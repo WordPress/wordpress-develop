@@ -19,13 +19,12 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 
 	if ( isset( $_POST['reject'] ) ) {
 		if ( $reject_url ) {
-			// Explicitly not using wp_safe_redirect b/c sends to arbitrary domain.
 			$redirect = esc_url_raw( add_query_arg( 'success', 'false', $reject_url ) );
 		}
 	} elseif ( isset( $_POST['approve'] ) ) {
-		list( $new_password, $new_item ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), $app_name );
+		list( $new_password ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), $app_name );
 		if ( empty( $success_url ) ) {
-			wp_die( '<h1>' . __( 'Your New Application Password:' ) . '</h1><h3><kbd>' . esc_html( self::chunk_password( $new_password ) ) . '</kbd></h3>' );
+			wp_die( '<h1>' . __( 'Your New Application Password:' ) . '</h1><h3><kbd>' . esc_html( WP_Application_Passwords::chunk_password( $new_password ) ) . '</kbd></h3>' );
 		}
 		$redirect = add_query_arg(
 			array(
@@ -36,6 +35,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 		);
 	}
 
+	// Explicitly not using wp_safe_redirect b/c sends to arbitrary domain.
 	wp_redirect( $redirect );
 	exit;
 }
