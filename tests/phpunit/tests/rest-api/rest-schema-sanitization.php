@@ -363,7 +363,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		if ( PHP_VERSION_ID >= 80000 ) {
 			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
 		} else {
-			$this->expectException( 'PHPUnit_Framework_Error_Notice' ); 
+			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
 		}
 
 		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
