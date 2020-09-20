@@ -810,21 +810,20 @@ endif;
 
 <script type="text/html" id="tmpl-new-application-password">
 	<div class="new-application-password notification-dialog-wrap">
-		<div class="app-pass-dialog-background notification-dialog-background">
-			<div class="app-pass-dialog notification-dialog">
-				<div class="new-application-password-content">
-					<?php
-					printf(
-						// translators: application, password.
-						esc_html_x( 'Your new password for %1$s is: %2$s', 'application, password' ),
-						'<strong>{{ data.name }}</strong>',
-						'<kbd>{{ data.password }}</kbd>'
-					);
-					?>
-				</div>
-				<p><?php esc_attr_e( 'Be sure to save this in a safe location.  You will not be able to retrieve it.' ); ?></p>
-				<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
+		<div class="app-pass-dialog-background notification-dialog-background"></div>
+		<div class="app-pass-dialog notification-dialog">
+			<div class="new-application-password-content">
+				<?php
+				printf(
+					// translators: application, password.
+					esc_html_x( 'Your new password for %1$s is: %2$s', 'application, password' ),
+					'<strong>{{ data.name }}</strong>',
+					'<kbd>{{ data.password }}</kbd>'
+				);
+				?>
 			</div>
+			<p><?php esc_attr_e( 'Be sure to save this in a safe location.  You will not be able to retrieve it.' ); ?></p>
+			<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
 		</div>
 	</div>
 </script>
