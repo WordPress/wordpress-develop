@@ -27,7 +27,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$class = 'WP_Http_' . ucfirst( $this->transport );
 		if ( ! call_user_func( array( $class, 'test' ) ) ) {
-			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system', $this->transport ) );
+			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system.', $this->transport ) );
 		}
 
 		// Disable all transports aside from this one.
