@@ -10,6 +10,9 @@ class WP_Application_Passwords {
 
 	/**
 	 * The user meta application password key.
+	 *
+	 * @since ?.?.0
+	 *
 	 * @type string
 	 */
 	const USERMETA_KEY_APPLICATION_PASSWORDS = '_application_passwords';
@@ -17,7 +20,9 @@ class WP_Application_Passwords {
 	/**
 	 * The length of generated application passwords.
 	 *
-	 * @type integer
+	 * @since ?.?.0
+	 *
+	 * @type int
 	 */
 	const PW_LENGTH = 24;
 
@@ -26,12 +31,9 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
 	 * @param int    $user_id User ID.
-	 * @param string $name    Password name.
-	 * @return array          The first key in the array is the new password, the second is its row in the table.
+	 * @param string $name    Application name.
+	 * @return array          The first key in the array is the new password, the second is its detailed information.
 	 */
 	public static function create_new_application_password( $user_id, $name ) {
 		$new_password    = wp_generate_password( self::PW_LENGTH, false );
@@ -61,9 +63,6 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
 	 * @see WP_Application_Passwords::password_unique_slug()
 	 *
 	 * @param int    $user_id User ID.
@@ -90,18 +89,15 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param int    $user_id User ID.
+	 * @param int $user_id User ID.
 	 * @return int   The number of passwords that were deleted.
 	 */
 	public static function delete_all_application_passwords( $user_id ) {
 		$passwords = self::get_user_application_passwords( $user_id );
 
-		if ( is_array( $passwords ) ) {
+		if ( $passwords ) {
 			self::set_user_application_passwords( $user_id, array() );
-			return sizeof( $passwords );
+			return count( $passwords );
 		}
 
 		return 0;
@@ -112,10 +108,7 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param array $item The current item.
+	 * @param array $item The app password entry.
 	 * @return string
 	 */
 	public static function password_unique_slug( $item ) {
@@ -129,10 +122,7 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param string $raw_password Users raw password.
+	 * @param string $raw_password The raw application password.
 	 * @return string
 	 */
 	public static function chunk_password( $raw_password ) {
@@ -144,9 +134,6 @@ class WP_Application_Passwords {
 	 * Get a users application passwords.
 	 *
 	 * @since ?.?.0
-	 *
-	 * @access public
-	 * @static
 	 *
 	 * @param int $user_id User ID.
 	 * @return array
@@ -165,7 +152,7 @@ class WP_Application_Passwords {
 	 * @since ?.?.0
 	 *
 	 * @param int    $user_id The user id.
-	 * @param string $slug    The slug.
+	 * @param string $slug    The password slug.
 	 * @return array|null
 	 */
 	public static function get_user_application_password( $user_id, $slug ) {
@@ -181,14 +168,37 @@ class WP_Application_Passwords {
 	}
 
 	/**
+	 * Marks that an application password has been used.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param int    $user_id The user id.
+	 * @param string $slug    The password slug.
+	 * @return bool
+	 */
+	public static function used_application_password( $user_id, $slug ) {
+		$passwords = self::get_user_application_passwords( $user_id );
+
+		foreach ( $passwords as &$password ) {
+			if ( self::password_unique_slug( $password ) === $slug ) {
+				$password['last_used'] = time();
+				$password['last_ip']   = $_SERVER['REMOTE_ADDR'];
+
+				self::set_user_application_passwords( $user_id, $passwords );
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Set a users application passwords.
 	 *
 	 * @since ?.?.0
 	 *
-	 * @access public
-	 * @static
-	 *
-	 * @param int   $user_id User ID.
+	 * @param int   $user_id   User ID.
 	 * @param array $passwords Application passwords.
 	 *
 	 * @return bool

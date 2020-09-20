@@ -221,16 +221,12 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
-
-		if ( $passwords ) {
-			WP_Application_Passwords::set_user_application_passwords( $user->ID, array() );
-		}
+		$deleted = WP_Application_Passwords::delete_all_application_passwords( $user->ID );
 
 		return new WP_REST_Response(
 			array(
 				'deleted' => true,
-				'count'   => count( $passwords ),
+				'count'   => $deleted,
 			)
 		);
 	}

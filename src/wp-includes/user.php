@@ -361,10 +361,7 @@ function wp_authenticate_application_password( $input_user, $username, $password
 
 	foreach ( $hashed_passwords as $key => $item ) {
 		if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
-			$item['last_used']        = time();
-			$item['last_ip']          = $_SERVER['REMOTE_ADDR'];
-			$hashed_passwords[ $key ] = $item;
-			update_user_meta( $user->ID, WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS, $hashed_passwords );
+			WP_Application_Passwords::used_application_password( $user->ID, WP_Application_Passwords::password_unique_slug( $item ) );
 
 			/**
 			 * Fires after an application password was used for authentication.
