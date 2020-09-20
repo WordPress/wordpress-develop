@@ -837,6 +837,61 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51023
+	 */
+	public function test_object_min_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'minProperties' => 1,
+		);
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_max_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'maxProperties' => 2,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
+	}
+
+	/**
 	 * @ticket 44949
 	 */
 	public function test_string_pattern() {
