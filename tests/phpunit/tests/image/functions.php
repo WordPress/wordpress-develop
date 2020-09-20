@@ -320,10 +320,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// First, test with deprecated wp_load_image function.
 		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertNotInternalType( 'resource', $editor1 );
+		$this->assertInternalType( 'string', $editor1 );
 
 		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertNotInternalType( 'resource', $editor2 );
+		$this->assertInstanceOf( 'WP_Error', $editor2 );
 
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
