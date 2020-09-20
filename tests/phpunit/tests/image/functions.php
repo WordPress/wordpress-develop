@@ -157,10 +157,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
-		foreach ( $classes as $class ) {
+		foreach ( $classes as $key => $class ) {
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {
 				// If the image editor isn't available, skip it.
-				unset( $classes[ $class ] );
+				unset( $classes[ $key ] );
 			}
 		}
 
@@ -216,10 +216,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
-		foreach ( $classes as $class ) {
+		foreach ( $classes as $key => $class ) {
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {
 				// If the image editor isn't available, skip it.
-				unset( $classes[ $class ] );
+				unset( $classes[ $key ] );
 			}
 		}
 
@@ -261,10 +261,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
-		foreach ( $classes as $class ) {
+		foreach ( $classes as $key => $class ) {
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {
 				// If the image editor isn't available, skip it.
-				unset( $classes[ $class ] );
+				unset( $classes[ $key ] );
 			}
 		}
 
@@ -327,10 +327,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
-		foreach ( $classes as $class ) {
+		foreach ( $classes as $key => $class ) {
 			if ( ! call_user_func( array( $class, 'test' ) ) ) {
 				// If the image editor isn't available, skip it.
-				unset( $classes[ $class ] );
+				unset( $classes[ $key ] );
 			}
 		}
 
