@@ -302,12 +302,17 @@ function wp_authenticate_cookie( $user, $username, $password ) {
  *
  * @since ?.?.0
  *
- * @param WP_User|WP_Error|null $input_user User to authenticate.
- * @param string                $username   User login.
- * @param string                $password   User password.
- * @return WP_User|WP_Error|null The authenticated user, an error, or null if the auth method was not used.
+ * @param WP_User|WP_Error|null $input_user WP_User or WP_Error object if a previous
+ *                                          callback failed authentication.
+ * @param string                $username   Username for authentication.
+ * @param string                $password   Password for authentication.
+ * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
  */
 function wp_authenticate_application_password( $input_user, $username, $password ) {
+	if ( $input_user instanceof WP_User ) {
+		return $input_user;
+	}
+
 	$is_api_request = ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
 
 	/**
@@ -331,7 +336,17 @@ function wp_authenticate_application_password( $input_user, $username, $password
 
 	// If the login name is invalid, short circuit.
 	if ( ! $user ) {
-		return $input_user;
+		if ( is_email( $username ) ) {
+			return new WP_Error(
+				'invalid_email',
+				__( 'Unknown email address. Check again or try your username.' )
+			);
+		}
+
+		return new WP_Error(
+			'invalid_username',
+			__( 'Unknown username. Check again or try your email address.' )
+		);
 	}
 
 	/*
@@ -365,8 +380,10 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		}
 	}
 
-	// By default, return what we've been passed.
-	return $input_user;
+	return new WP_Error(
+		'incorrect_password',
+		__( 'The provided password is an invalid application password.' )
+	);
 }
 
 /**
@@ -388,10 +405,21 @@ function wp_validate_application_password( $input_user ) {
 		return $input_user;
 	}
 
-	$user = wp_authenticate_application_password( null, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+	$authenticated = wp_authenticate_application_password( null, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
 
-	if ( $user instanceof WP_User ) {
-		return $user->ID;
+	if ( $authenticated instanceof WP_User ) {
+		return $authenticated->ID;
+	}
+
+	if ( is_wp_error( $authenticated ) ) {
+		/**
+		 * Fires when an application password failed to authenticate the user.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param WP_Error $authenticated The authentication error.
+		 */
+		do_action( 'application_password_failed_authentication', $authenticated );
 	}
 
 	// If it wasn't a user what got returned, just pass on what we had received originally.

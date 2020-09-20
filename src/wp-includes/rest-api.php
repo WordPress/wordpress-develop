@@ -1033,6 +1033,58 @@ function rest_cookie_collect_status() {
 }
 
 /**
+ * Collects the status of authenticating with an application password.
+ *
+ * @since ?.?.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error $user_or_error The authenticated user or error instance.
+ */
+function rest_application_password_collect_status( $user_or_error ) {
+	global $wp_rest_application_password_status;
+
+	$wp_rest_application_password_status = $user_or_error;
+}
+
+/**
+ * Checks for errors when using application password-based authentication.
+ *
+ * @since ?.?.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error|null|true $result Error from another authentication handler,
+ *                                   null if we should handle it, or another value if not.
+ * @return WP_Error|null|true WP_Error if the application password is invalid, the $result, otherwise true.
+ */
+function rest_application_password_check_errors( $result ) {
+	global $wp_rest_application_password_status;
+
+	if ( ! empty( $result ) ) {
+		return $result;
+	}
+
+	if ( is_wp_error( $wp_rest_application_password_status ) ) {
+		$data = $wp_rest_application_password_status->get_error_data();
+
+		if ( ! isset( $data['status'] ) ) {
+			$data['status'] = 401;
+		}
+
+		$wp_rest_application_password_status->add_data( $data );
+
+		return $wp_rest_application_password_status;
+	}
+
+	if ( $wp_rest_application_password_status instanceof WP_User ) {
+		return true;
+	}
+
+	return $result;
+}
+
+/**
  * Retrieves the avatar urls in various sizes.
  *
  * @since 4.7.0
