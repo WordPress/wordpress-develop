@@ -348,11 +348,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_wp_crop_image_file() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
@@ -372,11 +371,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_wp_crop_image_url() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		if ( ! extension_loaded( 'openssl' ) ) {
 			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
 		}
