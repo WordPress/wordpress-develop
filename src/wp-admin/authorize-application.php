@@ -19,7 +19,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 
 	if ( isset( $_POST['reject'] ) ) {
 		if ( $reject_url ) {
-			$redirect = esc_url_raw( add_query_arg( 'success', 'false', $reject_url ) );
+			$redirect = add_query_arg( 'success', 'false', $reject_url );
 		}
 	} elseif ( isset( $_POST['approve'] ) ) {
 		list( $new_password ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), array( 'name' => $app_name ) );
