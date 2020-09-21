@@ -40,6 +40,7 @@ class WP_Application_Passwords {
 		$hashed_password = wp_hash_password( $new_password );
 
 		$new_item = array(
+			'uuid'      => wp_generate_uuid4(),
 			'name'      => $name,
 			'password'  => $hashed_password,
 			'created'   => time(),
@@ -63,17 +64,15 @@ class WP_Application_Passwords {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @see WP_Application_Passwords::password_unique_slug()
-	 *
 	 * @param int    $user_id User ID.
-	 * @param string $slug The generated slug of the password in question.
+	 * @param string $uuid    The password's uuid.
 	 * @return bool Whether the password was successfully found and deleted.
 	 */
-	public static function delete_application_password( $user_id, $slug ) {
+	public static function delete_application_password( $user_id, $uuid ) {
 		$passwords = self::get_user_application_passwords( $user_id );
 
 		foreach ( $passwords as $key => $item ) {
-			if ( self::password_unique_slug( $item ) === $slug ) {
+			if ( $item['uuid'] === $uuid ) {
 				unset( $passwords[ $key ] );
 				self::set_user_application_passwords( $user_id, $passwords );
 				return true;
@@ -104,20 +103,6 @@ class WP_Application_Passwords {
 	}
 
 	/**
-	 * Generate a unique repeatable slug from the hashed password, name, and when it was created.
-	 *
-	 * @since ?.?.0
-	 *
-	 * @param array $item The app password entry.
-	 * @return string
-	 */
-	public static function password_unique_slug( $item ) {
-		$concat = $item['name'] . '|' . $item['password'] . '|' . $item['created'];
-		$hash   = md5( $concat );
-		return substr( $hash, 0, 12 );
-	}
-
-	/**
 	 * Sanitize and then split a password into smaller chunks.
 	 *
 	 * @since ?.?.0
@@ -140,9 +125,24 @@ class WP_Application_Passwords {
 	 */
 	public static function get_user_application_passwords( $user_id ) {
 		$passwords = get_user_meta( $user_id, self::USERMETA_KEY_APPLICATION_PASSWORDS, true );
+
 		if ( ! is_array( $passwords ) ) {
 			return array();
 		}
+
+		$save = false;
+
+		foreach ( $passwords as $i => $password ) {
+			if ( ! isset( $password['uuid'] ) ) {
+				$passwords[ $i ]['uuid'] = wp_generate_uuid4();
+				$save                    = true;
+			}
+		}
+
+		if ( $save ) {
+			static::set_user_application_passwords( $user_id, $passwords );
+		}
+
 		return $passwords;
 	}
 
@@ -152,14 +152,14 @@ class WP_Application_Passwords {
 	 * @since ?.?.0
 	 *
 	 * @param int    $user_id The user id.
-	 * @param string $slug    The password slug.
+	 * @param string $uuid    The password's uuid.
 	 * @return array|null
 	 */
-	public static function get_user_application_password( $user_id, $slug ) {
+	public static function get_user_application_password( $user_id, $uuid ) {
 		$passwords = self::get_user_application_passwords( $user_id );
 
 		foreach ( $passwords as $password ) {
-			if ( self::password_unique_slug( $password ) === $slug ) {
+			if ( $password['uuid'] === $uuid ) {
 				return $password;
 			}
 		}
@@ -173,14 +173,14 @@ class WP_Application_Passwords {
 	 * @since ?.?.0
 	 *
 	 * @param int    $user_id The user id.
-	 * @param string $slug    The password slug.
+	 * @param string $uuid    The password's uuid.
 	 * @return bool
 	 */
-	public static function used_application_password( $user_id, $slug ) {
+	public static function used_application_password( $user_id, $uuid ) {
 		$passwords = self::get_user_application_passwords( $user_id );
 
 		foreach ( $passwords as &$password ) {
-			if ( self::password_unique_slug( $password ) === $slug ) {
+			if ( $password['uuid'] === $uuid ) {
 				$password['last_used'] = time();
 				$password['last_ip']   = $_SERVER['REMOTE_ADDR'];
 

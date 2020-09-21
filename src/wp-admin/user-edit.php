@@ -829,7 +829,7 @@ endif;
 </script>
 
 <script type="text/html" id="tmpl-application-password-row">
-	<tr data-slug="{{ data.slug }}">
+	<tr data-slug="{{ data.uuid }}">
 		<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
 			{{ data.name }}
 		</td>

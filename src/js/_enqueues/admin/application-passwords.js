@@ -45,7 +45,7 @@
 
 			$appPassTbody.prepend( tmplAppPassRow( {
 				name: response.name,
-				slug: response.slug,
+				uuid: response.uuid,
 				created: wp.date.dateI18n( dateFormat, response.created ),
 				last_used: response.last_used ? wp.date.dateI18n( dateFormat, response.last_used ) : '—',
 				last_ip: response.last_ip ? response.last_ip : '—'
@@ -59,10 +59,10 @@
 	$appPassTbody.on( 'click', '.delete', function( e ) {
 		e.preventDefault();
 		var $tr = $( e.target ).closest( 'tr' ),
-			slug = $tr.data( 'slug' );
+			uuid = $tr.data( 'uuid' );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords/' + slug,
+			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid,
 			method: 'DELETE'
 		} ).done( function( response ) {
 			if ( response.deleted ) {

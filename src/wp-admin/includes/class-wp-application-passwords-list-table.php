@@ -123,7 +123,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * @param object $item The current item.
 	 */
 	public function single_row( $item ) {
-		echo '<tr data-slug="' . esc_attr( WP_Application_Passwords::password_unique_slug( $item ) ) . '">';
+		echo '<tr data-uuid="' . esc_attr( $item['uuid'] ) . '">';
 		$this->single_row_columns( $item );
 		echo '</tr>';
 	}

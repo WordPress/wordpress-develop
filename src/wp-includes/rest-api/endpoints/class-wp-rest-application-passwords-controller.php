@@ -59,7 +59,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<slug>[\da-fA-F]{12})',
+			'/' . $this->rest_base . '/(?P<uuid>[\w\-]+)',
 			array(
 				array(
 					'methods'             => WP_REST_Server::READABLE,
@@ -110,8 +110,6 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		$response  = array();
 
 		foreach ( $passwords as $password ) {
-			$password['slug'] = WP_Application_Passwords::password_unique_slug( $password );
-
 			$response[] = $this->prepare_response_for_collection(
 				$this->prepare_item_for_response( $password, $request )
 			);
@@ -179,10 +177,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		list( $password, $item ) = WP_Application_Passwords::create_new_application_password( $user->ID, $request['name'] );
 
-		$item['slug']         = WP_Application_Passwords::password_unique_slug( $item );
 		$item['new_password'] = WP_Application_Passwords::chunk_password( $password );
-
-		$fields_update = $this->update_additional_fields_for_object( $item['slug'], $request );
+		$fields_update        = $this->update_additional_fields_for_object( $item, $request );
 
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
@@ -269,7 +265,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		$request->set_param( 'context', 'edit' );
 		$previous = $this->prepare_item_for_response( $password, $request );
-		$deleted  = WP_Application_Passwords::delete_application_password( $user->ID, $password['slug'] );
+		$deleted  = WP_Application_Passwords::delete_application_password( $user->ID, $password['uuid'] );
 
 		if ( ! $deleted ) {
 			return new WP_Error(
@@ -330,7 +326,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		}
 
 		$prepared = array(
-			'slug'      => $item['slug'],
+			'uuid'      => $item['uuid'],
 			'name'      => $item['name'],
 			'created'   => gmdate( 'Y-m-d\TH:i:s', $item['created'] ),
 			'last_used' => $item['last_used'] ? gmdate( 'Y-m-d\TH:i:s', $item['last_used'] ) : null,
@@ -371,7 +367,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	protected function prepare_links( WP_User $user, $item ) {
 		return array(
 			'self' => array(
-				'href' => rest_url( sprintf( '%s/users/%d/application-passwords/%s', $this->namespace, $user->ID, $item['slug'] ) ),
+				'href' => rest_url( sprintf( '%s/users/%d/application-passwords/%s', $this->namespace, $user->ID, $item['uuid'] ) ),
 			),
 		);
 	}
@@ -437,7 +433,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		$password = WP_Application_Passwords::get_user_application_password( $user->ID, $request['slug'] );
+		$password = WP_Application_Passwords::get_user_application_password( $user->ID, $request['uuid'] );
 
 		if ( ! $password ) {
 			return new WP_Error(
@@ -446,8 +442,6 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 				array( 'status' => 404 )
 			);
 		}
-
-		$password['slug'] = WP_Application_Passwords::password_unique_slug( $password );
 
 		return $password;
 	}
@@ -482,9 +476,10 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			'title'      => 'application-password',
 			'type'       => 'object',
 			'properties' => array(
-				'slug'      => array(
-					'description' => __( 'The slug uniquely identifying the application password.' ),
+				'uuid'      => array(
+					'description' => __( 'The unique identifier for the application password.' ),
 					'type'        => 'string',
+					'format'      => 'uuid',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
 				),
