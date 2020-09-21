@@ -1198,8 +1198,8 @@ function wp_dropdown_users( $args = '' ) {
 				}
 			}
 
-			if ( ! $found_selected ) {
-				$users[] = get_userdata( $parsed_args['selected'] );
+			if ( ! $found_selected && $user = get_userdata( $parsed_args['selected'] ) ) {
+				$users[] = $user;
 			}
 		}
 
