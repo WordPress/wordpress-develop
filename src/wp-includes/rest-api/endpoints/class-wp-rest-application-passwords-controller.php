@@ -70,6 +70,12 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					),
 				),
 				array(
+					'methods'             => WP_REST_Server::EDITABLE,
+					'callback'            => array( $this, 'update_item' ),
+					'permission_callback' => array( $this, 'update_item_permissions_check' ),
+					'args'                => $this->get_endpoint_args_for_item_schema( WP_REST_Server::EDITABLE ),
+				),
+				array(
 					'methods'             => WP_REST_Server::DELETABLE,
 					'callback'            => array( $this, 'delete_item' ),
 					'permission_callback' => array( $this, 'delete_item_permissions_check' ),
@@ -175,7 +181,19 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $user;
 		}
 
-		list( $password, $item ) = WP_Application_Passwords::create_new_application_password( $user->ID, $request['name'] );
+		$prepared = $this->prepare_item_for_database( $request );
+
+		if ( is_wp_error( $prepared ) ) {
+			return $prepared;
+		}
+
+		$created = WP_Application_Passwords::create_new_application_password( $user->ID, (array) $prepared );
+
+		if ( is_wp_error( $created ) ) {
+			return $created;
+		}
+
+		list( $password, $item ) = $created;
 
 		$item['new_password'] = WP_Application_Passwords::chunk_password( $password );
 		$fields_update        = $this->update_additional_fields_for_object( $item, $request );
@@ -184,6 +202,17 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $fields_update;
 		}
 
+		/**
+		 * Fires after a single application password is completely created or updated via the REST API.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param WP_Post         $post     Inserted or updated post object.
+		 * @param WP_REST_Request $request  Request object.
+		 * @param bool            $creating True when creating a post, false when updating.
+		 */
+		do_action( 'rest_after_insert_application_password', $item, $request, true );
+
 		$request->set_param( 'context', 'edit' );
 		$response = $this->prepare_item_for_response( $item, $request );
 
@@ -191,6 +220,66 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		$response->header( 'Location', $response->get_links()['self'][0]['href'] );
 
 		return $response;
+	}
+
+	/**
+	 * Checks if a given request has access to update application passwords.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
+	 */
+	public function update_item_permissions_check( $request ) {
+		return $this->do_permissions_check( $request );
+	}
+
+	/**
+	 * Updates an application password.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
+	 */
+	public function update_item( $request ) {
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
+		$item = $this->get_application_password( $request );
+
+		if ( is_wp_error( $item ) ) {
+			return $item;
+		}
+
+		$prepared = $this->prepare_item_for_database( $request );
+
+		if ( is_wp_error( $prepared ) ) {
+			return $prepared;
+		}
+
+		$saved = WP_Application_Passwords::update_application_password( $user->ID, $item['uuid'], (array) $prepared );
+
+		if ( is_wp_error( $saved ) ) {
+			return $saved;
+		}
+
+		$fields_update = $this->update_additional_fields_for_object( $item, $request );
+
+		if ( is_wp_error( $fields_update ) ) {
+			return $fields_update;
+		}
+
+		$item = WP_Application_Passwords::get_user_application_password( $user->ID, $item['uuid'] );
+
+		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-application-passwords-controller.php */
+		do_action( 'rest_after_insert_application_password', $item, $request, false );
+
+		$request->set_param( 'context', 'edit' );
+		return $this->prepare_item_for_response( $item, $request );
 	}
 
 	/**
@@ -221,6 +310,10 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		}
 
 		$deleted = WP_Application_Passwords::delete_all_application_passwords( $user->ID );
+
+		if ( is_wp_error( $deleted ) ) {
+			return $deleted;
+		}
 
 		return new WP_REST_Response(
 			array(
@@ -267,12 +360,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		$previous = $this->prepare_item_for_response( $password, $request );
 		$deleted  = WP_Application_Passwords::delete_application_password( $user->ID, $password['uuid'] );
 
-		if ( ! $deleted ) {
-			return new WP_Error(
-				'rest_cannot_delete',
-				__( 'The application password cannot be deleted.' ),
-				array( 'status' => 500 )
-			);
+		if ( is_wp_error( $deleted ) ) {
+			return $deleted;
 		}
 
 		return new WP_REST_Response(
@@ -307,6 +396,30 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Prepares an application password for create or update operation.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return object|WP_Error The prepared item, or WP_Error object on failure.
+	 */
+	protected function prepare_item_for_database( $request ) {
+		$prepared = (object) array(
+			'name' => $request['name'],
+		);
+
+		/**
+		 * Filters an application password before it is inserted via the REST API.
+		 *
+		 * @since 4.7.0
+		 *
+		 * @param stdClass        $prepared An object representing a single application password prepared for inserting or updating the database.
+		 * @param WP_REST_Request $request  Request object.
+		 */
+		return apply_filters( 'rest_pre_insert_application_password', $prepared, $request );
 	}
 
 	/**

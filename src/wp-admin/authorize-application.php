@@ -22,7 +22,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 			$redirect = esc_url_raw( add_query_arg( 'success', 'false', $reject_url ) );
 		}
 	} elseif ( isset( $_POST['approve'] ) ) {
-		list( $new_password ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), $app_name );
+		list( $new_password ) = WP_Application_Passwords::create_new_application_password( get_current_user_id(), array( 'name' => $app_name ) );
 		if ( empty( $success_url ) ) {
 			wp_die( '<h1>' . __( 'Your New Application Password:' ) . '</h1><h3><kbd>' . esc_html( WP_Application_Passwords::chunk_password( $new_password ) ) . '</kbd></h3>' );
 		}

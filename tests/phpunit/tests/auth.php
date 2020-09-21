@@ -428,7 +428,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 
 		// Create a new app-only password.
-		$user_app_password = WP_Application_Passwords::create_new_application_password( $user_id, 'phpunit' );
+		$user_app_password = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
 
 		// Fake a REST API request.
 		add_filter( 'application_password_is_api_request', '__return_true' );

@@ -69,14 +69,14 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertArrayHasKey( '/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords', $routes );
 		$this->assertCount( 3, $routes['/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords'] );
 		$this->assertArrayHasKey( '/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)', $routes );
-		$this->assertCount( 2, $routes['/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)'] );
+		$this->assertCount( 3, $routes['/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)'] );
 	}
 
 	public function test_context_param() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'New App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug = $item['uuid'];
+		$uuid = $item['uuid'];
 
 		// Collection.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/me/application-passwords' );
@@ -85,7 +85,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
-		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/me/application-passwords/' . $slug );
+		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
@@ -94,7 +94,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_get_items() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords' );
 		$this->assertEquals( 200, $response->get_status() );
@@ -104,7 +104,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_get_items_self_user_id_admin() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$this->assertEquals( 200, $response->get_status() );
@@ -114,7 +114,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_get_items_self_user_id_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords', self::$subscriber_id ) );
 		$this->assertEquals( 200, $response->get_status() );
@@ -124,7 +124,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_get_items_other_user_id() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords', self::$subscriber_id ) );
 		$this->assertEquals( 200, $response->get_status() );
@@ -153,71 +153,71 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_get_item() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( '/wp/v2/users/me/application-passwords/' . $slug );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords/' . $uuid );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data(), $item );
 	}
 
 	public function test_get_item_self_user_id_admin() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $slug ) );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data(), $item );
 	}
 
 	public function test_get_item_self_user_id_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $slug ) );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data(), $item );
 	}
 
 	public function test_get_item_other_user_id() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $slug ) );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data(), $item );
 	}
 
 	public function test_get_item_other_user_id_invalid_permission() {
 		wp_set_current_user( self::$subscriber_id );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $slug ) );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
 	}
 
 	public function test_get_item_logged_out() {
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( sprintf( '/wp/v2/users/me/application-passwords/%s', $slug ) );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( sprintf( '/wp/v2/users/me/application-passwords/%s', $uuid ) );
 		$this->assertErrorResponse( 'rest_not_logged_in', $response, 401 );
 	}
 
 	public function test_get_item_invalid_user_id() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$response = rest_do_request( '/wp/v2/users/0/application-passwords/' . $slug );
+		$uuid     = $item['uuid'];
+		$response = rest_do_request( '/wp/v2/users/0/application-passwords/' . $uuid );
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
-	public function test_get_item_invalid_password_slug() {
+	public function test_get_item_invalid_password_uuid() {
 		wp_set_current_user( self::$admin );
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, '123456abcdef' ) );
 		$this->assertErrorResponse( 'rest_application_password_not_found', $response, 404 );
@@ -301,15 +301,103 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	public function test_update_item() {
-		$this->markTestSkipped( 'Application passwords cannot be updated.' );
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $uuid );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->check_response( $response->get_data(), WP_Application_Passwords::get_user_application_password( self::$admin, $item['uuid'] ) );
+		$this->assertEquals( 'New App', $response->get_data()['name'] );
+	}
+
+	public function test_update_item_self_user_id_admin() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->check_response( $response->get_data(), WP_Application_Passwords::get_user_application_password( self::$admin, $item['uuid'] ) );
+		$this->assertEquals( 'New App', $response->get_data()['name'] );
+	}
+
+	public function test_update_item_self_user_id_subscriber() {
+		wp_set_current_user( self::$subscriber_id );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->check_response( $response->get_data(), WP_Application_Passwords::get_user_application_password( self::$subscriber_id, $item['uuid'] ) );
+		$this->assertEquals( 'New App', $response->get_data()['name'] );
+	}
+
+	public function test_update_item_other_user_id() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( 200, $response->get_status() );
+		$this->check_response( $response->get_data(), WP_Application_Passwords::get_user_application_password( self::$subscriber_id, $item['uuid'] ) );
+		$this->assertEquals( 'New App', $response->get_data()['name'] );
+	}
+
+	public function test_update_item_other_user_id_invalid_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+	}
+
+	public function test_update_item_logged_out() {
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/me/application-passwords/%s', $uuid ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_not_logged_in', $response, 401 );
+	}
+
+	public function test_update_item_invalid_user_id() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/0/application-passwords/' . $uuid );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
+	}
+
+	public function test_update_item_invalid_password_uuid() {
+		wp_set_current_user( self::$admin );
+		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, '123456abcdef' ) );
+		$request->set_body_params( array( 'name' => 'New App' ) );
+		$response = rest_do_request( $request );
+		$this->assertErrorResponse( 'rest_application_password_not_found', $response, 404 );
 	}
 
 	public function test_delete_item() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords/' . $slug );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$response = rest_do_request( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->assertArrayHasKey( 'deleted', $response->get_data() );
@@ -317,15 +405,15 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertArrayHasKey( 'previous', $response->get_data() );
 		$this->check_response( $response->get_data()['previous'], $item );
 
-		$this->assertNull( WP_Application_Passwords::get_user_application_password( self::$admin, $slug ) );
+		$this->assertNull( WP_Application_Passwords::get_user_application_password( self::$admin, $uuid ) );
 	}
 
 	public function test_delete_item_self_user_id_admin() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item ['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $slug ) );
+		$uuid     = $item ['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$response = rest_do_request( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data()['previous'], $item );
@@ -333,10 +421,10 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_item_self_user_id_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $slug ) );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
 		$response = rest_do_request( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data()['previous'], $item );
@@ -344,10 +432,10 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_item_other_user_id() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $slug ) );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$subscriber_id, $uuid ) );
 		$response = rest_do_request( $request );
 		$this->assertEquals( 200, $response->get_status() );
 		$this->check_response( $response->get_data()['previous'], $item );
@@ -355,34 +443,34 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_item_other_user_id_invalid_permission() {
 		wp_set_current_user( self::$subscriber_id );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $slug ) );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
 	}
 
 	public function test_delete_item_logged_out() {
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/me/application-passwords/%s', $slug ) );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/me/application-passwords/%s', $uuid ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_not_logged_in', $response, 401 );
 	}
 
 	public function test_delete_item_invalid_user_id() {
 		wp_set_current_user( self::$admin );
-		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug     = $item['uuid'];
-		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/users/0/application-passwords/' . $slug );
+		$uuid     = $item['uuid'];
+		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/users/0/application-passwords/' . $uuid );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_user_invalid_id', $response, 404 );
 	}
 
-	public function test_delete_item_invalid_password_slug() {
+	public function test_delete_item_invalid_password_uuid() {
 		wp_set_current_user( self::$admin );
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, '123456abcdef' ) );
 		$response = rest_do_request( $request );
@@ -391,8 +479,8 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_items() {
 		wp_set_current_user( self::$admin );
-		WP_Application_Passwords::create_new_application_password( self::$admin, 'App 1' );
-		WP_Application_Passwords::create_new_application_password( self::$admin, 'App 2' );
+		WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App 1' ) );
+		WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App 2' ) );
 
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/users/me/application-passwords' );
 		$response = rest_do_request( $request );
@@ -407,7 +495,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_items_self_user_id_admin() {
 		wp_set_current_user( self::$admin );
-		WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$response = rest_do_request( $request );
@@ -417,7 +505,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_items_self_user_id_subscriber() {
 		wp_set_current_user( self::$subscriber_id );
-		WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords', self::$subscriber_id ) );
 		$response = rest_do_request( $request );
@@ -427,7 +515,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_delete_items_other_user_id() {
 		wp_set_current_user( self::$admin );
-		WP_Application_Passwords::create_new_application_password( self::$subscriber_id, 'App' );
+		WP_Application_Passwords::create_new_application_password( self::$subscriber_id, array( 'name' => 'App' ) );
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords', self::$subscriber_id ) );
 		$response = rest_do_request( $request );
@@ -459,47 +547,47 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	public function test_prepare_item() {
 		wp_set_current_user( self::$admin );
-		list( $password, $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, 'App' );
+		list( $password, $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
 
-		$slug                 = $item['uuid'];
-		$item['slug']         = $slug;
+		$uuid                 = $item['uuid'];
+		$item['uuid']         = $uuid;
 		$item['new_password'] = $password;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $slug );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$request->set_param( 'context', 'edit' );
 		$request->set_url_params(
 			array(
 				'user_id' => 'me',
-				'slug'    => $slug,
+				'uuid'    => $uuid,
 			)
 		);
 		$prepared = ( new WP_REST_Application_Passwords_Controller() )->prepare_item_for_response( $item, $request );
 		$this->assertNotWPError( $prepared );
 		$this->check_response( $prepared->get_data(), $item, true );
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $slug );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$request->set_param( 'context', 'view' );
 		$request->set_url_params(
 			array(
 				'user_id' => 'me',
-				'slug'    => $slug,
+				'uuid'    => $uuid,
 			)
 		);
 		$prepared = ( new WP_REST_Application_Passwords_Controller() )->prepare_item_for_response( $item, $request );
 		$this->assertNotWPError( $prepared );
 		$this->check_response( $prepared->get_data(), $item );
 
-		WP_Application_Passwords::used_application_password( self::$admin, $slug );
+		WP_Application_Passwords::used_application_password( self::$admin, $uuid );
 
-		$item         = WP_Application_Passwords::get_user_application_password( self::$admin, $slug );
-		$item['slug'] = $slug;
+		$item         = WP_Application_Passwords::get_user_application_password( self::$admin, $uuid );
+		$item['uuid'] = $uuid;
 
-		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $slug );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$request->set_param( 'context', 'view' );
 		$request->set_url_params(
 			array(
 				'user_id' => 'me',
-				'slug'    => $slug,
+				'uuid'    => $uuid,
 			)
 		);
 		$prepared = ( new WP_REST_Application_Passwords_Controller() )->prepare_item_for_response( $item, $request );
