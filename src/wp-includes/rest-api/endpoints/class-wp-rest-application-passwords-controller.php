@@ -65,6 +65,9 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'args'                => array(
+						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
+					),
 				),
 				array(
 					'methods'             => WP_REST_Server::DELETABLE,
@@ -264,6 +267,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $password;
 		}
 
+		$request->set_param( 'context', 'edit' );
 		$previous = $this->prepare_item_for_response( $password, $request );
 		$deleted  = WP_Application_Passwords::delete_application_password( $user->ID, $password['slug'] );
 
@@ -319,6 +323,12 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function prepare_item_for_response( $item, $request ) {
+		$user = $this->get_user( $request );
+
+		if ( is_wp_error( $user ) ) {
+			return $user;
+		}
+
 		$prepared = array(
 			'slug'      => $item['slug'],
 			'name'      => $item['name'],
@@ -332,9 +342,10 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		}
 
 		$prepared = $this->add_additional_fields_to_object( $prepared, $request );
+		$prepared = $this->filter_response_by_context( $prepared, $request['context'] );
 
 		$response = new WP_REST_Response( $prepared );
-		$response->add_links( $this->prepare_links( $this->get_user( $request ), $item ) );
+		$response->add_links( $this->prepare_links( $user, $item ) );
 
 		/**
 		 * Filters the REST API response for an application password.
@@ -486,7 +497,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 				'password'  => array(
 					'description' => __( 'The generated password. Only available after adding an application.' ),
 					'type'        => 'string',
-					'context'     => array(),
+					'context'     => array( 'edit' ),
 					'readonly'    => true,
 				),
 				'created'   => array(
