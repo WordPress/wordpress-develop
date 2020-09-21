@@ -1081,7 +1081,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_raise_memory_limit() {
 		if ( -1 !== WP_MAX_MEMORY_LIMIT ) {
-			$this->markTestSkipped( 'WP_MAX_MEMORY_LIMIT should be set to -1' );
+			$this->markTestSkipped( 'WP_MAX_MEMORY_LIMIT should be set to -1.' );
 		}
 
 		$ini_limit_before = ini_get( 'memory_limit' );

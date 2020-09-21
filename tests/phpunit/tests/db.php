@@ -92,7 +92,7 @@ class Tests_DB extends WP_UnitTestCase {
 		// Switch to a locale using comma as a decimal point separator.
 		$flag = setlocale( LC_ALL, 'ru_RU.utf8', 'rus', 'fr_FR.utf8', 'fr_FR', 'de_DE.utf8', 'de_DE', 'es_ES.utf8', 'es_ES' );
 		if ( false === $flag ) {
-			$this->markTestSkipped( 'No European locales available for testing' );
+			$this->markTestSkipped( 'No European locales available for testing.' );
 		}
 
 		// Try an update query.
@@ -716,7 +716,7 @@ class Tests_DB extends WP_UnitTestCase {
 	function test_mysqli_flush_sync() {
 		global $wpdb;
 		if ( ! $wpdb->use_mysqli ) {
-			$this->markTestSkipped( 'mysqli not being used' );
+			$this->markTestSkipped( 'mysqli not being used.' );
 		}
 
 		$suppress = $wpdb->suppress_errors( true );
@@ -1048,7 +1048,7 @@ class Tests_DB extends WP_UnitTestCase {
 		}
 
 		if ( ! in_array( $expected_charset, array( 'utf8', 'utf8mb4', 'latin1' ), true ) ) {
-			$this->markTestSkipped( 'This test only works with utf8, utf8mb4 or latin1 character sets' );
+			$this->markTestSkipped( 'This test only works with utf8, utf8mb4 or latin1 character sets.' );
 		}
 
 		$data     = array( 'post_content' => '¡foo foo foo!' );

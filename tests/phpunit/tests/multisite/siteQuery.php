@@ -883,7 +883,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_site_query_meta_query( $query, $expected, $strict ) {
 			if ( ! is_site_meta_supported() ) {
-				$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed' );
+				$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed.' );
 			}
 
 			add_site_meta( self::$site_ids['wordpress.org/'], 'foo', 'foo' );

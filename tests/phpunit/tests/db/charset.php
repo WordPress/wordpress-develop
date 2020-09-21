@@ -513,7 +513,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
 		// \xf0\xff\xff\xff is invalid in utf8 and utf8mb4.
@@ -640,7 +640,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
 		// Invalid 3-byte and 4-byte sequences.
@@ -946,7 +946,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 
 		$charset = $wpdb->get_col_charset( $wpdb->posts, 'post_content' );
 		if ( 'utf8' !== $charset && 'utf8mb4' !== $charset ) {
-			$this->markTestSkipped( 'This test requires a utf8 character set' );
+			$this->markTestSkipped( 'This test requires a utf8 character set.' );
 		}
 
 		$this->assertFalse( $wpdb->query( "INSERT INTO {$wpdb->posts} (post_content) VALUES ('foo\xf0\xff\xff\xffbar')" ) );
@@ -1045,7 +1045,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	function test_strip_invalid_text_from_query_cp1251_is_safe() {
 		$tablename = 'test_cp1251_query_' . rand_str( 5 );
 		if ( ! self::$_wpdb->query( "CREATE TABLE $tablename ( a VARCHAR(50) ) DEFAULT CHARSET 'cp1251'" ) ) {
-			$this->markTestSkipped( "Test requires the 'cp1251' charset" );
+			$this->markTestSkipped( "Test requires the 'cp1251' charset." );
 		}
 
 		$safe_query     = "INSERT INTO $tablename( `a` ) VALUES( 'safe data' )";
@@ -1062,7 +1062,7 @@ class Tests_DB_Charset extends WP_UnitTestCase {
 	function test_no_db_charset_defined() {
 		$tablename = 'test_cp1251_query_' . rand_str( 5 );
 		if ( ! self::$_wpdb->query( "CREATE TABLE $tablename ( a VARCHAR(50) ) DEFAULT CHARSET 'cp1251'" ) ) {
-			$this->markTestSkipped( "Test requires the 'cp1251' charset" );
+			$this->markTestSkipped( "Test requires the 'cp1251' charset." );
 		}
 
 		$charset              = self::$_wpdb->charset;
