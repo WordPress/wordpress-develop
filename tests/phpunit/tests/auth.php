@@ -417,7 +417,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * HTTP Auth headers are used to determine the current user.
 	 *
-	 * @covers wp_validate_application_password()
+	 * @covers wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
 		$user_id = $this->factory->user->create(
@@ -455,7 +455,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		remove_filter( 'application_password_is_api_request', '__return_true' );
 
 		// Cleanup all the global state.
-		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'] );
 	}
 
 }
