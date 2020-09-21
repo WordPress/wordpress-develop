@@ -420,7 +420,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 * @covers wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
-		$user_id = $this->factory->user->create(
+		$user_id = $this->factory()->user->create(
 			array(
 				'user_login' => 'http_auth_login',
 				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
@@ -432,6 +432,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		// Fake a REST API request.
 		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 
 		// Fake an HTTP Auth request with the regular account password first.
 		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';

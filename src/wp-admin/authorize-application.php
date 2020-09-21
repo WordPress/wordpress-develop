@@ -47,6 +47,23 @@ $success_url = ! empty( $_GET['success_url'] ) ? $_GET['success_url'] : null;
 $reject_url  = ! empty( $_GET['reject_url'] ) ? $_GET['reject_url'] : $success_url;
 $user        = wp_get_current_user();
 
+if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+	if ( wp_is_application_passwords_available() ) {
+		$message = __( 'Application passwords are not enabled for your account. Please contact the site administrator for assistance.' );
+	} else {
+		$message = __( 'Application passwords are not enabled.' );
+	}
+
+	wp_die(
+		$message,
+		__( 'Cannot Authorize Application' ),
+		array(
+			'link_text' => __( 'Go Back' ),
+			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
+		)
+	);
+}
+
 wp_enqueue_script( 'auth-app' );
 wp_localize_script(
 	'auth-app',

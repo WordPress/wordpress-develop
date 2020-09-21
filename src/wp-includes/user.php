@@ -349,6 +349,13 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		);
 	}
 
+	if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+		return new WP_Error(
+			'application_passwords_disabled',
+			__( 'Application passwords are disabled for the requested user.' )
+		);
+	}
+
 	/*
 	 * Strip out anything non-alphanumeric. This is so passwords can be used with
 	 * or without spaces to indicate the groupings for readability.
@@ -394,6 +401,10 @@ function wp_authenticate_application_password( $input_user, $username, $password
 function wp_validate_application_password( $input_user ) {
 	// Don't authenticate twice.
 	if ( ! empty( $input_user ) ) {
+		return $input_user;
+	}
+
+	if ( ! wp_is_application_passwords_available() ) {
 		return $input_user;
 	}
 
@@ -4053,4 +4064,60 @@ function wp_get_user_request( $request_id ) {
 	}
 
 	return new WP_User_Request( $post );
+}
+
+/**
+ * Checks if Application Passwords is globally available.
+ *
+ * By default, Application Passwords is available to all sites using SSL, but this function is
+ * filterable to adjust its availability.
+ *
+ * @since ?.?.0
+ *
+ * @return bool
+ */
+function wp_is_application_passwords_available() {
+	/**
+	 * Filters whether Application Passwords is available.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param bool $available True if available, false otherwise.
+	 */
+	return apply_filters( 'wp_is_application_passwords_available', is_ssl() );
+}
+
+/**
+ * Checks if Application Passwords is enabled for a specific user.
+ *
+ * By default all users can use Application Passwords, but this function is filterable to restrict
+ * availability to certain users.
+ *
+ * @since ?.?.0
+ *
+ * @param int|WP_User $user The user to check.
+ * @return bool
+ */
+function wp_is_application_passwords_available_for_user( $user ) {
+	if ( ! wp_is_application_passwords_available() ) {
+		return false;
+	}
+
+	if ( ! is_object( $user ) ) {
+		$user = get_userdata( $user );
+	}
+
+	if ( ! $user || ! $user->exists() ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether Application Passwords is available for a specific user.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param bool    $available True if available, false otherwise.
+	 * @param WP_User $user      The user to check.
+	 */
+	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
 }

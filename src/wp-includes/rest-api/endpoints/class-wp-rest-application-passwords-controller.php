@@ -494,6 +494,14 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @return WP_User|WP_Error
 	 */
 	protected function get_user( $request ) {
+		if ( ! wp_is_application_passwords_available() ) {
+			return new WP_Error(
+				'application_passwords_disabled',
+				__( 'Application passwords are not enabled.' ),
+				array( 'status' => 500 )
+			);
+		}
+
 		$error = new WP_Error(
 			'rest_user_invalid_id',
 			__( 'Invalid user ID.' ),
@@ -528,6 +536,14 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 		if ( is_multisite() && ! is_user_member_of_blog( $user->ID ) ) {
 			return $error;
+		}
+
+		if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+			return new WP_Error(
+				'application_passwords_disabled_for_user',
+				__( 'Application passwords are not enabled for your account. Please contact the site administrator for assistance.' ),
+				array( 'status' => 500 )
+			);
 		}
 
 		return $user;

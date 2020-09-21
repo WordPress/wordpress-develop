@@ -27,7 +27,9 @@ if ( ! $user_id && IS_PROFILE_PAGE ) {
 
 wp_enqueue_script( 'user-profile' );
 
-wp_enqueue_script( 'application-passwords-js' );
+if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
+	wp_enqueue_script( 'application-passwords-js' );
+}
 
 if ( IS_PROFILE_PAGE ) {
 	$title = __( 'Profile' );
@@ -705,22 +707,25 @@ endif;
 	</table>
 
 
-<div class="application-passwords hide-if-no-js" id="application-passwords-section">
-	<h2><?php _e( 'Application Passwords' ); ?></h2>
-	<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-	<div class="create-application-password">
-		<input type="text" size="30" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
-		<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
-	</div>
+		<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
+	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
+		<h2><?php _e( 'Application Passwords' ); ?></h2>
+		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XMLRPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
+		<div class="create-application-password">
+			<label for="new_application_password_name" class="screen-reader-text"><?php _e( 'New Application Password Name' ); ?></label>
+			<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
+			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
+		</div>
 
-	<div class="application-passwords-list-table-wrapper">
-		<?php
-		$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table' );
-		$application_passwords_list_table->prepare_items();
-		$application_passwords_list_table->display();
-		?>
+		<div class="application-passwords-list-table-wrapper">
+			<?php
+			$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table' );
+			$application_passwords_list_table->prepare_items();
+			$application_passwords_list_table->display();
+			?>
+		</div>
 	</div>
-</div>
+<?php endif; ?>
 
 		<?php
 		if ( IS_PROFILE_PAGE ) {
@@ -808,44 +813,46 @@ endif;
 	}
 </script>
 
-<script type="text/html" id="tmpl-new-application-password">
-	<div class="new-application-password notification-dialog-wrap">
-		<div class="app-pass-dialog-background notification-dialog-background"></div>
-		<div class="app-pass-dialog notification-dialog">
-			<div class="new-application-password-content">
-				<?php
-				printf(
-					// translators: application, password.
-					esc_html_x( 'Your new password for %1$s is: %2$s', 'application, password' ),
-					'<strong>{{ data.name }}</strong>',
-					'<kbd>{{ data.password }}</kbd>'
-				);
-				?>
+<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
+	<script type="text/html" id="tmpl-new-application-password">
+		<div class="new-application-password notification-dialog-wrap">
+			<div class="app-pass-dialog-background notification-dialog-background"></div>
+			<div class="app-pass-dialog notification-dialog">
+				<div class="new-application-password-content">
+					<?php
+					printf(
+						// translators: application, password.
+						esc_html_x( 'Your new password for %1$s is: %2$s', 'application, password' ),
+						'<strong>{{ data.name }}</strong>',
+						'<kbd>{{ data.password }}</kbd>'
+					);
+					?>
+				</div>
+				<p><?php esc_attr_e( 'Be sure to save this in a safe location.  You will not be able to retrieve it.' ); ?></p>
+				<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
 			</div>
-			<p><?php esc_attr_e( 'Be sure to save this in a safe location.  You will not be able to retrieve it.' ); ?></p>
-			<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
 		</div>
-	</div>
-</script>
+	</script>
 
-<script type="text/html" id="tmpl-application-password-row">
-	<tr data-slug="{{ data.uuid }}">
-		<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
-			{{ data.name }}
-		</td>
-		<td class="created column-created" data-colname="<?php esc_attr_e( 'Created' ); ?>">
-			{{ data.created }}
-		</td>
-		<td class="last_used column-last_used" data-colname="<?php esc_attr_e( 'Last Used' ); ?>">
-			{{ data.last_used }}
-		</td>
-		<td class="last_ip column-last_ip" data-colname="<?php esc_attr_e( 'Last IP' ); ?>">
-			{{ data.last_ip }}
-		</td>
-		<td class="revoke column-revoke" data-colname="<?php esc_attr_e( 'Revoke' ); ?>">
-			<input type="submit" name="revoke-application-password" class="button delete" value="<?php esc_attr_e( 'Revoke' ); ?>">
-		</td>
-	</tr>
-</script>
+	<script type="text/html" id="tmpl-application-password-row">
+		<tr data-slug="{{ data.uuid }}">
+			<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
+				{{ data.name }}
+			</td>
+			<td class="created column-created" data-colname="<?php esc_attr_e( 'Created' ); ?>">
+				{{ data.created }}
+			</td>
+			<td class="last_used column-last_used" data-colname="<?php esc_attr_e( 'Last Used' ); ?>">
+				{{ data.last_used }}
+			</td>
+			<td class="last_ip column-last_ip" data-colname="<?php esc_attr_e( 'Last IP' ); ?>">
+				{{ data.last_ip }}
+			</td>
+			<td class="revoke column-revoke" data-colname="<?php esc_attr_e( 'Revoke' ); ?>">
+				<input type="submit" name="revoke-application-password" class="button delete" value="<?php esc_attr_e( 'Revoke' ); ?>">
+			</td>
+		</tr>
+	</script>
+<?php endif; ?>
 <?php
 require_once ABSPATH . 'wp-admin/admin-footer.php';

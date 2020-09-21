@@ -63,6 +63,12 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		self::delete_user( self::$admin );
 	}
 
+	public function setUp() {
+		parent::setUp();
+
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+	}
+
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 
@@ -90,6 +96,22 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$data     = $response->get_data();
 		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
 		$this->assertSame( array( 'view', 'embed', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+	}
+
+	public function test_disabled() {
+		wp_set_current_user( self::$admin );
+		add_filter( 'wp_is_application_passwords_available', '__return_false' );
+
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords' );
+		$this->assertErrorResponse( 'application_passwords_disabled', $response, 500 );
+	}
+
+	public function test_disabled_for_user() {
+		wp_set_current_user( self::$admin );
+		add_filter( 'wp_is_application_passwords_available_for_user', '__return_false' );
+
+		$response = rest_do_request( '/wp/v2/users/me/application-passwords' );
+		$this->assertErrorResponse( 'application_passwords_disabled_for_user', $response, 500 );
 	}
 
 	public function test_get_items() {

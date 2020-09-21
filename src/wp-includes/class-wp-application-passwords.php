@@ -3,7 +3,7 @@
  * WP_Application_Passwords class
  *
  * @package WordPress
- * @since ?.?.0
+ * @since   ?.?.0
  */
 
 /**
