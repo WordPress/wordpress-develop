@@ -47,6 +47,10 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 				'role' => 'administrator',
 			)
 		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin );
+		}
 	}
 
 	/**
