@@ -548,12 +548,9 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test resetting Exif orientation data on rotate
 	 *
 	 * @ticket 37140
+	 * @requires function exif_read_data
 	 */
 	public function test_remove_orientation_data_on_rotate() {
-		if ( ! function_exists( 'exif_read_data' ) ) {
-			$this->markTestSkipped( 'This test requires the exif_read_data function.' );
-		}
-
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
 		$data = wp_read_image_metadata( $file );
 

@@ -942,12 +942,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28786
+	 * @requires function mb_detect_order
 	 */
 	function test_wp_json_encode_non_utf8() {
-		if ( ! function_exists( 'mb_detect_order' ) ) {
-			$this->markTestSkipped( 'mbstring extension not available.' );
-		}
-
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
 		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
@@ -967,12 +964,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28786
+	 * @requires function mb_detect_order
 	 */
 	function test_wp_json_encode_non_utf8_in_array() {
-		if ( ! function_exists( 'mb_detect_order' ) ) {
-			$this->markTestSkipped( 'mbstring extension not available.' );
-		}
-
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
 		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
@@ -1210,24 +1204,18 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 39550
 	 * @dataProvider _wp_check_filetype_and_ext_data
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
 	/**
 	 * @ticket 39550
 	 * @group ms-excluded
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext_with_filtered_svg() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
 		$filename = 'video-play.svg';
 
@@ -1247,12 +1235,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 39550
 	 * @group ms-excluded
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 

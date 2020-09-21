@@ -25,15 +25,13 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @ticket 41083
 	 * @ticket 43545
+	 * @requires function inet_ntop
+	 * @requires function inet_pton
 	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.
 	 */
 	public function test_wp_privacy_anonymize_ip( $raw_ip, $expected_result ) {
-		if ( ! function_exists( 'inet_ntop' ) || ! function_exists( 'inet_pton' ) ) {
-			$this->markTestSkipped( 'This test requires both the inet_ntop() and inet_pton() functions.' );
-		}
-
 		$actual_result = wp_privacy_anonymize_data( 'ip', $raw_ip );
 
 		/* Todo test ipv6_fallback mode if keeping it.*/

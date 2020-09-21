@@ -149,12 +149,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test save image file and mime_types
 	 *
 	 * @ticket 6821
+	 * @requires extension fileinfo
 	 */
 	public function test_wp_save_image_file() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -208,12 +205,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test that a passed mime type overrides the extension in the filename
 	 *
 	 * @ticket 6821
+	 * @requires extension fileinfo
 	 */
 	public function test_mime_overrides_filename() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -253,12 +247,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test that mime types are correctly inferred from file extensions
 	 *
 	 * @ticket 6821
+	 * @requires extension fileinfo
 	 */
 	public function test_inferred_mime_types() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -373,12 +364,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @requires function imagejpeg
+	 * @requires extension openssl
 	 */
 	public function test_wp_crop_image_url() {
-		if ( ! extension_loaded( 'openssl' ) ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
-		}
-
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 			0,
@@ -418,11 +406,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
+	/**
+	 * @requires extension openssl
+	 */
 	public function test_wp_crop_image_url_not_exist() {
-		if ( ! extension_loaded( 'openssl' ) ) {
-			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url_not_exist() requires openssl.' );
-		}
-
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 			0,

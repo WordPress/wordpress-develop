@@ -54,12 +54,10 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Fetch the test text (gzdeflate)
+	 *
+	 * @requires function gzdeflate
 	 */
 	public function test_gzdeflate() {
-
-		if ( ! function_exists( 'gzdeflate' ) ) {
-			$this->fail( 'gzdeflate function not available' );
-		}
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
@@ -81,12 +79,10 @@ class Tests_Ajax_CompressionTest extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Fetch the test text (gzencode)
+	 *
+	 * @requires function gzencode
 	 */
 	public function test_gzencode() {
-
-		if ( ! function_exists( 'gzencode' ) ) {
-			$this->fail( 'gzencode function not available' );
-		}
 
 		// Become an administrator.
 		$this->_setRole( 'administrator' );
