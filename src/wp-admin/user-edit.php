@@ -28,7 +28,7 @@ if ( ! $user_id && IS_PROFILE_PAGE ) {
 wp_enqueue_script( 'user-profile' );
 
 if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
-	wp_enqueue_script( 'application-passwords-js' );
+	wp_enqueue_script( 'application-passwords' );
 }
 
 if ( IS_PROFILE_PAGE ) {
@@ -835,7 +835,7 @@ endif;
 	</script>
 
 	<script type="text/html" id="tmpl-application-password-row">
-		<tr data-slug="{{ data.uuid }}">
+		<tr data-uuid="{{ data.uuid }}">
 			<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
 				{{ data.name }}
 			</td>

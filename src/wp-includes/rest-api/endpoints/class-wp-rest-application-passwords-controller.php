@@ -187,13 +187,14 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $prepared;
 		}
 
-		$created = WP_Application_Passwords::create_new_application_password( $user->ID, (array) $prepared );
+		$created = WP_Application_Passwords::create_new_application_password( $user->ID, wp_slash( (array) $prepared ) );
 
 		if ( is_wp_error( $created ) ) {
 			return $created;
 		}
 
-		list( $password, $item ) = $created;
+		$password = $created[0];
+		$item     = WP_Application_Passwords::get_user_application_password( $user->ID, $created[1]['uuid'] );
 
 		$item['new_password'] = WP_Application_Passwords::chunk_password( $password );
 		$fields_update        = $this->update_additional_fields_for_object( $item, $request );
@@ -261,7 +262,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 			return $prepared;
 		}
 
-		$saved = WP_Application_Passwords::update_application_password( $user->ID, $item['uuid'], (array) $prepared );
+		$saved = WP_Application_Passwords::update_application_password( $user->ID, $item['uuid'], wp_slash( (array) $prepared ) );
 
 		if ( is_wp_error( $saved ) ) {
 			return $saved;
@@ -551,6 +552,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 
 	/**
 	 * Gets the requested application password.
+	 *
+	 * @since ?.?.0
 	 *
 	 * @param WP_REST_Request $request The request object.
 	 * @return array|WP_Error
