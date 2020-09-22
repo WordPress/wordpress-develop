@@ -25,6 +25,7 @@
 			return;
 		}
 
+		clearErrors();
 		$newAppPassField.prop( 'disabled', true );
 		$newAppPassButton.prop( 'disabled', true );
 
@@ -34,8 +35,11 @@
 			data: {
 				name: name
 			}
+		} ).always( function() {
+			$newAppPassField.prop( 'disabled', false );
+			$newAppPassButton.prop( 'disabled', false );
 		} ).done( function( response ) {
-			$newAppPassField.prop( 'disabled', false ).val( '' );
+			$newAppPassField.val( '' );
 			$newAppPassButton.prop( 'disabled', false );
 
 			$newAppPassForm.after( tmplNewAppPass( {
@@ -53,17 +57,23 @@
 
 			$appPassTwrapper.show();
 			$appPassTrNoItems.remove();
-		} );
+		} ).fail( handleErrorResponse );
 	} );
 
 	$appPassTbody.on( 'click', '.delete', function( e ) {
 		e.preventDefault();
-		var $tr = $( e.target ).closest( 'tr' ),
+		var $submitButton = $( this ),
+			$tr = $submitButton.closest( 'tr' ),
 			uuid = $tr.data( 'uuid' );
+
+		clearErrors();
+		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
 			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid,
 			method: 'DELETE'
+		} ).always( function() {
+			$submitButton.prop( 'disabled', false );
 		} ).done( function( response ) {
 			if ( response.deleted ) {
 				if ( 0 === $tr.siblings().length ) {
@@ -71,22 +81,28 @@
 				}
 				$tr.remove();
 			}
-		} );
+		} ).fail( handleErrorResponse );
 	} );
 
 	$removeAllBtn.on( 'click', function( e ) {
 		e.preventDefault();
+		var $submitButton = $( this );
+
+		clearErrors();
+		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
 			path: '/wp/v2/users/' + userId + '/application-passwords',
 			method: 'DELETE'
+		} ).always( function() {
+			$submitButton.prop( 'disabled', false );
 		} ).done( function( response ) {
 			if ( response.deleted ) {
 				$appPassTbody.children().remove();
 				$appPassSection.children( '.new-application-password' ).remove();
 				$appPassTwrapper.hide();
 			}
-		} );
+		} ).fail( handleErrorResponse );
 	} );
 
 	$( document ).on( 'click', '.application-password-modal-dismiss', function( e ) {
@@ -98,5 +114,48 @@
 	// If there are no items, don't display the table yet.  If there are, show it.
 	if ( 0 === $appPassTbody.children( 'tr' ).not( $appPassTrNoItems ).length ) {
 		$appPassTwrapper.hide();
+	}
+
+	/**
+	 * Handles an error response from the REST API.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param {jqXHR} xhr The XHR object from the ajax call.
+	 * @param {string} textStatus The string categorizing the ajax request's status.
+	 * @param {string} errorThrown The HTTP status error text.
+	 */
+	function handleErrorResponse( xhr, textStatus, errorThrown ) {
+		var errorMessage = errorThrown;
+
+		if ( xhr.responseJSON && xhr.responseJSON.message ) {
+			errorMessage = xhr.responseJSON.message;
+		}
+
+		addError( errorMessage );
+	}
+
+	/**
+	 * Displays an error message in the Application Passwords section.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param {string} message The error message to display.
+	 */
+	function addError( message ) {
+		var $notice = $( '<div></div>' )
+			.addClass( 'notice notice-error' )
+			.append( $( '<p></p>' ).text( message ) );
+
+		$newAppPassForm.after( $notice );
+	}
+
+	/**
+	 * Clears error messages from the Application Passwords section.
+	 *
+	 * @since ?.?.0
+	 */
+	function clearErrors() {
+		$( '.notice', $appPassSection ).remove();
 	}
 }( jQuery ) );
