@@ -435,7 +435,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 */
 	function test_ssl() {
 		if ( ! wp_http_supports( array( 'ssl' ) ) ) {
-			$this->fail( 'This installation of PHP does not support SSL' );
+			$this->fail( 'This installation of PHP does not support SSL.' );
 		}
 
 		$res = wp_remote_get( 'https://wordpress.org/' );
