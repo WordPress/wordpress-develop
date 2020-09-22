@@ -368,7 +368,7 @@ function wp_authenticate_application_password( $input_user, $username, $password
 
 	foreach ( $hashed_passwords as $key => $item ) {
 		if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
-			WP_Application_Passwords::used_application_password( $user->ID, $item['uuid'] );
+			WP_Application_Passwords::record_application_password_usage( $user->ID, $item['uuid'] );
 
 			/**
 			 * Fires after an application password was used for authentication.

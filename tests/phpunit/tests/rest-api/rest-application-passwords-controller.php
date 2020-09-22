@@ -599,7 +599,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertNotWPError( $prepared );
 		$this->check_response( $prepared->get_data(), $item );
 
-		WP_Application_Passwords::used_application_password( self::$admin, $uuid );
+		WP_Application_Passwords::record_application_password_usage( self::$admin, $uuid );
 
 		$item         = WP_Application_Passwords::get_user_application_password( self::$admin, $uuid );
 		$item['uuid'] = $uuid;

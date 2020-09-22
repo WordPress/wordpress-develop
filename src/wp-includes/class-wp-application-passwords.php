@@ -273,11 +273,16 @@ class WP_Application_Passwords {
 	 * @param string $uuid    The password's uuid.
 	 * @return true|WP_Error True if the usage was recorded, a WP_Error if an error occurs.
 	 */
-	public static function used_application_password( $user_id, $uuid ) {
+	public static function record_application_password_usage( $user_id, $uuid ) {
 		$passwords = self::get_user_application_passwords( $user_id );
 
 		foreach ( $passwords as &$password ) {
 			if ( $password['uuid'] !== $uuid ) {
+				continue;
+			}
+
+			// Only record activity once a day.
+			if ( $password['last_used'] + DAY_IN_SECONDS > time() ) {
 				continue;
 			}
 
