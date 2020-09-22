@@ -41,10 +41,10 @@
 				window.location = url;
 			} else {
 				// Should we maybe just reuse the js template modal from the profile page?
-				$form.replaceWith( '<p class="js-password-display">' +
+				$form.replaceWith( '<p class="password-display">' +
 					/* translators: 1: Application Name, 2: Password */
 					wp.i18n.sprintf(
-						wp.i18n.__( 'Your new password for %1$s is: %2$s' ),
+						wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
 						'<strong></strong>',
 						'<kbd></kbd>'
 					) + '</p>' );
@@ -55,6 +55,21 @@
 				$display.find( 'strong' ).text( name );
 				$display.find( 'kbd' ).text( response.password );
 			}
+		} ).fail( function( xhr, textStatus, errorThrown ) {
+			var errorMessage = errorThrown;
+
+			if ( xhr.responseJSON && xhr.responseJSON.message ) {
+				errorMessage = xhr.responseJSON.message;
+			}
+
+			var $notice = $( '<div></div>' )
+				.addClass( 'notice notice-error' )
+				.append( $( '<p></p>' ).text( errorMessage ) );
+
+			$( 'h1' ).after( $notice );
+
+			$appNameField.prop( 'disabled', false );
+			$approveBtn.prop( 'disabled', false );
 		} );
 	} );
 
