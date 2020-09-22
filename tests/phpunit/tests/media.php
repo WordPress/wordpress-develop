@@ -1430,7 +1430,7 @@ EOF;
 	}
 
 	/**
-	 * Helper function to get image size array from size "name"
+	 * Helper function to get image size array from size "name".
 	 */
 	function _get_image_size_array_from_meta( $image_meta, $size_name ) {
 		$array = false;
@@ -1441,6 +1441,10 @@ EOF;
 			} elseif ( isset( $image_meta['sizes'][ $size_name ]['width'] ) && isset( $image_meta['sizes'][ $size_name ]['height'] ) ) {
 				$array = array( $image_meta['sizes'][ $size_name ]['width'], $image_meta['sizes'][ $size_name ]['height'] );
 			}
+		}
+
+		if ( ! $array ) {
+			$this->fail( sprintf( "Could not retrieve image metadata for size '%s'.", $size_name ) );
 		}
 
 		return $array;
