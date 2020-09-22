@@ -209,6 +209,7 @@ function rest_api_default_filters() {
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
+	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
 }
 
 /**
@@ -1082,6 +1083,28 @@ function rest_application_password_check_errors( $result ) {
 	}
 
 	return $result;
+}
+
+/**
+ * Adds Application Passwords info to the REST API index.
+ *
+ * @since ?.?.0
+ *
+ * @param WP_REST_Response $response The index response object.
+ * @return WP_REST_Response
+ */
+function rest_add_application_passwords_to_index( $response ) {
+	if ( ! wp_is_application_passwords_available() ) {
+		return $response;
+	}
+
+	$response->data['authentication']['application-passwords'] = array(
+		'endpoints' => array(
+			'authorization' => admin_url( 'authorize-application.php' ),
+		),
+	);
+
+	return $response;
 }
 
 /**
