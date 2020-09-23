@@ -1540,6 +1540,27 @@ function rest_stabilize_value( $value ) {
 }
 
 /**
+ * Gets the schema of matching pattern property.
+ *
+ * @since 5.7.0
+ *
+ * @param string $property The property to check.
+ * @param array  $args     The schema array to use.
+ * @return array|null      The schema of matching pattern property.
+ */
+function rest_get_matching_pattern_property_schema( $property, $args ) {
+	if ( isset( $args['patternProperties'] ) ) {
+		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
+			if ( preg_match( '/' . $pattern . '/', $property ) ) {
+				return $child_schema;
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1551,6 +1572,7 @@ function rest_stabilize_value( $value ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
+ * @since 5.7.0 Support the "patternProperties" keyword for objects.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1643,8 +1665,15 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		foreach ( $value as $property => $v ) {
+			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
+
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
+				if ( is_wp_error( $is_valid ) ) {
+					return $is_valid;
+				}
+			} elseif ( null !== $pattern_property_schema ) {
+				$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
@@ -1822,6 +1851,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  *
  * @since 4.7.0
  * @since 5.5.0 Added the `$param` parameter.
+ * @since 5.7.0 Support the "patternProperties" keyword for objects.
  *
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
@@ -1876,8 +1906,12 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
+			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
+
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
+			} elseif ( null !== $pattern_property_schema ) {
+				$value[ $property ] = rest_sanitize_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
 			} elseif ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					unset( $value[ $property ] );
@@ -2034,6 +2068,7 @@ function rest_parse_embed_param( $embed ) {
  * Filters the response to remove any fields not available in the given context.
  *
  * @since 5.5.0
+ * @since 5.7.0 Support the "patternProperties" keyword for objects.
  *
  * @param array|object $data    The response data to modify.
  * @param array        $schema  The schema for the endpoint used to filter the response.
@@ -2072,8 +2107,12 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		if ( $is_array_type ) {
 			$check = isset( $schema['items'] ) ? $schema['items'] : array();
 		} elseif ( $is_object_type ) {
+			$pattern_property_schema = rest_get_matching_pattern_property_schema( $key, $schema );
+
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
+			} elseif ( null !== $pattern_property_schema ) {
+				$check = $pattern_property_schema;
 			} elseif ( $has_additional_properties ) {
 				$check = $schema['additionalProperties'];
 			}
@@ -2113,6 +2152,7 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
  *
  * @since 5.5.0
+ * @since 5.7.0 Support the "patternProperties" keyword.
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
@@ -2124,6 +2164,12 @@ function rest_default_additional_properties_to_false( $schema ) {
 		if ( isset( $schema['properties'] ) ) {
 			foreach ( $schema['properties'] as $key => $child_schema ) {
 				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+
+		if ( isset( $schema['patternProperties'] ) ) {
+			foreach ( $schema['patternProperties'] as $key => $child_schema ) {
+				$schema['patternProperties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
 			}
 		}
 
@@ -2281,6 +2327,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'items',
 		'properties',
 		'additionalProperties',
+		'patternProperties',
 		'minimum',
 		'maximum',
 		'exclusiveMinimum',

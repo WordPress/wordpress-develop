@@ -237,6 +237,122 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 51024
+	 */
+	public function test_type_object_pattern_properties_empty() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => array(),
+			'additionalProperties' => false,
+		);
+
+		$this->assertSame( array(), rest_sanitize_value_from_schema( array(), $schema ) );
+		$this->assertSame( array( 'propA' => 'a' ), rest_sanitize_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertSame(
+			array( 'propA' => 'a' ),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+	}
+
+	/**
+	 * @ticket 51024
+	 */
+	public function test_type_object_pattern_properties_with_elements() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => array(
+				'propB' => array( 'type' => 'string' ),
+				'.*C'   => array( 'type' => 'string' ),
+				'[0-9]' => array( 'type' => 'integer' ),
+			),
+			'additionalProperties' => false,
+		);
+
+		$this->assertSame( array( 'propA' => 'a' ), rest_sanitize_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertSame(
+			array(
+				'propA' => 'a',
+				'propB' => 'b',
+			),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertSame(
+			array(
+				'propA' => 'a',
+				'propC' => 'c',
+			),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertSame(
+			array(
+				'propA' => 'a',
+				'prop0' => 0,
+			),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'prop0' => 0,
+				),
+				$schema
+			)
+		);
+		$this->assertSame(
+			array( 'propA' => 'a' ),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					''      => '',
+				),
+				$schema
+			)
+		);
+		$this->assertSame(
+			array( 'propA' => 'a' ),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'prop'  => '',
+				),
+				$schema
+			)
+		);
+		$this->assertSame(
+			array( 'propA' => 'a' ),
+			rest_sanitize_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propD' => 'd',
+				),
+				$schema
+			)
+		);
+	}
+
 	public function test_type_object_nested() {
 		$schema = array(
 			'type'       => 'object',

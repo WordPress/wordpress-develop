@@ -288,6 +288,106 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( array( 'a' => 'invalid' ), $schema ) );
 	}
 
+	/**
+	 * @ticket 51024
+	 */
+	public function test_type_object_pattern_properties_empty() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => array(),
+			'additionalProperties' => false,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+	}
+
+	/**
+	 * @ticket 51024
+	 */
+	public function test_type_object_pattern_properties_with_elements() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => array(
+				'propB' => array( 'type' => 'string' ),
+				'.*C'   => array( 'type' => 'string' ),
+				'[0-9]' => array( 'type' => 'number' ),
+			),
+			'additionalProperties' => false,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'prop0' => 0,
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					''      => '',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'prop'  => '',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propD' => 'd',
+				),
+				$schema
+			)
+		);
+	}
+
 	public function test_type_object_additional_properties_false() {
 		$schema = array(
 			'type'                 => 'object',
