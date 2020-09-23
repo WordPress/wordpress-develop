@@ -506,6 +506,11 @@ function twentysixteen_hex2rgb( $color ) {
 require get_template_directory() . '/inc/template-tags.php';
 
 /**
+ * Block Patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';
+
+/**
  * Customizer additions.
  */
 require get_template_directory() . '/inc/customizer.php';
