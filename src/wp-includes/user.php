@@ -1451,11 +1451,22 @@ function username_exists( $username ) {
  * @return int|false The user's ID on success, and false on failure.
  */
 function email_exists( $email ) {
-	$user = get_user_by( 'email', $email );
-	if ( $user ) {
-		return $user->ID;
-	}
-	return false;
+        $user = get_user_by( 'email', $email );
+        if ( $user ) {
+                $user_id = $user->ID;
+        } else {
+                $user_id = false;
+        }
+
+        /**
+         * Filters whether the given email exists or not.
+         *
+         * @since TBD
+         *
+         * @param int|false $user_id The user's ID on success, and false on failure.
+         * @param string    $email   Email.
+         */
+        return apply_filters( 'email_exists', $user_id, $email );
 }
 
 /**
