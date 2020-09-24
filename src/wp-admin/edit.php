@@ -29,7 +29,7 @@ if ( 'attachment' === $typenow ) {
  */
 global $post_type, $post_type_object;
 
-$post_type        = $typenow;
+$post_type        = (string) $typenow;
 $post_type_object = get_post_type_object( $post_type );
 
 if ( ! $post_type_object ) {
