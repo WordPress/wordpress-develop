@@ -2019,7 +2019,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'attachment' !== $this->post_type && current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( 'attachment' !== $this->post_type && ( ( in_array( $post->post_status, array( 'publish', 'future' ), true ) && current_user_can( $post_type->cap->edit_published_posts ) ) || current_user_can( $post_type->cap->publish_posts ) ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
