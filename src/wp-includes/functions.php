@@ -6284,7 +6284,7 @@ function send_frame_options_header() {
  * @see esc_url()
  *
  * @return string[] Array of allowed protocols. Defaults to an array containing 'http', 'https',
- *                  'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet',
+ *                  'ftp', 'ftps', 'mailto', 'news', 'irc', 'irc6', 'ircs', 'gopher', 'nntp', 'feed', 'telnet',
  *                  'mms', 'rtsp', 'sms', 'svn', 'tel', 'fax', 'xmpp', 'webcal', and 'urn'.
  *                  This covers all common link protocols, except for 'javascript' which should not
  *                  be allowed for untrusted users.
@@ -6293,7 +6293,7 @@ function wp_allowed_protocols() {
 	static $protocols = array();
 
 	if ( empty( $protocols ) ) {
-		$protocols = array( 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'gopher', 'nntp', 'feed', 'telnet', 'mms', 'rtsp', 'sms', 'svn', 'tel', 'fax', 'xmpp', 'webcal', 'urn' );
+		$protocols = array( 'http', 'https', 'ftp', 'ftps', 'mailto', 'news', 'irc', 'irc6', 'ircs', 'gopher', 'nntp', 'feed', 'telnet', 'mms', 'rtsp', 'sms', 'svn', 'tel', 'fax', 'xmpp', 'webcal', 'urn' );
 	}
 
 	if ( ! did_action( 'wp_loaded' ) ) {
