@@ -38,6 +38,9 @@ if ( isset( $_GET['dt'] ) ) {
 
 if ( isset( $_REQUEST['c'] ) ) {
 	$comment_id = absint( $_REQUEST['c'] );
+	/**
+	 * @var \WP_Comment
+	 */
 	$comment    = get_comment( $comment_id );
 
 	// Prevent actions on a comment associated with a trashed post.
@@ -188,7 +191,7 @@ switch ( $action ) {
 		<?php
 		$post_id = $comment->comment_post_ID;
 		if ( current_user_can( 'edit_post', $post_id ) ) {
-			$post_link  = "<a href='" . esc_url( get_edit_post_link( $post_id ) ) . "'>";
+			$post_link  = "<a href='" . esc_url( (string) get_edit_post_link( $post_id ) ) . "'>";
 			$post_link .= esc_html( get_the_title( $post_id ) ) . '</a>';
 		} else {
 			$post_link = esc_html( get_the_title( $post_id ) );
@@ -196,6 +199,9 @@ switch ( $action ) {
 		echo $post_link;
 
 		if ( $comment->comment_parent ) {
+			/**
+			 * @var \WP_Comment
+			 */
 			$parent      = get_comment( $comment->comment_parent );
 			$parent_link = esc_url( get_comment_link( $parent ) );
 			$name        = get_comment_author( $parent );
@@ -246,7 +252,7 @@ switch ( $action ) {
 
 		<?php wp_nonce_field( $nonce_action ); ?>
 	<input type="hidden" name="action" value="<?php echo esc_attr( $formaction ); ?>" />
-	<input type="hidden" name="c" value="<?php echo esc_attr( $comment->comment_ID ); ?>" />
+	<input type="hidden" name="c" value="<?php echo intval( $comment->comment_ID ); ?>" />
 	<input type="hidden" name="noredir" value="1" />
 	</form>
 
@@ -271,6 +277,9 @@ switch ( $action ) {
 
 		$noredir = isset( $_REQUEST['noredir'] );
 
+		/**
+		 * @var \WP_Comment
+		 */
 		$comment = get_comment( $comment_id );
 		if ( ! $comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'edit-comments.php' ) );
@@ -279,7 +288,7 @@ switch ( $action ) {
 			comment_footer_die( __( 'Sorry, you are not allowed to edit comments on this post.' ) );
 		}
 
-		if ( wp_get_referer() && ! $noredir && false === strpos( wp_get_referer(), 'comment.php' ) ) {
+		if ( wp_get_referer() && ! $noredir && false === strpos( strval( wp_get_referer() ), 'comment.php' ) ) {
 			$redir = wp_get_referer();
 		} elseif ( wp_get_original_referer() && ! $noredir ) {
 			$redir = wp_get_original_referer();
