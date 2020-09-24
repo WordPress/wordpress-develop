@@ -329,17 +329,17 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <?php $wp_list_table->search_box( __( 'Search Comments' ), 'comment' ); ?>
 
 <?php if ( $post_id ) : ?>
-<input type="hidden" name="p" value="<?php echo esc_attr( intval( $post_id ) ); ?>" />
+<input type="hidden" name="p" value="<?php echo intval( $post_id ); ?>" />
 <?php endif; ?>
 <input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>" />
-<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>" />
+<input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( (string) current_time( 'mysql', 1 ) ); ?>" />
 
-<input type="hidden" name="_total" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'total_items' ) ); ?>" />
-<input type="hidden" name="_per_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'per_page' ) ); ?>" />
-<input type="hidden" name="_page" value="<?php echo esc_attr( $wp_list_table->get_pagination_arg( 'page' ) ); ?>" />
+<input type="hidden" name="_total" value="<?php echo intval( $wp_list_table->get_pagination_arg( 'total_items' ) ); ?>" />
+<input type="hidden" name="_per_page" value="<?php echo intval( $wp_list_table->get_pagination_arg( 'per_page' ) ); ?>" />
+<input type="hidden" name="_page" value="<?php echo intval( $wp_list_table->get_pagination_arg( 'page' ) ); ?>" />
 
 <?php if ( isset( $_REQUEST['paged'] ) ) { ?>
-	<input type="hidden" name="paged" value="<?php echo esc_attr( absint( $_REQUEST['paged'] ) ); ?>" />
+	<input type="hidden" name="paged" value="<?php echo absint( $_REQUEST['paged'] ); ?>" />
 <?php } ?>
 
 <?php $wp_list_table->display(); ?>
@@ -349,6 +349,6 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <div id="ajax-response"></div>
 
 <?php
-wp_comment_reply( '-1', true, 'detail' );
+wp_comment_reply( -1, true, 'detail' );
 wp_comment_trashnotice();
 require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
