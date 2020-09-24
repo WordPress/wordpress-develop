@@ -53,14 +53,14 @@ if ( isset( $_REQUEST['attachment_id'] ) && intval( $_REQUEST['attachment_id'] )
 				echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
 			}
 			if ( current_user_can( 'edit_post', $id ) ) {
-				echo '<a class="edit-attachment" href="' . esc_url( get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
+				echo '<a class="edit-attachment" href="' . esc_url( (string) get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
 			} else {
 				echo '<span class="edit-attachment">' . _x( 'Success', 'media item' ) . '</span>';
 			}
 
 			// Title shouldn't ever be empty, but use filename just in case.
 			$file  = get_attached_file( $post->ID );
-			$title = $post->post_title ? $post->post_title : wp_basename( $file );
+			$title = $post->post_title ? $post->post_title : wp_basename( strval( $file ) );
 			echo '<div class="filename new"><span class="title">' . esc_html( wp_html_excerpt( $title, 60, '&hellip;' ) ) . '</span></div>';
 			break;
 		case 2:
