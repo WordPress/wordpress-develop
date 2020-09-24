@@ -436,6 +436,22 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51022
+	 */
+	public function test_numeric_multiple_of() {
+		$schema = array(
+			'type'       => array( 'number', 'integer' ),
+			'multipleOf' => 5,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 0, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 5.0, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 10, $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 1, $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 2, $schema ) );
+	}
+
+	/**
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {

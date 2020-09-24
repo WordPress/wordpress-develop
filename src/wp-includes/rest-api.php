@@ -1551,6 +1551,7 @@ function rest_stabilize_value( $value ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
+ * @since 5.7.0 Support the "multipleOf" keyword for numbers and integers.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1680,9 +1681,16 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) && ! is_numeric( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
+	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
+		if ( ! is_numeric( $value ) ) {
+			/* translators: 1: Parameter, 2: Type name. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
+		}
+
+		if ( isset( $args['multipleOf'] ) && ! rest_is_integer( $value / $args['multipleOf'] ) ) {
+			/* translators: 1: Parameter, 2: Multiplier. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be multiple of %2$s.' ), $param, $args['multipleOf'] ) );
+		}
 	}
 
 	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
@@ -2281,6 +2289,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'items',
 		'properties',
 		'additionalProperties',
+		'multipleOf',
 		'minimum',
 		'maximum',
 		'exclusiveMinimum',
