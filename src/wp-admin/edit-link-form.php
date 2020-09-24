@@ -147,9 +147,9 @@ $side_meta_boxes = do_meta_boxes( 'link', 'side', $link );
 <div id="postbox-container-2" class="postbox-container">
 <?php
 
-do_meta_boxes( null, 'normal', $link );
+do_meta_boxes( '', 'normal', $link );
 
-do_meta_boxes( null, 'advanced', $link );
+do_meta_boxes( '', 'advanced', $link );
 
 ?>
 </div>
