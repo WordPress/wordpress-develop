@@ -175,7 +175,7 @@ class Core_Upgrader extends WP_Upgrader {
 		if ( $parsed_args['attempt_rollback'] && $current->packages->rollback && ! $parsed_args['do_rollback'] ) {
 			$try_rollback = false;
 			if ( is_wp_error( $result ) ) {
-				$error_code = $result->get_error_code();
+				$error_code = (string) $result->get_error_code();
 				/*
 				 * Not all errors are equal. These codes are critical: copy_failed__copy_dir,
 				 * mkdir_failed__copy_dir, copy_failed__copy_dir_retry, and disk_full.
@@ -273,8 +273,8 @@ class Core_Upgrader extends WP_Upgrader {
 	public static function should_update_to_version( $offered_ver ) {
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
 
-		$current_branch = implode( '.', array_slice( preg_split( '/[.-]/', $wp_version ), 0, 2 ) ); // x.y
-		$new_branch     = implode( '.', array_slice( preg_split( '/[.-]/', $offered_ver ), 0, 2 ) ); // x.y
+		$current_branch = implode( '.', array_slice( (array) preg_split( '/[.-]/', $wp_version ), 0, 2 ) ); // x.y
+		$new_branch     = implode( '.', array_slice( (array) preg_split( '/[.-]/', $offered_ver ), 0, 2 ) ); // x.y
 
 		$current_is_development_version = (bool) strpos( $wp_version, '-' );
 
