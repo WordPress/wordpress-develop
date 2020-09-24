@@ -1798,7 +1798,7 @@ function copy_dir( $from, $to, $skip_list = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param array|false  $args                         Optional. Connection args, These are passed
+ * @param array|bool   $args                         Optional. Connection args, These are passed
  *                                                   directly to the `WP_Filesystem_*()` classes.
  *                                                   Default false.
  * @param string|false $context                      Optional. Context for get_filesystem_method().
