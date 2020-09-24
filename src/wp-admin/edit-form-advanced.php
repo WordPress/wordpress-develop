@@ -118,7 +118,7 @@ $preview_page_link_html   = '';
 $scheduled_page_link_html = '';
 $view_page_link_html      = '';
 
-$preview_url = get_preview_post_link( $post );
+$preview_url = (string) get_preview_post_link( $post );
 
 $viewable = is_post_type_viewable( $post_type_object );
 
@@ -242,7 +242,7 @@ if ( 'auto-draft' === $post->post_status ) {
 
 $form_action  = 'editpost';
 $nonce_action = 'update-post_' . $post_ID;
-$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post_ID ) . "' />";
+$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . intval( $post_ID ) . "' />";
 
 // Detect if there exists an autosave newer than the post and if that autosave is different than the post.
 if ( $autosave && mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
@@ -621,7 +621,7 @@ if ( post_type_supports( $post_type, 'editor' ) ) {
 	<?php
 	if ( 'auto-draft' !== $post->post_status ) {
 		echo '<span id="last-edit">';
-		$last_user = get_userdata( get_post_meta( $post_ID, '_edit_last', true ) );
+		$last_user = get_userdata( (int) get_post_meta( $post_ID, '_edit_last', true ) );
 		if ( $last_user ) {
 			/* translators: 1: Name of most recent post author, 2: Post edited date, 3: Post edited time. */
 			printf( __( 'Last edited by %1$s on %2$s at %3$s' ), esc_html( $last_user->display_name ), mysql2date( __( 'F j, Y' ), $post->post_modified ), mysql2date( __( 'g:i a' ), $post->post_modified ) );
@@ -685,7 +685,7 @@ do_meta_boxes( $post_type, 'side', $post );
 <div id="postbox-container-2" class="postbox-container">
 <?php
 
-do_meta_boxes( null, 'normal', $post );
+do_meta_boxes( '', 'normal', $post );
 
 if ( 'page' === $post_type ) {
 	/**
@@ -708,7 +708,7 @@ if ( 'page' === $post_type ) {
 }
 
 
-do_meta_boxes( null, 'advanced', $post );
+do_meta_boxes( '', 'advanced', $post );
 
 ?>
 </div>
