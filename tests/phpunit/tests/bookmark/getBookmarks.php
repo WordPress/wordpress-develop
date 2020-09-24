@@ -4,6 +4,22 @@
  * @group bookmark
  */
 class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
+	public function test_should_update_existing_bookmark() {
+		$bookmark_id = self::factory()->bookmark->create();
+		$link_name = 'foo';
+		$result = wp_update_link( array( 'link_id' => $bookmark_id, 'link_name' => $link_name ) );
+		$this->assertEquals( $bookmark_id, $result );
+		$this->assertEquals( $link_name, get_bookmark( $bookmark_id )->link_name );
+	}
+
+	public function test_should_not_update_non_existing_bookmark() {
+		$bookmark_id = -1;
+		$link_name = 'foo';
+		$result = wp_update_link( array( 'link_id' => $bookmark_id, 'link_name' => $link_name ) );
+		$this->assertNotEquals( $bookmark_id, $result );
+		$this->assertWPError( $result );
+	}
+
 	public function test_should_hit_cache() {
 		global $wpdb;
 

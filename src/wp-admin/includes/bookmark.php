@@ -126,6 +126,9 @@ function wp_delete_link( $link_id ) {
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
+	if ( is_wp_error( $cats ) ) {
+		return array();
+	}
 	return array_unique( $cats );
 }
 
@@ -281,9 +284,12 @@ function wp_update_link( $linkdata ) {
 	$link_id = (int) $linkdata['link_id'];
 
 	$link = get_bookmark( $link_id, ARRAY_A );
+	if ( null === $link ) {
+		return new WP_Error( 'invalid_link', __( 'Invalid link ID.' ) );
+	}
 
 	// Escape data pulled from DB.
-	$link = wp_slash( $link );
+	$link = wp_slash( (array) $link );
 
 	// Passed link category list overwrites existing category list if not empty.
 	if ( isset( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] )
