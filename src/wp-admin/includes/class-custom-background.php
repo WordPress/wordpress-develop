@@ -514,6 +514,9 @@ class Custom_Background {
 
 		// Save the data.
 		$id = wp_insert_attachment( $object, $file );
+		if ( is_wp_error( $id ) ) {
+			wp_die( esc_html( $id->get_error_message() ) );
+		}
 
 		// Add the metadata.
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $file ) );
@@ -602,7 +605,7 @@ class Custom_Background {
 
 		$size = 'thumbnail';
 		if ( in_array( $_POST['size'], $sizes, true ) ) {
-			$size = esc_attr( $_POST['size'] );
+			$size = esc_attr( (string) $_POST['size'] );
 		}
 
 		update_post_meta( $attachment_id, '_wp_attachment_is_custom_background', get_option( 'stylesheet' ) );
