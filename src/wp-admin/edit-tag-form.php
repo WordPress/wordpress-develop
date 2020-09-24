@@ -271,7 +271,7 @@ do_action( "{$taxonomy}_edit_form", $tag, $taxonomy );
 
 <div class="edit-tag-actions">
 
-	<?php submit_button( __( 'Update' ), 'primary', null, false ); ?>
+	<?php submit_button( __( 'Update' ), 'primary', '', false ); ?>
 
 	<?php if ( current_user_can( 'delete_term', $tag->term_id ) ) : ?>
 		<span id="delete-link">
