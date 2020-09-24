@@ -90,7 +90,12 @@ if ( ! isset( $tb_id ) || ! intval( $tb_id ) ) {
 
 if ( empty( $title ) && empty( $tb_url ) && empty( $blog_name ) ) {
 	// If it doesn't look like a trackback at all.
-	wp_redirect( get_permalink( $tb_id ) );
+	$permalink = get_permalink( $tb_id );
+	if ( false === $permalink ) {
+		trackback_response( 1, __( 'I really need an ID for this to work.' ) );
+	} else {
+		wp_redirect( $permalink );
+	}
 	exit;
 }
 
