@@ -77,6 +77,9 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	$content_transfer_encoding = '';
 	$post_author               = 1;
 	$author_found              = false;
+	$subject                   = '';
+	$post_date                 = '';
+	$post_date_gmt             = '';
 	foreach ( $message as $line ) {
 		// Body signal.
 		if ( strlen( $line ) < 3 ) {
@@ -115,7 +118,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 				} else {
 					$subject = wp_iso_descrambler( $subject );
 				}
-				$subject = explode( $phone_delim, $subject );
+				$subject = explode( $phone_delim, (string) $subject );
 				$subject = $subject[0];
 			}
 
@@ -144,10 +147,16 @@ for ( $i = 1; $i <= $count; $i++ ) {
 			if ( preg_match( '/Date: /i', $line ) ) { // Of the form '20 Mar 2002 20:32:37 +0100'.
 				$ddate = str_replace( 'Date: ', '', trim( $line ) );
 				// Remove parenthesised timezone string if it exists, as this confuses strtotime().
-				$ddate           = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
+				$ddate = preg_replace( '!\s*\(.+\)\s*$!', '', $ddate );
+				if ( null === $ddate ) {
+					continue;
+				}
 				$ddate_timestamp = strtotime( $ddate );
-				$post_date       = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
-				$post_date_gmt   = gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
+				if ( false === $ddate_timestamp ) {
+					continue;
+				}
+				$post_date     = gmdate( 'Y-m-d H:i:s', $ddate_timestamp + $time_difference );
+				$post_date_gmt = gmdate( 'Y-m-d H:i:s', $ddate_timestamp );
 			}
 		}
 	}
@@ -165,12 +174,12 @@ for ( $i = 1; $i <= $count; $i++ ) {
 
 	if ( 'multipart/alternative' === $content_type ) {
 		$content = explode( '--' . $boundary, $content );
-		$content = $content[2];
+		$content = false !== $content && isset( $content[2] ) ? $content[2] : '';
 
 		// Match case-insensitive content-transfer-encoding.
 		if ( preg_match( '/Content-Transfer-Encoding: quoted-printable/i', $content, $delim ) ) {
 			$content = explode( $delim[0], $content );
-			$content = $content[1];
+			$content = false !== $content && isset( $content[1] ) ? $content[1] : '';
 		}
 		$content = strip_tags( $content, '<img><p><br><i><b><u><em><strong><strike><font><span><div>' );
 	}
@@ -241,7 +250,7 @@ for ( $i = 1; $i <= $count; $i++ ) {
 	 */
 	do_action( 'publish_phone', $post_ID );
 
-	echo "\n<p><strong>" . __( 'Author:' ) . '</strong> ' . esc_html( $post_author ) . '</p>';
+	echo "\n<p><strong>" . __( 'Author:' ) . '</strong> ' . esc_html( (string) $post_author ) . '</p>';
 	echo "\n<p><strong>" . __( 'Posted title:' ) . '</strong> ' . esc_html( $post_title ) . '</p>';
 
 	if ( ! $pop3->delete( $i ) ) {
