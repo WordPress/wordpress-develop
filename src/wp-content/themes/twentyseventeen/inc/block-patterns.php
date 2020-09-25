@@ -27,12 +27,12 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
-            <h1 class="has-black-color has-text-color" style="font-size:50px">The content of your <a href="http://google.com">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.</h1>
+            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'The content of your <a href="#">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.' ) . '</h1>
             <!-- /wp:heading -->
 
             <!-- wp:buttons -->
             <div class="wp-block-buttons"><!-- wp:button {"borderRadius":0,"className":"is-style-fill"} -->
-            <div class="wp-block-button is-style-fill"><a class="wp-block-button__link no-border-radius">Our Services</a></div>
+            <div class="wp-block-button is-style-fill"><a class="wp-block-button__link no-border-radius">' . __( 'Our Services' ) . '</a></div>
             <!-- /wp:button --></div>
             <!-- /wp:buttons -->',
 		)
@@ -55,10 +55,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-black-color has-text-color" style="font-size:45px">Black Stripes</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3"}}} -->
-            <p style="line-height:3"><a href="http://wordpress.org/"><strong>See Case Study →</strong></a></p>
+            <p style="line-height:3"><a href="http://wordpress.org/"><strong>' . __( 'See Case Study' ) . ' →</strong></a></p>
             <!-- /wp:paragraph --></div>
             <!-- /wp:column -->
             <!-- wp:column -->
@@ -72,10 +72,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-black-color has-text-color" style="font-size:45px">White Border</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3.0"}}} -->
-            <p style="line-height:3.0"><a href="http://wordpress.org/"><strong>See Case Study →</strong></a></p>
+            <p style="line-height:3.0"><a href="http://wordpress.org/"><strong>' . __( 'See Case Study' ) . ' →</strong></a></p>
             <!-- /wp:paragraph --></div>
             <!-- /wp:column --></div>
             <!-- /wp:columns -->',
@@ -100,7 +100,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Black Stripes</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
-            <p class="has-text-align-left"><a href="http://wordpress.org">See Case Study →</a></p>
+            <p class="has-text-align-left"><a href="http://wordpress.org">' . __( 'See Case Study' ) . ' →</a></p>
             <!-- /wp:paragraph --></div></div>
             <!-- /wp:group --></div>
             <!-- /wp:column -->
@@ -113,7 +113,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">White Border</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
-            <p class="has-text-align-left"><a href="http://wordpress.org/">See Case Study →</a></p>
+            <p class="has-text-align-left"><a href="http://wordpress.org/">' . __( 'See Case Study' ) . ' →</a></p>
             <!-- /wp:paragraph --></div></div>
             <!-- /wp:group --></div>
             <!-- /wp:column -->
@@ -126,7 +126,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Direct Light</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
-            <p class="has-text-align-left"><a href="http://wordpress.org/">See Case Study →</a></p>
+            <p class="has-text-align-left"><a href="http://wordpress.org/">' . __( 'See Case Study' ) . ' →</a></p>
             <!-- /wp:paragraph --></div></div>
             <!-- /wp:group --></div>
             <!-- /wp:column --></div>
