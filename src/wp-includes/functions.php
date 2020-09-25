@@ -6279,6 +6279,7 @@ function send_frame_options_header() {
  * @since 4.3.0 Added 'webcal' to the protocols array.
  * @since 4.7.0 Added 'urn' to the protocols array.
  * @since 5.3.0 Added 'sms' to the protocols array.
+ * @since 5.6.0 Added 'irc6' and 'ircs' to the protocols array.
  *
  * @see wp_kses()
  * @see esc_url()
