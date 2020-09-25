@@ -1061,4 +1061,44 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
 	}
 
+	/**
+	 * @ticket 51025
+	 */
+	public function test_any_of() {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'prop' => array( 'type' => 'integer' ),
+			),
+			'additionalProperties' => false,
+			'anyOf'                => array(
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'prop' => array(
+							'type'    => 'integer',
+							'minimum' => 1,
+							'maximum' => 2,
+						),
+					),
+				),
+				array(
+					'type'       => 'object',
+					'properties' => array(
+						'prop' => array(
+							'type'    => 'integer',
+							'minimum' => 2,
+							'maximum' => 3,
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'prop' => 1 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 'prop' => 2 ), $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( array( 'prop' => 3 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 'prop' => 0 ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array( 'prop' => 4 ), $schema ) );
+	}
 }

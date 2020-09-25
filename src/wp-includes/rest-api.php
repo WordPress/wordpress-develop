@@ -1540,6 +1540,67 @@ function rest_stabilize_value( $value ) {
 }
 
 /**
+ * Gets the possible error of combining operation.
+ *
+ * @since 5.6.0
+ *
+ * @param array  $value  The value to validate.
+ * @param string $param  The parameter name, used in error messages.
+ * @param array  $errors The errors array, to search for possible error.
+ * @return WP_Error      The combining operation error.
+ */
+function rest_get_combining_operation_error( $value, $param, $errors ) {
+	// If there is only one error, simply return it.
+	if ( 1 === count( $errors ) ) {
+		$reason = $errors[0]['error_object']->get_error_message();
+
+		/* translators: 1: Parameter, 2: Reason. */
+		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Reason: %2$s' ), $param, $reason ) );
+	}
+
+	// Filter out all errors related to type validation.
+	$filtered_errors = array();
+	foreach ( $errors as $error ) {
+		$best_type = rest_get_best_type_for_value( $value, array( $error['schema']['type'] ) );
+		if ( $best_type === $error['schema']['type'] ) {
+			$filtered_errors[] = $error;
+		}
+	}
+
+	// If there is only one error left, simply return it.
+	if ( 1 === count( $filtered_errors ) ) {
+		$reason = $filtered_errors[0]['error_object']->get_error_message();
+
+		/* translators: 1: Parameter, 2: Reason. */
+		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Reason: %2$s' ), $param, $reason ) );
+	}
+
+	// If there are only errors related to object validation, try choosing the most appropriate one.
+	if ( count( $filtered_errors ) > 1 && 'object' === $filtered_errors[0]['schema']['type'] ) {
+		$result = null;
+		$number = 0;
+
+		foreach ( $filtered_errors as $error ) {
+			if ( isset( $error['schema']['properties'] ) ) {
+				$n = count( array_intersect_key( $error['schema']['properties'], $value ) );
+				if ( $n > $number ) {
+					$result = $error['error_object'];
+					$number = $n;
+				}
+			}
+		}
+
+		$possible_reason = $result->get_error_message();
+
+		/* translators: 1: Parameter, 2: Possible reason. */
+		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Possible reason: %2$s' ), $param, $possible_reason ) );
+	}
+
+	/* translators: 1: Parameter. */
+	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema.' ), $param ) );
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1551,6 +1612,7 @@ function rest_stabilize_value( $value ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
+ * @since 5.6.0 Support the "anyOf" keyword.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1811,6 +1873,28 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			}
+		}
+	}
+
+	if ( isset( $args['anyOf'] ) ) {
+		$is_valid_found = false;
+		$errors         = array();
+
+		foreach ( $args['anyOf'] as $schema ) {
+			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
+			if ( ! is_wp_error( $is_valid ) ) {
+				$is_valid_found = true;
+				break;
+			}
+
+			$errors[] = array(
+				'error_object' => $is_valid,
+				'schema'       => $schema,
+			);
+		}
+
+		if ( ! $is_valid_found ) {
+			return rest_get_combining_operation_error( $value, $param, $errors );
 		}
 	}
 
@@ -2291,6 +2375,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'minItems',
 		'maxItems',
 		'uniqueItems',
+		'anyOf',
 	);
 
 	foreach ( $schema_properties as $field_id => $params ) {
