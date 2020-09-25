@@ -10,7 +10,7 @@
  * Register Block Pattern Category.
  */
 if ( function_exists( 'register_block_pattern_category' ) ) {
-	
+
 	register_block_pattern_category(
 		'twentyseventeen',
 		array( 'label' => __( 'Twenty Seventeen', 'twentyseventeen' ) )
@@ -23,27 +23,27 @@ if ( function_exists( 'register_block_pattern_category' ) ) {
 if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyseventeen/large-heading-with-button',
-		array (
-			'title'		=> __( 'Large Heading with Button', 'twentyseventeen' ),
-			'categories'=> array( 'twentyseventeen' ),
-			'content'	=> '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
+		array(
+			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
+			'categories' => array( 'twentyseventeen' ),
+			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
             <h1 class="has-black-color has-text-color" style="font-size:50px">The content of your <a href="http://google.com">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.</h1>
             <!-- /wp:heading -->
-            
+
             <!-- wp:buttons -->
             <div class="wp-block-buttons"><!-- wp:button {"borderRadius":0,"className":"is-style-fill"} -->
             <div class="wp-block-button is-style-fill"><a class="wp-block-button__link no-border-radius">Our Services</a></div>
             <!-- /wp:button --></div>
             <!-- /wp:buttons -->',
 		)
-    );
-    
+	);
+
 	register_block_pattern(
 		'twentyseventeen/images-with-text-and-link',
-		array (
-			'title'		=> __( 'Images with Text & Link', 'twentyseventeen' ),
-			'categories'=> array( 'twentyseventeen' ),
-			'content'	=> '<!-- wp:spacer -->
+		array(
+			'title'      => __( 'Images with Text & Link', 'twentyseventeen' ),
+			'categories' => array( 'twentyseventeen' ),
+			'content'    => '<!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
             <!-- wp:columns -->
@@ -80,14 +80,14 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:column --></div>
             <!-- /wp:columns -->',
 		)
-    );
-            
+	);
+
 	register_block_pattern(
 		'twentyseventeen/images-with-link',
-		array (
-			'title'		=> __( 'Images with Link', 'twentyseventeen' ),
-			'categories'=> array( 'twentyseventeen' ),
-			'content'	=> '<!-- wp:spacer -->
+		array(
+			'title'      => __( 'Images with Link', 'twentyseventeen' ),
+			'categories' => array( 'twentyseventeen' ),
+			'content'    => '<!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
             <!-- wp:columns {"verticalAlignment":"center"} -->
@@ -134,6 +134,6 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->',
-        )
-    );
-} 
+		)
+	);
+}
