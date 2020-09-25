@@ -23,7 +23,10 @@
 		// AMD. Register as an anonymous module.
 		define( [
 			"jquery",
-			"./core"
+			"../escape-selector",
+			"../form-reset-mixin",
+			"../labels",
+			"../widget"
 		], factory );
 	} else {
 

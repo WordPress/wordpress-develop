@@ -23,7 +23,10 @@
 		define( [
 			"jquery",
 			"./button",
-			"./core"
+			"../version",
+			"../keycode",
+			"../safe-active-element",
+			"../widget"
 		], factory );
 	} else {
 

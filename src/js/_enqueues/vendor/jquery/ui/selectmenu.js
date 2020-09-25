@@ -25,7 +25,14 @@
 		define( [
 			"jquery",
 			"./menu",
-			"./core"
+			"../escape-selector",
+			"../form-reset-mixin",
+			"../keycode",
+			"../labels",
+			"../position",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 

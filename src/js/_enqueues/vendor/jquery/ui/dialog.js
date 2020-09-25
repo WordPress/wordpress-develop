@@ -26,8 +26,15 @@
 			"./draggable",
 			"./mouse",
 			"./resizable",
-			"./focusable",
-			"./core"
+			"../focusable",
+			"../keycode",
+			"../position",
+			"../safe-active-element",
+			"../safe-blur",
+			"../tabbable",
+			"../unique-id",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 

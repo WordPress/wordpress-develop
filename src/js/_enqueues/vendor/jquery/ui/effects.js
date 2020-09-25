@@ -1,21 +1,24 @@
-/*! jQuery UI - v1.12.1 - 2016-09-14
+/*! jQuery UI - v1.12.1 - 2020-09-25
 * http://jqueryui.com
-* Includes: widget.js, position.js, data.js, disable-selection.js, effect.js, effects/effect-blind.js, effects/effect-bounce.js, effects/effect-clip.js, effects/effect-drop.js, effects/effect-explode.js, effects/effect-fade.js, effects/effect-fold.js, effects/effect-highlight.js, effects/effect-puff.js, effects/effect-pulsate.js, effects/effect-scale.js, effects/effect-shake.js, effects/effect-size.js, effects/effect-slide.js, effects/effect-transfer.js, focusable.js, form-reset-mixin.js, jquery-1-7.js, keycode.js, labels.js, scroll-parent.js, tabbable.js, unique-id.js, widgets/accordion.js, widgets/autocomplete.js, widgets/button.js, widgets/checkboxradio.js, widgets/controlgroup.js, widgets/datepicker.js, widgets/dialog.js, widgets/draggable.js, widgets/droppable.js, widgets/menu.js, widgets/mouse.js, widgets/progressbar.js, widgets/resizable.js, widgets/selectable.js, widgets/selectmenu.js, widgets/slider.js, widgets/sortable.js, widgets/spinner.js, widgets/tabs.js, widgets/tooltip.js
-* Copyright jQuery Foundation and other contributors; Licensed MIT */
-
-(function( factory ) {
+* Includes: core.js, widget.js, mouse.js, draggable.js, droppable.js, resizable.js, selectable.js, sortable.js, effect.js, data.js, disable-selection.js, escape-selector.js, focusable.js, form-reset-mixin.js, form.js, ie.js, jquery-1-7.js, keycode.js, labels.js, plugin.js, position.js, safe-active-element.js, safe-blur.js, scroll-parent.js, tabbable.js, unique-id.js, version.js
+* Copyright jQuery Foundation and other contributors; Licensed  */
+( function( factory ) {
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define([ "jquery" ], factory );
+		define( 'ui/version',[ "jquery" ], factory );
 	} else {
 
 		// Browser globals
 		factory( jQuery );
 	}
-}(function( $ ) {
+} ( function( $ ) {
 
 $.ui = $.ui || {};
+
+return $.ui.version = "1.12.1";
+
+} ) );
 
 /*!
  * jQuery UI Effects 1.12.1
@@ -34,7 +37,17 @@ $.ui = $.ui || {};
 //>>docs: http://api.jqueryui.com/category/effects-core/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effect',[ "jquery", "./version" ], factory );
+	} else {
+
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
 
 var dataSpace = "ui-effects-",
 	dataSpaceStyle = "ui-effects-style",
@@ -1639,8 +1652,9 @@ $.each( baseEasings, function( name, easeIn ) {
 
 } )();
 
-var effect = $.effects;
+return $.effects;
 
+} ) );
 
 /*!
  * jQuery UI Effects Blind 1.12.1
@@ -1657,9 +1671,23 @@ var effect = $.effects;
 //>>docs: http://api.jqueryui.com/blind-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-blind.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectBlind = $.effects.define( "blind", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "blind", "hide", function( options, done ) {
 	var map = {
 			up: [ "bottom", "top" ],
 			vertical: [ "bottom", "top" ],
@@ -1697,6 +1725,7 @@ var effectsEffectBlind = $.effects.define( "blind", "hide", function( options, d
 	} );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Bounce 1.12.1
@@ -1713,9 +1742,23 @@ var effectsEffectBlind = $.effects.define( "blind", "hide", function( options, d
 //>>docs: http://api.jqueryui.com/bounce-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-bounce.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "bounce", function( options, done ) {
 	var upAnim, downAnim, refValue,
 		element = $( this ),
 
@@ -1793,6 +1836,7 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 	$.effects.unshift( element, queuelen, anims + 1 );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Clip 1.12.1
@@ -1809,9 +1853,23 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 //>>docs: http://api.jqueryui.com/clip-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-clip.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectClip = $.effects.define( "clip", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "clip", "hide", function( options, done ) {
 	var start,
 		animate = {},
 		element = $( this ),
@@ -1844,6 +1902,7 @@ var effectsEffectClip = $.effects.define( "clip", "hide", function( options, don
 
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Drop 1.12.1
@@ -1860,9 +1919,23 @@ var effectsEffectClip = $.effects.define( "clip", "hide", function( options, don
 //>>docs: http://api.jqueryui.com/drop-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-drop.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "drop", "hide", function( options, done ) {
 
 	var distance,
 		element = $( this ),
@@ -1899,6 +1972,7 @@ var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, don
 	} );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Explode 1.12.1
@@ -1917,9 +1991,23 @@ var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, don
 //>>docs: http://api.jqueryui.com/explode-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-explode.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectExplode = $.effects.define( "explode", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "explode", "hide", function( options, done ) {
 
 	var i, j, left, top, mx, my,
 		rows = options.pieces ? Math.round( Math.sqrt( options.pieces ) ) : 3,
@@ -1996,6 +2084,7 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 	}
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Fade 1.12.1
@@ -2012,9 +2101,23 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 //>>docs: http://api.jqueryui.com/fade-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-fade.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectFade = $.effects.define( "fade", "toggle", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "fade", "toggle", function( options, done ) {
 	var show = options.mode === "show";
 
 	$( this )
@@ -2029,6 +2132,7 @@ var effectsEffectFade = $.effects.define( "fade", "toggle", function( options, d
 		} );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Fold 1.12.1
@@ -2045,9 +2149,23 @@ var effectsEffectFade = $.effects.define( "fade", "toggle", function( options, d
 //>>docs: http://api.jqueryui.com/fold-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-fold.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectFold = $.effects.define( "fold", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "fold", "hide", function( options, done ) {
 
 	// Create element
 	var element = $( this ),
@@ -2104,6 +2222,7 @@ var effectsEffectFold = $.effects.define( "fold", "hide", function( options, don
 	$.effects.unshift( element, queuelen, 4 );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Highlight 1.12.1
@@ -2120,9 +2239,23 @@ var effectsEffectFold = $.effects.define( "fold", "hide", function( options, don
 //>>docs: http://api.jqueryui.com/highlight-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-highlight.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectHighlight = $.effects.define( "highlight", "show", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "highlight", "show", function( options, done ) {
 	var element = $( this ),
 		animation = {
 			backgroundColor: element.css( "backgroundColor" )
@@ -2147,6 +2280,7 @@ var effectsEffectHighlight = $.effects.define( "highlight", "show", function( op
 		} );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Size 1.12.1
@@ -2163,9 +2297,23 @@ var effectsEffectHighlight = $.effects.define( "highlight", "show", function( op
 //>>docs: http://api.jqueryui.com/size-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-size.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectSize = $.effects.define( "size", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "size", function( options, done ) {
 
 	// Create element
 	var baseline, factor, temp,
@@ -2324,6 +2472,7 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Scale 1.12.1
@@ -2340,9 +2489,24 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 //>>docs: http://api.jqueryui.com/scale-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-scale.js',[
+			"jquery",
+			"../version",
+			"../effect",
+			"./effect-size"
+		], factory );
+	} else {
 
-var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "scale", function( options, done ) {
 
 	// Create element
 	var el = $( this ),
@@ -2365,6 +2529,7 @@ var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
 	$.effects.effect.size.call( this, newOptions, done );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Puff 1.12.1
@@ -2381,9 +2546,24 @@ var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
 //>>docs: http://api.jqueryui.com/puff-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-puff.js',[
+			"jquery",
+			"../version",
+			"../effect",
+			"./effect-scale"
+		], factory );
+	} else {
 
-var effectsEffectPuff = $.effects.define( "puff", "hide", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "puff", "hide", function( options, done ) {
 	var newOptions = $.extend( true, {}, options, {
 		fade: true,
 		percent: parseInt( options.percent, 10 ) || 150
@@ -2392,6 +2572,7 @@ var effectsEffectPuff = $.effects.define( "puff", "hide", function( options, don
 	$.effects.effect.scale.call( this, newOptions, done );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Pulsate 1.12.1
@@ -2408,9 +2589,23 @@ var effectsEffectPuff = $.effects.define( "puff", "hide", function( options, don
 //>>docs: http://api.jqueryui.com/pulsate-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-pulsate.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "pulsate", "show", function( options, done ) {
 	var element = $( this ),
 		mode = options.mode,
 		show = mode === "show",
@@ -2442,6 +2637,7 @@ var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( option
 	$.effects.unshift( element, queuelen, anims + 1 );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Shake 1.12.1
@@ -2458,9 +2654,23 @@ var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( option
 //>>docs: http://api.jqueryui.com/shake-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-shake.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "shake", function( options, done ) {
 
 	var i = 1,
 		element = $( this ),
@@ -2502,6 +2712,7 @@ var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
 	$.effects.unshift( element, queuelen, anims + 1 );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Slide 1.12.1
@@ -2518,9 +2729,23 @@ var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
 //>>docs: http://api.jqueryui.com/slide-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-slide.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
 
-var effectsEffectSlide = $.effects.define( "slide", "show", function( options, done ) {
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
+
+return $.effects.define( "slide", "show", function( options, done ) {
 	var startClip, startRef,
 		element = $( this ),
 		map = {
@@ -2564,6 +2789,7 @@ var effectsEffectSlide = $.effects.define( "slide", "show", function( options, d
 	} );
 } );
 
+} ) );
 
 /*!
  * jQuery UI Effects Transfer 1.12.1
@@ -2580,7 +2806,21 @@ var effectsEffectSlide = $.effects.define( "slide", "show", function( options, d
 //>>docs: http://api.jqueryui.com/transfer-effect/
 //>>demos: http://jqueryui.com/effect/
 
+( function( factory ) {
+	if ( typeof define === "function" && define.amd ) {
 
+		// AMD. Register as an anonymous module.
+		define( 'ui/effects/effect-transfer.js',[
+			"jquery",
+			"../version",
+			"../effect"
+		], factory );
+	} else {
+
+		// Browser globals
+		factory( jQuery );
+	}
+}( function( $ ) {
 
 var effect;
 if ( $.uiBackCompat !== false ) {
@@ -2588,6 +2828,7 @@ if ( $.uiBackCompat !== false ) {
 		$( this ).transfer( options, done );
 	} );
 }
-var effectsEffectTransfer = effect;
+return effect;
 
-}));
+} ) );
+

@@ -23,7 +23,10 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"./core"
+			"../disable-selection",
+			"../plugin",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 

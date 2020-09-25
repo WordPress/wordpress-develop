@@ -23,7 +23,9 @@
 		define( [
 			"jquery",
 			"./mouse",
-			"./core"
+			"../keycode",
+			"../version",
+			"../widget"
 		], factory );
 	} else {
 
