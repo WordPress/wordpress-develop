@@ -48,9 +48,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->
             <!-- wp:columns -->
             <div class="wp-block-columns"><!-- wp:column -->
-            <div class="wp-block-column"><!-- wp:image -->
-            <figure class="wp-block-image size-large"><img alt=""/></figure>
-            <!-- /wp:image -->
+            <div class="wp-block-column">
+			<!-- wp:image {"className":"size-large"} -->
+			<figure class="wp-block-image size-large"><img src="' .get_template_directory_uri(). '/assets/images/stripes.jpg" alt="Black Stripes"/></figure>
+			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">Black Stripes</h2>
             <!-- /wp:heading -->
@@ -65,9 +66,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column"><!-- wp:spacer {"height":254} -->
             <div style="height:254px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
-            <!-- wp:image -->
-            <figure class="wp-block-image size-large"><img alt=""/></figure>
-            <!-- /wp:image -->
+			<!-- wp:image {"className":"size-large"} -->
+			<figure class="wp-block-image size-large"><img src="' .get_template_directory_uri(). '/assets/images/white-border.jpg" alt="White border"/></figure>
+			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">White Border</h2>
             <!-- /wp:heading -->
@@ -93,9 +94,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- wp:columns {"verticalAlignment":"center"} -->
             <div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} -->
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
-            <div class="wp-block-group"><div class="wp-block-group__inner-container"><!-- wp:image {"align":"center","id":119,"sizeSlug":"large","className":"is-style-default"} -->
-            <div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src=""/></figure></div>
-            <!-- /wp:image -->
+            <div class="wp-block-group"><div class="wp-block-group__inner-container">
+			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/stripes.jpg" alt="Black Stripes"/></figure></div>
+			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Black Stripes</h2>
             <!-- /wp:heading -->
@@ -106,9 +108,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:column -->
             <!-- wp:column {"verticalAlignment":"center"} -->
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
-            <div class="wp-block-group"><div class="wp-block-group__inner-container"><!-- wp:image {"align":"center","id":122,"sizeSlug":"large"} -->
-            <div class="wp-block-image"><figure class="aligncenter size-large"><img src=""/></figure></div>
-            <!-- /wp:image -->
+            <div class="wp-block-group"><div class="wp-block-group__inner-container">
+			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/white-border.jpg" alt="White border"/></figure></div>
+			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">White Border</h2>
             <!-- /wp:heading -->
@@ -119,9 +122,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:column -->
             <!-- wp:column {"verticalAlignment":"center"} -->
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
-            <div class="wp-block-group"><div class="wp-block-group__inner-container"><!-- wp:image {"align":"center","id":123,"sizeSlug":"large"} -->
-            <div class="wp-block-image"><figure class="aligncenter size-large"><img src=""/></figure></div>
-            <!-- /wp:image -->
+            <div class="wp-block-group"><div class="wp-block-group__inner-container">
+			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/direct-light.jpg" alt="Direct Light"/></figure></div>
+			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Direct Light</h2>
             <!-- /wp:heading -->
