@@ -291,7 +291,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['somearray'] );
 		}
 
-		foreach ( array( 'properties', 'additionalProperties', 'anyOf' ) as $property ) {
+		foreach ( array( 'properties', 'additionalProperties', 'anyOf', 'oneOf' ) as $property ) {
 			$this->assertArrayHasKey( $property, $args['someobject'] );
 		}
 

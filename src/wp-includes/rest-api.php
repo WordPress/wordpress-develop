@@ -1612,7 +1612,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
- * @since 5.6.0 Support the "anyOf" keyword.
+ * @since 5.6.0 Support the "anyOf" and "oneOf" keywords.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1891,6 +1891,32 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				'error_object' => $is_valid,
 				'schema'       => $schema,
 			);
+		}
+
+		if ( ! $is_valid_found ) {
+			return rest_get_combining_operation_error( $value, $param, $errors );
+		}
+	}
+
+	if ( isset( $args['oneOf'] ) ) {
+		$is_valid_found = false;
+		$errors         = array();
+
+		foreach ( $args['oneOf'] as $schema ) {
+			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
+			if ( ! is_wp_error( $is_valid ) ) {
+				if ( $is_valid_found ) {
+					/* translators: 1: Parameter. */
+					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s matches more than one schema.' ), $param ) );
+				}
+
+				$is_valid_found = true;
+			} else {
+				$errors[] = array(
+					'error_object' => $is_valid,
+					'schema'       => $schema,
+				);
+			}
 		}
 
 		if ( ! $is_valid_found ) {
@@ -2376,6 +2402,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'maxItems',
 		'uniqueItems',
 		'anyOf',
+		'oneOf',
 	);
 
 	foreach ( $schema_properties as $field_id => $params ) {
