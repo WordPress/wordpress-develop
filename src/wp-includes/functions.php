@@ -2933,9 +2933,25 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 				array(
 					'text/plain',
 					'text/csv',
+					'application/csv',
 					'text/richtext',
 					'text/tsv',
 					'text/vtt',
+				),
+				true
+			)
+			) {
+				$type = false;
+				$ext  = false;
+			}
+		} elseif ( 'application/csv' === $real_mime ) {
+			// Special casing for CSV files.
+			if ( ! in_array(
+				$type,
+				array(
+					'text/csv',
+					'text/plain',
+					'application/csv',
 				),
 				true
 			)
@@ -7241,6 +7257,8 @@ function wp_privacy_exports_dir() {
 	 * Filters the directory used to store personal data export files.
 	 *
 	 * @since 4.9.6
+	 * @since 5.5.0 Exports now use relative paths, so changes to the directory
+	 *              via this filter should be reflected on the server.
 	 *
 	 * @param string $exports_dir Exports directory.
 	 */
@@ -7264,6 +7282,8 @@ function wp_privacy_exports_url() {
 	 * Filters the URL of the directory used to store personal data export files.
 	 *
 	 * @since 4.9.6
+	 * @since 5.5.0 Exports now use relative paths, so changes to the directory URL
+	 *              via this filter should be reflected on the server.
 	 *
 	 * @param string $exports_url Exports directory URL.
 	 */

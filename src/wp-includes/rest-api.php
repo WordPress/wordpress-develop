@@ -1551,7 +1551,8 @@ function rest_stabilize_value( $value ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
- * @since 5.7.0 Support the "multipleOf" keyword for numbers and integers.
+ * @since 5.6.0 Support the "minProperties" and "maxProperties" keywords for objects.
+ *              Support the "multipleOf" keyword for numbers and integers.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1662,6 +1663,16 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 					}
 				}
 			}
+		}
+
+		if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
+			/* translators: 1: Parameter, 2: Number. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s properties.' ), $param, number_format_i18n( $args['minProperties'] ) ) );
+		}
+
+		if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
+			/* translators: 1: Parameter, 2: Number. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s properties.' ), $param, number_format_i18n( $args['maxProperties'] ) ) );
 		}
 	}
 
@@ -2289,11 +2300,13 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'items',
 		'properties',
 		'additionalProperties',
-		'multipleOf',
+		'minProperties',
+		'maxProperties',
 		'minimum',
 		'maximum',
 		'exclusiveMinimum',
 		'exclusiveMaximum',
+		'multipleOf',
 		'minLength',
 		'maxLength',
 		'pattern',
