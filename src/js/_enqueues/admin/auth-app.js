@@ -49,7 +49,7 @@
 						'<kbd></kbd>'
 					) + '</p>' );
 
-				$display = $( '.js-password-display' );
+				$display = $( '.password-display' );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
 				$display.find( 'strong' ).text( name );
