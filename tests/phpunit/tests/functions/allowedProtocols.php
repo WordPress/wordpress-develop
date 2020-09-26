@@ -46,6 +46,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 			array( 'mailto', 'mailto://someone@example.com' ),                     // RFC6068
 			array( 'news', 'news://news.server.example/example.group.this' ),      // RFC5538
 			array( 'irc', 'irc://example.com/wordpress' ),
+			array( 'irc6', 'irc6://example.com/wordpress' ),
+			array( 'ircs', 'ircs://example.com/wordpress' ),
 			array( 'gopher', 'gopher://example.com/7a_gopher_selector%09foobar' ), // RFC4266
 			array( 'nntp', 'nntp://news.server.example/example.group.this' ),      // RFC5538
 			array( 'feed', 'feed://example.com/rss.xml' ),
