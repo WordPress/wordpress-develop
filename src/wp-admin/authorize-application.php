@@ -60,6 +60,16 @@ $success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : 
 $reject_url  = ! empty( $_REQUEST['reject_url'] ) ? $_REQUEST['reject_url'] : $success_url;
 $user        = wp_get_current_user();
 
+$request  = compact( 'app_name', 'success_url', 'reject_url' );
+$is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
+
+if ( is_wp_error( $is_valid ) ) {
+	wp_die(
+		__( 'The Authorize Application request is not allowed.' ) . ' ' . implode( ' ', $is_valid->get_error_messages() ),
+		__( 'Cannot Authorize Application' )
+	);
+}
+
 if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
 	if ( wp_is_application_passwords_available() ) {
 		$message = __( 'Application passwords are not enabled for your account. Please contact the site administrator for assistance.' );
