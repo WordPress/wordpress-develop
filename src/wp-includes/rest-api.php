@@ -1540,6 +1540,21 @@ function rest_stabilize_value( $value ) {
 }
 
 /**
+ * Checks if the pattern matches a value.
+ *
+ * @since 5.7.0
+ *
+ * @param string $pattern The pattern to search for.
+ * @param string $value   The value to check.
+ * @return bool           True if the pattern matches given value, false otherwise.
+ */
+function rest_match_pattern_against_value( $pattern, $value ) {
+	$escaped_pattern = str_replace( '#', '\\#', $pattern );
+
+	return 1 === preg_match( '#' . $escaped_pattern . '#u', $value );
+}
+
+/**
  * Gets the schema of matching pattern property.
  *
  * @since 5.7.0
@@ -1551,7 +1566,7 @@ function rest_stabilize_value( $value ) {
 function rest_get_matching_pattern_property_schema( $property, $args ) {
 	if ( isset( $args['patternProperties'] ) ) {
 		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
-			if ( preg_match( '/' . $pattern . '/', $property ) ) {
+			if ( rest_match_pattern_against_value( $pattern, $property ) ) {
 				return $child_schema;
 			}
 		}
@@ -1667,19 +1682,24 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		foreach ( $value as $property => $v ) {
-			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
-
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$is_valid = rest_validate_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
-			} elseif ( null !== $pattern_property_schema ) {
+				continue;
+			}
+
+			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
+			if ( null !== $pattern_property_schema ) {
 				$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
-			} elseif ( isset( $args['additionalProperties'] ) ) {
+				continue;
+			}
+
+			if ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					/* translators: %s: Property of an object. */
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
@@ -1774,8 +1794,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( isset( $args['pattern'] ) ) {
-			$pattern = str_replace( '#', '\\#', $args['pattern'] );
-			if ( ! preg_match( '#' . $pattern . '#u', $value ) ) {
+			if ( ! rest_match_pattern_against_value( $args['pattern'], $value ) ) {
 				/* translators: 1: Parameter, 2: Pattern. */
 				return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
 			}
@@ -1925,13 +1944,18 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		$value = rest_sanitize_object( $value );
 
 		foreach ( $value as $property => $v ) {
-			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
-
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
-			} elseif ( null !== $pattern_property_schema ) {
+				continue;
+			}
+
+			$pattern_property_schema = rest_get_matching_pattern_property_schema( $property, $args );
+			if ( null !== $pattern_property_schema ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
-			} elseif ( isset( $args['additionalProperties'] ) ) {
+				continue;
+			}
+
+			if ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					unset( $value[ $property ] );
 				} elseif ( is_array( $args['additionalProperties'] ) ) {
@@ -2126,14 +2150,15 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		if ( $is_array_type ) {
 			$check = isset( $schema['items'] ) ? $schema['items'] : array();
 		} elseif ( $is_object_type ) {
-			$pattern_property_schema = rest_get_matching_pattern_property_schema( $key, $schema );
-
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
-			} elseif ( null !== $pattern_property_schema ) {
-				$check = $pattern_property_schema;
-			} elseif ( $has_additional_properties ) {
-				$check = $schema['additionalProperties'];
+			} else {
+				$pattern_property_schema = rest_get_matching_pattern_property_schema( $key, $schema );
+				if ( null !== $pattern_property_schema ) {
+					$check = $pattern_property_schema;
+				} elseif ( $has_additional_properties ) {
+					$check = $schema['additionalProperties'];
+				}
 			}
 		}
 
