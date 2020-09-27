@@ -536,6 +536,42 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51022
+	 *
+	 * @dataProvider data_multiply_of
+	 *
+	 * @param int|float $value
+	 * @param int|float $divisor
+	 * @param bool      $expected
+	 */
+	public function test_numeric_multiple_of( $value, $divisor, $expected ) {
+		$schema = array(
+			'type'       => 'number',
+			'multipleOf' => $divisor,
+		);
+
+		$result = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $result );
+		} else {
+			$this->assertWPError( $result );
+		}
+	}
+
+	public function data_multiply_of() {
+		return array(
+			array( 0, 2, true ),
+			array( 4, 2, true ),
+			array( 3, 1.5, true ),
+			array( 2.4, 1.2, true ),
+			array( 1, 2, false ),
+			array( 2, 1.5, false ),
+			array( 2.1, 1.5, false ),
+		);
+	}
+
+	/**
 	 * @ticket 50300
 	 */
 	public function test_multi_type_with_no_known_types() {
@@ -934,6 +970,61 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				true,
 			),
 		);
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_min_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'minProperties' => 1,
+		);
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_max_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'maxProperties' => 2,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
 	}
 
 	/**
