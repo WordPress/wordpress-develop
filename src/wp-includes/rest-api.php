@@ -1698,7 +1698,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
 		}
 
-		if ( isset( $args['multipleOf'] ) && ! rest_is_integer( $value / $args['multipleOf'] ) ) {
+		if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
 			/* translators: 1: Parameter, 2: Multiplier. */
 			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be multiple of %2$s.' ), $param, $args['multipleOf'] ) );
 		}

@@ -437,18 +437,41 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51022
+	 *
+	 * @dataProvider data_multiply_of
+	 *
+	 * @param int|float $value
+	 * @param int|float $divisor
+	 * @param boolean $expected
 	 */
-	public function test_numeric_multiple_of() {
+	public function test_numeric_multiple_of( $value, $divisor, $expected ) {
 		$schema = array(
-			'type'       => array( 'number', 'integer' ),
-			'multipleOf' => 5,
+			'type'       => 'number',
+			'multipleOf' => $divisor,
 		);
 
-		$this->assertTrue( rest_validate_value_from_schema( 0, $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( 5.0, $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( 10, $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 1, $schema ) );
-		$this->assertWPError( rest_validate_value_from_schema( 2, $schema ) );
+		$result = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $result );
+		} else {
+			$this->assertWPError( $result );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_multiply_of() {
+		return array(
+			array( 0, 2, true ),
+			array( 4, 2, true ),
+			array( 3, 1.5, true ),
+			array( 2.4, 1.2, true ),
+			array( 1, 2, false ),
+			array( 2, 1.5, false ),
+			array( 2.1, 1.5, false ),
+		);
 	}
 
 	/**
