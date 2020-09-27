@@ -281,7 +281,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['somestring'] );
 		}
 
-		foreach ( array( 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum' ) as $property ) {
+		foreach ( array( 'multipleOf', 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum' ) as $property ) {
 			$this->assertArrayHasKey( $property, $args['someinteger'] );
 		}
 
