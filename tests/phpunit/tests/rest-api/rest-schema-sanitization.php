@@ -239,117 +239,97 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51024
+	 *
+	 * @dataProvider data_type_object_pattern_properties
+	 *
+	 * @param array $pattern_properties
+	 * @param array $value
+	 * @param array $expected
 	 */
-	public function test_type_object_pattern_properties_empty() {
+	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
 		$schema = array(
 			'type'                 => 'object',
 			'properties'           => array(
 				'propA' => array( 'type' => 'string' ),
 			),
-			'patternProperties'    => array(),
+			'patternProperties'    => $pattern_properties,
 			'additionalProperties' => false,
 		);
 
-		$this->assertSame( array(), rest_sanitize_value_from_schema( array(), $schema ) );
-		$this->assertSame( array( 'propA' => 'a' ), rest_sanitize_value_from_schema( array( 'propA' => 'a' ), $schema ) );
-		$this->assertSame(
-			array( 'propA' => 'a' ),
-			rest_sanitize_value_from_schema(
-				array(
-					'propA' => 'a',
-					'propB' => 'b',
-				),
-				$schema
-			)
-		);
+		$this->assertSame( $expected, rest_sanitize_value_from_schema( $value, $schema ) );
 	}
 
 	/**
-	 * @ticket 51024
+	 * @return array
 	 */
-	public function test_type_object_pattern_properties_with_elements() {
-		$schema = array(
-			'type'                 => 'object',
-			'properties'           => array(
-				'propA' => array( 'type' => 'string' ),
-			),
-			'patternProperties'    => array(
-				'propB' => array( 'type' => 'string' ),
-				'.*C'   => array( 'type' => 'string' ),
-				'[0-9]' => array( 'type' => 'integer' ),
-			),
-			'additionalProperties' => false,
-		);
-
-		$this->assertSame( array( 'propA' => 'a' ), rest_sanitize_value_from_schema( array( 'propA' => 'a' ), $schema ) );
-		$this->assertSame(
+	public function data_type_object_pattern_properties() {
+		return array(
+			array( array(), array(), array() ),
+			array( array(), array( 'propA' => 'a' ), array( 'propA' => 'a' ) ),
 			array(
-				'propA' => 'a',
-				'propB' => 'b',
-			),
-			rest_sanitize_value_from_schema(
+				array(),
 				array(
 					'propA' => 'a',
 					'propB' => 'b',
 				),
-				$schema
-			)
-		);
-		$this->assertSame(
-			array(
-				'propA' => 'a',
-				'propC' => 'c',
+				array( 'propA' => 'a' ),
 			),
-			rest_sanitize_value_from_schema(
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array( 'propA' => 'a' ),
+				array( 'propA' => 'a' ),
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+			),
+			array(
+				array(
+					'.*C' => array( 'type' => 'string' ),
+				),
 				array(
 					'propA' => 'a',
 					'propC' => 'c',
 				),
-				$schema
-			)
-		);
-		$this->assertSame(
-			array(
-				'propA' => 'a',
-				'prop0' => 0,
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
 			),
-			rest_sanitize_value_from_schema(
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
 				array(
 					'propA' => 'a',
 					'prop0' => 0,
 				),
-				$schema
-			)
-		);
-		$this->assertSame(
-			array( 'propA' => 'a' ),
-			rest_sanitize_value_from_schema(
 				array(
 					'propA' => 'a',
+					'prop0' => 0,
+				),
+			),
+			array(
+				array(
+					'.+' => array( 'type' => 'string' ),
+				),
+				array(
 					''      => '',
-				),
-				$schema
-			)
-		);
-		$this->assertSame(
-			array( 'propA' => 'a' ),
-			rest_sanitize_value_from_schema(
-				array(
 					'propA' => 'a',
-					'prop'  => '',
 				),
-				$schema
-			)
-		);
-		$this->assertSame(
-			array( 'propA' => 'a' ),
-			rest_sanitize_value_from_schema(
-				array(
-					'propA' => 'a',
-					'propD' => 'd',
-				),
-				$schema
-			)
+				array( 'propA' => 'a' ),
+			),
 		);
 	}
 

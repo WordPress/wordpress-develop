@@ -290,101 +290,92 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51024
+	 *
+	 * @dataProvider data_type_object_pattern_properties
+	 *
+	 * @param array $pattern_properties
+	 * @param array $value
+	 * @param bool $expected
 	 */
-	public function test_type_object_pattern_properties_empty() {
+	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
 		$schema = array(
 			'type'                 => 'object',
 			'properties'           => array(
 				'propA' => array( 'type' => 'string' ),
 			),
-			'patternProperties'    => array(),
+			'patternProperties'    => $pattern_properties,
 			'additionalProperties' => false,
 		);
 
-		$this->assertTrue( rest_validate_value_from_schema( array(), $schema ) );
-		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
-		$this->assertWPError(
-			rest_validate_value_from_schema(
-				array(
-					'propA' => 'a',
-					'propB' => 'b',
-				),
-				$schema
-			)
-		);
+		if ( $expected ) {
+			$this->assertTrue( rest_validate_value_from_schema( $value, $schema ) );
+		} else {
+			$this->assertWPError( rest_validate_value_from_schema( $value, $schema ) );
+		}
 	}
 
 	/**
-	 * @ticket 51024
+	 * @return array
 	 */
-	public function test_type_object_pattern_properties_with_elements() {
-		$schema = array(
-			'type'                 => 'object',
-			'properties'           => array(
-				'propA' => array( 'type' => 'string' ),
-			),
-			'patternProperties'    => array(
-				'propB' => array( 'type' => 'string' ),
-				'.*C'   => array( 'type' => 'string' ),
-				'[0-9]' => array( 'type' => 'number' ),
-			),
-			'additionalProperties' => false,
-		);
-
-		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
-		$this->assertTrue(
-			rest_validate_value_from_schema(
+	public function data_type_object_pattern_properties() {
+		return array(
+			array( array(), array(), true ),
+			array( array(), array( 'propA' => 'a' ), true ),
+			array(
+				array(),
 				array(
 					'propA' => 'a',
 					'propB' => 'b',
 				),
-				$schema
-			)
-		);
-		$this->assertTrue(
-			rest_validate_value_from_schema(
+				false,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array( 'propA' => 'a' ),
+				true,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				true,
+			),
+			array(
+				array(
+					'.*C' => array( 'type' => 'string' ),
+				),
 				array(
 					'propA' => 'a',
 					'propC' => 'c',
 				),
-				$schema
-			)
-		);
-		$this->assertTrue(
-			rest_validate_value_from_schema(
+				true,
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
 				array(
 					'propA' => 'a',
 					'prop0' => 0,
 				),
-				$schema
-			)
-		);
-		$this->assertWPError(
-			rest_validate_value_from_schema(
+				true,
+			),
+			array(
 				array(
-					'propA' => 'a',
+					'.+' => array( 'type' => 'string' ),
+				),
+				array(
 					''      => '',
-				),
-				$schema
-			)
-		);
-		$this->assertWPError(
-			rest_validate_value_from_schema(
-				array(
 					'propA' => 'a',
-					'prop'  => '',
 				),
-				$schema
-			)
-		);
-		$this->assertWPError(
-			rest_validate_value_from_schema(
-				array(
-					'propA' => 'a',
-					'propD' => 'd',
-				),
-				$schema
-			)
+				false,
+			),
 		);
 	}
 

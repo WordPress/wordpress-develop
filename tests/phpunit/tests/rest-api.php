@@ -1299,6 +1299,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 							'type'    => 'string',
 							'context' => array( 'view', 'edit' ),
 						),
+						'c.*'   => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
 					),
 					'additionalProperties' => array(
 						'type'    => 'string',
@@ -1306,9 +1310,10 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 				array(
-					'a' => '1',
-					'b' => '2',
-					'0' => '3',
+					'a'  => '1',
+					'b'  => '2',
+					'0'  => '3',
+					'ca' => '4',
 				),
 				array(
 					'a' => '1',
