@@ -1065,7 +1065,7 @@ function populate_network( $network_id = 1, $domain = '', $email = '', $site_nam
 
 		$vhost_ok = false;
 		$errstr   = '';
-		$hostname = substr( md5( time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
+		$hostname = substr( md5( (string) time() ), 0, 6 ) . '.' . $domain; // Very random hostname!
 		$page     = wp_remote_get(
 			'http://' . $hostname,
 			array(
