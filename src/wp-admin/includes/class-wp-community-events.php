@@ -329,7 +329,7 @@ class WP_Community_Events {
 		$transient_key    = $this->get_events_transient_key( $events['location'] );
 		$cache_expiration = $expiration ? absint( $expiration ) : HOUR_IN_SECONDS * 12;
 
-		if ( $transient_key ) {
+		if ( $transient_key && is_string( $transient_key ) ) {
 			$set = set_site_transient( $transient_key, $events, $cache_expiration );
 		}
 
@@ -345,7 +345,7 @@ class WP_Community_Events {
 	 *                     on success, false on failure.
 	 */
 	public function get_cached_events() {
-		$cached_response = get_site_transient( $this->get_events_transient_key( $this->user_location ) );
+		$cached_response = get_site_transient( (string) $this->get_events_transient_key( (array) $this->user_location ) );
 		$cached_response = $this->trim_events( $cached_response );
 
 		return $this->format_event_data_time( $cached_response );
