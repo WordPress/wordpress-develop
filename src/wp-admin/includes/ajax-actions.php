@@ -439,7 +439,7 @@ function _wp_ajax_delete_comment_response( $comment_id, $delta = -1 ) {
 
 	// JS didn't send us everything we need to know. Just die with success message.
 	if ( ! $total || ! $per_page || ! $page || ! $url ) {
-		$time           = time();
+		$time = time();
 		/**
 		 * @var \WP_Comment
 		 */
@@ -702,7 +702,7 @@ function wp_ajax_delete_comment() {
 	$comment = get_comment( $id );
 
 	if ( ! $comment ) {
-		wp_die( (string)time() );
+		wp_die( (string) time() );
 	}
 
 	if ( ! current_user_can( 'edit_comment', $comment->comment_ID ) ) {
@@ -957,7 +957,7 @@ function wp_ajax_delete_page( $action ) {
  * @since 3.1.0
  */
 function wp_ajax_dim_comment() {
-	$id      = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
+	$id = isset( $_POST['id'] ) ? (int) $_POST['id'] : 0;
 	/**
 	 * @var \WP_Comment
 	 */
@@ -3047,7 +3047,7 @@ function wp_ajax_save_attachment() {
 	/**
 	 * @var array
 	 */
-	$post    = get_post( $id, ARRAY_A );
+	$post = get_post( $id, ARRAY_A );
 
 	if ( 'attachment' !== $post['post_type'] ) {
 		wp_send_json_error();
@@ -3974,7 +3974,7 @@ function wp_ajax_crop_image() {
 			if ( is_wp_error( $attachment_id ) ) {
 				wp_send_json_error( array( 'message' => __( 'Image could not be processed.' ) ) );
 			}
-			$metadata      = wp_generate_attachment_metadata( $attachment_id, $cropped );
+			$metadata = wp_generate_attachment_metadata( $attachment_id, $cropped );
 
 			/**
 			 * Filters the cropped image attachment metadata.
