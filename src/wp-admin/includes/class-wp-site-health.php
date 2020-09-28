@@ -74,7 +74,7 @@ class WP_Site_Health {
 	 */
 	public function enqueue_scripts() {
 		$screen = get_current_screen();
-		if ( 'site-health' !== $screen->id && 'dashboard' !== $screen->id ) {
+		if ( 'site-health' !== $screen->id && 'site-health-network' !== $screen->id && 'dashboard' !== $screen->id ) {
 			return;
 		}
 
@@ -103,7 +103,7 @@ class WP_Site_Health {
 			$health_check_js_variables['site_status']['issues'] = $issue_counts;
 		}
 
-		if ( 'site-health' === $screen->id && ! isset( $_GET['tab'] ) ) {
+		if ( 'dashboard' !== $screen->id && ! isset( $_GET['tab'] ) ) {
 			$tests = WP_Site_Health::get_tests();
 
 			// Don't run https test on localhost.
@@ -112,6 +112,10 @@ class WP_Site_Health {
 			}
 
 			foreach ( $tests['direct'] as $test ) {
+				if ( ! current_user_can( 'view_site_health_check', $test['test'] ) ) {
+					continue;
+				}
+
 				if ( is_string( $test['test'] ) ) {
 					$test_function = sprintf(
 						'get_test_%s',
@@ -130,6 +134,10 @@ class WP_Site_Health {
 			}
 
 			foreach ( $tests['async'] as $test ) {
+				if ( ! current_user_can( 'view_site_health_check', $test['test'] ) ) {
+					continue;
+				}
+
 				if ( is_string( $test['test'] ) ) {
 					$health_check_js_variables['site_status']['async'][] = array(
 						'test'      => $test['test'],
@@ -2231,7 +2239,7 @@ class WP_Site_Health {
 	 */
 	public function admin_body_class( $body_class ) {
 		$screen = get_current_screen();
-		if ( 'site-health' !== $screen->id ) {
+		if ( 'site-health' !== $screen->id && 'site-health-network' !== $screen->id ) {
 			return $body_class;
 		}
 

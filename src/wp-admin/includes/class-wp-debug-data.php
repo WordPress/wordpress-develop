@@ -1366,6 +1366,7 @@ class WP_Debug_Data {
 		 * All strings are expected to be plain text except $description that can contain inline HTML tags (see below).
 		 *
 		 * @since 5.2.0
+		 * @since 5.6.0 Introduce `$capability` check for debug fields.
 		 *
 		 * @param array $args {
 		 *     The debug information to be added to the core information page.
@@ -1395,7 +1396,24 @@ class WP_Debug_Data {
 		 *     }
 		 * }
 		 */
-		$info = apply_filters( 'debug_information', $info );
+		$pre_check_info = apply_filters( 'debug_information', $info );
+
+		$info = array();
+
+		foreach ( $pre_check_info as $section_slug => $section ) {
+			$allowed_fields = array();
+
+			foreach ( $section['fields'] as $field_slug => $field ) {
+				if ( current_user_can( 'view_site_health_debug_info', array( $section_slug, $field_slug ) ) ) {
+					$allowed_fields[ $field_slug ] = $field;
+				}
+			}
+
+			if ( ! empty( $allowed_fields ) ) {
+				$info[ $section_slug ] = $section;
+				$info[ $section_slug ]['fields'] = $allowed_fields;
+			}
+		}
 
 		return $info;
 	}
