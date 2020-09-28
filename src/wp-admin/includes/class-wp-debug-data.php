@@ -540,7 +540,7 @@ class WP_Debug_Data {
 			$post_max_size       = ini_get( 'post_max_size' );
 			$upload_max_filesize = ini_get( 'upload_max_filesize' );
 			$max_file_uploads    = ini_get( 'max_file_uploads' );
-			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
+			$effective           = min( wp_convert_hr_to_bytes( (string) $post_max_size ), wp_convert_hr_to_bytes( (string) $upload_max_filesize ) );
 
 			// Add info in Media section.
 			$info['wp-media']['fields']['file_uploads']        = array(
@@ -562,7 +562,7 @@ class WP_Debug_Data {
 			);
 			$info['wp-media']['fields']['max_file_uploads']    = array(
 				'label' => __( 'Max number of files allowed' ),
-				'value' => number_format( $max_file_uploads ),
+				'value' => number_format( floatval( $max_file_uploads ) ),
 			);
 		}
 
@@ -779,7 +779,7 @@ class WP_Debug_Data {
 			$htaccess_content = file_get_contents( ABSPATH . '.htaccess' );
 
 			// Filter away the core WordPress rules.
-			$filtered_htaccess_content = trim( preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', $htaccess_content ) );
+			$filtered_htaccess_content = trim( (string) preg_replace( '/\# BEGIN WordPress[\s\S]+?# END WordPress/si', '', (string) $htaccess_content ) );
 			$filtered_htaccess_content = ! empty( $filtered_htaccess_content );
 
 			if ( $filtered_htaccess_content ) {
