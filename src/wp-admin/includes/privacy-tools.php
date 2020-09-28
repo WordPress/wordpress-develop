@@ -382,12 +382,16 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	);
 
 	// Merge in the special about group.
-	$groups = array_merge( array( 'about' => $about_group ), $groups );
+	$groups = array_merge( array( 'about' => $about_group ), (array) $groups );
 
 	$groups_count = count( $groups );
 
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
+
+	if ( false === $groups_json ) {
+		  wp_send_json_error( __( 'Unable to encode the export file (JSON report).' ) );
+	}
 
 	/*
 	 * Handle the JSON export.
@@ -454,7 +458,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 
 	// Now, iterate over every group in $groups and have the formatter render it in HTML.
 	foreach ( (array) $groups as $group_id => $group_data ) {
-		fwrite( $file, wp_privacy_generate_personal_data_export_group_html( $group_data, $group_id, $groups_count ) );
+		fwrite( $file, wp_privacy_generate_personal_data_export_group_html( (array) $group_data, (string) $group_id, $groups_count ) );
 	}
 
 	fwrite( $file, "</body>\n" );
@@ -470,10 +474,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$error = false;
 
 	// This meta value is used from version 5.5.
-	$archive_filename = get_post_meta( $request_id, '_export_file_name', true );
+	$archive_filename = (string) get_post_meta( $request_id, '_export_file_name', true );
 
 	// This one stored an absolute path and is used for backward compatibility.
-	$archive_pathname = get_post_meta( $request_id, '_export_file_path', true );
+	$archive_pathname = (string) get_post_meta( $request_id, '_export_file_path', true );
 
 	// If a filename meta exists, use it.
 	if ( ! empty( $archive_filename ) ) {
@@ -669,7 +673,7 @@ All at ###SITENAME###
 	 *     @type string          $sitename          The site name sending the mail.
 	 *     @type string          $siteurl           The site URL sending the mail.
 	 */
-	$content = apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
+	$content = (string) apply_filters( 'wp_privacy_personal_data_email_content', $email_text, $request_id, $email_data );
 
 	$content = str_replace( '###EXPIRATION###', $expiration_date, $content );
 	$content = str_replace( '###LINK###', esc_url_raw( $export_file_url ), $content );
@@ -769,7 +773,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	} else {
 		$accumulated_data = get_post_meta( $request_id, '_export_data_raw', true );
 
-		if ( $accumulated_data ) {
+		if ( $accumulated_data && is_array( $accumulated_data ) ) {
 			$export_data = $accumulated_data;
 		}
 	}
