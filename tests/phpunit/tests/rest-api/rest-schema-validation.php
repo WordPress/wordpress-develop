@@ -156,7 +156,12 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
-		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		if ( PHP_VERSION_ID >= 80000 ) {
+			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
+		} else {
+			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+		}
+
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array( 'format' => 'email' );
@@ -428,6 +433,42 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$error = rest_validate_value_from_schema( 30, $schema, 'param' );
 		$this->assertWPError( $error );
 		$this->assertSame( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 51022
+	 *
+	 * @dataProvider data_multiply_of
+	 *
+	 * @param int|float $value
+	 * @param int|float $divisor
+	 * @param bool      $expected
+	 */
+	public function test_numeric_multiple_of( $value, $divisor, $expected ) {
+		$schema = array(
+			'type'       => 'number',
+			'multipleOf' => $divisor,
+		);
+
+		$result = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $result );
+		} else {
+			$this->assertWPError( $result );
+		}
+	}
+
+	public function data_multiply_of() {
+		return array(
+			array( 0, 2, true ),
+			array( 4, 2, true ),
+			array( 3, 1.5, true ),
+			array( 2.4, 1.2, true ),
+			array( 1, 2, false ),
+			array( 2, 1.5, false ),
+			array( 2.1, 1.5, false ),
+		);
 	}
 
 	/**
@@ -829,6 +870,61 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				true,
 			),
 		);
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_min_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'minProperties' => 1,
+		);
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_max_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'maxProperties' => 2,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
 	}
 
 	/**

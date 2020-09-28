@@ -331,7 +331,8 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 */
 	public function test_failure_with_invalid_nonce() {
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 
 		$this->_make_ajax_call(
 			array(

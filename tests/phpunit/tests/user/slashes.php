@@ -6,11 +6,18 @@
  * @ticket 21767
  */
 class Tests_User_Slashes extends WP_UnitTestCase {
+	protected static $author_id;
+	protected static $user_id;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
+		self::$user_id   = $factory->user->create();
+	}
+
 	function setUp() {
 		parent::setUp();
-		$this->author_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 
-		wp_set_current_user( $this->author_id );
+		wp_set_current_user( self::$author_id );
 
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
@@ -43,8 +50,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 		$_POST = add_magic_quotes( $_POST ); // The add_user() function will strip slashes.
 
-		$id   = add_user();
-		$user = get_user_to_edit( $id );
+		$user_id = add_user();
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( $this->slash_1, $user->first_name );
 		$this->assertSame( $this->slash_3, $user->last_name );
@@ -68,8 +75,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 		$_POST = add_magic_quotes( $_POST ); // The add_user() function will strip slashes.
 
-		$id   = add_user();
-		$user = get_user_to_edit( $id );
+		$user_id = add_user();
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( $this->slash_2, $user->first_name );
 		$this->assertSame( $this->slash_4, $user->last_name );
@@ -82,7 +89,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 	 * Tests the controller function that expects slashed data.
 	 */
 	function test_edit_user() {
-		$id = self::factory()->user->create();
+		$user_id = self::$user_id;
 
 		$_POST                 = array();
 		$_GET                  = array();
@@ -97,8 +104,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 		$_POST = add_magic_quotes( $_POST ); // The edit_user() function will strip slashes.
 
-		$id   = edit_user( $id );
-		$user = get_user_to_edit( $id );
+		$user_id = edit_user( $user_id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( $this->slash_1, $user->first_name );
 		$this->assertSame( $this->slash_3, $user->last_name );
@@ -119,8 +126,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 		$_POST = add_magic_quotes( $_POST ); // The edit_user() function will strip slashes.
 
-		$id   = edit_user( $id );
-		$user = get_user_to_edit( $id );
+		$user_id = edit_user( $user_id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( $this->slash_2, $user->first_name );
 		$this->assertSame( $this->slash_4, $user->last_name );
@@ -133,7 +140,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_user() {
-		$id   = wp_insert_user(
+		$user_id = wp_insert_user(
 			array(
 				'user_login'   => 'slash_example_user_3',
 				'role'         => 'subscriber',
@@ -146,7 +153,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'user_pass'    => '',
 			)
 		);
-		$user = get_user_to_edit( $id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( wp_unslash( $this->slash_1 ), $user->first_name );
 		$this->assertSame( wp_unslash( $this->slash_3 ), $user->last_name );
@@ -154,7 +161,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertSame( wp_unslash( $this->slash_7 ), $user->display_name );
 		$this->assertSame( wp_unslash( $this->slash_3 ), $user->description );
 
-		$id   = wp_insert_user(
+		$user_id = wp_insert_user(
 			array(
 				'user_login'   => 'slash_example_user_4',
 				'role'         => 'subscriber',
@@ -167,7 +174,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'user_pass'    => '',
 			)
 		);
-		$user = get_user_to_edit( $id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( wp_unslash( $this->slash_2 ), $user->first_name );
 		$this->assertSame( wp_unslash( $this->slash_4 ), $user->last_name );
@@ -180,10 +187,10 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_update_user() {
-		$id   = self::factory()->user->create();
-		$id   = wp_update_user(
+		$user_id = self::$user_id;
+		$user_id = wp_update_user(
 			array(
-				'ID'           => $id,
+				'ID'           => $user_id,
 				'role'         => 'subscriber',
 				'first_name'   => $this->slash_1,
 				'last_name'    => $this->slash_3,
@@ -192,7 +199,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'description'  => $this->slash_3,
 			)
 		);
-		$user = get_user_to_edit( $id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( wp_unslash( $this->slash_1 ), $user->first_name );
 		$this->assertSame( wp_unslash( $this->slash_3 ), $user->last_name );
@@ -200,9 +207,9 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 		$this->assertSame( wp_unslash( $this->slash_7 ), $user->display_name );
 		$this->assertSame( wp_unslash( $this->slash_3 ), $user->description );
 
-		$id   = wp_update_user(
+		$user_id = wp_update_user(
 			array(
-				'ID'           => $id,
+				'ID'           => $user_id,
 				'role'         => 'subscriber',
 				'first_name'   => $this->slash_2,
 				'last_name'    => $this->slash_4,
@@ -211,7 +218,7 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 				'description'  => $this->slash_4,
 			)
 		);
-		$user = get_user_to_edit( $id );
+		$user    = get_user_to_edit( $user_id );
 
 		$this->assertSame( wp_unslash( $this->slash_2 ), $user->first_name );
 		$this->assertSame( wp_unslash( $this->slash_4 ), $user->last_name );

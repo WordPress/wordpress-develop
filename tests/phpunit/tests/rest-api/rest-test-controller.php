@@ -46,6 +46,7 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 				),
 				'someinteger'    => array(
 					'type'             => 'integer',
+					'multipleOf'       => 10,
 					'minimum'          => 100,
 					'maximum'          => 200,
 					'exclusiveMinimum' => true,
@@ -120,6 +121,8 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 							'type' => 'integer',
 						),
 					),
+					'minProperties'        => 1,
+					'maxProperties'        => 10,
 					'ignored_prop'         => 'ignored_prop',
 					'context'              => array( 'view' ),
 				),

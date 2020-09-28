@@ -4469,7 +4469,7 @@ mockedApiResponse.Schema = {
                         "attributes": {
                             "required": false,
                             "default": [],
-                            "description": "Attributes for the block",
+                            "description": "Attributes for the block.",
                             "type": "object"
                         },
                         "post_id": {
@@ -4563,12 +4563,12 @@ mockedApiResponse.Schema = {
                     "args": {
                         "name": {
                             "required": false,
-                            "description": "Block name",
+                            "description": "Block name.",
                             "type": "string"
                         },
                         "namespace": {
                             "required": false,
-                            "description": "Block namespace",
+                            "description": "Block namespace.",
                             "type": "string"
                         },
                         "context": {

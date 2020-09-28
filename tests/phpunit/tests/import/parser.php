@@ -259,7 +259,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						$value = 'This has <![CDATA[ opening and ]]> closing <![CDATA[ tags like this: ]]>';
 						break;
 					default:
-						$this->fail( 'Unknown postmeta (' . $meta['key'] . ') was parsed out by' . $p );
+						$this->fail( sprintf( 'Unknown postmeta (%1$s) was parsed out by %2$s.', $meta['key'], $p ) );
 				}
 				$this->assertSame( $value, $meta['value'], $message );
 			}
@@ -290,7 +290,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					$value = 'This has <![CDATA[ opening and ]]> closing <![CDATA[ tags like this: ]]>';
 					break;
 				default:
-					$this->fail( 'Unknown postmeta (' . $meta['key'] . ') was parsed out by' . $p );
+					$this->fail( sprintf( 'Unknown postmeta (%1$s) was parsed out by %2$s.', $meta['key'], $p ) );
 			}
 			$this->assertSame( $value, $meta['value'] );
 		}

@@ -4,6 +4,8 @@
  * Test wp_filter_object_list(), wp_list_filter(), wp_list_pluck().
  *
  * @group functions.php
+ * @covers ::wp_filter_object_list
+ * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	var $object_list = array();
@@ -316,7 +318,6 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertSame( 1, count( $list ) );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
-
 
 	function test_filter_object_list_nested_array_and_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND', 'name' );

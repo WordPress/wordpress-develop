@@ -125,8 +125,8 @@ function the_media_upload_tabs() {
  * @param string       $align   Image CSS alignment property.
  * @param string       $url     Optional. Image src URL. Default empty.
  * @param bool|string  $rel     Optional. Value for rel attribute or whether to add a default value. Default false.
- * @param string|array $size    Optional. Image size. Accepts any valid image size, or an array of width
- *                              and height values in pixels (in that order). Default 'medium'.
+ * @param string|int[] $size    Optional. Image size. Accepts any registered image size name, or an array of
+ *                              width and height values in pixels (in that order). Default 'medium'.
  * @param string       $alt     Optional. Image alt attribute. Default empty.
  * @return string The HTML output to insert into the editor.
  */
@@ -160,8 +160,8 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
 	 * @param string       $title   The image title.
 	 * @param string       $align   The image alignment.
 	 * @param string       $url     The image source URL.
-	 * @param string|array $size    Size of image. Image size or array of width and height values
-	 *                              (in that order). Default 'medium'.
+	 * @param string|int[] $size    Requested image size. Can be any registered image size name, or
+	 *                              an array of width and height values in pixels (in that order).
 	 * @param string       $alt     The image alternative, or alt, text.
 	 * @param string       $rel     The image rel attribute.
 	 */
@@ -181,7 +181,7 @@ function get_image_send_to_editor( $id, $caption, $title, $align, $url = '', $re
  * @param string  $title   Image title attribute (not used).
  * @param string  $align   Image CSS alignment property.
  * @param string  $url     Image source URL (not used).
- * @param string  $size    Image size (`thumbnail`, `medium`, `large`, `full`, or added with `add_image_size()`) (not used).
+ * @param string  $size    Image size (not used).
  * @param string  $alt     Image `alt` attribute (not used).
  * @return string The image HTML markup with caption shortcode.
  */
@@ -3271,7 +3271,7 @@ function attachment_submitbox_metadata() {
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
 		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />
 		<span class="copy-to-clipboard-container">
-			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL' ); ?></button>
+			<button type="button" class="button copy-attachment-url edit-media" data-clipboard-target="#attachment_url"><?php _e( 'Copy URL to clipboard' ); ?></button>
 			<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 		</span>
 	</div>

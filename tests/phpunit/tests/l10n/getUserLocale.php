@@ -73,7 +73,7 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	 */
 	public function test_user_locale_is_same_across_network() {
 		if ( ! is_multisite() ) {
-			$this->markTestSkipped( __METHOD__ . ' requires multisite' );
+			$this->markTestSkipped( __METHOD__ . ' requires Multisite.' );
 		}
 
 		$user_locale = get_user_locale();

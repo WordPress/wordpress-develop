@@ -256,7 +256,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @param string $expected_output The expected string exception output.
 	 */
 	private function _setup_expected_failure( $expected_output ) {
-		$this->setExpectedException( 'WPDieException' );
+		$this->expectException( 'WPDieException' );
 		$this->expectOutputString( $expected_output );
 	}
 
