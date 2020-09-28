@@ -214,7 +214,7 @@ class WP_Automatic_Updater {
 		if ( 'core' === $type ) {
 			global $wpdb;
 
-			$php_compat = version_compare( phpversion(), $item->php_version, '>=' );
+			$php_compat = version_compare( (string) phpversion(), $item->php_version, '>=' );
 			if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 				$mysql_compat = true;
 			} else {
@@ -228,7 +228,7 @@ class WP_Automatic_Updater {
 
 		// If updating a plugin or theme, ensure the minimum PHP version requirements are satisfied.
 		if ( in_array( $type, array( 'plugin', 'theme' ), true ) ) {
-			if ( ! empty( $item->requires_php ) && version_compare( phpversion(), $item->requires_php, '<' ) ) {
+			if ( ! empty( $item->requires_php ) && version_compare( (string) phpversion(), $item->requires_php, '<' ) ) {
 				return false;
 			}
 		}
@@ -556,7 +556,7 @@ class WP_Automatic_Updater {
 			return;
 		}
 
-		$error_code = $result->get_error_code();
+		$error_code = (string) $result->get_error_code();
 
 		// Any of these WP_Error codes are critical failures, as in they occurred after we started to copy core files.
 		// We should not try to perform a background update again until there is a successful one-click update performed by the user.
