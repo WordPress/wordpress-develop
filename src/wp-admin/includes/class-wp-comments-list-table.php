@@ -870,6 +870,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 		echo '</div>';
 
 		if ( $comment->comment_parent ) {
+			/**
+			 * @var \WP_Comment
+			 */
 			$parent = get_comment( $comment->comment_parent );
 			if ( $parent ) {
 				$parent_link = esc_url( get_comment_link( $parent ) );
@@ -909,7 +912,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 		$author_url = get_comment_author_url( $comment );
 
-		$author_url_display = untrailingslashit( preg_replace( '|^http(s)?://(www\.)?|i', '', $author_url ) );
+		$author_url_display = untrailingslashit( (string) preg_replace( '|^http(s)?://(www\.)?|i', '', $author_url ) );
 		if ( strlen( $author_url_display ) > 50 ) {
 			$author_url_display = wp_html_excerpt( $author_url_display, 49, '&hellip;' );
 		}
