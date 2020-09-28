@@ -18,7 +18,7 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( [
+		define( 'ui/widgets/selectable.js', [
 			"jquery",
 			"./mouse",
 			"../version",

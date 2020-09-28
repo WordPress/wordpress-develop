@@ -20,7 +20,7 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( [
+		define( 'ui/widgets/dialog.js', [
 			"jquery",
 			"./button",
 			"./draggable",
