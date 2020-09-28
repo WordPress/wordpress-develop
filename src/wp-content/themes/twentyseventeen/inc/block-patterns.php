@@ -24,7 +24,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyseventeen/large-heading-with-button',
 		array(
-			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
+			'title'  => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
             <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'The content of your <a href="#">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.' ) . '</h1>
@@ -139,5 +139,41 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->',
 		)
-	);
+    );
+    
+    register_block_pattern(
+		'twentyseventeen/images-with-link',
+		array(
+			'title'      => __( 'Services', 'twentyseventeen' ),
+			'categories' => array( 'twentyseventeen' ),
+			'content'    => '<!-- wp:spacer -->
+            <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
+            <!-- /wp:spacer -->
+            
+            <!-- wp:heading {"level":1,"style":{"typography":{"fontSize":50}}} -->
+            <h1 style="font-size:50px">' . __( 'Our Services' ) . '</h1>
+            <!-- /wp:heading -->
+            
+            <!-- wp:columns -->
+            <div class="wp-block-columns"><!-- wp:column -->
+            <div class="wp-block-column">
+            <!-- wp:paragraph {"style":{"typography":{"fontSize":21, "lineHeight":"2.5"}}} -->
+            <p style="font-size:21px"><a href="http://wordpress.org/">' . __( 'Branding' ) . ' →</a><br><a href="http://wordpress.org/">' . __( 'Webdesign' ) . ' →</a><br><a href="http://wordpress.org/">' . __( 'Web Development' ) . ' →</a></p>
+            <!-- /wp:paragraph -->
+            </div>
+            <!-- /wp:column -->
+            
+            <!-- wp:column -->
+            <div class="wp-block-column">
+            <!-- wp:paragraph {"style":{"typography":{"fontSize":21, "lineHeight":"2.5"}}} -->
+            <p style="font-size:21px"><a href="http://wordpress.org/">' . __( 'Content Strategy' ) . ' →</a><br><a href="http://wordpress.org/">' . __( 'Marketing &amp; SEO' ) . ' →</a><br><a href="http://wordpress.org/">' . __( 'Video Production' ) . ' →</a></p>
+            <!-- /wp:paragraph --></div>
+            <!-- /wp:column --></div>
+            <!-- /wp:columns -->
+            
+            <!-- wp:spacer -->
+            <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
+            <!-- /wp:spacer -->',
+        )
+    );
 }

@@ -45,6 +45,11 @@ function twentyseventeen_setup() {
 	add_theme_support( 'title-tag' );
 
 	/*
+	 * Enables custom line height for blocks
+	 */
+	add_theme_support( 'custom-line-height' );
+
+	/*
 	 * Enable support for Post Thumbnails on posts and pages.
 	 *
 	 * @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
