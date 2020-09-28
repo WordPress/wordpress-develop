@@ -106,6 +106,11 @@ $submenu['plugins.php'][5]  = array( __( 'Installed Plugins' ), 'manage_network_
 $submenu['plugins.php'][10] = array( _x( 'Add New', 'plugin' ), 'install_plugins', 'plugin-install.php' );
 $submenu['plugins.php'][15] = array( __( 'Plugin Editor' ), 'edit_plugins', 'plugin-editor.php' );
 
+$menu[75] = array( __( 'Tools' ), 'manage_network_options', 'tools.php', '', 'menu-top menu-icon-tools', 'menu-tools', 'dashicons-admin-tools' );
+if ( current_user_can( 'view_site_health_checks' ) ) {
+	$submenu['tools.php'][20] = array( __( 'Site Health' ), 'view_site_health_checks', 'site-health.php' );
+}
+
 $menu[25] = array( __( 'Settings' ), 'manage_network_options', 'settings.php', '', 'menu-top menu-icon-settings', 'menu-settings', 'dashicons-admin-settings' );
 if ( defined( 'MULTISITE' ) && defined( 'WP_ALLOW_MULTISITE' ) && WP_ALLOW_MULTISITE ) {
 	$submenu['settings.php'][5]  = array( __( 'Network Settings' ), 'manage_network_options', 'settings.php' );
