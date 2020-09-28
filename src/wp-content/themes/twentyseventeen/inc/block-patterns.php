@@ -176,4 +176,23 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:spacer -->',
         )
     );
+
+    register_block_pattern(
+		'twentyseventeen/images-with-link',
+		array(
+			'title'      => __( 'Contact Us', 'twentyseventeen' ),
+			'categories' => array( 'twentyseventeen' ),
+			'content'    => '<!-- wp:cover {"customOverlayColor":"#93aab8","minHeight":900,"align":"center"} -->
+            <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:900px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","placeholder":"Write title…","textColor":"white","style":{"typography":{"fontSize":50}}} -->
+            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'Outstanding clients have allowed us to produce work we are proud of' ) . '</p>
+            <!-- /wp:paragraph -->
+            
+            <!-- wp:buttons -->
+            <div class="wp-block-buttons"><!-- wp:button {"borderRadius":0,"backgroundColor":"black","textColor":"white","className":"is-style-fill"} -->
+            <div class="wp-block-button is-style-fill"><a class="wp-block-button__link has-white-color has-black-background-color has-text-color has-background no-border-radius">Contact us</a></div>
+            <!-- /wp:button --></div>
+            <!-- /wp:buttons --></div></div>
+            <!-- /wp:cover -->',
+        )
+    );
 }
