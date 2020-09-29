@@ -18,7 +18,7 @@ jobs:
         shell: bash -l {0}
         run: nvm install
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --no-save
       - name: Start Docker environment
         run: |
           npm run env:start
@@ -51,7 +51,7 @@ jobs:
         shell: bash -l {0}
         run: nvm install
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --no-save
       - name: Start Docker environment
         run: |
           npm run env:start
@@ -71,3 +71,10 @@ jobs:
           npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
           npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
           npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
+
+  test-logging:
+    name: Some test information
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+        docker-compose -v
