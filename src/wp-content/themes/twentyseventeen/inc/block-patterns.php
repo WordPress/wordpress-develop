@@ -24,7 +24,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyseventeen/large-heading-with-button',
 		array(
-			'title'  => __( 'Large Heading with Button', 'twentyseventeen' ),
+			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
             <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'The content of your <a href="#">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.' ) . '</h1>
@@ -50,7 +50,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-columns"><!-- wp:column -->
             <div class="wp-block-column">
 			<!-- wp:image {"className":"size-large"} -->
-			<figure class="wp-block-image size-large"><img src="' .get_template_directory_uri(). '/assets/images/stripes.jpg" alt="Black Stripes"/></figure>
+			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="Black Stripes"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">Black Stripes</h2>
@@ -67,7 +67,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div style="height:254px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
 			<!-- wp:image {"className":"size-large"} -->
-			<figure class="wp-block-image size-large"><img src="' .get_template_directory_uri(). '/assets/images/white-border.jpg" alt="White border"/></figure>
+			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="White border"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">White Border</h2>
@@ -96,7 +96,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/stripes.jpg" alt="Black Stripes"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="Black Stripes"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Black Stripes</h2>
@@ -110,7 +110,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/white-border.jpg" alt="White border"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="White border"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">White Border</h2>
@@ -124,7 +124,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' .get_template_directory_uri(). '/assets/images/direct-light.jpg" alt="Direct Light"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/direct-light.jpg" alt="Direct Light"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">Direct Light</h2>
@@ -139,9 +139,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->',
 		)
-    );
-    
-    register_block_pattern(
+	);
+
+	register_block_pattern(
 		'twentyseventeen/images-with-link',
 		array(
 			'title'      => __( 'Services', 'twentyseventeen' ),
@@ -174,10 +174,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->',
-        )
-    );
+		)
+	);
 
-    register_block_pattern(
+	register_block_pattern(
 		'twentyseventeen/images-with-link',
 		array(
 			'title'      => __( 'Contact Us', 'twentyseventeen' ),
@@ -193,6 +193,6 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:button --></div>
             <!-- /wp:buttons --></div></div>
             <!-- /wp:cover -->',
-        )
-    );
+		)
+	);
 }
