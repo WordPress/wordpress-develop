@@ -782,6 +782,10 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->assertEquals( 0, $q->post_count );
 
+		$this->assertTrue( $q->is_singular() );
 		$this->assertFalse( $q->is_singular( 'page' ) );
+
+		$this->assertTrue( $q->is_page() );
+		$this->assertFalse( $q->is_page( 'non-existant-page' ) );
 	}
 }
