@@ -773,7 +773,7 @@ class Tests_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket dd32
 	 */
-	public function test_query_singular_notices() {
+	public function test_query_singular_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
 				'pagename' => 'non-existant-page'
@@ -781,11 +781,33 @@ class Tests_Query extends WP_UnitTestCase {
 		);
 
 		$this->assertEquals( 0, $q->post_count );
+		$this->assertFalse( $q->is_single() );
 
 		$this->assertTrue( $q->is_singular() );
 		$this->assertFalse( $q->is_singular( 'page' ) );
 
 		$this->assertTrue( $q->is_page() );
 		$this->assertFalse( $q->is_page( 'non-existant-page' ) );
+	}
+
+	/**
+	 * @ticket dd32
+	 */
+	public function test_query_single_404_doesnt_notice() {
+		$q = new WP_Query(
+			array(
+				'name' => 'non-existant-page'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+		$this->assertFalse( $q->is_page() );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'post' ) );
+
+		$this->assertTrue( $q->is_single() );
+		$this->assertFalse( $q->is_single( 'non-existant-page' ) );
+
 	}
 }
