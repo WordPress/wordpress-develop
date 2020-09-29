@@ -21,10 +21,11 @@ jobs:
         run: npm install
       - name: Build WordPress
         run: npm run build
-      - name: Start Docker environment
-        run: npm run env:start
-      - name: Install WordPress within the Docker environment
-        run: npm run env:install
+      - name: Setup Docker environment
+        run: |
+          npm run env:start
+          sleep 5
+          npm run env:install
       - name: Run PHPUnit
         run: npm run test:php
 
@@ -43,9 +44,10 @@ jobs:
         run: npm install
       - name: Build WordPress
         run: npm run build
-      - name: Start Docker environment
-        run: npm run env:start
-      - name: Install WordPress within the Docker environment
-        run: npm run env:install
+      - name: Setup Docker environment
+        run: |
+          npm run env:start
+          sleep 5
+          npm run env:install
       - name: Run PHPUnit
         run: npm run test:php
