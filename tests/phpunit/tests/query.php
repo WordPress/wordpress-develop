@@ -769,4 +769,19 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'join', $posts_clauses_request );
 		$this->assertSame( '/* posts_join_request */', $posts_clauses_request['join'] );
 	}
+
+	/**
+	 * @ticket dd32
+	 */
+	public function test_query_singular_notices() {
+		$q = new WP_Query(
+			array(
+				'pagename' => 'non-existant-page'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertFalse( $q->is_singular( 'page' ) );
+	}
 }
