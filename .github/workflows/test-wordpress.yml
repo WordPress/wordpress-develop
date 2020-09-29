@@ -8,7 +8,6 @@ env:
 jobs:
   test-php-8:
     name: Test PHP 8
-    needs: set-up
     runs-on: ubuntu-latest
     env:
       LOCAL_PHP: 8.0-fpm
@@ -31,7 +30,6 @@ jobs:
 
   test-php-7-4:
     name: Test PHP 7.4
-    needs: set-up
     runs-on: ubuntu-latest
     env:
       LOCAL_PHP: 7.4-fpm
