@@ -2514,23 +2514,28 @@ class WP_Query {
 			if ( ! empty( $where_status ) ) {
 				$where .= " AND ($where_status)";
 			}
-		} elseif ( ! $this->is_singular && is_user_logged_in() && ( is_array( $post_type ) && sizeof( $post_type ) > 1 || $post_type == 'any' ) ) {
+
+		} elseif ( ! $this->is_singular ) {
 
 			if ( 'any' == $post_type ) {
 				$cpts = get_post_types( array( 'exclude_from_search' => false ) );
-			} else {
+			} elseif ( is_array( $post_type ) ) {
 				$cpts = $post_type;
+			} elseif ( ! empty( $post_type ) ) {
+				$cpts = array( $post_type );
+			} else {
+				$cpts = array( 'post' );
 			}
 
-			$statustypeswheres = [];
+			$statustypeswheres = array();
 
 			foreach ($cpts as $ptype) {
 
-				$cpt_object = get_post_type_object($ptype);
+				$cpt_object = get_post_type_object( $ptype );
 				if ( ! $cpt_object instanceof \WP_Post_Type ) {
 					continue;
 				}
-				//var_dump($cpt_object);
+
 				$read_private_cap = $cpt_object->cap->read_private_posts;
 
 				$typewheres = '(';
@@ -2545,10 +2550,25 @@ class WP_Query {
 						}
 						$typewheres .= implode(' OR ', $statuswheres);
 
-						// private statuses
-						$private_states = get_post_stati( array( 'private' => true ) );
-						foreach ( (array) $private_states as $state ) {
-							$typewheres .= current_user_can( $read_private_cap ) ? " OR {$wpdb->posts}.post_status = '$state'" : " OR {$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$state'";
+						if ( $this->is_admin ) {
+							// Add protected states that should show in the admin all list.
+							$admin_all_states = get_post_stati(
+								array(
+									'protected'              => true,
+									'show_in_admin_all_list' => true,
+								)
+							);
+							foreach ( (array) $admin_all_states as $state ) {
+								$where .= " OR {$wpdb->posts}.post_status = '$state'";
+							}
+						}
+
+						if ( is_user_logged_in() ) {
+							// Add private states that are limited to viewing by the author of a post or someone who has caps to read private states.
+							$private_states = get_post_stati( array( 'private' => true ) );
+							foreach ( (array) $private_states as $state ) {
+								$typewheres .= current_user_can( $read_private_cap ) ? " OR {$wpdb->posts}.post_status = '$state'" : " OR {$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$state'";
+							}
 						}
 
 					$typewheres .= ')';
@@ -2560,45 +2580,8 @@ class WP_Query {
 
 			}
 
-			$where .= ' AND (' . implode(' OR ', $statustypeswheres) . ')';
+			$where .= ' AND (' . implode( ' OR ', $statustypeswheres ) . ')';
 
-		} elseif ( ! $this->is_singular ) {
-
-			$where .= $post_type_where;
-
-			$where .= " AND ({$wpdb->posts}.post_status = 'publish'";
-
-			// Add public states.
-			$public_states = get_post_stati( array( 'public' => true ) );
-			foreach ( (array) $public_states as $state ) {
-				if ( 'publish' === $state ) { // Publish is hard-coded above.
-					continue;
-				}
-				$where .= " OR {$wpdb->posts}.post_status = '$state'";
-			}
-
-			if ( $this->is_admin ) {
-				// Add protected states that should show in the admin all list.
-				$admin_all_states = get_post_stati(
-					array(
-						'protected'              => true,
-						'show_in_admin_all_list' => true,
-					)
-				);
-				foreach ( (array) $admin_all_states as $state ) {
-					$where .= " OR {$wpdb->posts}.post_status = '$state'";
-				}
-			}
-
-			if ( is_user_logged_in() ) {
-				// Add private states that are limited to viewing by the author of a post or someone who has caps to read private states.
-				$private_states = get_post_stati( array( 'private' => true ) );
-				foreach ( (array) $private_states as $state ) {
-					$where .= current_user_can( $read_private_cap ) ? " OR {$wpdb->posts}.post_status = '$state'" : " OR {$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$state'";
-				}
-			}
-
-			$where .= ')';
 		} else {
 			$where .= $post_type_where;
 		}
