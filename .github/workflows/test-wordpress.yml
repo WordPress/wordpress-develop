@@ -2,6 +2,9 @@ name: WordPress Core Test Suite
 
 on: [push]
 
+env:
+  LOCAL_DIR: build
+
 jobs:
   set-up:
     name: Set up the environment
@@ -16,3 +19,21 @@ jobs:
         run: npm install
       - name: Build WordPress
         run: npm run build
+  test-php-8:
+    name: Test PHP 8
+    needs: set-up
+    steps:
+      - env:
+          LOCAL_PHP: 8.0-fpm
+      - run: npm run env:start
+      - run: npm run env:install
+
+  test-php-7-4:
+    name: Test PHP 7.4
+    needs: set-up
+    steps:
+      - env:
+          LOCAL_PHP: 7.4-fpm
+      - run: npm run env:start
+      - run: npm run env:install
+
