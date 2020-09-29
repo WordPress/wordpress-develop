@@ -186,7 +186,7 @@ function get_theme_update_available( $theme ) {
 
 	if ( isset( $themes_update->response[ $stylesheet ] ) ) {
 		$update      = $themes_update->response[ $stylesheet ];
-		$theme_name  = $theme->display( 'Name' );
+		$theme_name  = (string) $theme->display( 'Name' );
 		$details_url = add_query_arg(
 			array(
 				'TB_iframe' => 'true',
