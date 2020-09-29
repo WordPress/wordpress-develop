@@ -4465,6 +4465,9 @@ class WP_Query {
 		}
 
 		$post_obj = $this->get_queried_object();
+		if ( ! $post_obj ) {
+			return false;
+		}
 
 		return in_array( $post_obj->post_type, (array) $post_types, true );
 	}
