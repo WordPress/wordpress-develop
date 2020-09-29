@@ -3,10 +3,16 @@ name: WordPress Core Test Suite
 on: [push]
 
 jobs:
-  build:
+  set-up:
+    name: Set up the environment
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: npm install
-      - run: npm run grunt
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Use the desired version of Node using nvm
+        shell: bash -l {0}
+        run: nvm install
+      - name: Install Dependencies
+        run: npm install
+      - name: Build WordPress
+        run: npm run build
