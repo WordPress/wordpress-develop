@@ -796,7 +796,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_single_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'name' => 'non-existant-page'
+				'name' => 'non-existant-post'
 			)
 		);
 
@@ -807,7 +807,76 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertFalse( $q->is_singular( 'post' ) );
 
 		$this->assertTrue( $q->is_single() );
-		$this->assertFalse( $q->is_single( 'non-existant-page' ) );
-
+		$this->assertFalse( $q->is_single( 'non-existant-post' ) );
 	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_attachment_404_doesnt_notice() {
+		$q = new WP_Query(
+			array(
+				'attachment' => 'non-existant-attachment'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_singular() );
+		$this->assertFalse( $q->is_singular( 'attachment' ) );
+
+		$this->assertTrue( $q->is_attachment() );
+		$this->assertFalse( $q->is_attachment( 'non-existant-attachment' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_author_404_doesnt_notice() {
+		$q = new WP_Query(
+			array(
+				'author_name' => 'non-existant-author'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_author() );
+		$this->assertFalse( $q->is_author( 'non-existant-author' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_category_404_doesnt_notice() {
+		$q = new WP_Query(
+			array(
+				'category_name' => 'non-existant-cat'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_category() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_category( 'non-existant-cat' ) );
+	}
+
+	/**
+	 * @ticket 29660
+	 */
+	public function test_query_tag_404_doesnt_notice() {
+		$q = new WP_Query(
+			array(
+				'tag' => 'non-existant-tag'
+			)
+		);
+
+		$this->assertEquals( 0, $q->post_count );
+
+		$this->assertTrue( $q->is_tag() );
+		$this->assertFalse( $q->is_tax() );
+		$this->assertFalse( $q->is_tag( 'non-existant-tag' ) );
+	}
+
 }
