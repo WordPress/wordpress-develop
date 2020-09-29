@@ -76,5 +76,4 @@ jobs:
     name: Some test information
     runs-on: ubuntu-latest
     steps:
-      - run: |
-        docker-compose -v
+      - run: docker-compose -v
