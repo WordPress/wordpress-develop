@@ -776,7 +776,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_singular_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'pagename' => 'non-existant-page'
+				'pagename' => 'non-existant-page',
 			)
 		);
 
@@ -796,7 +796,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_single_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'name' => 'non-existant-post'
+				'name' => 'non-existant-post',
 			)
 		);
 
@@ -816,7 +816,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_attachment_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'attachment' => 'non-existant-attachment'
+				'attachment' => 'non-existant-attachment',
 			)
 		);
 
@@ -835,7 +835,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_author_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'author_name' => 'non-existant-author'
+				'author_name' => 'non-existant-author',
 			)
 		);
 
@@ -851,7 +851,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_category_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'category_name' => 'non-existant-cat'
+				'category_name' => 'non-existant-cat',
 			)
 		);
 
@@ -868,7 +868,7 @@ class Tests_Query extends WP_UnitTestCase {
 	public function test_query_tag_404_doesnt_notice() {
 		$q = new WP_Query(
 			array(
-				'tag' => 'non-existant-tag'
+				'tag' => 'non-existant-tag',
 			)
 		);
 
