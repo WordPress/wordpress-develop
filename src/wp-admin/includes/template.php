@@ -29,8 +29,8 @@ require_once ABSPATH . 'wp-admin/includes/class-wp-internal-pointers.php';
  *                                     $selected_cats must not be an array. Default 0.
  * @param int    $descendants_and_self Optional. ID of the category to output along with its descendants.
  *                                     Default 0.
- * @param int[]  $selected_cats        Optional. Array of category IDs to mark as checked. Default false.
- * @param int[]  $popular_cats         Optional. Array of category IDs to receive the "popular-category" class.
+ * @param int[]|false  $selected_cats        Optional. Array of category IDs to mark as checked. Default false.
+ * @param int[]|false  $popular_cats         Optional. Array of category IDs to receive the "popular-category" class.
  *                                     Default false.
  * @param Walker $walker               Optional. Walker object to use to build the output.
  *                                     Default is a Walker_Category_Checklist instance.
@@ -122,7 +122,8 @@ function wp_terms_checklist( $post_id = 0, $args = array() ) {
 	if ( is_array( $parsed_args['selected_cats'] ) ) {
 		$args['selected_cats'] = array_map( 'intval', $parsed_args['selected_cats'] );
 	} elseif ( $post_id ) {
-		$args['selected_cats'] = wp_get_object_terms( $post_id, $taxonomy, array_merge( $args, array( 'fields' => 'ids' ) ) );
+		$post_terms            = wp_get_object_terms( $post_id, $taxonomy, array_merge( $args, array( 'fields' => 'ids' ) ) );
+		$args['selected_cats'] = ! is_wp_error( $post_terms ) ? $post_terms : array();
 	} else {
 		$args['selected_cats'] = array();
 	}
@@ -210,7 +211,8 @@ function wp_popular_terms_checklist( $taxonomy, $default = 0, $number = 10, $ech
 	$post = get_post();
 
 	if ( $post && $post->ID ) {
-		$checked_terms = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
+		$post_terms    = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
+		$checked_terms = ! is_wp_error( $post_terms ) ? $post_terms : array();
 	} else {
 		$checked_terms = array();
 	}
@@ -303,6 +305,8 @@ function wp_link_category_checklist( $link_id = 0 ) {
  * @since 2.7.0
  *
  * @param WP_Post $post Post object.
+ *
+ * @return void
  */
 function get_inline_data( $post ) {
 	$post_type_object = get_post_type_object( $post->post_type );
@@ -339,6 +343,9 @@ function get_inline_data( $post ) {
 		echo '<div class="menu_order">' . $post->menu_order . '</div>';
 	}
 
+	/**
+	 * @var string[]
+	 */
 	$taxonomy_names = get_object_taxonomies( $post->post_type );
 
 	foreach ( $taxonomy_names as $taxonomy_name ) {
@@ -349,9 +356,11 @@ function get_inline_data( $post ) {
 			$terms = get_object_term_cache( $post->ID, $taxonomy_name );
 			if ( false === $terms ) {
 				$terms = wp_get_object_terms( $post->ID, $taxonomy_name );
-				wp_cache_add( $post->ID, wp_list_pluck( $terms, 'term_id' ), $taxonomy_name . '_relationships' );
+				if ( ! is_wp_error( $terms ) ) {
+					wp_cache_add( $post->ID, wp_list_pluck( $terms, 'term_id' ), $taxonomy_name . '_relationships' );
+				}
 			}
-			$term_ids = empty( $terms ) ? array() : wp_list_pluck( $terms, 'term_id' );
+			$term_ids = ( empty( $terms ) || ! is_array( $terms ) ) ? array() : wp_list_pluck( $terms, 'term_id' );
 
 			echo '<div class="post_category" id="' . $taxonomy_name . '_' . $post->ID . '">' . implode( ',', $term_ids ) . '</div>';
 
@@ -373,7 +382,7 @@ function get_inline_data( $post ) {
 	}
 
 	if ( post_type_supports( $post->post_type, 'post-formats' ) ) {
-		echo '<div class="post_format">' . esc_html( get_post_format( $post->ID ) ) . '</div>';
+		echo '<div class="post_format">' . esc_html( (string) get_post_format( $post->ID ) ) . '</div>';
 	}
 
 	/**
@@ -1204,7 +1213,7 @@ function _get_plugin_from_callback( $callback ) {
 	}
 
 	// Don't show an error if it's an internal PHP function.
-	if ( ! $reflection->isInternal() ) {
+	if ( ! $reflection->isInternal() && false !== $reflection->getFileName() ) {
 
 		// Only show errors if the meta box was registered by a plugin.
 		$filename   = wp_normalize_path( $reflection->getFileName() );
@@ -1213,6 +1222,9 @@ function _get_plugin_from_callback( $callback ) {
 		if ( strpos( $filename, $plugin_dir ) === 0 ) {
 			$filename = str_replace( $plugin_dir, '', $filename );
 			$filename = preg_replace( '|^/([^/]*/).*$|', '\\1', $filename );
+			if ( null === $filename ) {
+				return null;
+			}
 
 			$plugins = get_plugins();
 
@@ -2403,9 +2415,9 @@ function compression_test() {
  *                                       These key/value attribute pairs will be output as attribute="value",
  *                                       where attribute is the key. Other attributes can also be provided
  *                                       as a string such as 'tabindex="1"', though the array format is
- *                                       preferred. Default null.
+ *                                       preferred. Default empty.
  */
-function submit_button( $text = null, $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = null ) {
+function submit_button( $text = '', $type = 'primary', $name = 'submit', $wrap = true, $other_attributes = '' ) {
 	echo get_submit_button( $text, $type, $name, $wrap, $other_attributes );
 }
 
@@ -2618,9 +2630,9 @@ function wp_star_rating( $args = array() ) {
 
 	$output  = '<div class="star-rating">';
 	$output .= '<span class="screen-reader-text">' . $title . '</span>';
-	$output .= str_repeat( '<div class="star star-full" aria-hidden="true"></div>', $full_stars );
-	$output .= str_repeat( '<div class="star star-half" aria-hidden="true"></div>', $half_stars );
-	$output .= str_repeat( '<div class="star star-empty" aria-hidden="true"></div>', $empty_stars );
+	$output .= str_repeat( '<div class="star star-full" aria-hidden="true"></div>', (int) $full_stars );
+	$output .= str_repeat( '<div class="star star-half" aria-hidden="true"></div>', (int) $half_stars );
+	$output .= str_repeat( '<div class="star star-empty" aria-hidden="true"></div>', (int) $empty_stars );
 	$output .= '</div>';
 
 	if ( $parsed_args['echo'] ) {
