@@ -18,16 +18,26 @@ jobs:
         shell: bash -l {0}
         run: nvm install
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
+      - name: Start Docker environment
+        run: |
+          npm run env:start
       - name: Build WordPress
         run: npm run build
       - name: Setup Docker environment
         run: |
-          npm run env:start
-          sleep 5
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
           npm run env:install
       - name: Run PHPUnit
-        run: npm run test:php
+        run: |
+          npm run test:php -- --verbose -c phpunit.xml.dist &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
 
   test-php-7-4:
     name: Test PHP 7.4
@@ -41,13 +51,23 @@ jobs:
         shell: bash -l {0}
         run: nvm install
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
+      - name: Start Docker environment
+        run: |
+          npm run env:start
       - name: Build WordPress
         run: npm run build
       - name: Setup Docker environment
         run: |
-          npm run env:start
-          sleep 5
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
           npm run env:install
       - name: Run PHPUnit
-        run: npm run test:php
+        run: |
+          npm run test:php -- --verbose -c phpunit.xml.dist &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
