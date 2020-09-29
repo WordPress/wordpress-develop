@@ -127,7 +127,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string|false $update Optional. Whether an update offer is available. Default false.
+	 * @param object|false $update Optional. Whether an update offer is available. Default false.
 	 * @param array        $args   Optional. Other optional arguments, see
 	 *                             Language_Pack_Upgrader::bulk_upgrade(). Default empty array.
 	 * @return array|bool|WP_Error The result of the upgrade, or a WP_Error object instead.
