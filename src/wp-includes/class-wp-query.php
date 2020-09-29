@@ -2559,7 +2559,7 @@ class WP_Query {
 								)
 							);
 							foreach ( (array) $admin_all_states as $state ) {
-								$where .= " OR {$wpdb->posts}.post_status = '$state'";
+								$typewheres .= " OR {$wpdb->posts}.post_status = '$state'";
 							}
 						}
 
