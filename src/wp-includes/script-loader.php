@@ -2455,7 +2455,7 @@ function script_concat_settings() {
  * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_common_block_scripts_and_styles() {
-	if ( is_admin() && ! should_load_block_editor_scripts_and_styles() ) {
+	if ( is_admin() && ! _should_load_block_editor_scripts_and_styles() ) {
 		return;
 	}
 
@@ -2482,9 +2482,10 @@ function wp_common_block_scripts_and_styles() {
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
+ * @private
  * @return boolean
  */
-function should_load_block_editor_scripts_and_styles() {
+function _should_load_block_editor_scripts_and_styles() {
 	global $current_screen;
 	$is_block_editor_screen = ( $current_screen instanceof WP_Screen ) && $current_screen->is_block_editor();
 
@@ -2510,7 +2511,7 @@ function should_load_block_editor_scripts_and_styles() {
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
 
-	$load_editor_scripts = should_load_block_editor_scripts_and_styles();
+	$load_editor_scripts = _should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
