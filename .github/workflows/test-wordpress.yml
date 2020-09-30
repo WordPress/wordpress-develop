@@ -5,11 +5,14 @@ on: [push]
 env:
   LOCAL_DIR: build
 
-jobs:
+defaults:
+  run:
+    shell: bash -l {0}
+    runs-on: ubuntu-latest
 
+jobs:
   test-php-7-4:
     name: Test PHP 7.4
-    runs-on: ubuntu-latest
     env:
       LOCAL_PHP: 7.4-fpm
     steps:
@@ -18,7 +21,6 @@ jobs:
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
       - name: Use the desired version of Node using nvm
-        shell: bash -l {0}
         run: nvm install
       - name: Log debug information
         run: |
@@ -53,6 +55,5 @@ jobs:
 
   test-logging:
     name: Some test information
-    runs-on: ubuntu-latest
     steps:
       - run: docker-compose -v
