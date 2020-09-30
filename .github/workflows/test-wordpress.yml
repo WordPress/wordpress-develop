@@ -39,11 +39,11 @@ jobs:
         run: npm ci
 
       - name: Archive build result
-          uses: actions/upload-artifact@v2
-          with:
-            name: trunk
-            path: |
-              *
+        uses: actions/upload-artifact@v2
+        with:
+          name: trunk
+          path: |
+            *
 
   test-php-7-4:
     name: Test PHP 7.4
