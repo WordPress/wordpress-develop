@@ -6,11 +6,9 @@ env:
   LOCAL_DIR: build
 
 jobs:
-  test-php-7-4:
-    name: Test PHP 7.4
+  build-wordpress:
     runs-on: ubuntu-latest
-    env:
-      LOCAL_PHP: 7.4-fpm
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -23,17 +21,42 @@ jobs:
         with:
           node-version: 12
 
-#      - name: Use the desired version of Node using nvm
-#        run: nvm install
+      #      - name: Use the desired version of Node using nvm
+      #        run: nvm install
 
       - name: Log debug information
         run: |
           npm --version
           node --version
+          curl --version
+          git --version
           svn --version
+          php --version
+          php -i
+          locale -a
 
       - name: Install Dependencies
         run: npm ci
+
+      - name: Archive build result
+          uses: actions/upload-artifact@v2
+          with:
+            name: trunk
+            path: |
+              *
+
+  test-php-7-4:
+    name: Test PHP 7.4
+    runs-on: ubuntu-latest
+    needs: build-wordpress
+    env:
+      LOCAL_PHP: 7.4-fpm
+
+    steps:
+      - name: Download built WordPress
+        uses: actions/download-artifact@v2
+        with:
+          name: trunk
 
       - name: Start Docker environment
         run: |
