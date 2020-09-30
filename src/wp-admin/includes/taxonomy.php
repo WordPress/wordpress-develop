@@ -75,7 +75,7 @@ function wp_create_category( $cat_name, $parent = 0 ) {
  * @param int      $post_id    Optional. The post ID. Default empty.
  * @return int[] Array of IDs of categories assigned to the given post.
  */
-function wp_create_categories( $categories, $post_id = '' ) {
+function wp_create_categories( $categories, $post_id = 0 ) {
 	$cat_ids = array();
 	foreach ( $categories as $category ) {
 		$id = category_exists( $category );
@@ -226,7 +226,7 @@ function tag_exists( $tag_name ) {
  *
  * @since 2.3.0
  *
- * @param int|string $tag_name
+ * @param string $tag_name
  * @return array|WP_Error
  */
 function wp_create_tag( $tag_name ) {
@@ -264,6 +264,9 @@ function get_terms_to_edit( $post_id, $taxonomy = 'post_tag' ) {
 	$terms = get_object_term_cache( $post_id, $taxonomy );
 	if ( false === $terms ) {
 		$terms = wp_get_object_terms( $post_id, $taxonomy );
+		if ( is_wp_error( $terms ) ) {
+			return $terms;
+		}
 		wp_cache_add( $post_id, wp_list_pluck( $terms, 'term_id' ), $taxonomy . '_relationships' );
 	}
 
