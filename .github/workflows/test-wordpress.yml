@@ -50,12 +50,11 @@ jobs:
           php -i
           locale -a
 
-      - name: Build WordPress
-        run: npm run build
-
       - name: Install dependencies
         run: npm ci
 
+      - name: Build WordPress
+        run: npm run build
       - name: Archive build result
         uses: actions/upload-artifact@v2
         with:
