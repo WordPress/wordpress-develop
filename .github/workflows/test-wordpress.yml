@@ -55,6 +55,8 @@ jobs:
           ls src -l
           ls build -l
 
+          wp-env run cli wp eval "echo cwd();"
+
           cd ../
           ls -l
 
