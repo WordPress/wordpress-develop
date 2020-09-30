@@ -183,7 +183,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 							) . '</kbd></strong>'
 						);
 					} else {
-						_e( 'You will be returned to the WordPress Dashboard, and we will never speak of this again.' );
+						_e( 'You will be returned to the WordPress Dashboard, and no changes will be made.' );
 					}
 					?>
 					</em>
