@@ -336,7 +336,7 @@ function install_search_form( $deprecated = true ) {
 		</select>
 		<label class="screen-reader-text" for="search-plugins"><?php _e( 'Search Plugins' ); ?></label>
 		<input type="search" name="s" id="search-plugins" value="<?php echo esc_attr( $term ); ?>" class="wp-filter-search" placeholder="<?php esc_attr_e( 'Search plugins...' ); ?>" />
-		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', false, false, array( 'id' => 'search-submit' ) ); ?>
+		<?php submit_button( __( 'Search Plugins' ), 'hide-if-js', '', false, array( 'id' => 'search-submit' ) ); ?>
 	</form>
 	<?php
 }
@@ -686,7 +686,7 @@ function install_plugin_information() {
 					$active_installs_millions = floor( $api->active_installs / 1000000 );
 					printf(
 						/* translators: %s: Number of millions. */
-						_nx( '%s+ Million', '%s+ Million', $active_installs_millions, 'Active plugin installations' ),
+						_nx( '%s+ Million', '%s+ Million', (int) $active_installs_millions, 'Active plugin installations' ),
 						number_format_i18n( $active_installs_millions )
 					);
 				} elseif ( 0 == $api->active_installs ) {
