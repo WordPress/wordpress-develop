@@ -6,7 +6,7 @@ const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 dotenv.config();
 
 // Create wp-config.php.
-wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
+wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/home/runner/work/wordpress-develop/wordpress-develop --force' );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
