@@ -5,10 +5,6 @@ on: [push]
 env:
   LOCAL_DIR: build
 
-defaults:
-  run:
-    shell: bash -l {0}
-
 jobs:
   test-php-7-4:
     name: Test PHP 7.4
@@ -22,8 +18,13 @@ jobs:
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
 
-      - name: Use the desired version of Node using nvm
-        run: nvm install
+      - name: install node v12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+#      - name: Use the desired version of Node using nvm
+#        run: nvm install
 
       - name: Log debug information
         run: |
