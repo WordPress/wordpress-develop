@@ -55,10 +55,7 @@ jobs:
           ls src -l
           ls build -l
 
-          wp-env run cli wp eval "echo cwd();"
-
-          cd ../
-          ls -l
+          wp-env run cli wp eval "echo getcwd();"
 
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
