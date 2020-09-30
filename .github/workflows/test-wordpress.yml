@@ -54,8 +54,7 @@ jobs:
           ls -l
           ls src -l
           ls build -l
-
-          docker-compose run --rm php php eval "echo getcwd();"
+          docker-compose exec -T app ls -la
 
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
