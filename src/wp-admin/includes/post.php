@@ -246,8 +246,12 @@ function edit_post( $post_data = null ) {
 	// Clear out any data in internal vars.
 	unset( $post_data['filter'] );
 
-	$post_ID                     = (int) $post_data['post_ID'];
-	$post                        = get_post( $post_ID );
+	$post_ID = (int) $post_data['post_ID'];
+	$post    = get_post( $post_ID );
+	if ( null === $post ) {
+		wp_die( __( 'The requested post does not exist.' ) );
+	}
+
 	$post_data['post_type']      = $post->post_type;
 	$post_data['post_mime_type'] = $post->post_mime_type;
 
@@ -572,7 +576,7 @@ function bulk_edit_posts( $post_data = null ) {
 		// Start with fresh post data with each iteration.
 		$post_data = $shared_post_data;
 
-		$post_type_object = get_post_type_object( get_post_type( $post_ID ) );
+		$post_type_object = get_post_type_object( (string) get_post_type( $post_ID ) );
 
 		if ( ! isset( $post_type_object )
 			|| ( isset( $children ) && in_array( $post_ID, $children, true ) )
@@ -587,7 +591,12 @@ function bulk_edit_posts( $post_data = null ) {
 			continue;
 		}
 
-		$post      = get_post( $post_ID );
+		$post = get_post( $post_ID );
+		if ( null === $post ) {
+			$skipped[] = $post_ID;
+			continue;
+		}
+
 		$tax_names = get_object_taxonomies( $post );
 		foreach ( $tax_names as $tax_name ) {
 			$taxonomy_obj = get_taxonomy( $tax_name );
@@ -857,7 +866,7 @@ function wp_write_post() {
 	if ( is_wp_error( $translated ) ) {
 		return $translated;
 	}
-	$translated = _wp_get_allowed_postdata( $translated );
+	$translated = (array) _wp_get_allowed_postdata( $translated );
 
 	// Create the post.
 	$post_ID = wp_insert_post( $translated );
@@ -1042,11 +1051,14 @@ function update_meta( $meta_id, $meta_key, $meta_value ) {
  * @since 2.3.0
  * @access private
  *
- * @param int|object $post Post ID or post object.
+ * @param int|WP_Post $post Post ID or post object.
  * @return void|int|WP_Error Void if nothing fixed. 0 or WP_Error on update failure. The post ID on update success.
  */
 function _fix_attachment_links( $post ) {
-	$post    = get_post( $post, ARRAY_A );
+	$post = get_post( $post, ARRAY_A );
+	if ( null === $post ) {
+		return;
+	}
 	$content = $post['post_content'];
 
 	// Don't run if no pretty permalinks or post is not published, scheduled, or privately published.
@@ -1357,20 +1369,20 @@ function get_sample_permalink( $id, $title = null, $name = null ) {
 	// Hack: get_permalink() would return ugly permalink for drafts, so we will fake that our post is published.
 	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
 		$post->post_status = 'publish';
-		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
+		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, (string) $post->ID );
 	}
 
 	// If the user wants to set a new name -- override the current one.
 	// Note: if empty name is supplied -- use the title instead, see #6072.
 	if ( ! is_null( $name ) ) {
-		$post->post_name = sanitize_title( $name ? $name : $title, $post->ID );
+		$post->post_name = sanitize_title( $name ? $name : (string) $title, (string) $post->ID );
 	}
 
 	$post->post_name = wp_unique_post_slug( $post->post_name, $post->ID, $post->post_status, $post->post_type, $post->post_parent );
 
 	$post->filter = 'sample';
 
-	$permalink = get_permalink( $post, true );
+	$permalink = (string) get_permalink( $post, true );
 
 	// Replace custom post_type token with generic pagename token for ease of use.
 	$permalink = str_replace( "%$post->post_type%", '%pagename%', $permalink );
@@ -1380,7 +1392,7 @@ function get_sample_permalink( $id, $title = null, $name = null ) {
 		$uri = get_page_uri( $post );
 		if ( $uri ) {
 			$uri = untrailingslashit( $uri );
-			$uri = strrev( stristr( strrev( $uri ), '/' ) );
+			$uri = strrev( (string) stristr( strrev( $uri ), '/' ) );
 			$uri = untrailingslashit( $uri );
 		}
 
@@ -1448,7 +1460,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 				$view_link = get_permalink( $post );
 			} else {
 				// Allow non-published (private, future) to be viewed at a pretty permalink, in case $post->post_name is set.
-				$view_link = str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
+				$view_link = (string) str_replace( array( '%pagename%', '%postname%' ), $post->post_name, $permalink );
 			}
 		}
 	}
@@ -1457,7 +1469,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 	if ( false === strpos( $permalink, '%postname%' ) && false === strpos( $permalink, '%pagename%' ) ) {
 		$return = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
 
-		if ( false !== $view_link ) {
+		if ( false !== $view_link && null !== $view_link ) {
 			$display_link = urldecode( $view_link );
 			$return      .= '<a id="sample-permalink" href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . esc_html( $display_link ) . "</a>\n";
 		} else {
@@ -1481,7 +1493,7 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 		$display_link   = str_replace( array( '%pagename%', '%postname%' ), $post_name_html, esc_html( urldecode( $permalink ) ) );
 
 		$return  = '<strong>' . __( 'Permalink:' ) . "</strong>\n";
-		$return .= '<span id="sample-permalink"><a href="' . esc_url( $view_link ) . '"' . $preview_target . '>' . $display_link . "</a></span>\n";
+		$return .= '<span id="sample-permalink"><a href="' . esc_url( (string) $view_link ) . '"' . $preview_target . '>' . $display_link . "</a></span>\n";
 		$return .= '&lrm;'; // Fix bi-directional text display defect in RTL languages.
 		$return .= '<span id="edit-slug-buttons"><button type="button" class="edit-slug button button-small hide-if-no-js" aria-label="' . __( 'Edit permalink' ) . '">' . __( 'Edit' ) . "</button></span>\n";
 		$return .= '<span id="editable-post-name-full">' . esc_html( $post_name ) . "</span>\n";
@@ -1561,7 +1573,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		}
 	}
 
-	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . esc_attr( $thumbnail_id ? $thumbnail_id : '-1' ) . '" />';
+	$content .= '<input type="hidden" id="_thumbnail_id" name="_thumbnail_id" value="' . intval( $thumbnail_id ? $thumbnail_id : '-1' ) . '" />';
 
 	/**
 	 * Filters the admin post thumbnail HTML markup to return.
@@ -1593,7 +1605,7 @@ function wp_check_post_lock( $post_id ) {
 	}
 
 	$lock = get_post_meta( $post->ID, '_edit_lock', true );
-	if ( ! $lock ) {
+	if ( ! $lock || ! is_string( $lock ) ) {
 		return false;
 	}
 
@@ -1601,7 +1613,7 @@ function wp_check_post_lock( $post_id ) {
 	$time = $lock[0];
 	$user = isset( $lock[1] ) ? $lock[1] : get_post_meta( $post->ID, '_edit_last', true );
 
-	if ( ! get_userdata( $user ) ) {
+	if ( ! get_userdata( (int) $user ) ) {
 		return false;
 	}
 
@@ -1767,7 +1779,7 @@ function _admin_notice_post_locked() {
 		// Allow plugins to prevent some users overriding the post lock.
 		if ( $override ) {
 			?>
-	<a class="button button-primary wp-tab-last" href="<?php echo esc_url( add_query_arg( 'get-post-lock', '1', wp_nonce_url( get_edit_post_link( $post->ID, 'url' ), 'lock-post_' . $post->ID ) ) ); ?>"><?php _e( 'Take over' ); ?></a>
+	<a class="button button-primary wp-tab-last" href="<?php echo esc_url( add_query_arg( 'get-post-lock', '1', wp_nonce_url( (string) get_edit_post_link( $post->ID, 'url' ), 'lock-post_' . $post->ID ) ) ); ?>"><?php _e( 'Take over' ); ?></a>
 			<?php
 		}
 
@@ -1825,7 +1837,7 @@ function wp_create_post_autosave( $post_data ) {
 	if ( is_wp_error( $post_data ) ) {
 		return $post_data;
 	}
-	$post_data = _wp_get_allowed_postdata( $post_data );
+	$post_data = (array) _wp_get_allowed_postdata( $post_data );
 
 	$post_author = get_current_user_id();
 
@@ -1988,7 +2000,7 @@ function wp_autosave( $post_data ) {
  *
  * @param int $post_id Optional. Post ID.
  */
-function redirect_post( $post_id = '' ) {
+function redirect_post( $post_id = 0 ) {
 	if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
 		$status = get_post_status( $post_id );
 
@@ -2414,7 +2426,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	}
 	$form_action  = 'editpost';
 	$nonce_action = 'update-post_' . $post->ID;
-	$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . esc_attr( $post->ID ) . "' />";
+	$form_extra  .= "<input type='hidden' id='post_ID' name='post_ID' value='" . intval( $post->ID ) . "' />";
 	$referer      = wp_get_referer();
 	$current_user = wp_get_current_user();
 	$user_id      = $current_user->ID;
@@ -2431,7 +2443,7 @@ function the_block_editor_meta_box_post_form_hidden_fields( $post ) {
 	do_action( 'edit_form_advanced', $post );
 	$classic_output = ob_get_clean();
 
-	$classic_elements = wp_html_split( $classic_output );
+	$classic_elements = wp_html_split( (string) $classic_output );
 	$hidden_inputs    = '';
 	foreach ( $classic_elements as $element ) {
 		if ( 0 !== strpos( $element, '<input ' ) ) {
