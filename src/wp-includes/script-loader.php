@@ -720,7 +720,7 @@ function wp_default_scripts( $scripts ) {
 
 	// jQuery.
 	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.5.1' );
-	$scripts->add( 'jquery-core', '/wp-includes/js/jquery/jquery.js', array(), '3.5.1' );
+	$scripts->add( 'jquery-core', '/wp-includes/js/jquery/jquery$suffix.js', array(), '3.5.1' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.1' );
 
 	// Full jQuery UI.
@@ -730,11 +730,11 @@ function wp_default_scripts( $scripts ) {
 	// - effects.js containing all effects (all files from "group: Effects").
 	// - core.js now contains 'jquery-ui-position', 'jquery-ui-widget' and the rest of the files from "group: Core".
 	// - The files from "group: Widgets" and "group: Interactions" are still separate to optimize loading.
-	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$dev_suffix.js", array( 'jquery' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$suffix.js", array( 'jquery' ), '1.12.1', 1 );
 
 	// As of 1.12.1 the jQuery UI Effects are concatenated in `effects.js`.
 	// The separate files are listed here for back-compat.
-	$scripts->add( 'jquery-effects', "/wp-includes/js/jquery/ui/effects$dev_suffix.js", array( 'jquery' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects', "/wp-includes/js/jquery/ui/effects$suffix.js", array( 'jquery' ), '1.12.1', 1 );
 	$scripts->add( 'jquery-effects-core', false, array( 'jquery-effects' ), '1.12.1', 1 );
 	$scripts->add( 'jquery-effects-blind', false, array( 'jquery-effects' ), '1.12.1', 1 );
 	$scripts->add( 'jquery-effects-bounce', false, array( 'jquery-effects' ), '1.12.1', 1 );
@@ -753,30 +753,30 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'jquery-effects-transfer', false, array( 'jquery-effects' ), '1.12.1', 1 );
 
 	// Widgets
-	$scripts->add( 'jquery-ui-accordion', "/wp-includes/js/jquery/ui/accordion$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-autocomplete', "/wp-includes/js/jquery/ui/autocomplete$dev_suffix.js", array( 'jquery-ui-menu', 'wp-a11y' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-button', "/wp-includes/js/jquery/ui/button$dev_suffix.js", array( 'jquery-ui-core', 'jquery-ui-controlgroup', 'jquery-ui-checkboxradio' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-datepicker', "/wp-includes/js/jquery/ui/datepicker$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-dialog', "/wp-includes/js/jquery/ui/dialog$dev_suffix.js", array( 'jquery-ui-resizable', 'jquery-ui-draggable', 'jquery-ui-button' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-menu', "/wp-includes/js/jquery/ui/menu$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-mouse', "/wp-includes/js/jquery/ui/mouse$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-progressbar', "/wp-includes/js/jquery/ui/progressbar$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-selectmenu', "/wp-includes/js/jquery/ui/selectmenu$dev_suffix.js", array( 'jquery-ui-menu' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-slider', "/wp-includes/js/jquery/ui/slider$dev_suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-spinner', "/wp-includes/js/jquery/ui/spinner$dev_suffix.js", array( 'jquery-ui-button' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-tabs', "/wp-includes/js/jquery/ui/tabs$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-tooltip', "/wp-includes/js/jquery/ui/tooltip$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-accordion', "/wp-includes/js/jquery/ui/accordion$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-autocomplete', "/wp-includes/js/jquery/ui/autocomplete$suffix.js", array( 'jquery-ui-menu', 'wp-a11y' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-button', "/wp-includes/js/jquery/ui/button$suffix.js", array( 'jquery-ui-core', 'jquery-ui-controlgroup', 'jquery-ui-checkboxradio' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-datepicker', "/wp-includes/js/jquery/ui/datepicker$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-dialog', "/wp-includes/js/jquery/ui/dialog$suffix.js", array( 'jquery-ui-resizable', 'jquery-ui-draggable', 'jquery-ui-button' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-menu', "/wp-includes/js/jquery/ui/menu$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-mouse', "/wp-includes/js/jquery/ui/mouse$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-progressbar', "/wp-includes/js/jquery/ui/progressbar$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-selectmenu', "/wp-includes/js/jquery/ui/selectmenu$suffix.js", array( 'jquery-ui-menu' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-slider', "/wp-includes/js/jquery/ui/slider$suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-spinner', "/wp-includes/js/jquery/ui/spinner$suffix.js", array( 'jquery-ui-button' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-tabs', "/wp-includes/js/jquery/ui/tabs$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-tooltip', "/wp-includes/js/jquery/ui/tooltip$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
 
 	// New in 1.12.1
-	$scripts->add( 'jquery-ui-checkboxradio', "/wp-includes/js/jquery/ui/checkboxradio$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-controlgroup', "/wp-includes/js/jquery/ui/controlgroup$dev_suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-checkboxradio', "/wp-includes/js/jquery/ui/checkboxradio$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-controlgroup', "/wp-includes/js/jquery/ui/controlgroup$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );
 
 	// Interactions
-	$scripts->add( 'jquery-ui-draggable', "/wp-includes/js/jquery/ui/draggable$dev_suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-droppable', "/wp-includes/js/jquery/ui/droppable$dev_suffix.js", array( 'jquery-ui-draggable' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-resizable', "/wp-includes/js/jquery/ui/resizable$dev_suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-selectable', "/wp-includes/js/jquery/ui/selectable$dev_suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-ui-sortable', "/wp-includes/js/jquery/ui/sortable$dev_suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-draggable', "/wp-includes/js/jquery/ui/draggable$suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-droppable', "/wp-includes/js/jquery/ui/droppable$suffix.js", array( 'jquery-ui-draggable' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-resizable', "/wp-includes/js/jquery/ui/resizable$suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-selectable', "/wp-includes/js/jquery/ui/selectable$suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-ui-sortable', "/wp-includes/js/jquery/ui/sortable$suffix.js", array( 'jquery-ui-mouse' ), '1.12.1', 1 );
 
 	// As of 1.12.1 `jquery-ui-position` and `jquery-ui-widget` are part of `jquery-ui-core`.
 	// Listed here for back-compat.
