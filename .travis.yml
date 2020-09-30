@@ -37,20 +37,6 @@ jobs:
     name: "PHP Compatibility Check"
   - env: WP_TRAVISCI=travis:js WP_INSTALL=false PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=
     name: JS Tests
-  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.4"
-  - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.3"
-  - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.3 with Memcached"
-  - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.2"
-  - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.1"
-  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 7.0"
-  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
-    name: "PHPUnit Tests: PHP 5.6"
   - env: LOCAL_PHP=8.0-fpm COMPOSER_INSTALL=true WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
     script:
@@ -67,8 +53,21 @@ jobs:
       # Once Xdebug 3.0 is released and included in the Docker image, this should be uncommented again.
       # - LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
 
+  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.4"
+  - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.3"
+  - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.3 with Memcached"
+  - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.2"
+  - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.1"
+  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 7.0"
+  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
+    name: "PHPUnit Tests: PHP 5.6"
   allow_failures:
-  - env: LOCAL_PHP=8.0-fpm COMPOSER_INSTALL=true WP_TRAVISCI=test:php
   fast_finish: true
 
 before_install:
