@@ -2415,10 +2415,12 @@ class WP_Query {
 			$where .= $wpdb->prepare( " AND {$wpdb->posts}.ping_status = %s ", $q['ping_status'] );
 		}
 
+		$skip_post_status = false;
 		if ( 'any' === $post_type ) {
 			$in_search_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			if ( empty( $in_search_post_types ) ) {
 				$post_type_where = ' AND 1=0 ';
+				$skip_post_status = true;
 			} else {
 				$post_type_where = " AND {$wpdb->posts}.post_type IN ('" . join( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
 			}
@@ -2452,7 +2454,9 @@ class WP_Query {
 		$user_id = get_current_user_id();
 
 		$q_status = array();
-		if ( ! empty( $q['post_status'] ) ) {
+		if ( $skip_post_status ) {
+			$where .= $post_type_where;
+		} elseif ( ! empty( $q['post_status'] ) ) {
 
 			$where .= $post_type_where;
 
@@ -2527,60 +2531,65 @@ class WP_Query {
 				$cpts = array( 'post' );
 			}
 
-			$statustypeswheres = array();
+			if ( ! empty( $cpts ) ) {
 
-			foreach ($cpts as $ptype) {
+				$statustypeswheres = array();
 
-				$cpt_object = get_post_type_object( $ptype );
-				if ( ! $cpt_object instanceof \WP_Post_Type ) {
-					continue;
-				}
+				foreach ($cpts as $ptype) {
 
-				$read_private_cap = $cpt_object->cap->read_private_posts;
+					$cpt_object = get_post_type_object( $ptype );
+					if ( ! $cpt_object instanceof \WP_Post_Type ) {
+						continue;
+					}
 
-				$typewheres = '(';
+					$read_private_cap = $cpt_object->cap->read_private_posts;
 
-					$typewheres .= $wpdb->prepare( "{$wpdb->posts}.post_type = %s AND (", $ptype );
+					$typewheres = '(';
 
-						// public statuses
-						$public_states = get_post_stati( array( 'public' => true ) );
-						$statuswheres = [];
-						foreach ( (array) $public_states as $state ) {
-							$statuswheres[] = "{$wpdb->posts}.post_status = '$state'";
-						}
-						$typewheres .= implode(' OR ', $statuswheres);
+						$typewheres .= $wpdb->prepare( "{$wpdb->posts}.post_type = %s AND (", $ptype );
 
-						if ( $this->is_admin ) {
-							// Add protected states that should show in the admin all list.
-							$admin_all_states = get_post_stati(
-								array(
-									'protected'              => true,
-									'show_in_admin_all_list' => true,
-								)
-							);
-							foreach ( (array) $admin_all_states as $state ) {
-								$typewheres .= " OR {$wpdb->posts}.post_status = '$state'";
+							// public statuses
+							$public_states = get_post_stati( array( 'public' => true ) );
+							$statuswheres = [];
+							foreach ( (array) $public_states as $state ) {
+								$statuswheres[] = "{$wpdb->posts}.post_status = '$state'";
 							}
-						}
+							$typewheres .= implode(' OR ', $statuswheres);
 
-						if ( is_user_logged_in() ) {
-							// Add private states that are limited to viewing by the author of a post or someone who has caps to read private states.
-							$private_states = get_post_stati( array( 'private' => true ) );
-							foreach ( (array) $private_states as $state ) {
-								$typewheres .= current_user_can( $read_private_cap ) ? " OR {$wpdb->posts}.post_status = '$state'" : " OR {$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$state'";
+							if ( $this->is_admin ) {
+								// Add protected states that should show in the admin all list.
+								$admin_all_states = get_post_stati(
+									array(
+										'protected'              => true,
+										'show_in_admin_all_list' => true,
+									)
+								);
+								foreach ( (array) $admin_all_states as $state ) {
+									$typewheres .= " OR {$wpdb->posts}.post_status = '$state'";
+								}
 							}
-						}
+
+							if ( is_user_logged_in() ) {
+								// Add private states that are limited to viewing by the author of a post or someone who has caps to read private states.
+								$private_states = get_post_stati( array( 'private' => true ) );
+								foreach ( (array) $private_states as $state ) {
+									$typewheres .= current_user_can( $read_private_cap ) ? " OR {$wpdb->posts}.post_status = '$state'" : " OR {$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$state'";
+								}
+							}
+
+						$typewheres .= ')';
+
 
 					$typewheres .= ')';
 
+					$statustypeswheres[] = $typewheres;
 
-				$typewheres .= ')';
+				}
 
-				$statustypeswheres[] = $typewheres;
-
+				$where .= ' AND (' . implode( ' OR ', $statustypeswheres ) . ')';
+			} else {
+				$where .= ' AND 1=0 ';
 			}
-
-			$where .= ' AND (' . implode( ' OR ', $statustypeswheres ) . ')';
 
 		} else {
 			$where .= $post_type_where;
