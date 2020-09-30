@@ -2482,7 +2482,8 @@ function wp_common_block_scripts_and_styles() {
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
- * @private
+ * @access private
+ *
  * @return boolean
  */
 function _should_load_block_editor_scripts_and_styles() {
