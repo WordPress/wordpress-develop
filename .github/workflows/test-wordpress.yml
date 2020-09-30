@@ -18,32 +18,40 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
+
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+
       - name: Use the desired version of Node using nvm
         run: nvm install
+
       - name: Log debug information
         run: |
           npm --version
           node --version
           svn --version
+
       - name: Install Dependencies
         run: npm ci
+
       - name: Start Docker environment
         run: |
           sudo rm /usr/local/bin/docker-compose
-          curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
+          curl -L https://github.com/docker/compose/releases/download/1.27.4/docker-compose-`uname -s`-`uname -m` > docker-compose
           chmod +x docker-compose
           sudo mv docker-compose /usr/local/bin
           npm run env:start
+
       - name: Build WordPress
         run: npm run build
+
       - name: Setup Docker environment
         run: |
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
           npm run env:install
+
       - name: Run PHPUnit
         run: |
           npm run test:php -- --verbose -c phpunit.xml.dist &&
