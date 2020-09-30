@@ -10,20 +10,23 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		$scripts = new WP_Scripts;
 		wp_default_scripts( $scripts );
 
-		$jquery_scripts = array(
-			'jquery-core' => '/wp-includes/js/jquery/jquery.js',
-		);
 		if ( SCRIPT_DEBUG ) {
-			$jquery_scripts['jquery-migrate'] = '/wp-includes/js/jquery/jquery-migrate.js';
+			$jquery_scripts = array(
+				'jquery-core'    => '/wp-includes/js/jquery/jquery.js',
+				'jquery-migrate' => '/wp-includes/js/jquery/jquery-migrate.js',
+			);
 		} else {
-			$jquery_scripts['jquery-migrate'] = '/wp-includes/js/jquery/jquery-migrate.min.js';
+			$jquery_scripts = array(
+				'jquery-core'    => '/wp-includes/js/jquery/jquery.min.js',
+				'jquery-migrate' => '/wp-includes/js/jquery/jquery-migrate.min.js',
+			);
 		}
 
 		$object = $scripts->query( 'jquery', 'registered' );
 		$this->assertInstanceOf( '_WP_Dependency', $object );
 
 		// The following test is disabled in WP 5.5 as jQuery 1.12.4 is loaded without jQuery Migrate 1.4.1,
-		// and reenabled in 5.6 when jQuery 3.5.1 is loaded with Migrate 3.3.1.
+		// and reenabled in 5.6 when jQuery 3.5.1 is loaded with jQuery Migrate 3.3.1.
 		$this->assertSameSets( $object->deps, array_keys( $jquery_scripts ) );
 		foreach ( $object->deps as $dep ) {
 			$o = $scripts->query( $dep, 'registered' );
