@@ -48,6 +48,7 @@ jobs:
           name: trunk
           path: |
             *
+            !node_modules
 
   test-php-7-4:
     name: Test PHP 7.4
