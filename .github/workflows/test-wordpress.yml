@@ -50,9 +50,18 @@ jobs:
 
       - name: Setup Docker environment
         run: |
+          docker-compose -v
+          ls -l
+          ls src -l
+          ls build -l
+
+          cd ../
+          ls -l
+
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
+
           npm run env:install
 
       - name: Run PHPUnit
