@@ -29,6 +29,7 @@ jobs:
       - name: Log debug information
         run: |
           npm --version
+          which npm
           node --version
           curl --version
           git --version
