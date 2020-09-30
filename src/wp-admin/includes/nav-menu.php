@@ -601,7 +601,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 		<div id="<?php echo $post_type_name; ?>-all" class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $post_type->labels->all_items; ?>" tabindex="0">
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
-					<?php echo $page_links; ?>
+					<?php echo (string) $page_links; ?>
 				</div>
 			<?php endif; ?>
 			<ul id="<?php echo $post_type_name; ?>checklist" data-wp-lists="list:<?php echo $post_type_name; ?>" class="categorychecklist form-no-clear">
@@ -652,7 +652,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 			</ul>
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
-					<?php echo $page_links; ?>
+					<?php echo (string) $page_links; ?>
 				</div>
 			<?php endif; ?>
 		</div><!-- /.tabs-panel -->
@@ -725,6 +725,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 
 	$num_pages = ceil(
 		wp_count_terms(
+			$taxonomy_name,
 			array_merge(
 				$args,
 				array(
@@ -814,7 +815,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		<div id="tabs-panel-<?php echo $taxonomy_name; ?>-pop" class="tabs-panel <?php echo ( 'most-used' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $taxonomy->labels->most_used; ?>" tabindex="0">
 			<ul id="<?php echo $taxonomy_name; ?>checklist-pop" class="categorychecklist form-no-clear" >
 				<?php
-				$popular_terms  = get_terms(
+				$popular_terms = get_terms(
 					array(
 						'taxonomy'     => $taxonomy_name,
 						'orderby'      => 'count',
@@ -823,27 +824,35 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 						'hierarchical' => false,
 					)
 				);
-				$args['walker'] = $walker;
-				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $popular_terms ), 0, (object) $args );
-				?>
+				if ( is_array( $popular_terms ) ) :
+					$args['walker'] = $walker;
+					echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $popular_terms ), 0, (object) $args );
+				elseif ( is_wp_error( $popular_terms ) ) :
+					?>
+					<li><?php echo $popular_terms->get_error_message(); ?></li>
+				<?php endif; ?>
 			</ul>
 		</div><!-- /.tabs-panel -->
 
 		<div id="tabs-panel-<?php echo $taxonomy_name; ?>-all" class="tabs-panel tabs-panel-view-all <?php echo ( 'all' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $taxonomy->labels->all_items; ?>" tabindex="0">
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
-					<?php echo $page_links; ?>
+					<?php echo (string) $page_links; ?>
 				</div>
 			<?php endif; ?>
 			<ul id="<?php echo $taxonomy_name; ?>checklist" data-wp-lists="list:<?php echo $taxonomy_name; ?>" class="categorychecklist form-no-clear">
 				<?php
-				$args['walker'] = $walker;
-				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $terms ), 0, (object) $args );
-				?>
+				if ( is_array( $terms ) ) :
+					$args['walker'] = $walker;
+					echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $terms ), 0, (object) $args );
+				elseif ( is_wp_error( $terms ) ) :
+					?>
+					<li><?php echo $terms->get_error_message(); ?></li>
+				<?php endif; ?>
 			</ul>
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
-					<?php echo $page_links; ?>
+					<?php echo (string) $page_links; ?>
 				</div>
 			<?php endif; ?>
 		</div><!-- /.tabs-panel -->
@@ -875,7 +884,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			</p>
 
 			<ul id="<?php echo $taxonomy_name; ?>-search-checklist" data-wp-lists="list:<?php echo $taxonomy_name; ?>" class="categorychecklist form-no-clear">
-			<?php if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ?>
+			<?php if ( ! empty( $search_results ) && is_array( $search_results ) ) : ?>
 				<?php
 				$args['walker'] = $walker;
 				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $search_results ), 0, (object) $args );
@@ -1190,7 +1199,7 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 				$args[ $field ] = isset( $_POST[ $field ][ $_key ] ) ? $_POST[ $field ][ $_key ] : '';
 			}
 
-			$menu_item_db_id = wp_update_nav_menu_item( $nav_menu_selected_id, ( $_POST['menu-item-db-id'][ $_key ] != $_key ? 0 : $_key ), $args );
+			$menu_item_db_id = wp_update_nav_menu_item( (int) $nav_menu_selected_id, ( $_POST['menu-item-db-id'][ $_key ] != $_key ? 0 : $_key ), $args );
 
 			if ( is_wp_error( $menu_item_db_id ) ) {
 				$messages[] = '<div id="message" class="error"><p>' . $menu_item_db_id->get_error_message() . '</p></div>';
@@ -1203,8 +1212,8 @@ function wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selecte
 	// Remove menu items from the menu that weren't in $_POST.
 	if ( ! empty( $menu_items ) ) {
 		foreach ( array_keys( $menu_items ) as $menu_item_id ) {
-			if ( is_nav_menu_item( $menu_item_id ) ) {
-				wp_delete_post( $menu_item_id );
+			if ( is_nav_menu_item( (int) $menu_item_id ) ) {
+				wp_delete_post( (int) $menu_item_id );
 			}
 		}
 	}
