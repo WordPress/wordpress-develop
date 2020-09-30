@@ -18,8 +18,13 @@ jobs:
       - name: Use the desired version of Node using nvm
         shell: bash -l {0}
         run: nvm install
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          svn --version
       - name: Install Dependencies
-        run: npm ci --no-save
+        run: npm ci
       - name: Start Docker environment
         run: |
           sudo rm /usr/local/bin/docker-compose
