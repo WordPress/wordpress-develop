@@ -8,7 +8,7 @@ env:
 defaults:
   run:
     shell: bash -l {0}
-    runs-on: ubuntu-latest
+  runs-on: ubuntu-latest
 
 jobs:
   test-php-7-4:
