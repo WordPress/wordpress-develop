@@ -33,7 +33,7 @@ function network_domain_check() {
  * @return bool Whether subdomain installation is allowed
  */
 function allow_subdomain_install() {
-	$domain = preg_replace( '|https?://([^/]+)|', '$1', get_option( 'home' ) );
+	$domain = (string) preg_replace( '|https?://([^/]+)|', '$1', get_option( 'home' ) );
 	if ( parse_url( get_option( 'home' ), PHP_URL_PATH ) || 'localhost' === $domain || preg_match( '|^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$|', $domain ) ) {
 		return false;
 	}
@@ -107,7 +107,7 @@ function get_clean_basedomain() {
  *
  * @global bool $is_apache
  *
- * @param WP_Error $errors
+ * @param WP_Error|false $errors
  */
 function network_step1( $errors = false ) {
 	global $is_apache;
@@ -384,15 +384,15 @@ function network_step1( $errors = false ) {
  * @global wpdb $wpdb     WordPress database abstraction object.
  * @global bool $is_nginx Whether the server software is Nginx or something else.
  *
- * @param WP_Error $errors
+ * @param WP_Error|false $errors
  */
 function network_step2( $errors = false ) {
 	global $wpdb, $is_nginx;
 
 	$hostname          = get_clean_basedomain();
 	$slashed_home      = trailingslashit( get_option( 'home' ) );
-	$base              = parse_url( $slashed_home, PHP_URL_PATH );
-	$document_root_fix = str_replace( '\\', '/', realpath( $_SERVER['DOCUMENT_ROOT'] ) );
+	$base              = (string) parse_url( $slashed_home, PHP_URL_PATH );
+	$document_root_fix = str_replace( '\\', '/', (string) realpath( $_SERVER['DOCUMENT_ROOT'] ) );
 	$abspath_fix       = str_replace( '\\', '/', ABSPATH );
 	$home_path         = 0 === strpos( $abspath_fix, $document_root_fix ) ? $document_root_fix . $base : get_home_path();
 	$wp_siteurl_subdir = preg_replace( '#^' . preg_quote( $home_path, '#' ) . '#', '', $abspath_fix );
@@ -521,7 +521,11 @@ define('BLOG_ID_CURRENT_SITE', 1);
 			} else {
 				$from_api = explode( "\n", wp_remote_retrieve_body( $from_api ) );
 				foreach ( $keys_salts as $c => $v ) {
-					$keys_salts_str .= "\ndefine( '$c', '" . substr( array_shift( $from_api ), 28, 64 ) . "' );";
+					$secret_str = substr( (string) array_shift( $from_api ), 28, 64 );
+					if ( strlen( $secret_str ) < 64 ) {
+						$secret_str = wp_generate_password( 64, true, true );
+					}
+					$keys_salts_str .= "\ndefine( '$c', '" . $secret_str . "' );";
 				}
 			}
 			$num_keys_salts = count( $keys_salts );
