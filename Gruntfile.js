@@ -179,8 +179,6 @@ module.exports = function(grunt) {
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
@@ -536,7 +534,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jshint: {
-			options: grunt.file.readJSON('.jshintrc'),
+			options: grunt.file.readJSON( '.jshintrc' ),
 			grunt: {
 				src: ['Gruntfile.js']
 			},
@@ -546,7 +544,7 @@ module.exports = function(grunt) {
 					'!tests/qunit/vendor/*',
 					'!tests/qunit/editor/**'
 				],
-				options: grunt.file.readJSON('tests/qunit/.jshintrc')
+				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
 			themes: {
 				expand: true,
