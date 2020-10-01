@@ -218,7 +218,7 @@ jQuery( document ).ready( function( $ ) {
 					data
 				).done( function( response ) {
 					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-					AppendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+					appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
 				} ).fail( function( response ) {
 					var description, issue;
 
@@ -240,7 +240,7 @@ jQuery( document ).ready( function( $ ) {
 					};
 
 					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-					AppendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
+					appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
 				} ).always( function() {
 					maybeRunNextAsyncTest();
 				} );
