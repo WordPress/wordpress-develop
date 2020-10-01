@@ -131,6 +131,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @since 5.6.0
 	 *
 	 * @param string $check The endpoint check being ran.
+	 *
 	 * @return bool
 	 */
 	protected function validate_request_permission( $check ) {
