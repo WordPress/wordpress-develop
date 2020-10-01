@@ -313,7 +313,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 				),
 				array(
 					'propA' => 'a',
-					'prop0' => 0,
+					'prop0' => '0',
 				),
 				array(
 					'propA' => 'a',

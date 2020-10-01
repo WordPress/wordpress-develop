@@ -368,6 +368,16 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 			),
 			array(
 				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 'notAnInteger',
+				),
+				false,
+			),
+			array(
+				array(
 					'.+' => array( 'type' => 'string' ),
 				),
 				array(
