@@ -297,7 +297,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			'additionalProperties',
 			'minProperties',
 			'maxProperties',
-		    'anyOf',
+			'anyOf',
 			'oneOf',
 		);
 		foreach ( $object_properties as $property ) {

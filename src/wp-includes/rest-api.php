@@ -1576,7 +1576,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
 }
 
 /**
- * Gets the possible error of combining operation.
+ * Gets the error of combining operation.
  *
  * @since 5.6.0
  *
@@ -1588,10 +1588,15 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
 function rest_get_combining_operation_error( $value, $param, $errors ) {
 	// If there is only one error, simply return it.
 	if ( 1 === count( $errors ) ) {
-		$reason = $errors[0]['error_object']->get_error_message();
+		$position = $errors[0]['index'];
+		$reason   = $errors[0]['error_object']->get_error_message();
 
 		/* translators: 1: Parameter, 2: Reason. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Reason: %2$s' ), $param, $reason ) );
+		return new WP_Error(
+			'rest_invalid_param',
+			sprintf( __( '%1$s does not match any of the expected formats. Reason: %2$s' ), $param, $reason ),
+			array( 'position' => $position )
+		);
 	}
 
 	// Filter out all errors related to type validation.
@@ -1604,10 +1609,15 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 
 	// If there is only one error left, simply return it.
 	if ( 1 === count( $filtered_errors ) ) {
-		$reason = $filtered_errors[0]['error_object']->get_error_message();
+		$position = $filtered_errors[0]['index'];
+		$reason   = $filtered_errors[0]['error_object']->get_error_message();
 
 		/* translators: 1: Parameter, 2: Reason. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Reason: %2$s' ), $param, $reason ) );
+		return new WP_Error(
+			'rest_invalid_param',
+			sprintf( __( '%1$s does not match any of the expected formats. Reason: %2$s' ), $param, $reason ),
+			array( 'position' => $position )
+		);
 	}
 
 	// If there are only errors related to object validation, try choosing the most appropriate one.
@@ -1619,20 +1629,40 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 			if ( isset( $error['schema']['properties'] ) ) {
 				$n = count( array_intersect_key( $error['schema']['properties'], $value ) );
 				if ( $n > $number ) {
-					$result = $error['error_object'];
+					$result = $error;
 					$number = $n;
 				}
 			}
 		}
 
-		$possible_reason = $result->get_error_message();
+		if ( null !== $result ) {
+			$possible_position = $result['index'];
+			$possible_reason   = $result['error_object']->get_error_message();
 
-		/* translators: 1: Parameter, 2: Possible reason. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema. Possible reason: %2$s' ), $param, $possible_reason ) );
+			/* translators: 1: Parameter, 2: Possible reason. */
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf( __( '%1$s does not match any of the expected formats. Possible reason: %2$s' ), $param, $possible_reason ),
+				array( 'position' => $possible_position )
+			);
+		}
+	}
+
+	// If each schema has a title, include those titles in the error message.
+	$schema_titles = array();
+	foreach ( $errors as $error ) {
+		if ( isset( $error['schema']['title'] ) ) {
+			$schema_titles[] = $error['schema']['title'];
+		}
+	}
+
+	if ( count( $schema_titles ) === count( $errors ) ) {
+		/* translators: 1: Parameter, 2: Schema titles. */
+		return new WP_Error( 'rest_invalid_param', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
 	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any schema.' ), $param ) );
+	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1944,7 +1974,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		$is_valid_found = false;
 		$errors         = array();
 
-		foreach ( $args['anyOf'] as $schema ) {
+		foreach ( $args['anyOf'] as $index => $schema ) {
 			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
 			if ( ! is_wp_error( $is_valid ) ) {
 				$is_valid_found = true;
@@ -1954,6 +1984,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			$errors[] = array(
 				'error_object' => $is_valid,
 				'schema'       => $schema,
+				'index'        => $index,
 			);
 		}
 
@@ -1963,28 +1994,57 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( isset( $args['oneOf'] ) ) {
-		$is_valid_found = false;
-		$errors         = array();
+		$matching_schemas = array();
+		$errors           = array();
 
-		foreach ( $args['oneOf'] as $schema ) {
+		foreach ( $args['oneOf'] as $index => $schema ) {
 			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
 			if ( ! is_wp_error( $is_valid ) ) {
-				if ( $is_valid_found ) {
-					/* translators: 1: Parameter. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s matches more than one schema.' ), $param ) );
-				}
-
-				$is_valid_found = true;
+				$matching_schemas[] = array(
+					'schema_object' => $schema,
+					'index'         => $index,
+				);
 			} else {
 				$errors[] = array(
 					'error_object' => $is_valid,
 					'schema'       => $schema,
+					'index'        => $index,
 				);
 			}
 		}
 
-		if ( ! $is_valid_found ) {
+		if ( empty( $matching_schemas ) ) {
 			return rest_get_combining_operation_error( $value, $param, $errors );
+		}
+
+		if ( count( $matching_schemas ) > 1 ) {
+			$schema_positions = array();
+			$schema_titles    = array();
+
+			foreach ( $matching_schemas as $schema ) {
+				$schema_positions[] = $schema['index'];
+
+				if ( isset( $schema['schema_object']['title'] ) ) {
+					$schema_titles[] = $schema['schema_object']['title'];
+				}
+			}
+
+			// If each schema has a title, include those titles in the error message.
+			if ( count( $schema_titles ) === count( $matching_schemas ) ) {
+				/* translators: 1: Parameter, 2: Schema titles. */
+				return new WP_Error(
+					'rest_invalid_param',
+					wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
+					array( 'positions' => $schema_positions )
+				);
+			}
+
+			/* translators: 1: Parameter. */
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
+				array( 'positions' => $schema_positions )
+			);
 		}
 	}
 
