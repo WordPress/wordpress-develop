@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.5.0
+ * @since 5.6.0
  */
 
 /**
  * Core class for interacting with Site Health elements.
  *
- * @since 5.5.0
+ * @since 5.6.0
  *
  * @see WP_REST_Controller
  */
@@ -26,7 +26,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @param WP_Site_Health $site_health An instance of the site health class.
 	 */
@@ -39,7 +39,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Register API routes.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -127,7 +127,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Validate if the current user can request this REST endpoint.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @param string $check The endpoint check being ran.
 	 * @return bool
@@ -138,7 +138,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		/**
 		 * Filter the capability needed to run a given Site Health check.
 		 *
-		 * @since 5.5.0
+		 * @since 5.6.0
 		 *
 		 * @param string $default_capability The default capability required for this check.
 		 * @param string $check              The Site Health check being performed.
@@ -151,7 +151,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Check if background updates work as expected.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @return array
 	 */
@@ -164,7 +164,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Check that the site can reach the WordPress.org API.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @return array
 	 */
@@ -177,7 +177,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Check that loopbacks can be performed.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @return array
 	 */
@@ -190,7 +190,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Check if the site has debug mode enabled.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @return array
 	 */
@@ -203,7 +203,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * Get the current directory sizes for this install.
 	 *
-	 * @since 5.5.0
+	 * @since 5.6.0
 	 *
 	 * @return array|WP_Error
 	 */

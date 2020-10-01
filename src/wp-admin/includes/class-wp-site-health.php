@@ -2091,7 +2091,7 @@ class WP_Site_Health {
 	 * experiences.
 	 *
 	 * @since 5.2.0
-	 * @since 5.5.0 Added support for `has_rest` and `permissions`.
+	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
 	 *
 	 * @return array The list of tests to run.
 	 */
