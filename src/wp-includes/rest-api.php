@@ -1597,8 +1597,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 	// Filter out all errors related to type validation.
 	$filtered_errors = array();
 	foreach ( $errors as $error ) {
-		$best_type = rest_get_best_type_for_value( $value, array( $error['schema']['type'] ) );
-		if ( $best_type === $error['schema']['type'] ) {
+		if ( 'rest_invalid_type' !== $error['error_object']->get_error_code() ) {
 			$filtered_errors[] = $error;
 		}
 	}
@@ -1671,7 +1670,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( ! $best_type ) {
 			/* translators: 1: Parameter, 2: List of types. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ) );
 		}
 
 		$args['type'] = $best_type;
@@ -1689,7 +1688,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( 'array' === $args['type'] ) {
 		if ( ! rest_is_array( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ) );
 		}
 
 		$value = rest_sanitize_array( $value );
@@ -1722,7 +1721,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( 'object' === $args['type'] ) {
 		if ( ! rest_is_object( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ) );
 		}
 
 		$value = rest_sanitize_object( $value );
@@ -1790,7 +1789,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( 'null' === $args['type'] ) {
 		if ( null !== $value ) {
 			/* translators: 1: Parameter, 2: Type name. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ) );
 		}
 
 		return true;
@@ -1806,7 +1805,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
 		if ( ! is_numeric( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
 		}
 
 		if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
@@ -1817,18 +1816,18 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
 		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
+		return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ) );
 	}
 
 	if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
 		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ) );
+		return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ) );
 	}
 
 	if ( 'string' === $args['type'] ) {
 		if ( ! is_string( $value ) ) {
 			/* translators: 1: Parameter, 2: Type name. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
+			return new WP_Error( 'rest_invalid_type', sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ) );
 		}
 
 		if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {

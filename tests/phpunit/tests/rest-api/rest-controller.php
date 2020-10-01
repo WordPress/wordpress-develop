@@ -66,7 +66,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
 		);
 	}
@@ -140,7 +140,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( '123', $this->request, 'someboolean' )
 		);
 	}
@@ -152,7 +152,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
 		);
 	}
