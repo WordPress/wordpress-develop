@@ -2388,6 +2388,15 @@ EOF;
 	}
 
 	/**
+	 * @ticket 50679
+	 */
+	function test_wp_get_attachment_metadata_should_return_false_if_no_attachment() {
+		$post_id = self::factory()->post->create();
+		$data   = wp_get_attachment_metadata( $post_id );
+		$this->assertFalse( $data );
+	}
+
+	/**
 	 * @ticket 37813
 	 */
 	public function test_return_type_when_inserting_attachment_with_error_in_data() {
