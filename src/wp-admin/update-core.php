@@ -362,7 +362,7 @@ function list_plugin_updates() {
 		// Get plugin compat for running version of WordPress.
 		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
-			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
+			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Compatible% (according to its author)' ), $cur_wp_version );
 		} else {
 			/* translators: %s: WordPress version. */
 			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $cur_wp_version );
@@ -371,7 +371,7 @@ function list_plugin_updates() {
 		if ( $core_update_version ) {
 			if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $core_update_version, '>=' ) ) {
 				/* translators: %s: WordPress version. */
-				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $core_update_version );
+				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Compatible% (according to its author)' ), $core_update_version );
 			} else {
 				/* translators: %s: WordPress version. */
 				$compat .= '<br />' . sprintf( __( 'Compatibility with WordPress %s: Unknown' ), $core_update_version );
