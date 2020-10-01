@@ -113,7 +113,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 			}
 		}
 
-		update_blog_status( $blog_id, 'deleted', 1 );
+		update_blog_status( $blog_id, 'deleted', '1' );
 
 		/** This action is documented in wp-includes/ms-blogs.php */
 		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
@@ -869,7 +869,7 @@ function confirm_delete_users( $users ) {
 	<?php
 	wp_nonce_field( 'ms-users-delete' );
 	$site_admins = get_super_admins();
-	$admin_out   = '<option value="' . esc_attr( $current_user->ID ) . '">' . $current_user->user_login . '</option>';
+	$admin_out   = '<option value="' . intval( $current_user->ID ) . '">' . $current_user->user_login . '</option>';
 	?>
 	<table class="form-table" role="presentation">
 	<?php
