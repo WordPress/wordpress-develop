@@ -121,6 +121,11 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 							'type' => 'integer',
 						),
 					),
+					'patternProperties'    => array(
+						'[0-9]' => array(
+							'type' => 'string',
+						),
+					),
 					'minProperties'        => 1,
 					'maxProperties'        => 10,
 					'ignored_prop'         => 'ignored_prop',

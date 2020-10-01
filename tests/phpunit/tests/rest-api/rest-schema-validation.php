@@ -288,6 +288,107 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( array( 'a' => 'invalid' ), $schema ) );
 	}
 
+	/**
+	 * @ticket 51024
+	 *
+	 * @dataProvider data_type_object_pattern_properties
+	 *
+	 * @param array $pattern_properties
+	 * @param array $value
+	 * @param bool $expected
+	 */
+	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => $pattern_properties,
+			'additionalProperties' => false,
+		);
+
+		if ( $expected ) {
+			$this->assertTrue( rest_validate_value_from_schema( $value, $schema ) );
+		} else {
+			$this->assertWPError( rest_validate_value_from_schema( $value, $schema ) );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_type_object_pattern_properties() {
+		return array(
+			array( array(), array(), true ),
+			array( array(), array( 'propA' => 'a' ), true ),
+			array(
+				array(),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				false,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array( 'propA' => 'a' ),
+				true,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				true,
+			),
+			array(
+				array(
+					'.*C' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+				true,
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 0,
+				),
+				true,
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 'notAnInteger',
+				),
+				false,
+			),
+			array(
+				array(
+					'.+' => array( 'type' => 'string' ),
+				),
+				array(
+					''      => '',
+					'propA' => 'a',
+				),
+				false,
+			),
+		);
+	}
+
 	public function test_type_object_additional_properties_false() {
 		$schema = array(
 			'type'                 => 'object',
