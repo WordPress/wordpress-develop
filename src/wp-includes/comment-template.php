@@ -1434,6 +1434,21 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 				$top_level_args['include_unapproved'] = $comment_args['include_unapproved'];
 			}
 
+			/**
+			 * Filters the arguments used in the top level comments query.
+			 *
+			 * @since 5.6.0
+			 *
+			 * @see WP_Comment_Query::__construct()
+			 *
+			 * @param array $top_level_args {
+			 *     @type bool         $count   Whether to return a comment count.
+			 *     @type string|array $orderby Field(s) to order by.
+			 *     @type int          $post_id ID of post
+			 *     @type string|array $status  Comment status to limit results by.
+			 * }
+			 */
+			$top_level_args  = apply_filters( 'comments_template_top_level_query_args', $top_level_args );
 			$top_level_count = $top_level_query->query( $top_level_args );
 
 			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
