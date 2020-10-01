@@ -32,6 +32,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function __construct( $site_health ) {
 		$this->namespace = 'wp-site-health/v1';
+		$this->rest_base = 'tests';
 
 		$this->site_health = $site_health;
 	}
@@ -48,7 +49,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'tests',
+				$this->rest_base,
 				'background-updates'
 			),
 			array(
@@ -64,7 +65,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'tests',
+				$this->rest_base,
 				'loopback-requests'
 			),
 			array(
@@ -80,7 +81,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'tests',
+				$this->rest_base,
 				'dotorg-communication'
 			),
 			array(
@@ -96,7 +97,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 			$this->namespace,
 			sprintf(
 				'/%s/%s',
-				'tests',
+				$this->rest_base,
 				'debug_enabled'
 			),
 			array(
