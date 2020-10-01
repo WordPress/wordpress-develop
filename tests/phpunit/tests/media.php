@@ -2353,6 +2353,7 @@ EOF;
 	 * used in the output of `wp_get_attachment_image()`.
 	 *
 	 * @ticket 36246
+	 * @requires function imagejpeg
 	 */
 	function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
 		add_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ), 10, 2 );
@@ -2384,6 +2385,15 @@ EOF;
 			'mime-type' => 'image/jpg',
 		);
 		return $data;
+	}
+
+	/**
+	 * @ticket 50679
+	 */
+	function test_wp_get_attachment_metadata_should_return_false_if_no_attachment() {
+		$post_id = self::factory()->post->create();
+		$data   = wp_get_attachment_metadata( $post_id );
+		$this->assertFalse( $data );
 	}
 
 	/**

@@ -281,7 +281,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['somestring'] );
 		}
 
-		foreach ( array( 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum' ) as $property ) {
+		foreach ( array( 'multipleOf', 'minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum' ) as $property ) {
 			$this->assertArrayHasKey( $property, $args['someinteger'] );
 		}
 
@@ -291,7 +291,16 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['somearray'] );
 		}
 
-		foreach ( array( 'properties', 'additionalProperties', 'anyOf', 'oneOf' ) as $property ) {
+		$object_properties = array(
+			'properties',
+			'patternProperties',
+			'additionalProperties',
+			'minProperties',
+			'maxProperties',
+		    'anyOf',
+			'oneOf',
+		);
+		foreach ( $object_properties as $property ) {
 			$this->assertArrayHasKey( $property, $args['someobject'] );
 		}
 
