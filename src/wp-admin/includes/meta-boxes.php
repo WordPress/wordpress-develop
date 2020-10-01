@@ -66,7 +66,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 			?>
 			<div id="preview-action">
 				<?php
-				$preview_link = esc_url( get_preview_post_link( $post ) );
+				$preview_link = esc_url( (string) get_preview_post_link( $post ) );
 				if ( 'publish' === $post->post_status ) {
 					$preview_button_text = __( 'Preview Changes' );
 				} else {
@@ -256,7 +256,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				/* translators: Post revisions heading. %s: The number of available revisions. */
 				printf( __( 'Revisions: %s' ), '<b>' . number_format_i18n( $args['args']['revisions_count'] ) . '</b>' );
 				?>
-				<a class="hide-if-no-js" href="<?php echo esc_url( get_edit_post_link( $args['args']['revision_id'] ) ); ?>"><span aria-hidden="true"><?php _ex( 'Browse', 'revisions' ); ?></span> <span class="screen-reader-text"><?php _e( 'Browse revisions' ); ?></span></a>
+				<a class="hide-if-no-js" href="<?php echo esc_url( (string) get_edit_post_link( $args['args']['revision_id'] ) ); ?>"><span aria-hidden="true"><?php _ex( 'Browse', 'revisions' ); ?></span> <span class="screen-reader-text"><?php _e( 'Browse revisions' ); ?></span></a>
 			</div>
 			<?php
 		endif;
@@ -290,7 +290,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 						esc_url(
 							add_query_arg(
 								'changeset_uuid',
-								rawurlencode( get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
+								rawurlencode( (string) get_post_meta( $post_id, '_customize_changeset_uuid', true ) ),
 								admin_url( 'customize.php' )
 							)
 						)
@@ -337,7 +337,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 				$delete_text = __( 'Move to Trash' );
 			}
 			?>
-			<a class="submitdelete deletion" href="<?php echo get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
+			<a class="submitdelete deletion" href="<?php echo (string) get_delete_post_link( $post_id ); ?>"><?php echo $delete_text; ?></a>
 			<?php
 		}
 		?>
@@ -441,7 +441,7 @@ function attachment_submit_meta_box( $post ) {
 			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
 			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
+			echo "<a class='submitdelete deletion'$delete_ays href='" . (string) get_delete_post_link( $post->ID, '', true ) . "'>" . __( 'Delete permanently' ) . '</a>';
 		}
 	}
 	?>
@@ -758,7 +758,7 @@ function post_trackback_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_custom_meta_box( $post ) {
 	?>
@@ -864,12 +864,12 @@ function post_comment_meta_box( $post ) {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
 			?>
-			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
+			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo intval( $total ); ?>, 10);});</script>
 			<?php
 		}
 
 		?>
-		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" onclick="commentsBox.load(<?php echo $total; ?>);return false;"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
+		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" onclick="commentsBox.load(<?php echo intval( $total ); ?>);return false;"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
 		<?php
 	}
 
@@ -921,7 +921,7 @@ function post_author_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_revisions_meta_box( $post ) {
 	wp_list_post_revisions( $post );
@@ -936,7 +936,7 @@ function post_revisions_meta_box( $post ) {
  *
  * @since 2.7.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function page_attributes_meta_box( $post ) {
 	if ( is_post_type_hierarchical( $post->post_type ) ) :
@@ -971,7 +971,7 @@ function page_attributes_meta_box( $post ) {
 	endif;  // End hierarchical check.
 
 	if ( count( get_page_templates( $post ) ) > 0 && get_option( 'page_for_posts' ) != $post->ID ) :
-		$template = ! empty( $post->page_template ) ? $post->page_template : false;
+		$template = ! empty( $post->page_template ) ? $post->page_template : '';
 		?>
 <p class="post-attributes-label-wrapper page-template-label-wrapper"><label class="post-attributes-label" for="page_template"><?php _e( 'Template' ); ?></label>
 		<?php
@@ -1006,7 +1006,7 @@ function page_attributes_meta_box( $post ) {
 <?php endif; ?>
 	<?php if ( post_type_supports( $post->post_type, 'page-attributes' ) ) : ?>
 <p class="post-attributes-label-wrapper menu-order-label-wrapper"><label class="post-attributes-label" for="menu_order"><?php _e( 'Order' ); ?></label></p>
-<input name="menu_order" type="text" size="4" id="menu_order" value="<?php echo esc_attr( $post->menu_order ); ?>" />
+<input name="menu_order" type="text" size="4" id="menu_order" value="<?php echo intval( $post->menu_order ); ?>" />
 		<?php
 		/**
 		 * Fires before the help hint text in the 'Page Attributes' meta box.
@@ -1197,7 +1197,7 @@ function xfn_check( $class, $value = '', $deprecated = '' ) {
 	$link_rel = isset( $link->link_rel ) ? $link->link_rel : ''; // In PHP 5.3: $link_rel = $link->link_rel ?: '';
 	$rels     = preg_split( '/\s+/', $link_rel );
 
-	if ( '' !== $value && in_array( $value, $rels, true ) ) {
+	if ( '' !== $value && is_array( $rels ) && in_array( $value, $rels, true ) ) {
 		echo ' checked="checked"';
 	}
 
@@ -1211,7 +1211,7 @@ function xfn_check( $class, $value = '', $deprecated = '' ) {
 		if ( 'geographical' === $class && strpos( $link_rel, 'co-resident' ) === false && strpos( $link_rel, 'neighbor' ) === false ) {
 			echo ' checked="checked"';
 		}
-		if ( 'identity' === $class && in_array( 'me', $rels, true ) ) {
+		if ( 'identity' === $class && is_array( $rels ) && in_array( 'me', $rels, true ) ) {
 			echo ' checked="checked"';
 		}
 	}
@@ -1384,7 +1384,7 @@ function link_advanced_meta_box( $link ) {
  * @param WP_Post $post A post object.
  */
 function post_thumbnail_meta_box( $post ) {
-	$thumbnail_id = get_post_meta( $post->ID, '_thumbnail_id', true );
+	$thumbnail_id = (int) get_post_meta( $post->ID, '_thumbnail_id', true );
 	echo _wp_post_thumbnail_html( $thumbnail_id, $post->ID );
 }
 
