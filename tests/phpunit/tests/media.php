@@ -2392,7 +2392,7 @@ EOF;
 	 */
 	function test_wp_get_attachment_metadata_should_return_false_if_no_attachment() {
 		$post_id = self::factory()->post->create();
-		$data   = wp_get_attachment_metadata( $post_id );
+		$data    = wp_get_attachment_metadata( $post_id );
 		$this->assertFalse( $data );
 	}
 
