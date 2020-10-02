@@ -186,7 +186,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param int|string $id ID of the item to prepare
+	 * @param int|string      $id      ID of the item to prepare
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
