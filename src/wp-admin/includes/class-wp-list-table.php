@@ -470,9 +470,20 @@ class WP_List_Table {
 		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
 		foreach ( $this->_actions as $name => $title ) {
-			$class = 'edit' === $name ? ' class="hide-if-no-js"' : '';
+			if ( is_array( $value ) ) {
+				echo "\t" . '<optgroup label="' . $key . "\">\n";
 
-			echo "\t" . '<option value="' . $name . '"' . $class . '>' . $title . "</option>\n";
+				foreach ( $value as $name => $title ) {
+					$class = ( 'edit' === $name ) ? ' class="hide-if-no-js"' : '';
+
+					echo "\t\t" . '<option value="' . $name . '"' . $class . '>' . $title . "</option>\n";
+				}
+				echo "\t" . "</optgroup>\n";
+			} else {
+				$class = ( 'edit' === $key ) ? ' class="hide-if-no-js"' : '';
+
+				echo "\t" . '<option value="' . $key . '"' . $class . '>' . $value . "</option>\n";
+			}
 		}
 
 		echo "</select>\n";
