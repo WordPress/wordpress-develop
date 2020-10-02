@@ -1514,7 +1514,7 @@ class WP_Site_Health {
 		);
 
 		if ( ! wp_is_using_https() ) {
-			$result['status'] = 'recommended';
+			$result['status'] = 'critical';
 			$result['label']  = __( 'Your website does not use HTTPS' );
 
 			if ( is_ssl() ) {
@@ -1543,7 +1543,7 @@ class WP_Site_Health {
 					__( 'HTTPS is already supported for your website.' )
 				);
 
-				$result['actions'] .= sprintf(
+				$result['actions'] = sprintf(
 					'<p><a href="%s">%s</a></p>',
 					esc_url( admin_url( 'options-general.php' ) ),
 					__( 'Update your site addresses' )
