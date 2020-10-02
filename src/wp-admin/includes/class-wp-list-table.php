@@ -469,7 +469,7 @@ class WP_List_Table {
 		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
 		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
-		foreach ( $this->_actions as $name => $title ) {
+		foreach ( $this->_actions as $key => $value ) {
 			if ( is_array( $value ) ) {
 				echo "\t" . '<optgroup label="' . $key . "\">\n";
 
