@@ -62,6 +62,11 @@
 
 	$appPassTbody.on( 'click', '.delete', function( e ) {
 		e.preventDefault();
+
+		if ( ! confirm( appPass.revoke_password ) ) {
+			return;
+		}
+
 		var $submitButton = $( this ),
 			$tr = $submitButton.closest( 'tr' ),
 			uuid = $tr.data( 'uuid' );
@@ -86,6 +91,11 @@
 
 	$removeAllBtn.on( 'click', function( e ) {
 		e.preventDefault();
+
+		if ( ! confirm( appPass.revoke_all_passwords ) ) {
+			return;
+		}
+
 		var $submitButton = $( this );
 
 		clearErrors();
