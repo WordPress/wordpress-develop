@@ -29,14 +29,6 @@ wp_enqueue_script( 'user-profile' );
 
 if ( wp_is_application_passwords_available_for_user( $user_id ) ) {
 	wp_enqueue_script( 'application-passwords' );
-	wp_localize_script(
-		'application-passwords',
-		'appPass',
-		array(
-			'revoke_password'      => esc_attr__( 'Are you sure you want to revoke this password? This action cannot be undone.' ),
-			'revoke_all_passwords' => esc_attr__( 'Are you sure you want to revoke all passwords? This action cannot be undone.' ),
-		)
-	);
 }
 
 if ( IS_PROFILE_PAGE ) {
