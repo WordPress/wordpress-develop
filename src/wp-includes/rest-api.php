@@ -2109,6 +2109,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  *
  * @since 4.7.0
  * @since 5.5.0 Added the `$param` parameter.
+ * @since 5.6.0 Support the "anyOf" and "oneOf" keywords.
  *
  * @param mixed  $value The value to sanitize.
  * @param array  $args  Schema array to use for sanitization.
@@ -2116,6 +2117,32 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  * @return mixed|WP_Error The sanitized value or a WP_Error instance if the value cannot be safely sanitized.
  */
 function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
+	if ( isset( $args['anyOf'] ) ) {
+		$matching_schema = rest_find_any_matching_scheme( $value, $args, $param );
+		if ( is_wp_error( $matching_schema ) ) {
+			return $matching_schema;
+		}
+
+		if ( ! isset( $args['type'] ) ) {
+			$args['type'] = $matching_schema['type'];
+		}
+
+		$value = rest_sanitize_value_from_schema( $value, $matching_schema, $param );
+	}
+
+	if ( isset( $args['oneOf'] ) ) {
+		$matching_schema = rest_find_one_matching_scheme( $value, $args, $param );
+		if ( is_wp_error( $matching_schema ) ) {
+			return $matching_schema;
+		}
+
+		if ( ! isset( $args['type'] ) ) {
+			$args['type'] = $matching_schema['type'];
+		}
+
+		$value = rest_sanitize_value_from_schema( $value, $matching_schema, $param );
+	}
+
 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
 
 	if ( ! isset( $args['type'] ) ) {
