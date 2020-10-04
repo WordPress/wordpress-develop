@@ -1666,6 +1666,115 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 }
 
 /**
+ * Finds the matching schema among the "anyOf" schemas.
+ *
+ * @since 5.6.0
+ *
+ * @param mixed  $value   The value to validate.
+ * @param array  $args    The schema array to use.
+ * @param string $param   The parameter name, used in error messages.
+ * @return array|WP_Error The matching schema or WP_Error instance if all schemas do not match.
+ */
+function rest_find_any_matching_scheme( $value, $args, $param ) {
+	$errors = array();
+
+	foreach ( $args['anyOf'] as $index => $schema ) {
+		if ( ! isset( $schema['type'] ) ) {
+			$schema['type'] = $args['type'];
+		}
+
+		$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
+		if ( ! is_wp_error( $is_valid ) ) {
+			return $schema;
+		}
+
+		$errors[] = array(
+			'error_object' => $is_valid,
+			'schema'       => $schema,
+			'index'        => $index,
+		);
+	}
+
+	return rest_get_combining_operation_error( $value, $param, $errors );
+}
+
+/**
+ * Finds the matching schema among the "oneOf" schemas.
+ *
+ * @since 5.6.0
+ *
+ * @param mixed  $value                  The value to validate.
+ * @param array  $args                   The schema array to use.
+ * @param string $param                  The parameter name, used in error messages.
+ * @param bool   $stop_after_first_match Optional. Whether the process should stop after the first successful match.
+ * @return array|WP_Error                The matching schema or WP_Error instance if the number of matching schemas is not equal to one.
+ */
+function rest_find_one_matching_scheme( $value, $args, $param, $stop_after_first_match = false ) {
+	$matching_schemas = array();
+	$errors           = array();
+
+	foreach ( $args['oneOf'] as $index => $schema ) {
+		if ( ! isset( $schema['type'] ) ) {
+			$schema['type'] = $args['type'];
+		}
+
+		$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
+		if ( ! is_wp_error( $is_valid ) ) {
+			if ( $stop_after_first_match ) {
+				return $schema;
+			}
+
+			$matching_schemas[] = array(
+				'schema_object' => $schema,
+				'index'         => $index,
+			);
+		} else {
+			$errors[] = array(
+				'error_object' => $is_valid,
+				'schema'       => $schema,
+				'index'        => $index,
+			);
+		}
+	}
+
+	if ( ! $matching_schemas ) {
+		return rest_get_combining_operation_error( $value, $param, $errors );
+	}
+
+	if ( count( $matching_schemas ) > 1 ) {
+		$schema_positions = array();
+		$schema_titles    = array();
+
+		foreach ( $matching_schemas as $schema ) {
+			$schema_positions[] = $schema['index'];
+
+			if ( isset( $schema['schema_object']['title'] ) ) {
+				$schema_titles[] = $schema['schema_object']['title'];
+			}
+		}
+
+		// If each schema has a title, include those titles in the error message.
+		if ( count( $schema_titles ) === count( $matching_schemas ) ) {
+			/* translators: 1: Parameter, 2: Schema titles. */
+			return new WP_Error(
+				'rest_invalid_param',
+				wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
+				array( 'positions' => $schema_positions )
+			);
+		}
+
+		/* translators: 1: Parameter. */
+		return new WP_Error(
+			'rest_invalid_param',
+			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
+			array( 'positions' => $schema_positions )
+		);
+	}
+
+	return $matching_schemas[0]['schema_object'];
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1688,6 +1797,28 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
  * @return true|WP_Error
  */
 function rest_validate_value_from_schema( $value, $args, $param = '' ) {
+	if ( isset( $args['anyOf'] ) ) {
+		$matching_schema = rest_find_any_matching_scheme( $value, $args, $param );
+		if ( is_wp_error( $matching_schema ) ) {
+			return $matching_schema;
+		}
+
+		if ( ! isset( $args['type'] ) ) {
+			$args['type'] = $matching_schema['type'];
+		}
+	}
+
+	if ( isset( $args['oneOf'] ) ) {
+		$matching_schema = rest_find_one_matching_scheme( $value, $args, $param );
+		if ( is_wp_error( $matching_schema ) ) {
+			return $matching_schema;
+		}
+
+		if ( ! isset( $args['type'] ) ) {
+			$args['type'] = $matching_schema['type'];
+		}
+	}
+
 	$allowed_types = array( 'array', 'object', 'string', 'number', 'integer', 'boolean', 'null' );
 
 	if ( ! isset( $args['type'] ) ) {
@@ -1967,84 +2098,6 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			}
-		}
-	}
-
-	if ( isset( $args['anyOf'] ) ) {
-		$is_valid_found = false;
-		$errors         = array();
-
-		foreach ( $args['anyOf'] as $index => $schema ) {
-			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
-			if ( ! is_wp_error( $is_valid ) ) {
-				$is_valid_found = true;
-				break;
-			}
-
-			$errors[] = array(
-				'error_object' => $is_valid,
-				'schema'       => $schema,
-				'index'        => $index,
-			);
-		}
-
-		if ( ! $is_valid_found ) {
-			return rest_get_combining_operation_error( $value, $param, $errors );
-		}
-	}
-
-	if ( isset( $args['oneOf'] ) ) {
-		$matching_schemas = array();
-		$errors           = array();
-
-		foreach ( $args['oneOf'] as $index => $schema ) {
-			$is_valid = rest_validate_value_from_schema( $value, $schema, $param );
-			if ( ! is_wp_error( $is_valid ) ) {
-				$matching_schemas[] = array(
-					'schema_object' => $schema,
-					'index'         => $index,
-				);
-			} else {
-				$errors[] = array(
-					'error_object' => $is_valid,
-					'schema'       => $schema,
-					'index'        => $index,
-				);
-			}
-		}
-
-		if ( empty( $matching_schemas ) ) {
-			return rest_get_combining_operation_error( $value, $param, $errors );
-		}
-
-		if ( count( $matching_schemas ) > 1 ) {
-			$schema_positions = array();
-			$schema_titles    = array();
-
-			foreach ( $matching_schemas as $schema ) {
-				$schema_positions[] = $schema['index'];
-
-				if ( isset( $schema['schema_object']['title'] ) ) {
-					$schema_titles[] = $schema['schema_object']['title'];
-				}
-			}
-
-			// If each schema has a title, include those titles in the error message.
-			if ( count( $schema_titles ) === count( $matching_schemas ) ) {
-				/* translators: 1: Parameter, 2: Schema titles. */
-				return new WP_Error(
-					'rest_invalid_param',
-					wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
-					array( 'positions' => $schema_positions )
-				);
-			}
-
-			/* translators: 1: Parameter. */
-			return new WP_Error(
-				'rest_invalid_param',
-				sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
-				array( 'positions' => $schema_positions )
-			);
 		}
 	}
 
