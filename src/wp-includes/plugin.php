@@ -92,6 +92,7 @@ if ( ! isset( $wp_current_filter ) ) {
  * everything is as quick as possible.
  *
  * @since 0.71
+ * @since 5.6.0 Added $callback_id parameter
  *
  * @global array $wp_filter A multidimensional array of all hooks and the callbacks hooked to them.
  *
@@ -103,14 +104,19 @@ if ( ! isset( $wp_current_filter ) ) {
  *                                  and functions with the same priority are executed
  *                                  in the order in which they were added to the action. Default 10.
  * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
+ * @param string   $callback_id     An unique ID for the callback.
+ *                                  If provided can be used to check or remove the hook in place
+ *                                  of the function itself.
+ *                                  Used **only** if $function_to_add is or contain an object instance,
+ *                                  and that includes anonymous functions.
  * @return true
  */
-function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
+function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1, $callback_id = '' ) {
 	global $wp_filter;
 	if ( ! isset( $wp_filter[ $tag ] ) ) {
 		$wp_filter[ $tag ] = new WP_Hook();
 	}
-	$wp_filter[ $tag ]->add_filter( $tag, $function_to_add, $priority, $accepted_args );
+	$wp_filter[ $tag ]->add_filter( $tag, $function_to_add, $priority, $accepted_args, $callback_id );
 	return true;
 }
 
@@ -389,6 +395,7 @@ function doing_action( $action = null ) {
  * Action API.
  *
  * @since 1.2.0
+ * @since 5.6.0 Added $callback_id parameter
  *
  * @param string   $tag             The name of the action to which the $function_to_add is hooked.
  * @param callable $function_to_add The name of the function you wish to be called.
@@ -398,10 +405,15 @@ function doing_action( $action = null ) {
  *                                  and functions with the same priority are executed
  *                                  in the order in which they were added to the action.
  * @param int      $accepted_args   Optional. The number of arguments the function accepts. Default 1.
+ * @param string   $callback_id     An unique ID for the callback.
+ *                                  If provided can be used to check or remove the hook in place
+ *                                  of the function itself.
+ *                                  Used **only** if $function_to_add is or contain an object instance,
+ *                                  and that includes anonymous functions.
  * @return true Will always return true.
  */
-function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1 ) {
-	return add_filter( $tag, $function_to_add, $priority, $accepted_args );
+function add_action( $tag, $function_to_add, $priority = 10, $accepted_args = 1, $callback_id = '' ) {
+	return add_filter( $tag, $function_to_add, $priority, $accepted_args, $callback_id );
 }
 
 /**
@@ -904,25 +916,91 @@ function _wp_call_all_hook( $args ) {
  * @param callable $function The function to generate ID for.
  * @param int      $priority Unused. The order in which the functions
  *                           associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string Unique function ID.
  */
 function _wp_filter_build_unique_id( $tag, $function, $priority ) {
+	static $unique_ids = array();
+
 	if ( is_string( $function ) ) {
 		return $function;
 	}
 
-	if ( is_object( $function ) ) {
-		// Closures are currently implemented as objects.
-		$function = array( $function, '' );
-	} else {
-		$function = (array) $function;
+	// Just check syntax, to make sure we're dealing with something that looks like a callable.
+	if ( ! is_callable( $function, true ) ) {
+		return '';
 	}
 
-	if ( is_object( $function[0] ) ) {
-		// Object class calling.
-		return spl_object_hash( $function[0] ) . $function[1];
-	} elseif ( is_string( $function[0] ) ) {
-		// Static calling.
+	$is_array = is_array( $function );
+
+	// Static method, let's just return it
+	if ( $is_array && is_string( $function[0] ) ) {
 		return $function[0] . '::' . $function[1];
 	}
+
+	// Because we checked for 'is_callable', if not array, $function is either a closure or invokable.
+	if ( ! $is_array ) {
+		// Closures and invokable objects both use __invoke method.
+		$function = array( $function, '__invoke' );
+	}
+
+	$hash = spl_object_hash( $function[0] );
+	$unique_id = $hash . $function[1];
+
+	// We need to ensure that passing the same object instance we return the same ID.
+	if ( isset( $unique_ids[ $unique_id ] ) ) {
+		return $unique_ids[ $unique_id ];
+	}
+
+	$class = get_class( $function[0] );
+
+	if ( false !== strpos( $class, '@anonymous' ) ) {
+		$ref = new \ReflectionClass( $class );
+		$class = 'class()';
+		$parent = $ref->getParentClass();
+		if ( $parent ) {
+			$class .= $parent;
+		}
+		$class .= '@' . basename( $ref->getFileName() );
+	}
+
+	if ( 'Closure' !== $class ) {
+		$unique_ids[ $unique_id ] = $class . '->' . $function[1] . '##' . $hash;
+
+		return $unique_ids[ $unique_id ];
+	}
+
+	$ref = new \ReflectionFunction( $function[0] );
+	$namespace = $ref->getNamespaceName() ? : '';
+	$name = ltrim( $namespace . '\function()', '\\' ) . '@' . basename( $ref->getFileName() );
+
+	$unique_ids[ $unique_id ] = $name . '##' . $hash;
+
+	return $unique_ids[ $unique_id ];
+}
+
+/**
+ * Calculate a predictable identifier for a callable, plus an unique identifier (spl_object_hash)
+ * for any object part of the callback.
+ *
+ * @since 5.6
+ *
+ * @access private
+ *
+ * @param callable $function The function to calculate the key and id for
+ *
+ * @return array Two elements array: the first is the function key, the second is an unique id for
+ *               any object instance part of $function, or null in case of static callable.
+ */
+function _wp_filter_build_callback_key_and_hash( $function ) {
+	$function_key = _wp_filter_build_unique_id( '', $function, false );
+	if ( ! $function_key ) {
+		return array( null, null );
+	}
+
+	$object_hash = null;
+	if ( false !== strpos( $function_key, '##' ) ) {
+		list( $function_key, $object_hash ) = explode( '##', $function_key, 2 );
+	}
+
+	return array( $function_key, $object_hash );
 }

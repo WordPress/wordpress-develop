@@ -60,8 +60,6 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	/**
 	 * Hooks a function or method to a specific filter action.
 	 *
-	 * @since 4.7.0
-	 *
 	 * @param string   $tag             The name of the filter to hook the $function_to_add callback to.
 	 * @param callable $function_to_add The callback to be run when the filter is applied.
 	 * @param int      $priority        The order in which the functions associated with a particular action
@@ -69,15 +67,70 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *                                  and functions with the same priority are executed in the order
 	 *                                  in which they were added to the action.
 	 * @param int      $accepted_args   The number of arguments the function accepts.
+	 * @param string   $callback_id     An unique ID for the callback.
+	 *                                  If provided can be used to check or remove the hook in place
+	 *                                  of the function itself.
+	 *                                  Used **only** if $function_to_add is or contain an object instance,
+	 *                                  and that includes anonymous functions.
+	 *
+	 * @since 4.7.0
+	 * @since 5.6.0 Added $callback_id parameter
+	 *
 	 */
-	public function add_filter( $tag, $function_to_add, $priority, $accepted_args ) {
-		$idx = _wp_filter_build_unique_id( $tag, $function_to_add, $priority );
+	public function add_filter( $tag, $function_to_add, $priority, $accepted_args, $callback_id = '' ) {
+		list ( $function_key, $object_hash ) = _wp_filter_build_callback_key_and_hash( $function_to_add );
+
+		$can_doing_it_wrong = function_exists( '_doing_it_wrong' );
+
+		if ( ! $function_key ) {
+			if ( $can_doing_it_wrong ) {
+				_doing_it_wrong(
+					'WP_Hook::add_filter',
+					// translators: 1: hook name
+					sprintf( 'Invalid hook callback for %1$s.', $tag ),
+					'5.6'
+				);
+			}
+
+			return;
+		}
+
+		// If the callback doesn't contain objects user-provided custom ids are not supported.
+		if ( ! $object_hash && $callback_id ) {
+			if ( $can_doing_it_wrong ) {
+				_doing_it_wrong(
+					'WP_Hook::add_filter',
+					'Custom hook callback ids are ignored if the callback does not contain object instances.',
+					'5.6'
+				);
+			}
+
+			$callback_id = '';
+		}
+
+		if ( $callback_id ) {
+			if ( false !== strpos( $callback_id, '##' ) ) {
+				// We use the presence of '##' to distinguish generated callback ids.
+				if ( $can_doing_it_wrong ) {
+					_doing_it_wrong(
+						'WP_Hook::add_filter',
+						'Custom hook callback identifiers can\'t contain "##".',
+						'5.6'
+					);
+				}
+			} else {
+				// If the callback contains an object, and the user provided a custom id, let's use it.
+				// Note: using the provided custom id will be the *only* way to remove/check the filter.
+				$function_key = $callback_id;
+			}
+		}
 
 		$priority_existed = isset( $this->callbacks[ $priority ] );
 
-		$this->callbacks[ $priority ][ $idx ] = array(
+		$this->callbacks[ $priority ][ $function_key ] = array(
 			'function'      => $function_to_add,
 			'accepted_args' => $accepted_args,
+			'object_hash'   => $object_hash,
 		);
 
 		// If we're adding a new priority to the list, put them back in sorted order.
@@ -169,19 +222,46 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @return bool Whether the callback existed before it was removed.
 	 */
 	public function remove_filter( $tag, $function_to_remove, $priority ) {
-		$function_key = _wp_filter_build_unique_id( $tag, $function_to_remove, $priority );
+		list ( $function_key, $object_hash ) = _wp_filter_build_callback_key_and_hash( $function_to_remove );
 
-		$exists = isset( $this->callbacks[ $priority ][ $function_key ] );
-		if ( $exists ) {
-			unset( $this->callbacks[ $priority ][ $function_key ] );
-			if ( ! $this->callbacks[ $priority ] ) {
-				unset( $this->callbacks[ $priority ] );
-				if ( $this->nesting_level > 0 ) {
-					$this->resort_active_iterations();
-				}
+		if ( ! $function_key || ! isset( $this->callbacks[ $priority ] ) ) {
+			return false;
+		}
+
+		$callbacks = $this->callbacks[ $priority ];
+
+		// Back compat: support passing spl_object_hash + method (or just hash for closures)
+		list( $key_by_legacy, $id_by_legacy ) = $this->find_callback_keys_by_legacy_id( $function_to_remove, $callbacks );
+		if ( $key_by_legacy && $id_by_legacy ) {
+			$function_key = $key_by_legacy;
+			$function_to_remove = $id_by_legacy;
+			$use_strict = true;
+		}
+
+		if ( ! isset( $callbacks[ $function_key ] ) ) {
+			return false;
+		}
+
+		if ( ! isset( $use_strict ) ) {
+			$use_strict = ! is_string( $function_to_remove ) || ( false !== strpos( $function_to_remove, '##' ) );
+		}
+
+		// When using strict check, that is when either an ID is passed as string including a '##'
+		// or when an object-including callback is passed as-is, we not only check for the callback
+		// id, but also for "object_hash" stored as part of the hook data array.
+		if ( $object_hash && $use_strict && $this->callbacks[ $priority ][ $function_key ]['object_hash'] !== $object_hash ) {
+			return false;
+		}
+
+		unset( $this->callbacks[ $priority ][ $function_key ] );
+		if ( ! $this->callbacks[ $priority ] ) {
+			unset( $this->callbacks[ $priority ] );
+			if ( $this->nesting_level > 0 ) {
+				$this->resort_active_iterations();
 			}
 		}
-		return $exists;
+
+		return true;
 	}
 
 	/**
@@ -198,15 +278,43 @@ final class WP_Hook implements Iterator, ArrayAccess {
 			return $this->has_filters();
 		}
 
-		$function_key = _wp_filter_build_unique_id( $tag, $function_to_check, false );
+		list ( $function_key, $object_hash ) = _wp_filter_build_callback_key_and_hash( $function_to_check );
 		if ( ! $function_key ) {
 			return false;
 		}
 
+		$built_key = $function_key;
+		$built_hash = $object_hash;
+
+		// When using strict check, that is when either an ID is passed as string including a '##'
+		// or when an object-including callback is passed as-is, we not only check for the callback id,
+		// but also for "object_hash" stored as part of the hook data array.
+		$use_strict = ! is_string( $function_to_check ) || ( false !== strpos( $function_to_check, '##' ) );
+		$orig_use_strict = $use_strict;
+
 		foreach ( $this->callbacks as $priority => $callbacks ) {
-			if ( isset( $callbacks[ $function_key ] ) ) {
+			// Back compat: support passing spl_object_hash + method (or just spl_object_hash for closures)
+			list( $key_by_legacy, $id_by_legacy, $hash_by_legacy ) = $this->find_callback_keys_by_legacy_id( $function_to_check, $callbacks );
+			if ( $key_by_legacy && $id_by_legacy && $hash_by_legacy ) {
+				$function_key = $key_by_legacy;
+				$object_hash = $hash_by_legacy;
+				$use_strict = true;
+			}
+
+			// Return if a callback with given key is found and we don't need to check hash, or the hash matches.
+			if ( isset( $callbacks[ $function_key ] ) &&
+			     (
+			     	! ( $use_strict && $object_hash )
+			        || $this->callbacks[ $priority ][ $function_key ]['object_hash'] === $object_hash
+			     )
+			) {
 				return $priority;
 			}
+
+			// Restore in the case were replaced via find_callback_keys_by_legacy_id
+			$function_key = $built_key;
+			$object_hash = $built_hash;
+			$use_strict = $orig_use_strict;
 		}
 
 		return false;
@@ -507,4 +615,44 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		reset( $this->callbacks );
 	}
 
+	/**
+	 * Find the function_key, function_id, and object hash given the "legacy" callback identifier
+	 * made with spl_object_hash.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $legacy_id Legacy callback id made using spl_object_hash
+	 * @param array $callbacks  Callbacks data where to search for the object hash
+	 *
+	 * @return array
+	 */
+	private function find_callback_keys_by_legacy_id( $legacy_id, $callbacks ) {
+
+        if ( ! is_string ( $legacy_id ) || ! preg_match( '/^([a-f0-9]{32})(.+?)?$/', $legacy_id, $matches ) ) {
+            return array( null, null, null );
+        }
+
+        $object_hash = $matches[1];
+        $search_for = empty( $matches[2] ) ? array ( 'function()', 'class()', '->__invoke' ) : array ( '->' . $matches[2] );
+
+		$function_id = null;
+		$function_key = null;
+		$function_hash = null;
+		foreach ( $callbacks as $key => $data ) {
+            if ( $data['object_hash'] !== $object_hash ) {
+                continue;
+            }
+
+            foreach ( $search_for as $search_for_key ) {
+                if ( false !== strpos( $key, $search_for_key ) ) {
+                    $function_key = $key;
+                    $function_id = $key . '##' . $object_hash;
+                    $function_hash = $object_hash;
+                    break;
+                }
+            }
+		}
+
+		return array( $function_key, $function_id, $function_hash );
+	}
 }
