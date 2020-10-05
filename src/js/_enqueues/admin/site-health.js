@@ -83,7 +83,7 @@ jQuery( document ).ready( function( $ ) {
 		count = SiteHealth.site_status.issues[ issue.status ];
 
 		// If no test name is supplied, append a placeholder for markup references.
-		if ( typeof issue.test === "undefined" ) {
+		if ( typeof issue.test === 'undefined' ) {
 			issue.test = issue.status + count;
 		}
 
