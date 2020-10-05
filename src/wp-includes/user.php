@@ -328,7 +328,8 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		return $input_user;
 	}
 
-	$user = get_user_by( 'login', $username );
+	$error = null;
+	$user  = get_user_by( 'login', $username );
 
 	if ( ! $user && is_email( $username ) ) {
 		$user = get_user_by( 'email', $username );
@@ -337,23 +338,34 @@ function wp_authenticate_application_password( $input_user, $username, $password
 	// If the login name is invalid, short circuit.
 	if ( ! $user ) {
 		if ( is_email( $username ) ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				'invalid_email',
 				__( 'Unknown email address. Check again or try your username.' )
 			);
+		} else {
+			$error = new WP_Error(
+				'invalid_username',
+				__( 'Unknown username. Check again or try your email address.' )
+			);
 		}
-
-		return new WP_Error(
-			'invalid_username',
-			__( 'Unknown username. Check again or try your email address.' )
-		);
-	}
-
-	if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
-		return new WP_Error(
+	} elseif ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+		$error = new WP_Error(
 			'application_passwords_disabled',
 			__( 'Application passwords are disabled for the requested user.' )
 		);
+	}
+
+	if ( $error ) {
+		/**
+		 * Fires when an application password failed to authenticate the user.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param WP_Error $error The authentication error.
+		 */
+		do_action( 'application_password_failed_authentication', $error );
+
+		return $error;
 	}
 
 	/*
@@ -384,10 +396,15 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		}
 	}
 
-	return new WP_Error(
+	$error = new WP_Error(
 		'incorrect_password',
 		__( 'The provided password is an invalid application password.' )
 	);
+
+	/** This action is documented in wp-includes/user.php */
+	do_action( 'application_password_failed_authentication', $error );
+
+	return $error;
 }
 
 /**
@@ -420,14 +437,7 @@ function wp_validate_application_password( $input_user ) {
 	}
 
 	if ( is_wp_error( $authenticated ) ) {
-		/**
-		 * Fires when an application password failed to authenticate the user.
-		 *
-		 * @since ?.?.0
-		 *
-		 * @param WP_Error $authenticated The authentication error.
-		 */
-		do_action( 'application_password_failed_authentication', $authenticated );
+		return $authenticated;
 	}
 
 	// If it wasn't a user what got returned, just pass on what we had received originally.
