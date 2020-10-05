@@ -714,6 +714,18 @@ endif;
 		<div class="create-application-password">
 			<label for="new_application_password_name" class="screen-reader-text"><?php _e( 'New Application Password Name' ); ?></label>
 			<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
+
+			<?php
+			/**
+			 * Fires in the create Application Passwords form.
+			 *
+			 * @since ?.?.0
+			 *
+			 * @param WP_User $profileuser The current WP_User object.
+			 */
+			do_action( 'wp_create_application_password_form', $profileuser );
+			?>
+
 			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
 		</div>
 

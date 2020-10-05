@@ -28,12 +28,24 @@
 		$newAppPassField.prop( 'disabled', true );
 		$newAppPassButton.prop( 'disabled', true );
 
+		var request = {
+			name: name
+		};
+
+		/**
+		 * Filters the request data used to create a new Application Password.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param {Object} request The request data.
+		 * @param {number} userId  The id of the user the password is added for.
+		 */
+		request = wp.hooks.applyFilters( 'wp_application_passwords_new_password_request', request, userId );
+
 		wp.apiRequest( {
 			path: '/wp/v2/users/' + userId + '/application-passwords',
 			method: 'POST',
-			data: {
-				name: name
-			}
+			data: request
 		} ).always( function() {
 			$newAppPassField.prop( 'disabled', false );
 			$newAppPassButton.prop( 'disabled', false );
@@ -50,6 +62,16 @@
 
 			$appPassTwrapper.show();
 			$appPassTrNoItems.remove();
+
+			/**
+			 * Fires after an application password has been successfully created.
+			 *
+			 * @since ?.?.0
+			 *
+			 * @param {Object} response The response data from the REST API.
+			 * @param {Object} request  The request data used to create the password.
+			 */
+			wp.hooks.doAction( 'wp_application_passwords_created_password', response, request );
 		} ).fail( handleErrorResponse );
 	} );
 
