@@ -459,10 +459,6 @@ function wp_validate_application_password( $input_user ) {
 		return $authenticated->ID;
 	}
 
-	if ( is_wp_error( $authenticated ) ) {
-		return $authenticated;
-	}
-
 	// If it wasn't a user what got returned, just pass on what we had received originally.
 	return $input_user;
 }

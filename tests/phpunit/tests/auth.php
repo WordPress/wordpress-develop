@@ -35,6 +35,13 @@ class Tests_Auth extends WP_UnitTestCase {
 		wp_set_current_user( self::$user_id );
 	}
 
+	public function tearDown() {
+		parent::tearDown();
+
+		// Cleanup all the global state.
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'] );
+	}
+
 	function test_auth_cookie_valid() {
 		$cookie = wp_generate_auth_cookie( self::$user_id, time() + 3600, 'auth' );
 		$this->assertSame( self::$user_id, wp_validate_auth_cookie( $cookie, 'auth' ) );
@@ -417,7 +424,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	/**
 	 * HTTP Auth headers are used to determine the current user.
 	 *
-	 * @covers wp_validate_application_password
+	 * @covers ::wp_validate_application_password
 	 */
 	public function test_application_password_authentication() {
 		$user_id = $this->factory()->user->create(
@@ -454,9 +461,6 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 
 		remove_filter( 'application_password_is_api_request', '__return_true' );
-
-		// Cleanup all the global state.
-		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'] );
 	}
 
 }
