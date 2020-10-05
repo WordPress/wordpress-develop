@@ -41,13 +41,72 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 */
 	public function prepare_items() {
 		global $user_id;
-		$columns  = $this->get_columns();
-		$hidden   = array();
-		$sortable = array();
-		$primary  = 'name';
+		$this->items = array_reverse( WP_Application_Passwords::get_user_application_passwords( $user_id ) );
+	}
 
-		$this->_column_headers = array( $columns, $hidden, $sortable, $primary );
-		$this->items           = array_reverse( WP_Application_Passwords::get_user_application_passwords( $user_id ) );
+	/**
+	 * Handles the name column output.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_name( $item ) {
+		echo esc_html( $item['name'] );
+	}
+
+	/**
+	 * Handles the created column output.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_created( $item ) {
+		if ( empty( $item['created'] ) ) {
+			echo '&mdash;';
+		} else {
+			echo gmdate( get_option( 'date_format', 'r' ), $item['created'] );
+		}
+	}
+
+	/**
+	 * Handles the last used column output.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_last_used( $item ) {
+		if ( empty( $item['last_used'] ) ) {
+			echo '&mdash;';
+		} else {
+			echo gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
+		}
+	}
+
+	/**
+	 * Handles the last ip column output.
+	 *
+	 * @since ?.?.0
+	 *
+	 * @param array $item The current application password item.
+	 */
+	public function column_last_ip( $item ) {
+		if ( empty( $item['last_ip'] ) ) {
+			echo '&mdash;';
+		} else {
+			echo $item['last_ip'];
+		}
+	}
+
+	/**
+	 * Handles the revoke column output.
+	 *
+	 * @since ?.?.0
+	 */
+	public function column_revoke() {
+		submit_button( __( 'Revoke' ), 'delete', 'revoke-application-password', false );
 	}
 
 	/**
@@ -57,32 +116,19 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 *
 	 * @param array  $item        The current item.
 	 * @param string $column_name The current column name.
-	 * @return string
 	 */
 	protected function column_default( $item, $column_name ) {
-		switch ( $column_name ) {
-			case 'name':
-				return esc_html( $item['name'] );
-			case 'created':
-				if ( empty( $item['created'] ) ) {
-					return '&mdash;';
-				}
-				return gmdate( get_option( 'date_format', 'r' ), $item['created'] );
-			case 'last_used':
-				if ( empty( $item['last_used'] ) ) {
-					return '&mdash;';
-				}
-				return gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
-			case 'last_ip':
-				if ( empty( $item['last_ip'] ) ) {
-					return '&mdash;';
-				}
-				return $item['last_ip'];
-			case 'revoke':
-				return get_submit_button( __( 'Revoke' ), 'delete', 'revoke-application-password', false );
-			default:
-				return '';
-		}
+		/**
+		 * Fires for each custom column in the Application Passwords list table.
+		 *
+		 * Custom columns are registered using the {@see 'manage_application-passwords-user_columns'} filter.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param string $column_name Name of the custom column.
+		 * @param array  $item        The application password item.
+		 */
+		do_action( 'manage_application-passwords-user_custom_column', $column_name, $item ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 	}
 
 	/**
@@ -137,5 +183,69 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 */
 	protected function get_default_primary_column_name() {
 		return 'name';
+	}
+
+	/**
+	 * Prints the JavaScript template for the new row item.
+	 *
+	 * @since ?.?.0
+	 */
+	public function print_js_template_row() {
+		list( $columns, $hidden, , $primary ) = $this->get_column_info();
+
+		echo '<tr data-uuid="{{ data.uuid }}">';
+
+		foreach ( $columns as $column_name => $display_name ) {
+			$is_primary = $primary === $column_name;
+			$classes    = "{$column_name} column-{$column_name}";
+
+			if ( $is_primary ) {
+				$classes .= ' has-row-actions column-primary';
+			}
+
+			if ( in_array( $column_name, $hidden, true ) ) {
+				$classes .= ' hidden';
+			}
+
+			printf( '<td class="%s" data-colname="%s">', esc_attr( $classes ), esc_attr( wp_strip_all_tags( $display_name ) ) );
+
+			switch ( $column_name ) {
+				case 'name':
+					echo '{{ data.name }}';
+					break;
+				case 'created':
+					echo "<# print( wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.created ) ) #>";
+					break;
+				case 'last_used':
+					echo "<# print( data.last_used !== null ? wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.last_used ) : '—' ) #>";
+					break;
+				case 'last_ip':
+					echo "{{ data.last_ip || '—' }}";
+					break;
+				case 'revoke':
+					echo $this->column_revoke();
+					break;
+				default:
+					/**
+					 * Fires in the JavaScript row template for each custom column in the Application Passwords list table.
+					 *
+					 * Custom columns are registered using the {@see 'manage_application-passwords-user_columns'} filter.
+					 *
+					 * @since ?.?.0
+					 *
+					 * @param string $column_name Name of the custom column.
+					 */
+					do_action( 'manage_application-passwords-user_custom_column_js_template', $column_name ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+					break;
+			}
+
+			if ( $is_primary ) {
+				echo '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
+			}
+
+			echo '</td>';
+		}
+
+		echo '</tr>';
 	}
 }

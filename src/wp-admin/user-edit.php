@@ -719,7 +719,7 @@ endif;
 
 		<div class="application-passwords-list-table-wrapper">
 			<?php
-			$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table' );
+			$application_passwords_list_table = _get_list_table( 'WP_Application_Passwords_List_Table', array( 'screen' => 'application-passwords-user' ) );
 			$application_passwords_list_table->prepare_items();
 			$application_passwords_list_table->display();
 			?>
@@ -813,7 +813,7 @@ endif;
 	}
 </script>
 
-<?php if ( wp_is_application_passwords_available_for_user( $user_id ) ) : ?>
+<?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
 		<div class="new-application-password notification-dialog-wrap">
 			<div class="app-pass-dialog-background notification-dialog-background"></div>
@@ -835,24 +835,7 @@ endif;
 	</script>
 
 	<script type="text/html" id="tmpl-application-password-row">
-		<tr data-uuid="{{ data.uuid }}">
-			<td class="name column-name has-row-actions column-primary" data-colname="<?php esc_attr_e( 'Name' ); ?>">
-				{{ data.name }}
-				<button type="button" class="toggle-row"><span class="screen-reader-text"><?php esc_html_e( 'Show more details' ); ?></span></button>
-			</td>
-			<td class="created column-created" data-colname="<?php esc_attr_e( 'Created' ); ?>">
-				{{ data.created }}
-			</td>
-			<td class="last_used column-last_used" data-colname="<?php esc_attr_e( 'Last Used' ); ?>">
-				{{ data.last_used }}
-			</td>
-			<td class="last_ip column-last_ip" data-colname="<?php esc_attr_e( 'Last IP' ); ?>">
-				{{ data.last_ip }}
-			</td>
-			<td class="revoke column-revoke" data-colname="<?php esc_attr_e( 'Revoke' ); ?>">
-				<input type="submit" name="revoke-application-password" class="button delete" value="<?php esc_attr_e( 'Revoke' ); ?>">
-			</td>
-		</tr>
+		<?php $application_passwords_list_table->print_js_template_row(); ?>
 	</script>
 <?php endif; ?>
 <?php

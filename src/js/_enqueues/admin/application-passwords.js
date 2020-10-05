@@ -13,7 +13,6 @@
 		$removeAllBtn = $( '#revoke-all-application-passwords' ),
 		tmplNewAppPass = wp.template( 'new-application-password' ),
 		tmplAppPassRow = wp.template( 'application-password-row' ),
-		dateFormat = wp.date.__experimentalGetSettings().formats.date,
 		userId = $( '#user_id' ).val();
 
 	$newAppPassButton.click( function( e ) {
@@ -47,13 +46,7 @@
 				password: response.password
 			} ) );
 
-			$appPassTbody.prepend( tmplAppPassRow( {
-				name: response.name,
-				uuid: response.uuid,
-				created: wp.date.dateI18n( dateFormat, response.created ),
-				last_used: response.last_used ? wp.date.dateI18n( dateFormat, response.last_used ) : '—',
-				last_ip: response.last_ip ? response.last_ip : '—'
-			} ) );
+			$appPassTbody.prepend( tmplAppPassRow( response ) );
 
 			$appPassTwrapper.show();
 			$appPassTrNoItems.remove();
