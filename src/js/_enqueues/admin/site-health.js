@@ -216,7 +216,7 @@ jQuery( document ).ready( function( $ ) {
 					} )
 					.done( function( response ) {
 						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response ) );
 					} )
 					.fail( function( response ) {
 						var description;

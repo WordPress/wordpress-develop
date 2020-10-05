@@ -158,9 +158,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_background_updates() {
-		return array(
-			'data' => $this->site_health->get_test_background_updates(),
-		);
+		return $this->site_health->get_test_background_updates();
 	}
 
 	/**
@@ -171,9 +169,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_dotorg_communication() {
-		return array(
-			'data' => $this->site_health->get_test_dotorg_communication(),
-		);
+		return $this->site_health->get_test_dotorg_communication();
 	}
 
 	/**
@@ -184,9 +180,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_loopback_requests() {
-		return array(
-			'data' => $this->site_health->get_test_loopback_requests(),
-		);
+		return $this->site_health->get_test_loopback_requests();
 	}
 
 	/**
@@ -197,9 +191,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 * @return array
 	 */
 	public function test_is_in_debug_mode() {
-		return array(
-			'data' => $this->site_health->get_test_is_in_debug_mode(),
-		);
+		return $this->site_health->get_test_is_in_debug_mode();
 	}
 
 	/**
