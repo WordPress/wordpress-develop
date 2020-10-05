@@ -291,7 +291,14 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			$this->assertArrayHasKey( $property, $args['somearray'] );
 		}
 
-		foreach ( array( 'properties', 'additionalProperties', 'minProperties', 'maxProperties' ) as $property ) {
+		$object_properties = array(
+			'properties',
+			'patternProperties',
+			'additionalProperties',
+			'minProperties',
+			'maxProperties',
+		);
+		foreach ( $object_properties as $property ) {
 			$this->assertArrayHasKey( $property, $args['someobject'] );
 		}
 
