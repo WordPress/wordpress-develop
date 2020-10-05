@@ -82,6 +82,11 @@ jQuery( document ).ready( function( $ ) {
 
 		count = SiteHealth.site_status.issues[ issue.status ];
 
+		// If no test name is supplied, append a placeholder for markup references.
+		if ( typeof issue.test === "undefined" ) {
+			issue.test = issue.status + count;
+		}
+
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
 				_n( '%s critical issue', '%s critical issues', count ),
@@ -192,18 +197,10 @@ jQuery( document ).ready( function( $ ) {
 
 		if ( 1 <= SiteHealth.site_status.async.length ) {
 			$.each( SiteHealth.site_status.async, function() {
-				var url = ajaxurl;
 				var data = {
 					'action': 'health-check-' + this.test.replace( '_', '-' ),
 					'_wpnonce': SiteHealth.nonce.site_status
 				};
-
-				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
-					url = this.test;
-					data = {
-						'_wpnonce': SiteHealth.nonce.rest_api
-					};
-				}
 
 				if ( this.completed ) {
 					return true;
@@ -213,37 +210,49 @@ jQuery( document ).ready( function( $ ) {
 
 				this.completed = true;
 
-				$.post(
-					url,
-					data
-				).done( function( response ) {
-					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-					appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
-				} ).fail( function( response ) {
-					var description, issue;
+				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
+					wp.apiRequest( {
+						url: this.test
+					} )
+					.done( function( response ) {
+						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+					} )
+					.fail( function( response ) {
+						var description;
 
-					if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
-						description = response.responseJSON.message;
-					} else {
-						description = __( 'No details available' );
-					}
+						if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
+							description = response.responseJSON.message;
+						} else {
+							description = __( 'No details available' );
+						}
 
-					issue = {
-						'status': 'recommended',
-						'label': __( 'A test is unavailable' ),
-						'badge': {
-							'color': 'red',
-							'label': __( 'Unavailable' )
-						},
-						'description': '<p>' + this.url + '</p><p>' + description + '</p>',
-						'actions': ''
-					};
+						addFailedSiteHealthCheckNotice( this.url, description );
+					} )
+					.always( function() {
+						maybeRunNextAsyncTest();
+					} );
+				} else {
+					$.post(
+						ajaxurl,
+						data
+					).done( function( response ) {
+						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+					} ).fail( function( response ) {
+						var description;
 
-					/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-					appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
-				} ).always( function() {
-					maybeRunNextAsyncTest();
-				} );
+						if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
+							description = response.responseJSON.message;
+						} else {
+							description = __( 'No details available' );
+						}
+
+						addFailedSiteHealthCheckNotice( this.url, description );
+					} ).always( function() {
+						maybeRunNextAsyncTest();
+					} );
+				}
 
 				return false;
 			} );
@@ -252,6 +261,29 @@ jQuery( document ).ready( function( $ ) {
 		if ( doCalculation ) {
 			recalculateProgression();
 		}
+	}
+
+	/**
+	 * Add the details of a failed asynchronous test to the list of test results.
+	 *
+	 * @since 5.6.0
+	 */
+	function addFailedSiteHealthCheckNotice( url, description ) {
+		var issue;
+
+		issue = {
+			'status': 'recommended',
+			'label': __( 'A test is unavailable' ),
+			'badge': {
+				'color': 'red',
+				'label': __( 'Unavailable' )
+			},
+			'description': '<p>' + url + '</p><p>' + description + '</p>',
+			'actions': ''
+		};
+
+		/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+		appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
 	}
 
 	if ( 'undefined' !== typeof SiteHealth && ! isDebugTab ) {

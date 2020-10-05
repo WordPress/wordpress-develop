@@ -53,7 +53,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'background-updates'
 			),
 			array(
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => array( $this, 'test_background_updates' ),
 				'permission_callback' => function() {
 					return $this->validate_request_permission( 'background_updates' );
@@ -69,7 +69,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'loopback-requests'
 			),
 			array(
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => array( $this, 'test_loopback_requests' ),
 				'permission_callback' => function() {
 					return $this->validate_request_permission( 'loopback_requests' );
@@ -85,7 +85,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'dotorg-communication'
 			),
 			array(
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => array( $this, 'test_dotorg_communication' ),
 				'permission_callback' => function() {
 					return $this->validate_request_permission( 'dotorg_communication' );
@@ -101,7 +101,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'debug_enabled'
 			),
 			array(
-				'methods'             => 'POST',
+				'methods'             => 'GET',
 				'callback'            => array( $this, 'test_is_in_debug_mode' ),
 				'permission_callback' => function() {
 					return $this->validate_request_permission( 'debug_enabled' );
