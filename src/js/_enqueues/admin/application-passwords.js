@@ -62,6 +62,11 @@
 
 	$appPassTbody.on( 'click', '.delete', function( e ) {
 		e.preventDefault();
+
+		if ( ! confirm( wp.i18n.__( 'Are you sure you want to revoke this password? This action cannot be undone.' ) ) ) {
+			return;
+		}
+
 		var $submitButton = $( this ),
 			$tr = $submitButton.closest( 'tr' ),
 			uuid = $tr.data( 'uuid' );
@@ -86,6 +91,11 @@
 
 	$removeAllBtn.on( 'click', function( e ) {
 		e.preventDefault();
+
+		if ( ! confirm( wp.i18n.__( 'Are you sure you want to revoke all passwords? This action cannot be undone.' ) ) ) {
+			return;
+		}
+
 		var $submitButton = $( this );
 
 		clearErrors();
