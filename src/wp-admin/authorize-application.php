@@ -114,7 +114,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p>
 			<?php
 			/* translators: Application Name */
-			printf( __( 'Would you like to give the application identifying itself as %s access to your account?  You should only do this if you trust the app in question.' ), '<strong>' . esc_html( $app_name ) . '</strong>' );
+			printf( __( 'Would you like to give the application identifying itself as %s access to your account? You should only do this if you trust the app in question.' ), '<strong>' . esc_html( $app_name ) . '</strong>' );
 			?>
 			</p>
 		<?php else : ?>
@@ -132,6 +132,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				);
 				?>
 			</p>
+
+			<?php
+			/**
+			 * Fires in the Authorize Application Password new password section.
+			 *
+			 * @since ?.?.?
+			 *
+			 * @param string  $new_password The newly generated application password.
+			 * @param array   $request      The array of request data. All arguments are optional and may be empty.
+			 * @param WP_User $user         The user authorizing the application.
+			 */
+			do_action( 'wp_authorize_application_password_form', $request, $user );
+			?>
 		<?php else : ?>
 			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post">
 				<?php wp_nonce_field( 'authorize_application_password' ); ?>
@@ -141,6 +154,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<label for="app_name"><?php esc_html_e( 'Application Title:' ); ?></label>
 				<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'Name this connection&hellip;' ); ?>" required />
+
+				<?php
+				/**
+				 * Fires in the Authorize Application Password form before the submit buttons.
+				 *
+				 * @since ?.?.?
+				 *
+				 * @param array   $request {
+				 *     The array of request data. All arguments are optional and may be empty.
+				 *
+				 *     @type string $app_name    The suggested name of the application.
+				 *     @type string $success_url The url the user will be redirected to after approving the application.
+				 *     @type string $reject_url  The url the user will be redirected to after rejecting the application.
+				 * }
+				 * @param WP_User $user The user authorizing the application.
+				 */
+				do_action( 'wp_authorize_application_password_form', $request, $user );
+				?>
 
 				<p><?php submit_button( __( 'Yes, I approve of this connection.' ), 'primary', 'approve', false ); ?>
 					<br /><em>
