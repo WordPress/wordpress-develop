@@ -380,6 +380,29 @@ function wp_authenticate_application_password( $input_user, $username, $password
 
 	foreach ( $hashed_passwords as $key => $item ) {
 		if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
+			$error = new WP_Error();
+
+			/**
+			 * Fires when an application password has been succesfully checked as valid.
+			 *
+			 * This allows for plugins to add additional constraints to an application password being used.
+			 *
+			 * @since ?.?.0
+			 *
+			 * @param WP_Error $error    The error object.
+			 * @param WP_User  $user     The user authenticating.
+			 * @param array    $item     The details about the application password.
+			 * @param string   $password The raw supplied password.
+			 */
+			do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
+
+			if ( is_wp_error( $error ) && $error->has_errors() ) {
+				/** This action is documented in wp-includes/user.php */
+				do_action( 'application_password_failed_authentication', $error );
+
+				return $error;
+			}
+
 			WP_Application_Passwords::record_application_password_usage( $user->ID, $item['uuid'] );
 
 			/**
