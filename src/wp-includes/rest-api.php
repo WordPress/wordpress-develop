@@ -1675,7 +1675,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
  * @param string $param   The parameter name, used in error messages.
  * @return array|WP_Error The matching schema or WP_Error instance if all schemas do not match.
  */
-function rest_find_any_matching_scheme( $value, $args, $param ) {
+function rest_find_any_matching_schema( $value, $args, $param ) {
 	$errors = array();
 
 	foreach ( $args['anyOf'] as $index => $schema ) {
@@ -1709,7 +1709,7 @@ function rest_find_any_matching_scheme( $value, $args, $param ) {
  * @param bool   $stop_after_first_match Optional. Whether the process should stop after the first successful match.
  * @return array|WP_Error                The matching schema or WP_Error instance if the number of matching schemas is not equal to one.
  */
-function rest_find_one_matching_scheme( $value, $args, $param, $stop_after_first_match = false ) {
+function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first_match = false ) {
 	$matching_schemas = array();
 	$errors           = array();
 
@@ -1798,7 +1798,7 @@ function rest_find_one_matching_scheme( $value, $args, $param, $stop_after_first
  */
 function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	if ( isset( $args['anyOf'] ) ) {
-		$matching_schema = rest_find_any_matching_scheme( $value, $args, $param );
+		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
 			return $matching_schema;
 		}
@@ -1809,7 +1809,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( isset( $args['oneOf'] ) ) {
-		$matching_schema = rest_find_one_matching_scheme( $value, $args, $param );
+		$matching_schema = rest_find_one_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
 			return $matching_schema;
 		}
@@ -2118,7 +2118,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
  */
 function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	if ( isset( $args['anyOf'] ) ) {
-		$matching_schema = rest_find_any_matching_scheme( $value, $args, $param );
+		$matching_schema = rest_find_any_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
 			return $matching_schema;
 		}
@@ -2131,7 +2131,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( isset( $args['oneOf'] ) ) {
-		$matching_schema = rest_find_one_matching_scheme( $value, $args, $param );
+		$matching_schema = rest_find_one_matching_schema( $value, $args, $param );
 		if ( is_wp_error( $matching_schema ) ) {
 			return $matching_schema;
 		}
@@ -2358,6 +2358,7 @@ function rest_parse_embed_param( $embed ) {
  *
  * @since 5.5.0
  * @since 5.6.0 Support the "patternProperties" keyword for objects.
+ *              Support the "anyOf" and "oneOf" keywords.
  *
  * @param array|object $data    The response data to modify.
  * @param array        $schema  The schema for the endpoint used to filter the response.
@@ -2365,6 +2366,28 @@ function rest_parse_embed_param( $embed ) {
  * @return array|object The filtered response data.
  */
 function rest_filter_response_by_context( $data, $schema, $context ) {
+	if ( isset( $schema['anyOf'] ) ) {
+		$matching_schema = rest_find_any_matching_schema( $data, $schema, '' );
+		if ( ! is_wp_error( $matching_schema ) ) {
+			if ( ! isset( $schema['type'] ) ) {
+				$schema['type'] = $matching_schema['type'];
+			}
+
+			$data = rest_filter_response_by_context( $data, $matching_schema, $context );
+		}
+	}
+
+	if ( isset( $schema['oneOf'] ) ) {
+		$matching_schema = rest_find_one_matching_schema( $data, $schema, '', true );
+		if ( ! is_wp_error( $matching_schema ) ) {
+			if ( ! isset( $schema['type'] ) ) {
+				$schema['type'] = $matching_schema['type'];
+			}
+
+			$data = rest_filter_response_by_context( $data, $matching_schema, $context );
+		}
+	}
+
 	if ( ! is_array( $data ) && ! is_object( $data ) ) {
 		return $data;
 	}
