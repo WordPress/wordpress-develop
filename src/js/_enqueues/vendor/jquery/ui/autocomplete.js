@@ -20,14 +20,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/autocomplete.js', [
+		define( [
 			"jquery",
 			"./menu",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

@@ -18,14 +18,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/sortable.js', [
+		define( [
 			"jquery",
 			"./mouse",
-			"../data",
-			"../ie",
-			"../scroll-parent",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

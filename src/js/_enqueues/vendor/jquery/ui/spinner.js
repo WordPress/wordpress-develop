@@ -20,13 +20,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/spinner.js', [
+		define( [
 			"jquery",
 			"./button",
-			"../version",
-			"../keycode",
-			"../safe-active-element",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

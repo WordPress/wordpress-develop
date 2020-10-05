@@ -20,21 +20,13 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/dialog.js', [
+		define( [
 			"jquery",
 			"./button",
 			"./draggable",
 			"./mouse",
 			"./resizable",
-			"../focusable",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../safe-blur",
-			"../tabbable",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

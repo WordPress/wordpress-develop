@@ -20,13 +20,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/resizable.js', [
+		define( [
 			"jquery",
 			"./mouse",
-			"../disable-selection",
-			"../plugin",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

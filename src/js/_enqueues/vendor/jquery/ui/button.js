@@ -20,7 +20,7 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/button.js', [
+		define( [
 			"jquery",
 
 			// These are only for backcompat
@@ -28,8 +28,7 @@
 			"./controlgroup",
 			"./checkboxradio",
 
-			"../keycode",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

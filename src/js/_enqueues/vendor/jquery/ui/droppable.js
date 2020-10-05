@@ -17,12 +17,11 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/droppable.js', [
+		define( [
 			"jquery",
 			"./draggable",
 			"./mouse",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

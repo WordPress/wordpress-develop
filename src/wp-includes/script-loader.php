@@ -719,38 +719,34 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'cropper', '/wp-includes/js/crop/cropper.js', array( 'scriptaculous-dragdrop' ) );
 
 	// jQuery.
+	// The unminified jquery.js and jquery-migrate.js are included to facilitate debugging.
 	$scripts->add( 'jquery', false, array( 'jquery-core', 'jquery-migrate' ), '3.5.1' );
 	$scripts->add( 'jquery-core', "/wp-includes/js/jquery/jquery$suffix.js", array(), '3.5.1' );
 	$scripts->add( 'jquery-migrate', "/wp-includes/js/jquery/jquery-migrate$suffix.js", array(), '3.3.1' );
 
 	// Full jQuery UI.
-	// The building process in 1.12.1 has changed significantly.
+	// The build process in 1.12.1 has changed significantly.
 	// In order to keep backwards compatibility, and to keep the optimized loading,
-	// the `jquery-ui.js` file was split in three parts:
-	// - effects.js containing all effects (all files from "group: Effects").
-	// - core.js now contains 'jquery-ui-position', 'jquery-ui-widget' and the rest of the files from "group: Core".
-	// - The files from "group: Widgets" and "group: Interactions" are still separate to optimize loading.
+	// the source files were flattened and included with some modifications for AMD loading.
+	// A notable change is that 'jquery-ui-core' now contains 'jquery-ui-position' and 'jquery-ui-widget'.
 	$scripts->add( 'jquery-ui-core', "/wp-includes/js/jquery/ui/core$suffix.js", array( 'jquery' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-core', "/wp-includes/js/jquery/ui/effect$suffix.js", array( 'jquery' ), '1.12.1', 1 );
 
-	// As of 1.12.1 the jQuery UI Effects are concatenated in `effects.js`.
-	// The separate files are listed here for back-compat.
-	$scripts->add( 'jquery-effects', "/wp-includes/js/jquery/ui/effects$suffix.js", array( 'jquery' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-core', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-blind', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-bounce', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-clip', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-drop', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-explode', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-fade', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-fold', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-highlight', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-puff', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-pulsate', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-scale', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-shake', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-size', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-slide', false, array( 'jquery-effects' ), '1.12.1', 1 );
-	$scripts->add( 'jquery-effects-transfer', false, array( 'jquery-effects' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-blind', "/wp-includes/js/jquery/ui/effect-blind$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-bounce', "/wp-includes/js/jquery/ui/effect-bounce$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-clip', "/wp-includes/js/jquery/ui/effect-clip$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-drop', "/wp-includes/js/jquery/ui/effect-drop$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-explode', "/wp-includes/js/jquery/ui/effect-explode$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-fade', "/wp-includes/js/jquery/ui/effect-fade$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-fold', "/wp-includes/js/jquery/ui/effect-fold$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-highlight', "/wp-includes/js/jquery/ui/effect-highlight$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-puff', "/wp-includes/js/jquery/ui/effect-puff$suffix.js", array( 'jquery-effects-core', 'jquery-effects-scale' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-pulsate', "/wp-includes/js/jquery/ui/effect-pulsate$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-scale', "/wp-includes/js/jquery/ui/effect-scale$suffix.js", array( 'jquery-effects-core', 'jquery-effects-size' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-shake', "/wp-includes/js/jquery/ui/effect-shake$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-size', "/wp-includes/js/jquery/ui/effect-size$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-slide', "/wp-includes/js/jquery/ui/effect-slide$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
+	$scripts->add( 'jquery-effects-transfer', "/wp-includes/js/jquery/ui/effect-transfer$suffix.js", array( 'jquery-effects-core' ), '1.12.1', 1 );
 
 	// Widgets
 	$scripts->add( 'jquery-ui-accordion', "/wp-includes/js/jquery/ui/accordion$suffix.js", array( 'jquery-ui-core' ), '1.12.1', 1 );

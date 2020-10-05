@@ -20,13 +20,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/tooltip.js', [
+		define( [
 			"jquery",
-			"../keycode",
-			"../position",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

@@ -22,12 +22,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/accordion.js', [
+		define( [
 			"jquery",
-			"../version",
-			"../keycode",
-			"../unique-id",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

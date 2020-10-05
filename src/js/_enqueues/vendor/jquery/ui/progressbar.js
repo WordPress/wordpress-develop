@@ -22,10 +22,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/progressbar.js', [
+		define( [
 			"jquery",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

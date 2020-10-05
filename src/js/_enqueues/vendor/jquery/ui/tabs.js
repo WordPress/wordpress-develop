@@ -20,14 +20,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/tabs.js', [
+		define( [
 			"jquery",
-			"../escape-selector",
-			"../keycode",
-			"../safe-active-element",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

@@ -20,14 +20,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/menu.js', [
+		define( [
 			"jquery",
-			"../keycode",
-			"../position",
-			"../safe-active-element",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

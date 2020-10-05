@@ -18,16 +18,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/draggable.js', [
+		define( [
 			"jquery",
 			"./mouse",
-			"../data",
-			"../plugin",
-			"../safe-active-element",
-			"../safe-blur",
-			"../scroll-parent",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

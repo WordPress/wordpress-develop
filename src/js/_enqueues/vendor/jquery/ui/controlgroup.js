@@ -20,9 +20,9 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/controlgroup.js', [
+		define( [
 			"jquery",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 

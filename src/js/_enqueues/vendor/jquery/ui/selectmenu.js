@@ -22,17 +22,10 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/widgets/selectmenu.js', [
+		define( [
 			"jquery",
 			"./menu",
-			"../escape-selector",
-			"../form-reset-mixin",
-			"../keycode",
-			"../labels",
-			"../position",
-			"../unique-id",
-			"../version",
-			"../widget"
+			"./core"
 		], factory );
 	} else {
 
