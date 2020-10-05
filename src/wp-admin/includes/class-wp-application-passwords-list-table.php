@@ -26,11 +26,11 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		return array(
-			'name'      => wp_strip_all_tags( __( 'Name' ) ),
-			'created'   => wp_strip_all_tags( __( 'Created' ) ),
-			'last_used' => wp_strip_all_tags( __( 'Last Used' ) ),
-			'last_ip'   => wp_strip_all_tags( __( 'Last IP' ) ),
-			'revoke'    => wp_strip_all_tags( __( 'Revoke' ) ),
+			'name'      => __( 'Name' ),
+			'created'   => __( 'Created' ),
+			'last_used' => __( 'Last Used' ),
+			'last_ip'   => __( 'Last IP' ),
+			'revoke'    => __( 'Revoke' ),
 		);
 	}
 
