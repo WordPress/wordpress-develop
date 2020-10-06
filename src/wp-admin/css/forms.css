@@ -756,7 +756,7 @@ ul#add-to-blog-users {
 	display: inline-block;
 }
 
-.form-table td fieldset p label { 
+.form-table td fieldset p label {
 	margin-top: 0 !important;
 }
 
@@ -841,18 +841,9 @@ table.form-table td .updated p {
 	cursor: pointer;
 }
 
-.app-pass-dialog-background {
-	opacity: 1.0;
-	background: rgba(0, 0, 0, 0.7);
-}
-
-.app-pass-dialog {
-	padding: 20px;
-}
-
-.new-application-password-content {
-	padding-bottom: 20px;
-	padding-top: 10px;
+.new-application-password-notice.notice {
+	margin-top: 20px;
+	margin-bottom: 0;
 }
 
 /*------------------------------------------------------------------------------

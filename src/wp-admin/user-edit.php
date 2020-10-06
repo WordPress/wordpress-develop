@@ -827,22 +827,21 @@ endif;
 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
-		<div class="new-application-password notification-dialog-wrap">
-			<div class="app-pass-dialog-background notification-dialog-background"></div>
-			<div class="app-pass-dialog notification-dialog">
-				<div class="new-application-password-content">
-					<?php
-					printf(
-						/* translators: 1: Application name, 2: Generated password. */
-						esc_html__( 'Your new password for %1$s is: %2$s' ),
-						'<strong>{{ data.name }}</strong>',
-						'<kbd>{{ data.password }}</kbd>'
-					);
-					?>
-				</div>
-				<p><?php esc_attr_e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
-				<button class="button button-primary application-password-modal-dismiss"><?php esc_html_e( 'Dismiss' ); ?></button>
-			</div>
+		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="0">
+			<p>
+				<?php
+				printf(
+					/* translators: 1: Application name, 2: Generated password. */
+					esc_html__( 'Your new password for %1$s is: %2$s' ),
+					'<strong>{{ data.name }}</strong>',
+					'<kbd>{{ data.password }}</kbd>'
+				);
+				?>
+			</p>
+			<p><?php esc_attr_e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
+			<button type="button" class="notice-dismiss">
+				<span class="screen-reader-text"><?php __( 'Dismiss this notice.' ); ?></span>
+			</button>
 		</div>
 	</script>
 

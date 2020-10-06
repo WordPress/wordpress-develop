@@ -122,16 +122,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php endif; ?>
 
 		<?php if ( $new_password ) : ?>
-			<p class="password-display">
-				<?php
-				printf(
-					/* translators: 1: Application name, 2: Generated password. */
-					__( 'Your new password for %1$s is %2$s.' ),
-					'<strong>' . esc_html( $app_name ) . '</strong>',
-					'<kbd>' . esc_html( WP_Application_Passwords::chunk_password( $new_password ) ) . '</kbd>'
-				);
-				?>
-			</p>
+			<div class="notice notice-success notice-alt below-h2">
+				<p class="password-display">
+					<?php
+					printf(
+						/* translators: 1: Application name, 2: Generated password. */
+						__( 'Your new password for %1$s is %2$s.' ),
+						'<strong>' . esc_html( $app_name ) . '</strong>',
+						'<kbd>' . esc_html( WP_Application_Passwords::chunk_password( $new_password ) ) . '</kbd>'
+					);
+					?>
+				</p>
+			</div>
 
 			<?php
 			/**

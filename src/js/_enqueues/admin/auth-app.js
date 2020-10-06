@@ -64,7 +64,7 @@
 			wp.hooks.doAction( 'wp_application_passwords_approve_app_request_success', response, textStatus, jqXHR );
 
 			var raw = authApp.success,
-				url, $display;
+				url, message, $notice;
 
 			if ( raw ) {
 				url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
@@ -73,20 +73,23 @@
 
 				window.location = url;
 			} else {
-				// Should we maybe just reuse the js template modal from the profile page?
-				$form.replaceWith( '<p class="password-display">' +
-					/* translators: 1: Application Name, 2: Password */
-					wp.i18n.sprintf(
-						wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
-						'<strong></strong>',
-						'<kbd></kbd>'
-					) + '</p>' );
-
-				$display = $( '.password-display' );
+				message = wp.i18n.sprintf(
+					wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
+					'<strong></strong>',
+					'<kbd></kbd>'
+				);
+				$notice = $( '<div></div>' )
+					.attr( 'role', 'alert' )
+					.attr( 'tabindex', 0 )
+					.addClass( 'notice notice-success notice-alt' )
+					.append( $( '<p></p>' ).html( message ) );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
-				$display.find( 'strong' ).text( name );
-				$display.find( 'kbd' ).text( response.password );
+				$( 'strong', $notice ).text( name );
+				$( 'kbd', $notice ).text( response.password );
+
+				$form.replaceWith( $notice );
+				$notice.focus();
 			}
 		} ).fail( function( jqXHR, textStatus, errorThrown ) {
 			var errorMessage = errorThrown,
@@ -101,6 +104,7 @@
 			}
 
 			var $notice = $( '<div></div>' )
+				.attr( 'role', 'alert' )
 				.addClass( 'notice notice-error' )
 				.append( $( '<p></p>' ).text( errorMessage ) );
 

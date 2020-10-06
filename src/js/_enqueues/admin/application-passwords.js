@@ -57,6 +57,7 @@
 				name: name,
 				password: response.password
 			} ) );
+			$( '.new-application-password-notice' ).focus();
 
 			$appPassTbody.prepend( tmplAppPassRow( response ) );
 
@@ -100,6 +101,8 @@
 					$appPassTwrapper.hide();
 				}
 				$tr.remove();
+
+				wp.a11y.speak( wp.i18n.__( 'Application password revoked.' ) );
 			}
 		} ).fail( handleErrorResponse );
 	} );
@@ -126,14 +129,20 @@
 				$appPassTbody.children().remove();
 				$appPassSection.children( '.new-application-password' ).remove();
 				$appPassTwrapper.hide();
+
+				wp.a11y.speak( wp.i18n.__( 'All application passwords revoked.' ) );
 			}
 		} ).fail( handleErrorResponse );
 	} );
 
-	$( document ).on( 'click', '.application-password-modal-dismiss', function( e ) {
+	$( document ).on( 'click', '.new-application-password-notice .notice-dismiss', function( e ) {
 		e.preventDefault();
-
-		$( '.new-application-password.notification-dialog-wrap' ).hide();
+		var $el = $( this ).parent();
+		$el.fadeTo( 100, 0, function () {
+			$el.slideUp( 100, function () {
+				$el.remove();
+			} );
+		} );
 	} );
 
 	// If there are no items, don't display the table yet.  If there are, show it.
@@ -169,6 +178,7 @@
 	 */
 	function addError( message ) {
 		var $notice = $( '<div></div>' )
+			.attr( 'role', 'alert' )
 			.addClass( 'notice notice-error' )
 			.append( $( '<p></p>' ).text( message ) );
 
