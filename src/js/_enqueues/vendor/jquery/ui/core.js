@@ -6,7 +6,7 @@
 	if ( typeof define === "function" && define.amd ) {
 
 		// AMD. Register as an anonymous module.
-		define( 'ui/version.js',[ "jquery" ], factory );
+		define( [ "jquery" ], factory );
 	} else {
 
 		// Browser globals
@@ -14,12 +14,12 @@
 	}
 } ( function( $ ) {
 
+// Source: version.js
 $.ui = $.ui || {};
 
-return $.ui.version = "1.12.1";
+$.ui.version = "1.12.1";
 
-} ) );
-
+// Source: data.js
 /*!
  * jQuery UI :data 1.12.1
  * http://jqueryui.com
@@ -34,18 +34,7 @@ return $.ui.version = "1.12.1";
 //>>description: Selects elements which have data stored under the specified key.
 //>>docs: http://api.jqueryui.com/data-selector/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/data.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-return $.extend( $.expr[ ":" ], {
+$.extend( $.expr[ ":" ], {
 	data: $.expr.createPseudo ?
 		$.expr.createPseudo( function( dataName ) {
 			return function( elem ) {
@@ -58,8 +47,9 @@ return $.extend( $.expr[ ":" ], {
 			return !!$.data( elem, match[ 3 ] );
 		}
 } );
-} ) );
 
+
+// Source: disable-selection.js
 /*!
  * jQuery UI Disable Selection 1.12.1
  * http://jqueryui.com
@@ -75,19 +65,7 @@ return $.extend( $.expr[ ":" ], {
 //>>docs: http://api.jqueryui.com/disableSelection/
 
 // This file is deprecated
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/disable-selection.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
-return $.fn.extend( {
+$.fn.extend( {
 	disableSelection: ( function() {
 		var eventType = "onselectstart" in document.createElement( "div" ) ?
 			"selectstart" :
@@ -105,30 +83,16 @@ return $.fn.extend( {
 	}
 } );
 
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/escape-selector',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
+// Source: escape-selector.js
 // Internal use only
-return $.ui.escapeSelector = ( function() {
+$.ui.escapeSelector = ( function() {
 	var selectorEscape = /([!"#$%&'()*+,./:;<=>?@[\]^`{|}~])/g;
 	return function( selector ) {
 		return selector.replace( selectorEscape, "\\$1" );
 	};
 } )();
 
-} ) );
-
+// Source: focusable.js
 /*!
  * jQuery UI Focusable 1.12.1
  * http://jqueryui.com
@@ -142,18 +106,6 @@ return $.ui.escapeSelector = ( function() {
 //>>group: Core
 //>>description: Selects elements which can be focused.
 //>>docs: http://api.jqueryui.com/focusable-selector/
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/focusable',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
 
 // Selectors
 $.ui.focusable = function( element, hasTabindex ) {
@@ -210,31 +162,15 @@ $.extend( $.expr[ ":" ], {
 	}
 } );
 
-return $.ui.focusable;
-
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/form.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
+// Source: form.js
 // Support: IE8 Only
 // IE8 does not support the form attribute and when it is supplied. It overwrites the form prop
 // with a string, so we need to find the proper form.
-return $.fn.form = function() {
+$.fn.form = function() {
 	return typeof this[ 0 ].form === "string" ? this.closest( "form" ) : $( this[ 0 ].form );
 };
 
-} ) );
-
+// Source: form-reset-mixin.js
 /*!
  * jQuery UI Form Reset Mixin 1.12.1
  * http://jqueryui.com
@@ -249,23 +185,7 @@ return $.fn.form = function() {
 //>>description: Refresh input widgets when their form is reset
 //>>docs: http://api.jqueryui.com/form-reset-mixin/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/form-reset-mixin.js',[
-			"jquery",
-			"./form",
-			"./version"
-		], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-}( function( $ ) {
-
-return $.ui.formResetMixin = {
+$.ui.formResetMixin = {
 	_formResetHandler: function() {
 		var form = $( this );
 
@@ -311,24 +231,11 @@ return $.ui.formResetMixin = {
 	}
 };
 
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/ie.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
+// Source: ie.js
 // This file is deprecated
-return $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
-} ) );
+$.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
 
+// Source: jquery-1-7.js
 /*!
  * jQuery UI Support for jQuery core 1.7.x 1.12.1
  * http://jqueryui.com
@@ -342,18 +249,6 @@ return $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
 //>>label: jQuery 1.7 Support
 //>>group: Core
 //>>description: Support version 1.7.x of jQuery core
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/jquery-1-7.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-}( function( $ ) {
 
 // Support: jQuery 1.7 only
 // Not a great way to check versions, but since we only support 1.7+ and only
@@ -417,8 +312,7 @@ if ( $.fn.jquery.substring( 0, 3 ) === "1.7" ) {
 	};
 }
 
-} ) );
-
+// Source: keycode.js
 /*!
  * jQuery UI Keycode 1.12.1
  * http://jqueryui.com
@@ -433,18 +327,7 @@ if ( $.fn.jquery.substring( 0, 3 ) === "1.7" ) {
 //>>description: Provide keycodes as keynames
 //>>docs: http://api.jqueryui.com/jQuery.ui.keyCode/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/keycode.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-return $.ui.keyCode = {
+$.ui.keyCode = {
 	BACKSPACE: 8,
 	COMMA: 188,
 	DELETE: 46,
@@ -463,8 +346,7 @@ return $.ui.keyCode = {
 	UP: 38
 };
 
-} ) );
-
+// Source: labels.js
 /*!
  * jQuery UI Labels 1.12.1
  * http://jqueryui.com
@@ -479,19 +361,7 @@ return $.ui.keyCode = {
 //>>description: Find all the labels associated with a given input
 //>>docs: http://api.jqueryui.com/labels/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/labels.js',[ "jquery", "./version", "./escape-selector" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
-return $.fn.labels = function() {
+$.fn.labels = function() {
 	var ancestor, selector, id, labels, ancestors;
 
 	// Check control.labels first
@@ -526,22 +396,9 @@ return $.fn.labels = function() {
 	return this.pushStack( labels );
 };
 
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/plugin.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
+// Source: plugin.js
 // $.ui.plugin is deprecated. Use $.widget() extensions instead.
-return $.ui.plugin = {
+$.ui.plugin = {
 	add: function( module, option, set ) {
 		var i,
 			proto = $.ui[ module ].prototype;
@@ -571,8 +428,7 @@ return $.ui.plugin = {
 	}
 };
 
-} ) );
-
+// Source: position.js
 /*!
  * jQuery UI Position 1.12.1
  * http://jqueryui.com
@@ -590,17 +446,6 @@ return $.ui.plugin = {
 //>>docs: http://api.jqueryui.com/position/
 //>>demos: http://jqueryui.com/position/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/position.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-}( function( $ ) {
 ( function() {
 var cachedScrollbarWidth,
 	max = Math.max,
@@ -1068,22 +913,8 @@ $.ui.position = {
 
 } )();
 
-return $.ui.position;
-
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/safe-active-element.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-return $.ui.safeActiveElement = function( document ) {
+// Source: safe-active-element.js
+$.ui.safeActiveElement = function( document ) {
 	var activeElement;
 
 	// Support: IE 9 only
@@ -1111,20 +942,8 @@ return $.ui.safeActiveElement = function( document ) {
 	return activeElement;
 };
 
-} ) );
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/safe-blur.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-return $.ui.safeBlur = function( element ) {
+// Source: safe-blur.js
+$.ui.safeBlur = function( element ) {
 
 	// Support: IE9 - 10 only
 	// If the <body> is blurred, IE will switch windows, see #9420
@@ -1133,8 +952,7 @@ return $.ui.safeBlur = function( element ) {
 	}
 };
 
-} ) );
-
+// Source: scroll-parent.js
 /*!
  * jQuery UI Scroll Parent 1.12.1
  * http://jqueryui.com
@@ -1149,19 +967,7 @@ return $.ui.safeBlur = function( element ) {
 //>>description: Get the closest ancestor element that is scrollable.
 //>>docs: http://api.jqueryui.com/scrollParent/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/scroll-parent.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
-return $.fn.scrollParent = function( includeHidden ) {
+$.fn.scrollParent = function( includeHidden ) {
 	var position = this.css( "position" ),
 		excludeStaticParent = position === "absolute",
 		overflowRegex = includeHidden ? /(auto|scroll|hidden)/ : /(auto|scroll)/,
@@ -1179,8 +985,7 @@ return $.fn.scrollParent = function( includeHidden ) {
 		scrollParent;
 };
 
-} ) );
-
+// Source: tabbable.js
 /*!
  * jQuery UI Tabbable 1.12.1
  * http://jqueryui.com
@@ -1195,19 +1000,7 @@ return $.fn.scrollParent = function( includeHidden ) {
 //>>description: Selects elements which can be tabbed to.
 //>>docs: http://api.jqueryui.com/tabbable-selector/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/tabbable.js',[ "jquery", "./version", "./focusable" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
-return $.extend( $.expr[ ":" ], {
+$.extend( $.expr[ ":" ], {
 	tabbable: function( element ) {
 		var tabIndex = $.attr( element, "tabindex" ),
 			hasTabindex = tabIndex != null;
@@ -1215,8 +1008,7 @@ return $.extend( $.expr[ ":" ], {
 	}
 } );
 
-} ) );
-
+// Source: unique-id.js
 /*!
  * jQuery UI Unique ID 1.12.1
  * http://jqueryui.com
@@ -1231,19 +1023,7 @@ return $.extend( $.expr[ ":" ], {
 //>>description: Functions to generate and remove uniqueId's
 //>>docs: http://api.jqueryui.com/uniqueId/
 
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/unique-id.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-} ( function( $ ) {
-
-return $.fn.extend( {
+$.fn.extend( {
 	uniqueId: ( function() {
 		var uuid = 0;
 
@@ -1265,8 +1045,7 @@ return $.fn.extend( {
 	}
 } );
 
-} ) );
-
+// Source: widget.js
 /*!
  * jQuery UI Widget 1.12.1
  * http://jqueryui.com
@@ -1281,18 +1060,6 @@ return $.fn.extend( {
 //>>description: Provides a factory for creating stateful widgets with a common API.
 //>>docs: http://api.jqueryui.com/jQuery.widget/
 //>>demos: http://jqueryui.com/widget/
-
-( function( factory ) {
-	if ( typeof define === "function" && define.amd ) {
-
-		// AMD. Register as an anonymous module.
-		define( 'ui/widget.js',[ "jquery", "./version" ], factory );
-	} else {
-
-		// Browser globals
-		factory( jQuery );
-	}
-}( function( $ ) {
 
 var widgetUuid = 0;
 var widgetSlice = Array.prototype.slice;
@@ -1997,7 +1764,5 @@ $.each( { show: "fadeIn", hide: "fadeOut" }, function( method, defaultEffect ) {
 	};
 } );
 
-return $.widget;
 
 } ) );
-
