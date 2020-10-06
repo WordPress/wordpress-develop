@@ -128,7 +128,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		 * @param string $column_name Name of the custom column.
 		 * @param array  $item        The application password item.
 		 */
-		do_action( 'manage_application-passwords-user_custom_column', $column_name, $item ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+		do_action( "manage_{$this->screen->id}_custom_column", $column_name, $item );
 	}
 
 	/**
@@ -141,13 +141,11 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	protected function display_tablenav( $which ) {
 		?>
 		<div class="tablenav <?php echo esc_attr( $which ); ?>">
-
 			<?php if ( 'bottom' === $which ) : ?>
-			<div class="alignright">
-				<?php submit_button( __( 'Revoke all application passwords' ), 'delete', 'revoke-all-application-passwords', false ); ?>
-			</div>
+				<div class="alignright">
+					<?php submit_button( __( 'Revoke all application passwords' ), 'delete', 'revoke-all-application-passwords', false ); ?>
+				</div>
 			<?php endif; ?>
-
 			<div class="alignleft actions bulkactions">
 				<?php $this->bulk_actions( $which ); ?>
 			</div>
@@ -155,7 +153,6 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			$this->extra_tablenav( $which );
 			$this->pagination( $which );
 			?>
-
 			<br class="clear" />
 		</div>
 		<?php
@@ -235,7 +232,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					 *
 					 * @param string $column_name Name of the custom column.
 					 */
-					do_action( 'manage_application-passwords-user_custom_column_js_template', $column_name ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
+					do_action( "manage_{$this->screen->id}_custom_column_js_template", $column_name );
 					break;
 			}
 
