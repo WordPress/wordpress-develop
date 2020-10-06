@@ -49,14 +49,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	</div>
 
 	<nav class="health-check-tabs-wrapper hide-if-no-js" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
-		<a href="<?php echo esc_url( ( is_network_admin() ? network_admin_url( 'site-health.php' ) : admin_url( 'site-health.php' ) ) ); ?>" class="health-check-tab">
+		<a href="<?php echo esc_url( self_admin_url( 'site-health.php' ) ); ?>" class="health-check-tab">
 			<?php
 			/* translators: Tab heading for Site Health Status page. */
 			_ex( 'Status', 'Site Health' );
 			?>
 		</a>
 
-		<a href="<?php echo esc_url( ( is_network_admin() ? network_admin_url( 'site-health.php?tab=debug' ) : admin_url( 'site-health.php?tab=debug' ) ) ); ?>" class="health-check-tab active" aria-current="true">
+		<a href="<?php echo esc_url( self_admin_url( 'site-health.php?tab=debug' ) ); ?>" class="health-check-tab active" aria-current="true">
 			<?php
 			/* translators: Tab heading for Site Health Info page. */
 			_ex( 'Info', 'Site Health' );
