@@ -271,7 +271,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		foreach ( array( 'Name', 'Description', 'Author', 'Author', 'AuthorURI' ) as $field ) {
 			// Don't mark up; Do translate.
-			if ( false !== stripos( $theme->display( $field, false, true ), $term ) ) {
+			if ( false !== stripos( (string) $theme->display( $field, false, true ), $term ) ) {
 				return true;
 			}
 		}
@@ -509,10 +509,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 * @param WP_Theme $theme The current WP_Theme object.
 	 */
 	public function column_cb( $theme ) {
-		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
+		$checkbox_id = 'checkbox_' . md5( (string) $theme->get( 'Name' ) );
 		?>
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />
-		<label class="screen-reader-text" for="<?php echo $checkbox_id; ?>" ><?php _e( 'Select' ); ?>  <?php echo $theme->display( 'Name' ); ?></label>
+		<label class="screen-reader-text" for="<?php echo $checkbox_id; ?>" ><?php _e( 'Select' ); ?>  <?php echo esc_html( (string) $theme->display( 'Name' ) ); ?></label>
 		<?php
 	}
 
@@ -564,10 +564,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 				if ( $this->is_site_themes ) {
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Enable %s' ), $theme->display( 'Name' ) );
+					$aria_label = sprintf( __( 'Enable %s' ), (string) $theme->display( 'Name' ) );
 				} else {
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Network Enable %s' ), $theme->display( 'Name' ) );
+					$aria_label = sprintf( __( 'Network Enable %s' ), (string) $theme->display( 'Name' ) );
 				}
 
 				$actions['enable'] = sprintf(
@@ -590,10 +590,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 			if ( $this->is_site_themes ) {
 				/* translators: %s: Theme name. */
-				$aria_label = sprintf( __( 'Disable %s' ), $theme->display( 'Name' ) );
+				$aria_label = sprintf( __( 'Disable %s' ), (string) $theme->display( 'Name' ) );
 			} else {
 				/* translators: %s: Theme name. */
-				$aria_label = sprintf( __( 'Network Disable %s' ), $theme->display( 'Name' ) );
+				$aria_label = sprintf( __( 'Network Disable %s' ), (string) $theme->display( 'Name' ) );
 			}
 
 			$actions['disable'] = sprintf(
@@ -621,7 +621,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			);
 
 			/* translators: %s: Theme name. */
-			$aria_label = sprintf( _x( 'Delete %s', 'theme' ), $theme->display( 'Name' ) );
+			$aria_label = sprintf( _x( 'Delete %s', 'theme' ), (string) $theme->display( 'Name' ) );
 
 			$actions['delete'] = sprintf(
 				'<a href="%s" class="delete" aria-label="%s">%s</a>',
@@ -710,19 +710,19 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		if ( $theme->get( 'Version' ) ) {
 			/* translators: %s: Theme version. */
-			$theme_meta[] = sprintf( __( 'Version %s' ), $theme->display( 'Version' ) );
+			$theme_meta[] = sprintf( __( 'Version %s' ), (string) $theme->display( 'Version' ) );
 		}
 
 		/* translators: %s: Theme author. */
-		$theme_meta[] = sprintf( __( 'By %s' ), $theme->display( 'Author' ) );
+		$theme_meta[] = sprintf( __( 'By %s' ), (string) $theme->display( 'Author' ) );
 
 		if ( $theme->get( 'ThemeURI' ) ) {
 			/* translators: %s: Theme name. */
-			$aria_label = sprintf( __( 'Visit %s homepage' ), $theme->display( 'Name' ) );
+			$aria_label = sprintf( __( 'Visit %s homepage' ), (string) $theme->display( 'Name' ) );
 
 			$theme_meta[] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
-				$theme->display( 'ThemeURI' ),
+				(string) $theme->display( 'ThemeURI' ),
 				esc_attr( $aria_label ),
 				__( 'Visit Theme Site' )
 			);
