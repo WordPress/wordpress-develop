@@ -590,4 +590,18 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertEquals( self::$user_id, $user->ID );
 	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_chunked() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$user = wp_authenticate_application_password( null, self::$_user->user_email, WP_Application_Passwords::chunk_password( $password ) );
+		$this->assertInstanceOf( WP_User::class, $user );
+		$this->assertEquals( self::$user_id, $user->ID );
+	}
 }
