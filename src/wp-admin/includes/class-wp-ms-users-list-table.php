@@ -234,14 +234,15 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 		if ( is_super_admin( $user->ID ) ) {
 			return;
 		}
+		$safe_user_id = intval( $user->ID );
 		?>
-		<label class="screen-reader-text" for="blog_<?php echo $user->ID; ?>">
+		<label class="screen-reader-text" for="blog_<?php echo $safe_user_id; ?>">
 			<?php
 			/* translators: %s: User login. */
 			printf( __( 'Select %s' ), $user->user_login );
 			?>
 		</label>
-		<input type="checkbox" id="blog_<?php echo $user->ID; ?>" name="allusers[]" value="<?php echo esc_attr( $user->ID ); ?>" />
+		<input type="checkbox" id="blog_<?php echo $safe_user_id; ?>" name="allusers[]" value="<?php echo $safe_user_id; ?>" />
 		<?php
 	}
 
