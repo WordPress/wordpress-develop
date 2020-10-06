@@ -433,7 +433,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		<p class="filename">
 			<span class="screen-reader-text"><?php _e( 'File name:' ); ?> </span>
 			<?php
-			$file = get_attached_file( $post->ID );
+			$file = (string) get_attached_file( $post->ID );
 			echo esc_html( wp_basename( $file ) );
 			?>
 		</p>
@@ -802,7 +802,7 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $post        Attachment being acted upon.
+	 * @param WP_Post $post       Attachment being acted upon.
 	 * @param string $column_name Current column name.
 	 * @param string $primary     Primary column name.
 	 * @return string Row actions output for media attachments, or an empty string
