@@ -298,7 +298,7 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 }
 
 /**
- * Authenticate the user using an application password.
+ * Authenticates the user using an application password.
  *
  * @since ?.?.0
  *
@@ -318,9 +318,11 @@ function wp_authenticate_application_password( $input_user, $username, $password
 	/**
 	 * Filters whether this is an API request that Application Passwords can be used on.
 	 *
+	 * By default, Application Passwords is available for the REST API and XML-RPC.
+	 *
 	 * @since ?.?.0
 	 *
-	 * @param bool $is_api_request Whether this is an API request.
+	 * @param bool $is_api_request If this is an acceptable API request.
 	 */
 	$is_api_request = apply_filters( 'application_password_is_api_request', $is_api_request );
 
@@ -379,44 +381,46 @@ function wp_authenticate_application_password( $input_user, $username, $password
 	$hashed_passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
 
 	foreach ( $hashed_passwords as $key => $item ) {
-		if ( wp_check_password( $password, $item['password'], $user->ID ) ) {
-			$error = new WP_Error();
-
-			/**
-			 * Fires when an application password has been succesfully checked as valid.
-			 *
-			 * This allows for plugins to add additional constraints to an application password being used.
-			 *
-			 * @since ?.?.0
-			 *
-			 * @param WP_Error $error    The error object.
-			 * @param WP_User  $user     The user authenticating.
-			 * @param array    $item     The details about the application password.
-			 * @param string   $password The raw supplied password.
-			 */
-			do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
-
-			if ( is_wp_error( $error ) && $error->has_errors() ) {
-				/** This action is documented in wp-includes/user.php */
-				do_action( 'application_password_failed_authentication', $error );
-
-				return $error;
-			}
-
-			WP_Application_Passwords::record_application_password_usage( $user->ID, $item['uuid'] );
-
-			/**
-			 * Fires after an application password was used for authentication.
-			 *
-			 * @since ?.?.0
-			 *
-			 * @param WP_User $user The user who was authenticated.
-			 * @param array   $item The application password used.
-			 */
-			do_action( 'application_password_did_authenticate', $user, $item );
-
-			return $user;
+		if ( ! wp_check_password( $password, $item['password'], $user->ID ) ) {
+			continue;
 		}
+
+		$error = new WP_Error();
+
+		/**
+		 * Fires when an application password has been successfully checked as valid.
+		 *
+		 * This allows for plugins to add additional constraints to prevent an application password from being used.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param WP_Error $error    The error object.
+		 * @param WP_User  $user     The user authenticating.
+		 * @param array    $item     The details about the application password.
+		 * @param string   $password The raw supplied password.
+		 */
+		do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
+
+		if ( is_wp_error( $error ) && $error->has_errors() ) {
+			/** This action is documented in wp-includes/user.php */
+			do_action( 'application_password_failed_authentication', $error );
+
+			return $error;
+		}
+
+		WP_Application_Passwords::record_application_password_usage( $user->ID, $item['uuid'] );
+
+		/**
+		 * Fires after an application password was used for authentication.
+		 *
+		 * @since ?.?.0
+		 *
+		 * @param WP_User $user The user who was authenticated.
+		 * @param array   $item The application password used.
+		 */
+		do_action( 'application_password_did_authenticate', $user, $item );
+
+		return $user;
 	}
 
 	$error = new WP_Error(
@@ -436,7 +440,7 @@ function wp_authenticate_application_password( $input_user, $username, $password
  * @since ?.?.0
  *
  * @param int|bool $input_user User ID if one has been determined, false otherwise.
- * @return WP_User|bool
+ * @return int|bool The authenticated user ID if successful, false otherwise.
  */
 function wp_validate_application_password( $input_user ) {
 	// Don't authenticate twice.

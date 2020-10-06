@@ -18,7 +18,7 @@
 class WP_Application_Passwords_List_Table extends WP_List_Table {
 
 	/**
-	 * Get a list of columns.
+	 * Gets the list of columns.
 	 *
 	 * @since ?.?.0
 	 *

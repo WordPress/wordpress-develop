@@ -208,9 +208,9 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		 *
 		 * @since ?.?.0
 		 *
-		 * @param WP_Post         $post     Inserted or updated post object.
+		 * @param array           $item     Inserted or updated password item.
 		 * @param WP_REST_Request $request  Request object.
-		 * @param bool            $creating True when creating a post, false when updating.
+		 * @param bool            $creating True when creating an application password, false when updating.
 		 */
 		do_action( 'rest_after_insert_application_password', $item, $request, true );
 
@@ -400,7 +400,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Prepares an application password for create or update operation.
+	 * Prepares an application password for a create or update operation.
 	 *
 	 * @since ?.?.0
 	 *
@@ -415,7 +415,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 		/**
 		 * Filters an application password before it is inserted via the REST API.
 		 *
-		 * @since 4.7.0
+		 * @since ?.?.0
 		 *
 		 * @param stdClass        $prepared An object representing a single application password prepared for inserting or updating the database.
 		 * @param WP_REST_Request $request  Request object.
@@ -491,8 +491,8 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 *
 	 * @since ?.?.0
 	 *
-	 * @param WP_REST_Request $request
-	 * @return WP_User|WP_Error
+	 * @param WP_REST_Request $request The request object.
+	 * @return WP_User|WP_Error The WordPress user associated with the request, or a WP_Error if none found.
 	 */
 	protected function get_user( $request ) {
 		if ( ! wp_is_application_passwords_available() ) {
@@ -556,7 +556,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * @since ?.?.0
 	 *
 	 * @param WP_REST_Request $request The request object.
-	 * @return array|WP_Error
+	 * @return array|WP_Error The application password details if found, a WP_Error otherwise.
 	 */
 	protected function get_application_password( $request ) {
 		$user = $this->get_user( $request );
@@ -628,7 +628,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'readonly'    => true,
 				),
 				'created'   => array(
-					'description' => __( 'The date the application password was created.' ),
+					'description' => __( 'The GMT date the application password was created.' ),
 					'type'        => 'string',
 					'format'      => 'date-time',
 					'context'     => array( 'view', 'edit' ),
