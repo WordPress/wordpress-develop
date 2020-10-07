@@ -191,6 +191,13 @@ final class WP_oEmbed_Controller {
 			return $data;
 		}
 
+		/** This filter is documented in wp-includes/class-wp-oembed.php */
+		$data = apply_filters( 'pre_oembed_result', null, $url, $args );
+
+		if ( null !== $data ) {
+			return $data;
+		}
+
 		$data = _wp_oembed_get_object()->get_data( $url, $args );
 
 		if ( false === $data ) {
