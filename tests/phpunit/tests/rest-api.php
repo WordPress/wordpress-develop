@@ -1284,6 +1284,42 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'additional' => array( 'a' => '1' ) ),
 			),
+			'pattern properties'                  => array(
+				array(
+					'$schema'              => 'http://json-schema.org/draft-04/schema#',
+					'type'                 => 'object',
+					'properties'           => array(
+						'a' => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+					),
+					'patternProperties'    => array(
+						'[0-9]' => array(
+							'type'    => 'string',
+							'context' => array( 'view', 'edit' ),
+						),
+						'c.*'   => array(
+							'type'    => 'string',
+							'context' => array( 'edit' ),
+						),
+					),
+					'additionalProperties' => array(
+						'type'    => 'string',
+						'context' => array( 'edit' ),
+					),
+				),
+				array(
+					'a'  => '1',
+					'b'  => '2',
+					'0'  => '3',
+					'ca' => '4',
+				),
+				array(
+					'a' => '1',
+					'0' => '3',
+				),
+			),
 			'multiple types object'               => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',

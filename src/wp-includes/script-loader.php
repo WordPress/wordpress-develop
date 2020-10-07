@@ -323,6 +323,15 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		)
 	);
 
+	// Calculate the timezone abbr (EDT, PST) if possible.
+	$timezone_string = get_option( 'timezone_string', 'UTC' );
+	$timezone_abbr   = '';
+
+	if ( ! empty( $timezone_string ) ) {
+		$timezone_date = new DateTime( null, new DateTimeZone( $timezone_string ) );
+		$timezone_abbr = $timezone_date->format( 'T' );
+	}
+
 	$scripts->add_inline_script(
 		'wp-date',
 		sprintf(
@@ -355,7 +364,8 @@ function wp_default_packages_inline_scripts( $scripts ) {
 					),
 					'timezone' => array(
 						'offset' => get_option( 'gmt_offset', 0 ),
-						'string' => get_option( 'timezone_string', 'UTC' ),
+						'string' => $timezone_string,
+						'abbr'   => $timezone_abbr,
 					),
 				)
 			)
@@ -894,8 +904,8 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'imgareaselect', "/wp-includes/js/imgareaselect/jquery.imgareaselect$suffix.js", array( 'jquery' ), false, 1 );
 
-	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.13-9993131', 1 );
-	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.13-9993131', 1 );
+	$scripts->add( 'mediaelement', false, array( 'jquery', 'mediaelement-core', 'mediaelement-migrate' ), '4.2.16', 1 );
+	$scripts->add( 'mediaelement-core', "/wp-includes/js/mediaelement/mediaelement-and-player$suffix.js", array(), '4.2.16', 1 );
 	$scripts->add( 'mediaelement-migrate', "/wp-includes/js/mediaelement/mediaelement-migrate$suffix.js", array(), false, 1 );
 
 	did_action( 'init' ) && $scripts->add_inline_script(
@@ -985,7 +995,7 @@ function wp_default_scripts( $scripts ) {
 		'before'
 	);
 
-	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.13-9993131', 1 );
+	$scripts->add( 'mediaelement-vimeo', '/wp-includes/js/mediaelement/renderers/vimeo.min.js', array( 'mediaelement' ), '4.2.16', 1 );
 	$scripts->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.js", array( 'mediaelement' ), false, 1 );
 	$mejs_settings = array(
 		'pluginPath'  => includes_url( 'js/mediaelement/', 'relative' ),
@@ -1418,7 +1428,7 @@ function wp_default_styles( $styles ) {
 	// External libraries and friends.
 	$styles->add( 'imgareaselect', '/wp-includes/js/imgareaselect/imgareaselect.css', array(), '0.9.8' );
 	$styles->add( 'wp-jquery-ui-dialog', "/wp-includes/css/jquery-ui-dialog$suffix.css", array( 'dashicons' ) );
-	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.13-9993131' );
+	$styles->add( 'mediaelement', '/wp-includes/js/mediaelement/mediaelementplayer-legacy.min.css', array(), '4.2.16' );
 	$styles->add( 'wp-mediaelement', "/wp-includes/js/mediaelement/wp-mediaelement$suffix.css", array( 'mediaelement' ) );
 	$styles->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.css', array( 'dashicons' ) );
 	$styles->add( 'wp-codemirror', '/wp-includes/js/codemirror/codemirror.min.css', array(), '5.29.1-alpha-ee20357' );
@@ -2160,9 +2170,7 @@ function script_concat_settings() {
  * @global WP_Screen $current_screen WordPress current screen object.
  */
 function wp_common_block_scripts_and_styles() {
-	global $current_screen;
-
-	if ( is_admin() && ( $current_screen instanceof WP_Screen ) && ! $current_screen->is_block_editor() ) {
+	if ( is_admin() && ! wp_should_load_block_editor_scripts_and_styles() ) {
 		return;
 	}
 
@@ -2186,6 +2194,30 @@ function wp_common_block_scripts_and_styles() {
 }
 
 /**
+ * Checks if the editor scripts and styles for all registered block types
+ * should be enqueued on the current screen.
+ *
+ * @since 5.6.0
+ *
+ * @return bool
+ */
+function wp_should_load_block_editor_scripts_and_styles() {
+	global $current_screen;
+
+	$is_block_editor_screen = ( $current_screen instanceof WP_Screen ) && $current_screen->is_block_editor();
+
+	/**
+	 * Filters the flag that decides whether or not block editor scripts and
+	 * styles are going to be enqueued on the current screen.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool $is_block_editor_screen Current value of the flag.
+	 */
+	return apply_filters( 'should_load_block_editor_scripts_and_styles', $is_block_editor_screen );
+}
+
+/**
  * Enqueues registered block scripts and styles, depending on current rendered
  * context (only enqueuing editor scripts while in context of the editor).
  *
@@ -2196,7 +2228,7 @@ function wp_common_block_scripts_and_styles() {
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
 
-	$is_editor = ( ( $current_screen instanceof WP_Screen ) && $current_screen->is_block_editor() );
+	$load_editor_scripts = wp_should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
@@ -2211,12 +2243,12 @@ function wp_enqueue_registered_block_scripts_and_styles() {
 		}
 
 		// Editor styles.
-		if ( $is_editor && ! empty( $block_type->editor_style ) ) {
+		if ( $load_editor_scripts && ! empty( $block_type->editor_style ) ) {
 			wp_enqueue_style( $block_type->editor_style );
 		}
 
 		// Editor script.
-		if ( $is_editor && ! empty( $block_type->editor_script ) ) {
+		if ( $load_editor_scripts && ! empty( $block_type->editor_script ) ) {
 			wp_enqueue_script( $block_type->editor_script );
 		}
 	}
