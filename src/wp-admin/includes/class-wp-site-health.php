@@ -200,7 +200,7 @@ class WP_Site_Health {
 
 		$this->health_check_mysql_rec_version = '5.6';
 
-		if ( stristr( $mysql_server_type, 'mariadb' ) ) {
+		if ( stristr( (string) $mysql_server_type, 'mariadb' ) ) {
 			$this->is_mariadb                     = true;
 			$this->health_check_mysql_rec_version = '10.0';
 		}
@@ -1308,7 +1308,7 @@ class WP_Site_Health {
 		 */
 		if ( false !== strpos( $mysql_client_version, 'mysqlnd' ) ) {
 			$mysql_client_version = preg_replace( '/^\D+([\d.]+).*/', '$1', $mysql_client_version );
-			if ( version_compare( $mysql_client_version, '5.0.9', '<' ) ) {
+			if ( version_compare( (string) $mysql_client_version, '5.0.9', '<' ) ) {
 				$result['status'] = 'recommended';
 
 				$result['label'] = __( 'utf8mb4 requires a newer client library' );
@@ -1447,7 +1447,7 @@ class WP_Site_Health {
 			if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
 				$result['label'] = __( 'Your site is set to log errors to a potentially public file.' );
 
-				$result['status'] = ( 0 === strpos( ini_get( 'error_log' ), ABSPATH ) ) ? 'critical' : 'recommended';
+				$result['status'] = ( 0 === strpos( (string) ini_get( 'error_log' ), ABSPATH ) ) ? 'critical' : 'recommended';
 
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
@@ -2046,8 +2046,8 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		$post_max_size       = ini_get( 'post_max_size' );
-		$upload_max_filesize = ini_get( 'upload_max_filesize' );
+		$post_max_size       = (string) ini_get( 'post_max_size' );
+		$upload_max_filesize = (string) ini_get( 'upload_max_filesize' );
 
 		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
 			$result['label'] = sprintf(
