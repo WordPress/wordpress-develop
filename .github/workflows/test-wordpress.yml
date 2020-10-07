@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Checkout repository
         run: |
-          git checkout git@github.com:desrosj/wordpress-develop.git .
+          git clone https://github.com/desrosj/wordpress-develop.git .
 
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
