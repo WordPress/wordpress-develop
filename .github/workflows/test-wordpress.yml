@@ -5,8 +5,8 @@ on: [push]
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-  PHP_FPM_UID: runner
-  PHP_FPM_GID: docker
+  PHP_FPM_UID: docker
+  PHP_FPM_GID: runner
 
 jobs:
 #  test-php:
