@@ -5,8 +5,8 @@ on: [push]
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-  PHP_FPM_UID: "`id -u`"
-  PHP_FPM_GID: "`id -g`"
+  PHP_FPM_UID: `id -u`
+  PHP_FPM_GID: `id -g`
 
 
 jobs:
