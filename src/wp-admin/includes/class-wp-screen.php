@@ -539,9 +539,9 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param string $option Option name.
-	 * @param string $key    Optional. Specific array key for when the option is an array.
-	 *                       Default false.
+	 * @param string $option    Option name.
+	 * @param string $key|false Optional. Specific array key for when the option is an array.
+	 *                          Default false.
 	 * @return string The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
@@ -1202,7 +1202,7 @@ final class WP_Screen {
 		<legend class="screen-layout"><?php _e( 'Layout' ); ?></legend>
 		<?php for ( $i = 1; $i <= $num; ++$i ) : ?>
 			<label class="columns-prefs-<?php echo $i; ?>">
-			<input type='radio' name='screen_columns' value='<?php echo esc_attr( $i ); ?>' <?php checked( $screen_layout_columns, $i ); ?> />
+			<input type='radio' name='screen_columns' value='<?php echo intval( $i ); ?>' <?php checked( $screen_layout_columns, $i ); ?> />
 			<?php
 				printf(
 					/* translators: %s: Number of columns on the page. */
