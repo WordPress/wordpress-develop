@@ -6,7 +6,7 @@ const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 dotenv.config();
 
 // Create wp-config.php.
-wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
+wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www --force' );
 
 // Add the debug settings to wp-config.php.
 // Windows requires this to be done as an additional step, rather than using the --extra-php option in the previous step.
@@ -16,7 +16,7 @@ wp_cli( `config set WP_DEBUG_DISPLAY ${process.env.LOCAL_WP_DEBUG_DISPLAY} --raw
 wp_cli( `config set SCRIPT_DEBUG ${process.env.LOCAL_SCRIPT_DEBUG} --raw` );
 
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
-renameSync( 'src/wp-config.php', 'wp-config.php' );
+// renameSync( 'src/wp-config.php', 'wp-config.php' );
 
 // Read in wp-tests-config-sample.php, edit it to work with our config, then write it to wp-tests-config.php.
 const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
