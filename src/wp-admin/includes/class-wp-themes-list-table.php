@@ -302,20 +302,20 @@ class WP_Themes_List_Table extends WP_List_Table {
 	public function search_theme( $theme ) {
 		// Search the features.
 		foreach ( $this->features as $word ) {
-			if ( ! in_array( $word, $theme->get( 'Tags' ), true ) ) {
+			if ( ! in_array( $word, (array) $theme->get( 'Tags' ), true ) ) {
 				return false;
 			}
 		}
 
 		// Match all phrases.
 		foreach ( $this->search_terms as $word ) {
-			if ( in_array( $word, $theme->get( 'Tags' ), true ) ) {
+			if ( in_array( $word, (array) $theme->get( 'Tags' ), true ) ) {
 				continue;
 			}
 
 			foreach ( array( 'Name', 'Description', 'Author', 'AuthorURI' ) as $header ) {
 				// Don't mark up; Do translate.
-				if ( false !== stripos( strip_tags( $theme->display( $header, false, true ) ), $word ) ) {
+				if ( false !== stripos( strip_tags( (string) $theme->display( $header, false, true ) ), $word ) ) {
 					continue 2;
 				}
 			}
