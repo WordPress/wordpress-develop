@@ -5,6 +5,9 @@ on: [push]
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+  PHP_FPM_UID: "`id -u`"
+  PHP_FPM_GID: "`id -g`"
+
 
 jobs:
 #  test-php:
@@ -63,6 +66,7 @@ jobs:
 
       - name: Setup Docker environment
         run: |
+          chown
           docker-compose -v
           ls -l
           ls src -l
