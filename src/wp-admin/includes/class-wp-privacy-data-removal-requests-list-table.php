@@ -56,8 +56,8 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 			$nonce         = wp_create_nonce( 'wp-privacy-erase-personal-data-' . $request_id );
 
 			$remove_data_markup = '<div class="remove-personal-data force-remove-personal-data" ' .
-				'data-erasers-count="' . esc_attr( $erasers_count ) . '" ' .
-				'data-request-id="' . esc_attr( $request_id ) . '" ' .
+				'data-erasers-count="' . intval( $erasers_count ) . '" ' .
+				'data-request-id="' . intval( $request_id ) . '" ' .
 				'data-nonce="' . esc_attr( $nonce ) .
 				'">';
 
@@ -99,8 +99,8 @@ class WP_Privacy_Data_Removal_Requests_List_Table extends WP_Privacy_Requests_Ta
 
 				echo '<div class="remove-personal-data" ' .
 					'data-force-erase="1" ' .
-					'data-erasers-count="' . esc_attr( $erasers_count ) . '" ' .
-					'data-request-id="' . esc_attr( $request_id ) . '" ' .
+					'data-erasers-count="' . intval( $erasers_count ) . '" ' .
+					'data-request-id="' . intval( $request_id ) . '" ' .
 					'data-nonce="' . esc_attr( $nonce ) .
 					'">';
 
