@@ -302,7 +302,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 				$parent_ids = array();
 				$p          = $term->parent;
 				while ( $p ) {
-					$my_parent    = get_term( $p, $taxonomy );
+					$my_parent = get_term( $p, $taxonomy );
+					if ( ! $my_parent instanceof WP_Term ) {
+						continue;
+					}
 					$my_parents[] = $my_parent;
 					$p            = $my_parent->parent;
 					if ( in_array( $p, $parent_ids, true ) ) { // Prevent parent loops.
@@ -498,10 +501,10 @@ class WP_Terms_List_Table extends WP_List_Table {
 				__( 'Delete' )
 			);
 		}
-		if ( is_taxonomy_viewable( $tax ) ) {
+		if ( $tax && is_taxonomy_viewable( $tax ) && isset( $tag->name ) ) {
 			$actions['view'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
-				get_term_link( $tag ),
+				(string) get_term_link( $tag ),
 				/* translators: %s: Taxonomy term name. */
 				esc_attr( sprintf( __( 'View &#8220;%s&#8221; archive' ), $tag->name ) ),
 				__( 'View' )
