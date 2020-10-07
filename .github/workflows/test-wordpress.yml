@@ -9,8 +9,6 @@ jobs:
   test-php-7-4:
     name: Test PHP 7.4
     runs-on: ubuntu-latest
-    env:
-      LOCAL_PHP: 7.4-fpm
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
