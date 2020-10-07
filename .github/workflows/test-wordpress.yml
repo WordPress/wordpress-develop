@@ -4,6 +4,7 @@ on: [push]
 
 env:
   LOCAL_DIR: build
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
 
 jobs:
   test-php-7-4:
@@ -11,8 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        run: |
-          git clone https://github.com/desrosj/wordpress-develop.git .
+        uses: actions/checkout@v2
 
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
@@ -22,11 +22,9 @@ jobs:
         with:
           node-version: 12
 
-#      - name: Use the desired version of Node using nvm
-#        run: nvm install
-
       - name: Log debug information
         run: |
+          docker ps -a
           npm --version
           which npm
           node --version
@@ -42,7 +40,12 @@ jobs:
 
       - name: Start Docker environment
         run: |
+          docker ps -a
           npm run env:start
+          docker ps -a
+
+      - name: Check running containers
+        run: docker ps -a
 
       - name: Build WordPress
         run: npm run build
@@ -58,13 +61,18 @@ jobs:
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
 
-          npm run env:install
+      - name: Check running containers
+        run: docker ps -a
 
-      - name: Run PHPUnit
-        run: |
-          npm run test:php -- --verbose -c phpunit.xml.dist &&
-          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
-          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
-          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
-          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
-          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
+      - name: Install WordPress
+        run: npm run env:install
+
+
+#      - name: Run PHPUnit
+#        run: |
+#          npm run test:php -- --verbose -c phpunit.xml.dist &&
+#          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+#          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+#          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+#          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+#          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
