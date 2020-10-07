@@ -60,7 +60,27 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      # PHP 8.0 test runner.
       - name: Run PHPUnit tests
+        if: ${{ env.LOCAL_PHP = '8.0' }}
+
+        # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
+        # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
+        run: |
+          npm run test:php-composer -- --verbose -c phpunit.xml.dist
+          npm run test:php-composer -- --verbose -c phpunit.xml.dist --group ajax
+          npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml
+          npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml --group ms-files
+          npm run test:php-composer -- --verbose -c phpunit.xml.dist --group external-http
+          npm run test:php-composer -- --verbose -c phpunit.xml.dist --group restapi-jsclient
+        # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+        # Xdebug supports PHP 8 only from version 3.0, which is not released yet.
+        # Once Xdebug 3.0 is released and included in the Docker image, this should be uncommented again.
+        # - LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
+
+      # PHP test runner for all other versions.
+      - name: Run PHPUnit tests
+        if: ${{ env.LOCAL_PHP != '8.0' }}
         run: |
           npm run test:php -- --verbose -c phpunit.xml.dist &&
           npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
@@ -70,7 +90,7 @@ jobs:
           npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
           # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
           LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
-#
+
 #  test-php-7-4:
 #    name: Test PHP 7.4
 #    runs-on: ubuntu-latest
