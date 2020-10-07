@@ -35,13 +35,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-      - name: Try changing permissions
-        run: |
-          chmod +x . -R
 
       - name: Log debug information
         run: |
-          docker ps -a
           npm --version
           which npm
           node --version
@@ -57,9 +53,7 @@ jobs:
 
       - name: Start Docker environment
         run: |
-          docker ps -a
           npm run env:start
-          docker ps -a
 
       - name: Check running containers
         run: docker ps -a
