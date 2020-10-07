@@ -5,39 +5,24 @@ on: [push]
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
-  PHP_FPM_UID: 1001
-  PHP_FPM_GID: 116
+  PHP_FPM_UID: 1001 # This needs to be dynamic
+  PHP_FPM_GID: 116 # This needs to be dynamic
 
 jobs:
-#  test-php:
-#    name: Test PHP ${{ matrix.php_versions }}
-#    runs-on: ubuntu-latest
-#    strategy:
-#      matrix:
-#        php_versions: [ 8.0, 7.4, 7.3, 7.2, 7.1, 7.0, 5.6.20 ]
-#    env:
-#      LOCAL_PHP: ${{ matrix.php_versions }}-fpm
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#      - name: Checkout the WordPress Importer plugin
-#        run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
-
-  test-php-7-4:
-    name: Test PHP 7.4
+  test-php:
+    name: Test PHP ${{ matrix.php_versions }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php_versions: [ 8.0, 7.4, 7.3, 7.2, 7.1, 7.0, 5.6.20 ]
+    env:
+      LOCAL_PHP: ${{ matrix.php_versions }}-fpm
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
-
-      - name: install node v12
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
       - name: Log debug information
         run: |
@@ -50,9 +35,6 @@ jobs:
           php --version
           php -i
           locale -a
-          id
-          id -g
-          id -u
 
       - name: Install Dependencies
         run: npm ci
@@ -61,28 +43,94 @@ jobs:
         run: |
           npm run env:start
 
-      - name: Check running containers
+      - name: Check running Docker containers
         run: docker ps -a
 
-      - name: Build WordPress
-        run: npm run build
-
-      - name: Setup Docker environment
+      - name: Docker debug information
         run: |
+          docker -v
           docker-compose -v
-          ls -l
-          ls src -l
-          ls build -l
-
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
 
-      - name: Check running containers
-        run: docker ps -a
+      - name: Build WordPress
+        run: npm run build
 
       - name: Install WordPress
         run: npm run env:install
+
+      - name: Run PHPUnit tests
+        run: |
+          npm run test:php -- --verbose -c phpunit.xml.dist &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
+          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
+          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
+          # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+          LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
+#
+#  test-php-7-4:
+#    name: Test PHP 7.4
+#    runs-on: ubuntu-latest
+#    steps:
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#
+#      - name: Checkout the WordPress Importer plugin
+#        run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+#
+#      - name: install node v12
+#        uses: actions/setup-node@v1
+#        with:
+#          node-version: 12
+#
+#      - name: Log debug information
+#        run: |
+#          npm --version
+#          which npm
+#          node --version
+#          curl --version
+#          git --version
+#          svn --version
+#          php --version
+#          php -i
+#          locale -a
+#          id
+#          id -g
+#          id -u
+#
+#      - name: Install Dependencies
+#        run: npm ci
+#
+#      - name: Start Docker environment
+#        run: |
+#          npm run env:start
+#
+#      - name: Check running containers
+#        run: docker ps -a
+#
+#      - name: Build WordPress
+#        run: npm run build
+#
+#      - name: Setup Docker environment
+#        run: |
+#          docker-compose -v
+#          ls -l
+#          ls src -l
+#          ls build -l
+#
+#          docker-compose run --rm mysql mysql --version
+#          docker-compose run --rm php php --version
+#          docker-compose run --rm php php -m
+#
+#      - name: Check running containers
+#        run: docker ps -a
+#
+#      - name: Install WordPress
+#        run: npm run env:install
 
 
 #      - name: Run PHPUnit
