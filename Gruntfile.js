@@ -653,6 +653,15 @@ module.exports = function(grunt) {
 			}
 		},
 		qunit: {
+			options: {
+				puppeteer: {
+					ignoreDefaultArgs: true,
+					args: [
+						"--headless",
+						"--disable-web-security",
+					]
+				},
+			},
 			files: [
 				'tests/qunit/**/*.html',
 				'!tests/qunit/editor/**'
