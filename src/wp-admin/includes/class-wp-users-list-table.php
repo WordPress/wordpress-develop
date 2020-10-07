@@ -395,7 +395,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		}
 
 		foreach ( $this->items as $userid => $user_object ) {
-			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? $post_counts[ $userid ] : 0 );
+			echo "\n\t" . $this->single_row( $user_object, '', '', isset( $post_counts ) ? intval( $post_counts[ $userid ] ) : 0 );
 		}
 	}
 
@@ -417,6 +417,10 @@ class WP_Users_List_Table extends WP_List_Table {
 		if ( ! ( $user_object instanceof WP_User ) ) {
 			$user_object = get_userdata( (int) $user_object );
 		}
+		if ( false === $user_object ) {
+			return '';
+		}
+
 		$user_object->filter = 'display';
 		$email               = $user_object->user_email;
 
