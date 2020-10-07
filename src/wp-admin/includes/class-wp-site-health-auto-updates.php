@@ -360,7 +360,7 @@ class WP_Site_Health_Auto_Updates {
 		$dev       = ( false !== strpos( $wp_version, '-' ) );
 		// Get the last stable version's files and test against that.
 		if ( ! $checksums && $dev ) {
-			$checksums = get_core_checksums( (float) $wp_version - 0.1, 'en_US' );
+			$checksums = get_core_checksums( strval( (float) $wp_version - 0.1 ), 'en_US' );
 		}
 
 		// There aren't always checksums for development releases, so just skip the test if we still can't find any.
