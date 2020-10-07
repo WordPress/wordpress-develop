@@ -37,7 +37,7 @@ jobs:
           node-version: 12
       - name: Try changing permissions
         run: |
-          chmod +x src -R
+          chmod +x . -R
 
       - name: Log debug information
         run: |
