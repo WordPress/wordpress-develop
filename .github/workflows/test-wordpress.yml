@@ -41,6 +41,8 @@ jobs:
 
       - name: Log debug information
         run: |
+          echo $PHP_FPM_UID
+          echo $PHP_FPM_GID
           npm --version
           which npm
           node --version
@@ -66,7 +68,6 @@ jobs:
 
       - name: Setup Docker environment
         run: |
-          chown
           docker-compose -v
           ls -l
           ls src -l
