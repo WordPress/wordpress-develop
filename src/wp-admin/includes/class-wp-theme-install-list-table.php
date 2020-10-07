@@ -546,9 +546,9 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 
 		$installed_theme = wp_get_theme( $theme->slug );
 		if ( $installed_theme->exists() ) {
-			if ( version_compare( $installed_theme->get( 'Version' ), $theme->version, '=' ) ) {
+			if ( version_compare( (string) $installed_theme->get( 'Version' ), $theme->version, '=' ) ) {
 				$status = 'latest_installed';
-			} elseif ( version_compare( $installed_theme->get( 'Version' ), $theme->version, '>' ) ) {
+			} elseif ( version_compare( (string) $installed_theme->get( 'Version' ), $theme->version, '>' ) ) {
 				$status = 'newer_installed';
 			} else {
 				$status = 'update_available';
