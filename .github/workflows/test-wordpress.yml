@@ -5,6 +5,8 @@ on: [push]
 env:
   LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+  PHPFPM_UID: 1001
+  PHP_FPM_GID: 116
 
 jobs:
 #  test-php:
@@ -52,35 +54,35 @@ jobs:
           id -g
           id -u
 
-#      - name: Install Dependencies
-#        run: npm ci
-#
-#      - name: Start Docker environment
-#        run: |
-#          npm run env:start
-#
-#      - name: Check running containers
-#        run: docker ps -a
-#
-#      - name: Build WordPress
-#        run: npm run build
-#
-#      - name: Setup Docker environment
-#        run: |
-#          docker-compose -v
-#          ls -l
-#          ls src -l
-#          ls build -l
-#
-#          docker-compose run --rm mysql mysql --version
-#          docker-compose run --rm php php --version
-#          docker-compose run --rm php php -m
-#
-#      - name: Check running containers
-#        run: docker ps -a
-#
-#      - name: Install WordPress
-#        run: npm run env:install
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: Check running containers
+        run: docker ps -a
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Setup Docker environment
+        run: |
+          docker-compose -v
+          ls -l
+          ls src -l
+          ls build -l
+
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+
+      - name: Check running containers
+        run: docker ps -a
+
+      - name: Install WordPress
+        run: npm run env:install
 
 
 #      - name: Run PHPUnit
