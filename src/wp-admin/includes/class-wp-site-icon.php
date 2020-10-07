@@ -80,11 +80,14 @@ class WP_Site_Icon {
 	 *
 	 * @param string $cropped              Cropped image URL.
 	 * @param int    $parent_attachment_id Attachment ID of parent image.
-	 * @return array Attachment object.
+	 * @return array|WP_Error Attachment object, or a WP_Error instance on an invalid attachment ID.
 	 */
 	public function create_attachment_object( $cropped, $parent_attachment_id ) {
-		$parent     = get_post( $parent_attachment_id );
-		$parent_url = wp_get_attachment_url( $parent->ID );
+		$parent = get_post( $parent_attachment_id );
+		if ( null === $parent || ! $parent->ID ) {
+			return new WP_Error( 'invalid_post_id', __( 'Invalid post ID.' ) );
+		}
+		$parent_url = (string) wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
 		$size       = @getimagesize( $cropped );
@@ -109,11 +112,14 @@ class WP_Site_Icon {
 	 *
 	 * @param array  $object Attachment object.
 	 * @param string $file   File path of the attached image.
-	 * @return int           Attachment ID
+	 * @return int|WP_Error  Attachment ID, or a WP_Error instance if there's an error while inserting the attachment object.
 	 */
 	public function insert_attachment( $object, $file ) {
 		$attachment_id = wp_insert_attachment( $object, $file );
-		$metadata      = wp_generate_attachment_metadata( $attachment_id, $file );
+		if ( is_wp_error( $attachment_id ) ) {
+			return $attachment_id;
+		}
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $file );
 
 		/**
 		 * Filters the site icon attachment metadata.

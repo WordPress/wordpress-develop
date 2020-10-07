@@ -3928,12 +3928,18 @@ function wp_ajax_crop_image() {
 			/** This filter is documented in wp-admin/includes/class-custom-image-header.php */
 			$cropped = apply_filters( 'wp_create_file_in_uploads', $cropped, $attachment_id ); // For replication.
 			$object  = $wp_site_icon->create_attachment_object( $cropped, $attachment_id );
+			if ( is_wp_error( $object ) ) {
+				wp_send_json_error();
+			}
 			unset( $object['ID'] );
 
 			// Update the attachment.
 			add_filter( 'intermediate_image_sizes_advanced', array( $wp_site_icon, 'additional_sizes' ) );
 			$attachment_id = $wp_site_icon->insert_attachment( $object, $cropped );
 			remove_filter( 'intermediate_image_sizes_advanced', array( $wp_site_icon, 'additional_sizes' ) );
+			if ( is_wp_error( $attachment_id ) ) {
+				wp_send_json_error();
+			}
 
 			// Additional sizes in wp_prepare_attachment_for_js().
 			add_filter( 'image_size_names_choose', array( $wp_site_icon, 'additional_sizes' ) );
