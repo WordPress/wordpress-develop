@@ -62,7 +62,7 @@ jobs:
 
       # PHP 8.0 test runner.
       - name: Run PHPUnit tests
-        if: ${{ env.LOCAL_PHP = '8.0' }}
+        if: ${{ env.LOCAL_PHP == '8.0' }}
 
         # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
         # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
