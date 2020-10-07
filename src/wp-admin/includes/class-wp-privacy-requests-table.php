@@ -328,7 +328,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return string Checkbox column markup.
 	 */
 	public function column_cb( $item ) {
-		return sprintf( '<input type="checkbox" name="request_id[]" value="%1$s" /><span class="spinner"></span>', esc_attr( $item->ID ) );
+		return sprintf( '<input type="checkbox" name="request_id[]" value="%1$s" /><span class="spinner"></span>', intval( $item->ID ) );
 	}
 
 	/**
@@ -340,7 +340,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 * @return string Status column markup.
 	 */
 	public function column_status( $item ) {
-		$status        = get_post_status( $item->ID );
+		$status        = (string) get_post_status( $item->ID );
 		$status_object = get_post_status_object( $status );
 
 		if ( ! $status_object || empty( $status_object->label ) ) {
@@ -441,7 +441,7 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	public function single_row( $item ) {
 		$status = $item->status;
 
-		echo '<tr id="request-' . esc_attr( $item->ID ) . '" class="status-' . esc_attr( $status ) . '">';
+		echo '<tr id="request-' . intval( $item->ID ) . '" class="status-' . esc_attr( $status ) . '">';
 		$this->single_row_columns( $item );
 		echo '</tr>';
 	}
