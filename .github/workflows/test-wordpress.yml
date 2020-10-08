@@ -129,6 +129,34 @@ jobs:
       - name: Run QUnit tests
         run: npm run grunt travis:js
 
+  php-comatibility:
+    name: Test PHP compatibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log debug information
+        run: |
+          npm --version
+          which npm
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          locale -a
+
+      - name: Install Composer dependencies
+        run: |
+          docker-compose run --rm php composer --version
+          docker-compose run --rm php composer install
+
+      - name: Run PHP compatibility tests
+        run: docker-compose run --rm php composer compat
+
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
