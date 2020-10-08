@@ -71,11 +71,11 @@ jobs:
           exclusions: '/*node_modules/*'
 
       - name: Upload build artifact
-          uses: actions/upload-artifact@v2
-          with:
-            name: built-wp-${{ github.sha }}
-            path: built-wp-${{ github.sha }}.zip
-            if-no-files-found: error
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+          path: built-wp-${{ github.sha }}.zip
+          if-no-files-found: error
 
   # Runs the PHPUnit tests for WordPress.
   #
