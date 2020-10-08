@@ -141,9 +141,6 @@ jobs:
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
 
-      - name: Build WordPress
-        run: npm run build
-
       - name: Install WordPress
         run: npm run env:install
 
