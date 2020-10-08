@@ -165,9 +165,9 @@ jobs:
         run: unzip built-wp-${{ github.sha }}.zip
 
       - name: Configure memcached
-        if: ${{ env.LOCAL_PHP == '7.4 with memcached' }}
+        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
         run: |
-          echo "LOCAL_PHP=7.4-fpm" >> $GITHUB_ENV
+          echo "LOCAL_PHP=latest" >> $GITHUB_ENV
           echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Use cached Node modules
