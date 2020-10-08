@@ -38,7 +38,7 @@ jobs:
           locale -a
 
       - name: Install Composer dependencies
-        if: ${{ env.COMPOSER_INSTALL }}
+        if: ${{ env.COMPOSER_INSTALL == true }}
         run: |
           docker-compose run --rm php composer --version
           docker-compose run --rm php composer install
@@ -85,7 +85,7 @@ jobs:
         # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
         # Xdebug supports PHP 8 only from version 3.0, which is not released yet.
         # Once Xdebug 3.0 is released and included in the Docker image, this should be uncommented again.
-        # - LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
+        # LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
 
       # PHP test runner for all other versions.
       - name: Run PHPUnit tests
