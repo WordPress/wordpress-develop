@@ -22,6 +22,12 @@ jobs:
 
       - name: Log debug information
         run: |
+          id -u
+          id -g
+          ls -l
+          ls build -l
+          ls src -l
+
           npm --version
           which npm
           node --version
@@ -101,7 +107,7 @@ jobs:
           id -u
           id -g
 
-      - name: Cache Node modules
+      - name: Use cached Node modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -130,7 +136,7 @@ jobs:
         run: |
           npm run env:start
 
-      - name: Check running Docker containers
+      - name: Log running Docker containers
         run: docker ps -a
 
       - name: Docker debug information
@@ -140,6 +146,11 @@ jobs:
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
+          id -u
+          id -g
+          ls -l
+          ls build -l
+          ls src -l
 
       - name: Install WordPress
         run: npm run env:install
