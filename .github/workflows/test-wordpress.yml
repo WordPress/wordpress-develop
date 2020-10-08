@@ -57,13 +57,16 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Create ZIP
+        users: montudor/action-zip@v0.1.0
+        with:
+          args: zip -r built-wp-${{ github.sha }}-${{ matrix.os }}.zip . dir -x node_modules/**\*
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
           name: built-wp-${{ github.sha }}-${{ matrix.os }}
-          path: |
-            .
-            !node_modules
+          path: built-wp-${{ github.sha }}-${{ matrix.os }}.zip
 
   test-php:
     name: Test PHP ${{ matrix.php_versions }} (${{ matrix.os }})
@@ -72,7 +75,7 @@ jobs:
     strategy:
       matrix:
         php_versions: [ '8.0', 7.4, 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
-        os: [ ubuntu-latest]
+        os: [ ubuntu-latest ]
     env:
       LOCAL_PHP: ${{ matrix.php_versions }}-fpm
 
@@ -80,6 +83,11 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: built-wp-${{ github.sha }}-${{ matrix.os }}
+
+      - name: Unzip Artifact
+        users: montudor/action-zip@v0.1.0
+        with:
+          args: unzip built-wp-${{ github.sha }}-${{ matrix.os }}.zip .
 
       - name: Log debug information
         run: |
