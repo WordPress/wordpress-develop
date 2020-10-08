@@ -7,6 +7,7 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
   PHP_FPM_UID: 1001 # This needs to be dynamic
   PHP_FPM_GID: 116 # This needs to be dynamic
+  COMPOSER_INSTALL: false
 
 jobs:
   test-php:
@@ -36,6 +37,12 @@ jobs:
           php -i
           locale -a
 
+      - name: Install Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL }}
+        run: |
+          docker-compose run --rm php composer --version
+          docker-compose run --rm php composer install
+
       - name: Install Dependencies
         run: npm ci
 
@@ -61,12 +68,14 @@ jobs:
         run: npm run env:install
 
       # PHP 8.0 test runner.
-      - name: Run PHPUnit tests (8.0)
+      - name: Run PHPUnit tests (PHP 8 only)
         if: ${{ env.LOCAL_PHP == '8.0-fpm' }}
 
         # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
         # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
         run: |
+          docker-compose run --rm php composer --version
+          docker-compose run --rm php composer install --ignore-platform-reqs
           npm run test:php-composer -- --verbose -c phpunit.xml.dist
           npm run test:php-composer -- --verbose -c phpunit.xml.dist --group ajax
           npm run test:php-composer -- --verbose -c tests/phpunit/multisite.xml
