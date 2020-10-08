@@ -58,7 +58,7 @@ jobs:
         run: npm run build
 
       - name: Create ZIP
-        users: montudor/action-zip@v0.1.0
+        uses: montudor/action-zip@v0.1.0
         with:
           args: zip -r built-wp-${{ github.sha }}-${{ matrix.os }}.zip . dir -x node_modules/**\*
 
@@ -85,7 +85,7 @@ jobs:
           name: built-wp-${{ github.sha }}-${{ matrix.os }}
 
       - name: Unzip Artifact
-        users: montudor/action-zip@v0.1.0
+        uses: montudor/action-zip@v0.1.0
         with:
           args: unzip built-wp-${{ github.sha }}-${{ matrix.os }}.zip .
 
