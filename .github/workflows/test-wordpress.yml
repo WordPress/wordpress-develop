@@ -134,12 +134,14 @@ jobs:
   # Performs the following steps:
   # - Downloads the built WordPress artifact from the previous job.
   # - Unzips the artifact.
+  # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
   #   if it was stored successfully).
   # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # _ Installs Composer dependencies (if desired)
   # _ Installs NPM dependencies.
   # - Starts the WordPress Docker container.
+  # - Starts the memcached server after the Docker network has been created (if desired).
   # - Logs the running Docker containers.
   # - Logs Docker debug information (both about Docker installed within the runner and WordPress container)
   # - Install WordPress inside the WordPress Docker container.
@@ -156,7 +158,7 @@ jobs:
       LOCAL_PHP: ${{ matrix.php_versions }}-fpm
 
     steps:
-      - name: Download the WordPress build artifact
+      - name: Download the built WordPress artifact
         uses: actions/download-artifact@v2
         with:
           name: built-wp-${{ github.sha }}
@@ -166,6 +168,7 @@ jobs:
 
       - name: Configure memcached
         if: ${{ contains( matrix.php_versions, 'memcached' ) }}
+        # TODO: Make LOCAL_PHP be the value of mattrix.php_versions with memcached replaced with '-fpm'
         run: |
           echo "LOCAL_PHP=latest" >> $GITHUB_ENV
           echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
@@ -207,6 +210,13 @@ jobs:
         run: |
           npm run env:start
 
+      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
+      - name: Start the Memcached server.
+        if: ${{ env.LOCAL_PHP_MEMCACHED == true }}
+        run: |
+          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+
       - name: Log running Docker containers
         run: docker ps -a
 
@@ -217,13 +227,6 @@ jobs:
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
-
-      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
-      - name: Start the Memcached server.
-        if: ${{ env.LOCAL_PHP_MEMCACHED }}
-        run: |
-          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
-          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
 
       - name: Install WordPress
         run: npm run env:install
