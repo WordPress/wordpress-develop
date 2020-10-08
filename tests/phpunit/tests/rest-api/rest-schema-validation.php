@@ -1366,7 +1366,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @param $expected
 	 */
 	public function test_combining_operation_error_message( $data, $schema, $expected ) {
-		$is_valid = rest_validate_value_from_schema( $data, $schema );
+		$is_valid = rest_validate_value_from_schema( $data, $schema, 'foo' );
 
 		$this->assertWPError( $is_valid );
 		$this->assertSame( $expected, $is_valid->get_error_message() );
@@ -1382,12 +1382,41 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'anyOf' => array(
 						array(
+							'title'   => 'circle',
 							'type'    => 'integer',
 							'maximum' => 5,
 						),
 					),
 				),
-				' does not match any of the expected formats. Reason:  must be less than or equal to 5',
+				'foo is not a valid circle. Reason: foo must be less than or equal to 5',
+			),
+			array(
+				10,
+				array(
+					'anyOf' => array(
+						array(
+							'type'    => 'integer',
+							'maximum' => 5,
+						),
+					),
+				),
+				'foo does not match the expected format. Reason: foo must be less than or equal to 5',
+			),
+			array(
+				array( 'a' => 1 ),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'title'      => 'circle',
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+					),
+				),
+				'foo does not match any of the expected formats. Closest format: circle. Possible reason: foo[a] is not of type string.',
 			),
 			array(
 				array( 'a' => 1 ),
@@ -1402,7 +1431,41 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				' does not match any of the expected formats. Reason: [a] is not of type string.',
+				'foo does not match any of the expected formats. Possible reason: foo[a] is not of type string.',
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'title'      => 'square',
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'string' ),
+								'c' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'boolean' ),
+								'x' => array( 'type' => 'boolean' ),
+							),
+						),
+					),
+				),
+				'foo does not match any of the expected formats. Closest format: square. Possible reason: foo[b] is not of type string.',
 			),
 			array(
 				array(
@@ -1435,27 +1498,27 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				' does not match any of the expected formats. Possible reason: [b] is not of type string.',
+				'foo does not match any of the expected formats. Possible reason: foo[b] is not of type string.',
 			),
 			array(
 				'test',
 				array(
 					'anyOf' => array(
 						array(
-							'title' => 'A',
+							'title' => 'circle',
 							'type'  => 'boolean',
 						),
 						array(
-							'title' => 'B',
+							'title' => 'square',
 							'type'  => 'integer',
 						),
 						array(
-							'title' => 'C',
+							'title' => 'triangle',
 							'type'  => 'null',
 						),
 					),
 				),
-				' is not a valid A, B, and C.',
+				'foo is not a valid circle, square, and triangle.',
 			),
 			array(
 				'test',
@@ -1466,27 +1529,26 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						array( 'type' => 'null' ),
 					),
 				),
-				' does not match any of the expected formats.',
+				'foo does not match any of the expected formats.',
 			),
 			array(
 				'test',
 				array(
 					'oneOf' => array(
 						array(
-							'title' => 'A',
+							'title' => 'circle',
 							'type'  => 'string',
 						),
 						array(
-							'title' => 'B',
 							'type'  => 'integer',
 						),
 						array(
-							'title' => 'C',
+							'title' => 'triangle',
 							'type'  => 'string',
 						),
 					),
 				),
-				' matches A and C, but should match only one.',
+				'foo matches circle and triangle, but should match only one.',
 			),
 			array(
 				'test',
@@ -1497,7 +1559,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						array( 'type' => 'string' ),
 					),
 				),
-				' matches more than one of the expected formats.',
+				'foo matches more than one of the expected formats.',
 			),
 		);
 	}
