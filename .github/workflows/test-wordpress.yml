@@ -205,7 +205,7 @@ jobs:
     needs: setup-wordpress
     runs-on: ubuntu-latest
     env:
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: false
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:
 
     steps:
       - uses: actions/download-artifact@v2
