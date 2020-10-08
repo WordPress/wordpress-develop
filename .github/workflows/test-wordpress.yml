@@ -53,9 +53,9 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}
+            ${{ runner.os }}-npm-
 
       - name: Install NPM
         uses: actions/setup-node@v1
@@ -114,9 +114,9 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}
+            ${{ runner.os }}-npm-
 
       - name: Install NPM
         uses: actions/setup-node@v1
@@ -138,8 +138,9 @@ jobs:
   # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
   #   if it was stored successfully).
   # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
-  # _ Installs Composer dependencies (if desired)
   # _ Installs NPM dependencies.
+  # - Configures caching for Composer.
+  # _ Installs Composer dependencies (if desired)
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
   # - Logs the running Docker containers.
@@ -180,14 +181,30 @@ jobs:
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}
+            ${{ runner.os }}-npm-
 
       - name: Install NPM
         uses: actions/setup-node@v1
         with:
           node-version: 12
+
+      - name: Get composer cache directory
+        id: composer-cache
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}

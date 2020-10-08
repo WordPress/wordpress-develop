@@ -9,7 +9,8 @@ jobs:
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs Composer dependencies.
+  # - Configures caching for Composer.
+  # - Installs Composer dependencies (from cache if possible).
   # - Runs the PHP compatibility tests.
   php-comatibility:
     name: Test PHP compatibility
@@ -30,6 +31,22 @@ jobs:
           php --version
           php -i
           locale -a
+
+      - name: Get composer cach directory
+        id: composer-cache
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
 
       - name: Install Composer dependencies
         run: |
