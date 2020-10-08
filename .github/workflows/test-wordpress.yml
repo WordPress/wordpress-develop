@@ -25,7 +25,6 @@ jobs:
           id -u
           id -g
           ls -l
-          ls build -l
           ls src -l
 
           npm --version
