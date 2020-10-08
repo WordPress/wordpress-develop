@@ -137,7 +137,7 @@ jobs:
           if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
             docker-compose run --rm php composer install --ignore-platform-reqs
             echo "PHPUNIT_LIBRARY=php-composer" >> $GITHUB_ENV
-          elif
+          else
             docker-compose run --rm php composer install
           fi
 
