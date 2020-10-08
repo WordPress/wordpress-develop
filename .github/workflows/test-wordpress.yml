@@ -59,6 +59,7 @@ jobs:
 
       - name: Create ZIP
         uses: montudor/action-zip@v0.1.0
+        if: ${{ matrix.os }} != 'windows-latest'
         with:
           args: zip -r built-wp-${{ github.sha }}-${{ matrix.os }}.zip . dir -x node_modules/**\*
 
@@ -86,6 +87,7 @@ jobs:
 
       - name: Unzip Artifact
         uses: montudor/action-zip@v0.1.0
+        if: ${{ matrix.os }} != 'windows-latest'
         with:
           args: unzip built-wp-${{ github.sha }}-${{ matrix.os }}.zip .
 
