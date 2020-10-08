@@ -11,11 +11,12 @@ env:
 
 jobs:
   test-php:
-    name: Test PHP ${{ matrix.php_versions }}
-    runs-on: ubuntu-latest
+    name: Test PHP ${{ matrix.php_versions }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         php_versions: [ '8.0', 7.4, 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
+        os: [ ubuntu-latest, windows-latest ]
     env:
       LOCAL_PHP: ${{ matrix.php_versions }}-fpm
     steps:
@@ -24,6 +25,19 @@ jobs:
 
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
       - name: Log debug information
         run: |
@@ -99,74 +113,3 @@ jobs:
           npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
           # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
           LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
-
-#  test-php-7-4:
-#    name: Test PHP 7.4
-#    runs-on: ubuntu-latest
-#    steps:
-#
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#
-#      - name: Checkout the WordPress Importer plugin
-#        run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
-#
-#      - name: install node v12
-#        uses: actions/setup-node@v1
-#        with:
-#          node-version: 12
-#
-#      - name: Log debug information
-#        run: |
-#          npm --version
-#          which npm
-#          node --version
-#          curl --version
-#          git --version
-#          svn --version
-#          php --version
-#          php -i
-#          locale -a
-#          id
-#          id -g
-#          id -u
-#
-#      - name: Install Dependencies
-#        run: npm ci
-#
-#      - name: Start Docker environment
-#        run: |
-#          npm run env:start
-#
-#      - name: Check running containers
-#        run: docker ps -a
-#
-#      - name: Build WordPress
-#        run: npm run build
-#
-#      - name: Setup Docker environment
-#        run: |
-#          docker-compose -v
-#          ls -l
-#          ls src -l
-#          ls build -l
-#
-#          docker-compose run --rm mysql mysql --version
-#          docker-compose run --rm php php --version
-#          docker-compose run --rm php php -m
-#
-#      - name: Check running containers
-#        run: docker ps -a
-#
-#      - name: Install WordPress
-#        run: npm run env:install
-
-
-#      - name: Run PHPUnit
-#        run: |
-#          npm run test:php -- --verbose -c phpunit.xml.dist &&
-#          npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
-#          npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
-#          npm run test:php -- --verbose -c tests/phpunit/multisite.xml --group ms-files &&
-#          npm run test:php -- --verbose -c phpunit.xml.dist --group external-http &&
-#          npm run test:php -- --verbose -c phpunit.xml.dist --group restapi-jsclient &&
