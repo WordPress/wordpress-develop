@@ -462,7 +462,7 @@ function wp_network_dashboard_right_now() {
 		<p>
 			<label class="screen-reader-text" for="search-users"><?php _e( 'Search Users' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users"/>
-			<?php submit_button( __( 'Search Users' ), '', false, false, array( 'id' => 'submit_users' ) ); ?>
+			<?php submit_button( __( 'Search Users' ), '', '', false, array( 'id' => 'submit_users' ) ); ?>
 		</p>
 	</form>
 
@@ -470,7 +470,7 @@ function wp_network_dashboard_right_now() {
 		<p>
 			<label class="screen-reader-text" for="search-sites"><?php _e( 'Search Sites' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites"/>
-			<?php submit_button( __( 'Search Sites' ), '', false, false, array( 'id' => 'submit_sites' ) ); ?>
+			<?php submit_button( __( 'Search Sites' ), '', '', false, array( 'id' => 'submit_sites' ) ); ?>
 		</p>
 	</form>
 	<?php
@@ -496,7 +496,7 @@ function wp_network_dashboard_right_now() {
  *
  * @global int $post_ID
  *
- * @param string $error_msg Optional. Error message. Default false.
+ * @param string|false $error_msg Optional. Error message. Default false.
  */
 function wp_dashboard_quick_press( $error_msg = false ) {
 	global $post_ID;
@@ -567,9 +567,9 @@ function wp_dashboard_quick_press( $error_msg = false ) {
  *
  * @since 2.7.0
  *
- * @param WP_Post[] $drafts Optional. Array of posts to display. Default false.
+ * @param WP_Post[] $drafts Optional. Array of posts to display. Default empty array.
  */
-function wp_dashboard_recent_drafts( $drafts = false ) {
+function wp_dashboard_recent_drafts( $drafts = array() ) {
 	if ( ! $drafts ) {
 		$query_args = array(
 			'post_type'      => 'post',
@@ -610,7 +610,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 
 	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {
-		$url   = get_edit_post_link( $draft->ID );
+		$url   = (string) get_edit_post_link( $draft->ID );
 		$title = _draft_or_post_title( $draft->ID );
 		echo "<li>\n";
 		printf(
@@ -959,7 +959,7 @@ function wp_dashboard_recent_posts( $args ) {
 		while ( $posts->have_posts() ) {
 			$posts->the_post();
 
-			$time = get_the_time( 'U' );
+			$time = (int) get_the_time( 'U' );
 			if ( gmdate( 'Y-m-d', $time ) == $today ) {
 				$relative = __( 'Today' );
 			} elseif ( gmdate( 'Y-m-d', $time ) == $tomorrow ) {
@@ -1141,7 +1141,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
  *
  * @global array $wp_dashboard_control_callbacks
  *
- * @param int $widget_control_id Registered Widget ID.
+ * @param int|false $widget_control_id Registered Widget ID.
  */
 function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 	global $wp_dashboard_control_callbacks;
@@ -1194,7 +1194,7 @@ function wp_dashboard_rss_control( $widget_id, $form_inputs = array() ) {
 			if ( is_wp_error( $rss ) ) {
 				$widget_options[ $widget_id ]['title'] = htmlentities( __( 'Unknown Feed' ) );
 			} else {
-				$widget_options[ $widget_id ]['title'] = htmlentities( strip_tags( $rss->get_title() ) );
+				$widget_options[ $widget_id ]['title'] = htmlentities( strip_tags( (string) $rss->get_title() ) );
 				$rss->__destruct();
 				unset( $rss );
 			}
@@ -1543,7 +1543,7 @@ function wp_dashboard_quota() {
 	}
 	$used_class  = ( $percentused >= 70 ) ? ' warning' : '';
 	$used        = round( $used, 2 );
-	$percentused = number_format( $percentused );
+	$percentused = number_format( floatval( $percentused ) );
 
 	?>
 	<h3 class="mu-storage"><?php _e( 'Storage Space' ); ?></h3>
@@ -1803,7 +1803,7 @@ function wp_dashboard_site_health() {
 		);
 	}
 
-	$issues_total = $issue_counts['recommended'] + $issue_counts['critical'];
+	$issues_total = intval( $issue_counts['recommended'] ) + intval( $issue_counts['critical'] );
 	?>
 	<div class="health-check-title-section site-health-progress-wrapper loading hide-if-no-js">
 		<div class="site-health-progress">
