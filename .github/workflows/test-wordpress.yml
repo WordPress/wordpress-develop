@@ -88,9 +88,7 @@ jobs:
           name: built-wp-${{ github.sha }}
 
       - name: Unzip built artifact
-        uses: montudor/action-zip@v0.1.0
-        with:
-          args: unzip built-wp-${{ github.sha }}.zip
+        run: unzip built-wp-${{ github.sha }}.zip
 
       - name: Log debug information
         run: |
