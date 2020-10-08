@@ -654,6 +654,7 @@ module.exports = function(grunt) {
 		},
 		qunit: {
 			options: {
+				summaryOnly: false,
 				puppeteer: {
 					ignoreDefaultArgs: true,
 					args: [
