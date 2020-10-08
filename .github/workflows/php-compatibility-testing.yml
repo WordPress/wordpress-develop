@@ -34,11 +34,9 @@ jobs:
 
       - name: Get composer cach directory
         id: composer-cache
-        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache Composer dependencies
-        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
         uses: actions/cache@v2
         env:
           cache-name: cache-composer-dependencies
