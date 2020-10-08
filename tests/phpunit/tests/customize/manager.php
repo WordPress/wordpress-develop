@@ -2767,7 +2767,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return int Value.
 	 */
 	function sanitize_foo_for_test_set_post_value( $value ) {
-		return intval( $value );
+		return (int) $value;
 	}
 
 	/**

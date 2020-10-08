@@ -43,7 +43,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 * Helper function: return the timestamp(s) of cron jobs for the specified hook and post.
 	 */
 	function _next_schedule_for_post( $hook, $id ) {
-		return wp_next_scheduled( 'publish_future_post', array( 0 => intval( $id ) ) );
+		return wp_next_scheduled( 'publish_future_post', array( 0 => (int) $id ) );
 	}
 
 	/**
