@@ -92,6 +92,9 @@ jobs:
         with:
           args: unzip built-wp-${{ github.sha }}.zip
 
+      - name: Correct file permissions
+        run: chown -R ${{ env.PHP_FPM_IUD }}:${{ env.PHP_FPM_GUD }} .
+
       - name: Log debug information
         run: |
           npm --version
