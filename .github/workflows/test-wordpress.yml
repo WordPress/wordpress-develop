@@ -51,7 +51,7 @@ jobs:
             ${{ runner.os }}
 
       - name: Install NPM
-        uses: setup-node@v1
+        uses: actions/setup-node@v1
         with:
           node-version: $nvmrc
 
@@ -110,7 +110,7 @@ jobs:
             ${{ runner.os }}
 
       - name: Install NPM
-        uses: setup-node@v1
+        uses: actions/setup-node@v1
         with:
           node-version: $nvmrc
 
