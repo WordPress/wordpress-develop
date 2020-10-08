@@ -82,7 +82,7 @@ jobs:
         with:
           name: built-wp-${{ github.sha }}
 
-      - name: Unzip artifact
+      - name: Unzip built artifact
         uses: TonyBogdanov/zip@1.0
         with:
           args: unzip built-wp-${{ github.sha }}.zip
@@ -98,6 +98,8 @@ jobs:
           php --version
           php -i
           locale -a
+          id -u
+          id -g
 
       - name: Cache Node modules
         uses: actions/cache@v2
