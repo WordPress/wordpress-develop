@@ -4413,7 +4413,8 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": "post",
                             "enum": [
-                                "post"
+                                "post",
+                                "term"
                             ],
                             "description": "Limit results to items of an object type.",
                             "type": "string"
@@ -4427,6 +4428,8 @@ mockedApiResponse.Schema = {
                                 "enum": [
                                     "post",
                                     "page",
+                                    "category",
+                                    "post_tag",
                                     "any"
                                 ],
                                 "type": "string"
