@@ -139,6 +139,7 @@ jobs:
             echo "PHPUNIT_LIBRARY=php-composer" >> $GITHUB_ENV
           elif
             docker-compose run --rm php composer install
+          fi
 
       - name: Install Dependencies
         run: npm ci
