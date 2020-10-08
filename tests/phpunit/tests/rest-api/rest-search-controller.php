@@ -35,13 +35,6 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
-	 * Post with the "aside" post format.
-	 *
-	 * @var int
-	 */
-	private static $post_with_format_id;
-
-	/**
 	 * Categories.
 	 *
 	 * @var int
@@ -86,8 +79,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		self::$post_with_format_id = $factory->post->create();
-		set_post_format( self::$post_with_format_id, 'aside' );
+		set_post_format( self::$my_title_post_ids[0], 'aside' );
 
 		self::$my_category_id = $factory->term->create(
 			array(
@@ -113,8 +105,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$post_ids = array_merge(
 			self::$my_title_post_ids,
 			self::$my_title_page_ids,
-			self::$my_content_post_ids,
-			array( self::$post_with_format_id )
+			self::$my_content_post_ids
 		);
 
 		foreach ( $post_ids as $post_id ) {
