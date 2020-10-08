@@ -1539,9 +1539,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 							'title' => 'circle',
 							'type'  => 'string',
 						),
-						array(
-							'type'  => 'integer',
-						),
+						array( 'type' => 'integer' ),
 						array(
 							'title' => 'triangle',
 							'type'  => 'string',
