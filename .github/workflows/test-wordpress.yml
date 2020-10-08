@@ -256,3 +256,11 @@ jobs:
         if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
+      - name: WordPress Test Reporter
+        if: ${{ matrix.php_versions == '7.0' }}
+        uses: actions/checkout@v2
+          with:
+            repository: 'https://github.com/WordPress/phpunit-test-runner.git test-runner'
+            path: 'test-runner'
+          # TODO: Configure hidden keys to successfully report test results.
+          # run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
