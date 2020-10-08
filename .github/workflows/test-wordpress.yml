@@ -7,8 +7,9 @@ env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
   PHP_FPM_UID: 1001 # This needs to be dynamic
   PHP_FPM_GID: 116 # This needs to be dynamic
-  COMPOSER_INSTALL: false
+  COMPOSER_INSTALL: ${{ false }}
   PHPUNIT_LIBRARY: php
+  LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
   # Sets up WordPress for testing or development use.
@@ -22,7 +23,7 @@ jobs:
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress
-  # - Uploads it as an artifact.
+  # - Uploads ZIP file as an artifact.
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
@@ -80,6 +81,54 @@ jobs:
           path: built-wp-${{ github.sha }}.zip
           if-no-files-found: error
 
+  # Runs the QUnit tests for WordPress.
+  #
+  # Performs the following steps:
+  # - Downloads the built WordPress artifact from the previous job.
+  # - Unzips the artifact.
+  # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
+  #   if it was stored successfully).
+  # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
+  # _ Installs NPM dependencies (only Chromium should need installing here).
+  # - Run the WordPress QUnit tests.
+  test-js:
+    name: JavaScript Tests
+    needs: setup-wordpress
+    runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:
+
+    steps:
+      - name: Download the WordPress build artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+
+      - name: Unzip built artifact
+        run: unzip built-wp-${{ github.sha }}.zip
+
+      - name: Use cached Node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}
+
+      - name: Install NPM
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run QUnit tests
+        run: npm run grunt travis:js
+
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
@@ -101,18 +150,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        php_versions: [ '8.0', 7.4, 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
+        php_versions: [ '8.0', 7.4, '7.4 with memcached', 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
         os: [ ubuntu-latest ]
     env:
       LOCAL_PHP: ${{ matrix.php_versions }}-fpm
 
     steps:
-      - uses: actions/download-artifact@v2
+      - name: Download the WordPress build artifact
+        uses: actions/download-artifact@v2
         with:
           name: built-wp-${{ github.sha }}
 
       - name: Unzip built artifact
         run: unzip built-wp-${{ github.sha }}.zip
+
+      - name: Configure memcached
+        if: ${{ env.LOCAL_PHP }} == '7.4 with memcached'
+        run: |
+          echo "LOCAL_PHP=7.4" >> $GITHUB_ENV
+          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Use cached Node modules
         uses: actions/cache@v2
@@ -162,6 +218,13 @@ jobs:
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
 
+      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
+      - name: Start the Memcached server.
+        if: ${{ env.LOCAL_PHP_MEMCACHED }}
+        run: |
+          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+
       - name: Install WordPress
         run: npm run env:install
 
@@ -190,49 +253,3 @@ jobs:
         if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
-  # Runs the PHPUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Downloads the built WordPress artifact from the previous job.
-  # - Unzips the artifact.
-  # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
-  #   if it was stored successfully).
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
-  # _ Installs NPM dependencies.
-  # - Run the WordPress QUnit tests.
-  test-js:
-    name: JavaScript Tests
-    needs: setup-wordpress
-    runs-on: ubuntu-latest
-    env:
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD:
-
-    steps:
-      - uses: actions/download-artifact@v2
-        with:
-          name: built-wp-${{ github.sha }}
-
-      - name: Unzip built artifact
-        run: unzip built-wp-${{ github.sha }}.zip
-
-      - name: Use cached Node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}
-
-      - name: Install NPM
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Run QUnit tests
-        run: npm run grunt travis:js
