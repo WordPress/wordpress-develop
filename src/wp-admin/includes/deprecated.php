@@ -493,7 +493,7 @@ class WP_User_Search {
 
 		$this->search_term = wp_unslash( $search_term );
 		$this->raw_page = ( '' == $page ) ? false : (int) $page;
-		$this->page = (int) ( '' == $page ) ? 1 : $page;
+		$this->page = ( '' == $page ) ? 1 : (int) $page;
 		$this->role = $role;
 
 		$this->prepare_query();
@@ -1333,6 +1333,9 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 			continue;
 
 		$items = $feed->get_items(0, 5);
+		if ( null === $items ) {
+			continue;
+		}
 
 		// Pick a random, non-installed plugin.
 		while ( true ) {
@@ -1343,7 +1346,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 			$item_key = array_rand($items);
 			$item = $items[$item_key];
 
-			list($link, $frag) = explode( '#', $item->get_link() );
+			list($link, $frag) = explode( '#', (string) $item->get_link() );
 
 			$link = esc_url($link);
 			if ( preg_match( '|/([^/]+?)/?$|', $link, $matches ) )
@@ -1367,13 +1370,13 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		}
 
 		// Eliminate some common badly formed plugin descriptions.
-		while ( ( null !== $item_key = array_rand($items) ) && false !== strpos( $items[$item_key]->get_description(), 'Plugin Name:' ) )
+		while ( ( null !== $item_key = array_rand($items) ) && false !== strpos( (string) $items[$item_key]->get_description(), 'Plugin Name:' ) )
 			unset($items[$item_key]);
 
 		if ( !isset($items[$item_key]) )
 			continue;
 
-		$raw_title = $item->get_title();
+		$raw_title = (string) $item->get_title();
 
 		$ilink = wp_nonce_url('plugin-install.php?tab=plugin-information&plugin=' . $slug, 'install-plugin_' . $slug) . '&amp;TB_iframe=true&amp;width=600&amp;height=800';
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
