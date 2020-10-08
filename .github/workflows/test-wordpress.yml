@@ -132,8 +132,8 @@ jobs:
         run: |
           docker-compose run --rm php composer --version
 
-        # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
-        # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
+          # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
+          # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
           if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
             docker-compose run --rm php composer install --ignore-platform-reqs
             echo "PHPUNIT_LIBRARY=php-composer" >> $GITHUB_ENV
