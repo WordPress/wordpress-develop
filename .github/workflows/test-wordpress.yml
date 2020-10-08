@@ -12,10 +12,7 @@ env:
 jobs:
   setup-wordpress:
     name: Setup WordPress
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-latest, windows-latest ]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -57,17 +54,17 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
-      - name: Create ZIP
-        uses: montudor/action-zip@v0.1.0
-        if: ${{ matrix.os }} != 'windows-latest'
+      - name: Create ZIP artifact
+        uses: thedoctor0/zip-release@0.4.1
         with:
-          args: zip -r built-wp-${{ github.sha }}-${{ matrix.os }}.zip . dir -x node_modules/**\*
+          filename: built-wp-${{ github.sha }}.zip
+          exclusions: '/*node_modules/*'
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
         with:
-          name: built-wp-${{ github.sha }}-${{ matrix.os }}
-          path: built-wp-${{ github.sha }}-${{ matrix.os }}.zip
+          name: built-wp-${{ github.sha }}
+          path: built-wp-${{ github.sha }}.zip
 
   test-php:
     name: Test PHP ${{ matrix.php_versions }} (${{ matrix.os }})
@@ -83,13 +80,12 @@ jobs:
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: built-wp-${{ github.sha }}-${{ matrix.os }}
+          name: built-wp-${{ github.sha }}
 
-      - name: Unzip Artifact
-        uses: montudor/action-zip@v0.1.0
-        if: ${{ matrix.os }} != 'windows-latest'
+      - name: Unzip artifact
+        uses: TonyBogdanov/zip@1.0
         with:
-          args: unzip built-wp-${{ github.sha }}-${{ matrix.os }}.zip .
+          args: unzip built-wp-${{ github.sha }}.zip
 
       - name: Log debug information
         run: |
