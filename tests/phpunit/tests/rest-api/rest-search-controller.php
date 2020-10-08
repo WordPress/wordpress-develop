@@ -35,6 +35,13 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
+	 * Post with the "aside" post format.
+	 *
+	 * @var int
+	 */
+	private static $post_with_format_id;
+
+	/**
 	 * Categories.
 	 *
 	 * @var int
@@ -54,6 +61,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
+		add_theme_support( 'post-formats' );
+
 		self::$my_title_post_ids = $factory->post->create_many(
 			4,
 			array(
@@ -77,6 +86,9 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
+		self::$post_with_format_id = $factory->post->create();
+		set_post_format( self::$post_with_format_id, 'aside' );
+
 		self::$my_category_id = $factory->term->create(
 			array(
 				'taxonomy' => 'category',
@@ -96,10 +108,13 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Delete our fake data after our tests run.
 	 */
 	public static function wpTearDownAfterClass() {
+		remove_theme_support( 'post-formats' );
+
 		$post_ids = array_merge(
 			self::$my_title_post_ids,
 			self::$my_title_page_ids,
-			self::$my_content_post_ids
+			self::$my_content_post_ids,
+			array( self::$post_with_format_id )
 		);
 
 		foreach ( $post_ids as $post_id ) {
@@ -696,6 +711,65 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'per_page' => 100,
 				'search'   => 'Doesn\'t exist',
 				'type'     => 'term',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Search through post formats of any type.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_type_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'post-format',
+			)
+		);
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Aside' search.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_test_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Aside',
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Searching for a post format that doesn't exist should return an empty
+	 * result.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_missing_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Doesn\'t exist',
+				'type'     => 'post-format',
 			)
 		);
 
