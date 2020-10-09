@@ -237,6 +237,102 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 51024
+	 *
+	 * @dataProvider data_type_object_pattern_properties
+	 *
+	 * @param array $pattern_properties
+	 * @param array $value
+	 * @param array $expected
+	 */
+	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => $pattern_properties,
+			'additionalProperties' => false,
+		);
+
+		$this->assertSame( $expected, rest_sanitize_value_from_schema( $value, $schema ) );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_type_object_pattern_properties() {
+		return array(
+			array( array(), array(), array() ),
+			array( array(), array( 'propA' => 'a' ), array( 'propA' => 'a' ) ),
+			array(
+				array(),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				array( 'propA' => 'a' ),
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array( 'propA' => 'a' ),
+				array( 'propA' => 'a' ),
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+			),
+			array(
+				array(
+					'.*C' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => '0',
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 0,
+				),
+			),
+			array(
+				array(
+					'.+' => array( 'type' => 'string' ),
+				),
+				array(
+					''      => '',
+					'propA' => 'a',
+				),
+				array( 'propA' => 'a' ),
+			),
+		);
+	}
+
 	public function test_type_object_nested() {
 		$schema = array(
 			'type'       => 'object',

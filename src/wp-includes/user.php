@@ -298,6 +298,176 @@ function wp_authenticate_cookie( $user, $username, $password ) {
 }
 
 /**
+ * Authenticates the user using an application password.
+ *
+ * @since 5.6.0
+ *
+ * @param WP_User|WP_Error|null $input_user WP_User or WP_Error object if a previous
+ *                                          callback failed authentication.
+ * @param string                $username   Username for authentication.
+ * @param string                $password   Password for authentication.
+ * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
+ */
+function wp_authenticate_application_password( $input_user, $username, $password ) {
+	if ( $input_user instanceof WP_User ) {
+		return $input_user;
+	}
+
+	$is_api_request = ( ( defined( 'XMLRPC_REQUEST' ) && XMLRPC_REQUEST ) || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
+
+	/**
+	 * Filters whether this is an API request that Application Passwords can be used on.
+	 *
+	 * By default, Application Passwords is available for the REST API and XML-RPC.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool $is_api_request If this is an acceptable API request.
+	 */
+	$is_api_request = apply_filters( 'application_password_is_api_request', $is_api_request );
+
+	if ( ! $is_api_request ) {
+		return $input_user;
+	}
+
+	$error = null;
+	$user  = get_user_by( 'login', $username );
+
+	if ( ! $user && is_email( $username ) ) {
+		$user = get_user_by( 'email', $username );
+	}
+
+	// If the login name is invalid, short circuit.
+	if ( ! $user ) {
+		if ( is_email( $username ) ) {
+			$error = new WP_Error(
+				'invalid_email',
+				__( 'Unknown email address. Check again or try your username.' )
+			);
+		} else {
+			$error = new WP_Error(
+				'invalid_username',
+				__( 'Unknown username. Check again or try your email address.' )
+			);
+		}
+	} elseif ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+		$error = new WP_Error(
+			'application_passwords_disabled',
+			__( 'Application passwords are disabled for the requested user.' )
+		);
+	}
+
+	if ( $error ) {
+		/**
+		 * Fires when an application password failed to authenticate the user.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $error The authentication error.
+		 */
+		do_action( 'application_password_failed_authentication', $error );
+
+		return $error;
+	}
+
+	/*
+	 * Strip out anything non-alphanumeric. This is so passwords can be used with
+	 * or without spaces to indicate the groupings for readability.
+	 *
+	 * Generated application passwords are exclusively alphanumeric.
+	 */
+	$password = preg_replace( '/[^a-z\d]/i', '', $password );
+
+	$hashed_passwords = WP_Application_Passwords::get_user_application_passwords( $user->ID );
+
+	foreach ( $hashed_passwords as $key => $item ) {
+		if ( ! wp_check_password( $password, $item['password'], $user->ID ) ) {
+			continue;
+		}
+
+		$error = new WP_Error();
+
+		/**
+		 * Fires when an application password has been successfully checked as valid.
+		 *
+		 * This allows for plugins to add additional constraints to prevent an application password from being used.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $error    The error object.
+		 * @param WP_User  $user     The user authenticating.
+		 * @param array    $item     The details about the application password.
+		 * @param string   $password The raw supplied password.
+		 */
+		do_action( 'wp_authenticate_application_password_errors', $error, $user, $item, $password );
+
+		if ( is_wp_error( $error ) && $error->has_errors() ) {
+			/** This action is documented in wp-includes/user.php */
+			do_action( 'application_password_failed_authentication', $error );
+
+			return $error;
+		}
+
+		WP_Application_Passwords::record_application_password_usage( $user->ID, $item['uuid'] );
+
+		/**
+		 * Fires after an application password was used for authentication.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_User $user The user who was authenticated.
+		 * @param array   $item The application password used.
+		 */
+		do_action( 'application_password_did_authenticate', $user, $item );
+
+		return $user;
+	}
+
+	$error = new WP_Error(
+		'incorrect_password',
+		__( 'The provided password is an invalid application password.' )
+	);
+
+	/** This action is documented in wp-includes/user.php */
+	do_action( 'application_password_failed_authentication', $error );
+
+	return $error;
+}
+
+/**
+ * Validates the application password credentials passed via Basic Authentication.
+ *
+ * @since 5.6.0
+ *
+ * @param int|bool $input_user User ID if one has been determined, false otherwise.
+ * @return int|bool The authenticated user ID if successful, false otherwise.
+ */
+function wp_validate_application_password( $input_user ) {
+	// Don't authenticate twice.
+	if ( ! empty( $input_user ) ) {
+		return $input_user;
+	}
+
+	if ( ! wp_is_application_passwords_available() ) {
+		return $input_user;
+	}
+
+	// Check that we're trying to authenticate
+	if ( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+		return $input_user;
+	}
+
+	$authenticated = wp_authenticate_application_password( null, $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] );
+
+	if ( $authenticated instanceof WP_User ) {
+		return $authenticated->ID;
+	}
+
+	// If it wasn't a user what got returned, just pass on what we had received originally.
+	return $input_user;
+}
+
+/**
  * For Multisite blogs, check if the authenticated user has been marked as a
  * spammer, or if the user's primary blog has been marked as spam.
  *
@@ -3612,7 +3782,7 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 	);
 
 	if ( $requests_query->found_posts ) {
-		return new WP_Error( 'duplicate_request', __( 'An incomplete request for this email address already exists.' ) );
+		return new WP_Error( 'duplicate_request', __( 'An incomplete user privacy request for this email address already exists.' ) );
 	}
 
 	$request_id = wp_insert_post(
@@ -3680,7 +3850,7 @@ function wp_send_user_request( $request_id ) {
 	$request    = wp_get_user_request( $request_id );
 
 	if ( ! $request ) {
-		return new WP_Error( 'invalid_request', __( 'Invalid user request.' ) );
+		return new WP_Error( 'invalid_request', __( 'Invalid user privacy request.' ) );
 	}
 
 	// Localize message content for user; fallback to site default for visitors.
@@ -3862,35 +4032,26 @@ function wp_generate_user_request_key( $request_id ) {
 function wp_validate_user_request_key( $request_id, $key ) {
 	global $wp_hasher;
 
-	$request_id = absint( $request_id );
-	$request    = wp_get_user_request( $request_id );
+	$request_id       = absint( $request_id );
+	$request          = wp_get_user_request( $request_id );
+	$saved_key        = $request->confirm_key;
+	$key_request_time = $request->modified_timestamp;
 
-	if ( ! $request ) {
-		return new WP_Error( 'invalid_request', __( 'Invalid request.' ) );
+	if ( ! $request || ! $saved_key || ! $key_request_time ) {
+		return new WP_Error( 'invalid_request', __( 'Invalid user privacy request.' ) );
 	}
 
 	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
-		return new WP_Error( 'expired_link', __( 'This link has expired.' ) );
+		return new WP_Error( 'expired_request', __( 'This user privacy request has expired.' ) );
 	}
 
 	if ( empty( $key ) ) {
-		return new WP_Error( 'missing_key', __( 'Missing confirm key.' ) );
+		return new WP_Error( 'missing_key', __( 'This user privacy request is missing the confirmation key.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
 		require_once ABSPATH . WPINC . '/class-phpass.php';
 		$wp_hasher = new PasswordHash( 8, true );
-	}
-
-	$key_request_time = $request->modified_timestamp;
-	$saved_key        = $request->confirm_key;
-
-	if ( ! $saved_key ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
-	}
-
-	if ( ! $key_request_time ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid action.' ) );
 	}
 
 	/**
@@ -3904,11 +4065,11 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$expiration_time     = $key_request_time + $expiration_duration;
 
 	if ( ! $wp_hasher->CheckPassword( $key, $saved_key ) ) {
-		return new WP_Error( 'invalid_key', __( 'Invalid key.' ) );
+		return new WP_Error( 'invalid_key', __( 'This user privacy request confirmation key is invalid.' ) );
 	}
 
 	if ( ! $expiration_time || time() > $expiration_time ) {
-		return new WP_Error( 'expired_key', __( 'The confirmation email has expired.' ) );
+		return new WP_Error( 'expired_key', __( 'This user privacy request confirmation key has expired.' ) );
 	}
 
 	return true;
@@ -3931,4 +4092,60 @@ function wp_get_user_request( $request_id ) {
 	}
 
 	return new WP_User_Request( $post );
+}
+
+/**
+ * Checks if Application Passwords is globally available.
+ *
+ * By default, Application Passwords is available to all sites using SSL, but this function is
+ * filterable to adjust its availability.
+ *
+ * @since 5.6.0
+ *
+ * @return bool
+ */
+function wp_is_application_passwords_available() {
+	/**
+	 * Filters whether Application Passwords is available.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool $available True if available, false otherwise.
+	 */
+	return apply_filters( 'wp_is_application_passwords_available', is_ssl() );
+}
+
+/**
+ * Checks if Application Passwords is enabled for a specific user.
+ *
+ * By default all users can use Application Passwords, but this function is filterable to restrict
+ * availability to certain users.
+ *
+ * @since 5.6.0
+ *
+ * @param int|WP_User $user The user to check.
+ * @return bool
+ */
+function wp_is_application_passwords_available_for_user( $user ) {
+	if ( ! wp_is_application_passwords_available() ) {
+		return false;
+	}
+
+	if ( ! is_object( $user ) ) {
+		$user = get_userdata( $user );
+	}
+
+	if ( ! $user || ! $user->exists() ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether Application Passwords is available for a specific user.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $available True if available, false otherwise.
+	 * @param WP_User $user      The user to check.
+	 */
+	return apply_filters( 'wp_is_application_passwords_available_for_user', true, $user );
 }

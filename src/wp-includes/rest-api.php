@@ -209,6 +209,7 @@ function rest_api_default_filters() {
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
+	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
 }
 
 /**
@@ -264,9 +265,18 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Users_Controller;
 	$controller->register_routes();
 
+	// Application Passwords
+	$controller = new WP_REST_Application_Passwords_Controller();
+	$controller->register_routes();
+
 	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
+
+	$search_handlers = array(
+		new WP_REST_Post_Search_Handler(),
+		new WP_REST_Term_Search_Handler(),
+	);
 
 	/**
 	 * Filters the search handlers to use in the REST search controller.
@@ -277,7 +287,7 @@ function create_initial_rest_routes() {
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
 	 *                               Default is only a handler for posts.
 	 */
-	$search_handlers = apply_filters( 'wp_rest_search_handlers', array( new WP_REST_Post_Search_Handler() ) );
+	$search_handlers = apply_filters( 'wp_rest_search_handlers', $search_handlers );
 
 	$controller = new WP_REST_Search_Controller( $search_handlers );
 	$controller->register_routes();
@@ -305,7 +315,6 @@ function create_initial_rest_routes() {
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
 	$controller->register_routes();
-
 }
 
 /**
@@ -1030,6 +1039,80 @@ function rest_cookie_collect_status() {
 }
 
 /**
+ * Collects the status of authenticating with an application password.
+ *
+ * @since 5.6.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error $user_or_error The authenticated user or error instance.
+ */
+function rest_application_password_collect_status( $user_or_error ) {
+	global $wp_rest_application_password_status;
+
+	$wp_rest_application_password_status = $user_or_error;
+}
+
+/**
+ * Checks for errors when using application password-based authentication.
+ *
+ * @since 5.6.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error|null|true $result Error from another authentication handler,
+ *                                   null if we should handle it, or another value if not.
+ * @return WP_Error|null|true WP_Error if the application password is invalid, the $result, otherwise true.
+ */
+function rest_application_password_check_errors( $result ) {
+	global $wp_rest_application_password_status;
+
+	if ( ! empty( $result ) ) {
+		return $result;
+	}
+
+	if ( is_wp_error( $wp_rest_application_password_status ) ) {
+		$data = $wp_rest_application_password_status->get_error_data();
+
+		if ( ! isset( $data['status'] ) ) {
+			$data['status'] = 401;
+		}
+
+		$wp_rest_application_password_status->add_data( $data );
+
+		return $wp_rest_application_password_status;
+	}
+
+	if ( $wp_rest_application_password_status instanceof WP_User ) {
+		return true;
+	}
+
+	return $result;
+}
+
+/**
+ * Adds Application Passwords info to the REST API index.
+ *
+ * @since 5.6.0
+ *
+ * @param WP_REST_Response $response The index response object.
+ * @return WP_REST_Response
+ */
+function rest_add_application_passwords_to_index( $response ) {
+	if ( ! wp_is_application_passwords_available() ) {
+		return $response;
+	}
+
+	$response->data['authentication']['application-passwords'] = array(
+		'endpoints' => array(
+			'authorization' => admin_url( 'authorize-application.php' ),
+		),
+	);
+
+	return $response;
+}
+
+/**
  * Retrieves the avatar urls in various sizes.
  *
  * @since 4.7.0
@@ -1315,7 +1398,7 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( floatval( $maybe_integer ) ) === floatval( $maybe_integer );
+	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
 }
 
 /**
@@ -1540,6 +1623,42 @@ function rest_stabilize_value( $value ) {
 }
 
 /**
+ * Validates if the JSON Schema pattern matches a value.
+ *
+ * @since 5.6.0
+ *
+ * @param string $pattern The pattern to match against.
+ * @param string $value   The value to check.
+ * @return bool           True if the pattern matches the given value, false otherwise.
+ */
+function rest_validate_json_schema_pattern( $pattern, $value ) {
+	$escaped_pattern = str_replace( '#', '\\#', $pattern );
+
+	return 1 === preg_match( '#' . $escaped_pattern . '#u', $value );
+}
+
+/**
+ * Finds the schema for a property using the patternProperties keyword.
+ *
+ * @since 5.6.0
+ *
+ * @param string $property The property name to check.
+ * @param array  $args     The schema array to use.
+ * @return array|null      The schema of matching pattern property, or null if no patterns match.
+ */
+function rest_find_matching_pattern_property_schema( $property, $args ) {
+	if ( isset( $args['patternProperties'] ) ) {
+		foreach ( $args['patternProperties'] as $pattern => $child_schema ) {
+			if ( rest_validate_json_schema_pattern( $pattern, $property ) ) {
+				return $child_schema;
+			}
+		}
+	}
+
+	return null;
+}
+
+/**
  * Validate a value based on a schema.
  *
  * @since 4.7.0
@@ -1551,6 +1670,9 @@ function rest_stabilize_value( $value ) {
  *              Support the "minLength", "maxLength" and "pattern" keywords for strings.
  *              Support the "minItems", "maxItems" and "uniqueItems" keywords for arrays.
  *              Validate required properties.
+ * @since 5.6.0 Support the "minProperties" and "maxProperties" keywords for objects.
+ *              Support the "multipleOf" keyword for numbers and integers.
+ *              Support the "patternProperties" keyword for objects.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -1648,7 +1770,19 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 				if ( is_wp_error( $is_valid ) ) {
 					return $is_valid;
 				}
-			} elseif ( isset( $args['additionalProperties'] ) ) {
+				continue;
+			}
+
+			$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
+			if ( null !== $pattern_property_schema ) {
+				$is_valid = rest_validate_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
+				if ( is_wp_error( $is_valid ) ) {
+					return $is_valid;
+				}
+				continue;
+			}
+
+			if ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					/* translators: %s: Property of an object. */
 					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
@@ -1661,6 +1795,16 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 					}
 				}
 			}
+		}
+
+		if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
+			/* translators: 1: Parameter, 2: Number. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s properties.' ), $param, number_format_i18n( $args['minProperties'] ) ) );
+		}
+
+		if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
+			/* translators: 1: Parameter, 2: Number. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s properties.' ), $param, number_format_i18n( $args['maxProperties'] ) ) );
 		}
 	}
 
@@ -1680,9 +1824,16 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 	}
 
-	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) && ! is_numeric( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
-		return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
+	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
+		if ( ! is_numeric( $value ) ) {
+			/* translators: 1: Parameter, 2: Type name. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ) );
+		}
+
+		if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
+			/* translators: 1: Parameter, 2: Multiplier. */
+			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] ) );
+		}
 	}
 
 	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
@@ -1725,12 +1876,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			);
 		}
 
-		if ( isset( $args['pattern'] ) ) {
-			$pattern = str_replace( '#', '\\#', $args['pattern'] );
-			if ( ! preg_match( '#' . $pattern . '#u', $value ) ) {
-				/* translators: 1: Parameter, 2: Pattern. */
-				return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
-			}
+		if ( isset( $args['pattern'] ) && ! rest_validate_json_schema_pattern( $args['pattern'], $value ) ) {
+			/* translators: 1: Parameter, 2: Pattern. */
+			return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
 		}
 	}
 
@@ -1878,7 +2026,16 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		foreach ( $value as $property => $v ) {
 			if ( isset( $args['properties'][ $property ] ) ) {
 				$value[ $property ] = rest_sanitize_value_from_schema( $v, $args['properties'][ $property ], $param . '[' . $property . ']' );
-			} elseif ( isset( $args['additionalProperties'] ) ) {
+				continue;
+			}
+
+			$pattern_property_schema = rest_find_matching_pattern_property_schema( $property, $args );
+			if ( null !== $pattern_property_schema ) {
+				$value[ $property ] = rest_sanitize_value_from_schema( $v, $pattern_property_schema, $param . '[' . $property . ']' );
+				continue;
+			}
+
+			if ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					unset( $value[ $property ] );
 				} elseif ( is_array( $args['additionalProperties'] ) ) {
@@ -1933,7 +2090,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'string' === $args['type'] ) {
-		return strval( $value );
+		return (string) $value;
 	}
 
 	return $value;
@@ -2034,6 +2191,7 @@ function rest_parse_embed_param( $embed ) {
  * Filters the response to remove any fields not available in the given context.
  *
  * @since 5.5.0
+ * @since 5.6.0 Support the "patternProperties" keyword for objects.
  *
  * @param array|object $data    The response data to modify.
  * @param array        $schema  The schema for the endpoint used to filter the response.
@@ -2074,8 +2232,13 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
 		} elseif ( $is_object_type ) {
 			if ( isset( $schema['properties'][ $key ] ) ) {
 				$check = $schema['properties'][ $key ];
-			} elseif ( $has_additional_properties ) {
-				$check = $schema['additionalProperties'];
+			} else {
+				$pattern_property_schema = rest_find_matching_pattern_property_schema( $key, $schema );
+				if ( null !== $pattern_property_schema ) {
+					$check = $pattern_property_schema;
+				} elseif ( $has_additional_properties ) {
+					$check = $schema['additionalProperties'];
+				}
 			}
 		}
 
@@ -2113,6 +2276,7 @@ function rest_filter_response_by_context( $data, $schema, $context ) {
  * Sets the "additionalProperties" to false by default for all object definitions in the schema.
  *
  * @since 5.5.0
+ * @since 5.6.0 Support the "patternProperties" keyword.
  *
  * @param array $schema The schema to modify.
  * @return array The modified schema.
@@ -2124,6 +2288,12 @@ function rest_default_additional_properties_to_false( $schema ) {
 		if ( isset( $schema['properties'] ) ) {
 			foreach ( $schema['properties'] as $key => $child_schema ) {
 				$schema['properties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
+			}
+		}
+
+		if ( isset( $schema['patternProperties'] ) ) {
+			foreach ( $schema['patternProperties'] as $key => $child_schema ) {
+				$schema['patternProperties'][ $key ] = rest_default_additional_properties_to_false( $child_schema );
 			}
 		}
 
@@ -2281,10 +2451,14 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 		'items',
 		'properties',
 		'additionalProperties',
+		'patternProperties',
+		'minProperties',
+		'maxProperties',
 		'minimum',
 		'maximum',
 		'exclusiveMinimum',
 		'exclusiveMaximum',
+		'multipleOf',
 		'minLength',
 		'maxLength',
 		'pattern',

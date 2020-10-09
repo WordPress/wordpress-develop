@@ -708,7 +708,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
 		$path     = $base;
 	} else {
-		$mydomain = "$domain";
+		$mydomain = $domain;
 		$path     = $base . $blogname . '/';
 	}
 	if ( domain_exists( $mydomain, $path, $current_network->id ) ) {
@@ -1575,7 +1575,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 }
 
 /**
- * Notify a user that their blog activation has been successful.
+ * Notifies the site administrator that their site activation was successful.
  *
  * Filter {@see 'wpmu_welcome_notification'} to disable or bypass.
  *
@@ -1584,26 +1584,26 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $blog_id  Blog ID.
+ * @param int    $blog_id  Site ID.
  * @param int    $user_id  User ID.
- * @param string $password User password.
+ * @param string $password User password, or "N/A" if the user account is not new.
  * @param string $title    Site title.
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
- * @return bool
+ * @return bool Whether the email notification was sent.
  */
 function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
 	$current_network = get_network();
 
 	/**
-	 * Filters whether to bypass the welcome email after site activation.
+	 * Filters whether to bypass the welcome email sent to the site administrator after site activation.
 	 *
 	 * Returning false disables the welcome email.
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param int|bool $blog_id  Blog ID.
-	 * @param int      $user_id  User ID.
-	 * @param string   $password User password.
+	 * @param int|bool $blog_id  Site ID.
+	 * @param int      $user_id  User ID of the site administrator.
+	 * @param string   $password User password, or "N/A" if the user account is not new.
 	 * @param string   $title    Site title.
 	 * @param array    $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1645,16 +1645,16 @@ We hope you enjoy your new site. Thanks!
 	$welcome_email = str_replace( 'PASSWORD', $password, $welcome_email );
 
 	/**
-	 * Filters the content of the welcome email after site activation.
+	 * Filters the content of the welcome email sent to the site administrator after site activation.
 	 *
 	 * Content should be formatted for transmission via wp_mail().
 	 *
 	 * @since MU (3.0.0)
 	 *
 	 * @param string $welcome_email Message body of the email.
-	 * @param int    $blog_id       Blog ID.
-	 * @param int    $user_id       User ID.
-	 * @param string $password      User password.
+	 * @param int    $blog_id       Site ID.
+	 * @param int    $user_id       User ID of the site administrator.
+	 * @param string $password      User password, or "N/A" if the user account is not new.
 	 * @param string $title         Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1678,7 +1678,7 @@ We hope you enjoy your new site. Thanks!
 	$subject = __( 'New %1$s Site: %2$s' );
 
 	/**
-	 * Filters the subject of the welcome email after site activation.
+	 * Filters the subject of the welcome email sent to the site administrator after site activation.
 	 *
 	 * @since MU (3.0.0)
 	 *
@@ -1970,7 +1970,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 		return $term_id;
 	}
 
-	$term_id = intval( $term_id );
+	$term_id = (int) $term_id;
 	$c       = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
 
 	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );
