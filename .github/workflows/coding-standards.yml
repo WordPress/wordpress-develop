@@ -57,4 +57,4 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           # Ignore warnings
-          php_codesniffer_args: "-n"
+          php_codesniffer_args: "-n --cache"
