@@ -1,8 +1,19 @@
-name: WordPress coding standards checks
+name: Coding standards checks
 
 on: [push]
 
 jobs:
+  # Runs PHP coding standards checks.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Configures caching for Composer.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies (from cache if possible).
+  # - Runs PHPCS tests.
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
@@ -47,11 +58,3 @@ jobs:
           php_codesniffer: true
           # Ignore warnings
           php_codesniffer_args: "-n"
-
-      - name: Run PHPCS on Core tests
-        uses: wearerequired/lint-action@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          php_codesniffer: true
-          php_codesniffer_dir: "tests"
-          php_codesniffer_args: "--standard=phpcs.xml.dist"

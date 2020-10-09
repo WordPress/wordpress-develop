@@ -6,10 +6,13 @@ jobs:
 
   # Runs PHP compatibility testing.
   #
+  # Violations are reported inline with annotations.
+  #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Logs debug information about the runner container.
   # - Configures caching for Composer.
+  # - Sets up PHP.
+  # - Logs debug information about the runner container.
   # - Installs Composer dependencies (from cache if possible).
   # - Runs the PHP compatibility tests.
   php-comatibility:
