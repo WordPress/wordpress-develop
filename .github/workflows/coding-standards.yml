@@ -1,24 +1,14 @@
-name: WordPress Core coding standards checks
+name: WordPress coding standards checks
 
 on: [push]
 
 jobs:
   phpcs:
-    name: WordPress Core PHP coding standards
+    name: PHP coding standards
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "latest"
-          coverage: none
-
-      - name: Log debug information
-        run: |
-          php --version
 
       - name: Get Composer cache directory
         id: composer-cache
@@ -34,6 +24,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "latest"
+          coverage: none
+
+      - name: Log debug information
+        run: |
+          php --version
+
       - name: Install Composer dependencies
         run: composer install
 
@@ -44,10 +44,10 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           # Ignore warnings
-          php_codesniffer_args: "-n"
+          php_codesniffer_args: "./vendor/squizlabs/php_codesniffer/bin/phpcs -n"
 
       - name: Run PHPCS on WordPress Core tests
-        continue-on-error: true
+        continue-on-error: true # Allow all linting tasks to finish.
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
