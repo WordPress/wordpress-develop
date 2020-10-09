@@ -1,12 +1,6 @@
-name: WordPress Core cvoding ctandards checks
+name: WordPress Core coding standards checks
 
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - master
+on: [push]
 
 jobs:
   phpcs:
