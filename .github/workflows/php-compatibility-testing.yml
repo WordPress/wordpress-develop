@@ -23,20 +23,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Set up Composer caching
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -58,4 +44,4 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
-          php_codesniffer_args: "--standard=phpcompat.xml.dist --cache"
+          php_codesniffer_args: "--standard=phpcompat.xml.dist"
