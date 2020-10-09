@@ -58,4 +58,4 @@ jobs:
         with:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
-          php_codesniffer_args: "--standard=phpcompat.xml.dist"
+          php_codesniffer_args: "--standard=./phpcompat.xml.dist"
