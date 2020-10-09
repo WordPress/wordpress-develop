@@ -1,0 +1,66 @@
+name: WordPress Core cvoding ctandards checks
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  phpcs:
+    name: WordPress Core PHP coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "latest"
+          coverage: none
+
+      - name: Log debug information
+        run: |
+          php --version
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: composer install
+
+      - name: Run PHPCS on WordPress Core files
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }
+          php_codesniffer: true
+          # Ignore warnings
+          php_codesniffer_args: "-n"
+
+      - name: Run PHPCS on WordPress Core
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          php_codesniffer: true
+
+      - name: Run PHPCS on WordPress Core tests
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          php_codesniffer: true
+          php_codesniffer_dir: "tests"
+
