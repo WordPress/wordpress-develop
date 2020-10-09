@@ -33,7 +33,6 @@ jobs:
       - name: Log debug information
         run: |
           php --version
-          composer diagnose
 
       - name: Install Composer dependencies
         run: composer install
