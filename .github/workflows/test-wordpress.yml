@@ -178,7 +178,7 @@ jobs:
         # TODO: Make LOCAL_PHP be the value of matrix.php_versions with memcached replaced with '-fpm'
         run: |
           echo "LOCAL_PHP=latest" >> $GITHUB_ENV
-          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
+          echo "LOCAL_PHP_MEMCACHED=${{ true }}" >> $GITHUB_ENV
 
       - name: Use cached Node modules
         uses: actions/cache@v2
