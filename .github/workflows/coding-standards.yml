@@ -46,7 +46,7 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           # Ignore warnings
-          php_codesniffer_args: "-n"
+          php_codesniffer_args: "-n --report=summary,source"
 
       - name: Run PHPCS on WordPress Core tests
         uses: wearerequired/lint-action@v1
@@ -54,3 +54,4 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           php_codesniffer_dir: "tests"
+          php_codesniffer_args: "--report=summary,source"
