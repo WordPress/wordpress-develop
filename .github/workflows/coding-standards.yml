@@ -29,11 +29,11 @@ jobs:
         with:
           php-version: "latest"
           coverage: none
-          tools: phpcs
 
       - name: Log debug information
         run: |
           php --version
+          composer diagnose
 
       - name: Install Composer dependencies
         run: composer install
@@ -45,7 +45,7 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           # Ignore warnings
-          php_codesniffer_args: "./vendor/squizlabs/php_codesniffer/bin/phpcs -n"
+          php_codesniffer_args: "-n"
 
       - name: Run PHPCS on WordPress Core tests
         continue-on-error: true # Allow all linting tasks to finish.
