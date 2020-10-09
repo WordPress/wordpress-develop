@@ -4,7 +4,6 @@ on: [push]
 
 env:
   LOCAL_DIR: build
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   PHP_FPM_UID: 1001 # This needs to be dynamic
   PHP_FPM_GID: 116 # This needs to be dynamic
 
