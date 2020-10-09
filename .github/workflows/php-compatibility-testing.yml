@@ -20,10 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Log debug information
-        run: |
-          php --version
-
       - name: Get Composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
@@ -38,10 +34,25 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "latest"
+          coverage: none
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
       - name: Install Composer dependencies
         run: |
-          docker-compose run --rm php composer --version
-          docker-compose run --rm php composer install
+          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
+          echo "vendor/bin" >> $GITHUB_PATH
 
       - name: Run PHP compatibility tests
-        run: docker-compose run --rm php composer compat
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          php_codesniffer: true
+          php_codesniffer_args: "--standard=phpcompat.xml.dist"
