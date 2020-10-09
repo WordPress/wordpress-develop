@@ -38,7 +38,7 @@ jobs:
       - name: Install Composer dependencies
         run: |
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
-          echo "::add-path::vendor/bin"
+          echo "vendor/bin" >> $GITHUB_PATH
 
       - name: Run PHPCS on WordPress Core files
         uses: wearerequired/lint-action@v1
