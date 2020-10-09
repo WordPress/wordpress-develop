@@ -14,30 +14,28 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-#      - name: Set up Composer caching
-#        uses: actions/cache@v2
-#        env:
-#          cache-name: cache-composer-dependencies
-#        with:
-#          path: ${{ steps.composer-cache.outputs.dir }}
-#          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-#          restore-keys: |
-#            ${{ runner.os }}-composer-
-#
-#      - name: Set up PHP
-#        uses: shivammathur/setup-php@v2
-#        with:
-#          php-version: "latest"
-#          coverage: none
-#
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "latest"
+          coverage: none
+
       - name: Log debug information
         run: |
           php --version
 
       - name: Install Composer dependencies
-        run: |
-          composer install
-          phpcs -v
+        run: composer global install
 
       - name: Run PHPCS on WordPress Core files
         uses: wearerequired/lint-action@v1
@@ -53,4 +51,3 @@ jobs:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           php_codesniffer_dir: "tests"
-
