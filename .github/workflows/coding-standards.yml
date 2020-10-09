@@ -14,15 +14,15 @@ jobs:
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-      - name: Set up Composer caching
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+#      - name: Set up Composer caching
+#        uses: actions/cache@v2
+#        env:
+#          cache-name: cache-composer-dependencies
+#        with:
+#          path: ${{ steps.composer-cache.outputs.dir }}
+#          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+#          restore-keys: |
+#            ${{ runner.os }}-composer-
 #
 #      - name: Set up PHP
 #        uses: shivammathur/setup-php@v2
