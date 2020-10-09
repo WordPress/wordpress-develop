@@ -40,7 +40,7 @@ jobs:
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
           echo "vendor/bin" >> $GITHUB_PATH
 
-      - name: Run PHPCS on WordPress Core files
+      - name: Run PHPCS on Core files
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -48,9 +48,10 @@ jobs:
           # Ignore warnings
           php_codesniffer_args: "-n"
 
-      - name: Run PHPCS on WordPress Core tests
+      - name: Run PHPCS on Core tests
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
           php_codesniffer_dir: "tests"
+          php_codesniffer_args: "--standard=phpcs.xml.dist"
