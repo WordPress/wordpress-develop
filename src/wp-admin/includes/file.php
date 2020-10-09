@@ -85,9 +85,9 @@ function get_file_description( $file ) {
 	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
 		return $wp_file_descriptions[ basename( $file ) ];
 	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
-		$template_data = implode( '', file( $file_path ) );
+		$file_contents = file( $file_path );
 
-		if ( preg_match( '|Template Name:(.*)$|mi', $template_data, $name ) ) {
+		if ( false !== $file_contents && preg_match( '|Template Name:(.*)$|mi', implode( '', $file_contents ), $name ) ) {
 			/* translators: %s: Template name. */
 			return sprintf( __( '%s Page Template' ), _cleanup_header_comment( $name[1] ) );
 		}
@@ -110,7 +110,7 @@ function get_home_path() {
 	if ( ! empty( $home ) && 0 !== strcasecmp( $home, $siteurl ) ) {
 		$wp_path_rel_to_home = str_ireplace( $home, '', $siteurl ); /* $siteurl - $home */
 		$pos                 = strripos( str_replace( '\\', '/', $_SERVER['SCRIPT_FILENAME'] ), trailingslashit( $wp_path_rel_to_home ) );
-		$home_path           = substr( $_SERVER['SCRIPT_FILENAME'], 0, $pos );
+		$home_path           = substr( $_SERVER['SCRIPT_FILENAME'], 0, (int) $pos );
 		$home_path           = trailingslashit( $home_path );
 	} else {
 		$home_path = ABSPATH;
@@ -160,7 +160,7 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 
 			if ( is_dir( $folder . $file ) ) {
 				$files2 = list_files( $folder . $file, $levels - 1 );
-				if ( $files2 ) {
+				if ( $files2 && is_array( $files2 ) ) {
 					$files = array_merge( $files, $files2 );
 				} else {
 					$files[] = $folder . $file . '/';
@@ -508,7 +508,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 	if ( $is_active && 'php' === $extension ) {
 
-		$scrape_key   = md5( rand() );
+		$scrape_key   = md5( (string) rand() );
 		$transient    = 'scrape_key_' . $scrape_key;
 		$scrape_nonce = strval( rand() );
 		// It shouldn't take more than 60 seconds to make the two loopback requests.
@@ -579,7 +579,7 @@ function wp_edit_theme_plugin_file( $args ) {
 			$result = $loopback_request_failure;
 		} else {
 			$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
-			$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+			$error_output = substr( $error_output, 0, (int) strpos( $error_output, $needle_end ) );
 			$result       = json_decode( trim( $error_output ), true );
 			if ( empty( $result ) ) {
 				$result = $json_parse_failure;
@@ -598,7 +598,7 @@ function wp_edit_theme_plugin_file( $args ) {
 				$result = $loopback_request_failure;
 			} else {
 				$error_output = substr( $body, $scrape_result_position + strlen( $needle_start ) );
-				$error_output = substr( $error_output, 0, strpos( $error_output, $needle_end ) );
+				$error_output = substr( $error_output, 0, (int) strpos( $error_output, $needle_end ) );
 				$result       = json_decode( trim( $error_output ), true );
 				if ( empty( $result ) ) {
 					$result = $json_parse_failure;
@@ -1039,7 +1039,12 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
 	}
 
-	$url_filename = basename( parse_url( $url, PHP_URL_PATH ) );
+	$url_path = parse_url( $url, PHP_URL_PATH );
+	if ( null === $url_path || false === $url_path ) {
+		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
+	}
+
+	$url_filename = basename( $url_path );
 
 	$tmpfname = wp_tempnam( $url_filename );
 	if ( ! $tmpfname ) {
@@ -1118,7 +1123,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 			// WordPress.org stores signatures at $package_url.sig.
 
 			$signature_url = false;
-			$url_path      = parse_url( $url, PHP_URL_PATH );
+			$url_path      = (string) parse_url( $url, PHP_URL_PATH );
 
 			if ( '.zip' === substr( $url_path, -4 ) || '.tar.gz' === substr( $url_path, -7 ) ) {
 				$signature_url = str_replace( $url_path, $url_path . '.sig', $url );
@@ -1149,7 +1154,7 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		}
 
 		// Perform the checks.
-		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( parse_url( $url, PHP_URL_PATH ) ) );
+		$signature_verification = verify_file_signature( $tmpfname, $signature, basename( (string) parse_url( $url, PHP_URL_PATH ) ) );
 	}
 
 	if ( is_wp_error( $signature_verification ) ) {
@@ -1209,7 +1214,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
 		sprintf(
 			/* translators: 1: File checksum, 2: Expected checksum value. */
 			__( 'The checksum of the file (%1$s) does not match the expected checksum value (%2$s).' ),
-			bin2hex( $file_md5 ),
+			bin2hex( (string) $file_md5 ),
 			bin2hex( $expected_raw_md5 )
 		)
 	);
@@ -1222,7 +1227,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
  *
  * @param string       $filename            The file to validate.
  * @param string|array $signatures          A Signature provided for the file.
- * @param string       $filename_for_errors A friendly filename for errors. Optional.
+ * @param string|false $filename_for_errors A friendly filename for errors. Optional.
  * @return bool|WP_Error True on success, false if verification not attempted,
  *                       or WP_Error describing an error condition.
  */
@@ -1322,37 +1327,39 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	$trusted_keys = wp_trusted_keys();
 	$file_hash    = hash_file( 'sha384', $filename, true );
 
-	mbstring_binary_safe_encoding();
+	if ( false !== $file_hash ) {
+		mbstring_binary_safe_encoding();
 
-	$skipped_key       = 0;
-	$skipped_signature = 0;
+		$skipped_key       = 0;
+		$skipped_signature = 0;
 
-	foreach ( (array) $signatures as $signature ) {
-		$signature_raw = base64_decode( $signature );
+		foreach ( (array) $signatures as $signature ) {
+			$signature_raw = base64_decode( $signature );
 
-		// Ensure only valid-length signatures are considered.
-		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
-			continue;
-		}
-
-		foreach ( (array) $trusted_keys as $key ) {
-			$key_raw = base64_decode( $key );
-
-			// Only pass valid public keys through.
-			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+			// Ensure only valid-length signatures are considered.
+			if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
+				$skipped_signature++;
 				continue;
 			}
 
-			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
-				reset_mbstring_encoding();
-				return true;
+			foreach ( (array) $trusted_keys as $key ) {
+				$key_raw = base64_decode( $key );
+
+				// Only pass valid public keys through.
+				if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+					$skipped_key++;
+					continue;
+				}
+
+				if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
+					reset_mbstring_encoding();
+					return true;
+				}
 			}
 		}
-	}
 
-	reset_mbstring_encoding();
+		reset_mbstring_encoding();
+	}
 
 	return new WP_Error(
 		'signature_verification_failed',
@@ -1366,7 +1373,7 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 			'filename'    => $filename_for_errors,
 			'keys'        => $trusted_keys,
 			'signatures'  => $signatures,
-			'hash'        => bin2hex( $file_hash ),
+			'hash'        => bin2hex( (string) $file_hash ),
 			'skipped_key' => $skipped_key,
 			'skipped_sig' => $skipped_signature,
 			'php'         => phpversion(),
@@ -1437,7 +1444,8 @@ function unzip_file( $file, $to ) {
 	// Determine any parent directories needed (of the upgrade directory).
 	if ( ! $wp_filesystem->is_dir( $to ) ) { // Only do parents if no children exist.
 		$path = preg_split( '![/\\\]!', untrailingslashit( $to ) );
-		for ( $i = count( $path ); $i >= 0; $i-- ) {
+		$count = false === $path ? 0 : count( $path );
+		for ( $i = $count; $i >= 0; $i-- ) {
 			if ( empty( $path[ $i ] ) ) {
 				continue;
 			}
@@ -1772,7 +1780,11 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 			$sub_skip_list = array();
 			foreach ( $skip_list as $skip_item ) {
 				if ( 0 === strpos( $skip_item, $filename . '/' ) ) {
-					$sub_skip_list[] = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
+					$_skip_item = preg_replace( '!^' . preg_quote( $filename, '!' ) . '/!i', '', $skip_item );
+					if ( null === $_skip_item ) {
+						continue;
+					}
+					$sub_skip_list[] = $_skip_item;
 				}
 			}
 
@@ -2345,7 +2357,7 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 	if ( null === $can_invalidate
 		&& function_exists( 'opcache_invalidate' )
 		&& ( ! ini_get( 'opcache.restrict_api' )
-			|| stripos( realpath( $_SERVER['SCRIPT_FILENAME'] ), ini_get( 'opcache.restrict_api' ) ) === 0 )
+			|| stripos( (string) realpath( $_SERVER['SCRIPT_FILENAME'] ), (string) ini_get( 'opcache.restrict_api' ) ) === 0 )
 	) {
 		$can_invalidate = true;
 	}
