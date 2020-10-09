@@ -34,12 +34,12 @@ function mysql2date( $format, $date, $translate = true ) {
 
 	$datetime = date_create( $date, wp_timezone() );
 
-	if ( false === $datetime ) {
+	if (false === $datetime) {
 		return false;
 	}
 
 	// Returns a sum of timestamp with timezone offset. Ideally should never be used.
-	if ( 'G' === $format || 'U' === $format ) {
+	if ( 'G'===$format || 'U' === $format ) {
 		return $datetime->getTimestamp() + $datetime->getOffset();
 	}
 
@@ -166,9 +166,9 @@ function date_i18n( $format, $timestamp_with_offset = false, $gmt = false ) {
 	$timestamp = $timestamp_with_offset;
 
 	// If timestamp is omitted it should be current time (summed with offset, unless `$gmt` is true).
-	if ( ! is_numeric( $timestamp ) ) {
+	if ( ! is_numeric( $timestamp ) )
 		$timestamp = current_time( 'timestamp', $gmt );
-	}
+
 
 	/*
 	 * This is a legacy implementation quirk that the returned timestamp is also with offset.
