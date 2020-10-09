@@ -33,17 +33,12 @@ jobs:
       - name: Log debug information
         run: |
           php --version
+          composer --version
 
       - name: Install Composer dependencies
-        run: composer install
-
-      - name: Use project installed PHPCS globally
-        shell: bash -l {0}
-        run: export PATH="$PATH:$HOME/vendor/bin"
-
-      - name: Check versions (after)
         run: |
-          phpcs --version
+          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
+          echo "::add-path::vendor/bin"
 
       - name: Run PHPCS on WordPress Core files
         uses: wearerequired/lint-action@v1
