@@ -29,20 +29,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install Composer dependencies
-        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
-        run: |
-          docker-compose run --rm php composer --version
-
-          # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
-          # as PHPUnit 7 is no longer supported, so run the Composer-installed PHPUnit instead.
-          if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
-            docker-compose run --rm php composer install --ignore-platform-reqs
-            echo "PHPUNIT_LIBRARY=php-composer" >> $GITHUB_ENV
-          else
-            docker-compose run --rm php composer install
-          fi
-
       - name: Cache Node modules
         uses: actions/cache@v2
         env:
@@ -68,6 +54,9 @@ jobs:
       - name: Start Docker environment
         run: |
           npm run env:start
+
+      - name: Install Composer dependencies
+        run: docker-compose run --rm php composer install
 
       - name: Log running Docker containers
         run: docker ps -a
