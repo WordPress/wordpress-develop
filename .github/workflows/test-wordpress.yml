@@ -1,10 +1,10 @@
-name: WordPress Core Test Suite
+name: Core Test Suite
 
 on: [push]
 
 env:
   LOCAL_DIR: build
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: true
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   PHP_FPM_UID: 1001 # This needs to be dynamic
   PHP_FPM_GID: 116 # This needs to be dynamic
   COMPOSER_INSTALL: ${{ false }}
@@ -15,10 +15,11 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs that have not completed.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
-  # - Sets up caching for the NPM packages for the package-lock.json file.
+  # - Sets up caching for NPM.
   # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
@@ -97,7 +98,7 @@ jobs:
   # _ Installs NPM dependencies (only Chromium should need installing here).
   # - Run the WordPress QUnit tests.
   test-js:
-    name: JavaScript Tests
+    name: JavaScript Tests (QUnit)
     needs: setup-wordpress
     runs-on: ubuntu-latest
     env:
@@ -149,11 +150,11 @@ jobs:
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
   # - Logs the running Docker containers.
-  # - Logs Docker debug information (both about Docker installed within the runner and WordPress container)
-  # - Install WordPress inside the WordPress Docker container.
-  # - Run the WordPress PHPUnit tests.
+  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)  # - Install WordPress inside the WordPress Docker container.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
   test-php:
-    name: Test PHP ${{ matrix.php_versions }} (${{ matrix.os }})
+    name: ${{ matrix.php_versions }} on ${{ matrix.os }} (PHPUnit)
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
@@ -272,8 +273,7 @@ jobs:
         run: npm run test:${{ env.PHPUNIT_LIBRARY }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient
 
       # Xdebug supports PHP 8 only from version 3.0, which is not released yet.
-      # Once Xdebug 3.0 is released and included in the Docker image, this should be uncommented again.
-      # LOCAL_PHP_XDEBUG=true docker-compose run --rm phpunit phpunit -v --group xdebug --exclude-group __fakegroup__
+      # Once Xdebug 3.0 is released and included in the Docker image, the IF condition should be removed.
       - name: Run (xDebug) tests
         if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
