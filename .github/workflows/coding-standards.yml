@@ -38,6 +38,7 @@ jobs:
         run: composer install
 
       - name: Run PHPCS on WordPress Core files
+        continue-on-error: true # Allow all linting tasks to finish.
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -45,13 +46,8 @@ jobs:
           # Ignore warnings
           php_codesniffer_args: "-n"
 
-      - name: Run PHPCS on WordPress Core
-        uses: wearerequired/lint-action@v1
-        with:
-          github_token: ${{ secrets.github_token }}
-          php_codesniffer: true
-
       - name: Run PHPCS on WordPress Core tests
+        continue-on-error: true
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
