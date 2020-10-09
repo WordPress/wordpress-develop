@@ -17,39 +17,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v2
-
-      - name: Log debug information
-        run: |
-          npm --version
-          which npm
-          node --version
-          curl --version
-          git --version
-          svn --version
-          php --version
-          php -i
-          locale -a
-
-      - name: Get composer cach directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache Composer dependencies
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
+      - name: composer install
+        run: composer install
+      - name: PHPCS check
+        uses: chekalsky/phpcs-action@v1
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Install Composer dependencies
-        run: |
-          docker-compose run --rm php composer --version
-          docker-compose run --rm php composer install
-
-      - name: Run PHP compatibility tests
-        run: docker-compose run --rm php composer compat
+          phpcs_bin_path: './vendor/bin/phpcs'
