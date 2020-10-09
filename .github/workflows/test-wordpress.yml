@@ -175,7 +175,7 @@ jobs:
 
       - name: Configure memcached
         if: ${{ contains( matrix.php_versions, 'memcached' ) }}
-        # TODO: Make LOCAL_PHP be the value of mattrix.php_versions with memcached replaced with '-fpm'
+        # TODO: Make LOCAL_PHP be the value of matrix.php_versions with memcached replaced with '-fpm'
         run: |
           echo "LOCAL_PHP=latest" >> $GITHUB_ENV
           echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV

@@ -26,7 +26,7 @@ jobs:
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
-  setup-wordpress:
+  e2e-tests:
     name: Setup WordPress
     runs-on: ubuntu-latest
     steps:
