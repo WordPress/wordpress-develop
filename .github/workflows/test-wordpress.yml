@@ -33,7 +33,6 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
-        access_token: ${{ github.token }}
       - name: Checkout repository
         uses: actions/checkout@v2
 
