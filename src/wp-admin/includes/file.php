@@ -1443,7 +1443,7 @@ function unzip_file( $file, $to ) {
 
 	// Determine any parent directories needed (of the upgrade directory).
 	if ( ! $wp_filesystem->is_dir( $to ) ) { // Only do parents if no children exist.
-		$path = preg_split( '![/\\\]!', untrailingslashit( $to ) );
+		$path  = preg_split( '![/\\\]!', untrailingslashit( $to ) );
 		$count = false === $path ? 0 : count( $path );
 		for ( $i = $count; $i >= 0; $i-- ) {
 			if ( empty( $path[ $i ] ) ) {
