@@ -37,7 +37,14 @@ jobs:
           php --version
 
       - name: Install Composer dependencies
-        run: composer global install
+        run: composer install
+
+      - name: Use project installed PHPCS globally
+        run: export PATH="$PATH:$HOME/vendor/bin"
+
+      - name: Check versions (after)
+        run: |
+          phpcs --version
 
       - name: Run PHPCS on WordPress Core files
         uses: wearerequired/lint-action@v1
