@@ -24,12 +24,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-composer-
 
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "latest"
-          coverage: none
-
+#      - name: Set up PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: "latest"
+#          coverage: none
+#
       - name: Log debug information
         run: |
           php --version
