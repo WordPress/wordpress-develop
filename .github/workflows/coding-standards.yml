@@ -23,13 +23,13 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "latest"
-          coverage: none
-
+#
+#      - name: Set up PHP
+#        uses: shivammathur/setup-php@v2
+#        with:
+#          php-version: "latest"
+#          coverage: none
+#
       - name: Log debug information
         run: |
           php --version
@@ -39,7 +39,6 @@ jobs:
         run: composer install
 
       - name: Run PHPCS on WordPress Core files
-        continue-on-error: true # Allow all linting tasks to finish.
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
@@ -48,7 +47,6 @@ jobs:
           php_codesniffer_args: "-n"
 
       - name: Run PHPCS on WordPress Core tests
-        continue-on-error: true # Allow all linting tasks to finish.
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
