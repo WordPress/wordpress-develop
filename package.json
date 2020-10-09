@@ -166,6 +166,7 @@
 		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
 		"test:php": "node ./tools/local-env/scripts/docker.js run --rm phpunit phpunit",
 		"test:php-composer": "node ./tools/local-env/scripts/docker.js run --rm phpunit php ./vendor/bin/phpunit",
-		"test:e2e": "node ./tests/e2e/run-tests.js"
+		"test:e2e": "node ./tests/e2e/run-tests.js",
+		"wp-packages-update": "wp-scripts packages-update"
 	}
 }
