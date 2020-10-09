@@ -1347,10 +1347,11 @@ function add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $func
 
 	if ( null === $position ) {
 		$menu[] = $new_menu;
-	} elseif ( isset( $menu[ "$position" ] ) ) {
-		$position            = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
-		$menu[ "$position" ] = $new_menu;
 	} else {
+		if ( isset( $menu[ $position ] ) ) {
+			$position = $position + substr( base_convert( md5( $menu_slug . $menu_title ), 16, 10 ), -5 ) * 0.00001;
+		}
+
 		$menu[ $position ] = $new_menu;
 	}
 
@@ -2190,7 +2191,7 @@ function option_update_filter( $options ) {
 /**
  * Adds an array of options to the list of allowed options.
  *
- * @since 2.7.0
+ * @since 5.5.0
  *
  * @global array $allowed_options
  *

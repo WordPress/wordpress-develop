@@ -209,6 +209,7 @@ function rest_api_default_filters() {
 	add_filter( 'rest_post_dispatch', 'rest_filter_response_fields', 10, 3 );
 
 	add_filter( 'rest_pre_dispatch', 'rest_handle_options_request', 10, 3 );
+	add_filter( 'rest_index', 'rest_add_application_passwords_to_index' );
 }
 
 /**
@@ -264,9 +265,18 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Users_Controller;
 	$controller->register_routes();
 
+	// Application Passwords
+	$controller = new WP_REST_Application_Passwords_Controller();
+	$controller->register_routes();
+
 	// Comments.
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
+
+	$search_handlers = array(
+		new WP_REST_Post_Search_Handler(),
+		new WP_REST_Term_Search_Handler(),
+	);
 
 	/**
 	 * Filters the search handlers to use in the REST search controller.
@@ -277,7 +287,7 @@ function create_initial_rest_routes() {
 	 *                               handler instance must extend the `WP_REST_Search_Handler` class.
 	 *                               Default is only a handler for posts.
 	 */
-	$search_handlers = apply_filters( 'wp_rest_search_handlers', array( new WP_REST_Post_Search_Handler() ) );
+	$search_handlers = apply_filters( 'wp_rest_search_handlers', $search_handlers );
 
 	$controller = new WP_REST_Search_Controller( $search_handlers );
 	$controller->register_routes();
@@ -305,7 +315,6 @@ function create_initial_rest_routes() {
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
 	$controller->register_routes();
-
 }
 
 /**
@@ -1030,6 +1039,80 @@ function rest_cookie_collect_status() {
 }
 
 /**
+ * Collects the status of authenticating with an application password.
+ *
+ * @since 5.6.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error $user_or_error The authenticated user or error instance.
+ */
+function rest_application_password_collect_status( $user_or_error ) {
+	global $wp_rest_application_password_status;
+
+	$wp_rest_application_password_status = $user_or_error;
+}
+
+/**
+ * Checks for errors when using application password-based authentication.
+ *
+ * @since 5.6.0
+ *
+ * @global WP_User|WP_Error|null $wp_rest_application_password_status
+ *
+ * @param WP_Error|null|true $result Error from another authentication handler,
+ *                                   null if we should handle it, or another value if not.
+ * @return WP_Error|null|true WP_Error if the application password is invalid, the $result, otherwise true.
+ */
+function rest_application_password_check_errors( $result ) {
+	global $wp_rest_application_password_status;
+
+	if ( ! empty( $result ) ) {
+		return $result;
+	}
+
+	if ( is_wp_error( $wp_rest_application_password_status ) ) {
+		$data = $wp_rest_application_password_status->get_error_data();
+
+		if ( ! isset( $data['status'] ) ) {
+			$data['status'] = 401;
+		}
+
+		$wp_rest_application_password_status->add_data( $data );
+
+		return $wp_rest_application_password_status;
+	}
+
+	if ( $wp_rest_application_password_status instanceof WP_User ) {
+		return true;
+	}
+
+	return $result;
+}
+
+/**
+ * Adds Application Passwords info to the REST API index.
+ *
+ * @since 5.6.0
+ *
+ * @param WP_REST_Response $response The index response object.
+ * @return WP_REST_Response
+ */
+function rest_add_application_passwords_to_index( $response ) {
+	if ( ! wp_is_application_passwords_available() ) {
+		return $response;
+	}
+
+	$response->data['authentication']['application-passwords'] = array(
+		'endpoints' => array(
+			'authorization' => admin_url( 'authorize-application.php' ),
+		),
+	);
+
+	return $response;
+}
+
+/**
  * Retrieves the avatar urls in various sizes.
  *
  * @since 4.7.0
@@ -1315,7 +1398,7 @@ function rest_is_boolean( $maybe_bool ) {
  * @return bool True if an integer, otherwise false.
  */
 function rest_is_integer( $maybe_integer ) {
-	return is_numeric( $maybe_integer ) && round( floatval( $maybe_integer ) ) === floatval( $maybe_integer );
+	return is_numeric( $maybe_integer ) && round( (float) $maybe_integer ) === (float) $maybe_integer;
 }
 
 /**
@@ -2007,7 +2090,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'string' === $args['type'] ) {
-		return strval( $value );
+		return (string) $value;
 	}
 
 	return $value;
