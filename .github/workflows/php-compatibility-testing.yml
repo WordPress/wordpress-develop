@@ -53,9 +53,12 @@ jobs:
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
           echo "vendor/bin" >> $GITHUB_PATH
 
+      - name: Log PHPCS debug info
+        run: phpcs -i
+
       - name: Run PHP compatibility tests
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
           php_codesniffer: true
-          php_codesniffer_args: "--standard=./phpcompat.xml.dist"
+          php_codesniffer_args: "--standard=phpcompat.xml.dist"
