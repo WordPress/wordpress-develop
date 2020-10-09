@@ -35,7 +35,9 @@ jobs:
           php --version
 
       - name: Install Composer dependencies
-        run: composer install
+        run: |
+          composer install
+          phpcs -v
 
       - name: Run PHPCS on WordPress Core files
         uses: wearerequired/lint-action@v1
