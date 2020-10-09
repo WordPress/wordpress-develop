@@ -38,6 +38,7 @@ jobs:
         run: composer install
 
       - name: Use project installed PHPCS globally
+        shell: bash -l {0}
         run: export PATH="$PATH:$HOME/vendor/bin"
 
       - name: Check versions (after)
