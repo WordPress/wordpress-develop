@@ -2,9 +2,11 @@
 <html>
 	<head>
 		<title>WordPress QUnit Test Suite</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 		<!-- Dependencies -->
 		<script src="../../build/wp-includes/js/jquery/jquery.js"></script>
+		<script src="../../build/wp-includes/js/jquery/jquery-migrate.js"></script>
 		<script src="../../build/wp-includes/js/jquery/ui/core.min.js"></script>
 		<script src="../../build/wp-includes/js/underscore.min.js"></script>
 		<script src="../../build/wp-includes/js/backbone.min.js"></script>
@@ -93,7 +95,6 @@
 		<script src="../../build/wp-includes/js/wp-api.js"></script>
 
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/core.min.js'></script>
-		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/widget.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/mouse.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/sortable.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/draggable.min.js'></script>
@@ -2272,6 +2273,7 @@
 			<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
 		</script>
 		<div hidden>
+			<ul>
 			<li id="wp-admin-bar-updates">
 				<a class="ab-item" href="wp-admin/update-core.php" title="2 Plugin Updates">
 					<span class="ab-icon"></span>
@@ -2302,6 +2304,7 @@
 				</li>
 				</ul>
 			</li>
+			</ul>
 		</div>
 	</body>
 </html>

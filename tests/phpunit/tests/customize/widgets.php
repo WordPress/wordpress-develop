@@ -482,7 +482,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 				'id_base'       => 'search',
 				'widget-width'  => '250',
 				'widget-height' => '200',
-				'widget_number' => strval( $widget_number ),
+				'widget_number' => (string) $widget_number,
 				'multi_number'  => '',
 				'add_new'       => '',
 			)

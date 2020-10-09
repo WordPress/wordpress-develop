@@ -849,6 +849,11 @@ table.form-table td .updated p {
 	cursor: pointer;
 }
 
+.new-application-password-notice.notice {
+	margin-top: 20px;
+	margin-bottom: 0;
+}
+
 /*------------------------------------------------------------------------------
   19.0 - Tools
 ------------------------------------------------------------------------------*/
