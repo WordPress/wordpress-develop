@@ -3613,7 +3613,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	function test_sanitize_external_header_video_trim() {
 		$this->manager->register_controls();
 		$setting   = $this->manager->get_setting( 'external_header_video' );
-		$video_url = 'https://www.youtube.com/watch?v=KiS8rZBeIO0';
+		$video_url = 'https://www.youtube.com/watch?v=72xdCU__XCk';
 
 		$whitespaces = array(
 			' ',  // Space.
