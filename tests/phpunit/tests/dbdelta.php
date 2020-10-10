@@ -116,9 +116,9 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"{$wpdb->prefix}dbdelta_create_test" => "Created table {$wpdb->prefix}dbdelta_create_test",
 		);
 
-		$this->assertEquals( $expected, $updates );
+		$this->assertSame( $expected, $updates );
 
-		$this->assertEquals(
+		$this->assertSame(
 			"{$wpdb->prefix}dbdelta_create_test",
 			$wpdb->get_var(
 				$wpdb->prepare(
@@ -150,7 +150,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"
 		);
 
-		$this->assertEquals( array(), $updates );
+		$this->assertSame( array(), $updates );
 	}
 
 	/**
@@ -173,7 +173,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				"{$wpdb->prefix}dbdelta_test.id"
 					=> "Changed type of {$wpdb->prefix}dbdelta_test.id from bigint{$this->bigint_display_width} to int(11)",
@@ -202,7 +202,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				"{$wpdb->prefix}dbdelta_test.extra_col"
 					=> "Added column {$wpdb->prefix}dbdelta_test.extra_col",
@@ -235,7 +235,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"
 		);
 
-		$this->assertEquals( array(), $updates );
+		$this->assertSame( array(), $updates );
 
 		$this->assertTableHasColumn( 'column_1', $wpdb->prefix . 'dbdelta_test' );
 	}
@@ -262,7 +262,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			false // Don't execute.
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				"{$wpdb->prefix}dbdelta_test.extra_col"
 					=> "Added column {$wpdb->prefix}dbdelta_test.extra_col",
@@ -283,7 +283,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			"INSERT INTO {$wpdb->prefix}dbdelta_test (column_1) VALUES ('wcphilly2015')"
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(),
 			$insert
 		);

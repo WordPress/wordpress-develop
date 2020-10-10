@@ -59,7 +59,6 @@ class WP_oEmbed {
 			'#https?://(www\.)?flickr\.com/.*#i'           => array( 'https://www.flickr.com/services/oembed/', true ),
 			'#https?://flic\.kr/.*#i'                      => array( 'https://www.flickr.com/services/oembed/', true ),
 			'#https?://(.+\.)?smugmug\.com/.*#i'           => array( 'https://api.smugmug.com/services/oembed/', true ),
-			'#https?://(www\.)?hulu\.com/watch/.*#i'       => array( 'https://www.hulu.com/api/oembed.{format}', true ),
 			'#https?://(www\.)?scribd\.com/(doc|document)/.*#i' => array( 'https://www.scribd.com/services/oembed', true ),
 			'#https?://wordpress\.tv/.*#i'                 => array( 'https://wordpress.tv/oembed/', true ),
 			'#https?://(.+\.)?polldaddy\.com/.*#i'         => array( 'https://api.crowdsignal.com/oembed', true ),
@@ -143,7 +142,6 @@ class WP_oEmbed {
 		 * | ------------ | ----------------------------------------- | ------- |
 		 * | Dailymotion  | dailymotion.com                           | 2.9.0   |
 		 * | Flickr       | flickr.com                                | 2.9.0   |
-		 * | Hulu         | hulu.com                                  | 2.9.0   |
 		 * | Scribd       | scribd.com                                | 2.9.0   |
 		 * | Vimeo        | vimeo.com                                 | 2.9.0   |
 		 * | WordPress.tv | wordpress.tv                              | 2.9.0   |
@@ -212,6 +210,7 @@ class WP_oEmbed {
 		 * | Photobucket  | photobucket.com      | 2.9.0     | 5.1.0     |
 		 * | Funny or Die | funnyordie.com       | 3.0.0     | 5.1.0     |
 		 * | CollegeHumor | collegehumor.com     | 4.0.0     | 5.3.1     |
+		 * | Hulu         | hulu.com             | 2.9.0     | 5.5.0     |
 		 *
 		 * @see wp_oembed_add_provider()
 		 *
@@ -230,8 +229,8 @@ class WP_oEmbed {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|bool Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -248,8 +247,8 @@ class WP_oEmbed {
 	 *
 	 * @see WP_oEmbed::discover()
 	 *
-	 * @param string        $url  The URL to the content.
-	 * @param string|array  $args Optional provider arguments.
+	 * @param string       $url  The URL to the content.
+	 * @param string|array $args Optional provider arguments.
 	 * @return string|false The oEmbed provider URL on success, false on failure.
 	 */
 	public function get_provider( $url, $args = '' ) {
@@ -598,13 +597,23 @@ class WP_oEmbed {
 			return false;
 		}
 
-		$loader = libxml_disable_entity_loader( true );
+		if ( PHP_VERSION_ID < 80000 ) {
+			// This function has been deprecated in PHP 8.0 because in libxml 2.9.0, external entity loading
+			// is disabled by default, so this function is no longer needed to protect against XXE attacks.
+			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			$loader = libxml_disable_entity_loader( true );
+		}
+
 		$errors = libxml_use_internal_errors( true );
 
 		$return = $this->_parse_xml_body( $response_body );
 
 		libxml_use_internal_errors( $errors );
-		libxml_disable_entity_loader( $loader );
+
+		if ( PHP_VERSION_ID < 80000 && isset( $loader ) ) {
+			// phpcs:ignore PHPCompatibility.FunctionUse.RemovedFunctions.libxml_disable_entity_loaderDeprecated
+			libxml_disable_entity_loader( $loader );
+		}
 
 		return $return;
 	}

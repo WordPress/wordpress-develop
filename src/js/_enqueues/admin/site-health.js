@@ -67,28 +67,37 @@ jQuery( document ).ready( function( $ ) {
 	} );
 
 	/**
-	 * Append a new issue to the issue list.
+	 * Appends a new issue to the issue list.
 	 *
 	 * @since 5.2.0
 	 *
 	 * @param {Object} issue The issue data.
 	 */
-	function AppendIssue( issue ) {
+	function appendIssue( issue ) {
 		var template = wp.template( 'health-check-issue' ),
 			issueWrapper = $( '#health-check-issues-' + issue.status ),
 			heading,
 			count;
-
+		
 		SiteHealth.site_status.issues[ issue.status ]++;
 
 		count = SiteHealth.site_status.issues[ issue.status ];
 
 		if ( 'critical' === issue.status ) {
-			heading = sprintf( _n( '%s critical issue', '%s critical issues', count ), '<span class="issue-count">' + count + '</span>' );
+			heading = sprintf(
+				_n( '%s critical issue', '%s critical issues', count ),
+				'<span class="issue-count">' + count + '</span>'
+			);
 		} else if ( 'recommended' === issue.status ) {
-			heading = sprintf( _n( '%s recommended improvement', '%s recommended improvements', count ), '<span class="issue-count">' + count + '</span>' );
+			heading = sprintf(
+				_n( '%s recommended improvement', '%s recommended improvements', count ),
+				'<span class="issue-count">' + count + '</span>'
+			);
 		} else if ( 'good' === issue.status ) {
-			heading = sprintf( _n( '%s item with no issues detected', '%s items with no issues detected', count ), '<span class="issue-count">' + count + '</span>' );
+			heading = sprintf(
+				_n( '%s item with no issues detected', '%s items with no issues detected', count ),
+				'<span class="issue-count">' + count + '</span>'
+			);
 		}
 
 		if ( heading ) {
@@ -99,18 +108,21 @@ jQuery( document ).ready( function( $ ) {
 	}
 
 	/**
-	 * Update site health status indicator as asynchronous tests are run and returned.
+	 * Updates site health status indicator as asynchronous tests are run and returned.
 	 *
 	 * @since 5.2.0
 	 */
-	function RecalculateProgression() {
+	function recalculateProgression() {
 		var r, c, pct;
 		var $progress = $( '.site-health-progress' );
 		var $wrapper = $progress.closest( '.site-health-progress-wrapper' );
 		var $progressLabel = $( '.site-health-progress-label', $wrapper );
 		var $circle = $( '.site-health-progress svg #bar' );
-		var totalTests = parseInt( SiteHealth.site_status.issues.good, 0 ) + parseInt( SiteHealth.site_status.issues.recommended, 0 ) + ( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
-		var failedTests = ( parseInt( SiteHealth.site_status.issues.recommended, 0 ) * 0.5 ) + ( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
+		var totalTests = parseInt( SiteHealth.site_status.issues.good, 0 ) +
+				parseInt( SiteHealth.site_status.issues.recommended, 0 ) +
+				( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
+		var failedTests = ( parseInt( SiteHealth.site_status.issues.recommended, 0 ) * 0.5 ) +
+				( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
 		var val = 100 - Math.ceil( ( failedTests / totalTests ) * 100 );
 
 		if ( 0 === totalTests ) {
@@ -172,7 +184,7 @@ jQuery( document ).ready( function( $ ) {
 	}
 
 	/**
-	 * Queue the next asynchronous test when we're ready to run it.
+	 * Queues the next asynchronous test when we're ready to run it.
 	 *
 	 * @since 5.2.0
 	 */
@@ -199,7 +211,7 @@ jQuery( document ).ready( function( $ ) {
 					data,
 					function( response ) {
 						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
-						AppendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
 						maybeRunNextAsyncTest();
 					}
 				);
@@ -209,13 +221,13 @@ jQuery( document ).ready( function( $ ) {
 		}
 
 		if ( doCalculation ) {
-			RecalculateProgression();
+			recalculateProgression();
 		}
 	}
 
 	if ( 'undefined' !== typeof SiteHealth && ! isDebugTab ) {
 		if ( 0 === SiteHealth.site_status.direct.length && 0 === SiteHealth.site_status.async.length ) {
-			RecalculateProgression();
+			recalculateProgression();
 		} else {
 			SiteHealth.site_status.issues = {
 				'good': 0,
@@ -226,7 +238,7 @@ jQuery( document ).ready( function( $ ) {
 
 		if ( 0 < SiteHealth.site_status.direct.length ) {
 			$.each( SiteHealth.site_status.direct, function() {
-				AppendIssue( this );
+				appendIssue( this );
 			} );
 		}
 
@@ -242,12 +254,12 @@ jQuery( document ).ready( function( $ ) {
 				ajaxurl,
 				data,
 				function( response ) {
-					AppendIssue( response.data );
+					appendIssue( response.data );
 					maybeRunNextAsyncTest();
 				}
 			);
 		} else {
-			RecalculateProgression();
+			recalculateProgression();
 		}
 	}
 
@@ -275,7 +287,7 @@ jQuery( document ).ready( function( $ ) {
 			var delay = ( new Date().getTime() ) - timestamp;
 
 			$( '.health-check-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
-			RecalculateProgression();
+			recalculateProgression();
 
 			if ( delay > 3000  ) {
 				/*
@@ -329,7 +341,7 @@ jQuery( document ).ready( function( $ ) {
 		if ( pathsSizesSection.length ) {
 			getDirectorySizes();
 		} else {
-			RecalculateProgression();
+			recalculateProgression();
 		}
 	}
 } );

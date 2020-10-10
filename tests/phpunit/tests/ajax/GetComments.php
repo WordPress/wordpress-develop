@@ -63,9 +63,9 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Check the meta data.
-		$this->assertEquals( 1, (string) $xml->response[0]->comments['position'] );
-		$this->assertEquals( 0, (string) $xml->response[0]->comments['id'] );
-		$this->assertEquals( 'get-comments_0', (string) $xml->response['action'] );
+		$this->assertSame( '1', (string) $xml->response[0]->comments['position'] );
+		$this->assertSame( '0', (string) $xml->response[0]->comments['id'] );
+		$this->assertSame( 'get-comments_0', (string) $xml->response['action'] );
 
 		// Check the payload.
 		$this->assertNotEmpty( (string) $xml->response[0]->comments[0]->response_data );
@@ -90,7 +90,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -110,7 +111,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -130,7 +132,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = 'b0rk';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -148,7 +151,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$no_comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 }

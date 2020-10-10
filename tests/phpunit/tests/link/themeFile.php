@@ -5,22 +5,40 @@
 class Test_Theme_File extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		if ( ! function_exists( 'symlink' ) ) {
-			self::markTestSkipped( 'symlink() is not available.' );
-		}
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		if ( ! @symlink( DIR_TESTDATA . '/theme-file-parent', WP_CONTENT_DIR . '/themes/theme-file-parent' ) ) {
-			self::markTestSkipped( 'Could not create parent symlink.' );
-		}
-		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-		if ( ! @symlink( DIR_TESTDATA . '/theme-file-child', WP_CONTENT_DIR . '/themes/theme-file-child' ) ) {
-			self::markTestSkipped( 'Could not create child symlink.' );
+		$themes = array(
+			'theme-file-parent',
+			'theme-file-child',
+		);
+
+		// Copy themes from tests/phpunit/data to wp-content/themes.
+		foreach ( $themes as $theme ) {
+			$source_dir = DIR_TESTDATA . '/' . $theme;
+			$dest_dir   = WP_CONTENT_DIR . '/themes/' . $theme;
+
+			mkdir( $dest_dir );
+
+			foreach ( glob( $source_dir . '/*.*' ) as $theme_file ) {
+				copy( $theme_file, $dest_dir . '/' . basename( $theme_file ) );
+			}
 		}
 	}
 
 	public static function wpTearDownAfterClass() {
-		unlink( WP_CONTENT_DIR . '/themes/theme-file-parent' );
-		unlink( WP_CONTENT_DIR . '/themes/theme-file-child' );
+		$themes = array(
+			'theme-file-parent',
+			'theme-file-child',
+		);
+
+		// Remove previously copied themes from wp-content/themes.
+		foreach ( $themes as $theme ) {
+			$dest_dir = WP_CONTENT_DIR . '/themes/' . $theme;
+
+			foreach ( glob( $dest_dir . '/*.*' ) as $theme_file ) {
+				unlink( $theme_file );
+			}
+
+			rmdir( $dest_dir );
+		}
 	}
 
 	/**

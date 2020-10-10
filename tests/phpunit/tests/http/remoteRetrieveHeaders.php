@@ -13,7 +13,7 @@ class Tests_HTTP_RemoteRetrieveHeaders extends WP_UnitTestCase {
 		$response = array( 'headers' => $headers );
 
 		$result = wp_remote_retrieve_headers( $response );
-		$this->assertEquals( $headers, $result );
+		$this->assertSame( $headers, $result );
 	}
 
 	/**
@@ -23,7 +23,7 @@ class Tests_HTTP_RemoteRetrieveHeaders extends WP_UnitTestCase {
 		$response = new WP_Error( 'Some error' );
 
 		$result = wp_remote_retrieve_headers( $response );
-		$this->assertEquals( array(), $result );
+		$this->assertSame( array(), $result );
 	}
 
 	/**
@@ -33,6 +33,6 @@ class Tests_HTTP_RemoteRetrieveHeaders extends WP_UnitTestCase {
 		$response = array( 'no_headers' => 'set' );
 
 		$result = wp_remote_retrieve_headers( $response );
-		$this->assertEquals( array(), $result );
+		$this->assertSame( array(), $result );
 	}
 }

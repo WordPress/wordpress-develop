@@ -19,7 +19,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	/**
 	 * Initializes the Focus Manager.
 	 *
-	 * @param {object} options The Focus Manager options.
+	 * @param {Object} options The Focus Manager options.
 	 *
 	 * @since 5.3.0
 	 *
@@ -35,7 +35,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 *
 	 * @return {void}
 	 */
@@ -54,7 +54,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @return {object} A jQuery collection of tabbable elements.
+	 * @return {Object} A jQuery collection of tabbable elements.
 	 */
 	getTabbables: function() {
 		// Skip the file input added by Plupload.
@@ -114,7 +114,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.2.3
 	 *
-	 * @param {object} visibleElement The jQuery object representing the element that should not be hidden.
+	 * @param {Object} visibleElement The jQuery object representing the element that should not be hidden.
 	 *
 	 * @return {void}
 	 */
@@ -171,7 +171,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.2.3
 	 *
-	 * @param {object} element The DOM element that should be checked.
+	 * @param {Object} element The DOM element that should be checked.
 	 *
 	 * @return {boolean} Whether the element should not be hidden from assistive technologies.
 	 */
@@ -218,7 +218,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 *
 	 * @return {void}
 	 */
@@ -242,7 +242,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 *
 	 * @return {void}
 	 */
@@ -278,7 +278,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 *
 	 * @return {void}
 	 */
@@ -329,7 +329,7 @@ var FocusManager = wp.media.View.extend(/** @lends wp.media.view.FocusManager.pr
 	 *
 	 * @since 5.3.0
 	 *
-	 * @param {object} tab The tab DOM element.
+	 * @param {Object} tab The tab DOM element.
 	 *
 	 * @return {void}
 	 */

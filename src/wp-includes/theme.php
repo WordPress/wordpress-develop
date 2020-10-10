@@ -397,7 +397,8 @@ function get_theme_roots() {
  *
  * @param string $directory Either the full filesystem path to a theme folder
  *                          or a folder within WP_CONTENT_DIR.
- * @return bool
+ * @return bool True if successfully registered a directory that contains themes,
+ *              false if the directory does not exist.
  */
 function register_theme_directory( $directory ) {
 	global $wp_theme_directories;
@@ -1023,6 +1024,8 @@ function get_theme_mod( $name, $default = false ) {
 	if ( is_string( $default ) ) {
 		// Only run the replacement if an sprintf() string format pattern was found.
 		if ( preg_match( '#(?<!%)%(?:\d+\$?)?s#', $default ) ) {
+			// Remove a single trailing percent sign.
+			$default = preg_replace( '#(?<!%)%$#', '', $default );
 			$default = sprintf( $default, get_template_directory_uri(), get_stylesheet_directory_uri() );
 		}
 	}
@@ -2470,13 +2473,17 @@ function get_theme_starter_content() {
  * @since 5.3.0 The `html5` feature now also accepts 'script' and 'style'.
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
+ * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature being added. Likely core values include 'post-formats',
- *                        'post-thumbnails', 'html5', 'custom-logo', 'custom-header',
- *                        'custom-background', 'title-tag', 'starter-content',
- *                        'responsive-embeds', etc.
+ * @param string $feature The feature being added. Likely core values include 'post-formats', 'post-thumbnails',
+ *                        'custom-header', 'custom-background', 'custom-logo', 'menus', 'automatic-feed-links',
+ *                        'html5', 'title-tag', 'customize-selective-refresh-widgets', 'starter-content',
+ *                        'responsive-embeds', 'align-wide', 'dark-editor-style', 'disable-custom-colors',
+ *                        'disable-custom-font-sizes', 'editor-color-palette', 'editor-font-sizes',
+ *                        'editor-styles', 'wp-block-styles', and 'core-block-patterns'.
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|bool False on failure, void otherwise.
  */
@@ -2534,11 +2541,12 @@ function add_theme_support( $feature, ...$args ) {
 				$args = array( 0 => array() );
 			}
 			$defaults = array(
-				'width'       => null,
-				'height'      => null,
-				'flex-width'  => false,
-				'flex-height' => false,
-				'header-text' => '',
+				'width'                => null,
+				'height'               => null,
+				'flex-width'           => false,
+				'flex-height'          => false,
+				'header-text'          => '',
+				'unlink-homepage-logo' => false,
 			);
 			$args[0]  = wp_parse_args( array_intersect_key( $args[0], $defaults ), $defaults );
 
@@ -2778,7 +2786,7 @@ function _custom_logo_header_styles() {
 }
 
 /**
- * Gets the theme support arguments passed when registering that support
+ * Gets the theme support arguments passed when registering that support.
  *
  * Example usage:
  *
@@ -2791,7 +2799,8 @@ function _custom_logo_header_styles() {
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature to check.
+ * @param string $feature The feature to check. See add_theme_support() for the list
+ *                        of possible values.
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return mixed The array of extra arguments or the value for the registered feature.
  */
@@ -2829,7 +2838,8 @@ function get_theme_support( $feature, ...$args ) {
  *
  * @see add_theme_support()
  *
- * @param string $feature The feature being removed.
+ * @param string $feature The feature being removed. See add_theme_support() for the list
+ *                        of possible values.
  * @return bool|void Whether feature was removed.
  */
 function remove_theme_support( $feature ) {
@@ -2851,7 +2861,8 @@ function remove_theme_support( $feature ) {
  * @global Custom_Image_Header $custom_image_header
  * @global Custom_Background   $custom_background
  *
- * @param string $feature
+ * @param string $feature The feature being removed. See add_theme_support() for the list
+ *                        of possible values.
  * @return bool True if support was removed, false if the feature was not registered.
  */
 function _remove_theme_support( $feature ) {
@@ -2917,7 +2928,8 @@ function _remove_theme_support( $feature ) {
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature being checked.
+ * @param string $feature The feature being checked. See add_theme_support() for the list
+ *                        of possible values.
  * @param mixed  ...$args Optional extra arguments to be checked against certain features.
  * @return bool True if the current theme supports the feature, false otherwise.
  */
@@ -2971,10 +2983,8 @@ function current_theme_supports( $feature, ...$args ) {
 	/**
 	 * Filters whether the current theme supports a specific feature.
 	 *
-	 * The dynamic portion of the hook name, `$feature`, refers to the specific theme
-	 * feature. Possible values include 'post-formats', 'post-thumbnails', 'custom-background',
-	 * 'custom-header', 'menus', 'automatic-feed-links', 'html5',
-	 * 'starter-content', and 'customize-selective-refresh-widgets'.
+	 * The dynamic portion of the hook name, `$feature`, refers to the specific
+	 * theme feature. See add_theme_support() for the list of possible values.
 	 *
 	 * @since 3.4.0
 	 *
@@ -2990,7 +3000,8 @@ function current_theme_supports( $feature, ...$args ) {
  *
  * @since 2.9.0
  *
- * @param string $feature The feature being checked.
+ * @param string $feature The feature being checked. See add_theme_support() for the list
+ *                        of possible values.
  * @param string $include Path to the file.
  * @return bool True if the current theme supports the supplied feature, false otherwise.
  */
@@ -3012,32 +3023,33 @@ function require_if_theme_supports( $feature, $include ) {
  *
  * @see add_theme_support()
  *
- * @global $_wp_registered_theme_features
+ * @global array $_wp_registered_theme_features
  *
- * @param string $feature The name uniquely identifying the feature.
- * @param array $args {
- *      Data used to describe the theme.
+ * @param string $feature The name uniquely identifying the feature. See add_theme_support()
+ *                        for the list of possible values.
+ * @param array  $args {
+ *     Data used to describe the theme.
  *
- *      @type string     $type         The type of data associated with this feature.
- *                                     Valid values are 'string', 'boolean', 'integer',
- *                                     'number', 'array', and 'object'. Defaults to 'boolean'.
- *      @type boolean    $variadic     Does this feature utilize the variadic support
- *                                     of add_theme_support(), or are all arguments specified
- *                                     as the second parameter. Must be used with the "array" type.
- *      @type string     $description  A short description of the feature. Included in
- *                                     the Themes REST API schema. Intended for developers.
- *      @type bool|array $show_in_rest {
- *          Whether this feature should be included in the Themes REST API endpoint.
- *          Defaults to not being included. When registering an 'array' or 'object' type,
- *          this argument must be an array with the 'schema' key.
+ *     @type string     $type         The type of data associated with this feature.
+ *                                    Valid values are 'string', 'boolean', 'integer',
+ *                                    'number', 'array', and 'object'. Defaults to 'boolean'.
+ *     @type boolean    $variadic     Does this feature utilize the variadic support
+ *                                    of add_theme_support(), or are all arguments specified
+ *                                    as the second parameter. Must be used with the "array" type.
+ *     @type string     $description  A short description of the feature. Included in
+ *                                    the Themes REST API schema. Intended for developers.
+ *     @type bool|array $show_in_rest {
+ *         Whether this feature should be included in the Themes REST API endpoint.
+ *         Defaults to not being included. When registering an 'array' or 'object' type,
+ *         this argument must be an array with the 'schema' key.
  *
- *          @type array    $schema           Specifies the JSON Schema definition describing
- *                                           the feature. If any objects in the schema do not include
- *                                           the 'additionalProperties' keyword, it is set to false.
- *          @type string   $name             An alternate name to be used as the property name
- *                                           in the REST API.
- *          @type callable $prepare_callback A function used to format the theme support in the REST API.
- *                                           Receives the raw theme support value.
+ *         @type array    $schema           Specifies the JSON Schema definition describing
+ *                                          the feature. If any objects in the schema do not include
+ *                                          the 'additionalProperties' keyword, it is set to false.
+ *         @type string   $name             An alternate name to be used as the property name
+ *                                          in the REST API.
+ *         @type callable $prepare_callback A function used to format the theme support in the REST API.
+ *                                          Receives the raw theme support value.
  *      }
  * }
  * @return true|WP_Error True if the theme feature was successfully registered, a WP_Error object if not.
@@ -3114,7 +3126,11 @@ function register_theme_feature( $feature, $args = array() ) {
 		if ( isset( $args['show_in_rest']['prepare_callback'] ) && ! is_callable( $args['show_in_rest']['prepare_callback'] ) ) {
 			return new WP_Error(
 				'invalid_rest_prepare_callback',
-				__( 'The prepare_callback must be a callable function.' )
+				sprintf(
+					/* translators: %s: prepare_callback */
+					__( 'The "%s" must be a callable function.' ),
+					'prepare_callback'
+				)
 			);
 		}
 
@@ -3148,7 +3164,7 @@ function register_theme_feature( $feature, $args = array() ) {
  *
  * @since 5.5.0
  *
- * @global $_wp_registered_theme_features
+ * @global array $_wp_registered_theme_features
  *
  * @return array[] List of theme features, keyed by their name.
  */
@@ -3167,9 +3183,10 @@ function get_registered_theme_features() {
  *
  * @since 5.5.0
  *
- * @global $_wp_registered_theme_features
+ * @global array $_wp_registered_theme_features
  *
- * @param string $feature The feature name.
+ * @param string $feature The feature name. See add_theme_support() for the list
+ *                        of possible values.
  * @return array|null The registration args, or null if the feature was not registered.
  */
 function get_registered_theme_feature( $feature ) {
@@ -3796,23 +3813,26 @@ function create_initial_theme_features() {
 			'show_in_rest' => array(
 				'schema' => array(
 					'properties' => array(
-						'width'       => array(
+						'width'                => array(
 							'type' => 'integer',
 						),
-						'height'      => array(
+						'height'               => array(
 							'type' => 'integer',
 						),
-						'flex-width'  => array(
+						'flex-width'           => array(
 							'type' => 'boolean',
 						),
-						'flex-height' => array(
+						'flex-height'          => array(
 							'type' => 'boolean',
 						),
-						'header-text' => array(
+						'header-text'          => array(
 							'type'  => 'array',
 							'items' => array(
 								'type' => 'string',
 							),
+						),
+						'unlink-homepage-logo' => array(
+							'type' => 'boolean',
 						),
 					),
 				),

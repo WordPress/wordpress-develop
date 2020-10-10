@@ -47,10 +47,10 @@ function edit_user( $user_id = 0 ) {
 	$pass1 = '';
 	$pass2 = '';
 	if ( isset( $_POST['pass1'] ) ) {
-		$pass1 = $_POST['pass1'];
+		$pass1 = trim( $_POST['pass1'] );
 	}
 	if ( isset( $_POST['pass2'] ) ) {
-		$pass2 = $_POST['pass2'];
+		$pass2 = trim( $_POST['pass2'] );
 	}
 
 	if ( isset( $_POST['role'] ) && current_user_can( 'promote_users' ) && ( ! $user_id || current_user_can( 'promote_user', $user_id ) ) ) {
@@ -358,12 +358,14 @@ function wp_delete_user( $id, $reassign = null ) {
 	 * Fires immediately before a user is deleted from the database.
 	 *
 	 * @since 2.0.0
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
 	 * @param int      $id       ID of the user to delete.
 	 * @param int|null $reassign ID of the user to reassign posts and links to.
 	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the user to delete.
 	 */
-	do_action( 'delete_user', $id, $reassign );
+	do_action( 'delete_user', $id, $reassign, $user );
 
 	if ( null === $reassign ) {
 		$post_types_to_delete = array();
@@ -435,12 +437,14 @@ function wp_delete_user( $id, $reassign = null ) {
 	 * Fires immediately after a user is deleted from the database.
 	 *
 	 * @since 2.9.0
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
 	 * @param int      $id       ID of the deleted user.
 	 * @param int|null $reassign ID of the user to reassign posts and links to.
 	 *                           Default null, for no reassignment.
+	 * @param WP_User  $user     WP_User object of the deleted user.
 	 */
-	do_action( 'deleted_user', $id, $reassign );
+	do_action( 'deleted_user', $id, $reassign, $user );
 
 	return true;
 }
@@ -589,4 +593,62 @@ Please click the following link to activate your user account:
 		home_url(),
 		wp_specialchars_decode( translate_user_role( $role['name'] ) )
 	);
+}
+
+/**
+ * Checks if the Authorize Application Password request is valid.
+ *
+ * @since 5.6.0
+ *
+ * @param array   $request {
+ *     The array of request data. All arguments are optional and may be empty.
+ *
+ *     @type string $app_name    The suggested name of the application.
+ *     @type string $success_url The url the user will be redirected to after approving the application.
+ *     @type string $reject_url  The url the user will be redirected to after rejecting the application.
+ * }
+ * @param WP_User $user The user authorizing the application.
+ * @return true|WP_Error True if the request is valid, a WP_Error object contains errors if not.
+ */
+function wp_is_authorize_application_password_request_valid( $request, $user ) {
+	$error = new WP_Error();
+
+	if ( ! empty( $request['success_url'] ) ) {
+		$scheme = wp_parse_url( $request['success_url'], PHP_URL_SCHEME );
+
+		if ( 'http' === $scheme ) {
+			$error->add(
+				'invalid_redirect_scheme',
+				__( 'The success url must be served over a secure connection.' )
+			);
+		}
+	}
+
+	if ( ! empty( $request['reject_url'] ) ) {
+		$scheme = wp_parse_url( $request['reject_url'], PHP_URL_SCHEME );
+
+		if ( 'http' === $scheme ) {
+			$error->add(
+				'invalid_redirect_scheme',
+				__( 'The rejection url must be served over a secure connection.' )
+			);
+		}
+	}
+
+	/**
+	 * Fires before application password errors are returned.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param WP_Error $error   The error object.
+	 * @param array    $request The array of request data.
+	 * @param WP_User  $user    The user authorizing the application.
+	 */
+	do_action( 'wp_authorize_application_password_request_errors', $error, $request, $user );
+
+	if ( $error->has_errors() ) {
+		return $error;
+	}
+
+	return true;
 }

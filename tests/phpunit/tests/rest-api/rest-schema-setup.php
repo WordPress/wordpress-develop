@@ -100,6 +100,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/media',
 			'/wp/v2/media/(?P<id>[\\d]+)',
 			'/wp/v2/media/(?P<id>[\\d]+)/post-process',
+			'/wp/v2/media/(?P<id>[\\d]+)/edit',
 			'/wp/v2/blocks',
 			'/wp/v2/blocks/(?P<id>[\d]+)',
 			'/wp/v2/blocks/(?P<id>[\d]+)/autosaves',
@@ -117,6 +118,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users',
 			'/wp/v2/users/(?P<id>[\\d]+)',
 			'/wp/v2/users/me',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
 			'/wp/v2/search',
@@ -131,7 +134,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-directory/search',
 		);
 
-		$this->assertEquals( $expected_routes, $routes );
+		$this->assertSameSets( $expected_routes, $routes );
 	}
 
 	private function is_builtin_route( $route ) {
@@ -225,7 +228,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		);
 
 		$media_id = $this->factory->attachment->create_object(
-			'/tmp/canola.jpg',
+			get_temp_dir() . 'canola.jpg',
 			0,
 			array(
 				'post_mime_type' => 'image/jpeg',
@@ -440,7 +443,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			$status   = $response->get_status();
 			$data     = $response->get_data();
 
-			$this->assertEquals(
+			$this->assertSame(
 				200,
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )

@@ -29,13 +29,13 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	/**
 	 * Test get_instance_schema method.
 	 *
-	 * @covers WP_Widget_Media_Gallery::get_instance_schema()
+	 * @covers WP_Widget_Media_Gallery::get_instance_schema
 	 */
 	public function test_get_instance_schema() {
 		$widget = new WP_Widget_Media_Gallery();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'title',
 				'ids',
@@ -51,14 +51,14 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	/**
 	 * Test update() method.
 	 *
-	 * @covers WP_Widget_Media_Gallery::render_media()
+	 * @covers WP_Widget_Media_Gallery::render_media
 	 */
 	public function test_render_media() {
 		$widget = new WP_Widget_Media_Gallery();
 
 		$attachments = array();
 		foreach ( array( 'canola.jpg', 'waffles.jpg' ) as $filename ) {
-			$test_image = '/tmp/' . $filename;
+			$test_image = get_temp_dir() . $filename;
 			copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 			$attachment_id = self::factory()->attachment->create_object(
 				array(
@@ -89,7 +89,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	/**
 	 * Test enqueue_admin_scripts() method.
 	 *
-	 * @covers WP_Widget_Media_Gallery::enqueue_admin_scripts()
+	 * @covers WP_Widget_Media_Gallery::enqueue_admin_scripts
 	 */
 	public function test_enqueue_admin_scripts() {
 		set_current_screen( 'widgets.php' );
@@ -108,7 +108,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	/**
 	 * Test update() method.
 	 *
-	 * @covers WP_Widget_Media_Gallery::update()
+	 * @covers WP_Widget_Media_Gallery::update
 	 */
 	public function test_update() {
 		$widget   = new WP_Widget_Media_Gallery();
@@ -118,7 +118,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 		// Field: title.
 		$instance['title'] = 'Hello <b>World</b> ';
 		$instance          = $widget->update( $instance, array() );
-		$this->assertEquals( 'Hello World', $instance['title'] );
+		$this->assertSame( 'Hello World', $instance['title'] );
 
 		// Field: ids.
 		$instance['ids'] = '1,2,3';
@@ -189,7 +189,7 @@ class Test_WP_Widget_Media_Gallery extends WP_UnitTestCase {
 	/**
 	 * Test render_control_template_scripts() method.
 	 *
-	 * @covers WP_Widget_Media_Gallery::render_control_template_scripts()
+	 * @covers WP_Widget_Media_Gallery::render_control_template_scripts
 	 */
 	public function test_render_control_template_scripts() {
 		$widget = new WP_Widget_Media_Gallery();

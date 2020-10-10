@@ -60,7 +60,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertCount( 2, $revisions );
 
 		$lastrevision = end( $revisions );
-		$this->assertEquals( 'I cant spel werds.', $lastrevision->post_content );
+		$this->assertSame( 'I cant spel werds.', $lastrevision->post_content );
 		// #16215
 		$this->assertEquals( self::$author_user_id, $lastrevision->post_author );
 
@@ -544,7 +544,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
-		$this->assertEquals( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
+		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
 	/**
@@ -579,6 +579,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
-		$this->assertEquals( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
+		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 }

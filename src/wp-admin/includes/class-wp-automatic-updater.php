@@ -62,7 +62,7 @@ class WP_Automatic_Updater {
 	 * filesystem to the top of the drive, erring on the side of detecting a VCS
 	 * checkout somewhere.
 	 *
-	 * ABSPATH is always checked in addition to whatever $context is (which may be the
+	 * ABSPATH is always checked in addition to whatever `$context` is (which may be the
 	 * wp-content directory, for example). The underlying assumption is that if you are
 	 * using version control *anywhere*, then you should be making decisions for
 	 * how things get updated.
@@ -70,6 +70,8 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 *
 	 * @param string $context The filesystem path to check, in addition to ABSPATH.
+	 * @return bool True if a VCS checkout was discovered at `$context` or ABSPATH,
+	 *              or anywhere higher. False otherwise.
 	 */
 	public function is_vcs_checkout( $context ) {
 		$context_dirs = array( untrailingslashit( $context ) );
@@ -112,7 +114,7 @@ class WP_Automatic_Updater {
 		 *
 		 * @since 3.7.0
 		 *
-		 * @param bool $checkout  Whether a VCS checkout was discovered at $context
+		 * @param bool $checkout  Whether a VCS checkout was discovered at `$context`
 		 *                        or ABSPATH, or anywhere higher.
 		 * @param string $context The filesystem context (a path) against which
 		 *                        filesystem status should be checked.
@@ -132,6 +134,7 @@ class WP_Automatic_Updater {
 	 * @param object $item    The update offer.
 	 * @param string $context The filesystem context (a path) against which filesystem
 	 *                        access and status should be checked.
+	 * @return bool True if the item should be updated, false otherwise.
 	 */
 	public function should_update( $type, $item, $context ) {
 		// Used to see if WP_Filesystem is set up to allow unattended updates.
@@ -170,11 +173,21 @@ class WP_Automatic_Updater {
 			$update = ! empty( $item->autoupdate );
 		}
 
+		// If the `disable_autoupdate` flag is set, override any user-choice, but allow filters.
+		if ( ! empty( $item->disable_autoupdate ) ) {
+			$update = $item->disable_autoupdate;
+		}
+
 		/**
 		 * Filters whether to automatically update core, a plugin, a theme, or a language.
 		 *
 		 * The dynamic portion of the hook name, `$type`, refers to the type of update
-		 * being checked. Can be 'core', 'theme', 'plugin', or 'translation'.
+		 * being checked. Potential hook names include:
+		 *
+		 *  - `auto_update_core`
+		 *  - `auto_update_plugin`
+		 *  - `auto_update_theme`
+		 *  - `auto_update_translation`
 		 *
 		 * Generally speaking, plugins, themes, and major core versions are not updated
 		 * by default, while translations and minor and development versions for core
@@ -185,9 +198,11 @@ class WP_Automatic_Updater {
 		 * adjust core updates.
 		 *
 		 * @since 3.7.0
+		 * @since 5.5.0 The `$update` parameter accepts the value of null.
 		 *
-		 * @param bool   $update Whether to update.
-		 * @param object $item   The update offer.
+		 * @param bool|null $update Whether to update. The value of null is internally used
+		 *                          to detect whether nothing has hooked into this filter.
+		 * @param object    $item   The update offer.
 		 */
 		$update = apply_filters( "auto_update_{$type}", $update, $item );
 
@@ -230,6 +245,8 @@ class WP_Automatic_Updater {
 	 * @since 3.7.0
 	 *
 	 * @param object $item The update offer.
+	 * @return bool True if the site administrator is notified of a core update,
+	 *              false otherwise.
 	 */
 	protected function send_core_update_notification_email( $item ) {
 		$notified = get_site_option( 'auto_core_update_notified' );
@@ -386,9 +403,9 @@ class WP_Automatic_Updater {
 
 			// Core doesn't output this, so let's append it so we don't get confused.
 			if ( is_wp_error( $upgrade_result ) ) {
-				$skin->error( __( 'Installation Failed' ), $upgrade_result );
+				$skin->error( __( 'Installation failed.' ), $upgrade_result );
 			} else {
-				$skin->feedback( __( 'WordPress updated successfully' ) );
+				$skin->feedback( __( 'WordPress updated successfully.' ) );
 			}
 		}
 
@@ -683,7 +700,7 @@ class WP_Automatic_Updater {
 				return;
 		}
 
-		// If the auto update is not to the latest version, say that the current version of WP is available instead.
+		// If the auto-update is not to the latest version, say that the current version of WP is available instead.
 		$version = 'success' === $type ? $core_update->current : $next_user_core_update->current;
 		$subject = sprintf( $subject, wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES ), $version );
 
@@ -869,7 +886,7 @@ class WP_Automatic_Updater {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array $update_results The result of updates tasks.
+	 * @param array $update_results The results of update tasks.
 	 */
 	protected function after_plugin_theme_update( $update_results ) {
 		$successful_updates = array();
@@ -879,10 +896,12 @@ class WP_Automatic_Updater {
 		 * Filters whether to send an email following an automatic background plugin update.
 		 *
 		 * @since 5.5.0
+		 * @since 5.5.1 Added the `$update_results` parameter.
 		 *
-		 * @param bool $enabled True if plugins notifications are enabled, false otherwise.
+		 * @param bool  $enabled        True if plugin update notifications are enabled, false otherwise.
+		 * @param array $update_results The results of plugins update tasks.
 		 */
-		$notifications_enabled = apply_filters( 'auto_plugin_update_send_email', true );
+		$notifications_enabled = apply_filters( 'auto_plugin_update_send_email', true, $update_results['plugin'] );
 
 		if ( ! empty( $update_results['plugin'] ) && $notifications_enabled ) {
 			foreach ( $update_results['plugin'] as $update_result ) {
@@ -898,10 +917,12 @@ class WP_Automatic_Updater {
 		 * Filters whether to send an email following an automatic background theme update.
 		 *
 		 * @since 5.5.0
+		 * @since 5.5.1 Added the `$update_results` parameter.
 		 *
-		 * @param bool $enabled True if notifications are enabled, false otherwise.
+		 * @param bool  $enabled        True if theme update notifications are enabled, false otherwise.
+		 * @param array $update_results The results of theme update tasks.
 		 */
-		$notifications_enabled = apply_filters( 'auto_theme_update_send_email', true );
+		$notifications_enabled = apply_filters( 'auto_theme_update_send_email', true, $update_results['theme'] );
 
 		if ( ! empty( $update_results['theme'] ) && $notifications_enabled ) {
 			foreach ( $update_results['theme'] as $update_result ) {
@@ -939,6 +960,34 @@ class WP_Automatic_Updater {
 		// No updates were attempted.
 		if ( empty( $successful_updates ) && empty( $failed_updates ) ) {
 			return;
+		}
+
+		$unique_failures     = false;
+		$past_failure_emails = get_option( 'auto_plugin_theme_update_emails', array() );
+
+		/*
+		 * When only failures have occurred, an email should only be sent if there are unique failures.
+		 * A failure is considered unique if an email has not been sent for an update attempt failure
+		 * to a plugin or theme with the same new_version.
+		 */
+		if ( 'fail' === $type ) {
+			foreach ( $failed_updates as $update_type => $failures ) {
+				foreach ( $failures as $failed_update ) {
+					if ( ! isset( $past_failure_emails[ $failed_update->item->{$update_type} ] ) ) {
+						$unique_failures = true;
+						continue;
+					}
+
+					// Check that the failure represents a new failure based on the new_version.
+					if ( version_compare( $past_failure_emails[ $failed_update->item->{$update_type} ], $failed_update->item->new_version, '<' ) ) {
+						$unique_failures = true;
+					}
+				}
+			}
+
+			if ( ! $unique_failures ) {
+				return;
+			}
 		}
 
 		$body               = array();
@@ -1017,8 +1066,16 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins failed to update:' );
 
 				foreach ( $failed_updates['plugin'] as $item ) {
-					$body[] = "- {$item->name}";
+					$body[] = sprintf(
+						/* translators: 1: Plugin name, 2: Version number. */
+						__( '- %1$s version %2$s' ),
+						$item->name,
+						$item->item->new_version
+					);
+
+					$past_failure_emails[ $item->item->plugin ] = $item->item->new_version;
 				}
+
 				$body[] = "\n";
 			}
 
@@ -1027,8 +1084,16 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These themes failed to update:' );
 
 				foreach ( $failed_updates['theme'] as $item ) {
-					$body[] = "- {$item->name}";
+					$body[] = sprintf(
+						/* translators: 1: Theme name, 2: Version number. */
+						__( '- %1$s version %2$s' ),
+						$item->name,
+						$item->item->new_version
+					);
+
+					$past_failure_emails[ $item->item->theme ] = $item->item->new_version;
 				}
+
 				$body[] = "\n";
 			}
 		}
@@ -1042,18 +1107,34 @@ class WP_Automatic_Updater {
 				$body[] = __( 'These plugins are now up to date:' );
 
 				foreach ( $successful_updates['plugin'] as $item ) {
-					$body[] = "- {$item->name}";
+					$body[] = sprintf(
+						/* translators: 1: Plugin name, 2: Version number. */
+						__( '- %1$s version %2$s' ),
+						$item->name,
+						$item->item->new_version
+					);
+
+					unset( $past_failure_emails[ $item->item->plugin ] );
 				}
+
 				$body[] = "\n";
 			}
 
 			// List successful theme updates.
 			if ( ! empty( $successful_updates['theme'] ) ) {
 				$body[] = __( 'These themes are now up to date:' );
-				// List successful updates.
+
 				foreach ( $successful_updates['theme'] as $item ) {
-					$body[] = "- {$item->name}";
+					$body[] = sprintf(
+						/* translators: 1: Theme name, 2: Version number. */
+						__( '- %1$s version %2$s' ),
+						$item->name,
+						$item->item->new_version
+					);
+
+					unset( $past_failure_emails[ $item->item->theme ] );
 				}
+
 				$body[] = "\n";
 			}
 		}
@@ -1108,7 +1189,11 @@ class WP_Automatic_Updater {
 		 */
 		$email = apply_filters( 'auto_plugin_theme_update_email', $email, $type, $successful_updates, $failed_updates );
 
-		wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+		$result = wp_mail( $email['to'], wp_specialchars_decode( $email['subject'] ), $email['body'], $email['headers'] );
+
+		if ( $result ) {
+			update_option( 'auto_plugin_theme_update_emails', $past_failure_emails );
+		}
 	}
 
 	/**

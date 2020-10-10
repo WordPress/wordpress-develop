@@ -2342,6 +2342,51 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/media/(?P<id>[\\d]+)/edit": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "rotation": {
+                            "required": false,
+                            "description": "The amount to rotate the image clockwise in degrees.",
+                            "type": "integer"
+                        },
+                        "x": {
+                            "required": false,
+                            "description": "As a percentage of the image, the x position to start the crop from.",
+                            "type": "number"
+                        },
+                        "y": {
+                            "required": false,
+                            "description": "As a percentage of the image, the y position to start the crop from.",
+                            "type": "number"
+                        },
+                        "width": {
+                            "required": false,
+                            "description": "As a percentage of the image, the width to crop the image to.",
+                            "type": "number"
+                        },
+                        "height": {
+                            "required": false,
+                            "description": "As a percentage of the image, the height to crop the image to.",
+                            "type": "number"
+                        },
+                        "src": {
+                            "required": true,
+                            "description": "URL to the edited image file.",
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/blocks": {
             "namespace": "wp/v2",
             "methods": [
@@ -3940,6 +3985,102 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/users/me"
             }
         },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": true,
+                            "description": "The name of the application password.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": []
+                }
+            ]
+        },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "The name of the application password.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": []
+                }
+            ]
+        },
         "/wp/v2/comments": {
             "namespace": "wp/v2",
             "methods": [
@@ -4368,7 +4509,8 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": "post",
                             "enum": [
-                                "post"
+                                "post",
+                                "term"
                             ],
                             "description": "Limit results to items of an object type.",
                             "type": "string"
@@ -4382,6 +4524,8 @@ mockedApiResponse.Schema = {
                                 "enum": [
                                     "post",
                                     "page",
+                                    "category",
+                                    "post_tag",
                                     "any"
                                 ],
                                 "type": "string"
@@ -4424,7 +4568,7 @@ mockedApiResponse.Schema = {
                         "attributes": {
                             "required": false,
                             "default": [],
-                            "description": "Attributes for the block",
+                            "description": "Attributes for the block.",
                             "type": "object"
                         },
                         "post_id": {
@@ -4518,12 +4662,12 @@ mockedApiResponse.Schema = {
                     "args": {
                         "name": {
                             "required": false,
-                            "description": "Block name",
+                            "description": "Block name.",
                             "type": "string"
                         },
                         "namespace": {
                             "required": false,
-                            "description": "Block namespace",
+                            "description": "Block namespace.",
                             "type": "string"
                         },
                         "context": {
@@ -5785,7 +5929,7 @@ mockedApiResponse.TypesCollection = {
     "wp_block": {
         "description": "",
         "hierarchical": false,
-        "name": "Blocks",
+        "name": "Reusable Blocks",
         "slug": "wp_block",
         "taxonomies": [],
         "rest_base": "blocks",

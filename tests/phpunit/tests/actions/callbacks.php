@@ -15,8 +15,8 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 
 		add_action( $tag, array( 'Class', 'method' ) );
 
-		$this->assertEquals( 10, has_action( $tag, array( 'Class', 'method' ) ) );
+		$this->assertSame( 10, has_action( $tag, array( 'Class', 'method' ) ) );
 
-		$this->assertEquals( 10, has_action( $tag, 'Class::method' ) );
+		$this->assertSame( 10, has_action( $tag, 'Class::method' ) );
 	}
 }

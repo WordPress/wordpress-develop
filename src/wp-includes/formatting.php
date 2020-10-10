@@ -746,8 +746,8 @@ function _get_wptexturize_shortcode_regex( $tagnames ) {
  *
  * @since 4.2.3
  *
- * @param string $haystack The text which has to be formatted.
- * @param array $replace_pairs In the form array('from' => 'to', ...).
+ * @param string $haystack      The text which has to be formatted.
+ * @param array  $replace_pairs In the form array('from' => 'to', ...).
  * @return string The formatted text.
  */
 function wp_replace_in_html_tags( $haystack, $replace_pairs ) {
@@ -1090,8 +1090,8 @@ function wp_specialchars_decode( $string, $quote_style = ENT_NOQUOTES ) {
  *
  * @since 2.8.0
  *
- * @param string  $string The text which is to be checked.
- * @param bool    $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
+ * @param string $string The text which is to be checked.
+ * @param bool   $strip  Optional. Whether to attempt to strip out invalid UTF8. Default false.
  * @return string The checked text.
  */
 function wp_check_invalid_utf8( $string, $strip = false ) {
@@ -1984,8 +1984,10 @@ function remove_accents( $string ) {
  * @return string The sanitized filename.
  */
 function sanitize_file_name( $filename ) {
-	$filename_raw  = $filename;
-	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', chr( 0 ) );
+	$filename_raw = $filename;
+	$filename     = remove_accents( $filename );
+
+	$special_chars = array( '?', '[', ']', '/', '\\', '=', '<', '>', ':', ';', ',', "'", '"', '&', '$', '#', '*', '(', ')', '|', '~', '`', '!', '{', '}', '%', '+', '’', '«', '»', '”', '“', chr( 0 ) );
 
 	// Check for support for utf8 in the installed PCRE library once and store the result in a static.
 	static $utf8_pcre = null;
@@ -2013,10 +2015,11 @@ function sanitize_file_name( $filename ) {
 	 * @param string   $filename_raw  The original filename to be sanitized.
 	 */
 	$special_chars = apply_filters( 'sanitize_file_name_chars', $special_chars, $filename_raw );
-	$filename      = str_replace( $special_chars, '', $filename );
-	$filename      = str_replace( array( '%20', '+' ), '-', $filename );
-	$filename      = preg_replace( '/[\r\n\t -]+/', '-', $filename );
-	$filename      = trim( $filename, '.-_' );
+
+	$filename = str_replace( $special_chars, '', $filename );
+	$filename = str_replace( array( '%20', '+' ), '-', $filename );
+	$filename = preg_replace( '/[\r\n\t -]+/', '-', $filename );
+	$filename = trim( $filename, '.-_' );
 
 	if ( false === strpos( $filename, '.' ) ) {
 		$mime_types = wp_get_mime_types();
@@ -2068,7 +2071,9 @@ function sanitize_file_name( $filename ) {
 			}
 		}
 	}
+
 	$filename .= '.' . $extension;
+
 	/** This filter is documented in wp-includes/formatting.php */
 	return apply_filters( 'sanitize_file_name', $filename, $filename_raw );
 }
@@ -2084,7 +2089,8 @@ function sanitize_file_name( $filename ) {
  * @since 2.0.0
  *
  * @param string $username The username to be sanitized.
- * @param bool   $strict   If set limits $username to specific characters. Default false.
+ * @param bool   $strict   Optional. If set limits $username to specific characters.
+ *                         Default false.
  * @return string The sanitized username, after passing through filters.
  */
 function sanitize_user( $username, $strict = false ) {
@@ -2112,7 +2118,7 @@ function sanitize_user( $username, $strict = false ) {
 	 *
 	 * @param string $username     Sanitized username.
 	 * @param string $raw_username The username prior to sanitization.
-	 * @param bool   $strict       Whether to limit the sanitization to specific characters. Default false.
+	 * @param bool   $strict       Whether to limit the sanitization to specific characters.
 	 */
 	return apply_filters( 'sanitize_user', $username, $raw_username, $strict );
 }
@@ -2120,7 +2126,8 @@ function sanitize_user( $username, $strict = false ) {
 /**
  * Sanitizes a string key.
  *
- * Keys are used as internal identifiers. Lowercase alphanumeric characters, dashes and underscores are allowed.
+ * Keys are used as internal identifiers. Lowercase alphanumeric characters,
+ * dashes, and underscores are allowed.
  *
  * @since 3.0.0
  *
@@ -2144,17 +2151,20 @@ function sanitize_key( $key ) {
 }
 
 /**
- * Sanitizes a title, or returns a fallback title.
+ * Sanitizes a string into a slug, which can be used in URLs or HTML attributes.
  *
- * Specifically, HTML and PHP tags are stripped. Further actions can be added
- * via the plugin API. If $title is empty and $fallback_title is set, the latter
- * will be used.
+ * By default, converts accent characters to ASCII characters and further
+ * limits the output to alphanumeric characters, underscore (_) and dash (-)
+ * through the {@see 'sanitize_title'} filter.
+ *
+ * If `$title` is empty and `$fallback_title` is set, the latter will be used.
  *
  * @since 1.0.0
  *
  * @param string $title          The string to be sanitized.
- * @param string $fallback_title Optional. A title to use if $title is empty.
- * @param string $context        Optional. The operation for which the string is sanitized
+ * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
+ * @param string $context        Optional. The operation for which the string is sanitized.
+ *                               Default 'save'.
  * @return string The sanitized string.
  */
 function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
@@ -2205,8 +2215,9 @@ function sanitize_title_for_query( $title ) {
  * @since 1.2.0
  *
  * @param string $title     The title to be sanitized.
- * @param string $raw_title Optional. Not used.
+ * @param string $raw_title Optional. Not used. Default empty.
  * @param string $context   Optional. The operation for which the string is sanitized.
+ *                          Default 'display'.
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
@@ -2257,6 +2268,8 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%e2%80%9b',
 				'%e2%80%9e',
 				'%e2%80%9f',
+				// Bullet.
+				'%e2%80%a2',
 				// &copy, &reg, &deg, &hellip, and &trade.
 				'%c2%a9',
 				'%c2%ae',
@@ -3555,8 +3568,8 @@ function iso8601_timezone_to_offset( $timezone ) {
 		$offset = 0;
 	} else {
 		$sign    = ( '+' === substr( $timezone, 0, 1 ) ) ? 1 : -1;
-		$hours   = intval( substr( $timezone, 1, 2 ) );
-		$minutes = intval( substr( $timezone, 3, 4 ) ) / 60;
+		$hours   = (int) substr( $timezone, 1, 2 );
+		$minutes = (int) substr( $timezone, 3, 4 ) / 60;
 		$offset  = $sign * HOUR_IN_SECONDS * ( $hours + $minutes );
 	}
 	return $offset;
@@ -3795,7 +3808,7 @@ function human_time_diff( $from, $to = 0 ) {
 function wp_trim_excerpt( $text = '', $post = null ) {
 	$raw_excerpt = $text;
 
-	if ( '' === $text ) {
+	if ( '' === trim( $text ) ) {
 		$post = get_post( $post );
 		$text = get_the_content( '', false, $post );
 
@@ -3807,7 +3820,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
 		/* translators: Maximum number of words used in a post excerpt. */
-		$excerpt_length = intval( _x( '55', 'excerpt_length' ) );
+		$excerpt_length = (int) _x( '55', 'excerpt_length' );
 
 		/**
 		 * Filters the maximum number of words in a post excerpt.
@@ -4712,7 +4725,7 @@ function sanitize_option( $option, $value ) {
 			if ( null === $value ) {
 				$value = 1;
 			} else {
-				$value = intval( $value );
+				$value = (int) $value;
 			}
 			break;
 
@@ -4853,7 +4866,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'moderation_keys':
-		case 'blocklist_keys':
+		case 'disallowed_keys':
 			$value = $wpdb->strip_invalid_text_for_column( $wpdb->options, 'option_value', $value );
 			if ( is_wp_error( $value ) ) {
 				$error = $value->get_error_message();
@@ -4916,7 +4929,6 @@ function map_deep( $value, $callback ) {
 
 /**
  * Parses a string into variables to be stored in an array.
- *
  *
  * @since 2.2.1
  *
@@ -5055,7 +5067,7 @@ function wp_sprintf( $pattern, ...$args ) {
 			if ( $_fragment != $fragment ) {
 				$fragment = $_fragment;
 			} else {
-				$fragment = sprintf( $fragment, strval( $arg ) );
+				$fragment = sprintf( $fragment, (string) $arg );
 			}
 		}
 
@@ -5231,7 +5243,7 @@ function links_add_target( $content, $target = '_blank', $tags = array( 'a' ) ) 
 	global $_links_add_target;
 	$_links_add_target = $target;
 	$tags              = implode( '|', (array) $tags );
-	return preg_replace_callback( "!<($tags)([^>]*)>!i", '_links_add_target', $content );
+	return preg_replace_callback( "!<($tags)((\s[^>]*)?)>!i", '_links_add_target', $content );
 }
 
 /**
@@ -5357,8 +5369,8 @@ function sanitize_textarea_field( $str ) {
  * @since 4.7.0
  * @access private
  *
- * @param string $str String to sanitize.
- * @param bool $keep_newlines optional Whether to keep newlines. Default: false.
+ * @param string $str           String to sanitize.
+ * @param bool   $keep_newlines Optional. Whether to keep newlines. Default: false.
  * @return string Sanitized string.
  */
 function _sanitize_text_fields( $str, $keep_newlines = false ) {
@@ -5495,27 +5507,24 @@ function sanitize_trackback_urls( $to_ping ) {
 }
 
 /**
- * Add slashes to a string or array of strings.
+ * Add slashes to a string or array of strings, in a recursive manner.
  *
  * This should be used when preparing data for core API that expects slashed data.
  * This should not be used to escape data going directly into an SQL query.
  *
  * @since 3.6.0
+ * @since 5.5.0 Non-string values are left untouched.
  *
- * @param string|array $value String or array of strings to slash.
- * @return string|array Slashed $value
+ * @param string|string[] $value String or array of strings to slash.
+ * @return string|string[] Slashed $value.
  */
 function wp_slash( $value ) {
 	if ( is_array( $value ) ) {
-		foreach ( $value as $k => $v ) {
-			if ( is_array( $v ) ) {
-				$value[ $k ] = wp_slash( $v );
-			} else {
-				$value[ $k ] = addslashes( $v );
-			}
-		}
-	} else {
-		$value = addslashes( $value );
+		$value = array_map( 'wp_slash', $value );
+	}
+
+	if ( is_string( $value ) ) {
+		return addslashes( $value );
 	}
 
 	return $value;

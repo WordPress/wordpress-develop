@@ -1522,6 +1522,9 @@ function walk_page_tree( $pages, $depth, $current_page, $r ) {
 	if ( empty( $r['walker'] ) ) {
 		$walker = new Walker_Page;
 	} else {
+		/**
+		 * @var Walker $walker
+		 */
 		$walker = $r['walker'];
 	}
 
@@ -1544,12 +1547,16 @@ function walk_page_tree( $pages, $depth, $current_page, $r ) {
  * @uses Walker_PageDropdown to create HTML dropdown content.
  * @see Walker_PageDropdown::walk() for parameters and return description.
  *
+ * @param mixed ...$args Elements array, maximum hierarchical depth and optional additional arguments.
  * @return string
  */
 function walk_page_dropdown_tree( ...$args ) {
 	if ( empty( $args[2]['walker'] ) ) { // The user's options are the third parameter.
 		$walker = new Walker_PageDropdown;
 	} else {
+		/**
+		 * @var Walker $walker
+		 */
 		$walker = $args[2]['walker'];
 	}
 
@@ -1589,9 +1596,8 @@ function the_attachment_link( $id = 0, $fullsize = false, $deprecated = false, $
  * @since 4.4.0 The `$id` parameter can now accept either a post ID or `WP_Post` object.
  *
  * @param int|WP_Post  $id        Optional. Post ID or post object.
- * @param string|array $size      Optional. Image size. Accepts any valid image size, or an array
- *                                of width and height values in pixels (in that order).
- *                                Default 'thumbnail'.
+ * @param string|int[] $size      Optional. Image size. Accepts any registered image size name, or an array
+ *                                of width and height values in pixels (in that order). Default 'thumbnail'.
  * @param bool         $permalink Optional. Whether to add permalink to image. Default false.
  * @param bool         $icon      Optional. Whether the attachment is an icon. Default false.
  * @param string|false $text      Optional. Link text to use. Activated by passing a string, false otherwise.
@@ -1635,12 +1641,12 @@ function wp_get_attachment_link( $id = 0, $size = 'thumbnail', $permalink = fals
 	 *
 	 * @param string       $link_html The page link HTML output.
 	 * @param int          $id        Post ID.
-	 * @param string|array $size      Size of the image. Image size or array of width and height values (in that order).
-	 *                                Default 'thumbnail'.
+	 * @param string|int[] $size      Requested image size. Can be any registered image size name, or
+	 *                                an array of width and height values in pixels (in that order).
 	 * @param bool         $permalink Whether to add permalink to image. Default false.
-	 * @param bool         $icon      Whether to include an icon. Default false.
-	 * @param string|bool  $text      If string, will be link text. Default false.
-	 * @param array|string $attr      Array or string of attributes. Default empty.
+	 * @param bool         $icon      Whether to include an icon.
+	 * @param string|bool  $text      If string, will be link text.
+	 * @param array|string $attr      Array or string of attributes.
 	 */
 	return apply_filters( 'wp_get_attachment_link', "<a href='" . esc_url( $url ) . "'>$link_text</a>", $id, $size, $permalink, $icon, $text, $attr );
 }
@@ -1817,7 +1823,7 @@ function wp_post_revision_title( $revision, $link = true ) {
 		return false;
 	}
 
-	/* translators: Revision date format, see https://www.php.net/date */
+	/* translators: Revision date format, see https://www.php.net/manual/datetime.format.php */
 	$datef = _x( 'F j, Y @ H:i:s', 'revision date format' );
 	/* translators: %s: Revision date. */
 	$autosavef = __( '%s [Autosave]' );
@@ -1859,7 +1865,7 @@ function wp_post_revision_title_expanded( $revision, $link = true ) {
 	}
 
 	$author = get_the_author_meta( 'display_name', $revision->post_author );
-	/* translators: Revision date format, see https://www.php.net/date */
+	/* translators: Revision date format, see https://www.php.net/manual/datetime.format.php */
 	$datef = _x( 'F j, Y @ H:i:s', 'revision date format' );
 
 	$gravatar = get_avatar( $revision->post_author, 24 );

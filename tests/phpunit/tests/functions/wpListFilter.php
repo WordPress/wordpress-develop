@@ -4,6 +4,8 @@
  * Test wp_filter_object_list(), wp_list_filter(), wp_list_pluck().
  *
  * @group functions.php
+ * @covers ::wp_filter_object_list
+ * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	var $object_list = array();
@@ -49,7 +51,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'AND'
 		);
-		$this->assertEquals( 2, count( $list ) );
+		$this->assertSame( 2, count( $list ) );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'bar', $list );
 	}
@@ -63,7 +65,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'OR'
 		);
-		$this->assertEquals( 3, count( $list ) );
+		$this->assertSame( 3, count( $list ) );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'bar', $list );
 		$this->assertArrayHasKey( 'baz', $list );
@@ -78,7 +80,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'NOT'
 		);
-		$this->assertEquals( 1, count( $list ) );
+		$this->assertSame( 1, count( $list ) );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
@@ -92,7 +94,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			'AND',
 			'name'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'bar' => 'bar',
@@ -111,7 +113,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			'OR',
 			'name'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'bar' => 'bar',
@@ -130,12 +132,12 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			'NOT',
 			'name'
 		);
-		$this->assertEquals( array( 'baz' => 'baz' ), $list );
+		$this->assertSame( array( 'baz' => 'baz' ), $list );
 	}
 
 	function test_wp_list_pluck() {
 		$list = wp_list_pluck( $this->object_list, 'name' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'bar' => 'bar',
@@ -145,7 +147,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		);
 
 		$list = wp_list_pluck( $this->array_list, 'name' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'bar' => 'bar',
@@ -160,7 +162,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_wp_list_pluck_index_key() {
 		$list = wp_list_pluck( $this->array_list, 'name', 'id' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'f' => 'foo',
 				'b' => 'bar',
@@ -175,7 +177,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_wp_list_pluck_object_index_key() {
 		$list = wp_list_pluck( $this->object_list, 'name', 'id' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'f' => 'foo',
 				'b' => 'bar',
@@ -190,7 +192,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_wp_list_pluck_missing_index_key() {
 		$list = wp_list_pluck( $this->array_list, 'name', 'nonexistent' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				0 => 'foo',
 				1 => 'bar',
@@ -207,7 +209,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$array_list = $this->array_list;
 		unset( $array_list['bar']['id'] );
 		$list = wp_list_pluck( $array_list, 'name', 'id' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'f' => 'foo',
 				0   => 'bar',
@@ -224,7 +226,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$mixed_list        = $this->array_list;
 		$mixed_list['bar'] = (object) $mixed_list['bar'];
 		$list              = wp_list_pluck( $mixed_list, 'name', 'id' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'f' => 'foo',
 				'b' => 'bar',
@@ -247,7 +249,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
 
 		$list = wp_list_pluck( $ref_list, 'name' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo',
 				'bar',
@@ -272,7 +274,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'stdClass', $ref_list[1] );
 
 		$list = wp_list_pluck( $ref_list, 'name', 'id' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'f' => 'foo',
 				'b' => 'bar',
@@ -286,13 +288,13 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 
 	function test_filter_object_list_nested_array_and() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
-		$this->assertEquals( 1, count( $list ) );
+		$this->assertSame( 1, count( $list ) );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
 	function test_filter_object_list_nested_array_not() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'red' ) ), 'NOT' );
-		$this->assertEquals( 2, count( $list ) );
+		$this->assertSame( 2, count( $list ) );
 		$this->assertArrayHasKey( 'bar', $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
@@ -306,26 +308,25 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'OR'
 		);
-		$this->assertEquals( 2, count( $list ) );
+		$this->assertSame( 2, count( $list ) );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
 	function test_filter_object_list_nested_array_or_singular() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'OR' );
-		$this->assertEquals( 1, count( $list ) );
+		$this->assertSame( 1, count( $list ) );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
-
 	function test_filter_object_list_nested_array_and_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND', 'name' );
-		$this->assertEquals( array( 'baz' => 'baz' ), $list );
+		$this->assertSame( array( 'baz' => 'baz' ), $list );
 	}
 
 	function test_filter_object_list_nested_array_not_field() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'green' ) ), 'NOT', 'name' );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'baz' => 'baz',
@@ -344,7 +345,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			'OR',
 			'name'
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'foo' => 'foo',
 				'baz' => 'baz',
