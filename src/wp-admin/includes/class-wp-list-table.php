@@ -471,18 +471,18 @@ class WP_List_Table {
 
 		foreach ( $this->_actions as $key => $value ) {
 			if ( is_array( $value ) ) {
-				echo "\t" . '<optgroup label="' . $key . "\">\n";
+				echo "\t" . '<optgroup label="' . esc_attr( $key ) . '">' . "\n";
 
 				foreach ( $value as $name => $title ) {
 					$class = ( 'edit' === $name ) ? ' class="hide-if-no-js"' : '';
 
-					echo "\t\t" . '<option value="' . $name . '"' . $class . '>' . $title . "</option>\n";
+					echo "\t\t" . '<option value="' . esc_attr( $name ) . '"' . $class . '>' . $title . "</option>\n";
 				}
 				echo "\t" . "</optgroup>\n";
 			} else {
 				$class = ( 'edit' === $key ) ? ' class="hide-if-no-js"' : '';
 
-				echo "\t" . '<option value="' . $key . '"' . $class . '>' . $value . "</option>\n";
+				echo "\t" . '<option value="' . esc_attr( $key ) . '"' . $class . '>' . $value . "</option>\n";
 			}
 		}
 
