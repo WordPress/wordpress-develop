@@ -198,10 +198,8 @@
 				.hide()
 				.removeClass( 'is-open' );
 
-			if ( $pass1Row.closest( 'form' ).is( '#your-profile' ) ) {
-				// Stop an empty password from being submitted as a change
-				$submitButtons.prop( 'disabled', false );
-			}
+			// Stop an empty password from being submitted as a change
+			$submitButtons.prop( 'disabled', false );
 		} );
 
 		$pass1Row.closest( 'form' ).on( 'submit', function () {

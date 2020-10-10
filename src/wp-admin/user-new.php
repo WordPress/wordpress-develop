@@ -560,16 +560,16 @@ if ( current_user_can( 'create_users' ) ) {
 		</th>
 		<td>
 			<input class="hidden" value=" " /><!-- #24364 workaround -->
+			<button type="button" class="button wp-generate-pw hide-if-no-js"><?php _e( 'Generate password' ); ?></button>
 			<div class="wp-pwd">
 				<?php $initial_password = wp_generate_password( 24 ); ?>
 				<span class="password-input-wrapper">
-					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="off" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>"  value="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
+					<input type="password" name="pass1" id="pass1" class="regular-text" autocomplete="off" data-reveal="1" data-pw="<?php echo esc_attr( $initial_password ); ?>" aria-describedby="pass-strength-result" />
 				</span>
 				<button type="button" class="button wp-hide-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Hide password' ); ?>">
 					<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 					<span class="text"><?php _e( 'Hide' ); ?></span>
 				</button>
-
 				<div style="display:none" id="pass-strength-result" aria-live="polite"></div>
 			</div>
 		</td>
