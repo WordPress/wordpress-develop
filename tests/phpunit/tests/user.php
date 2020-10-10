@@ -1451,6 +1451,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * Checks that calling edit_user() with no password returns an error when adding, and doesn't when updating.
 	 *
 	 * @ticket 35715
+	 * @ticket 42766
 	 */
 	function test_edit_user_blank_pw() {
 		$_POST                 = array();
@@ -1490,6 +1491,18 @@ class Tests_User extends WP_UnitTestCase {
 
 		$this->assertInternalType( 'int', $user_id );
 		$this->assertSame( 'nickname_updated', $user->nickname );
+
+		// Check not to change an old password if a new password contains only spaces. Ticket #42766
+		$user           = get_user_by( 'ID', $user_id );
+		$old_pass       = $user->user_pass;
+		$_POST['pass2'] = '  ';
+		$_POST['pass1'] = '  ';
+
+		$user_id = edit_user( $user_id );
+		$user    = get_user_by( 'ID', $user_id );
+
+		$this->assertInternalType( 'int', $user_id );
+		$this->assertEquals( $old_pass, $user->user_pass );
 
 		// Check updating user with missing second password.
 		$_POST['nickname'] = 'nickname_updated2';
