@@ -1495,7 +1495,8 @@ class Tests_User extends WP_UnitTestCase {
 		// Check not to change an old password if a new password contains only spaces. Ticket #42766
 		$user           = get_user_by( 'ID', $user_id );
 		$old_pass       = $user->user_pass;
-		$_POST['pass1'] = $_POST['pass2'] = '  ';
+		$_POST['pass2'] = '  ';
+		$_POST['pass1'] = '  ';
 
 		$user_id = edit_user( $user_id );
 		$user    = get_user_by( 'ID', $user_id );
