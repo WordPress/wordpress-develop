@@ -1453,7 +1453,7 @@ class Tests_User extends WP_UnitTestCase {
 	 * @ticket 35715
 	 * @ticket 42766
 	 */
-	function test_edit_user_blank_pw() {
+	function test_edit_user_blank_password() {
 		$_POST                 = array();
 		$_GET                  = array();
 		$_REQUEST              = array();
@@ -1492,7 +1492,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertInternalType( 'int', $user_id );
 		$this->assertSame( 'nickname_updated', $user->nickname );
 
-		// Check not to change an old password if a new password contains only spaces. Ticket #42766
+		// Check not to change an old password if a new password contains only spaces. Ticket #42766.
 		$user           = get_user_by( 'ID', $user_id );
 		$old_pass       = $user->user_pass;
 		$_POST['pass2'] = '  ';
@@ -1502,7 +1502,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user    = get_user_by( 'ID', $user_id );
 
 		$this->assertInternalType( 'int', $user_id );
-		$this->assertEquals( $old_pass, $user->user_pass );
+		$this->assertSame( $old_pass, $user->user_pass );
 
 		// Check updating user with missing second password.
 		$_POST['nickname'] = 'nickname_updated2';
@@ -1516,18 +1516,18 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertSame( 'nickname_updated', $user->nickname );
 
 		// Check updating user with empty password via `check_passwords` action.
-		add_action( 'check_passwords', array( $this, 'action_check_passwords_blank_pw' ), 10, 2 );
+		add_action( 'check_passwords', array( $this, 'action_check_passwords_blank_password' ), 10, 2 );
 		$user_id = edit_user( $user_id );
-		remove_action( 'check_passwords', array( $this, 'action_check_passwords_blank_pw' ) );
+		remove_action( 'check_passwords', array( $this, 'action_check_passwords_blank_password' ) );
 
 		$this->assertInternalType( 'int', $user_id );
 		$this->assertSame( 'nickname_updated2', $user->nickname );
 	}
 
 	/**
-	 * Check passwords action for test_edit_user_blank_pw().
+	 * Check passwords action for test_edit_user_blank_password().
 	 */
-	function action_check_passwords_blank_pw( $user_login, &$pass1 ) {
+	function action_check_passwords_blank_password( $user_login, &$pass1 ) {
 		$pass1 = '';
 	}
 
