@@ -213,26 +213,26 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
 		}
 
-		// Some hardcoded defaults for core widgets
+		// Some hardcoded defaults for core widgets.
 		wp_add_dashboard_widget( 'dashboard_quick_press', 'Quick', '__return_false' );
 		wp_add_dashboard_widget( 'dashboard_browser_nag', 'Nag', '__return_false' );
 
 		$this->assertArrayHasKey( 'dashboard_quick_press', $wp_meta_boxes['dashboard']['side']['core'] );
 		$this->assertArrayHasKey( 'dashboard_browser_nag', $wp_meta_boxes['dashboard']['normal']['high'] );
 
-		// Location and priority defaults
+		// Location and priority defaults.
 		wp_add_dashboard_widget( 'dashboard1', 'Widget 1', '__return_false', null, null, 'foo' );
 		wp_add_dashboard_widget( 'dashboard2', 'Widget 2', '__return_false', null, null, null, 'bar' );
 
 		$this->assertArrayHasKey( 'dashboard1', $wp_meta_boxes['dashboard']['foo']['core'] );
 		$this->assertArrayHasKey( 'dashboard2', $wp_meta_boxes['dashboard']['normal']['bar'] );
 
-		// Cleanup
+		// Cleanup.
 		remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
 		remove_meta_box( 'dashboard_browser_nag', 'dashboard', 'normal' );
 		remove_meta_box( 'dashboard1', 'dashboard', 'foo' );
 
-		// This doesn't actually get removed due to the invalid priority
+		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
 
 		set_current_screen( 'front' );
