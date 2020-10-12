@@ -81,7 +81,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts are not double incremented when post created.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_changes_for_post_statuses
 	 * @ticket 40351
 	 *
@@ -122,7 +122,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * Term counts increments correctly when post status becomes published.
 	 *
 	 * @covers wp_publish_post
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_counts_incremented_on_publish
 	 * @ticket 40351
 	 * @ticket 51292
@@ -164,7 +164,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_transitions_update_term_counts
 	 * @ticket 40351
 	 *
@@ -230,7 +230,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts are not double incremented when post created.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_changes_for_post_statuses_with_attachments
 	 * @ticket 40351
 	 *
@@ -280,7 +280,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * Term counts increments correctly when post status becomes published.
 	 *
 	 * @covers wp_publish_post
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_counts_incremented_on_publish_with_attachments
 	 * @ticket 40351
 	 * @ticket 51292
@@ -331,7 +331,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_transitions_update_term_counts_with_attachments
 	 * @ticket 40351
 	 *
@@ -406,7 +406,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts are not double incremented when post created.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_changes_for_post_statuses_with_untermed_attachments
 	 * @ticket 40351
 	 *
@@ -454,7 +454,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Term counts increments correctly when post status becomes published.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @covers wp_publish_post
 	 * @dataProvider data_term_counts_incremented_on_publish_with_untermed_attachments
 	 * @ticket 40351
@@ -505,7 +505,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Test post status transition update term counts correctly.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @dataProvider data_term_count_transitions_update_term_counts_with_untermed_attachments
 	 * @ticket 40351
 	 *
@@ -579,7 +579,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * User taxonomy term counts increments when added to an account.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @ticket 51292
 	 */
 	public function test_term_counts_user_adding_term() {
@@ -593,7 +593,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * User taxonomy term counts decrement when term deleted from user.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @ticket 51292
 	 */
 	public function test_term_counts_user_removing_term() {
@@ -608,7 +608,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Ensure DB queries for deferred counts are nullified for net zero gain.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @ticket 51292
 	 */
 	public function test_counts_after_deferral_net_zero() {
@@ -631,7 +631,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	/**
 	 * Ensure DB queries for deferred counts are combined.
 	 *
-	 * @covers wp_count_terms
+	 * @covers wp_modify_term_count_by
 	 * @ticket 51292
 	 */
 	public function test_counts_after_deferral_matching_changes() {
