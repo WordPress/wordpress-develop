@@ -53,9 +53,7 @@ jobs:
           echo "vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
-        run: |
-          phpcs -v
-          phpcs -i
+        run: phpcs -i
 
       - name: Run PHPCS on Core files
         uses: wearerequired/lint-action@v1
