@@ -181,7 +181,7 @@ final class WP_Taxonomy {
 	public $update_count_callback;
 
 	/**
-	 * Function that will called when the count is modified by an amount.
+	 * Function that will be called when the count is modified by an amount.
 	 *
 	 * @since 5.6.0
 	 * @var callable
