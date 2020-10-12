@@ -570,9 +570,6 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *
 	 * @covers wp_count_terms
 	 * @ticket 51292
-	 *
-	 * @param string $user_type Type of user to create apply term to.
-	 * @param int    $change    Expected change upon applying term.
 	 */
 	public function test_term_counts_user_adding_term() {
 		$term_count = get_term( self::$user_term )->count;
@@ -587,9 +584,6 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *
 	 * @covers wp_count_terms
 	 * @ticket 51292
-	 *
-	 * @param string $user_type Type of user to create apply term to.
-	 * @param int    $change    Expected change upon applying term.
 	 */
 	public function test_term_counts_user_removing_term() {
 		wp_add_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );
