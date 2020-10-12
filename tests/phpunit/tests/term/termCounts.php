@@ -583,7 +583,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	}
 
 	/**
-	 * User taxonomy term counts decrement when account deleted.
+	 * User taxonomy term counts decrement when term deleted from user.
 	 *
 	 * @covers wp_count_terms
 	 * @ticket 51292
@@ -599,5 +599,4 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		$expected = $term_count - 1;
 		$this->assertSame( $expected, get_term( self::$user_term )->count );
 	}
-
 }
