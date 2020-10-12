@@ -235,7 +235,7 @@ jobs:
 
       # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
       - name: Start the Memcached server.
-        if: ${{ env.LOCAL_PHP_MEMCACHED == "true" }}
+        if: ${{ env.LOCAL_PHP_MEMCACHED == true }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
