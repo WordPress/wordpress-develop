@@ -609,6 +609,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * Ensure DB queries for deferred counts are nullified for net zero gain.
 	 *
 	 * @covers wp_modify_term_count_by
+	 * @covers wp_defer_term_counting
 	 * @ticket 51292
 	 */
 	public function test_counts_after_deferral_net_zero() {
@@ -629,9 +630,34 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure full recounts follow modify by X recounts to avoid miscounts.
+	 *
+	 * @covers wp_modify_term_count_by
+	 * @covers wp_update_term_count
+	 * @covers wp_defer_term_counting
+	 * @ticket 51292
+	 */
+	public function test_counts_after_deferral_full_before_partial() {
+		$post_one   = self::$post_ids['publish'];
+		$terms      = self::$tag_ids;
+		$term_count = get_term( $terms[0] )->count;
+
+		// Net gain 1;
+		wp_defer_term_counting( true );
+		wp_set_object_terms( $post_one, $terms[0], 'post_tag', true );
+		wp_update_term_count( get_term( $terms[0] )->term_taxonomy_id, 'post_tag' );
+		wp_defer_term_counting( false );
+
+		// Ensure term count is correct.
+		$expected = $term_count + 1;
+		$this->assertSame( $expected, get_term( $terms[0] )->count );
+	}
+
+	/**
 	 * Ensure DB queries for deferred counts are combined.
 	 *
 	 * @covers wp_modify_term_count_by
+	 * @covers wp_defer_term_counting
 	 * @ticket 51292
 	 */
 	public function test_counts_after_deferral_matching_changes() {

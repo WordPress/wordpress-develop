@@ -3270,8 +3270,8 @@ function wp_defer_term_counting( $defer = null ) {
 		$_defer = $defer;
 		// Flush any deferred counts.
 		if ( ! $defer ) {
-			wp_update_term_count( null, null, true );
 			wp_modify_term_count_by( null, null, null, true );
+			wp_update_term_count( null, null, true );
 		}
 	}
 
