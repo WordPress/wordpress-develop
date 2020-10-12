@@ -66,7 +66,7 @@ function register_importer( $id, $name, $description, $callback ) {
  *
  * @since 2.0.0
  *
- * @param string $id Importer ID.
+ * @param int $id Importer ID.
  */
 function wp_import_cleanup( $id ) {
 	wp_delete_attachment( $id );
