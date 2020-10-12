@@ -20,6 +20,13 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	public static $post_ids;
 
 	/**
+	 * Array of tag IDs.
+	 *
+	 * @var int[]
+	 */
+	public static $tag_ids;
+
+	/**
 	 * Term ID for testing user counts.
 	 *
 	 * @var int
@@ -44,11 +51,15 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 			self::$post_ids[ $status ] = $factory->post->create( array( 'post_status' => $status ) );
 		}
 
+		// Extra published post.
+		self::$post_ids['publish_two'] = $factory->post->create( array( 'post_status' => 'publish' ) );
+
 		self::$user_id = $factory->user->create( array( 'role' => 'author' ) );
 
 		self::register_taxonomies();
 		self::$attachment_term = $factory->term->create( array( 'taxonomy' => 'wp_test_tax_counts' ) );
 		self::$user_term       = $factory->term->create( array( 'taxonomy' => 'wp_test_user_tax_counts' ) );
+		self::$tag_ids         = $factory->term->create_many( 5 );
 	}
 
 	public function setUp() {
@@ -592,5 +603,67 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		wp_remove_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );
 		$expected = $term_count - 1;
 		$this->assertSame( $expected, get_term( self::$user_term )->count );
+	}
+
+	/**
+	 * Ensure DB queries for deferred counts are nullified for net zero gain.
+	 *
+	 * @covers wp_count_terms
+	 * @ticket 51292
+	 */
+	public function test_counts_after_deferral_net_zero() {
+		$post_one = self::$post_ids['publish'];
+		$post_two = self::$post_ids['publish_two'];
+		$terms    = self::$tag_ids;
+
+		wp_set_object_terms( $post_one, $terms[0], 'post_tag', true );
+
+		// Net gain 0;
+		wp_defer_term_counting( true );
+		wp_remove_object_terms( $post_one, $terms[0], 'post_tag' );
+		wp_set_object_terms( $post_two, $terms[0], 'post_tag', true );
+		$num_queries = get_num_queries();
+		wp_defer_term_counting( false );
+		// Ensure number of queries unchanged.
+		$this->assertSame( $num_queries, get_num_queries() );
+	}
+
+	/**
+	 * Ensure DB queries for deferred counts are combined.
+	 *
+	 * @covers wp_count_terms
+	 * @ticket 51292
+	 */
+	public function test_counts_after_deferral_matching_changes() {
+		$post_one = self::$post_ids['publish'];
+		$post_two = self::$post_ids['publish_two'];
+		$terms    = self::$tag_ids;
+
+		wp_set_object_terms( $post_one, $terms[0], 'post_tag', true );
+
+		// Net gain 0:
+		wp_defer_term_counting( true );
+		wp_remove_object_terms( $post_one, $terms[0], 'post_tag' );
+		wp_set_object_terms( $post_two, $terms[0], 'post_tag', true );
+
+		// Net gain 1:
+		wp_set_object_terms( $post_one, $terms[1], 'post_tag', true );
+		wp_set_object_terms( $post_two, $terms[2], 'post_tag', true );
+
+		// Net gain 2:
+		wp_set_object_terms( $post_one, array( $terms[3], $terms[4] ), 'post_tag', true );
+		wp_set_object_terms( $post_two, array( $terms[3], $terms[4] ), 'post_tag', true );
+
+		$num_queries = get_num_queries();
+		wp_defer_term_counting( false );
+
+		/*
+		 * Each count is expected to produce two queries:
+		 * 1) The count update
+		 * 2) The SELECT in `clean_term_cache()`.
+		 */
+		$expected = $num_queries + ( 2 * 2 );
+		// Ensure number of queries correct.
+		$this->assertSame( $expected, get_num_queries() );
 	}
 }
