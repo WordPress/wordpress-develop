@@ -20,6 +20,20 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	public static $post_ids;
 
 	/**
+	 * Term ID for testing user counts.
+	 *
+	 * @var int
+	 */
+	public static $user_term;
+
+	/**
+	 * User ID for testing user counts.
+	 *
+	 * @var int
+	 */
+	public static $user_id;
+
+	/**
 	 * Create shared fixtures.
 	 *
 	 * @param WP_UnitTest_Factory $factory Test suite factory.
@@ -30,14 +44,27 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 			self::$post_ids[ $status ] = $factory->post->create( array( 'post_status' => $status ) );
 		}
 
-		register_taxonomy( 'wp_test_tax_counts', array( 'post', 'attachment' ) );
+		self::$user_id = $factory->user->create( array( 'role' => 'author' ) );
+
+		self::register_taxonomies();
 		self::$attachment_term = $factory->term->create( array( 'taxonomy' => 'wp_test_tax_counts' ) );
+		self::$user_term       = $factory->term->create( array( 'taxonomy' => 'wp_test_user_tax_counts' ) );
 	}
 
 	public function setUp() {
 		parent::setUp();
+		self::register_taxonomies();
+	}
 
+	/**
+	 * Register taxonomies used by tests.
+	 *
+	 * This is called both before class and before each test as the global is
+	 * reset in each test's tearDown.
+	 */
+	public static function register_taxonomies() {
 		register_taxonomy( 'wp_test_tax_counts', array( 'post', 'attachment' ) );
+		register_taxonomy( 'wp_test_user_tax_counts', 'user' );
 	}
 
 	/**
@@ -537,4 +564,40 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 			array( 'publish', 'draft', -1 ),
 		);
 	}
+
+	/**
+	 * User taxonomy term counts increments when added to an account.
+	 *
+	 * @covers wp_count_terms
+	 * @ticket 51292
+	 *
+	 * @param string $user_type Type of user to create apply term to.
+	 * @param int    $change    Expected change upon applying term.
+	 */
+	public function test_term_counts_user_adding_term() {
+		$term_count = get_term( self::$user_term )->count;
+		wp_add_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );
+
+		$expected = $term_count + 1;
+		$this->assertSame( $expected, get_term( self::$user_term )->count );
+	}
+
+	/**
+	 * User taxonomy term counts decrement when account deleted.
+	 *
+	 * @covers wp_count_terms
+	 * @ticket 51292
+	 *
+	 * @param string $user_type Type of user to create apply term to.
+	 * @param int    $change    Expected change upon applying term.
+	 */
+	public function test_term_counts_user_removing_term() {
+		wp_add_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );
+		$term_count = get_term( self::$user_term )->count;
+
+		wp_remove_object_terms( self::$user_id, self::$user_term, 'wp_test_user_tax_counts' );
+		$expected = $term_count - 1;
+		$this->assertSame( $expected, get_term( self::$user_term )->count );
+	}
+
 }
