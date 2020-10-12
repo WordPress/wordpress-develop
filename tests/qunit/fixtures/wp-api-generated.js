@@ -4510,7 +4510,8 @@ mockedApiResponse.Schema = {
                             "default": "post",
                             "enum": [
                                 "post",
-                                "term"
+                                "term",
+                                "post-format"
                             ],
                             "description": "Limit results to items of an object type.",
                             "type": "string"
