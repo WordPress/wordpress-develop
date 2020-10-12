@@ -178,7 +178,7 @@ jobs:
         # TODO: Make LOCAL_PHP be the value of matrix.php_versions with memcached replaced with '-fpm'
         run: |
           echo "LOCAL_PHP=latest" >> $GITHUB_ENV
-          echo "LOCAL_PHP_MEMCACHED=${{ true }}" >> $GITHUB_ENV
+          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Use cached Node modules
         uses: actions/cache@v2
@@ -235,7 +235,7 @@ jobs:
 
       # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
       - name: Start the Memcached server.
-        if: ${{ env.LOCAL_PHP_MEMCACHED }}
+        if: ${{ env.LOCAL_PHP_MEMCACHED == "true" }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
