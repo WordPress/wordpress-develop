@@ -19,10 +19,12 @@ jobs:
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
+  # - Logs general debug information.
   # - Logs the running Docker containers.
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
+  # - todo: Configure Slack notifications for failing tests.
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
@@ -38,7 +40,6 @@ jobs:
       - name: Log debug information
         run: |
           npm --version
-          which npm
           node --version
           curl --version
           git --version
@@ -73,6 +74,14 @@ jobs:
         run: |
           npm run env:start
 
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
       - name: Log running Docker containers
         run: docker ps -a
 
@@ -83,6 +92,8 @@ jobs:
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
 
       - name: Install WordPress
         run: npm run env:install

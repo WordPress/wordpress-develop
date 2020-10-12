@@ -15,6 +15,8 @@ jobs:
   # - Installs Composer dependencies (from cache if possible).
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS tests.
+  # - todo: Add a PHP_CodeSniffer scan for the `tests` directory that does not suppress warnings.
+  # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: Check PHP coding standards
     runs-on: ubuntu-latest

@@ -16,6 +16,7 @@ jobs:
   # - Installs Composer dependencies (from cache if possible).
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
+  # - todo: Configure Slack notifications for failing scans.
   php-comatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
