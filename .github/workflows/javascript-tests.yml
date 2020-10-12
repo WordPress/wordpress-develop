@@ -29,13 +29,8 @@ jobs:
         run: |
           npm --version
           which npm
-          node --version
-          curl --version
           git --version
           svn --version
-          php --version
-          php -i
-          locale -a
 
       - name: Cache Node modules
         uses: actions/cache@v2
