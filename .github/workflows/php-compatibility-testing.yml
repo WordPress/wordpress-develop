@@ -1,4 +1,4 @@
-name: PHP Compatibility Testing
+name: PHP Compatibility
 
 on: [push]
 
@@ -17,7 +17,7 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
   php-comatibility:
-    name: Test PHP compatibility
+    name: Check PHP compatibility
     runs-on: ubuntu-latest
 
     steps:

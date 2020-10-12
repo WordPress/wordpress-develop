@@ -1,4 +1,4 @@
-name: E2E Test Suite
+name: End-to-end Tests
 
 on: [push]
 
@@ -24,7 +24,7 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
   e2e-tests:
-    name: Setup WordPress
+    name: E2E Tests
     runs-on: ubuntu-latest
     steps:
       - name: Cancel previous runs of this workflow

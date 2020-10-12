@@ -1,4 +1,4 @@
-name: Coding standards checks
+name: PHP Coding standards
 
 on: [push]
 
@@ -16,7 +16,7 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS tests.
   phpcs:
-    name: PHP coding standards
+    name: Check PHP coding standards
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
