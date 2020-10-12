@@ -22,15 +22,15 @@
  * @param string     $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
-function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
+function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = '' ) {
 	$src_file = $src;
 	if ( is_numeric( $src ) ) { // Handle int as attachment ID.
-		$src_file = get_attached_file( $src );
+		$src_file = get_attached_file( (int) $src );
 
-		if ( ! file_exists( $src_file ) ) {
+		if ( false === $src_file || ! file_exists( $src_file ) ) {
 			// If the file doesn't exist, attempt a URL fopen on the src link.
 			// This can occur with certain file replication plugins.
-			$src = _load_image_to_edit_path( $src, 'full' );
+			$src = _load_image_to_edit_path( (int) $src, 'full' );
 		} else {
 			$src = $src_file;
 		}
@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = @getimagesize( $image_file );
+		$imagesize  = false !== $image_file ? @getimagesize( $image_file ) : array();
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -477,7 +477,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 
 	$metadata  = array();
 	$support   = false;
-	$mime_type = get_post_mime_type( $attachment );
+	$mime_type = (string) get_post_mime_type( $attachment );
 
 	if ( preg_match( '!^image/!', $mime_type ) && file_is_displayable_image( $file ) ) {
 		// Make thumbnails and other intermediate sizes.
@@ -544,10 +544,12 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				$image_attachment = apply_filters( 'attachment_thumbnail_args', $image_attachment, $metadata, $uploaded );
 
 				$sub_attachment_id = wp_insert_attachment( $image_attachment, $uploaded['file'] );
-				add_post_meta( $sub_attachment_id, '_cover_hash', $hash );
-				$attach_data = wp_generate_attachment_metadata( $sub_attachment_id, $uploaded['file'] );
-				wp_update_attachment_metadata( $sub_attachment_id, $attach_data );
-				update_post_meta( $attachment_id, '_thumbnail_id', $sub_attachment_id );
+				if ( ! is_wp_error( $sub_attachment_id ) ) {
+					add_post_meta( $sub_attachment_id, '_cover_hash', $hash );
+					$attach_data = wp_generate_attachment_metadata( $sub_attachment_id, $uploaded['file'] );
+					wp_update_attachment_metadata( $sub_attachment_id, $attach_data );
+					update_post_meta( $attachment_id, '_thumbnail_id', $sub_attachment_id );
+				}
 			}
 		}
 	} elseif ( 'application/pdf' === $mime_type ) {
@@ -1048,11 +1050,11 @@ function _copy_image_file( $attachment_id ) {
 	$dst_file = get_attached_file( $attachment_id );
 	$src_file = $dst_file;
 
-	if ( ! file_exists( $src_file ) ) {
+	if ( false === $src_file || ! file_exists( $src_file ) ) {
 		$src_file = _load_image_to_edit_path( $attachment_id );
 	}
 
-	if ( $src_file ) {
+	if ( $src_file && $dst_file ) {
 		$dst_file = str_replace( wp_basename( $dst_file ), 'copy-' . wp_basename( $dst_file ), $dst_file );
 		$dst_file = dirname( $dst_file ) . '/' . wp_unique_filename( dirname( $dst_file ), wp_basename( $dst_file ) );
 
