@@ -30,6 +30,7 @@
 
 	<!-- For now, only the files in src are scanned. -->
 	<file>./src/</file>
+	<exclude-pattern>/tests</exclude-pattern>
 
 	<!-- Code which doesn't go into production may have different requirements. -->
 	<exclude-pattern>/node_modules/*</exclude-pattern>

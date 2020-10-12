@@ -51,6 +51,9 @@ jobs:
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
           echo "vendor/bin" >> $GITHUB_PATH
 
+      - name: Log PHPCS debug info
+        run: phpcs -i
+
       - name: Run PHPCS on Core files
         uses: wearerequired/lint-action@v1
         with:
