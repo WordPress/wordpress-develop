@@ -1,0 +1,66 @@
+name: PHP Coding standards
+
+on: [push]
+
+jobs:
+  # Runs PHP coding standards checks.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Configures caching for Composer.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies (from cache if possible).
+  # - Logs PHP_CodeSniffer debug information.
+  # - Runs PHPCS tests.
+  # - todo: Add a PHP_CodeSniffer scan for the `tests` directory that does not suppress warnings.
+  # - todo: Configure Slack notifications for failing scans.
+  phpcs:
+    name: Check PHP coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "latest"
+          coverage: none
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
+          echo "vendor/bin" >> $GITHUB_PATH
+
+      - name: Log PHPCS debug information
+        run: phpcs -i
+
+      - name: Run PHPCS on Core files
+        uses: wearerequired/lint-action@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          php_codesniffer: true
+          # Ignore warnings
+          php_codesniffer_args: "-n"
