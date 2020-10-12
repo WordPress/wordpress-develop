@@ -14,6 +14,7 @@ jobs:
   # - Sets up PHP.
   # - Logs debug information about the runner container.
   # - Installs Composer dependencies (from cache if possible).
+  # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
   php-comatibility:
     name: Test PHP compatibility
@@ -53,8 +54,10 @@ jobs:
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
           echo "vendor/bin" >> $GITHUB_PATH
 
-      - name: Log PHPCS debug info
-        run: phpcs -i
+      - name: Log PHPCS debug information
+        run: |
+          phpcs -v
+          phpcs -i
 
       - name: Run PHP compatibility tests
         uses: wearerequired/lint-action@v1

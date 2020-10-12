@@ -20,7 +20,7 @@ jobs:
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
   # - Sets up caching for NPM.
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
+  # - Installs NPM 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress

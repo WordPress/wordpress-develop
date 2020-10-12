@@ -30,6 +30,16 @@
 
 	<!-- For now, only the files in src are scanned. -->
 	<file>./src/</file>
+
+	<!--
+		Explicitly exclude the tests directory from being scanned.
+
+		Even though `src` is defined as the only directory to scan, the `tests` directory is still
+		being included in scans within GitHub actions. This happens because wearerequired/lint-action hard codes `.`
+		as the directory to scan within the `phpcs` command.
+
+		See: https://github.com/wearerequired/lint-action/blob/153bc60ada5996904238672b9e4e7015139c3711/src/linters/php-codesniffer.js#L48.
+	-->
 	<exclude-pattern>/tests</exclude-pattern>
 
 	<!-- Code which doesn't go into production may have different requirements. -->
