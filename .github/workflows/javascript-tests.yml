@@ -14,7 +14,7 @@ jobs:
   # _ Installs NPM dependencies.
   # - Run the WordPress QUnit tests.
   test-js:
-    name: Setup WordPress
+    name: QUnit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Cancel previous runs of this workflow
