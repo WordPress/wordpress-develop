@@ -7695,3 +7695,118 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Formats attributes string from associative array $attributes to be placed inside a `<script>` tag.
+ *
+ * Automatically injects type attribute if needed.
+ * Used by wp_get_script_tag() and wp_get_inline_script_tag().
+ *
+ * @since 5.6.0
+ *
+ * @param array $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @return string  String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes = array() ) {
+	if ( ! array_key_exists( 'type', $attributes ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+		$attributes['type'] = 'text/javascript';
+	}
+	/**
+	 * Filters script attributes.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $attributes    Key-value pairs representing `<script>` tag attributes.
+	 */
+	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+
+	$attributes_string = '';
+	// Only the attribute name is added to $attributes_string for entries with a boolean value, and that are true.
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value && '' !== $attribute_name ) {
+				$attributes_string .= ' ' . $attribute_name;
+			}
+		} else {
+			$attributes_string .= sprintf( ' %s="%s"', $attribute_name, esc_attr( $attribute_value ) );
+		}
+	}
+
+	return $attributes_string;
+}
+
+/**
+ * Wraps inline JavaScript in `<script>` tags.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.6.0
+ *
+ * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string  String containing `<script>` opening and closing tags.
+ */
+function wp_get_script_tag( $attributes ) {
+	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
+}
+
+/**
+ * Wraps inline JavaScript in `<script>` tags.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.6.0
+ *
+ * @param array     $attributes     Key-value pairs representing `<script>` tag attributes.
+ * @return null     Null value.
+ */
+function wp_print_script_tag( $attributes ) {
+	echo wp_get_script_tag( $attributes );
+}
+
+/**
+ * Wraps inline JavaScript in `<script>` tags.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.6.0
+ *
+ * @param string    $javascript     Inline JavaScript code.
+ * @param array     $attributes     Optional. Key-value pairs representing `<script>` tag attributes.
+ * @return string  String containing inline JavaScript code wrapped around `<script>` tags.
+ */
+function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
+	/**
+	 * Fires once the given script is being written.
+	 *
+	 * Can be used to generate the hash of the script.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $javascript Inline JavaScript code.
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 */
+	do_action( 'wp_get_inline_script_tag', $javascript, $attributes );
+
+	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
+}
+
+/**
+ * Wraps inline JavaScript in `<script>` tags.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.6.0
+ *
+ * @param string    $javascript     Inline JavaScript code.
+ * @param array     $attributes     Optional. Key-value pairs representing `<script>` tag attributes.
+ * @return null  Null value.
+ */
+function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
+	echo wp_get_inline_script_tag( $javascript, $attributes );
+}
