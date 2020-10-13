@@ -57,7 +57,7 @@ function list_core_update( $update ) {
 
 	$submit        = __( 'Update Now' );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
-	$php_version   = phpversion();
+	$php_version   = (string) phpversion();
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
@@ -271,7 +271,7 @@ function core_upgrade_preamble() {
 	if ( isset( $updates[0] ) && 'development' === $updates[0]->response ) {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 		$upgrader = new WP_Automatic_Updater;
-		if ( wp_http_supports( 'ssl' ) && $upgrader->should_update( 'core', $updates[0], ABSPATH ) ) {
+		if ( wp_http_supports( array( 'ssl' ) ) && $upgrader->should_update( 'core', $updates[0], ABSPATH ) ) {
 			echo '<div class="updated inline"><p>';
 			echo '<strong>' . __( 'BETA TESTERS:' ) . '</strong> ' . __( 'This site is set up to install updates of future beta versions automatically.' );
 			echo '</p></div>';
@@ -307,7 +307,7 @@ function core_upgrade_preamble() {
  */
 function list_plugin_updates() {
 	$wp_version     = get_bloginfo( 'version' );
-	$cur_wp_version = preg_replace( '/-.*$/', '', $wp_version );
+	$cur_wp_version = (string) preg_replace( '/-.*$/', '', $wp_version );
 
 	require_once ABSPATH . 'wp-admin/includes/plugin-install.php';
 	$plugins = get_plugin_updates();
@@ -319,7 +319,7 @@ function list_plugin_updates() {
 	$form_action = 'update-core.php?action=do-plugin-upgrade';
 
 	$core_updates = get_core_updates();
-	if ( ! isset( $core_updates[0]->response ) || 'latest' === $core_updates[0]->response || 'development' === $core_updates[0]->response || version_compare( $core_updates[0]->current, $cur_wp_version, '=' ) ) {
+	if ( ! isset( $core_updates[0]->response ) || 'latest' === $core_updates[0]->response || 'development' === $core_updates[0]->response || version_compare( (string) $core_updates[0]->current, $cur_wp_version, '=' ) ) {
 		$core_update_version = false;
 	} else {
 		$core_update_version = $core_updates[0]->current;
@@ -360,7 +360,7 @@ function list_plugin_updates() {
 		}
 
 		// Get plugin compat for running version of WordPress.
-		if ( isset( $plugin_data->update->tested ) && version_compare( $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
+		if ( isset( $plugin_data->update->tested ) && version_compare( (string) $plugin_data->update->tested, $cur_wp_version, '>=' ) ) {
 			/* translators: %s: WordPress version. */
 			$compat = '<br />' . sprintf( __( 'Compatibility with WordPress %s: 100%% (according to its author)' ), $cur_wp_version );
 		} else {
