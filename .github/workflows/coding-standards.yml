@@ -22,6 +22,8 @@ jobs:
   phpcs:
     name: Check PHP coding standards
     runs-on: ubuntu-latest
+    continue-on-error: false
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

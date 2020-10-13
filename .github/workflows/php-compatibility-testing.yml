@@ -22,6 +22,7 @@ jobs:
   php-comatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
+    continue-on-error: false
 
     steps:
       - name: Checkout repository
