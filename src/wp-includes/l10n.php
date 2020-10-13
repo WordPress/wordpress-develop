@@ -762,14 +762,16 @@ function load_textdomain( $domain, $mofile ) {
  * Unload translations for a text domain.
  *
  * @since 3.0.0
+ * @since 5.6.0 Added the `$reloadable` parameter.
  *
  * @global MO[] $l10n          An array of all currently loaded text domains.
  * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
  *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @param string $domain     Text domain. Unique identifier for retrieving translated strings.
+ * @param bool   $reloadable Whether this textdomain should be loaded JIT again.
  * @return bool Whether textdomain was unloaded.
  */
-function unload_textdomain( $domain ) {
+function unload_textdomain( $domain, $reloadable = false ) {
 	global $l10n, $l10n_unloaded;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -785,7 +787,9 @@ function unload_textdomain( $domain ) {
 	$plugin_override = apply_filters( 'override_unload_textdomain', false, $domain );
 
 	if ( $plugin_override ) {
-		$l10n_unloaded[ $domain ] = true;
+		if ( ! $reloadable ) {
+			$l10n_unloaded[ $domain ] = true;
+		}
 
 		return true;
 	}
@@ -802,7 +806,9 @@ function unload_textdomain( $domain ) {
 	if ( isset( $l10n[ $domain ] ) ) {
 		unset( $l10n[ $domain ] );
 
-		$l10n_unloaded[ $domain ] = true;
+		if ( ! $reloadable ) {
+			$l10n_unloaded[ $domain ] = true;
+		}
 
 		return true;
 	}

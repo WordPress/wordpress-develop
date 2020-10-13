@@ -200,7 +200,7 @@ class WP_Locale_Switcher {
 				continue;
 			}
 
-			unload_textdomain( $domain );
+			unload_textdomain( $domain, true );
 			get_translations_for_domain( $domain );
 		}
 	}
