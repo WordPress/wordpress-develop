@@ -176,8 +176,7 @@ else :
 
 <tr class="option-site-visibility">
 <th scope="row"><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </th>
-<td>
-<fieldset><legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </span></legend>
+<td><fieldset><legend class="screen-reader-text"><span><?php has_action( 'blog_privacy_selector' ) ? _e( 'Site visibility' ) : _e( 'Search engine visibility' ); ?> </span></legend>
 <?php if ( has_action( 'blog_privacy_selector' ) ) : ?>
 	<input id="blog-public" type="radio" name="blog_public" value="1" <?php checked( '1', get_option( 'blog_public' ) ); ?> />
 	<label for="blog-public"><?php _e( 'Allow search engines to index this site' ); ?></label><br/>
@@ -205,12 +204,15 @@ else :
 	<?php _e( 'Discourage search engines from indexing this site' ); ?></label>
 	<p class="description"><?php _e( 'It is up to search engines to honor this request.' ); ?></p>
 <?php endif; ?>
-</fieldset>
-<fieldset><legend class="screen-reader-text"><span><?php _e( 'Media search engine visibility' ); ?> </span></legend>
+</fieldset></td>
+</tr>
+
+<tr class="option-media-visibility">
+<th scope="row"><?php _e( 'Media search engine visibility' ); ?> </th>
+<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Media search engine visibility' ); ?> </span></legend>
 <label for="media_search_engine_visibility"><input name="media_search_engine_visibility" type="checkbox" id="media_search_engine_visibility" value="0" <?php checked( '0', get_option( 'media_search_engine_visibility' ) ); ?> />
 <?php _e( 'Discourage search engines from displaying large previews of this site&#8217;s media' ); ?></label>
-</fieldset>
-</td>
+</fieldset></td>
 </tr>
 
 <?php do_settings_fields( 'reading', 'default' ); ?>
