@@ -874,6 +874,10 @@ function upgrade_all() {
 		upgrade_550();
 	}
 
+	if ( $wp_current_db_version < 49138 ) {
+		upgrade_560();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2233,6 +2237,18 @@ function upgrade_550() {
 	if ( $wp_current_db_version < 48748 ) {
 		update_option( 'finished_updating_comment_type', 0 );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 5.6.0.
+ *
+ * @ignore
+ * @since 5.6.0
+ */
+function upgrade_560() {
+	if ( false === get_option( 'media_search_engine_visibility' ) ) {
+		update_option( 'media_search_engine_visibility', '1' );
 	}
 }
 
