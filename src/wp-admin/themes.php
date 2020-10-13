@@ -595,7 +595,7 @@ if ( ! is_multisite() && $broken_themes ) {
 	</tr>
 	<?php foreach ( $broken_themes as $broken_theme ) : ?>
 		<tr>
-			<td><?php echo $broken_theme->get( 'Name' ) ? $broken_theme->display( 'Name' ) : esc_html( $broken_theme->get_stylesheet() ); ?></td>
+			<td><?php echo esc_html( $broken_theme->get( 'Name' ) ? (string) $broken_theme->display( 'Name' ) : $broken_theme->get_stylesheet() ); ?></td>
 			<td><?php echo $broken_theme->errors()->get_error_message(); ?></td>
 			<?php
 			if ( $can_resume ) {
@@ -635,7 +635,7 @@ if ( ! is_multisite() && $broken_themes ) {
 			}
 
 			if ( $can_install && 'theme_no_parent' === $broken_theme->errors()->get_error_code() ) {
-				$parent_theme_name = $broken_theme->get( 'Template' );
+				$parent_theme_name = (string) $broken_theme->get( 'Template' );
 				$parent_theme      = themes_api( 'theme_information', array( 'slug' => urlencode( $parent_theme_name ) ) );
 
 				if ( ! is_wp_error( $parent_theme ) ) {
