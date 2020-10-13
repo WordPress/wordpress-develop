@@ -591,7 +591,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
-		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true );
+		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 
@@ -663,6 +663,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		$request->set_param( 'context', 'edit' );
+
+		/** This filter is documented in wp-includes/post.php */
+		do_action( 'wp_after_insert_post', $post_id, $post, false );
 
 		/**
 		 * Fires after a single post is completely created or updated via the REST API.
@@ -758,7 +761,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
-		$post_id = wp_update_post( wp_slash( (array) $post ), true );
+		$post_id = wp_update_post( wp_slash( (array) $post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 			if ( 'db_update_error' === $post_id->get_error_code() ) {
@@ -824,6 +827,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$response = $this->prepare_item_for_response( $post, $request );
 			return rest_ensure_response( $response );
 		}
+
+		/** This filter is documented in wp-includes/post.php */
+		do_action( 'wp_after_insert_post', $post_id, $post, true );
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );

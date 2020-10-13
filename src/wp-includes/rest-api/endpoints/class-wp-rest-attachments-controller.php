@@ -180,6 +180,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		$request->set_param( 'context', 'edit' );
 
+		/** This filter is documented in wp-includes/post.php */
+		do_action( 'wp_after_insert_post', $request['id'], $attachment, false );
+
 		/**
 		 * Fires after a single attachment is completely created or updated via the REST API.
 		 *
@@ -270,7 +273,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// $post_parent is inherited from $attachment['post_parent'].
-		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true );
+		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -341,6 +344,9 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		$request->set_param( 'context', 'edit' );
+
+		/** This filter is documented in wp-includes/post.php */
+		do_action( 'wp_after_insert_post', $request['id'], $attachment, true );
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, false );
