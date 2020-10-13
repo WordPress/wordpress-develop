@@ -25,7 +25,7 @@ jobs:
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
   # - Sets up caching for NPM.
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress
@@ -67,7 +67,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      - name: Install NPM
+      - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
           node-version: 12
@@ -99,7 +99,7 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
   #   if it was stored successfully).
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired)
@@ -150,7 +150,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      - name: Install NPM
+      - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
           node-version: 12
