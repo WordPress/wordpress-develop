@@ -4313,11 +4313,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 *
 		 * @since 5.6.0
 		 *
-		 * @param int     $post_id Post ID.
+		 * @param int     $post_ID Post ID.
 		 * @param WP_Post $post    Post object.
 		 * @param bool    $update  Whether this is an existing post being updated.
 		 */
-		do_action( 'wp_after_insert_post', $post_id, $post, $update );
+		do_action( 'wp_after_insert_post', $post_ID, $post, $update );
 	}
 
 	return $post_ID;
