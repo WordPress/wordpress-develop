@@ -174,6 +174,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37997
+	 * @ticket 39210
 	 */
 	public function test_plugin_translation_after_switching_locale_twice() {
 		require_once DIR_TESTDATA . '/plugins/internationalized-plugin.php';
@@ -187,7 +188,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		restore_current_locale();
 
 		$this->assertSame( 'Das ist ein Dummy Plugin', $expected_de_de );
-		$this->assertSame( 'This is a dummy plugin', $expected_es_es );
+		$this->assertSame( 'Este es un plugin falso', $expected_es_es );
 	}
 
 	/**
