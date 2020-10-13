@@ -103,9 +103,10 @@ jobs:
   # _ Installs NPM dependencies.
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired)
+  # - Logs Docker debug information (about both the Docker installation within the runner)
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs general debug information.
+  # - Logs WordPress Docker container debug information.
   # - Logs the running Docker containers.
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)  # - Install WordPress inside the WordPress Docker container.
   # - Install WordPress within the Docker container.
@@ -189,6 +190,11 @@ jobs:
             docker-compose run --rm php composer install
           fi
 
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
       - name: Start Docker environment
         run: |
           npm run env:start
@@ -211,7 +217,7 @@ jobs:
       - name: Log running Docker containers
         run: docker ps -a
 
-      - name: Docker debug information
+      - name: WordPress Docker container debug information
         run: |
           docker -v
           docker-compose -v
