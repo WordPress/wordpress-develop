@@ -57,7 +57,7 @@ function wp_robots() {
 }
 
 /**
- * Adds noindex to the robots meta tag if required by the blog configuration.
+ * Adds noindex to the robots meta tag if required by the site configuration.
  *
  * If a blog is marked as not being public then noindex will be output to
  * tell web robots not to index the page content. Add this to the
@@ -68,6 +68,7 @@ function wp_robots() {
  *     add_filter( 'wp_robots', 'wp_robots_noindex' );
  *
  * @since 5.6.0
+ * @see wp_robots_no_robots()
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.
@@ -109,8 +110,8 @@ function wp_robots_no_robots( array $robots ) {
 /**
  * Adds noindex and noarchive to the robots meta tag.
  *
- * This directive tells web robots not to index or archive the page content and is
- * recommended to be used for sensitive pages.
+ * This directive tells web robots not to index or archive the page content and
+ * is recommended to be used for sensitive pages.
  *
  * Typical usage is as a {@see 'wp_robots'} callback:
  *
@@ -124,6 +125,28 @@ function wp_robots_no_robots( array $robots ) {
 function wp_robots_sensitive_page( array $robots ) {
 	$robots['noindex']   = true;
 	$robots['noarchive'] = true;
+	return $robots;
+}
+
+/**
+ * Adds 'max-image-preview:large' to the robots meta tag if required by the
+ * site configuration.
+ *
+ * Typical usage is as a {@see 'wp_robots'} callback:
+ *
+ *     add_filter( 'wp_robots', 'wp_robots_media_search_engine_visibility' );
+ *
+ * @since 5.6.0
+ * @see wp_robots_max_image_preview()
+ *
+ * @param array $robots Associative array of robots directives.
+ * @return array Filtered robots directives.
+ */
+function wp_robots_media_search_engine_visibility( array $robots ) {
+	if ( get_option( 'media_search_engine_visibility' ) ) {
+		return wp_robots_max_image_preview( $robots );
+	}
+
 	return $robots;
 }
 

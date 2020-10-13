@@ -139,6 +139,21 @@ class Tests_Robots extends WP_UnitTestCase {
 	/**
 	 * @ticket 99999
 	 */
+	public function test_wp_robots_media_search_engine_visibility() {
+		add_filter( 'wp_robots', 'wp_robots_media_search_engine_visibility' );
+
+		update_option( 'media_search_engine_visibility', '1' );
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( "'max-image-preview:large'", $output );
+
+		update_option( 'media_search_engine_visibility', '0' );
+		$output = get_echo( 'wp_robots' );
+		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * @ticket 99999
+	 */
 	public function test_wp_robots_max_image_preview() {
 		add_filter( 'wp_robots', 'wp_robots_max_image_preview' );
 
