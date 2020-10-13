@@ -4721,6 +4721,7 @@ function sanitize_option( $option, $value ) {
 			break;
 
 		case 'blog_public':
+		case 'media_search_engine_visibility':
 			// This is the value if the settings checkbox is not checked on POST. Don't rely on this.
 			if ( null === $value ) {
 				$value = 1;
