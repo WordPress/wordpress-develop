@@ -1,15 +1,14 @@
 name: PHPUnit Tests
 
 on:
+  # Anytime a branch or tag is created.
+  create:
+  # Anytime a commit is pushed.
   push:
+  # Anytime a pull request is opened.
   pull_request:
+  # Once weekly On Sundays at 00:00 UTC.
   schedule:
-    branches:
-      - '5.*'
-      - '4.*'
-      - '3.9'
-      - '3.8'
-      - '3.7'
     - cron: '0 0 * * 0'
 
 env:
