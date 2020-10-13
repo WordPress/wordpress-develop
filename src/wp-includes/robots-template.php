@@ -143,7 +143,7 @@ function wp_robots_sensitive_page( array $robots ) {
  * @return array Filtered robots directives.
  */
 function wp_robots_media_search_engine_visibility( array $robots ) {
-	if ( get_option( 'media_search_engine_visibility' ) ) {
+	if ( get_option( 'blog_public' ) && get_option( 'media_search_engine_visibility' ) ) {
 		return wp_robots_max_image_preview( $robots );
 	}
 
