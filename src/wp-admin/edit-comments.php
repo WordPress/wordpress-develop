@@ -35,7 +35,7 @@ if ( $doaction ) {
 	} elseif ( isset( $_REQUEST['ids'] ) ) {
 		$comment_ids = array_map( 'absint', explode( ',', $_REQUEST['ids'] ) );
 	} elseif ( wp_get_referer() ) {
-		wp_safe_redirect( wp_get_referer() );
+		wp_safe_redirect( (string) wp_get_referer() );
 		exit;
 	}
 
