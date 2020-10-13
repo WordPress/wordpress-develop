@@ -144,7 +144,7 @@ if ( isset( $_POST['savewidget'] ) || isset( $_POST['removewidget'] ) ) {
 	$number = isset( $_POST['multi_number'] ) ? (int) $_POST['multi_number'] : '';
 	if ( $number ) {
 		foreach ( $_POST as $key => $val ) {
-			if ( is_array( $val ) && preg_match( '/__i__|%i%/', key( $val ) ) ) {
+			if ( is_array( $val ) && preg_match( '/__i__|%i%/', (string) key( $val ) ) ) {
 				$_POST[ $key ] = array( $number => array_shift( $val ) );
 				break;
 			}
@@ -545,7 +545,7 @@ foreach ( $theme_sidebars as $sidebar => $registered_sidebar ) {
 	<div class="<?php echo esc_attr( $wrap_class ); ?>">
 		<?php
 		// Show the control forms for each of the widgets in this sidebar.
-		wp_list_widget_controls( $sidebar, $registered_sidebar['name'] );
+		wp_list_widget_controls( (string) $sidebar, $registered_sidebar['name'] );
 		?>
 	</div>
 	<?php
