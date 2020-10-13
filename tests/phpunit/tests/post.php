@@ -929,6 +929,26 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51320
+	 */
+	function test_create_post_with_taxonomies() {
+		$post_type = 'test_post_type';
+		$tax1      = 'test_tax1';
+		$tax2      = 'test_tax2';
+
+		register_post_type( $post_type, array( 'taxonomies' => array( $tax1, $tax2 ) ) );
+		register_taxonomy( $tax1, $post_type, array( 'default_term' => 'term_1' ) );
+		register_taxonomy( $tax2, $post_type, array( 'default_term' => 'term_2' ) );
+
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
+
+		$taxonomies = get_post_taxonomies( $post_id );
+
+		$this->assertContains( $tax1, $taxonomies );
+		$this->assertContains( $tax2, $taxonomies );
+	}
+
+	/**
 	 * @ticket 21212
 	 */
 	function test_utf8mb3_post_saves_with_emoji() {
