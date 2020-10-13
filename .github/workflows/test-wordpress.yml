@@ -25,7 +25,7 @@ jobs:
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
   # - Sets up caching for NPM.
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress
@@ -56,7 +56,7 @@ jobs:
           php -i
           locale -a
 
-      - name: Cache Node modules
+      - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -67,7 +67,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      - name: Install NPM
+      - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
           node-version: 12
@@ -99,13 +99,14 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Sets up caching for the NPM packages for the package-lock.json file (the cache from the previous job will be used
   #   if it was stored successfully).
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired)
+  # - Logs Docker debug information (about both the Docker installation within the runner)
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs general debug information.
+  # - Logs WordPress Docker container debug information.
   # - Logs the running Docker containers.
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)  # - Install WordPress inside the WordPress Docker container.
   # - Install WordPress within the Docker container.
@@ -150,7 +151,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      - name: Install NPM
+      - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
           node-version: 12
@@ -189,6 +190,11 @@ jobs:
             docker-compose run --rm php composer install
           fi
 
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
       - name: Start Docker environment
         run: |
           npm run env:start
@@ -211,7 +217,7 @@ jobs:
       - name: Log running Docker containers
         run: docker ps -a
 
-      - name: Docker debug information
+      - name: WordPress Docker container debug information
         run: |
           docker -v
           docker-compose -v

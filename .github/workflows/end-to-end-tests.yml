@@ -15,7 +15,7 @@ jobs:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
   # - Sets up caching for NPM.
-  # - Installs NPM 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
@@ -48,7 +48,7 @@ jobs:
           php -i
           locale -a
 
-      - name: Cache Node modules
+      - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
@@ -59,7 +59,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-npm-
 
-      - name: Install NPM
+      - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
           node-version: 12
