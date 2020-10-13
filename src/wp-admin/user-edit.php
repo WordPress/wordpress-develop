@@ -181,7 +181,7 @@ switch ( $action ) {
 	default:
 		$profileuser = get_user_to_edit( $user_id );
 
-		if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		if ( empty( $profileuser->ID ) || ! current_user_can( 'edit_user', $user_id ) ) {
 			wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
 		}
 
@@ -419,7 +419,7 @@ endif;
 			$user_role  = reset( $user_roles );
 
 			// Print the full list of roles with the primary one selected.
-			wp_dropdown_roles( $user_role );
+			wp_dropdown_roles( (string) $user_role );
 
 			// Print the 'no role' option. Make it selected if the user has no role yet.
 			if ( $user_role ) {
@@ -809,7 +809,7 @@ endif;
 	<?php endif; ?>
 
 <input type="hidden" name="action" value="update" />
-<input type="hidden" name="user_id" id="user_id" value="<?php echo esc_attr( $user_id ); ?>" />
+<input type="hidden" name="user_id" id="user_id" value="<?php echo (int) $user_id; ?>" />
 
 		<?php submit_button( IS_PROFILE_PAGE ? __( 'Update Profile' ) : __( 'Update User' ) ); ?>
 
