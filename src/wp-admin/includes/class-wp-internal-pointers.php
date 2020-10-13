@@ -48,7 +48,7 @@ final class WP_Internal_Pointers {
 		 *     )
 		 */
 		$registered_pointers = array(
-			// None currently.
+			'index.php' => 'wp560_media_search_engine_visibility',
 		);
 
 		// Check if screen related pointer is registered.
@@ -158,6 +158,37 @@ final class WP_Internal_Pointers {
 	public static function pointer_wp390_widgets() {}
 	public static function pointer_wp410_dfw() {}
 	public static function pointer_wp496_privacy() {}
+
+	/**
+	 * Displays a pointer for the new media_search_engine_visibility option.
+	 *
+	 * @since 5.6.0
+	 */
+	public static function pointer_wp560_media_search_engine_visibility() {
+		$content  = '<h3>' . __( 'Media search engine visibility' ) . '</h3>';
+		$content .= '<p>' . __( 'A new <strong>setting</strong> has been added to control whether search engines should display large previews of your site&#8217;s images and videos.' ) . '</p>';
+		$content .= '<p>' . __( 'By default, search engines are allowed to do so. You can change this behavior under <strong>Settings &gt; Reading</strong>.' ) . '</p>';
+
+		if ( is_rtl() ) {
+			$position = array(
+				'edge'  => 'right',
+				'align' => 'bottom',
+			);
+		} else {
+			$position = array(
+				'edge'  => 'left',
+				'align' => 'bottom',
+			);
+		}
+
+		$js_args = array(
+			'content'      => $content,
+			'position'     => $position,
+			'pointerClass' => 'wp-pointer arrow-bottom',
+			'pointerWidth' => 420,
+		);
+		self::print_js( 'wp560_media_search_engine_visibility', '#menu-settings', $js_args );
+	}
 
 	/**
 	 * Prevents new users from seeing existing 'new feature' pointers.
