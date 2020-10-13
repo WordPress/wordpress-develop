@@ -1,9 +1,11 @@
-name: JavaScript Standards & Tests
+name: Test NPM on Windows
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
-  # Runs the QUnit tests for WordPress.
+  # Verifies that installing NPM dependencies and building WordPress works on Windows.
   #
   # Performs the following steps:
   # - Cancels all previous workflow runs that have not completed.
@@ -11,13 +13,11 @@ jobs:
   # - Logs debug information about the runner container.
   # - Sets up caching for NPM.
   # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
-  # - Logs updated debug information.
   # _ Installs NPM dependencies.
-  # - Run the WordPress JavaScript coding standards checks and QUnit tests.
-  # - todo: Configure Slack notifications for failing tests.
-  test-js:
-    name: QUnit Tests
-    runs-on: ubuntu-latest
+  # - Builds WordPress to run from the `build` directory.
+  test-npm:
+    name: Tests NPM on Windows
+    runs-on: windows-latest
     steps:
       - name: Cancel previous runs of this workflow
         uses: styfle/cancel-workflow-action@0.5.0
@@ -31,16 +31,20 @@ jobs:
         run: |
           npm --version
           node --version
+          curl --version
           git --version
           svn --version
+
+      - name: Get NPM cache directory
+        id: npm-cache
+        run: echo "::set-output name=dir::$(npm config get cache)"
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
+          path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
@@ -50,13 +54,8 @@ jobs:
         with:
           node-version: 12
 
-      - name: Log debug information
-        run: |
-          npm --version
-          node --version
-
       - name: Install Dependencies
         run: npm ci
 
-      - name: Run QUnit tests
-        run: npm run grunt travis:js
+      - name: Build WordPress
+        run: npm run build

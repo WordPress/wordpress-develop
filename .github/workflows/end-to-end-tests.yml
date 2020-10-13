@@ -48,7 +48,7 @@ jobs:
           php -i
           locale -a
 
-      - name: Cache Node modules
+      - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
           cache-name: cache-node-modules
