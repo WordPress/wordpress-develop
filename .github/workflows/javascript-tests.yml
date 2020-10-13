@@ -1,6 +1,8 @@
 name: JavaScript Standards & Tests
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   # Runs the QUnit tests for WordPress.

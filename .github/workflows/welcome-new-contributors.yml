@@ -2,7 +2,8 @@ name: Welcome New Contributors
 
 on:
   pull_request:
-    types: [ opened ]
+    types:
+      - opened
 
 jobs:
   post-welcome-message:
