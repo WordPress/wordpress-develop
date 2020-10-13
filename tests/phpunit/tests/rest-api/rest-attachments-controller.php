@@ -583,6 +583,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'image/jpeg', $data['mime_type'] );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_get_item_sizes() {
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -604,12 +607,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$original_image_src = wp_get_attachment_image_src( $attachment_id, 'full' );
 		remove_image_size( 'rest-api-test' );
 
+		$this->assertInternalType( 'array', $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
 		$this->assertSame( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
 		$this->assertSame( 'image/jpeg', $data['media_details']['sizes']['rest-api-test']['mime_type'] );
 		$this->assertSame( $original_image_src[0], $data['media_details']['sizes']['full']['source_url'] );
 		$this->assertSame( 'image/jpeg', $data['media_details']['sizes']['full']['mime_type'] );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_get_item_sizes_with_no_url() {
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -632,6 +639,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		remove_filter( 'wp_get_attachment_image_src', '__return_false' );
 		remove_image_size( 'rest-api-test' );
 
+		$this->assertInternalType( 'array', $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
 		$this->assertFalse( isset( $data['media_details']['sizes']['rest-api-test']['source_url'] ) );
 	}
 
@@ -1942,6 +1950,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
 	 */
 	public function test_edit_image() {
 		wp_set_current_user( self::$superadmin_id );

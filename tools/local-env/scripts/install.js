@@ -14,6 +14,7 @@ wp_cli( `config set WP_DEBUG ${process.env.LOCAL_WP_DEBUG} --raw` );
 wp_cli( `config set WP_DEBUG_LOG ${process.env.LOCAL_WP_DEBUG_LOG} --raw` );
 wp_cli( `config set WP_DEBUG_DISPLAY ${process.env.LOCAL_WP_DEBUG_DISPLAY} --raw` );
 wp_cli( `config set SCRIPT_DEBUG ${process.env.LOCAL_SCRIPT_DEBUG} --raw` );
+wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE}` );
 
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
 renameSync( 'src/wp-config.php', 'wp-config.php' );

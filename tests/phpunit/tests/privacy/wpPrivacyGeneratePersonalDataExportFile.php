@@ -163,8 +163,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function test_rejects_remove_requests() {
 		$request_id = wp_create_user_request( 'removal-requester@example.com', 'remove_personal_data' );
 
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating export file."}' );
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -174,8 +174,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @ticket 44233
 	 */
 	public function test_invalid_request_id() {
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating export file."}' );
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( 123456789 );
 	}
 
@@ -194,8 +194,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 			)
 		);
 
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating export file."}' );
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -208,8 +208,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		// Create a file with the folder name to ensure the function cannot create a folder.
 		touch( untrailingslashit( self::$exports_dir ) );
 
-		$this->setExpectedException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to create export folder."}' );
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to create user privacy export folder."}' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 

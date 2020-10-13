@@ -1407,6 +1407,9 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                              to the user will *not* be trashed or deleted. If not set (the default),
  *                                              posts are trashed if post_type_supports('author'). Otherwise posts
  *                                              are not trashed or deleted. Default null.
+ *     @type array       $template              Array of blocks to use as the default initial state for an editor
+ *                                              session. Each item should be an array containing block name and
+ *                                              optional attributes.
  *     @type bool        $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
  *                                              "built-in" post_type. Default false.
  *     @type string      $_edit_link            FOR INTERNAL USE ONLY! URL segment to use for edit link of
@@ -3187,6 +3190,7 @@ function wp_trash_post( $post_id = 0 ) {
 	 * @param WP_Post   $post  Post object.
 	 */
 	$check = apply_filters( 'pre_trash_post', null, $post );
+
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -3229,11 +3233,13 @@ function wp_trash_post( $post_id = 0 ) {
 }
 
 /**
- * Restore a post or page from the Trash.
+ * Restores a post from the Trash.
  *
  * @since 2.9.0
+ * @since 5.6.0 An untrashed post is now returned to 'draft' status by default, except for
+ *              attachments which are returned to their original 'inherit' status.
  *
- * @param int $post_id Optional. Post ID. Default is ID of the global $post.
+ * @param int $post_id Optional. Post ID. Default is ID of the global `$post`.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_untrash_post( $post_id = 0 ) {
@@ -3243,19 +3249,25 @@ function wp_untrash_post( $post_id = 0 ) {
 		return $post;
 	}
 
+	$post_id = $post->ID;
+
 	if ( 'trash' !== $post->post_status ) {
 		return false;
 	}
+
+	$previous_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
 
 	/**
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param bool|null $untrash Whether to go forward with untrashing.
-	 * @param WP_Post   $post    Post object.
+	 * @param bool|null $untrash         Whether to go forward with untrashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post at the point where it was trashed.
 	 */
-	$check = apply_filters( 'pre_untrash_post', null, $post );
+	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -3264,12 +3276,31 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrash_post', $post_id );
+	do_action( 'untrash_post', $post_id, $previous_status );
 
-	$post_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
+	$new_status = ( 'attachment' === $post->post_type ) ? 'inherit' : 'draft';
+
+	/**
+	 * Filters the status that a post gets assigned when it is restored from the trash (untrashed).
+	 *
+	 * By default posts that are restored will be assigned a status of 'draft'. Return the value of `$previous_status`
+	 * in order to assign the status that the post had before it was trashed. The `wp_untrash_post_set_previous_status()`
+	 * function is available for this.
+	 *
+	 * Prior to WordPress 5.6.0, restored posts were always assigned their original status.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $new_status      The new status of the post being restored.
+	 * @param int    $post_id         The ID of the post being restored.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
+	 */
+	$post_status = apply_filters( 'wp_untrash_post_status', $new_status, $post_id, $previous_status );
 
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
@@ -3291,10 +3322,12 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrashed_post', $post_id );
+	do_action( 'untrashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3313,7 +3346,8 @@ function wp_trash_post_comments( $post = null ) {
 	global $wpdb;
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -3329,7 +3363,8 @@ function wp_trash_post_comments( $post = null ) {
 	do_action( 'trash_post_comments', $post_id );
 
 	$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
-	if ( empty( $comments ) ) {
+
+	if ( ! $comments ) {
 		return;
 	}
 
@@ -3372,7 +3407,8 @@ function wp_untrash_post_comments( $post = null ) {
 	global $wpdb;
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -3380,7 +3416,7 @@ function wp_untrash_post_comments( $post = null ) {
 
 	$statuses = get_post_meta( $post_id, '_wp_trash_meta_comments_status', true );
 
-	if ( empty( $statuses ) ) {
+	if ( ! $statuses ) {
 		return true;
 	}
 
@@ -4128,7 +4164,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		}
 
 		if ( $thumbnail_support ) {
-			$thumbnail_id = intval( $postarr['_thumbnail_id'] );
+			$thumbnail_id = (int) $postarr['_thumbnail_id'];
 			if ( -1 === $thumbnail_id ) {
 				delete_post_thumbnail( $post_ID );
 			} else {
@@ -4367,12 +4403,40 @@ function wp_publish_post( $post ) {
 	global $wpdb;
 
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	if ( 'publish' === $post->post_status ) {
 		return;
+	}
+
+	// Ensure at least one term is applied for taxonomies with a default term.
+	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
+		// Skip taxonomy if no default term is set.
+		if (
+			'category' !== $taxonomy &&
+			empty( $tax_object->default_term )
+		) {
+			continue;
+		}
+
+		// Do not modify previously set terms.
+		if ( ! empty( get_the_terms( $post, $taxonomy ) ) ) {
+			continue;
+		}
+
+		if ( 'category' === $taxonomy ) {
+			$default_term_id = (int) get_option( 'default_category', 0 );
+		} else {
+			$default_term_id = (int) get_option( 'default_term_' . $taxonomy, 0 );
+		}
+
+		if ( ! $default_term_id ) {
+			continue;
+		}
+		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
@@ -4412,7 +4476,7 @@ function wp_publish_post( $post ) {
 function check_and_publish_future_post( $post_id ) {
 	$post = get_post( $post_id );
 
-	if ( empty( $post ) ) {
+	if ( ! $post ) {
 		return;
 	}
 
@@ -4558,7 +4622,7 @@ function wp_unique_post_slug( $slug, $post_ID, $post_status, $post_type, $post_p
 		// Prevent new post slugs that could result in URLs that conflict with date archives.
 		$conflicts_with_date_archive = false;
 		if ( 'post' === $post_type && ( ! $post || $post->post_name !== $slug ) && preg_match( '/^[0-9]+$/', $slug ) ) {
-			$slug_num = intval( $slug );
+			$slug_num = (int) $slug;
 
 			if ( $slug_num ) {
 				$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
@@ -4867,6 +4931,7 @@ function add_ping( $post_id, $uri ) {
 	global $wpdb;
 
 	$post = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -4943,6 +5008,7 @@ function get_enclosed( $post_id ) {
  */
 function get_pung( $post_id ) {
 	$post = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -5229,7 +5295,7 @@ function get_page_children( $page_id, $pages ) {
 	// Build a hash of ID -> children.
 	$children = array();
 	foreach ( (array) $pages as $page ) {
-		$children[ intval( $page->post_parent ) ][] = $page;
+		$children[ (int) $page->post_parent ][] = $page;
 	}
 
 	$page_list = array();
@@ -5273,7 +5339,7 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
 
 	$children = array();
 	foreach ( (array) $pages as $p ) {
-		$parent_id                = intval( $p->post_parent );
+		$parent_id                = (int) $p->post_parent;
 		$children[ $parent_id ][] = $p;
 	}
 
@@ -5482,7 +5548,7 @@ function get_pages( $args = array() ) {
 		if ( ! empty( $post_authors ) ) {
 			foreach ( $post_authors as $post_author ) {
 				// Do we have an author id or an author login?
-				if ( 0 == intval( $post_author ) ) {
+				if ( 0 == (int) $post_author ) {
 					$post_author = get_user_by( 'login', $post_author );
 					if ( empty( $post_author ) ) {
 						continue;
@@ -5855,6 +5921,8 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
  *
  * @since 4.9.7
  *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
  * @param int    $post_id      Attachment ID.
  * @param array  $meta         The attachment's meta data.
  * @param array  $backup_sizes The meta data for the attachment's backup images.
@@ -5960,12 +6028,11 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
 
-	$post = get_post( $attachment_id );
-	if ( ! $post ) {
+	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
+
+	if ( ! $data ) {
 		return false;
 	}
-
-	$data = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 
 	if ( $unfiltered ) {
 		return $data;
@@ -5980,7 +6047,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	 *                                  if the object does not exist.
 	 * @param int        $attachment_id Attachment post ID.
 	 */
-	return apply_filters( 'wp_get_attachment_metadata', $data, $post->ID );
+	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
 }
 
 /**
@@ -5996,6 +6063,7 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6030,6 +6098,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6063,7 +6132,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	 * If any of the above options failed, Fallback on the GUID as used pre-2.7,
 	 * not recommended to rely upon this.
 	 */
-	if ( empty( $url ) ) {
+	if ( ! $url ) {
 		$url = get_the_guid( $post->ID );
 	}
 
@@ -6082,7 +6151,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	 */
 	$url = apply_filters( 'wp_get_attachment_url', $url, $post->ID );
 
-	if ( empty( $url ) ) {
+	if ( ! $url ) {
 		return false;
 	}
 
@@ -6100,6 +6169,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 function wp_get_attachment_caption( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6132,6 +6202,7 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 function wp_get_attachment_thumb_file( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6171,6 +6242,7 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6214,11 +6286,13 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  */
 function wp_attachment_is( $type, $post = null ) {
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return false;
 	}
 
 	$file = get_attached_file( $post->ID );
+
 	if ( ! $file ) {
 		return false;
 	}
@@ -6228,6 +6302,7 @@ function wp_attachment_is( $type, $post = null ) {
 	}
 
 	$check = wp_check_filetype( $file );
+
 	if ( empty( $check['ext'] ) ) {
 		return false;
 	}
@@ -6798,7 +6873,8 @@ function clean_post_cache( $post ) {
 	}
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -7095,7 +7171,7 @@ function wp_check_post_hierarchy_for_loops( $post_parent, $post_ID ) {
 	}
 
 	// New post can't cause a loop.
-	if ( empty( $post_ID ) ) {
+	if ( ! $post_ID ) {
 		return $post_parent;
 	}
 
@@ -7444,7 +7520,7 @@ function wp_get_original_image_url( $attachment_id ) {
 
 	$image_url = wp_get_attachment_url( $attachment_id );
 
-	if ( empty( $image_url ) ) {
+	if ( ! $image_url ) {
 		return false;
 	}
 
@@ -7465,4 +7541,20 @@ function wp_get_original_image_url( $attachment_id ) {
 	 * @param int    $attachment_id      Attachment ID.
 	 */
 	return apply_filters( 'wp_get_original_image_url', $original_image_url, $attachment_id );
+}
+
+/**
+ * Filter callback which sets the status of an untrashed post to its previous status.
+ *
+ * This can be used as a callback on the `wp_untrash_post_status` filter.
+ *
+ * @since 5.6.0
+ *
+ * @param string $new_status      The new status of the post being restored.
+ * @param int    $post_id         The ID of the post being restored.
+ * @param string $previous_status The status of the post at the point where it was trashed.
+ * @return string The new status of the post.
+ */
+function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
+	return $previous_status;
 }

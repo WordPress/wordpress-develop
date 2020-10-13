@@ -548,17 +548,14 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Test resetting Exif orientation data on rotate
 	 *
 	 * @ticket 37140
+	 * @requires function exif_read_data
 	 */
 	public function test_remove_orientation_data_on_rotate() {
-		if ( ! function_exists( 'exif_read_data' ) ) {
-			$this->markTestSkipped( 'This test requires the exif_read_data function.' );
-		}
-
 		$file = DIR_TESTDATA . '/images/test-image-upside-down.jpg';
 		$data = wp_read_image_metadata( $file );
 
 		// The orientation value 3 is equivalent to rotated upside down (180 degrees).
-		$this->assertSame( 3, intval( $data['orientation'] ), 'Orientation value read from does not match image file Exif data: ' . $file );
+		$this->assertSame( 3, (int) $data['orientation'], 'Orientation value read from does not match image file Exif data: ' . $file );
 
 		$temp_file = wp_tempnam( $file );
 		$image     = wp_get_image_editor( $file );
@@ -570,7 +567,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$data = wp_read_image_metadata( $ret['path'] );
 
 		// Make sure the image is no longer in The Upside Down Exif orientation.
-		$this->assertSame( 1, intval( $data['orientation'] ), 'Orientation Exif data was not updated after rotating image: ' . $file );
+		$this->assertSame( 1, (int) $data['orientation'], 'Orientation Exif data was not updated after rotating image: ' . $file );
 
 		// Remove both the generated file ending in .tmp and tmp.jpg due to wp_tempnam().
 		unlink( $temp_file );

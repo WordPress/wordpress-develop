@@ -376,6 +376,58 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @covers ::get_all_error_data
+	 */
+	public function test_get_all_error_data_with_code_and_no_errors_should_evaluate_as_empty_array() {
+		$this->assertSame( array(), $this->wp_error->get_all_error_data( 'code' ) );
+	}
+
+	/**
+	 * @covers ::get_all_error_data
+	 */
+	public function test_get_all_error_data_with_code_and_one_error_with_no_data_should_evaluate_as_empty_array() {
+		$this->wp_error->add( 'code', 'message' );
+
+		$this->assertSame( array(), $this->wp_error->get_all_error_data( 'code' ) );
+	}
+
+	/**
+	 * @covers ::get_all_error_data
+	 */
+	public function test_get_all_error_data_with_code_and_one_error_with_data_should_return_that_data() {
+		$expected = array( 'data-key' => 'data-value' );
+		$this->wp_error->add( 'code', 'message', $expected );
+
+		$actual = $this->wp_error->get_all_error_data( 'code' );
+		$this->assertCount( 1, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual[0] );
+	}
+
+	/**
+	 * @covers ::get_all_error_data
+	 */
+	public function test_get_all_error_data_with_code_and_multiple_errors_same_code_should_return_all_data() {
+		$this->wp_error->add( 'code', 'message', 'data' );
+		$this->wp_error->add( 'code', 'message2', 'data2' );
+		$this->wp_error->add( 'code2', 'message3', 'data3' );
+
+		$this->assertSame( array( 'data', 'data2' ), $this->wp_error->get_all_error_data( 'code' ) );
+	}
+
+	/**
+	 * @covers ::get_all_error_data
+	 */
+	public function test_get_all_error_data_should_handle_manipulation_of_error_data_property() {
+		$this->wp_error->add_data( 'data1', 'code' );
+		$this->wp_error->add_data( 'data2', 'code' );
+
+		$this->wp_error->error_data['code'] = 'dataX';
+
+		$this->assertSame( 'dataX', $this->wp_error->get_error_data( 'code' ) );
+		$this->assertSame( array( 'data1', 'dataX' ), $this->wp_error->get_all_error_data( 'code' ) );
+	}
+
+	/**
 	 * @covers ::has_errors
 	 */
 	public function test_has_errors_with_no_errors_returns_false() {
@@ -712,10 +764,68 @@ class Tests_WP_Error extends WP_UnitTestCase {
 	 */
 	public function test_remove_should_remove_the_error_data_associated_with_the_given_code() {
 		$this->wp_error->add( 'code', 'message', 'data' );
+		$this->wp_error->add( 'code', 'message', 'data2' );
 
 		$this->wp_error->remove( 'code' );
 
 		$this->assertEmpty( $this->wp_error->error_data );
+		$this->assertEmpty( $this->wp_error->get_error_data( 'code' ) );
+		$this->assertEmpty( $this->wp_error->get_all_error_data( 'code' ) );
 	}
 
+	/**
+	 * @covers ::merge_from()
+	 */
+	public function test_merge_from_should_copy_other_error_into_instance() {
+		$this->wp_error->add( 'code1', 'message1', 'data1' );
+
+		$other = new WP_Error( 'code1', 'message2', 'data2' );
+		$other->add( 'code2', 'message3' );
+		$this->wp_error->merge_from( $other );
+
+		$this->assertSame( array( 'message1', 'message2' ), $this->wp_error->get_error_messages( 'code1' ) );
+		$this->assertSame( 'data2', $this->wp_error->get_error_data( 'code1' ) );
+		$this->assertSame( array( 'data1', 'data2' ), $this->wp_error->get_all_error_data( 'code1' ) );
+		$this->assertSame( 'message3', $this->wp_error->get_error_message( 'code2' ) );
+	}
+
+	/**
+	 * @covers ::merge_from()
+	 */
+	public function test_merge_from_with_no_errors_should_not_add_to_instance() {
+		$other = new WP_Error();
+
+		$this->wp_error->merge_from( $other );
+
+		$this->assertFalse( $this->wp_error->has_errors() );
+	}
+
+	/**
+	 * @covers ::export_to()
+	 */
+	public function test_export_to_should_copy_instance_into_other_error() {
+		$other = new WP_Error();
+		$other->add( 'code1', 'message1', 'data1' );
+
+		$this->wp_error->add( 'code1', 'message2', 'data2' );
+		$this->wp_error->add( 'code2', 'message3' );
+
+		$this->wp_error->export_to( $other );
+
+		$this->assertSame( array( 'message1', 'message2' ), $other->get_error_messages( 'code1' ) );
+		$this->assertSame( 'data2', $other->get_error_data( 'code1' ) );
+		$this->assertSame( array( 'data1', 'data2' ), $other->get_all_error_data( 'code1' ) );
+		$this->assertSame( 'message3', $other->get_error_message( 'code2' ) );
+	}
+
+	/**
+	 * @covers ::export_to()
+	 */
+	public function test_export_to_with_no_errors_should_not_add_to_other_error() {
+		$other = new WP_Error();
+
+		$this->wp_error->export_to( $other );
+
+		$this->assertFalse( $other->has_errors() );
+	}
 }

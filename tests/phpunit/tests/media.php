@@ -934,7 +934,7 @@ VIDEO;
 	function test_wp_video_shortcode_youtube_remove_feature() {
 		$actual = wp_video_shortcode(
 			array(
-				'src' => 'https://www.youtube.com/watch?v=i_cVJgIz_Cs&feature=youtu.be',
+				'src' => 'https://www.youtube.com/watch?v=72xdCU__XCk&feature=youtu.be',
 			)
 		);
 
@@ -948,11 +948,11 @@ VIDEO;
 	function test_wp_video_shortcode_youtube_force_ssl() {
 		$actual = wp_video_shortcode(
 			array(
-				'src' => 'http://www.youtube.com/watch?v=i_cVJgIz_Cs',
+				'src' => 'http://www.youtube.com/watch?v=72xdCU__XCk',
 			)
 		);
 
-		$this->assertContains( 'src="https://www.youtube.com/watch?v=i_cVJgIz_Cs', $actual );
+		$this->assertContains( 'src="https://www.youtube.com/watch?v=72xdCU__XCk', $actual );
 	}
 
 	/**
@@ -962,11 +962,11 @@ VIDEO;
 	function test_wp_video_shortcode_vimeo_force_ssl_remove_query_args() {
 		$actual = wp_video_shortcode(
 			array(
-				'src' => 'http://vimeo.com/190372437?blah=meh',
+				'src' => 'http://vimeo.com/76979871?blah=meh',
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437', $actual );
+		$this->assertContains( 'src="https://vimeo.com/76979871', $actual );
 		$this->assertNotContains( 'blah=meh', $actual );
 	}
 
@@ -977,11 +977,11 @@ VIDEO;
 	function test_wp_video_shortcode_vimeo_adds_loop() {
 		$actual = wp_video_shortcode(
 			array(
-				'src' => 'http://vimeo.com/190372437',
+				'src' => 'http://vimeo.com/76979871',
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437?loop=0', $actual );
+		$this->assertContains( 'src="https://vimeo.com/76979871?loop=0', $actual );
 	}
 
 	/**
@@ -991,12 +991,12 @@ VIDEO;
 	function test_wp_video_shortcode_vimeo_force_adds_loop_true() {
 		$actual = wp_video_shortcode(
 			array(
-				'src'  => 'http://vimeo.com/190372437',
+				'src'  => 'http://vimeo.com/76979871',
 				'loop' => true,
 			)
 		);
 
-		$this->assertContains( 'src="https://vimeo.com/190372437?loop=1', $actual );
+		$this->assertContains( 'src="https://vimeo.com/76979871?loop=1', $actual );
 	}
 
 	/**
@@ -1430,7 +1430,7 @@ EOF;
 	}
 
 	/**
-	 * Helper function to get image size array from size "name"
+	 * Helper function to get image size array from size "name".
 	 */
 	function _get_image_size_array_from_meta( $image_meta, $size_name ) {
 		$array = false;
@@ -1441,6 +1441,10 @@ EOF;
 			} elseif ( isset( $image_meta['sizes'][ $size_name ]['width'] ) && isset( $image_meta['sizes'][ $size_name ]['height'] ) ) {
 				$array = array( $image_meta['sizes'][ $size_name ]['width'], $image_meta['sizes'][ $size_name ]['height'] );
 			}
+		}
+
+		if ( ! $array ) {
+			$this->fail( sprintf( "Could not retrieve image metadata for size '%s'.", $size_name ) );
 		}
 
 		return $array;
@@ -1463,6 +1467,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1510,6 +1515,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_no_date_uploads() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1566,6 +1572,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_with_edits() {
 		// For this test we're going to mock metadata changes from an edit.
@@ -1599,6 +1606,7 @@ EOF;
 
 	/**
 	 * @ticket 35106
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_with_absolute_path_in_meta() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1896,6 +1904,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_get_attachment_image_srcset() {
 		$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1986,6 +1995,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_sizes() {
 		// Test sizes against the default WP sizes.
@@ -2009,6 +2019,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_srcset_sizes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2170,6 +2181,7 @@ EOF;
 	/**
 	 * @ticket 35045
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_schemes() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2341,6 +2353,7 @@ EOF;
 	 * used in the output of `wp_get_attachment_image()`.
 	 *
 	 * @ticket 36246
+	 * @requires function imagejpeg
 	 */
 	function test_wp_get_attachment_image_should_use_wp_get_attachment_metadata() {
 		add_filter( 'wp_get_attachment_metadata', array( $this, '_filter_36246' ), 10, 2 );
@@ -2372,6 +2385,15 @@ EOF;
 			'mime-type' => 'image/jpg',
 		);
 		return $data;
+	}
+
+	/**
+	 * @ticket 50679
+	 */
+	function test_wp_get_attachment_metadata_should_return_false_if_no_attachment() {
+		$post_id = self::factory()->post->create();
+		$data    = wp_get_attachment_metadata( $post_id );
+		$this->assertFalse( $data );
 	}
 
 	/**
@@ -2620,6 +2642,7 @@ EOF;
 
 	/**
 	 * @ticket 50367
+	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_width_height() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
@@ -2665,6 +2688,7 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );

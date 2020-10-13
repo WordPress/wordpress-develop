@@ -4113,7 +4113,7 @@ function remove_option_whitelist( $del_options, $options = '' ) {
  *
  *     add_action( 'wp_head', 'noindex' );
  *
- * @see wp_no_robots
+ * @see wp_no_robots()
  *
  * @since 2.1.0
  * @deprecated 5.6.0 Use wp_robots_noindex() instead on 'wp_robots' filter.

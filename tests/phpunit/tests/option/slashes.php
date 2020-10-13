@@ -6,8 +6,10 @@
  * @ticket 21767
  */
 class Tests_Option_Slashes extends WP_UnitTestCase {
+
 	function setUp() {
 		parent::setUp();
+
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
 		$this->slash_1 = 'String with 1 slash \\';
