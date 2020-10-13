@@ -138,6 +138,7 @@ $allowed_options            = array(
 		'page_on_front',
 		'page_for_posts',
 		'blog_public',
+		'media_search_engine_visibility',
 	),
 	'writing'    => array(
 		'default_category',
