@@ -273,6 +273,14 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Comments_Controller;
 	$controller->register_routes();
 
+	// Widgets.
+
+	$controller = new WP_REST_Sidebars_Controller;
+	$controller->register_routes();
+
+	$controller = new WP_REST_Widget_Utils_Controller;
+	$controller->register_routes();
+
 	$search_handlers = array(
 		new WP_REST_Post_Search_Handler(),
 		new WP_REST_Term_Search_Handler(),
