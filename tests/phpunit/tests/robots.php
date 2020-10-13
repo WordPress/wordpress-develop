@@ -19,7 +19,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_renders_when_relevant() {
 		// Do not render robots meta tag when there are no directives.
@@ -38,7 +38,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_parses_directives_correctly() {
 		add_filter(
@@ -72,7 +72,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_includes_basic_sanitization() {
 		// Only follow or nofollow can be present, with follow taking precedence.
@@ -97,7 +97,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_noindex() {
 		add_filter( 'wp_robots', 'wp_robots_noindex' );
@@ -112,7 +112,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_no_robots() {
 		add_filter( 'wp_robots', 'wp_robots_no_robots' );
@@ -127,7 +127,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_sensitive_page() {
 		add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
@@ -137,7 +137,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_media_search_engine_visibility() {
 		add_filter( 'wp_robots', 'wp_robots_media_search_engine_visibility' );
@@ -161,7 +161,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 51511
 	 */
 	public function test_wp_robots_max_image_preview() {
 		add_filter( 'wp_robots', 'wp_robots_max_image_preview' );
