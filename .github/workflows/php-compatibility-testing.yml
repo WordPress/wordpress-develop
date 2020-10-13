@@ -1,6 +1,8 @@
 name: PHP Compatibility
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
 
@@ -62,6 +64,6 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
-          check_name: ${linter}-php-compatibility
+          check_name: PHP-Compatibility-${linter}
           php_codesniffer: true
           php_codesniffer_args: "--standard=phpcompat.xml.dist"

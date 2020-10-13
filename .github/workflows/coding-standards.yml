@@ -1,6 +1,8 @@
 name: PHP Coding standards
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 jobs:
   # Runs PHP coding standards checks.
@@ -61,7 +63,7 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
-          check_name: ${linter}-php-coding-standards
+          check_name: PHP-Coding-Standards-${linter}
           php_codesniffer: true
           # Ignore warnings
           php_codesniffer_args: "-n"

@@ -1,6 +1,8 @@
 name: End-to-end Tests
 
-on: [push]
+on:
+  push:
+  pull_request:
 
 env:
   LOCAL_DIR: build

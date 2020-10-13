@@ -4,6 +4,12 @@ on:
   push:
   pull_request:
   schedule:
+    branches:
+      - '5.*'
+      - '4.*'
+      - 3.9
+      - 3.8
+      - 3.7
     - cron: '0 0 * * 0'
 
 env:
