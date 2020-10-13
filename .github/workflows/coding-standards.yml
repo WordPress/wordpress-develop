@@ -61,6 +61,7 @@ jobs:
         uses: wearerequired/lint-action@v1
         with:
           github_token: ${{ secrets.github_token }}
+          check_name: ${linter}-php-coding-standards
           php_codesniffer: true
           # Ignore warnings
           php_codesniffer_args: "-n"
