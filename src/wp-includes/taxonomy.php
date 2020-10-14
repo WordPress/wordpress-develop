@@ -407,6 +407,9 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *                                                to post types, which confirms that the objects are published before
  *                                                counting them. Default _update_generic_term_count() for taxonomies
  *                                                attached to other object types, such as users.
+ *     @type callable      $update_count_by_callback Works much like a hook, in that it will be called when the count is
+ *                                                   updated. Defaults to the value of `$update_count_callback` if a custom callack
+ *                                                   is defined, otherwise uses wp_modify_term_count_by().
  *     @type string|array  $default_term {
  *         Default term to be used for the taxonomy.
  *
