@@ -161,7 +161,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = file_get_contents( $real_file );
 }
 
-if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
+if ( '.php' === substr( $real_file, (int) strrpos( $real_file, '.' ) ) ) {
 	$functions = wp_doc_link_parse( $content );
 
 	if ( ! empty( $functions ) ) {
@@ -311,7 +311,7 @@ if ( ! in_array( 'plugin_editor_notice', $dismissed_pointers, true ) ) :
 
 	$excluded_referer_basenames = array( 'plugin-editor.php', 'wp-login.php' );
 
-	if ( $referer && ! in_array( basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
+	if ( $referer && ! in_array( basename( (string) parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 		$return_url = $referer;
 	} else {
 		$return_url = admin_url( '/' );
