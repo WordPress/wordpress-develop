@@ -1910,15 +1910,16 @@ class WP_Posts_List_Table extends WP_List_Table {
 			?>
 
 			<div class="submit inline-edit-save">
-				<button type="button" class="button cancel alignleft"><?php _e( 'Cancel' ); ?></button>
-
 				<?php if ( ! $bulk ) : ?>
 					<?php wp_nonce_field( 'inlineeditnonce', '_inline_edit', false ); ?>
-					<button type="button" class="button button-primary save alignright"><?php _e( 'Update' ); ?></button>
+					<button type="button" class="button button-primary save"><?php _e( 'Update' ); ?></button>
 					<span class="spinner"></span>
 				<?php else : ?>
-					<?php submit_button( __( 'Update' ), 'primary alignright', 'bulk_edit', false ); ?>
+					<?php submit_button( __( 'Update' ), 'button button-primary save', 'bulk_edit', false ); ?>
 				<?php endif; ?>
+
+				<a class="cancel"><?php _e( 'Cancel' ); ?></a>
+
 
 				<input type="hidden" name="post_view" value="<?php echo esc_attr( $m ); ?>" />
 				<input type="hidden" name="screen" value="<?php echo esc_attr( $screen->id ); ?>" />
