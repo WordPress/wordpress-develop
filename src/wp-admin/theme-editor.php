@@ -153,25 +153,29 @@ if ( ! is_file( $file ) ) {
 	$error = true;
 }
 
-$content = '';
+$content   = '';
+$file_size = ! $error ? (int) filesize( $file ) : 0;
 if ( ! empty( $posted_content ) ) {
 	$content = $posted_content;
-} elseif ( ! $error && filesize( $file ) > 0 ) {
+} elseif ( $file_size > 0 ) {
 	$f       = fopen( $file, 'r' );
-	$content = fread( $f, filesize( $file ) );
+	$content = is_resource( $f ) ? fread( $f, $file_size ) : false;
+	if ( false === $content ) {
+		$error = true;
+	} else {
+		if ( '.php' === substr( $file, (int) strrpos( $file, '.' ) ) ) {
+			$functions = wp_doc_link_parse( $content );
 
-	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
-		$functions = wp_doc_link_parse( $content );
-
-		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
-		foreach ( $functions as $function ) {
-			$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+			$docs_select  = '<select name="docs-list" id="docs-list">';
+			$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
+			foreach ( $functions as $function ) {
+				$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+			}
+			$docs_select .= '</select>';
 		}
-		$docs_select .= '</select>';
-	}
 
-	$content = esc_textarea( $content );
+		$content = esc_textarea( $content );
+	}
 }
 
 $file_description = get_file_description( $relative_file );
@@ -342,7 +346,7 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 
 	$excluded_referer_basenames = array( 'theme-editor.php', 'wp-login.php' );
 
-	if ( $referer && ! in_array( basename( parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
+	if ( $referer && ! in_array( basename( (string) parse_url( $referer, PHP_URL_PATH ) ), $excluded_referer_basenames, true ) ) {
 		$return_url = $referer;
 	} else {
 		$return_url = admin_url( '/' );
