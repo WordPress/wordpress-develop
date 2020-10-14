@@ -1059,7 +1059,7 @@ class SimplePie_Enclosure
 			}
 			else
 			{
-				$embed .= "<script type='text/javascript'>embed_flash('$bgcolor', '$width', '$height', '" . $this->get_link() . "', '$loop', '$type');</script>";
+				$embed .= wp_get_inline_script_tag( "embed_flash('$bgcolor', '$width', '$height', '" . $this->get_link() . "', '$loop', '$type');" );
 			}
 		}
 
@@ -1074,7 +1074,7 @@ class SimplePie_Enclosure
 			}
 			else
 			{
-				$embed .= "<script type='text/javascript'>embed_flv('$width', '$height', '" . rawurlencode($this->get_link().'?file_extension=.'.$this->get_extension()) . "', '$placeholder', '$loop', '$mediaplayer');</script>";
+				$embed .= wp_get_inline_script_tag( "embed_flv('$width', '$height', '" . rawurlencode($this->get_link().'?file_extension=.'.$this->get_extension()) . "', '$placeholder', '$loop', '$mediaplayer');" );
 			}
 		}
 
@@ -1096,7 +1096,7 @@ class SimplePie_Enclosure
 			}
 			else
 			{
-				$embed .= "<script type='text/javascript'>embed_quicktime('$type', '$bgcolor', '$width', '$height', '" . $this->get_link() . "', '$placeholder', '$loop');</script>";
+				$embed .= wp_get_inline_script_tag( "embed_quicktime('$type', '$bgcolor', '$width', '$height', '" . $this->get_link() . "', '$placeholder', '$loop');" );
 			}
 		}
 
@@ -1110,7 +1110,7 @@ class SimplePie_Enclosure
 			}
 			else
 			{
-				$embed .= "<script type='text/javascript'>embed_wmedia('$width', '$height', '" . $this->get_link() . "');</script>";
+				$embed .= wp_get_inline_script_tag( "embed_wmedia('$width', '$height', '" . $this->get_link() . "');" );
 			}
 		}
 
