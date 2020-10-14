@@ -202,6 +202,8 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			continue;
 		}
 
+		$script_string = substr( wp_get_script_tag( array( 'src' => $src ) ), 0, -10 ) . "</scr' + 'ipt>";
+
 		$polyfill .= (
 			// Test presence of feature...
 			'( ' . $test . ' ) || ' .
@@ -210,9 +212,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			 * at the `document.write`. Its caveat of synchronous mid-stream
 			 * blocking write is exactly the behavior we need though.
 			 */
-			'document.write( \'<script src="' .
-			$src .
-			'"></scr\' + \'ipt>\' );'
+			'document.write( \'' . $script_string . '\' );'
 		);
 	}
 
@@ -1914,11 +1914,7 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script{$type_attr}>\n";
-			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
-			echo $wp_scripts->print_code;
-			echo "/* ]]> */\n";
-			echo "</script>\n";
+			wp_print_inline_script_tag( "\n/* <![CDATA[ */\n{$wp_scripts->print_code}/* ]]> */\n" );
 		}
 
 		$concat       = str_split( $concat, 128 );
@@ -1929,7 +1925,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {
