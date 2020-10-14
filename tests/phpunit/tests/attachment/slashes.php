@@ -6,10 +6,16 @@
  * @ticket 21767
  */
 class Tests_Attachment_Slashes extends WP_UnitTestCase {
+	protected static $author_id;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$author_id = $factory->user->create( array( 'role' => 'editor' ) );
+	}
+
 	function setUp() {
 		parent::setUp();
-		$this->author_id = self::factory()->user->create( array( 'role' => 'editor' ) );
-		wp_set_current_user( $this->author_id );
+
+		wp_set_current_user( self::$author_id );
 
 		// It is important to test with both even and odd numbered slashes,
 		// as KSES does a strip-then-add slashes in some of its function calls.
@@ -26,7 +32,7 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 	 * Tests the model function that expects slashed data.
 	 */
 	function test_wp_insert_attachment() {
-		$id   = wp_insert_attachment(
+		$post_id = wp_insert_attachment(
 			array(
 				'post_status'           => 'publish',
 				'post_title'            => $this->slash_1,
@@ -35,13 +41,13 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 				'post_type'             => 'post',
 			)
 		);
-		$post = get_post( $id );
+		$post    = get_post( $post_id );
 
 		$this->assertSame( wp_unslash( $this->slash_1 ), $post->post_title );
 		$this->assertSame( wp_unslash( $this->slash_3 ), $post->post_content_filtered );
 		$this->assertSame( wp_unslash( $this->slash_5 ), $post->post_excerpt );
 
-		$id   = wp_insert_attachment(
+		$post_id = wp_insert_attachment(
 			array(
 				'post_status'           => 'publish',
 				'post_title'            => $this->slash_2,
@@ -50,7 +56,7 @@ class Tests_Attachment_Slashes extends WP_UnitTestCase {
 				'post_type'             => 'post',
 			)
 		);
-		$post = get_post( $id );
+		$post    = get_post( $post_id );
 
 		$this->assertSame( wp_unslash( $this->slash_2 ), $post->post_title );
 		$this->assertSame( wp_unslash( $this->slash_4 ), $post->post_content_filtered );

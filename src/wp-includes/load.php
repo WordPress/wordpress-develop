@@ -86,6 +86,47 @@ function wp_fix_server_vars() {
 		$_SERVER['PHP_SELF'] = preg_replace( '/(\?.*)?$/', '', $_SERVER['REQUEST_URI'] );
 		$PHP_SELF            = $_SERVER['PHP_SELF'];
 	}
+
+	wp_populate_basic_auth_from_authorization_header();
+}
+
+/**
+ * Populates the Basic Auth server details from the Authorization header.
+ *
+ * Some servers running in CGI or FastCGI mode don't pass the Authorization
+ * header on to WordPress.  If it's been rewritten to the `HTTP_AUTHORIZATION` header,
+ * fill in the proper $_SERVER variables instead.
+ *
+ * @since 5.6.0
+ */
+function wp_populate_basic_auth_from_authorization_header() {
+	// If we don't have anything to pull from, return early.
+	if ( ! isset( $_SERVER['HTTP_AUTHORIZATION'] ) && ! isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
+		return;
+	}
+
+	// If either PHP_AUTH key is already set, do nothing.
+	if ( isset( $_SERVER['PHP_AUTH_USER'] ) || isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+		return;
+	}
+
+	// From our prior conditional, one of these must be set.
+	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+	// Test to make sure the pattern matches expected.
+	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
+		return;
+	}
+
+	// Removing `Basic ` the token would start six characters in.
+	$token    = substr( $header, 6 );
+	$userpass = base64_decode( $token );
+
+	list( $user, $pass ) = explode( ':', $userpass );
+
+	// Now shove them in the proper keys where we're expecting later on.
+	$_SERVER['PHP_AUTH_USER'] = $user;
+	$_SERVER['PHP_AUTH_PW']   = $pass;
 }
 
 /**
@@ -1446,17 +1487,30 @@ function wp_doing_cron() {
 }
 
 /**
- * Check whether variable is a WordPress Error.
+ * Checks whether the given variable is a WordPress Error.
  *
- * Returns true if $thing is an object of the WP_Error class.
+ * Returns whether `$thing` is an instance of the `WP_Error` class.
  *
  * @since 2.1.0
  *
- * @param mixed $thing Check if unknown variable is a WP_Error object.
- * @return bool True, if WP_Error. False, if not WP_Error.
+ * @param mixed $thing The variable to check.
+ * @return bool Whether the variable is an instance of WP_Error.
  */
 function is_wp_error( $thing ) {
-	return ( $thing instanceof WP_Error );
+	$is_wp_error = ( $thing instanceof WP_Error );
+
+	if ( $is_wp_error ) {
+		/**
+		 * Fires when `is_wp_error()` is called and it's an instance of `WP_Error`.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
+		 */
+		do_action( 'wp_error_checked', $thing );
+	}
+
+	return $is_wp_error;
 }
 
 /**

@@ -4,18 +4,10 @@
  * @group image
  * @group media
  * @group upload
+ * @requires extension gd
+ * @requires extension exif
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
-	function setUp() {
-		if ( ! extension_loaded( 'gd' ) ) {
-			$this->markTestSkipped( 'The gd PHP extension is not loaded.' );
-		}
-		if ( ! extension_loaded( 'exif' ) ) {
-			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
-		}
-
-		parent::setUp();
-	}
 
 	function test_exif_d70() {
 		// Exif from a Nikon D70.

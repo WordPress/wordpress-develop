@@ -118,6 +118,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users',
 			'/wp/v2/users/(?P<id>[\\d]+)',
 			'/wp/v2/users/me',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
 			'/wp/v2/search',
@@ -132,7 +134,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-directory/search',
 		);
 
-		$this->assertSame( $expected_routes, $routes );
+		$this->assertSameSets( $expected_routes, $routes );
 	}
 
 	private function is_builtin_route( $route ) {
