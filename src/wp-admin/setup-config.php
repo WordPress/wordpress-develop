@@ -416,16 +416,17 @@ switch ( $step ) {
 <textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
-<script>
-(function(){
-if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
-	var el = document.getElementById('wp-config');
-	el.focus();
-	el.select();
-}
-})();
-</script>
 			<?php
+			$js = <<<'JS'
+(function(){
+	if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
+		var el = document.getElementById('wp-config');
+		el.focus();
+		el.select();
+	}
+})();
+JS;
+			wp_print_inline_script_tag( $js );
 	else :
 		/*
 		 * If this file doesn't exist, then we are using the wp-config-sample.php
