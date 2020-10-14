@@ -3548,24 +3548,25 @@ function wp_customize_support_script() {
 	$admin_origin = parse_url( admin_url() );
 	$home_origin  = parse_url( home_url() );
 	$cross_domain = ( strtolower( $admin_origin['host'] ) != strtolower( $home_origin['host'] ) );
-	$type_attr    = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
-	?>
-	<script<?php echo $type_attr; ?>>
+
+	$js = <<<JS
 		(function() {
 			var request, b = document.body, c = 'className', cs = 'customize-support', rcs = new RegExp('(^|\\s+)(no-)?'+cs+'(\\s+|$)');
+JS;
 
-	<?php	if ( $cross_domain ) : ?>
-			request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();
-	<?php	else : ?>
-			request = true;
-	<?php	endif; ?>
+	if ( $cross_domain ) {
+		$js .= "request = (function(){ var xhr = new XMLHttpRequest(); return ('withCredentials' in xhr); })();\n";
+	} else {
+		$js .= "request = true;\n";
+	}
 
+	$js .= <<<JS
 			b[c] = b[c].replace( rcs, ' ' );
 			// The customizer requires postMessage and CORS (if the site is cross domain).
 			b[c] += ( window.postMessage && request ? ' ' : ' no-' ) + cs;
 		}());
-	</script>
-	<?php
+JS;
+	wp_print_inline_script_tag( $js );
 }
 
 /**
