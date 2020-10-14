@@ -863,9 +863,7 @@ function post_comment_meta_box( $post ) {
 	} else {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
-			?>
-			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
-			<?php
+			wp_print_inline_script_tag( 'jQuery(document).ready(function(){commentsBox.get(' . $total . ', 10);});' );
 		}
 
 		?>
