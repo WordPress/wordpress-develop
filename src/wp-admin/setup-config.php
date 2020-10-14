@@ -438,10 +438,12 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 		}
 
 		$handle = fopen( $path_to_wp_config, 'w' );
-		foreach ( $config_file as $line ) {
-			fwrite( $handle, $line );
+		if ( is_resource( $handle ) ) {
+			foreach ( $config_file as $line ) {
+				fwrite( $handle, $line );
+			}
+			fclose( $handle );
 		}
-		fclose( $handle );
 		chmod( $path_to_wp_config, 0666 );
 		setup_config_display_header();
 		?>
