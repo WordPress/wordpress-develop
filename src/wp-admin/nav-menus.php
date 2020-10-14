@@ -336,7 +336,7 @@ switch ( $action ) {
 					$nav_menu_selected_title = $_menu_object->name;
 
 					if ( isset( $_REQUEST['menu-item'] ) ) {
-						wp_save_nav_menu_items( $nav_menu_selected_id, absint( $_REQUEST['menu-item'] ) );
+						wp_save_nav_menu_items( $nav_menu_selected_id, $_REQUEST['menu-item'] );
 					}
 
 					// Set the menu_location value correctly for the newly created menu.
@@ -419,7 +419,7 @@ switch ( $action ) {
 			}
 
 			// Update menu items.
-			if ( ! is_wp_error( $_menu_object ) ) {
+			if ( ! is_wp_error( $_menu_object ) && ! is_wp_error( $_nav_menu_selected_id ) ) {
 				$messages = array_merge( $messages, wp_nav_menu_update_menu_items( $_nav_menu_selected_id, $nav_menu_selected_title ) );
 
 				// If the menu ID changed, redirect to the new URL.
@@ -807,7 +807,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</table>
 			<p class="button-controls wp-clearfix"><?php submit_button( __( 'Save Changes' ), 'primary left', 'nav-menu-locations', false ); ?></p>
 			<?php wp_nonce_field( 'save-menu-locations' ); ?>
-			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 		</form>
 	</div><!-- #menu-locations-wrap -->
 		<?php
@@ -853,7 +853,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<option value="0" selected="selected"><?php _e( '&mdash; Select &mdash;' ); ?></option>
 				<?php endif; ?>
 				<?php foreach ( (array) $nav_menus as $_nav_menu ) : ?>
-					<option value="<?php echo esc_attr( $_nav_menu->term_id ); ?>" <?php selected( $_nav_menu->term_id, $nav_menu_selected_id ); ?>>
+					<option value="<?php echo (int) $_nav_menu->term_id; ?>" <?php selected( $_nav_menu->term_id, $nav_menu_selected_id ); ?>>
 						<?php
 						echo esc_html( $_nav_menu->truncated_name );
 
@@ -926,7 +926,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="clear"></div>
 
 		<form id="nav-menu-meta" class="nav-menu-meta" method="post" enctype="multipart/form-data">
-			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 			<input type="hidden" name="action" value="add-menu-item" />
 			<?php wp_nonce_field( 'add-menu_item', 'menu-settings-column-nonce' ); ?>
 			<h2><?php _e( 'Add menu items' ); ?></h2>
@@ -957,7 +957,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					}
 					?>
 					<input type="hidden" name="action" value="update" />
-					<input type="hidden" name="menu" id="menu" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+					<input type="hidden" name="menu" id="menu" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 					<div id="nav-menu-header">
 						<div class="major-publishing-actions wp-clearfix">
 							<label class="menu-name-label" for="menu-name"><?php _e( 'Menu Name' ); ?></label>
@@ -974,7 +974,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<?php
 								$hide_style = '';
 
-								if ( isset( $menu_items ) && 0 === count( $menu_items ) ) {
+								if ( isset( $menu_items ) && is_array( $menu_items ) && 0 === count( $menu_items ) ) {
 									$hide_style = 'style="display: none;"';
 								}
 
@@ -1045,7 +1045,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 											$checked = isset( $menu_locations[ $location ] ) && $menu_locations[ $location ] === $nav_menu_selected_id;
 											?>
 											<div class="menu-settings-input checkbox-input">
-												<input type="checkbox"<?php checked( $checked ); ?> name="menu-locations[<?php echo esc_attr( $location ); ?>]" id="locations-<?php echo esc_attr( $location ); ?>" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+												<input type="checkbox"<?php checked( $checked ); ?> name="menu-locations[<?php echo esc_attr( $location ); ?>]" id="locations-<?php echo esc_attr( $location ); ?>" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 												<label for="locations-<?php echo esc_attr( $location ); ?>"><?php echo $description; ?></label>
 												<?php if ( ! empty( $menu_locations[ $location ] ) && $menu_locations[ $location ] !== $nav_menu_selected_id ) : ?>
 													<span class="theme-location-set">
