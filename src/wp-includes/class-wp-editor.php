@@ -966,38 +966,34 @@ final class _WP_Editors {
 			$settings = '{}';
 		}
 
-		?>
-		<script type="text/javascript">
+		$js = <<<JS
 		window.wp = window.wp || {};
 		window.wp.editor = window.wp.editor || {};
 		window.wp.editor.getDefaultSettings = function() {
 			return {
-				tinymce: <?php echo $settings; ?>,
+				tinymce: $settings,
 				quicktags: {
 					buttons: 'strong,em,link,ul,ol,li,code'
 				}
 			};
 		};
-
-		<?php
-
+JS;
 		if ( $user_can_richedit ) {
 			$suffix  = SCRIPT_DEBUG ? '' : '.min';
 			$baseurl = self::get_baseurl();
 
-			?>
+			$js .= <<<JS
 			var tinyMCEPreInit = {
-				baseURL: "<?php echo $baseurl; ?>",
-				suffix: "<?php echo $suffix; ?>",
+				baseURL: '$baseurl',
+				suffix: '$suffix',
 				mceInit: {},
 				qtInit: {},
 				load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
-			};
-			<?php
+			};	
+JS;
 		}
-		?>
-		</script>
-		<?php
+
+		wp_print_inline_script_tag( $js );
 
 		if ( $user_can_richedit ) {
 			self::print_tinymce_scripts();
@@ -1553,7 +1549,7 @@ final class _WP_Editors {
 
 		wp_print_scripts( array( 'wp-tinymce' ) );
 
-		echo "<script type='text/javascript'>\n" . self::wp_mce_translation() . "</script>\n";
+		wp_print_inline_script_tag( self::wp_mce_translation() );
 	}
 
 	/**
@@ -1608,33 +1604,35 @@ final class _WP_Editors {
 		 * @param array $mce_settings TinyMCE settings array.
 		 */
 		do_action( 'before_wp_tiny_mce', self::$mce_settings );
-		?>
 
-		<script type="text/javascript">
+		$js = <<<JS
 		tinyMCEPreInit = {
-			baseURL: "<?php echo $baseurl; ?>",
-			suffix: "<?php echo $suffix; ?>",
-			<?php
+			baseURL: "$baseurl",
+			suffix: "$suffix",
+JS;
 
-			if ( self::$drag_drop_upload ) {
-				echo 'dragDropUpload: true,';
-			}
+		if ( self::$drag_drop_upload ) {
+				$js .= 'dragDropUpload: true,';
+		}
 
-			?>
-			mceInit: <?php echo $mceInit; ?>,
-			qtInit: <?php echo $qtInit; ?>,
-			ref: <?php echo self::_parse_init( $ref ); ?>,
-			load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+'/langs/'+lang+'.js');sl.markDone(url+'/langs/'+lang+'_dlg.js');}
-		};
-		</script>
-		<?php
+		$js .= 'mceInit: ' . $mceInit . ',
+			qtInit: ' . $qtInit . ',
+			ref: ' . self::_parse_init( $ref ) . ',
+			load_ext: function(url,lang){var sl=tinymce.ScriptLoader;sl.markDone(url+"/langs/"+lang+".js");sl.markDone(url+"/langs/"+lang+"_dlg.js");}
+		};';
+		wp_print_inline_script_tag( $js );
 
 		if ( $tmce_on ) {
 			self::print_tinymce_scripts();
 
 			if ( self::$ext_plugins ) {
 				// Load the old-format English strings to prevent unsightly labels in old style popups.
-				echo "<script type='text/javascript' src='{$baseurl}/langs/wp-langs-en.js?$version'></script>\n";
+				wp_print_script_tag(
+					array(
+						'type' => 'text/javascript',
+						'src'  => "{$baseurl}/langs/wp-langs-en.js?$version",
+					)
+				);
 			}
 		}
 
@@ -1648,20 +1646,16 @@ final class _WP_Editors {
 		 */
 		do_action( 'wp_tiny_mce_init', self::$mce_settings );
 
-		?>
-		<script type="text/javascript">
-		<?php
-
+		$js = '';
 		if ( self::$ext_plugins ) {
-			echo self::$ext_plugins . "\n";
+			$js .= self::$ext_plugins . "\n";
 		}
 
 		if ( ! is_admin() ) {
-			echo 'var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '";';
+			$js .= 'var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '";';
 		}
 
-		?>
-
+		$js .= <<<'JS'
 		( function() {
 			var init, id, $wrap;
 
@@ -1695,8 +1689,8 @@ final class _WP_Editors {
 				}
 			}
 		}());
-		</script>
-		<?php
+JS;
+		wp_print_inline_script_tag( $js );
 
 		if ( in_array( 'wplink', self::$plugins, true ) || in_array( 'link', self::$qt_buttons, true ) ) {
 			self::wp_link_dialog();
