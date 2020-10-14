@@ -198,15 +198,16 @@ function dismissed_updates() {
 
 		$show_text = esc_js( __( 'Show hidden updates' ) );
 		$hide_text = esc_js( __( 'Hide hidden updates' ) );
-		?>
-	<script type="text/javascript">
+
+		$js = <<<JS
 		jQuery(function( $ ) {
 			$( 'dismissed-updates' ).show();
-			$( '#show-dismissed' ).toggle( function() { $( this ).text( '<?php echo $hide_text; ?>' ).attr( 'aria-expanded', 'true' ); }, function() { $( this ).text( '<?php echo $show_text; ?>' ).attr( 'aria-expanded', 'false' ); } );
+			$( '#show-dismissed' ).toggle( function() { $( this ).text( '$hide_text' ).attr( 'aria-expanded', 'true' ); }, function() { $( this ).text( '$show_text' ).attr( 'aria-expanded', 'false' ); } );
 			$( '#show-dismissed' ).click( function() { $( '#dismissed-updates' ).toggle( 'fast' ); } );
 		});
-	</script>
-		<?php
+JS;
+		wp_print_inline_script_tag( $js );
+
 		echo '<p class="hide-if-no-js"><button type="button" class="button" id="show-dismissed" aria-expanded="false">' . __( 'Show hidden updates' ) . '</button></p>';
 		echo '<ul id="dismissed-updates" class="core-updates dismissed">';
 		foreach ( (array) $dismissed as $update ) {
@@ -751,11 +752,10 @@ function do_core_upgrade( $reinstall = false ) {
 			esc_url( self_admin_url( 'about.php?updated' ) )
 		) . '</span>'
 	);
+
+	wp_print_inline_script_tag( sprintf( 'window.location = "%s";', self_admin_url( 'about.php?updated' ) ) );
 	?>
 	</div>
-	<script type="text/javascript">
-	window.location = '<?php echo self_admin_url( 'about.php?updated' ); ?>';
-	</script>
 	<?php
 }
 
