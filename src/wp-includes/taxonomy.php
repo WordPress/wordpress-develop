@@ -107,17 +107,20 @@ function create_initial_taxonomies() {
 		'nav_menu',
 		'nav_menu_item',
 		array(
-			'public'            => false,
-			'hierarchical'      => false,
-			'labels'            => array(
+			'public'                => false,
+			'hierarchical'          => false,
+			'labels'                => array(
 				'name'          => __( 'Navigation Menus' ),
 				'singular_name' => __( 'Navigation Menu' ),
 			),
-			'query_var'         => false,
-			'rewrite'           => false,
-			'show_ui'           => false,
-			'_builtin'          => true,
-			'show_in_nav_menus' => false,
+			'query_var'             => false,
+			'rewrite'               => false,
+			'show_ui'               => false,
+			'_builtin'              => true,
+			'show_in_nav_menus'     => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'menus',
+			'rest_controller_class' => 'WP_REST_Menus_Controller',
 		)
 	);
 

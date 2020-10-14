@@ -126,16 +126,19 @@ function create_initial_post_types() {
 	register_post_type(
 		'nav_menu_item',
 		array(
-			'labels'           => array(
+			'labels'                => array(
 				'name'          => __( 'Navigation Menu Items' ),
 				'singular_name' => __( 'Navigation Menu Item' ),
 			),
-			'public'           => false,
-			'_builtin'         => true, /* internal use only. don't use this when registering your own post type. */
-			'hierarchical'     => false,
-			'rewrite'          => false,
-			'delete_with_user' => false,
-			'query_var'        => false,
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'hierarchical'          => false,
+			'rewrite'               => false,
+			'delete_with_user'      => false,
+			'query_var'             => false,
+			'show_in_rest'          => true,
+			'rest_base'             => 'menu-items',
+			'rest_controller_class' => 'WP_REST_Menu_Items_Controller',
 		)
 	);
 
