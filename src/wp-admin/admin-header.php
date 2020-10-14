@@ -79,18 +79,17 @@ wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
-?>
-<script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
-	pagenow = '<?php echo $current_screen->id; ?>',
-	typenow = '<?php echo $current_screen->post_type; ?>',
-	adminpage = '<?php echo $admin_body_class; ?>',
-	thousandsSeparator = '<?php echo addslashes( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo addslashes( $wp_locale->number_format['decimal_point'] ); ?>',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-</script>
-<?php
+
+$js = 'addLoadEvent = function(func){if(typeof jQuery!=="undefined")jQuery(document).ready(func);else if(typeof wpOnload!=="function"){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+	var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '",
+	pagenow = "' . $current_screen->id . '",
+	typenow = "' . $current_screen->post_type . '",
+	adminpage = "' . $admin_body_class . '",
+	thousandsSeparator = "' . addslashes( $wp_locale->number_format['thousands_sep'] ) . '",
+	decimalPoint = "' . addslashes( $wp_locale->number_format['decimal_point'] ) . '",
+	isRtl = ' . ( (int) is_rtl() ) . ';';
+
+wp_print_inline_script_tag( $js );
 
 /**
  * Enqueue scripts for all admin pages.
@@ -232,11 +231,10 @@ $admin_body_classes = apply_filters( 'admin_body_class', '' );
 $admin_body_classes = ltrim( $admin_body_classes . ' ' . $admin_body_class );
 ?>
 <body class="wp-admin wp-core-ui no-js <?php echo $admin_body_classes; ?>">
-<script type="text/javascript">
-	document.body.className = document.body.className.replace('no-js','js');
-</script>
-
 <?php
+
+wp_print_inline_script_tag( 'document.body.className = document.body.className.replace("no-js","js");' );
+
 // Make sure the customize body classes are correct as early as possible.
 if ( current_user_can( 'customize' ) ) {
 	wp_customize_support_script();
