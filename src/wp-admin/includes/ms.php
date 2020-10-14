@@ -840,11 +840,7 @@ function can_edit_network( $network_id ) {
  * @access private
  */
 function _thickbox_path_admin_subfolder() {
-	?>
-<script type="text/javascript">
-var tb_pathToImage = "<?php echo includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ); ?>";
-</script>
-	<?php
+	wp_print_inline_script_tag( 'var tb_pathToImage = "' . includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) . '";' );
 }
 
 /**
@@ -997,8 +993,7 @@ function confirm_delete_users( $users ) {
  * @since 4.1.0
  */
 function network_settings_add_js() {
-	?>
-<script type="text/javascript">
+	$js = <<<'JS'
 jQuery(document).ready( function($) {
 	var languageSelect = $( '#WPLANG' );
 	$( 'form' ).submit( function() {
@@ -1009,8 +1004,8 @@ jQuery(document).ready( function($) {
 		}
 	});
 });
-</script>
-	<?php
+JS;
+	wp_print_inline_script_tag( $js );
 }
 
 /**
