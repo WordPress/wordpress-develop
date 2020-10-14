@@ -534,8 +534,7 @@ function default_password_nag() {
  * @access private
  */
 function delete_users_add_js() {
-	?>
-<script>
+	$js = <<<'JS'
 jQuery(document).ready( function($) {
 	var submit = $('#submit').prop('disabled', true);
 	$('input[name="delete_option"]').one('change', function() {
@@ -545,8 +544,8 @@ jQuery(document).ready( function($) {
 		$('#delete_option1').prop('checked', true).trigger('change');
 	});
 });
-</script>
-	<?php
+JS;
+	wp_print_inline_script_tag( $js );
 }
 
 /**
