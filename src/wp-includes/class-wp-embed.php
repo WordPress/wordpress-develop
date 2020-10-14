@@ -85,13 +85,10 @@ class WP_Embed {
 			return;
 		}
 
-		?>
-<script type="text/javascript">
-	jQuery(document).ready(function($){
-		$.get("<?php echo admin_url( 'admin-ajax.php?action=oembed-cache&post=' . $post->ID, 'relative' ); ?>");
-	});
-</script>
-		<?php
+		$js = 'jQuery(document).ready(function($){
+			$.get("' . admin_url( 'admin-ajax.php?action=oembed-cache&post=' . $post->ID, 'relative' ) . '");
+		});';
+		wp_print_inline_script_tag( $js );
 	}
 
 	/**
