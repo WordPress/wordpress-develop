@@ -95,7 +95,7 @@ if ( isset( $_GET['action'] ) ) {
 			echo '<p>' . __( 'Plugin failed to reactivate due to a fatal error.' ) . '</p>';
 
 			error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
-			ini_set( 'display_errors', true ); // Ensure that fatal errors are displayed.
+			ini_set( 'display_errors', '1' ); // Ensure that fatal errors are displayed.
 			wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
 			include WP_PLUGIN_DIR . '/' . $plugin;
 		}
