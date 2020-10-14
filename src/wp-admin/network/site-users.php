@@ -277,13 +277,13 @@ endif;
 
 <form class="search-form" method="get">
 <?php $wp_list_table->search_box( __( 'Search Users' ), 'user' ); ?>
-<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+<input type="hidden" name="id" value="<?php echo (int) $id; ?>" />
 </form>
 
 <?php $wp_list_table->views(); ?>
 
 <form method="post" action="site-users.php?action=update-site">
-	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+	<input type="hidden" name="id" value="<?php echo (int) $id; ?>" />
 
 <?php $wp_list_table->display(); ?>
 
@@ -302,7 +302,7 @@ if ( current_user_can( 'promote_users' ) && apply_filters( 'show_network_site_us
 	?>
 <h2 id="add-existing-user"><?php _e( 'Add Existing User' ); ?></h2>
 <form action="site-users.php?action=adduser" id="adduser" method="post">
-	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+	<input type="hidden" name="id" value="<?php echo (int) $id; ?>" />
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="newuser"><?php _e( 'Username' ); ?></label></th>
@@ -336,7 +336,7 @@ if ( current_user_can( 'create_users' ) && apply_filters( 'show_network_site_use
 	?>
 <h2 id="add-new-user"><?php _e( 'Add New User' ); ?></h2>
 <form action="<?php echo network_admin_url( 'site-users.php?action=newuser' ); ?>" id="newuser" method="post">
-	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
+	<input type="hidden" name="id" value="<?php echo (int) $id; ?>" />
 	<table class="form-table" role="presentation">
 		<tr>
 			<th scope="row"><label for="user_username"><?php _e( 'Username' ); ?></label></th>
