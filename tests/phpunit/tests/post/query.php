@@ -758,4 +758,161 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertInternalType( 'int', $q->found_posts );
 	}
+
+	/**
+	 * @ticket 48556
+	 */
+	public function test_query_posts_perm_readable_mutliple_post_types_with_private_posts() {
+		$current_user = get_current_user_id();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$public_post = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
+		$private_post = $this->factory->post->create( array( 'post_title' => 'Test Post', 'post_status' => 'private' ) );
+
+		$public_page = $this->factory->post->create( array(  'post_type' => 'page', 'post_title' => 'Test Page' ) );
+		$private_page = $this->factory->post->create( array( 'post_type' => 'page', 'post_title' => 'Test Page', 'post_status' => 'private' ) );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => ['post', 'page']
+			)
+		);
+
+		$this->assertEquals(4, $q->found_posts);
+
+		wp_set_current_user( $current_user );
+
+	}
+
+	/**
+	 * @ticket 48556
+	 */
+	public function test_query_posts_perm_readable_mutliple_post_types_with_private_posts_cpt_any() {
+		$current_user = get_current_user_id();
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$public_post = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
+		$private_post = $this->factory->post->create( array( 'post_title' => 'Test Post', 'post_status' => 'private' ) );
+
+		$public_page = $this->factory->post->create( array(  'post_type' => 'page', 'post_title' => 'Test Page' ) );
+		$private_page = $this->factory->post->create( array( 'post_type' => 'page', 'post_title' => 'Test Page', 'post_status' => 'private' ) );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'any'
+			)
+		);
+
+		$this->assertEquals(4, $q->found_posts);
+
+		wp_set_current_user( $current_user );
+
+	}
+
+	/**
+	 * @ticket 48556
+	 */
+	public function test_query_posts_perm_readable_mutliple_post_types_with_private_posts_user_permissions() {
+		global $current_user;
+		$current_user_id = get_current_user_id();
+
+		$public_post = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
+		$private_post = $this->factory->post->create( array( 'post_title' => 'Test Post', 'post_status' => 'private' ) );
+
+		$public_page = $this->factory->post->create( array(  'post_type' => 'page', 'post_title' => 'Test Page' ) );
+		$private_page = $this->factory->post->create( array( 'post_type' => 'page', 'post_title' => 'Test Page', 'post_status' => 'private' ) );
+
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$subscriber_user = get_userdata($subscriber);
+
+		wp_set_current_user( $subscriber );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => ['post', 'page']
+			)
+		);
+
+		$this->assertEquals(2, $q->found_posts);
+
+		$subscriber_user->add_cap('read_private_posts');
+		$current_user = $subscriber_user; // ensure new cap is considered
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => ['post', 'page']
+			)
+		);
+
+		$this->assertEquals(3, $q->found_posts);
+
+		$subscriber_user->add_cap('read_private_pages');
+		$current_user = $subscriber_user; // ensure new cap is considered
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => ['post', 'page']
+			)
+		);
+
+		$this->assertEquals(4, $q->found_posts);
+
+		wp_set_current_user( $current_user_id );
+
+
+	}
+
+	/**
+	 * @ticket 48556
+	 */
+	public function test_query_posts_perm_readable_mutliple_post_types_with_private_posts_user_permissions_cpt_any() {
+		global $current_user;
+		$current_user_id = get_current_user_id();
+
+		$public_post = $this->factory->post->create( array( 'post_title' => 'Test Post' ) );
+		$private_post = $this->factory->post->create( array( 'post_title' => 'Test Post', 'post_status' => 'private' ) );
+
+		$public_page = $this->factory->post->create( array(  'post_type' => 'page', 'post_title' => 'Test Page' ) );
+		$private_page = $this->factory->post->create( array( 'post_type' => 'page', 'post_title' => 'Test Page', 'post_status' => 'private' ) );
+
+		$subscriber = self::factory()->user->create( array( 'role' => 'subscriber' ) );
+		$subscriber_user = get_userdata($subscriber);
+
+		wp_set_current_user( $subscriber );
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'any'
+			)
+		);
+
+		$this->assertEquals(2, $q->found_posts);
+
+		$subscriber_user->add_cap('read_private_posts');
+		$current_user = $subscriber_user; // ensure new cap is considered
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'any'
+			)
+		);
+
+		$this->assertEquals(3, $q->found_posts);
+
+		$subscriber_user->add_cap('read_private_pages');
+		$current_user = $subscriber_user; // ensure new cap is considered
+
+		$q = new WP_Query(
+			array(
+				'post_type'      => 'any'
+			)
+		);
+
+		$this->assertEquals(4, $q->found_posts);
+
+		wp_set_current_user( $current_user_id );
+
+
+	}
+
 }
