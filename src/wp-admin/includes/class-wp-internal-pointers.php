@@ -116,35 +116,32 @@ final class WP_Internal_Pointers {
 			return;
 		}
 
-		?>
-		<script type="text/javascript">
-		(function($){
-			var options = <?php echo wp_json_encode( $args ); ?>, setup;
+		$js = '(function($){
+				var options = ' . wp_json_encode( $args ) . ', setup;
 
-			if ( ! options )
-				return;
+				if ( ! options )
+					return;
 
-			options = $.extend( options, {
-				close: function() {
-					$.post( ajaxurl, {
-						pointer: '<?php echo $pointer_id; ?>',
-						action: 'dismiss-wp-pointer'
-					});
-				}
-			});
+				options = $.extend( options, {
+					close: function() {
+						$.post( ajaxurl, {
+							pointer: "' . $pointer_id . '",
+							action: "dismiss-wp-pointer"
+						});
+					}
+				});
 
-			setup = function() {
-				$('<?php echo $selector; ?>').first().pointer( options ).pointer('open');
-			};
+				setup = function() {
+					$("' . $selector . '").first().pointer( options ).pointer("open");
+				};
 
-			if ( options.position && options.position.defer_loading )
-				$(window).bind( 'load.wp-pointers', setup );
-			else
-				$(document).ready( setup );
+				if ( options.position && options.position.defer_loading )
+					$(window).bind( "load.wp-pointers", setup );
+				else
+					$(document).ready( setup );
 
-		})( jQuery );
-		</script>
-		<?php
+			})( jQuery );';
+			wp_print_inline_script_tag( $js );
 	}
 
 	public static function pointer_wp330_toolbar() {}
