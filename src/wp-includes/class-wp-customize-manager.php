@@ -461,14 +461,11 @@ final class WP_Customize_Manager {
 				),
 				'error'         => $ajax_message,
 			);
-			?>
-			<script>
-			( function( api, settings ) {
+			$js       = '( function( api, settings ) {
 				var preview = new api.Messenger( settings.messengerArgs );
-				preview.send( 'iframe-loading-error', settings.error );
-			} )( wp.customize, <?php echo wp_json_encode( $settings ); ?> );
-			</script>
-			<?php
+				preview.send( "iframe-loading-error", settings.error );
+			} )( wp.customize, ' . wp_json_encode( $settings ) . ' );';
+			wp_print_inline_script_tag( $js );
 			$message .= ob_get_clean();
 		}
 
@@ -772,7 +769,7 @@ final class WP_Customize_Manager {
 	public function branching() {
 
 		/**
-		 * Filters whether or not changeset branching is allowed.
+		 * Filters whether or not changeset branching is allowed.
 		 *
 		 * By default in core, when changeset branching is not allowed, changesets will operate
 		 * linearly in that only one saved changeset will exist at a time (with a 'draft' or
@@ -2072,8 +2069,7 @@ final class WP_Customize_Manager {
 		if ( ! $this->messenger_channel ) {
 			return;
 		}
-		?>
-		<script>
+		$js = <<<'JS'
 		( function() {
 			var urlParser, oldQueryParams, newQueryParams, i;
 			if ( parent !== window ) {
@@ -2093,8 +2089,8 @@ final class WP_Customize_Manager {
 				location.replace( urlParser.href );
 			}
 		} )();
-		</script>
-		<?php
+JS;
+		wp_print_inline_script_tag( $js );
 	}
 
 	/**
@@ -2190,30 +2186,27 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		$js_wp_customize_settings        = wp_json_encode( $settings );
+		$js_wp_customize_settings_values = '';
+		foreach ( $this->settings as $id => $setting ) {
+			if ( $setting->check_capabilities() ) {
+				$js_wp_customize_settings_values .= sprintf(
+					"v[%s] = %s;\n",
+					wp_json_encode( $id ),
+					wp_json_encode( $setting->js_value() )
+				);
+			}
+		}
+
+		$js = <<<JS
+			var _wpCustomizeSettings = $js_wp_customize_settings;
 			_wpCustomizeSettings.values = {};
 			(function( v ) {
-				<?php
-				/*
-				 * Serialize settings separately from the initial _wpCustomizeSettings
-				 * serialization in order to avoid a peak memory usage spike.
-				 * @todo We may not even need to export the values at all since the pane syncs them anyway.
-				 */
-				foreach ( $this->settings as $id => $setting ) {
-					if ( $setting->check_capabilities() ) {
-						printf(
-							"v[%s] = %s;\n",
-							wp_json_encode( $id ),
-							wp_json_encode( $setting->js_value() )
-						);
-					}
-				}
-				?>
+				$js_wp_customize_settings_values;
 			})( _wpCustomizeSettings.values );
-		</script>
-		<?php
+JS;
+
+			wp_print_inline_script_tag( $js );
 	}
 
 	/**
@@ -4936,42 +4929,40 @@ final class WP_Customize_Manager {
 			}
 		}
 
-		?>
-		<script type="text/javascript">
-			var _wpCustomizeSettings = <?php echo wp_json_encode( $settings ); ?>;
+		$js_wp_customize_settings = wp_json_encode( $settings );
+		$js                       = <<<JS
+			var _wpCustomizeSettings = $js_wp_customize_settings;
 			_wpCustomizeSettings.initialClientTimestamp = _.now();
 			_wpCustomizeSettings.controls = {};
 			_wpCustomizeSettings.settings = {};
-			<?php
-
-			// Serialize settings one by one to improve memory usage.
-			echo "(function ( s ){\n";
-			foreach ( $this->settings() as $setting ) {
-				if ( $setting->check_capabilities() ) {
-					printf(
-						"s[%s] = %s;\n",
-						wp_json_encode( $setting->id ),
-						wp_json_encode( $setting->json() )
-					);
-				}
+JS;
+		// Serialize settings one by one to improve memory usage.
+		$js .= "(function ( s ){\n";
+		foreach ( $this->settings() as $setting ) {
+			if ( $setting->check_capabilities() ) {
+				$js .= sprintf(
+					"s[%s] = %s;\n",
+					wp_json_encode( $setting->id ),
+					wp_json_encode( $setting->json() )
+				);
 			}
-			echo "})( _wpCustomizeSettings.settings );\n";
+		}
+		$js .= "})( _wpCustomizeSettings.settings );\n";
 
-			// Serialize controls one by one to improve memory usage.
-			echo "(function ( c ){\n";
-			foreach ( $this->controls() as $control ) {
-				if ( $control->check_capabilities() ) {
-					printf(
-						"c[%s] = %s;\n",
-						wp_json_encode( $control->id ),
-						wp_json_encode( $control->json() )
-					);
-				}
+		// Serialize controls one by one to improve memory usage.
+		$js .= "(function ( c ){\n";
+		foreach ( $this->controls() as $control ) {
+			if ( $control->check_capabilities() ) {
+				$js .= sprintf(
+					"c[%s] = %s;\n",
+					wp_json_encode( $control->id ),
+					wp_json_encode( $control->json() )
+				);
 			}
-			echo "})( _wpCustomizeSettings.controls );\n";
-			?>
-		</script>
-		<?php
+		}
+		$js .= '})( _wpCustomizeSettings.controls );';
+
+		wp_print_inline_script_tag( $js );
 	}
 
 	/**
