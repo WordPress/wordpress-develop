@@ -818,13 +818,16 @@ endif;
 		<?php
 		break;
 }
-?>
-<script type="text/javascript">
+
+$js = <<<JS
 	if (window.location.hash == '#password') {
 		document.getElementById('pass1').focus();
 	}
-</script>
+JS;
+wp_print_inline_script_tag( $js );
 
+?>
+ 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
 		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="0">
