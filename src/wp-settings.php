@@ -269,6 +269,7 @@ require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-user-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-term-search-handler.php';
+require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-format-search-handler.php';
 require ABSPATH . WPINC . '/sitemaps.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-index.php';
@@ -290,6 +291,7 @@ require ABSPATH . WPINC . '/class-wp-block-parser.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-patterns.php';
+require ABSPATH . WPINC . '/block-supports/index.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
