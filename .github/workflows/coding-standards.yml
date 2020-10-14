@@ -1,4 +1,4 @@
-name: PHP Coding standards
+name: Coding Standards
 
 on:
   push:
@@ -16,11 +16,11 @@ jobs:
   # - Logs debug information.
   # - Installs Composer dependencies (from cache if possible).
   # - Logs PHP_CodeSniffer debug information.
-  # - Runs PHPCS tests.
-  # - todo: Add a PHP_CodeSniffer scan for the `tests` directory that does not suppress warnings.
+  # - Runs PHPCS on the full codebase with warnings suppressed.
+  # - Runs PHPCS on the `tests` directory without warnings suppressed.
   # - todo: Configure Slack notifications for failing scans.
   phpcs:
-    name: Check PHP coding standards
+    name: PHP coding standards
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -45,6 +45,7 @@ jobs:
         with:
           php-version: "latest"
           coverage: none
+          tools: composer, cs2pr
 
       - name: Log debug information
         run: |
@@ -59,11 +60,60 @@ jobs:
       - name: Log PHPCS debug information
         run: phpcs -i
 
-      - name: Run PHPCS on Core files
-        uses: wearerequired/lint-action@v1
+      - name: Run PHPCS on all Core files
+        run: vendor/bin/phpcs -q -n --report=checkstyle | cs2pr
+
+      - name: Check test suite files for warnings
+        run: vendor/bin/phpcs tests -q --report=checkstyle | cs2pr
+
+  # Runs the JavaScript coding standards checks.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Sets up caching for NPM.
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Logs updated debug information.
+  # _ Installs NPM dependencies.
+  # - Run the WordPress JSHint checks.
+  # - todo: Configure Slack notifications for failing tests.
+  jshint:
+    name: JavaScript coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+          svn --version
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
         with:
-          github_token: ${{ secrets.github_token }}
-          check_name: PHP-Coding-Standards-${linter}
-          php_codesniffer: true
-          # Ignore warnings
-          php_codesniffer_args: "-n"
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run JSHint
+        run: npm run grunt jshint

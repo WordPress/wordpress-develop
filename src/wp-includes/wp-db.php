@@ -12,7 +12,7 @@
 /**
  * @since 0.71
  */
-define( 'EZSQL_VERSION', 'WP1.25' );
+define('EZSQL_VERSION', 'WP1.25');
 
 /**
  * @since 0.71

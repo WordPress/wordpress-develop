@@ -23,7 +23,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * @since 4.7.0
 	 * @var array
 	 */
-	public $callbacks = array();
+	public $callbacks=array();
 
 	/**
 	 * The priority keys of actively running iterations of a hook.
