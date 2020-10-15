@@ -1,0 +1,67 @@
+name: PHP Compatibility
+
+on:
+  push:
+    branches:
+      - master
+      # The PHP compatibility testing was introduced in WordPress 5.5.
+      - '5.[5-9]'
+      - '[6-9].*'
+  pull_request:
+
+jobs:
+
+  # Runs PHP compatibility testing.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Configures caching for Composer.
+  # - Sets up PHP.
+  # - Logs debug information about the runner container.
+  # - Installs Composer dependencies (from cache if possible).
+  # - Logs PHP_CodeSniffer debug information.
+  # - Runs the PHP compatibility tests.
+  # - todo: Configure Slack notifications for failing scans.
+  php-comatibility:
+    name: Check PHP compatibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer, cs2pr
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
+          echo "vendor/bin" >> $GITHUB_PATH
+
+      - name: Run PHP compatibility tests
+        run: vendor/bin/phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
