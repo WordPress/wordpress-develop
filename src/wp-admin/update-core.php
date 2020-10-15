@@ -552,7 +552,7 @@ function list_theme_updates() {
 				}
 			}
 		} elseif ( ! $compatible_wp ) {
-			$compat .= '<br>' .  wp_get_compatibility_string( 'core_update_incompatible_wp' ) . '&nbsp;';
+			$compat .= '<br>' . wp_get_compatibility_string( 'core_update_incompatible_wp' ) . '&nbsp;';
 			if ( current_user_can( 'update_core' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to WordPress Updates screen. */
@@ -561,7 +561,7 @@ function list_theme_updates() {
 				);
 			}
 		} elseif ( ! $compatible_php ) {
-			$compat .= '<br>' .  wp_get_compatibility_string( 'core_update_incompatible_php' ) . '&nbsp;';
+			$compat .= '<br>' . wp_get_compatibility_string( 'core_update_incompatible_php' ) . '&nbsp;';
 			if ( current_user_can( 'update_php' ) ) {
 				$compat .= sprintf(
 					/* translators: %s: URL to Update PHP page. */

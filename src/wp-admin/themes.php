@@ -401,7 +401,7 @@ foreach ( $themes as $theme ) :
 			<div class="update-message notice inline notice-error notice-alt"><p>
 				<?php
 				if ( ! $theme['updateResponse']['compatibleWP'] && ! $theme['updateResponse']['compatiblePHP'] ) {
-					echo wp_get_compatibility_string( 'update_incompatible_wp_php',  $theme['name'] );
+					echo wp_get_compatibility_string( 'update_incompatible_wp_php', $theme['name'] );
 					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 						printf(
 							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
