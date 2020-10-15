@@ -28,7 +28,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
-            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'The content of your <a href="#">Static Front Page</a> is displayed here. This is a great place to add your call to action with a brief message.', 'twentyseventeen' ) . '</h1>
+            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'We can put together marketing campaigns and attract leads through search engine optimization.', 'twentyseventeen' ) . '</h1>
             <!-- /wp:heading -->
 
             <!-- wp:buttons -->
@@ -54,10 +54,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
-            <h2 class="has-black-color has-text-color" style="font-size:45px">Black Stripes</h2>
+            <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Branding', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.', 'twentyseventeen' ) . '</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Our team of talented designers can create a beautiful logo and brand to encapsulate your business purpose and goals.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3"}}} -->
             <p style="line-height:3"><a href="#"><strong>' . __( 'See Case Study', 'twentyseventeen' ) . ' →</strong></a></p>
@@ -71,10 +71,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
-            <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'White Border', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Web Design', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.', 'twentyseventeen' ) . '</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Need a website? We’ve got you covered. Our design team will work to transform your brand into a stunning site design.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3.0"}}} -->
             <p style="line-height:3.0"><a href="#"><strong>' . __( 'See Case Study', 'twentyseventeen' ) . ' →</strong></a></p>
@@ -100,7 +100,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
-            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Black Stripes', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Branding', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
             <p class="has-text-align-left"><a href="#">' . __( 'See Case Study', 'twentyseventeen' ) . ' →</a></p>
@@ -114,7 +114,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
-            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'White Border', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Web Design', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
             <p class="has-text-align-left"><a href="#">' . __( 'See Case Study', 'twentyseventeen' ) . ' →</a></p>
@@ -128,7 +128,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/direct-light.jpg" alt="' . __( 'Direct Light', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
-            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Direct Light', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Web Development', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
             <p class="has-text-align-left"><a href="#">' . __( 'See Case Study' ) . ' →</a></p>
@@ -183,9 +183,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 		array(
 			'title'      => __( 'Contact Us', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
-			'content'    => '<!-- wp:cover {"customOverlayColor":"#93aab8","minHeight":900,"align":"center"} -->
-            <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:900px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","textColor":"white","style":{"typography":{"fontSize":50}}} -->
-            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'Outstanding clients have allowed us to produce work we are proud of', 'twentyseventeen' ) . '</p>
+			'content'    => '<!-- wp:cover {"customOverlayColor":"#93aab8","minHeight":700,"align":"center"} -->
+            <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:700px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","textColor":"white","style":{"typography":{"fontSize":50}}} -->
+            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'Outstanding clients have allowed us to produce work we are proud of.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             
             <!-- wp:buttons -->
