@@ -4308,16 +4308,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
 	if ( $fire_after_hooks ) {
-		/**
-		 * Fires once a post, its terms and meta data has been saved.
-		 *
-		 * @since 5.6.0
-		 *
-		 * @param int     $post_ID Post ID.
-		 * @param WP_Post $post    Post object.
-		 * @param bool    $update  Whether this is an existing post being updated.
-		 */
-		do_action( 'wp_after_insert_post', $post_ID, $post, $update );
+		wp_after_insert_post( $post, $update );
 	}
 
 	return $post_ID;
@@ -4923,6 +4914,34 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * @param WP_Post $post    Post object.
 	 */
 	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post );
+}
+
+/**
+ * Fires actions after a post, its terms and meta data has been saved.
+ *
+ * @since 5.6.0
+ *
+ * @param int|WP_Post $post   The post ID or object that has been saved.
+ * @param bool        $update Whether this is an existing post being updated.
+ */
+function wp_after_insert_post( $post, $update ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
+
+	$post_id = $post->ID;
+
+	/**
+	 * Fires once a post, its terms and meta data has been saved.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 * @param bool    $update  Whether this is an existing post being updated.
+	 */
+	do_action( 'wp_after_insert_post', $post_id, $post, $update );
 }
 
 //

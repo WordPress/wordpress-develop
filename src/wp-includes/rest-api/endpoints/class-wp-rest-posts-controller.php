@@ -664,8 +664,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$request->set_param( 'context', 'edit' );
 
-		/** This filter is documented in wp-includes/post.php */
-		do_action( 'wp_after_insert_post', $post_id, $post, false );
+		wp_after_insert_post( $post, false );
 
 		/**
 		 * Fires after a single post is completely created or updated via the REST API.
@@ -828,8 +827,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return rest_ensure_response( $response );
 		}
 
-		/** This filter is documented in wp-includes/post.php */
-		do_action( 'wp_after_insert_post', $post_id, $post, true );
+		wp_after_insert_post( $post, true );
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
