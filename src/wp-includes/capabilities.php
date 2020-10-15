@@ -1075,36 +1075,32 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 }
 
 function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
-	if ( ! is_multisite() ) {
-		$can_view = user_can( $user_id, 'view_site_health_checks' );
+	$restricted_checks = array(
+		'wordpress_version',
+		'plugin_version',
+		'theme_version',
+		'php_version',
+		'php_extensions',
+		'php_sessions',
+		'sql_server',
+		'utf8mb4_support',
+		'debug_enabled',
+		'background_updates',
+	);
+
+	/**
+	 * Filter which tests are restricted to the network admin screen.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $restricted_checks An array of Site Health check slugs that are only available in the network admin on multisite installs.
+	 */
+	$restricted_checks = apply_filters( 'wp_site_health_network_admin_checks', $restricted_checks );
+
+	if ( in_array( $test_slug, $restricted_checks, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
+		$can_view = false;
 	} else {
-		$restricted_checks = array(
-			'wordpress_version',
-			'plugin_version',
-			'theme_version',
-			'php_version',
-			'php_extensions',
-			'php_sessions',
-			'sql_server',
-			'utf8mb4_support',
-			'debug_enabled',
-			'background_updates',
-		);
-
-		/**
-		 * Filter which tests are restricted to the network admin screen.
-		 *
-		 * @since 5.6.0
-		 *
-		 * @param array $restricted_checks An array of Site Health check slugs that are only available in the network admin on multisite installs.
-		 */
-		$restricted_checks = apply_filters( 'wp_site_health_network_admin_checks', $restricted_checks );
-
-		if ( in_array( $test_slug, $restricted_checks, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
-			$can_view = false;
-		} else {
-			$can_view = true;
-		}
+		$can_view = true;
 	}
 
 	/**
@@ -1122,34 +1118,30 @@ function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
 }
 
 function wp_site_health_allow_single_debug( $user_id, $debug_section, $debug_slug ) {
-	if ( ! is_multisite() ) {
-		$can_view = user_can( $user_id, 'view_site_health_checks' );
+	$restricted_fields = array(
+		'wp-core-user_count',
+		'wp-core-site_count',
+		'wp-core-network_count',
+	);
+
+	/**
+	 * Filter which debug information fields are restricted to the network admin screen.
+	 *
+	 * To avoid collision between slugs, the section is prepended to the check name as `{$debug_section}-{$debug_slug}`.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $restricted_fields An array of Site Health debug information sections and slugs that are only available in the network admin on multisite installs.
+	 */
+	$restricted_fields = apply_filters( 'wp_site_health_network_admin_debug_fields', $restricted_fields );
+
+	// A mix of the section and slug, to avoid naming collisions between slugs in different sections.
+	$check_string = $debug_section . '-' . $debug_slug;
+
+	if ( in_array( $check_string, $restricted_fields, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
+		$can_view = false;
 	} else {
-		$restricted_fields = array(
-			'wp-core-user_count',
-			'wp-core-site_count',
-			'wp-core-network_count',
-		);
-
-		/**
-		 * Filter which debug information fields are restricted to the network admin screen.
-		 *
-		 * To avoid collision between slugs, the section is prepended to the check name as `{$debug_section}-{$debug_slug}`.
-		 *
-		 * @since 5.6.0
-		 *
-		 * @param array $restricted_fields An array of Site Health debug information sections and slugs that are only available in the network admin on multisite installs.
-		 */
-		$restricted_fields = apply_filters( 'wp_site_health_network_admin_debug_fields', $restricted_fields );
-
-		// A mix of the section and slug, to avoid naming collisions between slugs in different sections.
-		$check_string = $debug_section . '-' . $debug_slug;
-
-		if ( in_array( $check_string, $restricted_fields, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
-			$can_view = false;
-		} else {
-			$can_view = true;
-		}
+		$can_view = true;
 	}
 
 	/**
