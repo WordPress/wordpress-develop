@@ -57,6 +57,15 @@ Bundled header image, Copyright Alvin Engler
 License: CC0 1.0 Universal (CC0 1.0)
 Source: https://unsplash.com/@englr?photo=bIhpiQA009k
 
+Bundled block pattern images, Copyright Solo Shutter
+License: CC0 1.0 Universal (CC0 1.0)
+Source: https://stocksnap.io/photo/striped-lines-BTNYMDDCBW
+        https://stocksnap.io/photo/striped-lines-5XWOPSWPWX
+
+Bundled block pattern image, Copyright Seacoast Sage
+License: CC0 1.0 Universal (CC0 1.0)
+Source: https://stocksnap.io/photo/striped-fabric-9CBVWF2CDU
+
 == Changelog ==
 
 = 2.4 =
