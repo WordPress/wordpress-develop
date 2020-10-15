@@ -92,9 +92,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'content'    => '<!-- wp:spacer -->
             <div style="height:100px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
-            <!-- wp:columns {"verticalAlignment":"center"} -->
-            <div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} -->
-            <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
+            <!-- wp:columns {"verticalAlignment":"top"} -->
+            <div class="wp-block-columns are-vertically-aligned-top"><!-- wp:column -->
+            <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure></div>
@@ -107,28 +107,28 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <!-- /wp:paragraph --></div></div>
             <!-- /wp:group --></div>
             <!-- /wp:column -->
-            <!-- wp:column {"verticalAlignment":"center"} -->
-            <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
+            <!-- wp:column -->
+            <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
-            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Web Design', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Design', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
             <p class="has-text-align-left"><a href="#">' . __( 'See Case Study', 'twentyseventeen' ) . ' →</a></p>
             <!-- /wp:paragraph --></div></div>
             <!-- /wp:group --></div>
             <!-- /wp:column -->
-            <!-- wp:column {"verticalAlignment":"center"} -->
-            <div class="wp-block-column is-vertically-aligned-center"><!-- wp:group -->
+            <!-- wp:column -->
+            <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
 			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/direct-light.jpg" alt="' . __( 'Direct Light', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
-            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Web Development', 'twentyseventeen' ) . '</h2>
+            <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Strategy', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"align":"left"} -->
             <p class="has-text-align-left"><a href="#">' . __( 'See Case Study' ) . ' →</a></p>
@@ -159,7 +159,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-columns"><!-- wp:column -->
             <div class="wp-block-column">
             <!-- wp:paragraph {"style":{"typography":{"fontSize":21, "lineHeight":"2.5"}}} -->
-            <p style="font-size:21px"><a href="#">' . __( 'Branding', 'twentyseventeen' ) . ' →</a><br><a href="#">' . __( 'Webdesign', 'twentyseventeen' ) . ' →</a><br><a href="#">' . __( 'Web Development', 'twentyseventeen' ) . ' →</a></p>
+            <p style="font-size:21px"><a href="#">' . __( 'Branding', 'twentyseventeen' ) . ' →</a><br><a href="#">' . __( 'Web Design', 'twentyseventeen' ) . ' →</a><br><a href="#">' . __( 'Web Development', 'twentyseventeen' ) . ' →</a></p>
             <!-- /wp:paragraph -->
             </div>
             <!-- /wp:column -->
