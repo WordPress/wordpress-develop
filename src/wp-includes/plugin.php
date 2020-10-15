@@ -671,6 +671,8 @@ function apply_filters_deprecated( $hook, $args, $version, $replacement = '', $m
  * @param string $message     Optional. A message regarding the change. Default empty.
  */
 function do_action_deprecated( $hook, $args, $version, $replacement = '', $message = '' ) {
+	$tag = $hook;
+
 	if ( ! has_action( $tag ) ) {
 		return;
 	}
