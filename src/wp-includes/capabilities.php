@@ -1074,6 +1074,16 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	return $allcaps;
 }
 
+/**
+ * Check if a given user has the capabilities to view a given Site Health check.
+ *
+ * @since 5.6.0
+ *
+ * @param int    $user_id   The ID of the user having their capability checked.
+ * @param string $test_slug The slug used to reference a Site Health Check test.
+ *
+ * @return bool
+ */
 function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
 	$restricted_checks = array(
 		'wordpress_version',
@@ -1108,7 +1118,7 @@ function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param boolean $can_view  A boolean value representing if the user can view this test or not.
+	 * @param bool    $can_view  A boolean value representing if the user can view this test or not.
 	 * @param string  $test_slug A Site Health test slug being capability checked.
 	 * @param int     $user_id   The ID of the user whose capabilities are being checked.
 	 */
@@ -1117,6 +1127,17 @@ function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
 	return $can_view;
 }
 
+/**
+ * Check if a given user has the capabilities to view a given Site Health check.
+ *
+ * @since 5.6.0
+ *
+ * @param int    $user_id       The ID of the user having their capability checked.
+ * @param string $debug_section The slug referencing a Site Health debug section.
+ * @param string $debug_slug    The slug referencing a Site Health debug section field.
+ *
+ * @return bool
+ */
 function wp_site_health_allow_single_debug( $user_id, $debug_section, $debug_slug ) {
 	$restricted_fields = array(
 		'wp-core-user_count',
@@ -1149,7 +1170,7 @@ function wp_site_health_allow_single_debug( $user_id, $debug_section, $debug_slu
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param boolean $can_view      A boolean value representing if the user can view this debug information or not.
+	 * @param bool    $can_view      A boolean value representing if the user can view this debug information or not.
 	 * @param string  $debug_section A Site Health debug information section that the following slug is associated with.
 	 * @param string  $debug_slug    A Site Health debug information slug being capability checked.
 	 * @param int     $user_id       The ID of the user whose capabilities are being checked.
