@@ -19,6 +19,8 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	/**
 	 * An instance of the site health class.
 	 *
+	 * @since 5.6.0
+	 *
 	 * @var WP_Site_Health
 	 */
 	private $site_health;
@@ -53,11 +55,14 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'background-updates'
 			),
 			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'test_background_updates' ),
-				'permission_callback' => function() {
-					return $this->validate_request_permission( 'background_updates' );
-				},
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_background_updates' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'background_updates' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -69,11 +74,14 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'loopback-requests'
 			),
 			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'test_loopback_requests' ),
-				'permission_callback' => function() {
-					return $this->validate_request_permission( 'loopback_requests' );
-				},
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_loopback_requests' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'loopback_requests' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -85,11 +93,14 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 				'dotorg-communication'
 			),
 			array(
-				'methods'             => 'GET',
-				'callback'            => array( $this, 'test_dotorg_communication' ),
-				'permission_callback' => function() {
-					return $this->validate_request_permission( 'dotorg_communication' );
-				},
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_dotorg_communication' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'dotorg_communication' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
 			)
 		);
 
@@ -213,5 +224,76 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		}
 
 		return $all_sizes;
+	}
+
+	/**
+	 * Gets the schema for each site health test.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return array The test schema.
+	 */
+	public function get_item_schema() {
+		if ( $this->schema ) {
+			return $this->schema;
+		}
+
+		$this->schema = array(
+			'$schema'    => 'http://json-schema.org/draft-04/schema#',
+			'title'      => 'wp-site-health-test',
+			'type'       => 'object',
+			'properties' => array(
+				'test'        => array(
+					'type'        => 'string',
+					'description' => __( 'The name of the test being run.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+				'label'       => array(
+					'type'        => 'string',
+					'description' => __( 'A label describing the test.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+				'status'      => array(
+					'type'        => 'string',
+					'description' => __( 'The status of the test.' ),
+					'enum'        => array( 'good', 'recommended', 'critical' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+				'badge'       => array(
+					'type'        => 'object',
+					'description' => __( 'The category this test is grouped in.' ),
+					'properties'  => array(
+						'label' => array(
+							'type'     => 'string',
+							'readonly' => true,
+						),
+						'color' => array(
+							'type'     => 'string',
+							'enum'     => array( 'blue', 'orange', 'red', 'green', 'purple', 'gray' ),
+							'readonly' => true,
+						),
+					),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+				'description' => array(
+					'type'        => 'string',
+					'description' => __( 'A more descriptive explanation of what the test looks for, and why it is important for the user.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+				'actions'     => array(
+					'type'        => 'string',
+					'description' => __( 'HTML containing an action to direct the user to where they can resolve the issue.' ),
+					'readonly'    => true,
+					'context'     => array( 'view', 'edit' ),
+				),
+			),
+		);
+
+		return $this->schema;
 	}
 }
