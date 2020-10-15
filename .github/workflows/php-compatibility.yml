@@ -2,6 +2,11 @@ name: PHP Compatibility
 
 on:
   push:
+    branches:
+      - master
+      # The PHP compatibility testing was introduced in WordPress 5.5.
+      - '5.[5-9]'
+      - '[6-9].*'
   pull_request:
 
 jobs:

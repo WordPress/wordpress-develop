@@ -2,6 +2,9 @@ name: JavaScript Tests
 
 on:
   push:
+    branches:
+      - master
+      - '*.*'
   pull_request:
 
 jobs:

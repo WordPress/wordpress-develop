@@ -2,6 +2,9 @@ name: Test NPM on Windows
 
 on:
   push:
+    branches:
+      - master
+      - '*.*'
   pull_request:
 
 jobs:

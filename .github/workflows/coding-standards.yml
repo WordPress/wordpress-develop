@@ -2,6 +2,11 @@ name: Coding Standards
 
 on:
   push:
+    branches:
+      - master
+      # PHPCS checking was introduced in WordPress 5.1.
+      - '5.[1-9]'
+      - '[6-9].*'
   pull_request:
 
 jobs:

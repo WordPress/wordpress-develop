@@ -2,6 +2,11 @@ name: End-to-end Tests
 
 on:
   push:
+    branches:
+      - master
+      # The end to end test suite was introduced in WordPress 5.3.
+      - '5.[3-9]'
+      - '[6-9].*'
   pull_request:
 
 env:
