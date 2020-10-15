@@ -82,7 +82,6 @@ class WP_Site_Health {
 			'screen'      => $screen->id,
 			'rest_base'   => rest_url( '/' ),
 			'nonce'       => array(
-				'rest_api'           => wp_create_nonce( 'wp_rest' ),
 				'site_status'        => wp_create_nonce( 'health-check-site-status' ),
 				'site_status_result' => wp_create_nonce( 'health-check-site-status-result' ),
 			),

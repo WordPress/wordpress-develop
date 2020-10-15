@@ -311,10 +311,6 @@ jQuery( document ).ready( function( $ ) {
 	}
 
 	function getDirectorySizes() {
-		var data = {
-			_wpnonce: SiteHealth.nonce.rest_api
-		};
-
 		var timestamp = ( new Date().getTime() );
 
 		// After 3 seconds announce that we're still waiting for directory sizes.
@@ -322,10 +318,8 @@ jQuery( document ).ready( function( $ ) {
 			wp.a11y.speak( __( 'Please wait...' ) );
 		}, 3000 );
 
-		$.get( {
-			url: SiteHealth.rest_base + 'wp-site-health/v1/directory-sizes',
-			data: data,
-			dataType: 'json'
+		wp.apiRequest( {
+			path: '/wp-site-health/v1/directory-sizes',
 		} ).done( function( response ) {
 			updateDirSizes( response || {} );
 		} ).always( function() {
