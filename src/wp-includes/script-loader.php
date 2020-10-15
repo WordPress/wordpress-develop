@@ -1255,6 +1255,8 @@ function wp_default_scripts( $scripts ) {
 
 		$scripts->add( 'editor-expand', "/wp-admin/js/editor-expand$suffix.js", array( 'jquery', 'underscore' ), false, 1 );
 
+		$scripts->add( 'link-manager', "/wp-admin/js/link-manager$suffix.js", array(), false, 1 );
+
 		$scripts->add( 'link', "/wp-admin/js/link$suffix.js", array( 'wp-lists', 'postbox' ), false, 1 );
 
 		$scripts->add( 'comment', "/wp-admin/js/comment$suffix.js", array( 'jquery', 'postbox' ), false, 1 );

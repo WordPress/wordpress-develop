@@ -329,10 +329,10 @@ class WP_Links_List_Table extends WP_List_Table {
 		$actions           = array();
 		$actions['edit']   = '<a href="' . $edit_link . '">' . __( 'Edit' ) . '</a>';
 		$actions['delete'] = sprintf(
-			'<a class="submitdelete" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
+			'<a class="submitdelete submitdelete-link" href="%s" data-prompt="%s">%s</a>',
 			wp_nonce_url( "link.php?action=delete&amp;link_id=$link->link_id", 'delete-bookmark_' . $link->link_id ),
 			/* translators: %s: Link name. */
-			esc_js( sprintf( __( "You are about to delete this link '%s'\n  'Cancel' to stop, 'OK' to delete." ), $link->link_name ) ),
+			esc_attr( sprintf( __( "You are about to delete this link '%s'\n  'Cancel' to stop, 'OK' to delete." ), $link->link_name ) ),
 			__( 'Delete' )
 		);
 
