@@ -736,7 +736,7 @@ function meta_form( $post = null ) {
 		?>
 </select>
 <input class="hide-if-js" type="text" id="metakeyinput" name="metakeyinput" value="" />
-<a href="#postcustomstuff" class="hide-if-no-js" onclick="jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggle();return false;">
+<a href="#postcustomstuff" class="hide-if-no-js">
 <span id="enternew"><?php _e( 'Enter new' ); ?></span>
 <span id="cancelnew" class="hidden"><?php _e( 'Cancel' ); ?></span></a>
 <?php } else { ?>
@@ -766,7 +766,15 @@ function meta_form( $post = null ) {
 </tbody>
 </table>
 	<?php
-
+	$js = <<<'JS'
+	document.addEventListener('DOMContentLoaded', function () {
+		jQuery('#postcustomstuff').click(function () {
+			jQuery('#metakeyinput, #metakeyselect, #enternew, #cancelnew').toggle();
+			return false;
+		});
+	});
+JS;
+	wp_print_inline_script_tag( $js );
 }
 
 /**
