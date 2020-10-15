@@ -77,6 +77,9 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 		$this->assertErrorResponse( 'rest_forbidden', $response, 403 );
 	}
 
+	/**
+	 * @group ms-excluded
+	 */
 	public function test_custom_capability() {
 		wp_set_current_user( self::$admin );
 
