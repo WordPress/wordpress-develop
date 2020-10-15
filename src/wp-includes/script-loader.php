@@ -1077,6 +1077,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'user-profile' );
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
+	
+	$scripts->add( 'setup-config', "/wp-admin/js/setup-config$suffix.js", array(), false, 1 );
 
 	$scripts->add( 'user-suggest', "/wp-admin/js/user-suggest$suffix.js", array( 'jquery-ui-autocomplete' ), false, 1 );
 
