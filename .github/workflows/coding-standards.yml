@@ -1,0 +1,124 @@
+name: Coding Standards
+
+on:
+  push:
+    branches:
+      - master
+      # PHPCS checking was introduced in WordPress 5.1.
+      - '5.[1-9]'
+      - '[6-9].*'
+  pull_request:
+
+jobs:
+  # Runs PHP coding standards checks.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Configures caching for Composer.
+  # - Sets up PHP.
+  # - Logs debug information.
+  # - Installs Composer dependencies (from cache if possible).
+  # - Logs PHP_CodeSniffer debug information.
+  # - Runs PHPCS on the full codebase with warnings suppressed.
+  # - Runs PHPCS on the `tests` directory without warnings suppressed.
+  # - todo: Configure Slack notifications for failing scans.
+  phpcs:
+    name: PHP coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Get Composer cache directory
+        id: composer-cache
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Set up Composer caching
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer, cs2pr
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
+          echo "vendor/bin" >> $GITHUB_PATH
+
+      - name: Log PHPCS debug information
+        run: phpcs -i
+
+      - name: Run PHPCS on all Core files
+        run: vendor/bin/phpcs -q -n --report=checkstyle | cs2pr
+
+      - name: Check test suite files for warnings
+        run: vendor/bin/phpcs tests -q --report=checkstyle | cs2pr
+
+  # Runs the JavaScript coding standards checks.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Sets up caching for NPM.
+  # - Logs updated debug information.
+  # _ Installs NPM dependencies.
+  # - Run the WordPress JSHint checks.
+  # - todo: Configure Slack notifications for failing tests.
+  jshint:
+    name: JavaScript coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          git --version
+          svn --version
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run JSHint
+        run: npm run grunt jshint
