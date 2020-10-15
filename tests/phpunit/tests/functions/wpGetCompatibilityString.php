@@ -6,7 +6,6 @@
  * @since 5.6.0
  *
  * @group functions.php
- * @group 50787
  * @covers ::wp_get_compatibility_string
  */
 class Tests_Functions_WPGetCompatibilityString extends WP_UnitTestCase {
