@@ -813,6 +813,13 @@ window.commentReply = {
 				commentReply.close();
 		});
 
+		$('#the-comment-list').on('click', '.open-comment-reply', function () {
+			commentReply.open(
+				this.dataset.commentId,
+				this.dataset.postId
+			);
+		});
+
 		this.comments_listing = $('#comments-form > input[name="comment_status"]').val() || '';
 	},
 
