@@ -43,6 +43,9 @@ jobs:
         with:
           access_token: ${{ github.token }}
 
+      - name: Configure environment variables
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -63,7 +66,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
@@ -134,6 +137,13 @@ jobs:
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+          echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
+      - name: Configure memcached
+        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
+        run: |
+          echo "LOCAL_PHP=$(echo ${{ matrix.php_versions }} | cut -c1-3)-fpm" >> $GITHUB_ENV
+          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
         uses: actions/download-artifact@v2
@@ -143,16 +153,10 @@ jobs:
       - name: Unzip built artifact
         run: unzip built-wp-${{ github.sha }}.zip
 
-      - name: Configure memcached
-        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
-        run: |
-          echo "LOCAL_PHP=$(echo ${{ matrix.php_versions }} | cut -c1-3)-fpm" >> $GITHUB_ENV
-          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
-
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Use cached Node modules
         uses: actions/cache@v2

@@ -86,6 +86,9 @@ jobs:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
     steps:
+      - name: Configure environment variables
+        run:  echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -99,7 +102,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
