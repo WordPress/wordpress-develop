@@ -154,12 +154,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
 		} , {} ),
+		'edit-widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
 	};
 	const blockMetadataFiles = {
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
 		} , {} ),
+		'edit-widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
+		'edit-widgets/src/blocks/widget-area/block.json': 'wp-includes/blocks/widget-area/block.json',
 	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );

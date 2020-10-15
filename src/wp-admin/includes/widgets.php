@@ -325,3 +325,47 @@ function wp_widget_control( $sidebar_args ) {
 function wp_widgets_access_body_class( $classes ) {
 	return "$classes widgets_access ";
 }
+
+/**
+ * Outputs a HTML page that previews a Legacy Widget block. Suitable for use in
+ * an iframe, which is exactly what the Legacy Widget block does when a user
+ * selects Preview.
+ *
+ * @since 5.6.0
+ * @access private
+ *
+ * @param array $widget_preview Legacy Widget block attributes to preview.
+ */
+function wp_legacy_widget_block_preview( $widget_preview ) {
+	?>
+<!doctype html>
+<html <?php language_attributes(); ?>>
+<head>
+	<meta charset="<?php bloginfo( 'charset' ); ?>" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="profile" href="https://gmpg.org/xfn/11" />
+	<?php wp_head(); ?>
+	<style>
+		/* Reset theme styles */
+		html, body, #page, #content {
+			background: #FFF !important;
+			padding: 0 !important;
+			margin: 0 !important;
+		}
+	</style>
+</head>
+<body <?php body_class(); ?>>
+	<div id="page" class="site">
+		<div id="content" class="site-content">
+			<?php
+			$registry = WP_Block_Type_Registry::get_instance();
+			$block    = $registry->get_registered( 'core/legacy-widget' );
+			echo $block->render( $widget_preview );
+			?>
+		</div><!-- #content -->
+	</div><!-- #page -->
+	<?php wp_footer(); ?>
+</body>
+</html>
+	<?php
+}

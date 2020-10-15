@@ -320,6 +320,13 @@ function create_initial_rest_routes() {
 	// Site Health
 	$site_health = WP_Site_Health::get_instance();
 	$controller = new WP_REST_Site_Health_Controller( $site_health );
+
+	// Sidebars.
+	$controller = new WP_REST_Sidebars_Controller();
+	$controller->register_routes();
+
+	// Widget Utils.
+	$controller = new WP_REST_Widget_Utils_Controller();
 	$controller->register_routes();
 }
 

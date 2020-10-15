@@ -12,6 +12,7 @@ require ABSPATH . WPINC . '/blocks/calendar.php';
 require ABSPATH . WPINC . '/blocks/categories.php';
 require ABSPATH . WPINC . '/blocks/latest-comments.php';
 require ABSPATH . WPINC . '/blocks/latest-posts.php';
+require ABSPATH . WPINC . '/blocks/legacy-widget.php';
 require ABSPATH . WPINC . '/blocks/rss.php';
 require ABSPATH . WPINC . '/blocks/search.php';
 require ABSPATH . WPINC . '/blocks/shortcode.php';
@@ -56,6 +57,7 @@ function register_core_block_types_from_metadata() {
 		'text-columns',
 		'verse',
 		'video',
+		'widget-area',
 	);
 
 	foreach ( $block_folders as $block_folder ) {

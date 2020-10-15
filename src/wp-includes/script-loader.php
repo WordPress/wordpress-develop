@@ -1514,6 +1514,11 @@ function wp_default_styles( $styles ) {
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
+		'edit-widgets'         => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-block-library',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
