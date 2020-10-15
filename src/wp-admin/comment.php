@@ -75,7 +75,7 @@ switch ( $action ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		if ( ! $comment ) {
-			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'javascript:history.go(-1)' ) );
+			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a class="go-back" href="#">' . __( 'Go back' ) . '</a>.' ) );
 		}
 
 		if ( ! current_user_can( 'edit_comment', $comment_id ) ) {

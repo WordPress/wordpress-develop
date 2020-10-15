@@ -46,7 +46,7 @@ function check_upload_size( $file ) {
 	}
 
 	if ( '0' != $file['error'] && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
-		wp_die( $file['error'] . ' <a href="javascript:history.go(-1)">' . __( 'Back' ) . '</a>' );
+		wp_die( $file['error'] . ' <a class="go-back" href="#">' . __( 'Back' ) . '</a>' );
 	}
 
 	return $file;
