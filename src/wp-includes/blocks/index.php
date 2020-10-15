@@ -56,6 +56,7 @@ function register_core_block_types_from_metadata() {
 		'text-columns',
 		'verse',
 		'video',
+		'embed',
 	);
 
 	foreach ( $block_folders as $block_folder ) {

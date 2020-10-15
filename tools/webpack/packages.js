@@ -146,6 +146,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'text-columns',
 		'verse',
 		'video',
+		'embed',
 		...dynamicBlockFolders,
 	];
 	const phpFiles = {
