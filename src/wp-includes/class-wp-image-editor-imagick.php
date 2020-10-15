@@ -509,12 +509,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int  $src_x The start x position to crop from.
-	 * @param int  $src_y The start y position to crop from.
-	 * @param int  $src_w The width to crop.
-	 * @param int  $src_h The height to crop.
-	 * @param int  $dst_w Optional. The destination width.
-	 * @param int  $dst_h Optional. The destination height.
+	 * @param int  $src_x   The start x position to crop from.
+	 * @param int  $src_y   The start y position to crop from.
+	 * @param int  $src_w   The width to crop.
+	 * @param int  $src_h   The height to crop.
+	 * @param int  $dst_w   Optional. The destination width.
+	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
 	 * @return bool|WP_Error
 	 */
@@ -548,6 +548,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_crop_error', $e->getMessage() );
 		}
+
 		return $this->update_size();
 	}
 
@@ -582,6 +583,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_rotate_error', $e->getMessage() );
 		}
+
 		return true;
 	}
 
@@ -662,8 +664,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 	/**
 	 * @param Imagick $image
-	 * @param string $filename
-	 * @param string $mime_type
+	 * @param string  $filename
+	 * @param string  $mime_type
 	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {

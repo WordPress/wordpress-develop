@@ -95,6 +95,11 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		$result = array();
 
 		foreach ( $response->plugins as $plugin ) {
+			// If the API returned a plugin with empty data for 'blocks', skip it.
+			if ( empty( $plugin['blocks'] ) ) {
+				continue;
+			}
+
 			$data     = $this->prepare_item_for_response( $plugin, $request );
 			$result[] = $this->prepare_response_for_collection( $data );
 		}
@@ -123,13 +128,12 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 			'description'         => wp_trim_words( $plugin['description'], 30, '...' ),
 			'id'                  => $plugin['slug'],
 			'rating'              => $plugin['rating'] / 20,
-			'rating_count'        => intval( $plugin['num_ratings'] ),
-			'active_installs'     => intval( $plugin['active_installs'] ),
+			'rating_count'        => (int) $plugin['num_ratings'],
+			'active_installs'     => (int) $plugin['active_installs'],
 			'author_block_rating' => $plugin['author_block_rating'] / 20,
-			'author_block_count'  => intval( $plugin['author_block_count'] ),
+			'author_block_count'  => (int) $plugin['author_block_count'],
 			'author'              => wp_strip_all_tags( $plugin['author'] ),
 			'icon'                => ( isset( $plugin['icons']['1x'] ) ? $plugin['icons']['1x'] : 'block-default' ),
-			'assets'              => array(),
 			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
 			'humanized_updated'   => sprintf(
 				/* translators: %s: Human-readable time difference. */
@@ -137,21 +141,6 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 				human_time_diff( strtotime( $plugin['last_updated'] ) )
 			),
 		);
-
-		foreach ( $plugin['block_assets'] as $asset ) {
-			// Allow for fully qualified URLs in future
-			if ( 'https' === wp_parse_url( $asset, PHP_URL_SCHEME ) && ! empty( wp_parse_url( $asset, PHP_URL_HOST ) ) ) {
-				$block['assets'][] = esc_url_raw(
-					$asset,
-					array( 'https' )
-				);
-			} else {
-				$block['assets'][] = esc_url_raw(
-					add_query_arg( 'v', strtotime( $block['last_updated'] ), 'https://ps.w.org/' . $plugin['slug'] . $asset ),
-					array( 'https' )
-				);
-			}
-		}
 
 		$this->add_additional_fields_to_object( $block, $request );
 
@@ -296,16 +285,6 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view' ),
 				),
-				'assets'              => array(
-					'description' => __( 'An object representing the block CSS and JavaScript assets.' ),
-					'type'        => 'array',
-					'context'     => array( 'view' ),
-					'readonly'    => true,
-					'items'       => array(
-						'type'   => 'string',
-						'format' => 'uri',
-					),
-				),
 			),
 		);
 
@@ -334,7 +313,7 @@ class WP_REST_Block_Directory_Controller extends WP_REST_Controller {
 		unset( $query_params['search'] );
 
 		/**
-		 * Filter collection parameters for the block directory controller.
+		 * Filters collection parameters for the block directory controller.
 		 *
 		 * @since 5.5.0
 		 *

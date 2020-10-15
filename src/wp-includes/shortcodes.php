@@ -292,7 +292,7 @@ function get_shortcode_regex( $tagnames = null ) {
 /**
  * Regular Expression callable for do_shortcode() for calling shortcode hook.
  *
- * @see get_shortcode_regex for details of the match array contents.
+ * @see get_shortcode_regex() for details of the match array contents.
  *
  * @since 2.5.0
  * @access private
@@ -365,9 +365,9 @@ function do_shortcode_tag( $m ) {
  *
  * @since 4.2.3
  *
- * @param string $content Content to search for shortcodes
- * @param bool $ignore_html When true, all square braces inside elements will be encoded.
- * @param array $tagnames List of shortcodes to find.
+ * @param string $content     Content to search for shortcodes.
+ * @param bool   $ignore_html When true, all square braces inside elements will be encoded.
+ * @param array  $tagnames    List of shortcodes to find.
  * @return string Content with shortcodes filtered out.
  */
 function do_shortcodes_in_html_tags( $content, $ignore_html, $tagnames ) {

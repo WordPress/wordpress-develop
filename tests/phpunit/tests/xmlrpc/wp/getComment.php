@@ -36,7 +36,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'username', 'password', self::$parent_comment_id ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -44,7 +44,7 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'contributor', 'contributor', self::$parent_comment_id ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_valid_comment() {
@@ -76,11 +76,11 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertStringMatchesFormat( '%d', $result['post_id'] );
 		$this->assertEquals( self::$parent_comment_id, $result['comment_id'] );
 		$this->assertEquals( 0, $result['parent'] );
-		$this->assertEquals( self::$parent_comment_data['comment_content'], $result['content'] );
+		$this->assertSame( self::$parent_comment_data['comment_content'], $result['content'] );
 		$this->assertEquals( self::$post_id, $result['post_id'] );
-		$this->assertEquals( self::$parent_comment_data['comment_author'], $result['author'] );
-		$this->assertEquals( self::$parent_comment_data['comment_author_url'], $result['author_url'] );
-		$this->assertEquals( self::$parent_comment_data['comment_author_email'], $result['author_email'] );
+		$this->assertSame( self::$parent_comment_data['comment_author'], $result['author'] );
+		$this->assertSame( self::$parent_comment_data['comment_author_url'], $result['author_url'] );
+		$this->assertSame( self::$parent_comment_data['comment_author_email'], $result['author_email'] );
 	}
 
 	function test_valid_child_comment() {
@@ -98,6 +98,6 @@ class Tests_XMLRPC_wp_getComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getComment( array( 1, 'editor', 'editor', 123456789 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 404, $result->code );
+		$this->assertSame( 404, $result->code );
 	}
 }

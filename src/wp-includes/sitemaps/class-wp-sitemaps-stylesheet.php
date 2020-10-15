@@ -86,48 +86,52 @@ class WP_Sitemaps_Stylesheet {
 		<html {$lang}>
 			<head>
 				<title>{$title}</title>
-				<style>{$css}</style>
+				<style>
+					{$css}
+				</style>
 			</head>
 			<body>
-				<div id="sitemap__header">
-					<h1>{$title}</h1>
-					<p>{$description}</p>
-					<p>{$learn_more}</p>
-				</div>
-				<div id="sitemap__content">
-					<p class="text">{$text}</p>
-					<table id="sitemap__table">
-						<thead>
-							<tr>
-								<th class="loc">{$url}</th>
-								<xsl:if test="\$has-lastmod">
-									<th class="lastmod">{$lastmod}</th>
-								</xsl:if>
-								<xsl:if test="\$has-changefreq">
-									<th class="changefreq">{$changefreq}</th>
-								</xsl:if>
-								<xsl:if test="\$has-priority">
-									<th class="priority">{$priority}</th>
-								</xsl:if>
-							</tr>
-						</thead>
-						<tbody>
-							<xsl:for-each select="sitemap:urlset/sitemap:url">
+				<div id="sitemap">
+					<div id="sitemap__header">
+						<h1>{$title}</h1>
+						<p>{$description}</p>
+						<p>{$learn_more}</p>
+					</div>
+					<div id="sitemap__content">
+						<p class="text">{$text}</p>
+						<table id="sitemap__table">
+							<thead>
 								<tr>
-									<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+									<th class="loc">{$url}</th>
 									<xsl:if test="\$has-lastmod">
-										<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+										<th class="lastmod">{$lastmod}</th>
 									</xsl:if>
 									<xsl:if test="\$has-changefreq">
-										<td class="changefreq"><xsl:value-of select="sitemap:changefreq" /></td>
+										<th class="changefreq">{$changefreq}</th>
 									</xsl:if>
 									<xsl:if test="\$has-priority">
-										<td class="priority"><xsl:value-of select="sitemap:priority" /></td>
+										<th class="priority">{$priority}</th>
 									</xsl:if>
 								</tr>
-							</xsl:for-each>
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								<xsl:for-each select="sitemap:urlset/sitemap:url">
+									<tr>
+										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+										<xsl:if test="\$has-lastmod">
+											<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+										</xsl:if>
+										<xsl:if test="\$has-changefreq">
+											<td class="changefreq"><xsl:value-of select="sitemap:changefreq" /></td>
+										</xsl:if>
+										<xsl:if test="\$has-priority">
+											<td class="priority"><xsl:value-of select="sitemap:priority" /></td>
+										</xsl:if>
+									</tr>
+								</xsl:for-each>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</body>
 		</html>
@@ -192,36 +196,40 @@ XSL;
 		<html {$lang}>
 			<head>
 				<title>{$title}</title>
-				<style>{$css}</style>
+				<style>
+					{$css}
+				</style>
 			</head>
 			<body>
-				<div id="sitemap__header">
-					<h1>{$title}</h1>
-					<p>{$description}</p>
-					<p>{$learn_more}</p>
-				</div>
-				<div id="sitemap__content">
-					<p class="text">{$text}</p>
-					<table id="sitemap__table">
-						<thead>
-							<tr>
-								<th class="loc">{$url}</th>
-								<xsl:if test="\$has-lastmod">
-									<th class="lastmod">{$lastmod}</th>
-								</xsl:if>
-							</tr>
-						</thead>
-						<tbody>
-							<xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap">
+				<div id="sitemap">
+					<div id="sitemap__header">
+						<h1>{$title}</h1>
+						<p>{$description}</p>
+						<p>{$learn_more}</p>
+					</div>
+					<div id="sitemap__content">
+						<p class="text">{$text}</p>
+						<table id="sitemap__table">
+							<thead>
 								<tr>
-									<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+									<th class="loc">{$url}</th>
 									<xsl:if test="\$has-lastmod">
-										<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+										<th class="lastmod">{$lastmod}</th>
 									</xsl:if>
 								</tr>
-							</xsl:for-each>
-						</tbody>
-					</table>
+							</thead>
+							<tbody>
+								<xsl:for-each select="sitemap:sitemapindex/sitemap:sitemap">
+									<tr>
+										<td class="loc"><a href="{sitemap:loc}"><xsl:value-of select="sitemap:loc" /></a></td>
+										<xsl:if test="\$has-lastmod">
+											<td class="lastmod"><xsl:value-of select="sitemap:lastmod" /></td>
+										</xsl:if>
+									</tr>
+								</xsl:for-each>
+							</tbody>
+						</table>
+					</div>
 				</div>
 			</body>
 		</html>
@@ -248,33 +256,47 @@ XSL;
 	 * @return string The CSS.
 	 */
 	public function get_stylesheet_css() {
-		$css = '
-			body {
-				font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-				color: #444;
-			}
+		$text_align = is_rtl() ? 'right' : 'left';
 
-			#sitemap__table {
-				border: solid 1px #ccc;
-				border-collapse: collapse;
-			}
+		$css = <<<EOF
 
-			#sitemap__table tr th {
-				text-align: left;
-			}
+					body {
+						font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+						color: #444;
+					}
 
-			#sitemap__table tr td,
-			#sitemap__table tr th {
-				padding: 10px;
-			}
+					#sitemap__table {
+						border: solid 1px #ccc;
+						border-collapse: collapse;
+					}
 
-			#sitemap__table tr:nth-child(odd) td {
-				background-color: #eee;
-			}
+			 		#sitemap__table tr td.loc {
+						/*
+						 * URLs should always be LTR.
+						 * See https://core.trac.wordpress.org/ticket/16834
+						 * and https://core.trac.wordpress.org/ticket/49949
+						 */
+						direction: ltr;
+					}
 
-			a:hover {
-				text-decoration: none;
-			}';
+					#sitemap__table tr th {
+						text-align: {$text_align};
+					}
+
+					#sitemap__table tr td,
+					#sitemap__table tr th {
+						padding: 10px;
+					}
+
+					#sitemap__table tr:nth-child(odd) td {
+						background-color: #eee;
+					}
+
+					a:hover {
+						text-decoration: none;
+					}
+
+EOF;
 
 		/**
 		 * Filters the CSS only for the sitemap stylesheet.

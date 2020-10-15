@@ -3,47 +3,44 @@
  * @group admin
  */
 class Tests_Admin_includesTemplate extends WP_UnitTestCase {
-	function test_equal() {
-		$this->assertEquals( ' selected=\'selected\'', selected( 'foo', 'foo', false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( 'foo', 'foo', false ) );
 
-		$this->assertEquals( ' selected=\'selected\'', selected( '1', 1, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( '1', 1, false ) );
+	/**
+	 * @ticket 51147
+	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 */
+	public function test_wp_terms_checklist_with_selected_cats( $term_id ) {
+		$output = wp_terms_checklist(
+			0,
+			array(
+				'selected_cats' => array( $term_id ),
+				'echo'          => false,
+			)
+		);
 
-		$this->assertEquals( ' selected=\'selected\'', selected( '1', true, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( '1', true, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( 1, 1, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( 1, 1, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( 1, true, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( 1, true, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( true, true, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( true, true, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( '0', 0, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( '0', 0, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( 0, 0, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( 0, 0, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( '', false, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( '', false, false ) );
-
-		$this->assertEquals( ' selected=\'selected\'', selected( false, false, false ) );
-		$this->assertEquals( ' checked=\'checked\'', checked( false, false, false ) );
+		$this->assertContains( "checked='checked'", $output );
 	}
 
-	function test_notequal() {
-		$this->assertEquals( '', selected( '0', '', false ) );
-		$this->assertEquals( '', checked( '0', '', false ) );
+	/**
+	 * @ticket 51147
+	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 */
+	public function test_wp_terms_checklist_with_popular_cats( $term_id ) {
+		$output = wp_terms_checklist(
+			0,
+			array(
+				'popular_cats' => array( $term_id ),
+				'echo'         => false,
+			)
+		);
 
-		$this->assertEquals( '', selected( 0, '', false ) );
-		$this->assertEquals( '', checked( 0, '', false ) );
+		$this->assertContains( 'class="popular-category"', $output );
+	}
 
-		$this->assertEquals( '', selected( 0, false, false ) );
-		$this->assertEquals( '', checked( 0, false, false ) );
+	public function data_wp_terms_checklist_with_selected_cats() {
+		return array(
+			array( '1' ),
+			array( 1 ),
+		);
 	}
 
 	public function test_add_meta_box() {
@@ -131,7 +128,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	 * Test calling get_settings_errors() with variations on where it gets errors from.
 	 *
 	 * @ticket 42498
-	 * @covers ::get_settings_errors()
+	 * @covers ::get_settings_errors
 	 * @global array $wp_settings_errors
 	 */
 	public function test_get_settings_errors_sources() {
@@ -164,14 +161,14 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		set_transient( 'settings_errors', array( $blogname_error ) );
 		$wp_settings_errors = null;
 		add_settings_error( $blogdescription_error['setting'], $blogdescription_error['code'], $blogdescription_error['message'], $blogdescription_error['type'] );
-		$this->assertEqualSets( array( $blogname_error, $blogdescription_error ), get_settings_errors() );
+		$this->assertSameSets( array( $blogname_error, $blogdescription_error ), get_settings_errors() );
 
 		$wp_settings_errors = null;
 	}
 
 	/**
 	 * @ticket 44941
-	 * @covers ::settings_errors()
+	 * @covers ::settings_errors
 	 * @global array $wp_settings_errors
 	 * @dataProvider settings_errors_css_classes_provider
 	 */
@@ -202,6 +199,43 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 			array( 'notice-error', 'notice-error' ),
 			array( 'error my-own-css-class hello world', 'error my-own-css-class hello world' ),
 		);
+	}
+
+	/**
+	 * @ticket 42791
+	 */
+	public function test_wp_add_dashboard_widget() {
+		global $wp_meta_boxes;
+
+		set_current_screen( 'dashboard' );
+
+		if ( ! function_exists( 'wp_add_dashboard_widget' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/dashboard.php';
+		}
+
+		// Some hardcoded defaults for core widgets.
+		wp_add_dashboard_widget( 'dashboard_quick_press', 'Quick', '__return_false' );
+		wp_add_dashboard_widget( 'dashboard_browser_nag', 'Nag', '__return_false' );
+
+		$this->assertArrayHasKey( 'dashboard_quick_press', $wp_meta_boxes['dashboard']['side']['core'] );
+		$this->assertArrayHasKey( 'dashboard_browser_nag', $wp_meta_boxes['dashboard']['normal']['high'] );
+
+		// Location and priority defaults.
+		wp_add_dashboard_widget( 'dashboard1', 'Widget 1', '__return_false', null, null, 'foo' );
+		wp_add_dashboard_widget( 'dashboard2', 'Widget 2', '__return_false', null, null, null, 'bar' );
+
+		$this->assertArrayHasKey( 'dashboard1', $wp_meta_boxes['dashboard']['foo']['core'] );
+		$this->assertArrayHasKey( 'dashboard2', $wp_meta_boxes['dashboard']['normal']['bar'] );
+
+		// Cleanup.
+		remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
+		remove_meta_box( 'dashboard_browser_nag', 'dashboard', 'normal' );
+		remove_meta_box( 'dashboard1', 'dashboard', 'foo' );
+
+		// This doesn't actually get removed due to the invalid priority.
+		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
+
+		set_current_screen( 'front' );
 	}
 
 }

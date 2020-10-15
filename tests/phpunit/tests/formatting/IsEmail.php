@@ -13,7 +13,7 @@ class Tests_Formatting_IsEmail extends WP_UnitTestCase {
 			'a@b.co',
 		);
 		foreach ( $data as $datum ) {
-			$this->assertEquals( $datum, is_email( $datum ), $datum );
+			$this->assertSame( $datum, is_email( $datum ), $datum );
 		}
 	}
 

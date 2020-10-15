@@ -71,8 +71,8 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Same as {@link export}, but writes the result to a file
 		 *
-		 * @param string $filename where to write the PO string
-		 * @param bool $include_headers whether to include tje headers in the export
+		 * @param string $filename        Where to write the PO string.
+		 * @param bool   $include_headers Whether to include the headers in the export.
 		 * @return bool true on success, false on error
 		 */
 		function export_to_file( $filename, $include_headers = true ) {
@@ -92,6 +92,8 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * Text to include as a comment before the start of the PO contents
 		 *
 		 * Doesn't need to include # in the beginning of lines, these are added automatically
+		 *
+		 * @param string $text Text to include as a comment.
 		 */
 		function set_comment_before_headers( $text ) {
 			$this->comments_before_headers = $text;
@@ -281,7 +283,7 @@ if ( ! class_exists( 'PO', false ) ) :
 
 		/**
 		 * @param string $filename
-		 * @return boolean
+		 * @return bool
 		 */
 		function import_from_file( $filename ) {
 			$f = fopen( $filename, 'r' );
@@ -452,7 +454,7 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * @param resource $f
 		 * @param string   $action
-		 * @return boolean
+		 * @return bool
 		 */
 		function read_line( $f, $action = 'read' ) {
 			static $last_line     = '';

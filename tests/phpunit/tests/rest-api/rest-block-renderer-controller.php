@@ -56,6 +56,15 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	protected static $non_dynamic_block_name = 'core/non-dynamic';
 
 	/**
+	 * Dynamic block with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @var string
+	 */
+	protected static $dynamic_block_with_boolean_attributes_block_name = 'core/dynamic-block-with-boolean-attributes';
+
+	/**
 	 * Test API user's ID.
 	 *
 	 * @since 5.0.0
@@ -127,6 +136,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->register_test_block();
 		$this->register_post_context_test_block();
 		$this->register_non_dynamic_block();
+		$this->register_dynamic_block_with_boolean_attributes();
 		parent::setUp();
 	}
 
@@ -139,6 +149,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		WP_Block_Type_Registry::get_instance()->unregister( self::$block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$context_block_name );
 		WP_Block_Type_Registry::get_instance()->unregister( self::$non_dynamic_block_name );
+		WP_Block_Type_Registry::get_instance()->unregister( self::$dynamic_block_with_boolean_attributes_block_name );
 		parent::tearDown();
 	}
 
@@ -196,6 +207,30 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * Registers the dynamic with boolean attributes block name.
+	 *
+	 * @since 5.5.0
+	 */
+	protected function register_dynamic_block_with_boolean_attributes() {
+		register_block_type(
+			self::$dynamic_block_with_boolean_attributes_block_name,
+			array(
+				'attributes'      => array(
+					'boolean_true_attribute'  => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'boolean_false_attribute' => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
+				),
+				'render_callback' => array( $this, 'render_test_block' ),
+			)
+		);
+	}
+
+	/**
 	 * Test render callback.
 	 *
 	 * @since 5.0.0
@@ -223,7 +258,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::register_routes()
+	 * @covers WP_REST_Block_Renderer_Controller::register_routes
 	 */
 	public function test_register_routes() {
 		$dynamic_block_names = get_dynamic_block_names();
@@ -238,7 +273,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_without_permissions() {
 		wp_set_current_user( 0 );
@@ -270,7 +305,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_invalid_block_name() {
 		wp_set_current_user( self::$user_id );
@@ -287,7 +322,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_invalid_attribute() {
 		wp_set_current_user( self::$user_id );
@@ -300,7 +335,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -308,7 +343,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_unrecognized_attribute() {
 		wp_set_current_user( self::$user_id );
@@ -321,7 +356,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	/**
@@ -329,7 +364,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item_default_attributes() {
 		wp_set_current_user( self::$user_id );
@@ -346,10 +381,10 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( 'attributes', array() );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertEquals( $defaults, json_decode( $data['rendered'], true ) );
+		$this->assertSame( $defaults, json_decode( $data['rendered'], true ) );
 		$this->assertEquals(
 			json_decode( $block_type->render( $defaults ) ),
 			json_decode( $data['rendered'] )
@@ -361,7 +396,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item
 	 */
 	public function test_get_item() {
 		wp_set_current_user( self::$user_id );
@@ -381,10 +416,10 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( 'attributes', $attributes );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertEquals( $expected_attributes, json_decode( $data['rendered'], true ) );
+		$this->assertSame( $expected_attributes, json_decode( $data['rendered'], true ) );
 		$this->assertEquals(
 			json_decode( $block_type->render( $attributes ), true ),
 			json_decode( $data['rendered'], true )
@@ -416,10 +451,10 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( 'attributes', $attributes );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertEquals( '<p>Alternate content.</p>', $data['rendered'] );
+		$this->assertSame( '<p>Alternate content.</p>', $data['rendered'] );
 
 		remove_filter( 'pre_render_block', $pre_render_filter );
 	}
@@ -439,7 +474,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		// Test without post ID.
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
 		$this->assertTrue( empty( $data['rendered'] ) );
@@ -448,10 +483,10 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_param( 'post_id', self::$post_id );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertEquals( $expected_title, $data['rendered'] );
+		$this->assertSame( $expected_title, $data['rendered'] );
 	}
 
 	/**
@@ -469,7 +504,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$request->set_body( wp_json_encode( compact( 'attributes' ) ) );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertContains( $string_attribute, $response->get_data()['rendered'] );
 	}
 
@@ -523,30 +558,57 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	}
 
 	/**
+	 * @ticket 50620
+	 */
+	public function test_get_sanitized_attributes_for_dynamic_block_with_boolean_attributes() {
+		wp_set_current_user( self::$user_id );
+
+		$request = new WP_REST_Request( 'GET', self::$rest_api_route . self::$dynamic_block_with_boolean_attributes_block_name );
+
+		$attributes = array(
+			'boolean_true_attribute'  => 'true',
+			'boolean_false_attribute' => 'false',
+		);
+
+		$expected = array(
+			'boolean_true_attribute'  => true,
+			'boolean_false_attribute' => false,
+		);
+
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', $attributes );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertSame( $expected, json_decode( $data['rendered'], true ) );
+	}
+
+	/**
 	 * Get item schema.
 	 *
 	 * @ticket 45098
 	 *
-	 * @covers WP_REST_Block_Renderer_Controller::get_item_schema()
+	 * @covers WP_REST_Block_Renderer_Controller::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		$request  = new WP_REST_Request( 'OPTIONS', self::$rest_api_route . self::$block_name );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets( array( 'GET', 'POST' ), $data['endpoints'][0]['methods'] );
-		$this->assertEqualSets(
+		$this->assertSameSets( array( 'GET', 'POST' ), $data['endpoints'][0]['methods'] );
+		$this->assertSameSets(
 			array( 'name', 'context', 'attributes', 'post_id' ),
 			array_keys( $data['endpoints'][0]['args'] )
 		);
-		$this->assertEquals( 'object', $data['endpoints'][0]['args']['attributes']['type'] );
+		$this->assertSame( 'object', $data['endpoints'][0]['args']['attributes']['type'] );
 
 		$this->assertArrayHasKey( 'schema', $data );
-		$this->assertEquals( 'rendered-block', $data['schema']['title'] );
-		$this->assertEquals( 'object', $data['schema']['type'] );
+		$this->assertSame( 'rendered-block', $data['schema']['title'] );
+		$this->assertSame( 'object', $data['schema']['type'] );
 		$this->arrayHasKey( 'rendered', $data['schema']['properties'] );
 		$this->arrayHasKey( 'string', $data['schema']['properties']['rendered']['type'] );
-		$this->assertEquals( array( 'edit' ), $data['schema']['properties']['rendered']['context'] );
+		$this->assertSame( array( 'edit' ), $data['schema']['properties']['rendered']['context'] );
 	}
 
 	/**

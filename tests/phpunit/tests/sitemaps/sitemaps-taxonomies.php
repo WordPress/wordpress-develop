@@ -114,7 +114,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
 
-		$this->assertEquals( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
+		$this->assertSame( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
 	}
 
 	/**
@@ -143,6 +143,30 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test getting a URL list for a custom taxonomy that is not publicly queryable.
+	 */
+	public function test_get_url_list_custom_taxonomy_not_publicly_queryable() {
+		// Create a custom taxonomy for this test.
+		$taxonomy = 'non_queryable_tax';
+		register_taxonomy( $taxonomy, 'post', array( 'publicly_queryable' => false ) );
+
+		// Create test terms in the custom taxonomy.
+		$terms = self::factory()->term->create_many( 10, array( 'taxonomy' => $taxonomy ) );
+
+		// Create a test post applied to all test terms.
+		self::factory()->post->create( array( 'tax_input' => array( $taxonomy => $terms ) ) );
+
+		$tax_provider = new WP_Sitemaps_Taxonomies();
+
+		$post_list = $tax_provider->get_url_list( 1, $taxonomy );
+
+		// Clean up.
+		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
+
+		$this->assertEmpty( $post_list, 'Non-publicly queryable taxonomy term links are visible.' );
+	}
+
+	/**
 	 * Test sitemap index entries with public and private taxonomies.
 	 */
 	public function test_get_sitemap_entries_custom_taxonomies() {
@@ -150,18 +174,21 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 
 		// Create a custom public and private taxonomies for this test.
 		register_taxonomy( 'public_taxonomy', 'post' );
+		register_taxonomy( 'non_queryable_taxonomy', 'post', array( 'publicly_queryable' => false ) );
 		register_taxonomy( 'private_taxonomy', 'post', array( 'public' => false ) );
 
 		// Create test terms in the custom taxonomy.
-		$public_term  = self::factory()->term->create( array( 'taxonomy' => 'public_taxonomy' ) );
-		$private_term = self::factory()->term->create( array( 'taxonomy' => 'private_taxonomy' ) );
+		$public_term        = self::factory()->term->create( array( 'taxonomy' => 'public_taxonomy' ) );
+		$non_queryable_term = self::factory()->term->create( array( 'taxonomy' => 'non_queryable_taxonomy' ) );
+		$private_term       = self::factory()->term->create( array( 'taxonomy' => 'private_taxonomy' ) );
 
 		// Create a test post applied to all test terms.
 		self::factory()->post->create_and_get(
 			array(
 				'tax_input' => array(
-					'public_taxonomy'  => array( $public_term ),
-					'private_taxonomy' => array( $private_term ),
+					'public_taxonomy'        => array( $public_term ),
+					'non_queryable_taxonomy' => array( $non_queryable_term ),
+					'private_taxonomy'       => array( $private_term ),
 				),
 			)
 		);
@@ -171,9 +198,11 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 
 		// Clean up.
 		unregister_taxonomy_for_object_type( 'public_taxonomy', 'post' );
+		unregister_taxonomy_for_object_type( 'non_queryable_taxonomy', 'post' );
 		unregister_taxonomy_for_object_type( 'private_taxonomy', 'post' );
 
 		$this->assertContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=public_taxonomy&paged=1', $entries, 'Public Taxonomies are not in the index.' );
+		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=non_queryable_taxonomy&paged=1', $entries, 'Private Taxonomies are visible in the index.' );
 		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=private_taxonomy&paged=1', $entries, 'Private Taxonomies are visible in the index.' );
 	}
 
@@ -187,6 +216,6 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		add_filter( 'wp_sitemaps_taxonomies', '__return_empty_array' );
 		$subtypes = $taxonomies_provider->get_object_subtypes();
 
-		$this->assertEquals( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
+		$this->assertSame( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
 	}
 }

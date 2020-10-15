@@ -70,13 +70,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpSetUpBeforeClass' ), self::factory() );
+		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
+			call_user_func( array( $class, 'wpSetUpBeforeClass' ), self::factory() );
+		}
 
 		self::commit_transaction();
 	}
@@ -90,13 +88,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpTearDownAfterClass' ) );
+		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
+			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
+		}
 
 		self::commit_transaction();
 	}
@@ -160,6 +156,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		foreach ( $post_globals as $global ) {
 			$GLOBALS[ $global ] = null;
 		}
+
+		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		$GLOBALS['wp_sitemaps'] = null;
 
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
@@ -657,15 +656,42 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Asserts that two values have the same type and value, with EOL differences discarded.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
+	public function assertSameIgnoreEOL( $expected, $actual ) {
+		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+	}
+
+	/**
 	 * Asserts that two values are equal, with EOL differences discarded.
 	 *
 	 * @since 5.4.0
+	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
 	 */
 	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertEquals( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+		$this->assertSameIgnoreEOL( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSets( $expected, $actual ) {
+		sort( $expected );
+		sort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -680,6 +706,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSetsWithIndex( $expected, $actual ) {
+		ksort( $expected );
+		ksort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -913,16 +953,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	public function temp_filename() {
 		$tmp_dir = '';
 		$dirs    = array( 'TMP', 'TMPDIR', 'TEMP' );
+
 		foreach ( $dirs as $dir ) {
 			if ( isset( $_ENV[ $dir ] ) && ! empty( $_ENV[ $dir ] ) ) {
 				$tmp_dir = $dir;
 				break;
 			}
 		}
+
 		if ( empty( $tmp_dir ) ) {
-			$tmp_dir = '/tmp';
+			$tmp_dir = get_temp_dir();
 		}
+
 		$tmp_dir = realpath( $tmp_dir );
+
 		return tempnam( $tmp_dir, 'wpunit' );
 	}
 

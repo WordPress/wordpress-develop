@@ -28,7 +28,7 @@ class WP_Comment_Query {
 	 * Metadata query container
 	 *
 	 * @since 3.5.0
-	 * @var object WP_Meta_Query
+	 * @var WP_Meta_Query A meta query instance.
 	 */
 	public $meta_query = false;
 
@@ -69,7 +69,7 @@ class WP_Comment_Query {
 	 * Date query container
 	 *
 	 * @since 3.7.0
-	 * @var object WP_Date_Query
+	 * @var WP_Date_Query A date query instance.
 	 */
 	public $date_query = false;
 
@@ -118,8 +118,8 @@ class WP_Comment_Query {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -382,16 +382,29 @@ class WP_Comment_Query {
 		$comment_data = null;
 
 		/**
-		 * Filter the comments data before the query takes place.
+		 * Filters the comments data before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default comment queries.
+		 * Return a non-null value to bypass WordPress' default comment queries.
 		 *
-		 * The expected return type from this filter depends on the value passed in the request query_vars.
-		 * When `$this->query_vars['count']` is set, the filter should return the comment count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of comment IDs.
-		 * Otherwise the filter should return an array of WP_Comment objects.
+		 * The expected return type from this filter depends on the value passed
+		 * in the request query vars:
+		 * - When `$this->query_vars['count']` is set, the filter should return
+		 *   the comment count as an integer.
+		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
+		 *   an array of comment IDs.
+		 * - Otherwise the filter should return an array of WP_Comment objects.
+		 *
+		 * Note that if the filter returns an array of comment data, it will be assigned
+		 * to the `comments` property of the current WP_Comment_Query instance.
+		 *
+		 * Filtering functions that require pagination information are encouraged to set
+		 * the `found_comments` and `max_num_pages` properties of the WP_Comment_Query object,
+		 * passed to the filter by reference. If WP_Comment_Query does not perform a database
+		 * query, it will not have enough information to generate these values itself.
 		 *
 		 * @since 5.3.0
+		 * @since 5.6.0 The returned array of comment data is assigned to the `comments` property
+		 *              of the current WP_Comment_Query instance.
 		 *
 		 * @param array|int|null   $comment_data Return an array of comment data to short-circuit WP's comment query,
 		 *                                       the comment count as an integer if `$this->query_vars['count']` is set,
@@ -401,6 +414,10 @@ class WP_Comment_Query {
 		$comment_data = apply_filters_ref_array( 'comments_pre_query', array( $comment_data, &$this ) );
 
 		if ( null !== $comment_data ) {
+			if ( is_array( $comment_data ) && ! $this->query_vars['count'] ) {
+				$this->comments = $comment_data;
+			}
+
 			return $comment_data;
 		}
 
@@ -439,7 +456,7 @@ class WP_Comment_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $comment_ids is actually a count in this case.
-			return intval( $comment_ids );
+			return (int) $comment_ids;
 		}
 
 		$comment_ids = array_map( 'intval', $comment_ids );
@@ -782,7 +799,7 @@ class WP_Comment_Query {
 			$this->sql_clauses['where']['user_id'] = $wpdb->prepare( 'user_id = %d', $this->query_vars['user_id'] );
 		}
 
-		// Falsy search strings are ignored.
+		// Falsey search strings are ignored.
 		if ( strlen( $this->query_vars['search'] ) ) {
 			$search_sql = $this->get_search_sql(
 				$this->query_vars['search'],
@@ -925,7 +942,7 @@ class WP_Comment_Query {
 		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['groupby']} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
-			return intval( $wpdb->get_var( $this->request ) );
+			return (int) $wpdb->get_var( $this->request );
 		} else {
 			$comment_ids = $wpdb->get_col( $this->request );
 			return array_map( 'intval', $comment_ids );
@@ -1085,7 +1102,7 @@ class WP_Comment_Query {
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @param string $string
-	 * @param array $cols
+	 * @param array  $cols
 	 * @return string
 	 */
 	protected function get_search_sql( $string, $cols ) {

@@ -851,7 +851,7 @@ function wp_get_schedules() {
  * @since 5.1.0 {@see 'get_schedule'} filter added.
  *
  * @param string $hook Action hook to identify the event.
- * @param array $args Optional. Arguments passed to the event's callback function.
+ * @param array  $args Optional. Arguments passed to the event's callback function.
  * @return string|false False, if no schedule. Schedule name on success.
  */
 function wp_get_schedule( $hook, $args = array() ) {
@@ -863,7 +863,7 @@ function wp_get_schedule( $hook, $args = array() ) {
 	}
 
 	/**
-	 * Filter the schedule for a hook.
+	 * Filters the schedule for a hook.
 	 *
 	 * @since 5.1.0
 	 *

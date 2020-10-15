@@ -125,7 +125,7 @@ if ( is_multisite() ) :
 		 */
 		function test_get_network_by_path( $expected_key, $domain, $path, $message ) {
 			$network = get_network_by_path( $domain, $path );
-			$this->assertEquals( self::$network_ids[ $expected_key ], $network->id, $message );
+			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
 
 		public function data_get_network_by_path() {
@@ -161,7 +161,7 @@ if ( is_multisite() ) :
 
 			remove_filter( 'network_by_path_segments_count', '__return_zero' );
 
-			$this->assertEquals( self::$network_ids[ $expected_key ], $network->id, $message );
+			$this->assertSame( self::$network_ids[ $expected_key ], $network->id, $message );
 		}
 
 		public function data_get_network_by_path_with_zero_path_segments() {
@@ -186,7 +186,7 @@ if ( is_multisite() ) :
 			$network = get_network_by_path( 'wordpress.org', '/one/b/' );
 			remove_filter( 'network_by_path_segments_count', array( $this, 'filter_network_path_segments' ) );
 
-			$this->assertEquals( self::$network_ids['wordpress.org/one/'], $network->id );
+			$this->assertSame( self::$network_ids['wordpress.org/one/'], $network->id );
 		}
 
 		public function filter_network_path_segments() {

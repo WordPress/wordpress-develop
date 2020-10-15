@@ -174,7 +174,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			'default-text-color'     => '000',
 			// The height and width of our custom header.
 			/**
-			 * Filter the Twenty Eleven default header image width.
+			 * Filters the Twenty Eleven default header image width.
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
@@ -182,7 +182,7 @@ if ( ! function_exists( 'twentyeleven_setup' ) ) :
 			 */
 			'width'                  => apply_filters( 'twentyeleven_header_image_width', 1000 ),
 			/**
-			 * Filter the Twenty Eleven default header image height.
+			 * Filters the Twenty Eleven default header image height.
 			 *
 			 * @since Twenty Eleven 1.0
 			 *
@@ -471,7 +471,7 @@ endif; // twentyeleven_continue_reading_link()
  * @since Twenty Eleven 1.0
  *
  * @param string $more The Read More text.
- * @return The filtered Read More text.
+ * @return string The filtered Read More text.
  */
 function twentyeleven_auto_excerpt_more( $more ) {
 	if ( ! is_admin() ) {
@@ -749,7 +749,7 @@ if ( ! function_exists( 'twentyeleven_comment' ) ) :
 					if ( $commenter['comment_author_email'] ) {
 						$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyeleven' );
 					} else {
-						$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentyeleven' );
+						$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyeleven' );
 					}
 					?>
 

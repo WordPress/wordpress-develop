@@ -639,10 +639,10 @@ function remove_all_actions( $hook, $priority = false ) {
  * @param string $hook        The name of the filter hook.
  * @param array  $args        Array of additional function arguments to be passed to apply_filters().
  * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default null.
- * @param string $message     Optional. A message regarding the change. Default null.
+ * @param string $replacement Optional. The hook that should have been used. Default empty.
+ * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function apply_filters_deprecated( $hook, $args, $version, $replacement = null, $message = null ) {
+function apply_filters_deprecated( $hook, $args, $version, $replacement = '', $message = '' ) {
 	$tag = $hook;
 
 	if ( ! has_filter( $tag ) ) {
@@ -668,12 +668,10 @@ function apply_filters_deprecated( $hook, $args, $version, $replacement = null, 
  * @param string $hook        The name of the action hook.
  * @param array  $args        Array of additional function arguments to be passed to do_action().
  * @param string $version     The version of WordPress that deprecated the hook.
- * @param string $replacement Optional. The hook that should have been used. Default null.
- * @param string $message     Optional. A message regarding the change. Default null.
+ * @param string $replacement Optional. The hook that should have been used. Default empty.
+ * @param string $message     Optional. A message regarding the change. Default empty.
  */
-function do_action_deprecated( $hook, $args, $version, $replacement = null, $message = null ) {
-	$tag = $hook;
-
+function do_action_deprecated( $hook, $args, $version, $replacement = '', $message = '' ) {
 	if ( ! has_action( $tag ) ) {
 		return;
 	}

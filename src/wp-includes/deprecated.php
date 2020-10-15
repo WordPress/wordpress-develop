@@ -3196,7 +3196,8 @@ function _get_post_ancestors( &$post ) {
  * @see wp_get_image_editor()
  *
  * @param string $file Filename of the image to load.
- * @return resource The resulting image resource on success, Error string on failure.
+ * @return resource|GdImage|string The resulting image resource or GdImage instance on success,
+ *                                 error string on failure.
  */
 function wp_load_image( $file ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'wp_get_image_editor()' );
@@ -3217,7 +3218,7 @@ function wp_load_image( $file ) {
 
 	$image = imagecreatefromstring( file_get_contents( $file ) );
 
-	if ( ! is_resource( $image ) ) {
+	if ( ! is_gd_image( $image ) ) {
 		/* translators: %s: File name. */
 		return sprintf( __( 'File &#8220;%s&#8221; is not an image.' ), $file );
 	}
@@ -3564,7 +3565,7 @@ function preview_theme_ob_filter_callback( $matches ) {
 /**
  * Formats text for the rich text editor.
  *
- * The {@see 'richedit_pre'} filter is applied here. If $text is empty the filter will
+ * The {@see 'richedit_pre'} filter is applied here. If `$text` is empty the filter will
  * be applied to an empty string.
  *
  * @since 2.0.0
@@ -3749,7 +3750,7 @@ function get_comments_popup_template() {
  * @since 1.5.0
  * @deprecated 4.5.0
  *
- * @return bool
+ * @return false Always returns false.
  */
 function is_comments_popup() {
 	_deprecated_function( __FUNCTION__, '4.5.0' );
@@ -4025,7 +4026,7 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  * Does comment contain disallowed characters or words.
  *
  * @since 1.5.0
- * @deprecated 5.5.0 Use wp_blocklist_check() instead.
+ * @deprecated 5.5.0 Use wp_check_comment_disallowed_list() instead.
  *                   Please consider writing more inclusive code.
  *
  * @param string $author The author of the comment
@@ -4037,9 +4038,9 @@ function wp_unregister_GLOBALS() {  // phpcs:ignore WordPress.NamingConventions.
  * @return bool True if comment contains disallowed content, false if comment does not
  */
 function wp_blacklist_check( $author, $email, $url, $comment, $user_ip, $user_agent ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_blocklist_check()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'wp_check_comment_disallowed_list()' );
 
-	return wp_blocklist_check( $author, $email, $url, $comment, $user_ip, $user_agent );
+	return wp_check_comment_disallowed_list( $author, $email, $url, $comment, $user_ip, $user_agent );
 }
 
 /**
@@ -4086,7 +4087,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * Removes a list of options from the allowed options list.
  *
  * @since 2.7.0
- * @deprecated 5.5.0 Use remove_option_allowed_list() instead.
+ * @deprecated 5.5.0 Use remove_allowed_options() instead.
  *                   Please consider writing more inclusive code.
  *
  * @global array $allowed_options
@@ -4096,7 +4097,7 @@ function add_option_whitelist( $new_options, $options = '' ) {
  * @return array
  */
 function remove_option_whitelist( $del_options, $options = '' ) {
-	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_option_allowed_list()' );
+	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_allowed_options()' );
 
-	return remove_option_allowed_list( $del_options, $options );
+	return remove_allowed_options( $del_options, $options );
 }

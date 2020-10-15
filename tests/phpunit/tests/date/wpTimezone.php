@@ -18,11 +18,11 @@ class Tests_Date_WP_Timezone extends WP_UnitTestCase {
 		delete_option( 'timezone_string' );
 		update_option( 'gmt_offset', $gmt_offset );
 
-		$this->assertEquals( $tz_name, wp_timezone_string() );
+		$this->assertSame( $tz_name, wp_timezone_string() );
 
 		$timezone = wp_timezone();
 
-		$this->assertEquals( $tz_name, $timezone->getName() );
+		$this->assertSame( $tz_name, $timezone->getName() );
 	}
 
 	/**
@@ -31,11 +31,11 @@ class Tests_Date_WP_Timezone extends WP_UnitTestCase {
 	public function test_should_return_timezone_string() {
 		update_option( 'timezone_string', 'Europe/Kiev' );
 
-		$this->assertEquals( 'Europe/Kiev', wp_timezone_string() );
+		$this->assertSame( 'Europe/Kiev', wp_timezone_string() );
 
 		$timezone = wp_timezone();
 
-		$this->assertEquals( 'Europe/Kiev', $timezone->getName() );
+		$this->assertSame( 'Europe/Kiev', $timezone->getName() );
 	}
 
 	/**

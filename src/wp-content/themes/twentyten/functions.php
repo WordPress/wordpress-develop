@@ -157,7 +157,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			'default-image'       => '%s/images/headers/path.jpg',
 			// The height and width of our custom header.
 			/**
-			 * Filter the Twenty Ten default header image width.
+			 * Filters the Twenty Ten default header image width.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -165,7 +165,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filter the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten defaul header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -341,7 +341,7 @@ endif;
  * @since Twenty Ten 1.0
  *
  * @param string $more The Read More text.
- * @return string An ellipsis.
+ * @return string The filtered Read More text.
  */
 function twentyten_auto_excerpt_more( $more ) {
 	if ( ! is_admin() ) {
@@ -359,7 +359,7 @@ add_filter( 'excerpt_more', 'twentyten_auto_excerpt_more' );
  *
  * @since Twenty Ten 1.0
  *
- * @param string $output The "Coninue Reading" link.
+ * @param string $output The "Continue Reading" link.
  * @return string Excerpt with a pretty "Continue Reading" link.
  */
 function twentyten_custom_excerpt_more( $output ) {
@@ -435,7 +435,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				if ( $commenter['comment_author_email'] ) {
 					$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyten' );
 				} else {
-					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentyten' );
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyten' );
 				}
 				?>
 

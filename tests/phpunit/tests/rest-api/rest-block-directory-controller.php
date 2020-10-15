@@ -60,8 +60,8 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 
 		$result = rest_do_request( $request );
 		$this->assertNotWPError( $result->as_error() );
-		$this->assertEquals( 200, $result->status );
+		$this->assertSame( 200, $result->status );
 	}
 
 	/**
@@ -116,8 +116,8 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		// Should produce a 200 status with an empty array.
-		$this->assertEquals( 200, $response->status );
-		$this->assertEquals( array(), $data );
+		$this->assertSame( 200, $response->status );
+		$this->assertSame( array(), $data );
 	}
 
 	public function test_get_item() {
@@ -162,17 +162,11 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			'author_block_count'  => 1,
 			'author'              => 'sorta brilliant',
 			'icon'                => 'https://ps.w.org/guidepost/assets/icon-128x128.jpg?rev=2235512',
-			'assets'              => array(
-				'https://ps.w.org/guidepost/tags/1.2.1/build/index.js?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-editor.css?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-style.css?v=1584940380',
-				'https://ps.w.org/guidepost/tags/1.2.1/build/guidepost-theme.js?v=1584940380',
-			),
-			'last_updated'        => '2020-03-23T05:13:00',
-			'humanized_updated'   => '3 months ago',
+			'last_updated'        => gmdate( 'Y-m-d\TH:i:s', strtotime( $plugin['last_updated'] ) ),
+			'humanized_updated'   => sprintf( '%s ago', human_time_diff( strtotime( $plugin['last_updated'] ) ) ),
 		);
 
-		$this->assertEquals( $expected, $response->get_data() );
+		$this->assertSame( $expected, $response->get_data() );
 	}
 
 	/**
@@ -187,12 +181,12 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		// Check endpoints
-		$this->assertEquals( array( 'GET' ), $data['endpoints'][0]['methods'] );
+		$this->assertSame( array( 'GET' ), $data['endpoints'][0]['methods'] );
 		$this->assertTrue( $data['endpoints'][0]['args']['term']['required'] );
 
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 14, $properties );
+		$this->assertCount( 13, $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -206,7 +200,6 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$this->assertArrayHasKey( 'icon', $properties );
 		$this->assertArrayHasKey( 'last_updated', $properties );
 		$this->assertArrayHasKey( 'humanized_updated', $properties );
-		$this->assertArrayHasKey( 'assets', $properties );
 	}
 
 	/**

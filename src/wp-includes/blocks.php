@@ -12,12 +12,13 @@
  *
  * @since 5.0.0
  *
- * @param string|WP_Block_Type $name Block type name including namespace, or alternatively a
- *                                   complete WP_Block_Type instance. In case a WP_Block_Type
+ * @param string|WP_Block_Type $name Block type name including namespace, or alternatively
+ *                                   a complete WP_Block_Type instance. In case a WP_Block_Type
  *                                   is provided, the $args parameter will be ignored.
  * @param array                $args {
- *     Optional. Array of block type arguments. Any arguments may be defined, however the
- *     ones described below are supported by default. Default empty array.
+ *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
+ *     Any arguments may be defined, however the ones described below are supported by default.
+ *     Default empty array.
  *
  *     @type callable $render_callback Callback used to render blocks of this block type.
  * }
@@ -32,8 +33,8 @@ function register_block_type( $name, $args = array() ) {
  *
  * @since 5.0.0
  *
- * @param string|WP_Block_Type $name Block type name including namespace, or alternatively a
- *                                   complete WP_Block_Type instance.
+ * @param string|WP_Block_Type $name Block type name including namespace, or alternatively
+ *                                   a complete WP_Block_Type instance.
  * @return WP_Block_Type|false The unregistered block type on success, or false on failure.
  */
 function unregister_block_type( $name ) {
@@ -82,10 +83,9 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 
 /**
  * Finds a script handle for the selected block metadata field. It detects
- * when a path to file was provided and finds a corresponding
- * asset file with details necessary to register the script under
- * automatically generated handle name. It returns unprocessed script handle
- * otherwise.
+ * when a path to file was provided and finds a corresponding asset file
+ * with details necessary to register the script under automatically
+ * generated handle name. It returns unprocessed script handle otherwise.
  *
  * @since 5.5.0
  *
@@ -170,8 +170,9 @@ function register_block_style_handle( $metadata, $field_name ) {
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
  * @param array  $args {
- *     Optional. Array of block type arguments. Any arguments may be defined, however the
- *     ones described below are supported by default. Default empty array.
+ *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
+ *     Any arguments may be defined, however the ones described below are supported by default.
+ *     Default empty array.
  *
  *     @type callable $render_callback Callback used to render blocks of this block type.
  * }
@@ -359,7 +360,7 @@ function get_dynamic_block_names() {
  *
  * @since 5.3.1
  *
- * @param array $attributes Attributes object.
+ * @param array $block_attributes Attributes object.
  * @return string Serialized attributes.
  */
 function serialize_block_attributes( $block_attributes ) {
@@ -396,12 +397,13 @@ function strip_core_block_namespace( $block_name = null ) {
  *
  * @since 5.3.1
  *
- * @param string $block_name Block name.
- * @param array  $attributes Block attributes.
- * @param string $content    Block save content.
+ * @param string|null $block_name       Block name. Null if the block name is unknown,
+ *                                      e.g. Classic blocks have their name set to null.
+ * @param array       $block_attributes Block attributes.
+ * @param string      $block_content    Block save content.
  * @return string Comment-delimited block content.
  */
-function get_comment_delimited_block_content( $block_name = null, $block_attributes, $block_content ) {
+function get_comment_delimited_block_content( $block_name, $block_attributes, $block_content ) {
 	if ( is_null( $block_name ) ) {
 		return $block_content;
 	}
@@ -810,7 +812,7 @@ function block_version( $content ) {
  * @param array  $style_properties Array containing the properties of the style name,
  *                                 label, style (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
- * @return boolean True if the block style was registered with success and false otherwise.
+ * @return bool True if the block style was registered with success and false otherwise.
  */
 function register_block_style( $block_name, $style_properties ) {
 	return WP_Block_Styles_Registry::get_instance()->register( $block_name, $style_properties );
@@ -823,7 +825,7 @@ function register_block_style( $block_name, $style_properties ) {
  *
  * @param string $block_name       Block type name including namespace.
  * @param array  $block_style_name Block style name.
- * @return boolean True if the block style was unregistered with success and false otherwise.
+ * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {
 	return WP_Block_Styles_Registry::get_instance()->unregister( $block_name, $block_style_name );

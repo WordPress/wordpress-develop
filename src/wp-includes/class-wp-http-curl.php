@@ -63,7 +63,7 @@ class WP_Http_Curl {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $url The request URL.
+	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'. A WP_Error instance upon error
 	 */
@@ -173,7 +173,7 @@ class WP_Http_Curl {
 		curl_setopt( $handle, CURLOPT_HEADER, false );
 
 		if ( isset( $parsed_args['limit_response_size'] ) ) {
-			$this->max_body_length = intval( $parsed_args['limit_response_size'] );
+			$this->max_body_length = (int) $parsed_args['limit_response_size'];
 		} else {
 			$this->max_body_length = false;
 		}

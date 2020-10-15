@@ -43,7 +43,7 @@ class WP_List_Table {
 	 * The current screen.
 	 *
 	 * @since 3.1.0
-	 * @var object
+	 * @var WP_Screen
 	 */
 	protected $screen;
 
@@ -166,8 +166,8 @@ class WP_List_Table {
 
 		if ( empty( $this->modes ) ) {
 			$this->modes = array(
-				'list'    => __( 'List View' ),
-				'excerpt' => __( 'Excerpt View' ),
+				'list'    => __( 'Compact view' ),
+				'excerpt' => __( 'Extended view' ),
 			);
 		}
 	}
@@ -233,8 +233,8 @@ class WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|bool Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -398,7 +398,7 @@ class WP_List_Table {
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
 		 * to the ID of the current screen, usually a string.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param string[] $views An array of available list table views.
 		 */
@@ -445,14 +445,12 @@ class WP_List_Table {
 			$this->_actions = $this->get_bulk_actions();
 
 			/**
-			 * Filters the list table Bulk Actions drop-down.
+			 * Filters the list table bulk actions drop-down.
 			 *
 			 * The dynamic portion of the hook name, `$this->screen->id`, refers
 			 * to the ID of the current screen, usually a string.
 			 *
-			 * This filter can currently only be used to remove bulk actions.
-			 *
-			 * @since 3.5.0
+			 * @since 3.1.0
 			 *
 			 * @param string[] $actions An array of the available bulk actions.
 			 */
@@ -469,7 +467,7 @@ class WP_List_Table {
 
 		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' . __( 'Select bulk action' ) . '</label>';
 		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
-		echo '<option value="-1">' . __( 'Bulk Actions' ) . "</option>\n";
+		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
 		foreach ( $this->_actions as $name => $title ) {
 			$class = 'edit' === $name ? ' class="hide-if-no-js"' : '';
@@ -479,7 +477,7 @@ class WP_List_Table {
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action', "doaction$two", false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action', '', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -495,12 +493,12 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['doaction2'] ) && isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			return $_REQUEST['action2'];
-		}
-
 		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
 			return $_REQUEST['action'];
+		}
+
+		if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
+			return $_REQUEST['action2'];
 		}
 
 		return false;
@@ -517,18 +515,29 @@ class WP_List_Table {
 	 */
 	protected function row_actions( $actions, $always_visible = false ) {
 		$action_count = count( $actions );
-		$i            = 0;
 
 		if ( ! $action_count ) {
 			return '';
 		}
 
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+
+		if ( 'excerpt' === $mode ) {
+			$always_visible = true;
+		}
+
 		$out = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
+
+		$i = 0;
+
 		foreach ( $actions as $action => $link ) {
 			++$i;
-			( $i == $action_count ) ? $sep = '' : $sep = ' | ';
-			$out                          .= "<span class='$action'>$link$sep</span>";
+
+			$sep = ( $i < $action_count ) ? ' | ' : '';
+
+			$out .= "<span class='$action'>$link$sep</span>";
 		}
+
 		$out .= '</div>';
 
 		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
@@ -644,6 +653,7 @@ class WP_List_Table {
 				$classes[]    = 'current';
 				$aria_current = ' aria-current="page"';
 			}
+
 			printf(
 				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current><span class='screen-reader-text'>%s</span></a>\n",
 				esc_url( remove_query_arg( 'attachment-filter', add_query_arg( 'mode', $mode ) ) ),
@@ -785,11 +795,22 @@ class WP_List_Table {
 		/**
 		 * Filters the number of items to be displayed on each page of the list table.
 		 *
-		 * The dynamic hook name, $option, refers to the `per_page` option depending
-		 * on the type of list table in use. Possible values include: 'edit_comments_per_page',
-		 * 'sites_network_per_page', 'site_themes_network_per_page', 'themes_network_per_page',
-		 * 'users_network_per_page', 'edit_post_per_page', 'edit_page_per_page',
-		 * 'edit_{$post_type}_per_page', etc.
+		 * The dynamic hook name, `$option`, refers to the `per_page` option depending
+		 * on the type of list table in use. Possible filter names include:
+		 *
+		 *  - `edit_comments_per_page`
+		 *  - `sites_network_per_page`
+		 *  - `site_themes_network_per_page`
+		 *  - `themes_network_per_page'`
+		 *  - `users_network_per_page`
+		 *  - `edit_post_per_page`
+		 *  - `edit_page_per_page'`
+		 *  - `edit_{$post_type}_per_page`
+		 *  - `edit_post_tag_per_page`
+		 *  - `edit_category_per_page`
+		 *  - `edit_{$taxonomy}_per_page`
+		 *  - `site_users_network_per_page`
+		 *  - `users_per_page`
 		 *
 		 * @since 2.9.0
 		 *
@@ -1071,9 +1092,9 @@ class WP_List_Table {
 		 * Filters the list table sortable columns for a specific screen.
 		 *
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
-		 * to the ID of the current screen, usually a string.
+		 * to the ID of the current screen.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param array $sortable_columns An array of sortable columns.
 		 */
@@ -1247,7 +1268,11 @@ class WP_List_Table {
 	 * @return string[] Array of CSS classes for the table tag.
 	 */
 	protected function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', $this->_args['plural'] );
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+
+		$mode_class = esc_attr( 'table-view-' . $mode );
+
+		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
 	}
 
 	/**

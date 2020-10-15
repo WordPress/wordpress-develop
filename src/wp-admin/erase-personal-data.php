@@ -10,7 +10,7 @@
 require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'erase_others_personal_data' ) || ! current_user_can( 'delete_users' ) ) {
-	wp_die( __( 'Sorry, you are not allowed to erase data on this site.' ) );
+	wp_die( __( 'Sorry, you are not allowed to erase personal data on this site.' ) );
 }
 
 // Handle list table actions.
@@ -62,7 +62,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="wp-privacy-request-form-field">
 			<label for="username_or_email_for_privacy_request"><?php esc_html_e( 'Username or email address' ); ?></label>
-			<input type="text" required class="regular-text" id="username_or_email_for_privacy_request" name="username_or_email_for_privacy_request" />
+			<input type="text" required class="regular-text ltr" id="username_or_email_for_privacy_request" name="username_or_email_for_privacy_request" />
 			<?php submit_button( __( 'Send Request' ), 'secondary', 'submit', false ); ?>
 		</div>
 		<?php wp_nonce_field( 'personal-data-request' ); ?>

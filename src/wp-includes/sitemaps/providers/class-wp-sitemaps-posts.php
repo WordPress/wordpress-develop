@@ -37,6 +37,8 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		$post_types = get_post_types( array( 'public' => true ), 'objects' );
 		unset( $post_types['attachment'] );
 
+		$post_types = array_filter( $post_types, 'is_post_type_viewable' );
+
 		/**
 		 * Filters the list of post object sub types available within the sitemap.
 		 *
@@ -92,13 +94,6 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		$query = new WP_Query( $args );
 
-		/**
-		 * Returns an array of posts.
-		 *
-		 * @var array<int, \WP_Post> $posts
-		 */
-		$posts = $query->get_posts();
-
 		$url_list = array();
 
 		/*
@@ -108,7 +103,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 		if ( 'page' === $post_type && 1 === $page_num && 'posts' === get_option( 'show_on_front' ) ) {
 			// Extract the data needed for home URL to add to the array.
 			$sitemap_entry = array(
-				'loc' => home_url(),
+				'loc' => home_url( '/' ),
 			);
 
 			/**
@@ -122,7 +117,7 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 			$url_list[]    = $sitemap_entry;
 		}
 
-		foreach ( $posts as $post ) {
+		foreach ( $query->posts as $post ) {
 			$sitemap_entry = array(
 				'loc' => get_permalink( $post ),
 			);
@@ -179,7 +174,8 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		$query = new WP_Query( $args );
 
-		return isset( $query->max_num_pages ) ? $query->max_num_pages : 1;
+		$min_num_pages = ( 'page' === $post_type && 'posts' === get_option( 'show_on_front' ) ) ? 1 : 0;
+		return isset( $query->max_num_pages ) ? max( $min_num_pages, $query->max_num_pages ) : 1;
 	}
 
 	/**

@@ -100,7 +100,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 			)
 		);
 		$output     = $block_type->render( $attributes );
-		$this->assertEquals( $attributes, json_decode( $output, true ) );
+		$this->assertSame( $attributes, json_decode( $output, true ) );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 			)
 		);
 		$output     = $block_type->render( $attributes, $content );
-		$this->assertEquals( $expected, json_decode( $output, true ) );
+		$this->assertSame( $expected, json_decode( $output, true ) );
 	}
 
 	/**
@@ -133,7 +133,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 		$block_type = new WP_Block_Type( 'core/fake', array() );
 		$output     = $block_type->render();
 
-		$this->assertEquals( '', $output );
+		$this->assertSame( '', $output );
 	}
 
 	/**
@@ -223,7 +223,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 		$prepared_attributes = $block_type->prepare_attributes_for_render( $attributes );
 
-		$this->assertEquals( $attributes, $prepared_attributes );
+		$this->assertSame( $attributes, $prepared_attributes );
 	}
 
 	/**
@@ -369,12 +369,12 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 		$this->assertSame( 'Test title', $block_type->title );
 		$this->assertSame( 'Test category', $block_type->category );
-		$this->assertEqualSets( array( 'core/third-party' ), $block_type->parent );
+		$this->assertSameSets( array( 'core/third-party' ), $block_type->parent );
 		$this->assertSame( 'icon.png', $block_type->icon );
 		$this->assertSame( 'test description', $block_type->description );
-		$this->assertEqualSets( array( 'test keyword' ), $block_type->keywords );
+		$this->assertSameSets( array( 'test keyword' ), $block_type->keywords );
 		$this->assertSame( 'test_domain', $block_type->textdomain );
-		$this->assertEqualSets( array( 'alignment' => true ), $block_type->supports );
+		$this->assertSameSets( array( 'alignment' => true ), $block_type->supports );
 	}
 
 	/**

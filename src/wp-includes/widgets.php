@@ -787,16 +787,16 @@ function dynamic_sidebar( $index = 1 ) {
 		 * @param array $widget_id {
 		 *     An associative array of widget arguments.
 		 *
-		 *     @type string $name                Name of the widget.
-		 *     @type string $id                  Widget ID.
-		 *     @type array|callable $callback    When the hook is fired on the front end, $callback is an array
-		 *                                       containing the widget object. Fired on the back end, $callback
-		 *                                       is 'wp_widget_control', see $_callback.
-		 *     @type array          $params      An associative array of multi-widget arguments.
-		 *     @type string         $classname   CSS class applied to the widget container.
-		 *     @type string         $description The widget description.
-		 *     @type array          $_callback   When the hook is fired on the back end, $_callback is populated
-		 *                                       with an array containing the widget object, see $callback.
+		 *     @type string   $name        Name of the widget.
+		 *     @type string   $id          Widget ID.
+		 *     @type callable $callback    When the hook is fired on the front end, $callback is an array
+		 *                                 containing the widget object. Fired on the back end, $callback
+		 *                                 is 'wp_widget_control', see $_callback.
+		 *     @type array    $params      An associative array of multi-widget arguments.
+		 *     @type string   $classname   CSS class applied to the widget container.
+		 *     @type string   $description The widget description.
+		 *     @type array    $_callback   When the hook is fired on the back end, $_callback is populated
+		 *                                 with an array containing the widget object, see $callback.
 		 * }
 		 */
 		do_action( 'dynamic_sidebar', $wp_registered_widgets[ $id ] );
@@ -857,10 +857,10 @@ function dynamic_sidebar( $index = 1 ) {
  *
  * @global array $wp_registered_widgets
  *
- * @param string|false $callback      Optional, Widget callback to check. Default false.
- * @param int|false    $widget_id     Optional. Widget ID. Optional, but needed for checking. Default false.
- * @param string|false $id_base       Optional. The base ID of a widget created by extending WP_Widget. Default false.
- * @param bool         $skip_inactive Optional. Whether to check in 'wp_inactive_widgets'. Default true.
+ * @param callable|false $callback      Optional, Widget callback to check. Default false.
+ * @param int|false      $widget_id     Optional. Widget ID. Optional, but needed for checking. Default false.
+ * @param string|false   $id_base       Optional. The base ID of a widget created by extending WP_Widget. Default false.
+ * @param bool           $skip_inactive Optional. Whether to check in 'wp_inactive_widgets'. Default true.
  * @return string|false False if widget is not active or id of sidebar in which the widget is active.
  */
 function is_active_widget( $callback = false, $widget_id = false, $id_base = false, $skip_inactive = true ) {
@@ -1046,21 +1046,22 @@ function wp_get_widget_defaults() {
 }
 
 /**
- * Convert the widget settings from single to multi-widget format.
+ * Converts the widget settings from single to multi-widget format.
  *
  * @since 2.8.0
  *
  * @global array $_wp_sidebars_widgets
  *
- * @param string $base_name
- * @param string $option_name
- * @param array  $settings
- * @return array
+ * @param string $base_name   Root ID for all widgets of this type.
+ * @param string $option_name Option name for this widget type.
+ * @param array  $settings    The array of widget instance settings.
+ * @return array The array of widget settings converted to multi-widget format.
  */
 function wp_convert_widget_settings( $base_name, $option_name, $settings ) {
 	// This test may need expanding.
 	$single  = false;
 	$changed = false;
+
 	if ( empty( $settings ) ) {
 		$single = true;
 	} else {
@@ -1261,7 +1262,7 @@ function retrieve_widgets( $theme_changed = false ) {
 	$sidebars_widgets = wp_map_sidebars_widgets( $sidebars_widgets );
 
 	// Find hidden/lost multi-widget instances.
-	$shown_widgets = call_user_func_array( 'array_merge', $sidebars_widgets );
+	$shown_widgets = array_merge( ...array_values( $sidebars_widgets ) );
 	$lost_widgets  = array_diff( $registered_widgets_ids, $shown_widgets );
 
 	foreach ( $lost_widgets as $key => $widget_id ) {
@@ -1484,8 +1485,8 @@ function _wp_remove_unregistered_widgets( $sidebars_widgets, $allowed_widget_ids
  *
  * @since 2.5.0
  *
- * @param string|array|object $rss RSS url.
- * @param array $args Widget arguments.
+ * @param string|array|object $rss  RSS url.
+ * @param array               $args Widget arguments.
  */
 function wp_widget_rss_output( $rss, $args = array() ) {
 	if ( is_string( $rss ) ) {
@@ -1595,8 +1596,8 @@ function wp_widget_rss_output( $rss, $args = array() ) {
  *
  * @since 2.5.0
  *
- * @param array|string $args Values for input fields.
- * @param array $inputs Override default display options.
+ * @param array|string $args   Values for input fields.
+ * @param array        $inputs Override default display options.
  */
 function wp_widget_rss_form( $args, $inputs = null ) {
 	$default_inputs = array(
@@ -1642,17 +1643,21 @@ function wp_widget_rss_form( $args, $inputs = null ) {
 	}
 	?>
 	</select></p>
-<?php endif; if ( $inputs['show_summary'] ) : ?>
-	<p><input id="rss-show-summary-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_summary]" type="checkbox" value="1" <?php checked( $args['show_summary'] ); ?> />
-	<label for="rss-show-summary-<?php echo $esc_number; ?>"><?php _e( 'Display item content?' ); ?></label></p>
-<?php endif; if ( $inputs['show_author'] ) : ?>
-	<p><input id="rss-show-author-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_author]" type="checkbox" value="1" <?php checked( $args['show_author'] ); ?> />
-	<label for="rss-show-author-<?php echo $esc_number; ?>"><?php _e( 'Display item author if available?' ); ?></label></p>
-<?php endif; if ( $inputs['show_date'] ) : ?>
-	<p><input id="rss-show-date-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_date]" type="checkbox" value="1" <?php checked( $args['show_date'] ); ?>/>
-	<label for="rss-show-date-<?php echo $esc_number; ?>"><?php _e( 'Display item date?' ); ?></label></p>
+<?php endif; if ( $inputs['show_summary'] || $inputs['show_author'] || $inputs['show_date'] ) : ?>
+	<p>
+	<?php if ( $inputs['show_summary'] ) : ?>
+		<input id="rss-show-summary-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_summary]" type="checkbox" value="1" <?php checked( $args['show_summary'] ); ?> />
+		<label for="rss-show-summary-<?php echo $esc_number; ?>"><?php _e( 'Display item content?' ); ?></label><br />
+	<?php endif; if ( $inputs['show_author'] ) : ?>
+		<input id="rss-show-author-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_author]" type="checkbox" value="1" <?php checked( $args['show_author'] ); ?> />
+		<label for="rss-show-author-<?php echo $esc_number; ?>"><?php _e( 'Display item author if available?' ); ?></label><br />
+	<?php endif; if ( $inputs['show_date'] ) : ?>
+		<input id="rss-show-date-<?php echo $esc_number; ?>" name="widget-rss[<?php echo $esc_number; ?>][show_date]" type="checkbox" value="1" <?php checked( $args['show_date'] ); ?>/>
+		<label for="rss-show-date-<?php echo $esc_number; ?>"><?php _e( 'Display item date?' ); ?></label><br />
+	<?php endif; ?>
+	</p>
 	<?php
-	endif;
+	endif; // End of display options.
 foreach ( array_keys( $default_inputs ) as $input ) :
 	if ( 'hidden' === $inputs[ $input ] ) :
 		$id = str_replace( '_', '-', $input );
