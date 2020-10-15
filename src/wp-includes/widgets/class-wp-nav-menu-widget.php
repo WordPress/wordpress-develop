@@ -165,13 +165,12 @@ class WP_Nav_Menu_Widget extends WP_Widget {
 		<p class="nav-menu-widget-no-menus-message" <?php echo $not_empty_menus_style; ?>>
 			<?php
 			if ( $wp_customize instanceof WP_Customize_Manager ) {
-				$url = 'javascript: wp.customize.panel( "nav_menus" ).focus();';
+				_e( 'No menus have been created yet. <button type="button" class="button-link focus-nav-menus">Create some</button>.' );
 			} else {
 				$url = admin_url( 'nav-menus.php' );
+				/* translators: %s: URL to create a new menu. */
+				printf( __( 'No menus have been created yet. <a href="%s">Create some</a>.' ), esc_attr( $url ) );
 			}
-
-			/* translators: %s: URL to create a new menu. */
-			printf( __( 'No menus have been created yet. <a href="%s">Create some</a>.' ), esc_attr( $url ) );
 			?>
 		</p>
 		<div class="nav-menu-widget-form-controls" <?php echo $empty_menus_style; ?>>
