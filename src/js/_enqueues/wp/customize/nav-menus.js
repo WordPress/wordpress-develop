@@ -776,7 +776,14 @@
 				help = panelMeta.find( '.customize-help-toggle' ),
 				content = panelMeta.find( '.customize-panel-description' ),
 				options = $( '#screen-options-wrap' ),
-				button = panelMeta.find( '.customize-screen-options-toggle' );
+				button = panelMeta.find( '.customize-screen-options-toggle' ),
+				focusWidgets = $( '.focus-widgets' );
+
+			focusWidgets.click( function () {
+				api.panel( 'widgets' ).focus();
+				return false;
+			} );
+			
 			button.on( 'click keydown', function( event ) {
 				if ( api.utils.isKeydownButNotEnterEvent( event ) ) {
 					return;
