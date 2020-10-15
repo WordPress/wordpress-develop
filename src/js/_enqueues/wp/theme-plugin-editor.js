@@ -81,6 +81,24 @@ wp.themePluginEditor = (function( $ ) {
 				component.docsLookUpButton.prop( 'disabled', false );
 			}
 		} );
+
+		component.docsLookUpButton.on( 'click', function () {
+			if ( '' != component.docsLookUpList.val() ) {
+				window.open(
+					'https://api.wordpress.org/core/handbook/1.0/?function=' +
+						encodeURIComponent( component.docsLookUpList.val() ) +
+						'&locale=' +
+						encodeURIComponent(
+							window.themePluginEditorL10n.locale
+						) +
+						'&version=' +
+						encodeURIComponent(
+							window.themePluginEditorL10n.wpVersion
+						) +
+						'&redirect=true'
+				);
+			}
+		} );
 	};
 
 	/**
