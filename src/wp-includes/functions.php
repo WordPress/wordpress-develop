@@ -7709,6 +7709,10 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 function wp_get_compatibility_string( $key = false, $name = '' ) {
 	static $strings = array();
 
+	if ( empty( $key ) ) {
+		return '';
+	}
+
 	if ( empty( $strings ) ) {
 		$strings = array(
 			'theme_incompatible_wp_php'       => __( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' ),
