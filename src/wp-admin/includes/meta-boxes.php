@@ -440,8 +440,10 @@ function attachment_submit_meta_box( $post ) {
 		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
 			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
-			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
+			if ( ! MEDIA_TRASH ) {
+				wp_enqueue_script( 'metabox-events' );
+			}
+			echo "<a class='submitdelete deletion permanent-deletion' href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
 		}
 	}
 	?>
@@ -843,9 +845,10 @@ function post_comment_meta_box_thead( $result ) {
  * @param WP_Post $post
  */
 function post_comment_meta_box( $post ) {
+	wp_enqueue_script( 'metabox-events' );
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
 	?>
-	<p class="hide-if-no-js" id="add-new-comment"><button type="button" class="button" onclick="window.commentReply && commentReply.addcomment(<?php echo $post->ID; ?>);"><?php _e( 'Add Comment' ); ?></button></p>
+	<p class="hide-if-no-js" id="add-new-comment"><button type="button" data-post-id="<?php echo $post->ID; ?>" class="button"><?php _e( 'Add Comment' ); ?></button></p>
 	<?php
 
 	$total         = get_comments(
@@ -867,7 +870,7 @@ function post_comment_meta_box( $post ) {
 		}
 
 		?>
-		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" onclick="commentsBox.load(<?php echo $total; ?>);return false;"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
+		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" data-total="<?php echo $total; ?>"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
 		<?php
 	}
 

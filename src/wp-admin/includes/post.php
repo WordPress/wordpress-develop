@@ -2297,6 +2297,8 @@ function the_block_editor_meta_boxes() {
 	$locations     = array( 'side', 'normal', 'advanced' );
 	$priorities    = array( 'high', 'sorted', 'core', 'default', 'low' );
 
+	wp_enqueue_script( 'metabox-events' );
+
 	// Render meta boxes.
 	?>
 	<form class="metabox-base-form">
@@ -2307,7 +2309,7 @@ function the_block_editor_meta_boxes() {
 		<input type="hidden" name="action" value="toggle-custom-fields" />
 	</form>
 	<?php foreach ( $locations as $location ) : ?>
-		<form class="metabox-location-<?php echo esc_attr( $location ); ?>" onsubmit="return false;">
+		<form class="metabox-location metabox-location-<?php echo esc_attr( $location ); ?>">
 			<div id="poststuff" class="sidebar-open">
 				<div id="postbox-container-2" class="postbox-container">
 					<?php

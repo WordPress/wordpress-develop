@@ -1229,6 +1229,8 @@ function wp_default_scripts( $scripts ) {
 	if ( is_admin() ) {
 		$scripts->add( 'admin-tags', "/wp-admin/js/tags$suffix.js", array( 'jquery', 'wp-ajax-response' ), false, 1 );
 		$scripts->set_translations( 'admin-tags' );
+		
+		$scripts->add( 'metabox-events', "/wp-includes/js/metabox-events$suffix.js", array( 'common', 'admin-comments', 'post' ), false, 1 );
 
 		$scripts->add( 'admin-comments', "/wp-admin/js/edit-comments$suffix.js", array( 'wp-lists', 'quicktags', 'jquery-query' ), false, 1 );
 		$scripts->set_translations( 'admin-comments' );
