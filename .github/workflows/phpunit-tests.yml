@@ -101,7 +101,6 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Downloads the built WordPress artifact from the previous job.
   # - Unzips the artifact.
-  # - Reads the desired version of NodeJS from the .nvmrc file.
   # - Installs NodeJS 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies.
@@ -148,9 +147,6 @@ jobs:
 
       - name: Unzip built artifact
         run: unzip built-wp-${{ github.sha }}.zip
-
-      - name: Check the desired version of NodeJS
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
 
       - name: Install NodeJS
         uses: actions/setup-node@v1
