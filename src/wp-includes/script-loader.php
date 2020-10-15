@@ -1252,6 +1252,8 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'tags-suggest' );
 
+		$scripts->add( 'themes-list', "/wp-admin/js/themes-list$suffix.js", array(), false, 1 );
+
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
 		$scripts->set_translations( 'post' );
 
