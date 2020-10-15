@@ -1119,7 +1119,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	/**
 	 * Custom full count callback for `test_register_taxonomy_counting_callbacks()`.
 	 *
-	 * For the purpose of this test no database modifications are required.
+	 * For the purpose of this test no database modifications are required, therefore
+	 * the parameters passed are unused.
 	 *
 	 * @param int|array $tt_ids   The term_taxonomy_id of the terms.
 	 * @param string    $taxonomy The context of the term.
@@ -1131,10 +1132,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	/**
 	 * Custom partial count callback for `test_register_taxonomy_counting_callbacks()`.
 	 *
-	 * For the purpose of this test no database modifications are required.
+	 * For the purpose of this test no database modifications are required, therefore
+	 * the parameters passed are unused.
 	 *
-	 * @param int|array $tt_ids   The term_taxonomy_id of the terms.
-	 * @param string    $taxonomy The context of the term.
+	 * @param int|array $tt_ids    The term_taxonomy_id of the terms.
+	 * @param string    $taxonomy  The context of the term.
+	 * @param int       $modify_by By how many the term count is to be modified.
 	 */
 	function cb_register_taxonomy_partial_count_callback( $tt_ids, $taxonomy, $modify_by ) {
 		$this->partial_count_cb_called++;
