@@ -50,6 +50,10 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 				'role' => 'administrator',
 			)
 		);
+
+		if ( is_multisite() ) {
+			grant_super_admin( self::$admin );
+		}
 	}
 
 	/**
