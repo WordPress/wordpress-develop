@@ -60,6 +60,11 @@ jobs:
           php -i
           locale -a
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
       - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
@@ -70,11 +75,6 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
       - name: Install Dependencies
         run: npm ci
@@ -149,6 +149,11 @@ jobs:
           echo "LOCAL_PHP=$(echo ${{ matrix.php_versions }} | cut -c1-3)-fpm" >> $GITHUB_ENV
           echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
       - name: Use cached Node modules
         uses: actions/cache@v2
         env:
@@ -159,11 +164,6 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
       - name: Install Dependencies
         run: npm ci

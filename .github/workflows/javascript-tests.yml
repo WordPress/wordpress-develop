@@ -39,6 +39,11 @@ jobs:
           git --version
           svn --version
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
       - name: Cache NodeJS modules
         uses: actions/cache@v2
         env:
@@ -49,11 +54,6 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
       - name: Log debug information
         run: |

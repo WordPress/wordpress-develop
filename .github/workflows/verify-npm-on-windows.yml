@@ -38,6 +38,11 @@ jobs:
           git --version
           svn --version
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
       - name: Get NPM cache directory
         id: npm-cache
         run: echo "::set-output name=dir::$(npm config get cache)"
@@ -51,11 +56,6 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
-
-      - name: Install NodeJS
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
       - name: Install Dependencies
         run: npm ci
