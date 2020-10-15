@@ -3457,7 +3457,19 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 
 	if ( isset( $parsed_args['back_link'] ) && $parsed_args['back_link'] ) {
 		$back_text = $have_gettext ? __( '&laquo; Back' ) : '&laquo; Back';
-		$message  .= "\n<p><a href='javascript:history.back()'>$back_text</a></p>";
+		$message  .= "\n<p><a class='go-back' href='#'>$back_text</a></p>";
+
+		$js       = <<<'JS'
+document.addEventListener( 'DOMContentLoaded', function () {
+	document.querySelectorAll( '.go-back' ).forEach( function ( item ) {
+		item.addEventListener( 'click', function ( event ) {
+			window.history.go( -1 );
+			event.preventDefault();
+		} );
+	} );
+} );
+JS;
+		$message .= wp_get_inline_script_tag( $js );
 	}
 
 	if ( ! did_action( 'admin_head' ) ) :
