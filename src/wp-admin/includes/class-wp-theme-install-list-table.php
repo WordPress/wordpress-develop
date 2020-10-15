@@ -148,7 +148,19 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$api = themes_api( 'query_themes', $args );
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a>' );
+			wp_die( $api->get_error_message() . '</p> <p><a href="#" id="theme-try-again">' . __( 'Try Again' ) . '</a>' );
+
+			$js = <<<'JS'
+document.addEventListener( 'DOMContentLoaded', function () {
+	document
+		.getElementById( 'theme-try-again' )
+		.addEventListener( 'click', function ( event ) {
+			document.location.reload();
+			event.preventDefault();
+		} );
+} );
+JS;
+			wp_print_inline_script_tag( $js );
 		}
 
 		$this->items = $api->themes;
