@@ -7702,11 +7702,11 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @since 5.6.0
  *
  * @param string $key  The key for the particular string.
- *                     Default is false.
+ *                     Default is empty string.
  * @param string $name Plugin or theme name.
  * @return string The appropriate compatibilty string.
  */
-function wp_get_compatibility_string( $key = false, $name = '' ) {
+function wp_get_compatibility_string( $key = '', $name = '' ) {
 	static $strings = array();
 
 	if ( empty( $key ) ) {
