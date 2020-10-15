@@ -7734,11 +7734,11 @@ function wp_get_compatibility_string( $key = '', $name = '' ) {
 	if ( $name ) {
 		$names = array(
 			/* translators: 1: plugin or theme name */
-			'update_incompatible_wp_php' => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your versions of WordPress and PHP.' ), $name ),
+			'update_incompatible_wp_php' => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ), $name ),
 			/* translators: 1: plugin or theme name */
-			'update_incompatible_wp'     => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your version of WordPress.' ), $name ),
+			'update_incompatible_wp'     => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ), $name ),
 			/* translators: 1: plugin or theme name */
-			'update_incompatible_php'    => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your version of PHP.' ), $name ),
+			'update_incompatible_php'    => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ), $name ),
 		);
 
 		if ( array_key_exists( $key, $names ) ) {

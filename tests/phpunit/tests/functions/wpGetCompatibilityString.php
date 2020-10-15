@@ -6,6 +6,7 @@
  * @since 5.6.0
  *
  * @group functions.php
+ * @group 50787
  * @covers ::wp_get_compatibility_string
  */
 class Tests_Functions_WPGetCompatibilityString extends WP_UnitTestCase {
@@ -47,14 +48,14 @@ class Tests_Functions_WPGetCompatibilityString extends WP_UnitTestCase {
 			array( 'core_update_incompatible_php', '', 'This update doesn&#8217;t work with your version of PHP.' ),
 			array( 'core_update_incompatible_php', 'Lorem Ipsum', 'This update doesn&#8217;t work with your version of PHP.' ),
 			array( 'update_incompatible_wp_php', '', '' ),
-			array( 'update_incompatible_wp_php', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t 	work with your versions of WordPress and PHP.' ),
-			array( 'update_incompatible_wp_php', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t 	work with your versions of WordPress and PHP.' ),
+			array( 'update_incompatible_wp_php', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+			array( 'update_incompatible_wp_php', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
 			array( 'update_incompatible_wp', '', '' ),
-			array( 'update_incompatible_wp', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t 	work with your version of WordPress.' ),
-			array( 'update_incompatible_wp', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t 	work with your version of WordPress.' ),
+			array( 'update_incompatible_wp', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t work with your version of WordPress.' ),
+			array( 'update_incompatible_wp', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t work with your version of WordPress.' ),
 			array( 'update_incompatible_php', '', '' ),
-			array( 'update_incompatible_php', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t 	work with your version of PHP.' ),
-			array( 'update_incompatible_php', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t 	work with your version of PHP.' ),
+			array( 'update_incompatible_php', 'theme1', 'There is a new version of theme1 available, but it doesn&#8217;t work with your version of PHP.' ),
+			array( 'update_incompatible_php', 'plugin1', 'There is a new version of plugin1 available, but it doesn&#8217;t work with your version of PHP.' ),
 		);
 	}
 }
