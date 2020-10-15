@@ -35,11 +35,27 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	private static $my_content_post_ids = array();
 
 	/**
+	 * Categories.
+	 *
+	 * @var int
+	 */
+	private static $my_category_id;
+
+	/**
+	 * Tags.
+	 *
+	 * @var int
+	 */
+	private static $my_tag_id;
+
+	/**
 	 * Create fake data before our tests run.
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
+		add_theme_support( 'post-formats' );
+
 		self::$my_title_post_ids = $factory->post->create_many(
 			4,
 			array(
@@ -62,12 +78,30 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'post_content' => 'my-foocontent',
 			)
 		);
+
+		set_post_format( self::$my_title_post_ids[0], 'aside' );
+
+		self::$my_category_id = $factory->term->create(
+			array(
+				'taxonomy' => 'category',
+				'name'     => 'Test Category',
+			)
+		);
+
+		self::$my_tag_id = $factory->term->create(
+			array(
+				'taxonomy' => 'post_tag',
+				'name'     => 'Test Tag',
+			)
+		);
 	}
 
 	/**
 	 * Delete our fake data after our tests run.
 	 */
 	public static function wpTearDownAfterClass() {
+		remove_theme_support( 'post-formats' );
+
 		$post_ids = array_merge(
 			self::$my_title_post_ids,
 			self::$my_title_page_ids,
@@ -76,6 +110,15 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 
 		foreach ( $post_ids as $post_id ) {
 			wp_delete_post( $post_id, true );
+		}
+
+		$term_ids = array(
+			self::$my_category_id,
+			self::$my_tag_id,
+		);
+
+		foreach ( $term_ids as $term_id ) {
+			wp_delete_term( $term_id, true );
 		}
 	}
 
@@ -512,6 +555,217 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertCount( 1, $data['_embedded']['self'] );
 		$this->assertArrayHasKey( WP_REST_Search_Controller::PROP_ID, $data['_embedded']['self'][0] );
 		$this->assertSame( $data[ WP_REST_Search_Controller::PROP_ID ], $data['_embedded']['self'][0][ WP_REST_Search_Controller::PROP_ID ] );
+	}
+
+	/**
+	 * Search through terms of any type.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_type_term() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+			)
+		);
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array(
+				0 => 1, // That is the default category.
+				self::$my_category_id,
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through terms of subtype 'category'.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_type_term_subtype_category() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'category',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array(
+				0 => 1, // That is the default category.
+				self::$my_category_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through posts of an invalid post type.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_term_subtype_invalid() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'invalid',
+			)
+		);
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * Search through posts and pages.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_categories_and_tags() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'term',
+				'subtype'  => 'category,post_tag',
+			)
+		);
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array(
+				0 => 1, // This is the default category.
+				self::$my_category_id,
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Test Category' search.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_test_category() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Test Category',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array(
+				self::$my_category_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Test Tag' search.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_test_tag() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Test Tag',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEqualSets(
+			array(
+				self::$my_tag_id,
+			),
+			wp_list_pluck( $response->get_data(), 'id' )
+		);
+	}
+
+	/**
+	 * Searching for a term that doesn't exist should return an empty result.
+	 *
+	 * @ticket 51458
+	 */
+	public function test_get_items_search_for_missing_term() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Doesn\'t exist',
+				'type'     => 'term',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
+	}
+
+	/**
+	 * Search through post formats of any type.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_type_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'type'     => 'post-format',
+			)
+		);
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Search through all that matches a 'Aside' search.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_test_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Aside',
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertContains(
+			'Aside',
+			wp_list_pluck( $response->get_data(), 'title' )
+		);
+	}
+
+	/**
+	 * Searching for a post format that doesn't exist should return an empty
+	 * result.
+	 *
+	 * @ticket 51459
+	 */
+	public function test_get_items_search_for_missing_post_format() {
+		$response = $this->do_request_with_params(
+			array(
+				'per_page' => 100,
+				'search'   => 'Doesn\'t exist',
+				'type'     => 'post-format',
+			)
+		);
+
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertEmpty( $response->get_data() );
 	}
 
 	/**
