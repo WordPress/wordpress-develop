@@ -22,7 +22,7 @@ jobs:
             It looks like this is your first pull request, so here are a few things to be aware of that may help you out.
 
 
-            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, simply include the ticket's full URL in your pull request description.
+            **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
 
 
             **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this one mirrors. But please feel free to use pull requests to work on any contribution you are making.
