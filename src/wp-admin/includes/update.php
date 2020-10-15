@@ -513,10 +513,11 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 					)
 				);
 			} else {
+				echo wp_get_compatibility_string( 'update_incompatible_php', $plugin_name );
+				echo ' ';
 				printf(
-					/* translators: 1: Plugin name, 2: Details URL, 3: Additional link attributes, 4: Version number 5: URL to Update PHP page. */
-					__( 'There is a new version of %1$s available, but it doesn&#8217;t work with your version of PHP. <a href="%2$s" %3$s>View version %4$s details</a> or <a href="%5$s">learn more about updating PHP</a>.' ),
-					$plugin_name,
+					/* translators: 1: Details URL, 2: Additional link attributes, 3: Version number 4: URL to Update PHP page. */
+					__( '<a href="%1$s" %2$s>View version %3$s details</a> or <a href="%4$s">learn more about updating PHP</a>.' ),
 					esc_url( $details_url ),
 					sprintf(
 						'class="thickbox open-plugin-details-modal" aria-label="%s"',
@@ -707,11 +708,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 		}
 	} else {
 		if ( ! $compatible_wp && ! $compatible_php ) {
-			printf(
-				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
-				$theme['Name']
-			);
+			echo wp_get_compatibility_string( 'update_incompatible_wp_php', $theme['Name'] );
 			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 				printf(
 					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -735,11 +732,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 				wp_update_php_annotation( '</p><p><em>', '</em>' );
 			}
 		} elseif ( ! $compatible_wp ) {
-			printf(
-				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
-				$theme['Name']
-			);
+			echo wp_get_compatibility_string( 'update_incompatible_wp', $theme['Name'] );
 			if ( current_user_can( 'update_core' ) ) {
 				printf(
 					/* translators: %s: URL to WordPress Updates screen. */
@@ -748,11 +741,7 @@ function wp_theme_update_row( $theme_key, $theme ) {
 				);
 			}
 		} elseif ( ! $compatible_php ) {
-			printf(
-				/* translators: %s: Theme name. */
-				__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
-				$theme['Name']
-			);
+			echo wp_get_compatibility_string( 'update_incompatible_php', $theme['Name'] );
 			if ( current_user_can( 'update_php' ) ) {
 				printf(
 					/* translators: %s: URL to Update PHP page. */

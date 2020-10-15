@@ -280,7 +280,7 @@ if ( $tab ) {
 		<div class="notice notice-error notice-alt"><p>
 			<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				echo wp_get_compatibility_string( 'theme_incompatible_wp_php' );
 				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -306,7 +306,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_wp ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				echo wp_get_compatibility_string( 'theme_incompatible_wp' );
 				if ( current_user_can( 'update_core' ) ) {
 					printf(
 						/* translators: %s: URL to WordPress Updates screen. */
@@ -317,7 +317,7 @@ if ( $tab ) {
 				?>
 			<# } else if ( ! data.compatible_php ) { #>
 				<?php
-				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				echo wp_get_compatibility_string( 'theme_incompatible_php' );
 				if ( current_user_can( 'update_php' ) ) {
 					printf(
 						/* translators: %s: URL to Update PHP page. */
@@ -466,7 +466,7 @@ if ( $tab ) {
 							<div class="notice notice-error notice-alt notice-large"><p>
 								<# if ( ! data.compatible_wp && ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+									echo wp_get_compatibility_string( 'theme_incompatible_wp_php' );
 									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
@@ -492,7 +492,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_wp ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+									echo wp_get_compatibility_string( 'theme_incompatible_wp' );
 									if ( current_user_can( 'update_core' ) ) {
 										printf(
 											/* translators: %s: URL to WordPress Updates screen. */
@@ -503,7 +503,7 @@ if ( $tab ) {
 									?>
 								<# } else if ( ! data.compatible_php ) { #>
 									<?php
-									_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+									echo wp_get_compatibility_string( 'theme_incompatible_php' );
 									if ( current_user_can( 'update_php' ) ) {
 										printf(
 											/* translators: %s: URL to Update PHP page. */

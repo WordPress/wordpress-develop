@@ -7695,3 +7695,52 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Return compatibility string.
+ *
+ * @since 5.6.0
+ *
+ * @param string $key  The key for the particular string.
+ *                     Default is false.
+ * @param string $name Plugin or theme name.
+ * @return string The appropriate compatibilty string.
+ */
+function wp_get_compatibility_string( $key = false, $name = '' ) {
+	static $strings = array();
+
+	if ( empty( $strings ) ) {
+		$strings = array(
+			'theme_incompatible_wp_php'       => __( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' ),
+			'plugin_incompatible_wp_php'      => __( 'This plugin doesn&#8217;t work with your versions of WordPress and PHP.' ),
+			'core_update_incompatible_wp_php' => __( 'This update doesn&#8217;t work with your versions of WordPress and PHP.' ),
+			'theme_incompatible_wp'           => __( 'This theme doesn&#8217;t work with your version of WordPress.' ),
+			'plugin_incompatible_wp'          => __( 'This plugin doesn&#8217;t work with your version of WordPress.' ),
+			'core_update_incompatible_wp'     => __( 'This update doesn&#8217;t work with your version of WordPress.' ),
+			'theme_incompatible_php'          => __( 'This theme doesn&#8217;t work with your version of PHP.' ),
+			'plugin_incompatible_php'         => __( 'This plugin doesn&#8217;t work with your version of PHP.' ),
+			'core_update_incompatible_php'    => __( 'This update doesn&#8217;t work with your version of PHP.' ),
+		);
+	}
+
+	if ( array_key_exists( $key, $strings ) ) {
+		return $strings[ $key ];
+	}
+
+	if ( $name ) {
+		$names = array(
+			/* translators: 1: plugin or theme name */
+			'update_incompatible_wp_php' => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your versions of WordPress and PHP.' ), $name ),
+			/* translators: 1: plugin or theme name */
+			'update_incompatible_wp'     => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your version of WordPress.' ), $name ),
+			/* translators: 1: plugin or theme name */
+			'update_incompatible_php'    => sprintf( __( 'There is a new version of %s available, but it doesn&#8217;t 	work with your version of PHP.' ), $name ),
+		);
+
+		if ( array_key_exists( $key, $names ) ) {
+			return $names[ $key ];
+		}
+	}
+
+	return '';
+}
