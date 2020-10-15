@@ -542,7 +542,7 @@ do_action( 'edit_form_top', $post );
 
 			if ( ! empty( $shortlink ) && $shortlink !== $permalink && home_url( '?page_id=' . $post->ID ) !== $permalink ) {
 				$sample_permalink_html .= '<input id="shortlink" type="hidden" value="' . esc_attr( $shortlink ) . '" />' .
-					'<button type="button" class="button button-small" onclick="prompt(&#39;URL:&#39;, jQuery(\'#shortlink\').val());">' .
+					'<button id="get-shortlink" type="button" class="button button-small">' .
 					__( 'Get Shortlink' ) .
 					'</button>';
 			}
