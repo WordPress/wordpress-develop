@@ -247,20 +247,17 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'description' => __( 'The name of the test being run.' ),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 				'label'       => array(
 					'type'        => 'string',
 					'description' => __( 'A label describing the test.' ),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 				'status'      => array(
 					'type'        => 'string',
 					'description' => __( 'The status of the test.' ),
 					'enum'        => array( 'good', 'recommended', 'critical' ),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 				'badge'       => array(
 					'type'        => 'object',
@@ -277,19 +274,16 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 						),
 					),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 				'description' => array(
 					'type'        => 'string',
 					'description' => __( 'A more descriptive explanation of what the test looks for, and why it is important for the user.' ),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 				'actions'     => array(
 					'type'        => 'string',
 					'description' => __( 'HTML containing an action to direct the user to where they can resolve the issue.' ),
 					'readonly'    => true,
-					'context'     => array( 'view', 'edit' ),
 				),
 			),
 		);
