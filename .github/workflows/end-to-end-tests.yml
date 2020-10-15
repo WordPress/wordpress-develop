@@ -19,9 +19,10 @@ jobs:
   # - Cancels all previous workflow runs that have not completed.
   # - Set environment variables.
   # - Checks out the repository.
+  # - Reads the desired version of NodeJS from the .nvmrc file.
   # - Logs debug information about the runner container.
+  # - Installs the desired NodeJS version.
   # - Sets up caching for NPM.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
@@ -44,10 +45,12 @@ jobs:
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-          echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
 
       - name: Checkout repository
         uses: actions/checkout@v2
+
+      - name: Check the desired version of NodeJS
+        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
 
       - name: Log debug information
         run: |
@@ -75,6 +78,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-
+
       - name: Install Dependencies
         run: npm ci
 

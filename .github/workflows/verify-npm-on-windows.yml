@@ -13,9 +13,10 @@ jobs:
   # Performs the following steps:
   # - Cancels all previous workflow runs that have not completed.
   # - Checks out the repository.
+  # - Reads the desired version of NodeJS from the .nvmrc file.
   # - Logs debug information about the runner container.
+  # - Installs the desired NodeJS version.
   # - Sets up caching for NPM.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
   test-npm:
@@ -30,6 +31,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+      - name: Check the desired version of NodeJS
+        run: echo "::set-output NODE_VERSION=$(cat .nvmrc)"
+
       - name: Log debug information
         run: |
           npm --version
@@ -41,7 +45,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Get NPM cache directory
         id: npm-cache
