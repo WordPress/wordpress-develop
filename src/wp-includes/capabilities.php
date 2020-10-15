@@ -594,13 +594,13 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
 			break;
 		case 'view_site_health_check':
-			$caps['view_site_health_checks'];
+			$caps[] = 'view_site_health_checks';
 			if ( ! wp_site_health_allow_single_health_check( $user_id, $args[0] ) ) {
 				$caps[] = 'do_not_allow';
 			}
 			break;
 		case 'view_site_health_debug_info':
-			$caps['view_site_health_checks'];
+			$caps[] = 'view_site_health_checks';
 			if ( ! wp_site_health_allow_single_debug( $user_id, $args[0], $args[1] ) ) {
 				$caps[] = 'do_not_allow';
 			}
