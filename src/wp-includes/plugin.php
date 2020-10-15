@@ -186,9 +186,8 @@ function has_filter( $hook, $filter = false ) {
 function apply_filters( $hook, $value ) {
 	global $wp_filter, $wp_current_filter;
 
-	$tag = $hook;
-
 	$args = func_get_args();
+	$tag  = $hook;
 
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
