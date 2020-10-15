@@ -8,7 +8,7 @@
  */
 
 /**
- * Core class for interacting with Site Health elements.
+ * Core class for interacting with Site Health tests.
  *
  * @since 5.6.0
  *
@@ -26,7 +26,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	private $site_health;
 
 	/**
-	 * Constructor.
+	 * Site Health controller constructor.
 	 *
 	 * @since 5.6.0
 	 *
@@ -40,7 +40,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Register API routes.
+	 * Registers API routes.
 	 *
 	 * @since 5.6.0
 	 *
@@ -121,7 +121,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Validate if the current user can request this REST endpoint.
+	 * Validates if the current user can request this REST endpoint.
 	 *
 	 * @since 5.6.0
 	 *
@@ -132,7 +132,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		$default_capability = 'view_site_health_checks';
 
 		/**
-		 * Filter the capability needed to run a given Site Health check.
+		 * Filters the capability needed to run a given Site Health check.
 		 *
 		 * @since 5.6.0
 		 *
@@ -145,7 +145,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check if background updates work as expected.
+	 * Checks if background updates work as expected.
 	 *
 	 * @since 5.6.0
 	 *
@@ -156,7 +156,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check that the site can reach the WordPress.org API.
+	 * Checks that the site can reach the WordPress.org API.
 	 *
 	 * @since 5.6.0
 	 *
@@ -167,7 +167,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Check that loopbacks can be performed.
+	 * Checks that loopbacks can be performed.
 	 *
 	 * @since 5.6.0
 	 *
@@ -178,7 +178,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Get the current directory sizes for this install.
+	 * Gets the current directory sizes for this install.
 	 *
 	 * @since 5.6.0
 	 *
