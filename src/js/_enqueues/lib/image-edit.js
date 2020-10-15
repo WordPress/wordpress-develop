@@ -138,7 +138,155 @@
 			}
 		});
 
+		t.initEventHandlers();
 		$( document ).on( 'image-editor-ui-ready', this.focusManager );
+	},
+
+	/**
+	 * Attaches event handlers to buttons and input elements.
+	 *
+	 * @since 5.6
+	 *
+	 * @memberof imageEdit
+	 *
+	 * @return {void}
+	 */
+	initEventHandlers: function () {
+		$( 'img.image-preview' ).on( 'load', function () {
+			imageEdit.imgLoaded( parseInt( this.dataset.postId, 10 ) );
+		} );
+
+		$( '.imgedit-crop' ).on( 'click', function () {
+			imageEdit.handleCropToolClick(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-rleft' ).on( 'click', function () {
+			imageEdit.rotate(
+				90,
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-rright' ).on( 'click', function () {
+			imageEdit.rotate(
+				-90,
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-flipv' ).on( 'click', function () {
+			imageEdit.flip(
+				1,
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-fliph' ).on( 'click', function () {
+			imageEdit.flip(
+				2,
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-undo' ).on( 'click', function () {
+			imageEdit.undo(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-redo' ).on( 'click', function () {
+			imageEdit.redo(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				this
+			);
+		} );
+
+		$( '.imgedit-cancel-btn' ).on( 'click', function () {
+			imageEdit.close( this.dataset.postId, 1 );
+		} );
+
+		$( '.imgedit-submit-btn' ).on( 'click', function () {
+			imageEdit.save(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce
+			);
+		} );
+
+		$( 'button.imgedit-help-toggle, #imgedit-restore-original' ).on(
+			'click',
+			function () {
+				imageEdit.toggleHelp( this );
+			}
+		);
+
+		$( '.imgedit-scale-width' ).on( 'keyup blur', function () {
+			imageEdit.scaleChanged( this.dataset.postId, 1, this );
+		} );
+
+		$( '.imgedit-scale-height' ).on( 'keyup blur', function () {
+			imageEdit.scaleChanged( this.dataset.postId, 0, this );
+		} );
+
+		$( '#imgedit-scale-button' ).on( 'click', function () {
+			imageEdit.action(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				'scale'
+			);
+		} );
+
+		$( '#imgedit-restore-button' ).on( 'click', function () {
+			imageEdit.action(
+				parseInt( this.dataset.postId, 10 ),
+				this.dataset.nonce,
+				'restore'
+			);
+		} );
+
+		$( '.imgedit-crop-width' ).on( 'keyup blur', function () {
+			imageEdit.setRatioSelection(
+				parseInt( this.dataset.postId, 10 ),
+				0,
+				this
+			);
+		} );
+
+		$( '.imgedit-crop-height' ).on( 'keyup blur', function () {
+			imageEdit.setRatioSelection(
+				parseInt( this.dataset.postId, 10 ),
+				1,
+				this
+			);
+		} );
+
+		$( '.imgedit-sel-width' ).on( 'keyup blur', function () {
+			imageEdit.setNumSelection(
+				parseInt( this.dataset.postId, 10 ),
+				this
+			);
+		} );
+
+		$( '.imgedit-sel-height' ).on( 'keyup blur', function () {
+			imageEdit.setNumSelection(
+				parseInt( this.dataset.postId, 10 ),
+				this
+			);
+		} );
 	},
 
 	/**
