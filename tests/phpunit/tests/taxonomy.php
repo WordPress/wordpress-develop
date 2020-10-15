@@ -1062,13 +1062,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'update_count_callback' => array( $this, 'cb_register_taxonomy_full_count_callback' ),
 			)
 		);
-		$full_term      = self::factory()->term->create_and_get(
+		$full_term    = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wp_tax_40351_full_only',
 			)
 		);
-		$full_term_id   = $full_term->term_id;
-		$full_term_ttid = $full_term->term_taxonomy_id;
+		$full_term_id = $full_term->term_id;
 
 		register_taxonomy(
 			'wp_tax_40351_partial_only',
@@ -1077,13 +1076,12 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'update_count_by_callback' => array( $this, 'cb_register_taxonomy_partial_count_callback' ),
 			)
 		);
-		$partial_term      = self::factory()->term->create_and_get(
+		$partial_term    = self::factory()->term->create_and_get(
 			array(
 				'taxonomy' => 'wp_tax_40351_partial_only',
 			)
 		);
-		$partial_term_id   = $partial_term->term_id;
-		$partial_term_ttid = $partial_term->term_taxonomy_id;
+		$partial_term_id = $partial_term->term_id;
 
 		register_taxonomy(
 			'wp_tax_40351_both',
