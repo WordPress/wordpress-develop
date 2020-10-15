@@ -280,7 +280,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Community_Events::trim_events
 	 *
-	 * @since 5.6.0
+	 * @since 5.5.2
 	 */
 	public function test_trim_expired_events() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -309,7 +309,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * @covers WP_Community_Events::trim_events
 	 *
 	 * @since 4.9.7
-	 * @since 5.6.0 Tests `trim_events()` directly instead of indirectly via `get_events()`.
+	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
 	 */
 	public function test_trim_events_pin_wordcamp() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -331,7 +331,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Simulates a scenario where a WordCamp needs to be pinned higher than it's default position.
 	 *
 	 * @since 4.9.7
-	 * @since 5.6.0 Accepts and returns only the events, rather than an entire HTTP response.
+	 * @since 5.5.2 Accepts and returns only the events, rather than an entire HTTP response.
 	 *
 	 * @return array A list of mock events.
 	 */
@@ -414,7 +414,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * @covers WP_Community_Events::trim_events
 	 *
 	 * @since 4.9.7
-	 * @since 5.6.0 Tests `trim_events()` directly instead of indirectly via `get_events()`.
+	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
 	 */
 	public function test_trim_events_dont_pin_multiple_wordcamps() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -437,7 +437,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * no need to pin extra camp b/c one already exists in response
 	 *
 	 * @since 4.9.7
-	 * @since 5.6.0 Tests `trim_events()` directly instead of indirectly via `get_events()`.
+	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
 	 *
 	 * @return array A mock HTTP response.
 	 */
