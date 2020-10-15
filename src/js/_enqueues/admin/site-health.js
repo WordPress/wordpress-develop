@@ -319,7 +319,7 @@ jQuery( document ).ready( function( $ ) {
 		}, 3000 );
 
 		wp.apiRequest( {
-			path: '/wp-site-health/v1/directory-sizes',
+			path: '/wp-site-health/v1/directory-sizes'
 		} ).done( function( response ) {
 			updateDirSizes( response || {} );
 		} ).always( function() {
