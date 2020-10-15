@@ -25,9 +25,8 @@ jobs:
   # - Cancels all previous workflow runs that have not completed.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
-  # - Reads the desired version of NodeJS from the .nvmrc file.
   # - Logs debug information about the runner container.
-  # - Installs the desired NodeJS version.
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies.
   # - Builds WordPress to run from the `build` directory.
@@ -49,9 +48,6 @@ jobs:
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
 
-      - name: Check the desired version of NodeJS
-        run: echo "NODE_VERSION=$(cat .nvmrc)" >> $GITHUB_ENV
-
       - name: Log debug information
         run: |
           npm --version
@@ -66,7 +62,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: 12
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
@@ -159,7 +155,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: 12
 
       - name: Use cached Node modules
         uses: actions/cache@v2
