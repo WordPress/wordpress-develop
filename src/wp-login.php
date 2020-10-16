@@ -291,6 +291,65 @@ function login_footer( $input_id = '' ) {
 		</a></p>
 		<?php
 
+		$languages = get_available_languages();
+
+		if ( ! empty( $languages ) ) {
+			?>
+			<form id="language-switcher" action="" method="GET">
+				<label for="language-switcher-locales">
+					<span class="screen-reader-text"><?php _e( 'Language' ); ?></span>
+					<span aria-hidden="true" class="dashicons dashicons-translation"></span>
+				</label>
+
+				<?php if ( $interim_login ) { ?>
+					<input type="hidden" name="interim-login" value="1" />
+				<?php } ?>
+
+				<?php
+				$query_vars = array(
+					'action',
+					'checkemail',
+					'error',
+					'redirect_to',
+				);
+
+				foreach ( $query_vars as $query_var ) {
+					if ( isset( $_GET[ $query_var ] ) && '' !== $_GET[ $query_var ] ) {
+						printf(
+							'<input type="hidden" name="%1$s" value="%2$s" />',
+							esc_attr( $query_var ),
+							esc_attr( sanitize_text_field( $_GET[ $query_var ] ) )
+						);
+					}
+				}
+
+				$args = array(
+					'id'                          => 'language-switcher-locales',
+					'name'                        => 'wp_lang',
+					'selected'                    => determine_locale(),
+					'show_available_translations' => false,
+					'explicit_option_en_us'       => true,
+					'languages'                   => $languages,
+				);
+
+				/**
+				 * Filters the arguments for the Language selector on the login screen.
+				 *
+				 * @since x.x.x
+				 *
+				 * @param Array $args Arguments for the Language selector on the login screen.
+				 */
+				wp_dropdown_languages( apply_filters( 'wp_login_language_switcher_args', $args ) );
+				?>
+			</form>
+			<script>
+				document.getElementById( 'language-switcher-locales' ).addEventListener( 'change', function() {
+					document.getElementById( 'language-switcher' ).submit()
+				} );
+			</script>
+			<?php
+		}
+
 		the_privacy_policy_link( '<div class="privacy-policy-page-link">', '</div>' );
 	}
 
@@ -417,6 +476,9 @@ function retrieve_password() {
 		return $key;
 	}
 
+	$user_locale = get_user_locale( $user_data );
+	$switched_locale = switch_to_locale( $user_locale );
+
 	if ( is_multisite() ) {
 		$site_name = get_network()->site_name;
 	} else {
@@ -427,6 +489,16 @@ function retrieve_password() {
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	}
 
+	$reset_url = add_query_arg(
+		array(
+			'action'  => 'rp',
+			'key'     => $key,
+			'login'   => rawurlencode( $user_login ),
+			'wp_lang' => $user_locale,
+		),
+		network_site_url( 'wp-login.php', 'login' )
+	);
+
 	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
 	/* translators: %s: Site name. */
 	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
@@ -434,7 +506,7 @@ function retrieve_password() {
 	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
 	$message .= __( 'If this was a mistake, just ignore this email and nothing will happen.' ) . "\r\n\r\n";
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
-	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n";
+	$message .= $reset_url . "\r\n";
 
 	/* translators: Password reset notification email subject. %s: Site title. */
 	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
@@ -466,6 +538,8 @@ function retrieve_password() {
 	 */
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
 
+	$result = true;
+
 	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
 		$errors->add(
 			'retrieve_password_email_failure',
@@ -475,10 +549,14 @@ function retrieve_password() {
 				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
 			)
 		);
-		return $errors;
+		$result = $errors;
 	}
 
-	return true;
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return $result;
 }
 
 //
@@ -538,6 +616,10 @@ setcookie( TEST_COOKIE, 'WP Cookie check', 0, COOKIEPATH, COOKIE_DOMAIN, $secure
 
 if ( SITECOOKIEPATH !== COOKIEPATH ) {
 	setcookie( TEST_COOKIE, 'WP Cookie check', 0, SITECOOKIEPATH, COOKIE_DOMAIN, $secure );
+}
+
+if ( isset( $_GET['wp_lang'] ) ) {
+	setcookie( LANGUAGE_COOKIE, wp_unslash( $_GET['wp_lang'] ), 0, COOKIEPATH, COOKIE_DOMAIN, $secure );
 }
 
 /**

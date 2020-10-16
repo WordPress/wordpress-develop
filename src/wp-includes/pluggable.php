@@ -995,6 +995,9 @@ if ( ! function_exists( 'wp_clear_auth_cookie' ) ) :
 		setcookie( 'wp-settings-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
 		setcookie( 'wp-settings-time-' . get_current_user_id(), ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
 
+		// Language cookie from the login screen.
+		setcookie( LANGUAGE_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
+
 		// Old cookies.
 		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, COOKIEPATH, COOKIE_DOMAIN );
 		setcookie( AUTH_COOKIE, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH, COOKIE_DOMAIN );
@@ -2044,14 +2047,30 @@ if ( ! function_exists( 'wp_new_user_notification' ) ) :
 			return;
 		}
 
-		$switched_locale = switch_to_locale( get_user_locale( $user ) );
+		$user_locale     = get_user_locale( $user );
+		$switched_locale = switch_to_locale( $user_locale );
+
+		$reset_url = add_query_arg(
+			array(
+				'action'  => 'rp',
+				'key'     => $key,
+				'login'   => rawurlencode( $user->user_login ),
+				'wp_lang' => $user_locale,
+			),
+			network_site_url( 'wp-login.php', 'login' )
+		);
+		$login_url = add_query_arg(
+			array(
+				'wp_lang' => $user_locale,
+			),
+			wp_login_url()
+		);
 
 		/* translators: %s: User login. */
 		$message  = sprintf( __( 'Username: %s' ), $user->user_login ) . "\r\n\r\n";
 		$message .= __( 'To set your password, visit the following address:' ) . "\r\n\r\n";
-		$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user->user_login ), 'login' ) . "\r\n\r\n";
-
-		$message .= wp_login_url() . "\r\n";
+		$message .= $reset_url . "\r\n\r\n";
+		$message .= $login_url . "\r\n";
 
 		$wp_new_user_notification_email = array(
 			'to'      => $user->user_email,
