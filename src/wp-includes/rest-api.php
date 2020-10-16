@@ -276,6 +276,7 @@ function create_initial_rest_routes() {
 	$search_handlers = array(
 		new WP_REST_Post_Search_Handler(),
 		new WP_REST_Term_Search_Handler(),
+		new WP_REST_Post_Format_Search_Handler(),
 	);
 
 	/**
@@ -314,6 +315,11 @@ function create_initial_rest_routes() {
 
 	// Block Directory.
 	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Site Health
+	$site_health = WP_Site_Health::get_instance();
+	$controller = new WP_REST_Site_Health_Controller( $site_health );
 	$controller->register_routes();
 }
 
@@ -1244,7 +1250,7 @@ function rest_get_date_with_gmt( $date, $is_utc = false ) {
  *
  * @since 4.7.0
  *
- * @return integer 401 if the user is not logged in, 403 if the user is logged in.
+ * @return int 401 if the user is not logged in, 403 if the user is logged in.
  */
 function rest_authorization_required_code() {
 	return is_user_logged_in() ? 403 : 401;
@@ -1341,7 +1347,7 @@ function rest_is_ip_address( $ip ) {
  * @since 4.7.0
  *
  * @param bool|string|int $value The value being evaluated.
- * @return boolean Returns the proper associated boolean value.
+ * @return bool Returns the proper associated boolean value.
  */
 function rest_sanitize_boolean( $value ) {
 	// String values are translated to `true`; make sure 'false' is false.
@@ -1362,7 +1368,7 @@ function rest_sanitize_boolean( $value ) {
  * @since 4.7.0
  *
  * @param bool|string $maybe_bool The value being evaluated.
- * @return boolean True if a boolean, otherwise false.
+ * @return bool True if a boolean, otherwise false.
  */
 function rest_is_boolean( $maybe_bool ) {
 	if ( is_bool( $maybe_bool ) ) {
