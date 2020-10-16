@@ -228,9 +228,15 @@ class WP_MS_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_User $user The current WP_User object.
+	 * @param WP_User $item The current WP_User object.
 	 */
-	public function column_cb( $user ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$user = $item;
+
 		if ( is_super_admin( $user->ID ) ) {
 			return;
 		}

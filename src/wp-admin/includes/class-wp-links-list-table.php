@@ -167,9 +167,15 @@ class WP_Links_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $link The current link object.
+	 * @param object $item The current link object.
 	 */
-	public function column_cb( $link ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$link = $item;
+
 		?>
 		<label class="screen-reader-text" for="cb-select-<?php echo $link->link_id; ?>">
 			<?php

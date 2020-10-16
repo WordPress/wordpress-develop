@@ -506,9 +506,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Theme $theme The current WP_Theme object.
+	 * @param WP_Theme $item The current WP_Theme object.
 	 */
-	public function column_cb( $theme ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$theme       = $item;
 		$checkbox_id = 'checkbox_' . md5( $theme->get( 'Name' ) );
 		?>
 		<input type="checkbox" name="checked[]" value="<?php echo esc_attr( $theme->get_stylesheet() ); ?>" id="<?php echo $checkbox_id; ?>" />

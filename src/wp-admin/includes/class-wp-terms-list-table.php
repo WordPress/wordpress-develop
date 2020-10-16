@@ -364,10 +364,16 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Term $tag Term object.
+	 * @param WP_Term $item Term object.
 	 * @return string
 	 */
-	public function column_cb( $tag ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$tag = $item;
+
 		if ( current_user_can( 'delete_term', $tag->term_id ) ) {
 			return sprintf(
 				'<label class="screen-reader-text" for="cb-select-%1$s">%2$s</label>' .

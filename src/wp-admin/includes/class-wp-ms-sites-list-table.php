@@ -397,9 +397,15 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param array $blog Current site.
+	 * @param array $item Current site.
 	 */
-	public function column_cb( $blog ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$blog = $item;
+
 		if ( ! is_main_site( $blog['blog_id'] ) ) :
 			$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 			?>

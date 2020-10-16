@@ -384,9 +384,15 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Post $post The current WP_Post object.
+	 * @param WP_Post $item The current WP_Post object.
 	 */
-	public function column_cb( $post ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$post = $item;
+
 		if ( current_user_can( 'edit_post', $post->ID ) ) {
 			?>
 			<label class="screen-reader-text" for="cb-select-<?php echo $post->ID; ?>">

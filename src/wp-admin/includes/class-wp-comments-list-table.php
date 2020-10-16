@@ -868,9 +868,15 @@ class WP_Comments_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Comment $comment The comment object.
+	 * @param WP_Comment $item The comment object.
 	 */
-	public function column_cb( $comment ) {
+	public function column_cb( $item ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$comment = $item;
+
 		if ( $this->user_can ) {
 			?>
 		<label class="screen-reader-text" for="cb-select-<?php echo $comment->comment_ID; ?>"><?php _e( 'Select comment' ); ?></label>
