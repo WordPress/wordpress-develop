@@ -60,16 +60,16 @@ jobs:
       - name: Install Composer dependencies
         run: |
           composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
-          echo "vendor/bin" >> $GITHUB_PATH
+          echo "${PWD}/vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        run: vendor/bin/phpcs -q -n --report=checkstyle | cs2pr
+        run: phpcs -q -n --report=checkstyle | cs2pr
 
       - name: Check test suite files for warnings
-        run: vendor/bin/phpcs tests -q --report=checkstyle | cs2pr
+        run: phpcs tests -q --report=checkstyle | cs2pr
 
   # Runs the JavaScript coding standards checks.
   #
