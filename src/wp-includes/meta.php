@@ -27,7 +27,7 @@
  *                           no change will be made. Default false.
  * @return int|false The meta ID on success, false on failure.
  */
-function add_metadata( $meta_type, $object_id, $meta_key, $meta_value, $unique = false ) {
+function add_metadata($meta_type,$object_id,$meta_key,$meta_value,$unique=false) {
 	global $wpdb;
 
 	if ( ! $meta_type || ! $meta_key || ! is_numeric( $object_id ) ) {
