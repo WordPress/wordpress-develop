@@ -1171,6 +1171,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'save_post_customize_changeset' => 2,
 			'save_post'                     => 2,
 			'wp_insert_post'                => 2,
+			'wp_after_insert_post'          => 2,
 			'trashed_post'                  => 1,
 		);
 		$action_counts    = array();
