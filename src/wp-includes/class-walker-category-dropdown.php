@@ -47,15 +47,20 @@ class Walker_CategoryDropdown extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string  $output   Used to append additional content (passed by reference).
-	 * @param WP_Term $category Category data object.
-	 * @param int     $depth    Depth of category. Used for padding.
-	 * @param array   $args     Uses 'selected', 'show_count', and 'value_field' keys, if they exist.
-	 *                          See wp_dropdown_categories().
-	 * @param int     $id       Optional. ID of the current category. Default 0 (unused).
+	 * @param string  $output      Used to append additional content (passed by reference).
+	 * @param WP_Term $data_object Category data object.
+	 * @param int     $depth       Depth of category. Used for padding.
+	 * @param array   $args        Uses 'selected', 'show_count', and 'value_field' keys, if they exist.
+	 *                             See wp_dropdown_categories().
+	 * @param int     $id          Optional. ID of the current category. Default 0 (unused).
 	 */
-	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
-		$pad = str_repeat( '&nbsp;', $depth * 3 );
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $id = 0 ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$category = $data_object;
+		$pad      = str_repeat( '&nbsp;', $depth * 3 );
 
 		/** This filter is documented in wp-includes/category-template.php */
 		$cat_name = apply_filters( 'list_cats', $category->name, $category );

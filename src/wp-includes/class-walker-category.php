@@ -89,13 +89,20 @@ class Walker_Category extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string  $output   Used to append additional content (passed by reference).
-	 * @param WP_Term $category Category data object.
-	 * @param int     $depth    Optional. Depth of category in reference to parents. Default 0.
-	 * @param array   $args     Optional. An array of arguments. See wp_list_categories(). Default empty array.
-	 * @param int     $id       Optional. ID of the current category. Default 0.
+	 * @param string  $output      Used to append additional content (passed by reference).
+	 * @param WP_Term $data_object Category data object.
+	 * @param int     $depth       Optional. Depth of category in reference to parents. Default 0.
+	 * @param array   $args        Optional. An array of arguments. See wp_list_categories().
+	 *                             Default empty array.
+	 * @param int     $id          Optional. ID of the current category. Default 0.
 	 */
-	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $id = 0 ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$category = $data_object;
+
 		/** This filter is documented in wp-includes/category-template.php */
 		$cat_name = apply_filters( 'list_cats', esc_attr( $category->name ), $category );
 

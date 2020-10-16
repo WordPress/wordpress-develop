@@ -47,17 +47,22 @@ class Walker_PageDropdown extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string  $output Used to append additional content. Passed by reference.
-	 * @param WP_Post $page   Page data object.
-	 * @param int     $depth  Optional. Depth of page in reference to parent pages. Used for padding.
-	 *                        Default 0.
-	 * @param array   $args   Optional. Uses 'selected' argument for selected page to set selected HTML
-	 *                        attribute for option element. Uses 'value_field' argument to fill "value"
-	 *                        attribute. See wp_dropdown_pages(). Default empty array.
-	 * @param int     $id     Optional. ID of the current page. Default 0 (unused).
+	 * @param string  $output      Used to append additional content. Passed by reference.
+	 * @param WP_Post $data_object Page data object.
+	 * @param int     $depth       Optional. Depth of page in reference to parent pages. Used for padding.
+	 *                             Default 0.
+	 * @param array   $args        Optional. Uses 'selected' argument for selected page to set selected HTML
+	 *                             attribute for option element. Uses 'value_field' argument to fill "value"
+	 *                             attribute. See wp_dropdown_pages(). Default empty array.
+	 * @param int     $id          Optional. ID of the current page. Default 0 (unused).
 	 */
-	public function start_el( &$output, $page, $depth = 0, $args = array(), $id = 0 ) {
-		$pad = str_repeat( '&nbsp;', $depth * 3 );
+	public function start_el( &$output, $data_object, $depth = 0, $args = array(), $id = 0 ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$page = $data_object;
+		$pad  = str_repeat( '&nbsp;', $depth * 3 );
 
 		if ( ! isset( $args['value_field'] ) || ! isset( $page->{$args['value_field']} ) ) {
 			$args['value_field'] = 'ID';
