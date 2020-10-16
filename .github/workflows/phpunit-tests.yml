@@ -22,7 +22,6 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Cancels all previous workflow runs that have not completed.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
@@ -37,11 +36,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cancel previous runs of this workflow
-        uses: styfle/cancel-workflow-action@0.5.0
-        with:
-          access_token: ${{ github.token }}
-
       - name: Checkout repository
         uses: actions/checkout@v2
 
