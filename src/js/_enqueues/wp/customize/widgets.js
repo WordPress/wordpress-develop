@@ -566,6 +566,7 @@
 			control._setupHighlightEffects();
 			control._setupUpdateUI();
 			control._setupRemoveUI();
+			control._setupEditUI();
 		},
 
 		/**
@@ -1029,6 +1030,21 @@
 				api.bind( 'saved', replaceDeleteWithRemove );
 			} else {
 				replaceDeleteWithRemove();
+			}
+		},
+
+		/**
+		 * Add a Edit button to block widgets.
+		 */
+		_setupEditUI: function() {
+			if ( 'block' === this.params.widget_id_base ) {
+				this.container.find( '.widget-control-remove' ).before(
+					$( '<a>' )
+						.attr( 'class', 'button-link' )
+						.attr( 'href', 'widgets.php' )
+						.text( l10n.editBtnLabel ),
+					' | '
+				);
 			}
 		},
 

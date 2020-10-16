@@ -34,14 +34,14 @@ class WP_Widget_Block extends WP_Widget {
 	public function __construct() {
 		$widget_ops  = array(
 			'classname'                   => 'widget_block',
-			'description'                 => __( 'Gutenberg block.', 'gutenberg' ),
+			'description'                 => __( 'A block.' ),
 			'customize_selective_refresh' => true,
 		);
 		$control_ops = array(
 			'width'  => 400,
 			'height' => 350,
 		);
-		parent::__construct( 'block', __( 'Block', 'gutenberg' ), $widget_ops, $control_ops );
+		parent::__construct( 'block', __( 'Block' ), $widget_ops, $control_ops );
 		add_action( 'is_wide_widget_in_customizer', array( $this, 'set_is_wide_widget_in_customizer' ), 10, 2 );
 	}
 
@@ -93,14 +93,6 @@ class WP_Widget_Block extends WP_Widget {
 		<br/>
 		<textarea id="<?php echo $textarea_id; ?>" name="<?php echo $this->get_field_name( 'content' ); ?>"
 				class="content sync-input" hidden><?php echo esc_textarea( $instance['content'] ); ?></textarea>
-		<script>
-			(function() {
-				var link = "<?php echo esc_js( admin_url( 'themes.php?page=gutenberg-widgets' ) ); ?>";
-				var container = jQuery('#<?php echo $textarea_id; ?>').closest(".form").find('.widget-control-actions .alignleft');
-				container.prepend(jQuery('<span> |</span>'));
-				container.prepend(jQuery('<a href="'+link+'" class="button-link">Edit</a>'));
-			})();
-		</script>
 		<?php
 	}
 

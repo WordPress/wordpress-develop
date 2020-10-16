@@ -788,6 +788,7 @@ final class WP_Customize_Widgets {
 				/* translators: %d: The number of widgets found. */
 				'widgetsFound'     => __( 'Number of widgets found: %d' ),
 				'noWidgetsFound'   => __( 'No widgets found.' ),
+				'editBtnLabel'     => __( 'Edit' ),
 			),
 			'tpl'                         => array(
 				'widgetReorderNav' => $widget_reorder_nav_tpl,
