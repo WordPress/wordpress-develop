@@ -688,13 +688,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
-
-			if ( wp_is_stream( $filename ) ) {
-				// Imagick::writeImageFile doesn't support streams properly, so copy the blob.
-				file_put_contents( $filename, $image->getImageBlob() );
-			} else {
-				$this->make_image( $filename, array( $image, 'writeImage' ), array( $filename ) );
-			}
+			$this->make_image( $filename, array( $this, '_write_image' ), array( $filename ) );
 
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
@@ -715,6 +709,38 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'height'    => $this->size['height'],
 			'mime-type' => $mime_type,
 		);
+	}
+
+	/**
+	 * Writes an image to a file or stream.
+	 *
+	 * @param Imagick $image
+	 * @param string  $filename The destination filename or stream URL.
+	 * @return bool   True on success.
+	 */
+	private function _write_image( $image, $filename ) {
+		if ( wp_is_stream( $filename ) ) {
+			// Imagick::writeImageFile and writeImage don't support streams properly, so copy the blob.
+			return file_put_contents( $filename, $image->getImageBlob() ) ? true : false;
+		} else {
+			return $image->writeImage( $filename );
+		}
+	}
+
+	/**
+	 * Returns the result of calling $function with $arguments.
+	 *
+	 * This disables the parent class's behaviour of buffering output when
+	 * $filename is a stream URL.  Instead, $function is expected to handle
+	 * stream URLs appropriately.
+	 *
+	 * @param string   $filename  The destination filename or stream URL.
+	 * @param callable $function  A function or method that writes the image.
+	 * @param array    $arguments Arguments to pass to $function.
+	 * @return bool    True on success.
+	 */
+	protected function make_image( $filename, $function, $arguments ) {
+		return call_user_func_array( $function, $arguments );
 	}
 
 	/**
