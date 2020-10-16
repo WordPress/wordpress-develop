@@ -105,8 +105,8 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <p class="has-medium-gray-color has-text-color">' . esc_html__( '— Takashi Irie', 'twentysixteen' ) . '</p>
             <!-- /wp:paragraph -->
 
-            <!-- wp:spacer {"height":20} -->
-            <div style="height:20px" aria-hidden="true" class="wp-block-spacer"></div>
+            <!-- wp:spacer {"height":52} -->
+            <div style="height:52px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
 
             <!-- wp:separator {"color":"dark-gray","className":"is-style-wide"} -->
