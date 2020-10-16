@@ -670,17 +670,22 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param array  $blog        Site being acted upon.
+	 * @param array  $item        Site being acted upon.
 	 * @param string $column_name Current column name.
 	 * @param string $primary     Primary column name.
 	 * @return string Row actions output for sites in Multisite, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $blog, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$blog     = $item;
 		$blogname = untrailingslashit( $blog['domain'] . $blog['path'] );
 
 		// Preordered.

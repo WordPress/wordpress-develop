@@ -463,17 +463,22 @@ class WP_Terms_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Term $tag         Tag being acted upon.
+	 * @param WP_Term $item        Tag being acted upon.
 	 * @param string  $column_name Current column name.
 	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for terms, or an empty string
 	 *                if the current column is not the primary column.
 	 */
-	protected function handle_row_actions( $tag, $column_name, $primary ) {
+	protected function handle_row_actions( $item, $column_name, $primary ) {
 		if ( $primary !== $column_name ) {
 			return '';
 		}
 
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$tag      = $item;
 		$taxonomy = $this->screen->taxonomy;
 		$tax      = get_taxonomy( $taxonomy );
 		$uri      = wp_doing_ajax() ? wp_get_referer() : $_SERVER['REQUEST_URI'];
