@@ -1346,13 +1346,13 @@ class WP_Posts_List_Table extends WP_List_Table {
 	/**
 	 * @global WP_Post $post Global post object.
 	 *
-	 * @param int|WP_Post $post
+	 * @param int|WP_Post $item
 	 * @param int         $level
 	 */
-	public function single_row( $post, $level = 0 ) {
+	public function single_row( $item, $level = 0 ) {
 		$global_post = get_post();
 
-		$post                = get_post( $post );
+		$post                = get_post( $item );
 		$this->current_level = $level;
 
 		$GLOBALS['post'] = $post;

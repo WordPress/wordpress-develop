@@ -342,13 +342,13 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 	/**
 	 * @global string $taxonomy
-	 * @param WP_Term $tag   Term object.
+	 * @param WP_Term $item  Term object.
 	 * @param int     $level
 	 */
-	public function single_row( $tag, $level = 0 ) {
+	public function single_row( $item, $level = 0 ) {
 		global $taxonomy;
-		$tag = sanitize_term( $tag, $taxonomy );
 
+		$tag         = sanitize_term( $item, $taxonomy );
 		$this->level = $level;
 
 		if ( $tag->parent ) {

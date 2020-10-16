@@ -251,7 +251,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *
 	 * @global array $themes_allowedtags
 	 *
-	 * @param object $theme {
+	 * @param object $item {
 	 *     An object that contains theme data returned by the WordPress.org API.
 	 *
 	 *     @type string $name           Theme name, e.g. 'Twenty Twenty-One'.
@@ -267,13 +267,18 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 	 *     @type string $download_link  Theme ZIP download URL.
 	 * }
 	 */
-	public function single_row( $theme ) {
+	public function single_row( $item ) {
 		global $themes_allowedtags;
 
-		if ( empty( $theme ) ) {
+		if ( empty( $item ) ) {
 			return;
 		}
 
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$theme  = $item;
 		$name   = wp_kses( $theme->name, $themes_allowedtags );
 		$author = wp_kses( $theme->author, $themes_allowedtags );
 
