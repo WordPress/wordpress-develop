@@ -856,12 +856,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param WP_Theme $theme       The current WP_Theme object.
+	 * @param WP_Theme $item        The current WP_Theme object.
 	 * @param string   $column_name The current column name.
 	 */
-	public function column_default( $theme, $column_name ) {
-		$stylesheet = $theme->get_stylesheet();
-
+	public function column_default( $item, $column_name ) {
 		/**
 		 * Fires inside each custom column of the Multisite themes list table.
 		 *
@@ -871,7 +869,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * @param string   $stylesheet  Directory name of the theme.
 		 * @param WP_Theme $theme       Current WP_Theme object.
 		 */
-		do_action( 'manage_themes_custom_column', $column_name, $stylesheet, $theme );
+		do_action(
+			'manage_themes_custom_column',
+			$column_name,
+			$item->get_stylesheet(), // Directory name of the theme.
+			$item // Theme object. See Trac #51553.
+		);
 	}
 
 	/**
