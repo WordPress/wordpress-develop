@@ -84,6 +84,7 @@ class WP_Widget_Block extends WP_Widget {
 	 * @since 5.6.0
 	 *
 	 * @param array $instance Current instance.
+	 * @return string Default return is 'noform'.
 	 */
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
@@ -94,6 +95,7 @@ class WP_Widget_Block extends WP_Widget {
 		<textarea id="<?php echo $textarea_id; ?>" name="<?php echo $this->get_field_name( 'content' ); ?>"
 				class="content sync-input" hidden><?php echo esc_textarea( $instance['content'] ); ?></textarea>
 		<?php
+		return 'noform';
 	}
 
 	/**
