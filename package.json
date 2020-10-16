@@ -140,8 +140,8 @@
 		"masonry-layout": "4.2.2",
 		"moment": "2.27.0",
 		"polyfill-library": "3.42.0",
-		"react": "16.9.0",
-		"react-dom": "16.9.0",
+		"react": "16.13.1",
+		"react-dom": "16.13.1",
 		"twemoji": "13.0.0",
 		"underscore": "1.8.3",
 		"whatwg-fetch": "3.0.0"
