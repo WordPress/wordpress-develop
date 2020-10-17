@@ -54,11 +54,17 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param int    $page_num  Page of results.
-	 * @param string $post_type Optional. Post type name. Default empty.
+	 * @param int    $page_num       Page of results.
+	 * @param string $object_subtype Optional. Post type name. Default empty.
 	 * @return array Array of URLs for a sitemap.
 	 */
-	public function get_url_list( $page_num, $post_type = '' ) {
+	public function get_url_list( $page_num, $object_subtype = '' ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$post_type = $object_subtype;
+
 		// Bail early if the queried post type is not supported.
 		$supported_types = $this->get_object_subtypes();
 
