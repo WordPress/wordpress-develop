@@ -689,15 +689,16 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  *
  * @since 1.5.0
  *
- * @global MO[] $l10n          An array of all currently loaded text domains.
- * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
+ * @global MO[]                   $l10n                   An array of all currently loaded text domains.
+ * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string $mofile Path to the .mo file.
  * @return bool True on success, false on failure.
  */
 function load_textdomain( $domain, $mofile ) {
-	global $l10n, $l10n_unloaded;
+	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
@@ -755,6 +756,9 @@ function load_textdomain( $domain, $mofile ) {
 
 	$l10n[ $domain ] = &$mo;
 
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	$wp_textdomain_registry->set( $domain, dirname( $mofile ) );
+
 	return true;
 }
 
@@ -763,14 +767,15 @@ function load_textdomain( $domain, $mofile ) {
  *
  * @since 3.0.0
  *
- * @global MO[] $l10n          An array of all currently loaded text domains.
- * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
+ * @global MO[]                   $l10n                   An array of all currently loaded text domains.
+ * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool Whether textdomain was unloaded.
  */
 function unload_textdomain( $domain ) {
-	global $l10n, $l10n_unloaded;
+	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
@@ -801,7 +806,10 @@ function unload_textdomain( $domain ) {
 
 	if ( isset( $l10n[ $domain ] ) ) {
 		unset( $l10n[ $domain ] );
+	}
 
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	if ( null !== $wp_textdomain_registry->get( $domain ) ) {
 		$l10n_unloaded[ $domain ] = true;
 
 		return true;
@@ -867,6 +875,8 @@ function load_default_textdomain( $locale = null ) {
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path = false ) {
+	global $wp_textdomain_registry;
+
 	/**
 	 * Filters a plugin's locale.
 	 *
@@ -893,6 +903,9 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 		$path = WP_PLUGIN_DIR;
 	}
 
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+	$wp_textdomain_registry->set( $domain, $path );
+
 	return load_textdomain( $domain, $path . '/' . $mofile );
 }
 
@@ -902,12 +915,16 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
  * @since 3.0.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $domain             Text domain. Unique identifier for retrieving translated strings.
  * @param string $mu_plugin_rel_path Optional. Relative to `WPMU_PLUGIN_DIR` directory in which the .mo
  *                                   file resides. Default empty string.
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
+	global $wp_textdomain_registry;
+
 	/** This filter is documented in wp-includes/l10n.php */
 	$locale = apply_filters( 'plugin_locale', determine_locale(), $domain );
 
@@ -919,6 +936,9 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	}
 
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
+
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+	$wp_textdomain_registry->set( $domain, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
 }
@@ -934,12 +954,16 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
  * @since 1.5.0
  * @since 4.6.0 The function now tries to load the .mo file from the languages directory first.
  *
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @param string $path   Optional. Path to the directory containing the .mo file.
  *                       Default false.
  * @return bool True when textdomain is successfully loaded, false otherwise.
  */
 function load_theme_textdomain( $domain, $path = false ) {
+	global $wp_textdomain_registry;
+
 	/**
 	 * Filters a theme's locale.
 	 *
@@ -960,6 +984,9 @@ function load_theme_textdomain( $domain, $path = false ) {
 	if ( ! $path ) {
 		$path = get_template_directory();
 	}
+
+	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+	$wp_textdomain_registry->set( $domain, $path );
 
 	return load_textdomain( $domain, $path . '/' . $locale . '.mo' );
 }
@@ -1190,104 +1217,59 @@ function load_script_translations( $file, $handle, $domain ) {
  * @since 4.6.0
  * @access private
  *
- * @see get_translations_for_domain()
- * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
+ * @global MO[]                   $l10n                   An array of all currently loaded text domains.
+ * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
-	global $l10n_unloaded;
+	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
-	// Short-circuit if domain is 'default' which is reserved for core.
-	if ( 'default' === $domain || isset( $l10n_unloaded[ $domain ] ) ) {
+	if ( isset( $l10n_unloaded[ $domain ] ) ) {
 		return false;
 	}
 
-	$translation_path = _get_path_to_translation( $domain );
-	if ( false === $translation_path ) {
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	if ( null === $wp_textdomain_registry->get( $domain ) ) {
+		$wp_textdomain_registry->get_translation_from_lang_dir( $domain );
+	}
+
+	$path = $wp_textdomain_registry->get( $domain );
+
+	if ( false === $path ) {
 		return false;
 	}
 
-	return load_textdomain( $domain, $translation_path );
-}
+	$locale = is_admin() ? get_user_locale() : get_locale();
+	$mofile = "{$path}/{$domain}-{$locale}.mo";
 
-/**
- * Gets the path to a translation file for loading a textdomain just in time.
- *
- * Caches the retrieved results internally.
- *
- * @since 4.7.0
- * @access private
- *
- * @see _load_textdomain_just_in_time()
- *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
- * @return string|false The path to the translation file or false if no translation file was found.
- */
-function _get_path_to_translation( $domain, $reset = false ) {
-	static $available_translations = array();
-
-	if ( true === $reset ) {
-		$available_translations = array();
+	if ( 'default' === $domain ) {
+		$mofile = "{$path}/{$locale}.mo";
 	}
 
-	if ( ! isset( $available_translations[ $domain ] ) ) {
-		$available_translations[ $domain ] = _get_path_to_translation_from_lang_dir( $domain );
+	if ( ! is_readable( $mofile ) ) {
+		return false;
 	}
 
-	return $available_translations[ $domain ];
-}
+	$mo = new MO();
 
-/**
- * Gets the path to a translation file in the languages directory for the current locale.
- *
- * Holds a cached list of available .mo files to improve performance.
- *
- * @since 4.7.0
- * @access private
- *
- * @see _get_path_to_translation()
- *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @return string|false The path to the translation file or false if no translation file was found.
- */
-function _get_path_to_translation_from_lang_dir( $domain ) {
-	static $cached_mofiles = null;
-
-	if ( null === $cached_mofiles ) {
-		$cached_mofiles = array();
-
-		$locations = array(
-			WP_LANG_DIR . '/plugins',
-			WP_LANG_DIR . '/themes',
-		);
-
-		foreach ( $locations as $location ) {
-			$mofiles = glob( $location . '/*.mo' );
-			if ( $mofiles ) {
-				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
-			}
-		}
+	if ( ! $mo->import_from_file( $mofile ) ) {
+		return false;
 	}
 
-	$locale = determine_locale();
-	$mofile = "{$domain}-{$locale}.mo";
-
-	$path = WP_LANG_DIR . '/plugins/' . $mofile;
-	if ( in_array( $path, $cached_mofiles, true ) ) {
-		return $path;
+	if ( isset( $l10n[ $domain ] ) ) {
+		$mo->merge_with( $l10n[ $domain ] );
 	}
 
-	$path = WP_LANG_DIR . '/themes/' . $mofile;
-	if ( in_array( $path, $cached_mofiles, true ) ) {
-		return $path;
-	}
+	unset( $l10n_unloaded[ $domain ] );
 
-	return false;
+	$l10n[ $domain ] = &$mo;
+
+	return true;
 }
 
 /**
@@ -1297,7 +1279,7 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  *
  * @since 2.8.0
  *
- * @global MO[] $l10n
+ * @global MO[] $l10n An array of all currently loaded text domains.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return Translations|NOOP_Translations A Translations instance.
@@ -1321,14 +1303,18 @@ function get_translations_for_domain( $domain ) {
  *
  * @since 3.0.0
  *
- * @global MO[] $l10n
+ * @global MO[]                   $l10n                   An array of all currently loaded text domains.
+ * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
+ * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool Whether there are translations.
  */
 function is_textdomain_loaded( $domain ) {
-	global $l10n;
-	return isset( $l10n[ $domain ] );
+	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
+
+	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
+	return isset( $l10n[ $domain ] ) || ( ! isset( $l10n_unloaded[ $domain ] ) && $wp_textdomain_registry->get( $domain ) );
 }
 
 /**

@@ -196,10 +196,6 @@ class WP_Locale_Switcher {
 		load_default_textdomain( $locale );
 
 		foreach ( $domains as $domain ) {
-			if ( 'default' === $domain ) {
-				continue;
-			}
-
 			unload_textdomain( $domain );
 			get_translations_for_domain( $domain );
 		}
@@ -213,17 +209,20 @@ class WP_Locale_Switcher {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @global WP_Locale $wp_locale WordPress date and time locale object.
+	 * @global WP_Locale              $wp_locale              WordPress date and time locale object.
+	 * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
 	 *
 	 * @param string $locale The locale to change to.
 	 */
 	private function change_locale( $locale ) {
+		global $wp_locale, $wp_textdomain_registry;
+
 		// Reset translation availability information.
-		_get_path_to_translation( null, true );
+		$wp_textdomain_registry->reset();
 
 		$this->load_translations( $locale );
 
-		$GLOBALS['wp_locale'] = new WP_Locale();
+		$wp_locale = new WP_Locale();
 
 		/**
 		 * Fires when the locale is switched to or restored.

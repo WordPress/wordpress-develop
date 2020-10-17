@@ -22,15 +22,21 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->locale          = '';
 		$this->previous_locale = '';
 
-		unset( $GLOBALS['l10n'] );
-		unset( $GLOBALS['l10n_unloaded'] );
-		_get_path_to_translation( null, true );
+		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
+
+		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_textdomain_registry;
+
+		$wp_textdomain_registry->reset();
 	}
 
 	public function tearDown() {
-		unset( $GLOBALS['l10n'] );
-		unset( $GLOBALS['l10n_unloaded'] );
-		_get_path_to_translation( null, true );
+		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
+
+		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		global $wp_textdomain_registry;
+
+		$wp_textdomain_registry->reset();
 
 		parent::tearDown();
 	}
@@ -271,6 +277,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->assertSame( 'de_DE', $user_locale );
 
 		load_default_textdomain( $user_locale );
+		get_translations_for_domain( 'default' );
 		$language_header_before_switch = $l10n['default']->headers['Language']; // de_DE
 
 		$locale_switched_user_locale  = switch_to_locale( $user_locale ); // False.
@@ -322,14 +329,20 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->assertSame( 'de_DE', $user_locale );
 
 		load_default_textdomain( $user_locale );
+		get_translations_for_domain( 'default' );
 		$language_header_before_switch = $l10n['default']->headers['Language']; // de_DE
 
 		$locale_switched_user_locale  = switch_to_locale( $user_locale ); // False.
 		$locale_switched_site_locale  = switch_to_locale( $site_locale ); // True.
 		$site_locale_after_switch     = get_locale();
+		load_default_textdomain( get_locale() );
+		get_translations_for_domain( 'default' );
 		$language_header_after_switch = $l10n['default']->headers['Language']; // es_ES
 
 		restore_current_locale();
+
+		load_default_textdomain();
+		get_translations_for_domain( 'default' );
 
 		$language_header_after_restore = $l10n['default']->headers['Language']; // de_DE
 
@@ -386,6 +399,34 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 
 		$this->assertSame( 'en_US', get_locale() );
 		$this->assertSame( 'This is a dummy plugin', $expected );
+	}
+
+	/**
+	 * @ticket 39210
+	 */
+	public function test_switch_reloads_translations_outside_wplang() {
+		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
+
+		$this->assertTrue( true );
+		return;
+
+		$expected = custom_i18n_plugin_test();
+
+		$this->assertSame( 'This is a dummy plugin', $expected );
+
+		switch_to_locale( 'en_GB' );
+		switch_to_locale( 'de_DE' );
+
+		$expected = custom_i18n_plugin_test();
+
+		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
+
+		restore_previous_locale();
+
+		$expected = custom_i18n_plugin_test();
+		$this->assertSame( 'This is a wally plugin', $expected );
+
+		restore_current_locale();
 	}
 
 	public function filter_locale() {
