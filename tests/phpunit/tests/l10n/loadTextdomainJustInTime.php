@@ -34,7 +34,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'], $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();
@@ -48,7 +48,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'], $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();

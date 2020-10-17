@@ -25,7 +25,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		add_filter( 'plugin_locale', array( $this, 'store_locale' ) );
 		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();
@@ -35,7 +35,7 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 		remove_filter( 'plugin_locale', array( $this, 'store_locale' ) );
 		remove_filter( 'theme_locale', array( $this, 'store_locale' ) );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();

@@ -24,7 +24,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();
@@ -33,7 +33,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 	public function tearDown() {
 		unset( $GLOBALS['l10n'], $GLOBALS['l10n_unloaded'] );
 
-		/* @var WP_Textdomain_Registry $wp_textdomain_registry */
+		/** @var WP_Textdomain_Registry $wp_textdomain_registry */
 		global $wp_textdomain_registry;
 
 		$wp_textdomain_registry->reset();
