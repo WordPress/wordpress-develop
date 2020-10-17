@@ -6,6 +6,10 @@
  */
 class Tests_Auth extends WP_UnitTestCase {
 	protected $user;
+
+	/**
+	 * @var WP_User
+	 */
 	protected static $_user;
 	protected static $user_id;
 	protected static $wp_hasher;
@@ -33,6 +37,13 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->user = clone self::$_user;
 		wp_set_current_user( self::$user_id );
+	}
+
+	public function tearDown() {
+		parent::tearDown();
+
+		// Cleanup all the global state.
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'] );
 	}
 
 	function test_auth_cookie_valid() {
@@ -414,4 +425,183 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_User', wp_signon() );
 	}
 
+	/**
+	 * HTTP Auth headers are used to determine the current user.
+	 *
+	 * @ticket 42790
+	 *
+	 * @covers ::wp_validate_application_password
+	 */
+	public function test_application_password_authentication() {
+		$user_id = $this->factory()->user->create(
+			array(
+				'user_login' => 'http_auth_login',
+				'user_pass'  => 'http_auth_pass', // Shouldn't be allowed for API login.
+			)
+		);
+
+		// Create a new app-only password.
+		list( $user_app_password ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
+
+		// Fake a REST API request.
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		// Fake an HTTP Auth request with the regular account password first.
+		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
+		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
+
+		$this->assertEquals(
+			0,
+			wp_validate_application_password( null ),
+			'Regular user account password should not be allowed for API authentication'
+		);
+
+		// Not try with an App password instead.
+		$_SERVER['PHP_AUTH_PW'] = $user_app_password;
+
+		$this->assertEquals(
+			$user_id,
+			wp_validate_application_password( null ),
+			'Application passwords should be allowed for API authentication'
+		);
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_respects_existing_user() {
+		$this->assertSame( self::$_user, wp_authenticate_application_password( self::$_user, self::$_user->user_login, 'password' ) );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_is_rejected_if_not_api_request() {
+		add_filter( 'application_password_is_api_request', '__return_false' );
+
+		$this->assertNull( wp_authenticate_application_password( null, self::$_user->user_login, 'password' ) );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_invalid_username() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+
+		$error = wp_authenticate_application_password( null, 'idonotexist', 'password' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'invalid_username', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_invalid_email() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+
+		$error = wp_authenticate_application_password( null, 'idonotexist@example.org', 'password' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'invalid_email', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_not_allowed() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_false' );
+
+		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'application_passwords_disabled', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_not_allowed_for_user() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available_for_user', '__return_false' );
+
+		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'application_passwords_disabled', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_incorrect_password() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'incorrect_password', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_custom_errors() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		add_action(
+			'wp_authenticate_application_password_errors',
+			static function ( WP_Error $error ) {
+				$error->add( 'my_code', 'My Error' );
+			}
+		);
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$error = wp_authenticate_application_password( null, self::$_user->user_login, $password );
+		$this->assertWPError( $error );
+		$this->assertEquals( 'my_code', $error->get_error_code() );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_by_username() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$user = wp_authenticate_application_password( null, self::$_user->user_login, $password );
+		$this->assertInstanceOf( WP_User::class, $user );
+		$this->assertEquals( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_by_email() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$user = wp_authenticate_application_password( null, self::$_user->user_email, $password );
+		$this->assertInstanceOf( WP_User::class, $user );
+		$this->assertEquals( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @ticket 42790
+	 */
+	public function test_authenticate_application_password_chunked() {
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		list( $password ) = WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		$user = wp_authenticate_application_password( null, self::$_user->user_email, WP_Application_Passwords::chunk_password( $password ) );
+		$this->assertInstanceOf( WP_User::class, $user );
+		$this->assertEquals( self::$user_id, $user->ID );
+	}
 }

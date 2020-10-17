@@ -3233,11 +3233,13 @@ function wp_trash_post( $post_id = 0 ) {
 }
 
 /**
- * Restore a post or page from the Trash.
+ * Restores a post from the Trash.
  *
  * @since 2.9.0
+ * @since 5.6.0 An untrashed post is now returned to 'draft' status by default, except for
+ *              attachments which are returned to their original 'inherit' status.
  *
- * @param int $post_id Optional. Post ID. Default is ID of the global $post.
+ * @param int $post_id Optional. Post ID. Default is ID of the global `$post`.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_untrash_post( $post_id = 0 ) {
@@ -3247,19 +3249,25 @@ function wp_untrash_post( $post_id = 0 ) {
 		return $post;
 	}
 
+	$post_id = $post->ID;
+
 	if ( 'trash' !== $post->post_status ) {
 		return false;
 	}
+
+	$previous_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
 
 	/**
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param bool|null $untrash Whether to go forward with untrashing.
-	 * @param WP_Post   $post    Post object.
+	 * @param bool|null $untrash         Whether to go forward with untrashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post at the point where it was trashed.
 	 */
-	$check = apply_filters( 'pre_untrash_post', null, $post );
+	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -3268,12 +3276,31 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrash_post', $post_id );
+	do_action( 'untrash_post', $post_id, $previous_status );
 
-	$post_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
+	$new_status = ( 'attachment' === $post->post_type ) ? 'inherit' : 'draft';
+
+	/**
+	 * Filters the status that a post gets assigned when it is restored from the trash (untrashed).
+	 *
+	 * By default posts that are restored will be assigned a status of 'draft'. Return the value of `$previous_status`
+	 * in order to assign the status that the post had before it was trashed. The `wp_untrash_post_set_previous_status()`
+	 * function is available for this.
+	 *
+	 * Prior to WordPress 5.6.0, restored posts were always assigned their original status.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $new_status      The new status of the post being restored.
+	 * @param int    $post_id         The ID of the post being restored.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
+	 */
+	$post_status = apply_filters( 'wp_untrash_post_status', $new_status, $post_id, $previous_status );
 
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
@@ -3295,10 +3322,12 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrashed_post', $post_id );
+	do_action( 'untrashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3569,8 +3598,10 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  * setting the value for 'comment_status' key.
  *
  * @since 1.0.0
+ * @since 2.6.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
  * @since 4.2.0 Support was added for encoding emoji in the post title, content, and excerpt.
  * @since 4.4.0 A 'meta_input' array can now be passed to `$postarr` to add post meta data.
+ * @since 5.6.0 Added the `fire_after_hooks` parameter.
  *
  * @see sanitize_post()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3616,10 +3647,11 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
  * }
- * @param bool  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_post( $postarr, $wp_error = false ) {
+function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true ) {
 	global $wpdb;
 
 	// Capture original pre-sanitized array for passing into filters.
@@ -4042,6 +4074,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		clean_post_cache( $post_ID );
 	}
 
+	// Allow term counts to be handled by transitioning post type.
+	_wp_prevent_term_counting( true );
 	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
 		wp_set_post_categories( $post_ID, $post_category );
 	}
@@ -4098,6 +4132,8 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 			}
 		}
 	}
+	// Restore term counting.
+	_wp_prevent_term_counting( false );
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
 		foreach ( $postarr['meta_input'] as $field => $value ) {
@@ -4135,7 +4171,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		}
 
 		if ( $thumbnail_support ) {
-			$thumbnail_id = intval( $postarr['_thumbnail_id'] );
+			$thumbnail_id = (int) $postarr['_thumbnail_id'];
 			if ( -1 === $thumbnail_id ) {
 				delete_post_thumbnail( $post_ID );
 			} else {
@@ -4277,6 +4313,10 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 */
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
+	if ( $fire_after_hooks ) {
+		wp_after_insert_post( $post, $update );
+	}
+
 	return $post_ID;
 }
 
@@ -4287,13 +4327,16 @@ function wp_insert_post( $postarr, $wp_error = false ) {
  * not be overridden.
  *
  * @since 1.0.0
+ * @since 3.5.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
+ * @since 5.6.0 Added the `fire_after_hooks` parameter.
  *
- * @param array|object $postarr  Optional. Post data. Arrays are expected to be escaped,
- *                               objects are not. Default array.
- * @param bool         $wp_error Optional. Allow return of WP_Error on failure. Default false.
+ * @param array|object $postarr          Optional. Post data. Arrays are expected to be escaped,
+ *                                       objects are not. Default array.
+ * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
  */
-function wp_update_post( $postarr = array(), $wp_error = false ) {
+function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hooks = true ) {
 	if ( is_object( $postarr ) ) {
 		// Non-escaped post was passed.
 		$postarr = get_object_vars( $postarr );
@@ -4358,7 +4401,7 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 		}
 	}
 
-	return wp_insert_post( $postarr, $wp_error );
+	return wp_insert_post( $postarr, $wp_error, $fire_after_hooks );
 }
 
 /**
@@ -4407,7 +4450,9 @@ function wp_publish_post( $post ) {
 		if ( ! $default_term_id ) {
 			continue;
 		}
+		_wp_prevent_term_counting( true );
 		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
+		_wp_prevent_term_counting( false );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
@@ -4432,6 +4477,8 @@ function wp_publish_post( $post ) {
 
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'wp_insert_post', $post->ID, $post, true );
+
+	wp_after_insert_post( $post, true );
 }
 
 /**
@@ -4593,7 +4640,7 @@ function wp_unique_post_slug( $slug, $post_ID, $post_status, $post_type, $post_p
 		// Prevent new post slugs that could result in URLs that conflict with date archives.
 		$conflicts_with_date_archive = false;
 		if ( 'post' === $post_type && ( ! $post || $post->post_name !== $slug ) && preg_match( '/^[0-9]+$/', $slug ) ) {
-			$slug_num = intval( $slug );
+			$slug_num = (int) $slug;
 
 			if ( $slug_num ) {
 				$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
@@ -4879,6 +4926,34 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * @param WP_Post $post    Post object.
 	 */
 	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post );
+}
+
+/**
+ * Fires actions after a post, its terms and meta data has been saved.
+ *
+ * @since 5.6.0
+ *
+ * @param int|WP_Post $post   The post ID or object that has been saved.
+ * @param bool        $update Whether this is an existing post being updated.
+ */
+function wp_after_insert_post( $post, $update ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
+
+	$post_id = $post->ID;
+
+	/**
+	 * Fires once a post, its terms and meta data has been saved.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param int     $post_id Post ID.
+	 * @param WP_Post $post    Post object.
+	 * @param bool    $update  Whether this is an existing post being updated.
+	 */
+	do_action( 'wp_after_insert_post', $post_id, $post, $update );
 }
 
 //
@@ -5266,7 +5341,7 @@ function get_page_children( $page_id, $pages ) {
 	// Build a hash of ID -> children.
 	$children = array();
 	foreach ( (array) $pages as $page ) {
-		$children[ intval( $page->post_parent ) ][] = $page;
+		$children[ (int) $page->post_parent ][] = $page;
 	}
 
 	$page_list = array();
@@ -5310,7 +5385,7 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
 
 	$children = array();
 	foreach ( (array) $pages as $p ) {
-		$parent_id                = intval( $p->post_parent );
+		$parent_id                = (int) $p->post_parent;
 		$children[ $parent_id ][] = $p;
 	}
 
@@ -5519,7 +5594,7 @@ function get_pages( $args = array() ) {
 		if ( ! empty( $post_authors ) ) {
 			foreach ( $post_authors as $post_author ) {
 				// Do we have an author id or an author login?
-				if ( 0 == intval( $post_author ) ) {
+				if ( 0 == (int) $post_author ) {
 					$post_author = get_user_by( 'login', $post_author );
 					if ( empty( $post_author ) ) {
 						continue;
@@ -5751,16 +5826,18 @@ function is_local_attachment( $url ) {
  *
  * @since 2.0.0
  * @since 4.7.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
+ * @since 5.6.0 Added the `fire_after_hooks` parameter.
  *
  * @see wp_insert_post()
  *
- * @param string|array $args     Arguments for inserting an attachment.
- * @param string       $file     Optional. Filename.
- * @param int          $parent   Optional. Parent post ID.
- * @param bool         $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @param string|array $args             Arguments for inserting an attachment.
+ * @param string       $file             Optional. Filename.
+ * @param int          $parent           Optional. Parent post ID.
+ * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false ) {
+function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false, $fire_after_hooks = true ) {
 	$defaults = array(
 		'file'        => $file,
 		'post_parent' => 0,
@@ -5774,7 +5851,7 @@ function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = fa
 
 	$data['post_type'] = 'attachment';
 
-	return wp_insert_post( $data, $wp_error );
+	return wp_insert_post( $data, $wp_error, $fire_after_hooks );
 }
 
 /**
@@ -7283,11 +7360,91 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
  * @param WP_Post $post       Post object.
  */
 function _update_term_count_on_transition_post_status( $new_status, $old_status, $post ) {
-	// Update counts for the post's terms.
+	if ( 'inherit' === $new_status ) {
+		$new_status = get_post_status( $post->post_parent );
+	}
+
+	if ( 'inherit' === $old_status ) {
+		$old_status = get_post_status( $post->post_parent );
+	}
+
+	$count_new = 'publish' === $new_status;
+	$count_old = 'publish' === $old_status;
+
+	if ( $count_new === $count_old ) {
+		// Nothing to do.
+		return;
+	}
+
+	/*
+	 * Update counts for the post's terms.
+	 *
+	 * Term counting is deferred while incrementing/decrementing the counts to
+	 * reduce the number of database queries required. Once the counts are
+	 * complete the updates are performed if term counting wasn't previously
+	 * deferred.
+	 */
+	$previous_deferred_setting = wp_defer_term_counting();
+	wp_defer_term_counting( true );
 	foreach ( (array) get_object_taxonomies( $post->post_type ) as $taxonomy ) {
 		$tt_ids = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'tt_ids' ) );
-		wp_update_term_count( $tt_ids, $taxonomy );
+
+		if ( empty( $tt_ids ) ) {
+			// No terms for this taxonomy on object.
+			continue;
+		}
+
+		$object_types = (array) get_taxonomy( $taxonomy )->object_type;
+
+		foreach ( $object_types as &$object_type ) {
+			list( $object_type ) = explode( ':', $object_type );
+		}
+
+		$object_types = array_unique( $object_types );
+
+		if ( ! in_array( $post->post_type, $object_types, true ) ) {
+			$modify_by = 0;
+		} elseif ( $count_new && ! $count_old ) {
+			$modify_by = 1;
+		} elseif ( $count_old && ! $count_new ) {
+			$modify_by = -1;
+		}
+
+		if ( 'attachment' === $post->post_type ) {
+			wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by );
+			continue;
+		}
+
+		$check_attachments = array_search( 'attachment', $object_types, true );
+		if ( false !== $check_attachments ) {
+			unset( $object_types[ $check_attachments ] );
+			$check_attachments = true;
+		}
+
+		wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by );
+		if ( ! $check_attachments ) {
+			continue;
+		}
+
+		/*
+		 * For non-attachments, check if there are any attachment children
+		 * with 'inherited' post status -- if so those will need to be counted.
+		 */
+		$attachments = get_children(
+			array(
+				'post_parent'            => $post->ID,
+				'post_status'            => 'inherit',
+				'post_type'              => 'attachment',
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => true,
+			)
+		);
+
+		foreach ( $attachments as $attachment ) {
+			_update_term_count_on_transition_post_status( $new_status, $old_status, $attachment );
+		}
 	}
+	wp_defer_term_counting( $previous_deferred_setting );
 }
 
 /**
@@ -7512,4 +7669,20 @@ function wp_get_original_image_url( $attachment_id ) {
 	 * @param int    $attachment_id      Attachment ID.
 	 */
 	return apply_filters( 'wp_get_original_image_url', $original_image_url, $attachment_id );
+}
+
+/**
+ * Filter callback which sets the status of an untrashed post to its previous status.
+ *
+ * This can be used as a callback on the `wp_untrash_post_status` filter.
+ *
+ * @since 5.6.0
+ *
+ * @param string $new_status      The new status of the post being restored.
+ * @param int    $post_id         The ID of the post being restored.
+ * @param string $previous_status The status of the post at the point where it was trashed.
+ * @return string The new status of the post.
+ */
+function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
+	return $previous_status;
 }
