@@ -174,16 +174,16 @@ final class WP_Customize_Custom_CSS_Setting extends WP_Customize_Setting {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param string $css The input value.
+	 * @param string $value The input value.
 	 * @return int|false The post ID or false if the value could not be saved.
 	 */
-	public function update( $css ) {
-		if ( empty( $css ) ) {
-			$css = '';
+	public function update( $value ) {
+		if ( empty( $value ) ) {
+			$value = '';
 		}
 
 		$r = wp_update_custom_css_post(
-			$css,
+			$value,
 			array(
 				'stylesheet' => $this->stylesheet,
 			)
