@@ -237,14 +237,18 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Block_Type   $block_type Block type data.
-	 * @param WP_REST_Request $request    Full details about the request.
+	 * @param WP_Block_Type   $item    Block type data.
+	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response Block type data.
 	 */
-	public function prepare_item_for_response( $block_type, $request ) {
-
-		$fields = $this->get_fields_for_response( $request );
-		$data   = array();
+	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$block_type = $item;
+		$fields     = $this->get_fields_for_response( $request );
+		$data       = array();
 
 		if ( rest_is_field_included( 'attributes', $fields ) ) {
 			$data['attributes'] = $block_type->get_attributes();

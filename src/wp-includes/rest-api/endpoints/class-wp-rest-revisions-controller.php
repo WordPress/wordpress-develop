@@ -536,11 +536,16 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param WP_Post         $post    Post revision object.
+	 * @param WP_Post         $item    Post revision object.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
-	public function prepare_item_for_response( $post, $request ) {
+	public function prepare_item_for_response( $item, $request ) {
+		/*
+		 * Renamed generic parameter name to more descriptive, specific name for use in the function.
+		 * Also see Trac #51553.
+		 */
+		$post            = $item;
 		$GLOBALS['post'] = $post;
 
 		setup_postdata( $post );
