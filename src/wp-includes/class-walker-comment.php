@@ -218,15 +218,20 @@ class Walker_Comment extends Walker {
 	 * @see Walker::end_el()
 	 * @see wp_list_comments()
 	 *
-	 * @param string     $output  Used to append additional content. Passed by reference.
-	 * @param WP_Comment $comment The current comment object. Default current comment.
-	 * @param int        $depth   Optional. Depth of the current comment. Default 0.
-	 * @param array      $args    Optional. An array of arguments. Default empty array.
+	 * @param string     $output      Used to append additional content. Passed by reference.
+	 * @param WP_Comment $data_object The current comment object.
+	 * @param int        $depth       Optional. Depth of the current comment. Default 0.
+	 * @param array      $args        Optional. An array of arguments. Default empty array.
 	 */
-	public function end_el( &$output, $comment, $depth = 0, $args = array() ) {
+	public function end_el( &$output, $data_object, $depth = 0, $args = array() ) {
 		if ( ! empty( $args['end-callback'] ) ) {
 			ob_start();
-			call_user_func( $args['end-callback'], $comment, $args, $depth );
+			call_user_func(
+				$args['end-callback'],
+				$data_object, // The current comment object. See Trac #51553.
+				$args,
+				$depth
+			);
 			$output .= ob_get_clean();
 			return;
 		}
