@@ -688,7 +688,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
-			$this->make_image( $filename, array( $this, '_write_image' ), array( $filename ) );
+			$this->_write_image( $this->image, $filename );
 
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
@@ -725,22 +725,6 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		} else {
 			return $image->writeImage( $filename );
 		}
-	}
-
-	/**
-	 * Returns the result of calling $function with $arguments.
-	 *
-	 * This disables the parent class's behaviour of buffering output when
-	 * $filename is a stream URL.  Instead, $function is expected to handle
-	 * stream URLs appropriately.
-	 *
-	 * @param string   $filename  The destination filename or stream URL.
-	 * @param callable $function  A function or method that writes the image.
-	 * @param array    $arguments Arguments to pass to $function.
-	 * @return bool    True on success.
-	 */
-	protected function make_image( $filename, $function, $arguments ) {
-		return call_user_func_array( $function, $arguments );
 	}
 
 	/**
