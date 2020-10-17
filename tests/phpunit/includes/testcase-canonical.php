@@ -1,13 +1,13 @@
 <?php
 
 class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
-	static $old_current_user;
-	static $author_id;
-	static $post_ids    = array();
-	static $comment_ids = array();
-	static $term_ids    = array();
-	static $terms       = array();
-	static $old_options = array();
+	public static $old_current_user;
+	public static $author_id;
+	public static $post_ids    = array();
+	public static $comment_ids = array();
+	public static $term_ids    = array();
+	public static $terms       = array();
+	public static $old_options = array();
 
 	/**
 	 * This can be defined in a subclass of this class which contains its own data() method.
