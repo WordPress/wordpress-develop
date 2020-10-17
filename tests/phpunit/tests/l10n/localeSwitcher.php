@@ -407,9 +407,6 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 	public function test_switch_reloads_translations_outside_wplang() {
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
-		$this->assertTrue( true );
-		return;
-
 		$expected = custom_i18n_plugin_test();
 
 		$this->assertSame( 'This is a dummy plugin', $expected );
