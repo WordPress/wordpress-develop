@@ -4,8 +4,8 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
-	var $cpt_name;
-	var $cpt_args;
+	public $cpt_name;
+	public $cpt_args;
 
 	function setUp() {
 		parent::setUp();

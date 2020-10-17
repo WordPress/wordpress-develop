@@ -38,8 +38,8 @@ function strip_ws( $txt ) {
  * add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
-	var $events;
-	var $debug;
+	public $events;
+	public $debug;
 
 	/**
 	 * PHP5 constructor.
@@ -184,8 +184,8 @@ class MockAction {
 // Convert valid XML to an array tree structure.
 // Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
-	var $xml;
-	var $data = array();
+	public $xml;
+	public $data = array();
 
 	/**
 	 * PHP5 constructor.

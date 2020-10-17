@@ -159,9 +159,55 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 		);
 
 		wp_untrash_post( $about_page_id );
+		wp_update_post(
+			array(
+				'ID'          => $about_page_id,
+				'post_status' => 'publish',
+			)
+		);
 
 		$this->assertSame( 'about', get_post( $another_about_page_id )->post_name );
 		$this->assertSame( 'about-2', get_post( $about_page_id )->post_name );
+	}
+
+	/**
+	 * @ticket 23022
+	 * @dataProvider data_various_post_statuses
+	 */
+	function test_untrashing_a_post_should_always_restore_it_to_draft_status( $post_status ) {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => $post_status,
+			)
+		);
+
+		wp_trash_post( $page_id );
+		wp_untrash_post( $page_id );
+
+		$this->assertSame( 'draft', get_post( $page_id )->post_status );
+	}
+
+	/**
+	 * @ticket 23022
+	 * @dataProvider data_various_post_statuses
+	 */
+	function test_wp_untrash_post_status_filter_restores_post_to_correct_status( $post_status ) {
+		add_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => $post_status,
+			)
+		);
+
+		wp_trash_post( $page_id );
+		wp_untrash_post( $page_id );
+
+		remove_filter( 'wp_untrash_post_status', 'wp_untrash_post_set_previous_status', 10, 3 );
+
+		$this->assertSame( $post_status, get_post( $page_id )->post_status );
 	}
 
 	/**
@@ -179,6 +225,28 @@ class Tests_WPInsertPost extends WP_UnitTestCase {
 			),
 			array(
 				'post',
+			),
+		);
+	}
+
+	/**
+	 * Data for testing post statuses.
+	 *
+	 * @return array Array of test arguments.
+	 */
+	function data_various_post_statuses() {
+		return array(
+			array(
+				'draft',
+			),
+			array(
+				'pending',
+			),
+			array(
+				'private',
+			),
+			array(
+				'publish',
 			),
 		);
 	}
