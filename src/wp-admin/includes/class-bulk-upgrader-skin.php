@@ -87,18 +87,18 @@ class Bulk_Upgrader_Skin extends WP_Upgrader_Skin {
 	}
 
 	/**
-	 * @param string|WP_Error $error
+	 * @param string|WP_Error $errors
 	 */
-	public function error( $error ) {
-		if ( is_string( $error ) && isset( $this->upgrader->strings[ $error ] ) ) {
-			$this->error = $this->upgrader->strings[ $error ];
+	public function error( $errors ) {
+		if ( is_string( $errors ) && isset( $this->upgrader->strings[ $errors ] ) ) {
+			$this->error = $this->upgrader->strings[ $errors ];
 		}
 
-		if ( is_wp_error( $error ) ) {
+		if ( is_wp_error( $errors ) ) {
 			$messages = array();
-			foreach ( $error->get_error_messages() as $emessage ) {
-				if ( $error->get_error_data() && is_string( $error->get_error_data() ) ) {
-					$messages[] = $emessage . ' ' . esc_html( strip_tags( $error->get_error_data() ) );
+			foreach ( $errors->get_error_messages() as $emessage ) {
+				if ( $errors->get_error_data() && is_string( $errors->get_error_data() ) ) {
+					$messages[] = $emessage . ' ' . esc_html( strip_tags( $errors->get_error_data() ) );
 				} else {
 					$messages[] = $emessage;
 				}
