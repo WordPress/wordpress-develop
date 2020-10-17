@@ -265,12 +265,13 @@ abstract class WP_Widget_Media extends WP_Widget {
 	 * @see WP_REST_Request::sanitize_params()
 	 *
 	 * @param array $new_instance Values just sent to be saved.
-	 * @param array $instance     Previously saved values from database.
+	 * @param array $old_instance Previously saved values from database.
 	 * @return array Updated safe values to be saved.
 	 */
-	public function update( $new_instance, $instance ) {
+	public function update( $new_instance, $old_instance ) {
 
-		$schema = $this->get_instance_schema();
+		$instance = $old_instance;
+		$schema   = $this->get_instance_schema();
 		foreach ( $schema as $field => $field_schema ) {
 			if ( ! array_key_exists( $field, $new_instance ) ) {
 				continue;
