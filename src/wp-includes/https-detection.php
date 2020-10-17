@@ -20,7 +20,9 @@ function wp_is_using_https() {
 		return false;
 	}
 
-	if ( 'https' !== wp_parse_url( site_url(), PHP_URL_SCHEME ) ) {
+	// Use direct option access for 'siteurl' because site_url() will adjust the
+	// scheme based on what the current request is using.
+	if ( 'https' !== wp_parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME ) ) {
 		return false;
 	}
 
