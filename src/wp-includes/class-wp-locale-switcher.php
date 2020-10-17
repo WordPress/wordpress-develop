@@ -218,7 +218,7 @@ class WP_Locale_Switcher {
 		global $wp_locale, $wp_textdomain_registry;
 
 		// Reset translation availability information.
-		$wp_textdomain_registry->reset();
+		// $wp_textdomain_registry->reset(); // TODO: Should be removed?
 
 		$this->load_translations( $locale );
 
