@@ -405,6 +405,13 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 	 * @ticket 39210
 	 */
 	public function test_switch_reloads_translations_outside_wplang() {
+		global $wp_locale_switcher;
+
+		$locale_switcher = clone $wp_locale_switcher;
+
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
+
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
 		$expected = custom_i18n_plugin_test();
@@ -424,6 +431,8 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->assertSame( 'This is a wally plugin', $expected );
 
 		restore_current_locale();
+
+		$wp_locale_switcher = $locale_switcher;
 	}
 
 	public function filter_locale() {
