@@ -977,14 +977,25 @@ function wp_media_upload_handler() {
 function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'html' ) {
 	if ( ! empty( $file ) ) {
 
+		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif' );
+
 		/**
-		 * Filters the file extensions used for media sideload.
+		 * Filters the list of allowed file extensions when sideloading an image from a URL.
 		 *
-		 * @since 5.5.0
+		 * The default allowed extensions are:
 		 *
-		 * @param array $extensions The original extension list.
+		 *  - `jpg`
+		 *  - `jpeg`
+		 *  - `jpe`
+		 *  - `png`
+		 *  - `gif`
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param string[] $allowed_extensions Array of allowed extensions.
+		 * @param string   $file               The URL of the image to download.
 		 */
-		$allowed_extensions = apply_filters( 'media_sideload_extensions', array( 'jpg', 'jpeg', 'jpe', 'png', 'gif' ) );
+		$allowed_extensions = apply_filters( 'image_sideload_extensions', $allowed_extensions, $file );
 
 		// Set variables for storage, fix file filename for query strings.
 		preg_match( '/[^\?]+\.(' . join( '|', $allowed_extensions ) . ')\b/i', $file, $matches );
