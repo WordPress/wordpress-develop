@@ -213,9 +213,9 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	function test_positional_atts_url() {
-		$out = do_shortcode( '[test-shortcode-tag http://www.youtube.com/watch?v=eBGIQ7ZuuiU]' );
+		$out = do_shortcode( '[test-shortcode-tag https://www.youtube.com/watch?v=72xdCU__XCk]' );
 		$this->assertSame( '', $out );
-		$this->assertSame( array( 0 => 'http://www.youtube.com/watch?v=eBGIQ7ZuuiU' ), $this->atts );
+		$this->assertSame( array( 0 => 'https://www.youtube.com/watch?v=72xdCU__XCk' ), $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 

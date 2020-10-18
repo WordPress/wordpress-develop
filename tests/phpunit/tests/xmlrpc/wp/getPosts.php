@@ -102,7 +102,7 @@ class Tests_XMLRPC_wp_getPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results2 );
 		$last_comment_count = 100;
 		foreach ( $results2 as $post ) {
-			$comment_count = intval( get_comments_number( $post['post_id'] ) );
+			$comment_count = (int) get_comments_number( $post['post_id'] );
 			$this->assertLessThanOrEqual( $last_comment_count, $comment_count );
 			$last_comment_count = $comment_count;
 		}

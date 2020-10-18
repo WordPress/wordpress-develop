@@ -3568,8 +3568,8 @@ function iso8601_timezone_to_offset( $timezone ) {
 		$offset = 0;
 	} else {
 		$sign    = ( '+' === substr( $timezone, 0, 1 ) ) ? 1 : -1;
-		$hours   = intval( substr( $timezone, 1, 2 ) );
-		$minutes = intval( substr( $timezone, 3, 4 ) ) / 60;
+		$hours   = (int) substr( $timezone, 1, 2 );
+		$minutes = (int) substr( $timezone, 3, 4 ) / 60;
 		$offset  = $sign * HOUR_IN_SECONDS * ( $hours + $minutes );
 	}
 	return $offset;
@@ -3820,7 +3820,7 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		$text = str_replace( ']]>', ']]&gt;', $text );
 
 		/* translators: Maximum number of words used in a post excerpt. */
-		$excerpt_length = intval( _x( '55', 'excerpt_length' ) );
+		$excerpt_length = (int) _x( '55', 'excerpt_length' );
 
 		/**
 		 * Filters the maximum number of words in a post excerpt.
@@ -4725,7 +4725,7 @@ function sanitize_option( $option, $value ) {
 			if ( null === $value ) {
 				$value = 1;
 			} else {
-				$value = intval( $value );
+				$value = (int) $value;
 			}
 			break;
 
@@ -5067,7 +5067,7 @@ function wp_sprintf( $pattern, ...$args ) {
 			if ( $_fragment != $fragment ) {
 				$fragment = $_fragment;
 			} else {
-				$fragment = sprintf( $fragment, strval( $arg ) );
+				$fragment = sprintf( $fragment, (string) $arg );
 			}
 		}
 
@@ -5243,7 +5243,7 @@ function links_add_target( $content, $target = '_blank', $tags = array( 'a' ) ) 
 	global $_links_add_target;
 	$_links_add_target = $target;
 	$tags              = implode( '|', (array) $tags );
-	return preg_replace_callback( "!<($tags)([^>]*)>!i", '_links_add_target', $content );
+	return preg_replace_callback( "!<($tags)((\s[^>]*)?)>!i", '_links_add_target', $content );
 }
 
 /**
@@ -5543,33 +5543,6 @@ function wp_slash( $value ) {
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
-}
-
-/**
- * Adds slashes to only string values in an array of values.
- *
- * This should be used when preparing data for core APIs that expect slashed data.
- * This should not be used to escape data going directly into an SQL query.
- *
- * @since 5.3.0
- *
- * @param mixed $value Scalar or array of scalars.
- * @return mixed Slashes $value
- */
-function wp_slash_strings_only( $value ) {
-	return map_deep( $value, 'addslashes_strings_only' );
-}
-
-/**
- * Adds slashes only if the provided value is a string.
- *
- * @since 5.3.0
- *
- * @param mixed $value
- * @return mixed
- */
-function addslashes_strings_only( $value ) {
-	return is_string( $value ) ? addslashes( $value ) : $value;
 }
 
 /**

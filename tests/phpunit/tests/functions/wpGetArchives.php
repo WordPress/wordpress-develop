@@ -1,12 +1,9 @@
 <?php
-/*
-$defaults = array(
-	'type' => 'monthly', 'limit' => '',
-	'format' => 'html', 'before' => '',
-	'after' => '', 'show_post_count' => false,
-	'echo' => 1, 'order' => 'DESC',
-);
-*/
+
+/**
+ * @group functions.php
+ * @covers ::wp_get_archives
+ */
 class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	protected static $post_ids;
 	protected $month_url;

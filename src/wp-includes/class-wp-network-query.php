@@ -202,16 +202,19 @@ class WP_Network_Query {
 		/**
 		 * Filters the network data before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default network queries.
+		 * Return a non-null value to bypass WordPress' default network queries.
 		 *
-		 * The expected return type from this filter depends on the value passed in the request query_vars.
-		 * When `$this->query_vars['count']` is set, the filter should return the network count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network IDs.
-		 * Otherwise the filter should return an array of WP_Network objects.
+		 * The expected return type from this filter depends on the value passed
+		 * in the request query vars:
+		 * - When `$this->query_vars['count']` is set, the filter should return
+		 *   the network count as an integer.
+		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
+		 *   an array of network IDs.
+		 * - Otherwise the filter should return an array of WP_Network objects.
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param array|null       $network_data Return an array of network data to short-circuit WP's network query,
+		 * @param array|int|null   $network_data Return an array of network data to short-circuit WP's network query,
 		 *                                       the network count as an integer if `$this->query_vars['count']` is set,
 		 *                                       or null to allow WP to run its normal queries.
 		 * @param WP_Network_Query $this         The WP_Network_Query instance, passed by reference.
@@ -257,7 +260,7 @@ class WP_Network_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $network_ids is actually a count in this case.
-			return intval( $network_ids );
+			return (int) $network_ids;
 		}
 
 		$network_ids = array_map( 'intval', $network_ids );
@@ -466,7 +469,7 @@ class WP_Network_Query {
 		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['groupby']} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
-			return intval( $wpdb->get_var( $this->request ) );
+			return (int) $wpdb->get_var( $this->request );
 		}
 
 		$network_ids = $wpdb->get_col( $this->request );

@@ -38,8 +38,8 @@ function strip_ws( $txt ) {
  * add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
-	var $events;
-	var $debug;
+	public $events;
+	public $debug;
 
 	/**
 	 * PHP5 constructor.
@@ -184,8 +184,8 @@ class MockAction {
 // Convert valid XML to an array tree structure.
 // Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
-	var $xml;
-	var $data = array();
+	public $xml;
+	public $data = array();
 
 	/**
 	 * PHP5 constructor.
@@ -299,7 +299,7 @@ function xml_array_dumbdown( &$data ) {
 
 function dmp( ...$args ) {
 	foreach ( $args as $thing ) {
-		echo ( is_scalar( $thing ) ? strval( $thing ) : var_export( $thing, true ) ), "\n";
+		echo ( is_scalar( $thing ) ? (string) $thing : var_export( $thing, true ) ), "\n";
 	}
 }
 
@@ -319,7 +319,7 @@ function gen_tests_array( $name, $array ) {
 	$out = array();
 	foreach ( $array as $k => $v ) {
 		if ( is_numeric( $k ) ) {
-			$index = strval( $k );
+			$index = (string) $k;
 		} else {
 			$index = "'" . addcslashes( $k, "\n\r\t'\\" ) . "'";
 		}

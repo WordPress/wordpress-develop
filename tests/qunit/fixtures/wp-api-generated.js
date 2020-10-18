@@ -14,7 +14,8 @@ mockedApiResponse.Schema = {
     "timezone_string": "",
     "namespaces": [
         "oembed/1.0",
-        "wp/v2"
+        "wp/v2",
+        "wp-site-health/v1"
     ],
     "authentication": [],
     "routes": {
@@ -3985,6 +3986,102 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/users/me"
             }
         },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": true,
+                            "description": "The name of the application password.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": []
+                }
+            ]
+        },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "required": false,
+                            "default": "view",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "name": {
+                            "required": false,
+                            "description": "The name of the application password.",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": []
+                }
+            ]
+        },
         "/wp/v2/comments": {
             "namespace": "wp/v2",
             "methods": [
@@ -4413,7 +4510,9 @@ mockedApiResponse.Schema = {
                             "required": false,
                             "default": "post",
                             "enum": [
-                                "post"
+                                "post",
+                                "term",
+                                "post-format"
                             ],
                             "description": "Limit results to items of an object type.",
                             "type": "string"
@@ -4427,6 +4526,8 @@ mockedApiResponse.Schema = {
                                 "enum": [
                                     "post",
                                     "page",
+                                    "category",
+                                    "post_tag",
                                     "any"
                                 ],
                                 "type": "string"
@@ -4469,7 +4570,7 @@ mockedApiResponse.Schema = {
                         "attributes": {
                             "required": false,
                             "default": [],
-                            "description": "Attributes for the block",
+                            "description": "Attributes for the block.",
                             "type": "object"
                         },
                         "post_id": {
@@ -4563,12 +4664,12 @@ mockedApiResponse.Schema = {
                     "args": {
                         "name": {
                             "required": false,
-                            "description": "Block name",
+                            "description": "Block name.",
                             "type": "string"
                         },
                         "namespace": {
                             "required": false,
-                            "description": "Block namespace",
+                            "description": "Block namespace.",
                             "type": "string"
                         },
                         "context": {
@@ -4955,6 +5056,120 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/block-directory/search"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "required": false,
+                            "default": "wp-site-health/v1"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view"
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/background-updates": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/background-updates"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/loopback-requests": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/loopback-requests"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/dotorg-communication": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/dotorg-communication"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/directory-sizes": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/directory-sizes"
                     }
                 ]
             }
