@@ -1014,7 +1014,7 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$found = get_echo( 'comments_template' );
 		preg_match_all( '/id="comment-([0-9]+)"/', $found, $matches );
 
-		$expected_ids = [];
+		$expected_ids = array();
 		foreach ( $expected['ids'] as $index ) {
 			$expected_ids[] = $comment_ids[ $index ];
 		}
