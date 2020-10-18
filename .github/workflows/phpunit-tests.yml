@@ -112,27 +112,33 @@ jobs:
   # - Reports test results to the Distributed Hosting Tests.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
-    name: ${{ matrix.php_versions }} on ${{ matrix.os }}
+    name: ${{ matrix.php }} on ${{ matrix.os }}
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        php_versions: [ '8.0', 7.4, '7.4 with memcached', 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
+        php: [ '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6.20' ]
         os: [ ubuntu-latest ]
+        memcached: [ false ]
+        include:
+          # Include job for PHP 7.4 with memcached.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: true
+          # Report the results of the PHP 7.4 (without memcached) job.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: false
+            report: true
     env:
-      LOCAL_PHP: ${{ matrix.php_versions }}-fpm
+      LOCAL_PHP: ${{ matrix.php }}-fpm
+      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
     steps:
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Configure memcached
-        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
-        run: |
-          echo "LOCAL_PHP=$(echo ${{ matrix.php_versions }} | cut -c1-3)-fpm" >> $GITHUB_ENV
-          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
         uses: actions/download-artifact@v2
@@ -203,7 +209,7 @@ jobs:
 
       # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
       - name: Start the Memcached server.
-        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
+        if: ${{ matrix.memcached }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
@@ -258,7 +264,7 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: WordPress Test Reporter
-        if: ${{ matrix.php_versions == '7.4' }}
+        if: ${{ matrix.report }}
         uses: actions/checkout@v2
         with:
           repository: 'WordPress/phpunit-test-runner'
