@@ -1878,12 +1878,12 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * Retrieves post ids.
 	 *
 	 * The array will contain the following
-	 *     the active's post id always,
+	 *     the active's post id always if $excluded_terms does not contain the active post's term(s),
 	 *     all the post ids that have the same post_date as the active post if they exist,
 	 *     the post_id of the next or previous post that has different post_date if it exists
 	 *
-	 * Because of the ORDER BY clause the previous or next post id will always be the next ( offset $key + 1 ) in the array $results,
-	 * relevant to the active post it.
+	 * Because of the ORDER BY clause the previous or next post id will be the next ( offset $key + 1 ) in the array $results,
+	 * relevant to the active post it or the first when the active post's term(s) is included in the $excluded_terms.
 	 */
 	$results = $wpdb->get_results( $query );
 
