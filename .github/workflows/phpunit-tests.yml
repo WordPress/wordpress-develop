@@ -247,7 +247,7 @@ jobs:
       - name: Run tests as a multisite install
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml
 
-      - name: Run mutlisite file tests
+      - name: Run ms-files tests as a multisite install
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
