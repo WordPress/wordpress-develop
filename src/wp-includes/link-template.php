@@ -1930,7 +1930,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	if ( $result ) {
 		$result = get_post( $result );
 	}
-	
+
 	return $result;
 }
 
