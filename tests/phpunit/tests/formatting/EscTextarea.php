@@ -16,7 +16,7 @@ class Tests_Formatting_EscTextarea extends WP_UnitTestCase {
 	function test_esc_textarea_charset_iso_8859_1() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
 		$iso8859_1 = 'Fran' . chr( 135 ) . 'ais';
-		$this->assertEquals( $iso8859_1, esc_textarea( $iso8859_1 ) );
+		$this->assertSame( $iso8859_1, esc_textarea( $iso8859_1 ) );
 		remove_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
 	}
 
@@ -30,7 +30,7 @@ class Tests_Formatting_EscTextarea extends WP_UnitTestCase {
 	function test_esc_textarea_charset_utf_8() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_utf_8' ) );
 		$utf8 = 'Fran' . chr( 195 ) . chr( 167 ) . 'ais';
-		$this->assertEquals( $utf8, esc_textarea( $utf8 ) );
+		$this->assertSame( $utf8, esc_textarea( $utf8 ) );
 		remove_filter( 'pre_option_blog_charset', array( $this, '_charset_utf_8' ) );
 	}
 }

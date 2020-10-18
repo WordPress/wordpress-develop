@@ -489,7 +489,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 	$previous_content = file_get_contents( $real_file );
 
-	if ( ! is_writeable( $real_file ) ) {
+	if ( ! is_writable( $real_file ) ) {
 		return new WP_Error( 'file_not_writable' );
 	}
 
@@ -510,7 +510,7 @@ function wp_edit_theme_plugin_file( $args ) {
 
 		$scrape_key   = md5( rand() );
 		$transient    = 'scrape_key_' . $scrape_key;
-		$scrape_nonce = strval( rand() );
+		$scrape_nonce = (string) rand();
 		// It shouldn't take more than 60 seconds to make the two loopback requests.
 		set_transient( $transient, $scrape_nonce, 60 );
 

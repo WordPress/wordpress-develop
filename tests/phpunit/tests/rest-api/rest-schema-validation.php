@@ -156,7 +156,12 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
-		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
+		if ( PHP_VERSION_ID >= 80000 ) {
+			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
+		} else {
+			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+		}
+
 		$this->setExpectedIncorrectUsage( 'rest_validate_value_from_schema' );
 
 		$schema = array( 'format' => 'email' );
@@ -283,6 +288,107 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( array( 'a' => 'invalid' ), $schema ) );
 	}
 
+	/**
+	 * @ticket 51024
+	 *
+	 * @dataProvider data_type_object_pattern_properties
+	 *
+	 * @param array $pattern_properties
+	 * @param array $value
+	 * @param bool $expected
+	 */
+	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
+		$schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'propA' => array( 'type' => 'string' ),
+			),
+			'patternProperties'    => $pattern_properties,
+			'additionalProperties' => false,
+		);
+
+		if ( $expected ) {
+			$this->assertTrue( rest_validate_value_from_schema( $value, $schema ) );
+		} else {
+			$this->assertWPError( rest_validate_value_from_schema( $value, $schema ) );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_type_object_pattern_properties() {
+		return array(
+			array( array(), array(), true ),
+			array( array(), array( 'propA' => 'a' ), true ),
+			array(
+				array(),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				false,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array( 'propA' => 'a' ),
+				true,
+			),
+			array(
+				array(
+					'propB' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				true,
+			),
+			array(
+				array(
+					'.*C' => array( 'type' => 'string' ),
+				),
+				array(
+					'propA' => 'a',
+					'propC' => 'c',
+				),
+				true,
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 0,
+				),
+				true,
+			),
+			array(
+				array(
+					'[0-9]' => array( 'type' => 'integer' ),
+				),
+				array(
+					'propA' => 'a',
+					'prop0' => 'notAnInteger',
+				),
+				false,
+			),
+			array(
+				array(
+					'.+' => array( 'type' => 'string' ),
+				),
+				array(
+					''      => '',
+					'propA' => 'a',
+				),
+				false,
+			),
+		);
+	}
+
 	public function test_type_object_additional_properties_false() {
 		$schema = array(
 			'type'                 => 'object',
@@ -390,7 +496,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( 'some random string', $schema );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'Invalid date.', $error->get_error_message() );
+		$this->assertSame( 'Invalid date.', $error->get_error_message() );
 	}
 
 	public function test_object_or_string() {
@@ -408,7 +514,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( array( 'raw' => array( 'a list' ) ), $schema );
 		$this->assertWPError( $error );
-		$this->assertEquals( '[raw] is not of type string.', $error->get_error_message() );
+		$this->assertSame( '[raw] is not of type string.', $error->get_error_message() );
 	}
 
 	/**
@@ -427,7 +533,43 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 
 		$error = rest_validate_value_from_schema( 30, $schema, 'param' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+		$this->assertSame( 'param must be between 10 (inclusive) and 20 (inclusive)', $error->get_error_message() );
+	}
+
+	/**
+	 * @ticket 51022
+	 *
+	 * @dataProvider data_multiply_of
+	 *
+	 * @param int|float $value
+	 * @param int|float $divisor
+	 * @param bool      $expected
+	 */
+	public function test_numeric_multiple_of( $value, $divisor, $expected ) {
+		$schema = array(
+			'type'       => 'number',
+			'multipleOf' => $divisor,
+		);
+
+		$result = rest_validate_value_from_schema( $value, $schema );
+
+		if ( $expected ) {
+			$this->assertTrue( $result );
+		} else {
+			$this->assertWPError( $result );
+		}
+	}
+
+	public function data_multiply_of() {
+		return array(
+			array( 0, 2, true ),
+			array( 4, 2, true ),
+			array( 3, 1.5, true ),
+			array( 2.4, 1.2, true ),
+			array( 1, 2, false ),
+			array( 2, 1.5, false ),
+			array( 2.1, 1.5, false ),
+		);
 	}
 
 	/**
@@ -832,6 +974,61 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51023
+	 */
+	public function test_object_min_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'minProperties' => 1,
+		);
+
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( array(), $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( '', $schema ) );
+	}
+
+	/**
+	 * @ticket 51023
+	 */
+	public function test_object_max_properties() {
+		$schema = array(
+			'type'          => 'object',
+			'maxProperties' => 2,
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( array( 'propA' => 'a' ), $schema ) );
+		$this->assertTrue(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError(
+			rest_validate_value_from_schema(
+				array(
+					'propA' => 'a',
+					'propB' => 'b',
+					'propC' => 'c',
+				),
+				$schema
+			)
+		);
+		$this->assertWPError( rest_validate_value_from_schema( 'foobar', $schema ) );
+	}
+
+	/**
 	 * @ticket 44949
 	 */
 	public function test_string_pattern() {
@@ -1040,4 +1237,20 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$data[1] = array_reverse( $data[1] );
 		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 	}
+
+	/**
+	 * @ticket 50300
+	 */
+	public function test_string_or_integer() {
+		$schema = array(
+			'type' => array( 'integer', 'string' ),
+		);
+
+		$this->assertTrue( rest_validate_value_from_schema( 'garbage', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( 15, $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15', $schema ) );
+		$this->assertTrue( rest_validate_value_from_schema( '15.5', $schema ) );
+		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
+	}
+
 }

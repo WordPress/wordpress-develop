@@ -474,7 +474,9 @@
 .attachment-details .copy-to-clipboard-container .success {
 	padding: 0;
 	min-height: 0;
+	line-height: 2.18181818;
 	text-align: left;
+	color: #40860a;
 }
 
 .compat-item label span {
@@ -1761,6 +1763,14 @@
 	color: #666;
 	border-bottom: 1px solid #ddd;
 	padding-bottom: 11px;
+}
+
+.attachment-info .wp-media-wrapper {
+	margin-bottom: 8px;
+}
+
+.attachment-info .wp-media-wrapper.wp-audio {
+	margin-top: 13px;
 }
 
 .attachment-info .filename {

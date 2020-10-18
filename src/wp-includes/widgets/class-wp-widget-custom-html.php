@@ -58,8 +58,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param integer $number Optional. The unique order number of this widget instance
-	 *                        compared to other instances of the same class. Default -1.
+	 * @param int $number Optional. The unique order number of this widget instance
+	 *                    compared to other instances of the same class. Default -1.
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -281,7 +281,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 					<# if ( data.codeEditorDisabled ) { #>
 						<p>
 							<?php _e( 'Some HTML tags are not permitted, including:' ); ?>
-							<code><?php echo join( '</code>, <code>', $disallowed_html ); ?></code>
+							<code><?php echo implode( '</code>, <code>', $disallowed_html ); ?></code>
 						</p>
 					<# } #>
 				<?php endif; ?>

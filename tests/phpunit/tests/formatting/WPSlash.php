@@ -57,10 +57,10 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 	function test_adds_slashes() {
 		$old = "I can't see, isn't that it?";
 		$new = "I can\'t see, isn\'t that it?";
-		$this->assertEquals( $new, wp_slash( $old ) );
-		$this->assertEquals( "I can\\\\\'t see, isn\\\\\'t that it?", wp_slash( $new ) );
-		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
-		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
+		$this->assertSame( $new, wp_slash( $old ) );
+		$this->assertSame( "I can\\\\\'t see, isn\\\\\'t that it?", wp_slash( $new ) );
+		$this->assertSame( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
+		$this->assertSame( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
 
 	/**
@@ -68,10 +68,10 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 	 */
 	function test_preserves_original_datatype() {
 
-		$this->assertEquals( true, wp_slash( true ) );
-		$this->assertEquals( false, wp_slash( false ) );
-		$this->assertEquals( 4, wp_slash( 4 ) );
-		$this->assertEquals( 'foo', wp_slash( 'foo' ) );
+		$this->assertTrue( wp_slash( true ) );
+		$this->assertFalse( wp_slash( false ) );
+		$this->assertSame( 4, wp_slash( 4 ) );
+		$this->assertSame( 'foo', wp_slash( 'foo' ) );
 		$arr      = array(
 			'a' => true,
 			'b' => false,
@@ -79,14 +79,14 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 			'd' => 'foo',
 		);
 		$arr['e'] = $arr; // Add a sub-array.
-		$this->assertEquals( $arr, wp_slash( $arr ) ); // Keyed array.
-		$this->assertEquals( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed.
+		$this->assertSame( $arr, wp_slash( $arr ) ); // Keyed array.
+		$this->assertSame( array_values( $arr ), wp_slash( array_values( $arr ) ) ); // Non-keyed.
 
 		$obj = new stdClass;
 		foreach ( $arr as $k => $v ) {
 			$obj->$k = $v;
 		}
-		$this->assertEquals( $obj, wp_slash( $obj ) );
+		$this->assertSame( $obj, wp_slash( $obj ) );
 	}
 
 	/**
@@ -95,9 +95,9 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 	function test_add_even_more_slashes() {
 		$old = 'single\\slash double\\\\slash triple\\\\\\slash';
 		$new = 'single\\\\slash double\\\\\\\\slash triple\\\\\\\\\\\\slash';
-		$this->assertEquals( $new, wp_slash( $old ) );
-		$this->assertEquals( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
-		$this->assertEquals( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
+		$this->assertSame( $new, wp_slash( $old ) );
+		$this->assertSame( array( 'a' => $new ), wp_slash( array( 'a' => $old ) ) ); // Keyed array.
+		$this->assertSame( array( $new ), wp_slash( array( $old ) ) ); // Non-keyed.
 	}
 
 }

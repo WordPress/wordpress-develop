@@ -250,7 +250,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertSame( $user->display_name, $comment->comment_author );
 		$this->assertSame( $user->user_email, $comment->comment_author_email );
 		$this->assertSame( $user->user_url, $comment->comment_author_url );
-		$this->assertSame( $user->ID, intval( $comment->user_id ) );
+		$this->assertSame( $user->ID, (int) $comment->user_id );
 
 	}
 
@@ -774,7 +774,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
 
 		$this->assertNotWPError( $comment );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,

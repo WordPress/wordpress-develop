@@ -192,7 +192,7 @@ function get_approved_comments( $post_id, $args = array() ) {
  *                                       respectively. Default OBJECT.
  * @return WP_Comment|array|null Depends on $output value.
  */
-function get_comment( &$comment = null, $output = OBJECT ) {
+function get_comment( $comment = null, $output = OBJECT ) {
 	if ( empty( $comment ) && isset( $GLOBALS['comment'] ) ) {
 		$comment = $GLOBALS['comment'];
 	}
@@ -1254,7 +1254,7 @@ function wp_get_comment_fields_max_lengths() {
 
 			if ( ! is_array( $col_length ) && (int) $col_length > 0 ) {
 				$max_length = (int) $col_length;
-			} elseif ( is_array( $col_length ) && isset( $col_length['length'] ) && intval( $col_length['length'] ) > 0 ) {
+			} elseif ( is_array( $col_length ) && isset( $col_length['length'] ) && (int) $col_length['length'] > 0 ) {
 				$max_length = (int) $col_length['length'];
 
 				if ( ! empty( $col_length['type'] ) && 'byte' === $col_length['type'] ) {
@@ -2401,8 +2401,8 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 	$comment = get_comment( $comment_old->comment_ID );
 
 	/**
-	 * Fires immediately before transitioning a comment's status from one to another
-	 * in the database.
+	 * Fires immediately after transitioning a comment's status from one to another in the database
+	 * and removing the comment from the object cache, but prior to all status transition hooks.
 	 *
 	 * @since 1.5.0
 	 *
@@ -3235,7 +3235,7 @@ function _prime_comment_caches( $comment_ids, $update_meta_cache = true ) {
 
 	$non_cached_ids = _get_non_cached_ids( $comment_ids, 'comment' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_comments = $wpdb->get_results( sprintf( "SELECT $wpdb->comments.* FROM $wpdb->comments WHERE comment_ID IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) );
+		$fresh_comments = $wpdb->get_results( sprintf( "SELECT $wpdb->comments.* FROM $wpdb->comments WHERE comment_ID IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) );
 
 		update_comment_cache( $fresh_comments, $update_meta_cache );
 	}

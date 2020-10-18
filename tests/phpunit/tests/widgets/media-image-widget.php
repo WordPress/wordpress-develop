@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'alt',
 				'attachment_id',
@@ -92,7 +92,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Image::__construct()
+	 * @covers WP_Widget_Media_Image::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Image();
@@ -101,8 +101,8 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'image', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'image', $widget->widget_options['mime_type'] );
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',
@@ -408,6 +408,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	 * Test render_media method.
 	 *
 	 * @covers WP_Widget_Media_Image::render_media
+	 * @requires function imagejpeg
 	 */
 	function test_render_media() {
 		$widget = new WP_Widget_Media_Image();

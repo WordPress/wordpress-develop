@@ -7,7 +7,7 @@ require_once __DIR__ . '/base.php';
  * @group external-http
  */
 class Tests_HTTP_curl extends WP_HTTP_UnitTestCase {
-	var $transport = 'curl';
+	public $transport = 'curl';
 
 	/**
 	 * @ticket 39783

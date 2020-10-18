@@ -1,23 +1,25 @@
 <?php
-/*
+/**
  * Test _cleanup_header_comment().
  *
- * @group functions.php
  * @ticket 8497
  * @ticket 38101
+ *
+ * @group functions.php
+ * @covers ::_cleanup_header_comment
  */
 class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
+
 	/**
 	 * Test cleanup header of header comment.
 	 *
-	 * @covers ::_cleanup_header_comment
 	 * @dataProvider data_cleanup_header_comment
 	 *
 	 * @param string $test_string
 	 * @param string $expected
 	 */
 	public function test_cleanup_header_comment( $test_string, $expected ) {
-		$this->assertEqualsIgnoreEOL( $expected, _cleanup_header_comment( $test_string ) );
+		$this->assertSameIgnoreEOL( $expected, _cleanup_header_comment( $test_string ) );
 	}
 
 	/**

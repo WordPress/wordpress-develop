@@ -61,7 +61,7 @@ class Tests_Admin_WpPrivacyRequestsTable extends WP_UnitTestCase {
 	 * @param string      $expected Expected in SQL query.
 
 	 * @dataProvider data_test_columns_should_be_sortable
-	 * @covers WP_Privacy_Requests_Table::prepare_items()
+	 * @covers WP_Privacy_Requests_Table::prepare_items
 	 * @ticket 43960
 	 */
 	public function test_columns_should_be_sortable( $order, $orderby, $search, $expected ) {
