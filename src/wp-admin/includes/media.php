@@ -996,6 +996,7 @@ function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'htm
 		 * @param string   $file               The URL of the image to download.
 		 */
 		$allowed_extensions = apply_filters( 'image_sideload_extensions', $allowed_extensions, $file );
+		$allowed_extensions = array_map( 'preg_quote', $allowed_extensions );
 
 		// Set variables for storage, fix file filename for query strings.
 		preg_match( '/[^\?]+\.(' . join( '|', $allowed_extensions ) . ')\b/i', $file, $matches );
