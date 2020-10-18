@@ -1217,7 +1217,6 @@ function load_script_translations( $file, $handle, $domain ) {
  * @since 4.6.0
  * @access private
  *
- * @global MO[]                   $l10n                   An array of all currently loaded text domains.
  * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
  * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
  *
@@ -1225,11 +1224,12 @@ function load_script_translations( $file, $handle, $domain ) {
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
-	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
+	global $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
-	if ( isset( $l10n_unloaded[ $domain ] ) ) {
+	// Short-circuit if domain is 'default' which is reserved for core.
+	if ( 'default' === $domain || isset( $l10n_unloaded[ $domain ] ) ) {
 		return false;
 	}
 
@@ -1239,37 +1239,14 @@ function _load_textdomain_just_in_time( $domain ) {
 	}
 
 	$path = $wp_textdomain_registry->get( $domain );
-
-	if ( false === $path ) {
+	if ( ! $path ) {
 		return false;
 	}
 
-	$locale = is_admin() ? get_user_locale() : get_locale();
-	$mofile = "{$path}/{$domain}-{$locale}.mo";
+	$locale = determine_locale();
+	$mofile = "{$path}/{$domain}-{$locale}.mo"; // TODO: This does not work for themes..
 
-	if ( 'default' === $domain ) {
-		$mofile = "{$path}/{$locale}.mo";
-	}
-
-	if ( ! is_readable( $mofile ) ) {
-		return false;
-	}
-
-	$mo = new MO();
-
-	if ( ! $mo->import_from_file( $mofile ) ) {
-		return false;
-	}
-
-	if ( isset( $l10n[ $domain ] ) ) {
-		$mo->merge_with( $l10n[ $domain ] );
-	}
-
-	unset( $l10n_unloaded[ $domain ] );
-
-	$l10n[ $domain ] = &$mo;
-
-	return true;
+	return load_textdomain( $domain, $mofile );
 }
 
 /**
