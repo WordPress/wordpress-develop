@@ -382,7 +382,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		<option value="feature">Featured</option>
 		<option value="sale">On Sale</option>
 	</optgroup>
-OPTIONS,
+OPTIONS
+			,
 			$output
 		);
 	}
