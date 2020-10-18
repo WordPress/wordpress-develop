@@ -2719,7 +2719,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		foreach ( $error->errors as $code => $messages ) {
 			$this->assertArrayHasKey( $code, $validity );
 			$this->assertInternalType( 'array', $validity[ $code ] );
-			$this->assertSame( join( ' ', $messages ), $validity[ $code ]['message'] );
+			$this->assertSame( implode( ' ', $messages ), $validity[ $code ]['message'] );
 			$this->assertArrayHasKey( 'data', $validity[ $code ] );
 			$this->assertSame( $validity[ $code ]['data'], $error->get_error_data( $code ) );
 		}
