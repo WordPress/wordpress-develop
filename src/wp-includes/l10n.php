@@ -1244,7 +1244,15 @@ function _load_textdomain_just_in_time( $domain ) {
 	}
 
 	$locale = determine_locale();
-	$mofile = "{$path}/{$domain}-{$locale}.mo"; // TODO: This does not work for themes..
+
+	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
+	$template_directory   = get_template_directory();
+	$stylesheet_directory = get_stylesheet_directory();
+	if ( 0 === strpos( $path, $template_directory ) || 0 === strpos( $path, $stylesheet_directory ) ) {
+		$mofile = "{$path}/{$locale}.mo";
+	} else {
+		$mofile = "{$path}/{$domain}-{$locale}.mo";
+	}
 
 	return load_textdomain( $domain, $mofile );
 }

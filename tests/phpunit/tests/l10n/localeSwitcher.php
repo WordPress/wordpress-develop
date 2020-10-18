@@ -397,7 +397,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 	/**
 	 * @ticket 39210
 	 */
-	public function test_switch_reloads_translations_outside_wplang() {
+	public function test_switch_reloads_plugin_translations_outside_wp_lang_dir() {
 		global $wp_locale_switcher;
 
 		$locale_switcher = clone $wp_locale_switcher;
@@ -408,20 +408,53 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
 		$expected = custom_i18n_plugin_test();
-
 		$this->assertSame( 'This is a dummy plugin', $expected );
 
-		switch_to_locale( 'en_GB' );
+		switch_to_locale( 'es_ES' );
 		switch_to_locale( 'de_DE' );
 
 		$expected = custom_i18n_plugin_test();
-
 		$this->assertSame( 'Das ist ein Dummy Plugin', $expected );
 
 		restore_previous_locale();
 
 		$expected = custom_i18n_plugin_test();
-		$this->assertSame( 'This is a wally plugin', $expected );
+		$this->assertSame( 'Este es un plugin dummy', $expected );
+
+		restore_current_locale();
+
+		$wp_locale_switcher = $locale_switcher;
+	}
+
+	/**
+	 * @ticket 39210
+	 */
+	public function test_switch_reloads_theme_translations_outside_wp_lang_dir() {
+		global $wp_locale_switcher;
+
+		$locale_switcher = clone $wp_locale_switcher;
+
+		$wp_locale_switcher = new WP_Locale_Switcher();
+		$wp_locale_switcher->init();
+
+		switch_theme( 'custom-internationalized-theme' );
+
+		require_once get_stylesheet_directory() . '/functions.php';
+
+		$expected = custom_i18n_theme_test();
+
+		$this->assertSame( 'This is a dummy theme', $expected );
+
+		switch_to_locale( 'es_ES' );
+		switch_to_locale( 'de_DE' );
+
+		$expected = custom_i18n_theme_test();
+		$this->assertSame( 'Das ist ein Dummy Theme', $expected );
+
+		restore_previous_locale();
+
+		$expected = custom_i18n_theme_test();
+		$this->assertSame( 'Este es un tema dummy', $expected );
 
 		restore_current_locale();
 
