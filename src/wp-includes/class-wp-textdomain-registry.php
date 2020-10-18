@@ -29,7 +29,7 @@ class WP_Textdomain_Registry {
 	 *
 	 * @var array
 	 */
-	protected $cached_mofiles;
+	protected $cached_mo_files;
 
 	/**
 	 * Returns the MO file path for a specific domain.
@@ -62,7 +62,7 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 */
 	public function reset() {
-		$this->cached_mofiles = null;
+		$this->cached_mo_files = null;
 		$this->domains = array();
 	}
 
@@ -74,24 +74,24 @@ class WP_Textdomain_Registry {
 	 * @param string $domain Text domain.
 	 */
 	public function get_translation_from_lang_dir( $domain ) {
-		if ( null === $this->cached_mofiles ) {
-			$this->cached_mofiles = array();
+		if ( null === $this->cached_mo_files ) {
+			$this->cached_mo_files = array();
 
-			$this->fetch_available_mofiles();
+			$this->set_cached_mo_files();
 		}
 
 		$locale = is_admin() ? get_user_locale() : get_locale();
 		$mofile = "{$domain}-{$locale}.mo";
 
 		$path = WP_LANG_DIR . '/plugins/' . $mofile;
-		if ( in_array( $path, $this->cached_mofiles, true ) ) {
+		if ( in_array( $path, $this->cached_mo_files, true ) ) {
 			$this->set( $domain, WP_LANG_DIR . '/plugins/' );
 
 			return;
 		}
 
 		$path = WP_LANG_DIR . '/themes/' . $mofile;
-		if ( in_array( $path, $this->cached_mofiles, true ) ) {
+		if ( in_array( $path, $this->cached_mo_files, true ) ) {
 			$this->set( $domain, WP_LANG_DIR . '/themes/' );
 
 			return;
@@ -101,21 +101,21 @@ class WP_Textdomain_Registry {
 	}
 
 	/**
-	 * Fetches all available MO files from the plugins and themes language directories.
+	 * Reads and caches all available MO files from the plugins and themes language directories.
 	 *
 	 * @since 5.6.0
 	 */
-	protected function fetch_available_mofiles() {
+	protected function set_cached_mo_files() {
 		$locations = array(
 			WP_LANG_DIR . '/plugins',
 			WP_LANG_DIR . '/themes',
 		);
 
 		foreach ( $locations as $location ) {
-			$mofiles = glob( $location . '/*.mo' );
+			$mo_files = glob( $location . '/*.mo' );
 
-			if ( $mofiles ) {
-				$this->cached_mofiles = array_merge( $this->cached_mofiles, $mofiles );
+			if ( $mo_files ) {
+				$this->cached_mo_files = array_merge( $this->cached_mo_files, $mo_files );
 			}
 		}
 	}
