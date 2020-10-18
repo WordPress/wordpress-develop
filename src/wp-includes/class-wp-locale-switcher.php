@@ -196,6 +196,11 @@ class WP_Locale_Switcher {
 		load_default_textdomain( $locale );
 
 		foreach ( $domains as $domain ) {
+			// Skip default, because `load_default_textdomain()` does this already.
+			if ( 'default' === $domain ) {
+				continue;
+			}
+
 			// unload_textdomain( $domain ); // TODO: Don't mark as unloaded so it can be reloaded. Is this ok?
 			unset( $l10n[ $domain ] );
 			get_translations_for_domain( $domain );
