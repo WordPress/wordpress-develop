@@ -1803,8 +1803,8 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 		$where .= " AND p.post_status = 'publish'";
 	}
 
-	$op        = $previous ? '<=' : '>=';
-	$order     = $previous ? 'DESC' : 'ASC';
+	$op    = $previous ? '<=' : '>=';
+	$order = $previous ? 'DESC' : 'ASC';
 	/* Store the partial where clause before apply_filters. */
 	$where_was = $where;
 
@@ -1845,7 +1845,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * Searches for the number of posts that have the exact same post date in the DB.
 	 * Then sets the limit variable to the result + 1.
 	 */
-	$limit_query = $wpdb->prepare( "SELECT COUNT(p.ID) FROM $wpdb->posts AS p WHERE p.post_date = %s AND p.post_type = %s $where_was", $current_post_date, $post->post_type );
+	$limit_query = $wpdb->prepare( "SELECT COUNT(p.ID) FROM $wpdb->posts AS p $join WHERE p.post_date = %s AND p.post_type = %s $where_was", $current_post_date, $post->post_type );
 	$limit       = 1 + (int) $wpdb->get_var( $limit_query );
 
 	/**
@@ -1863,6 +1863,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * @param string  $order   Sort order. 'DESC' for previous post, 'ASC' for next.
 	 */
 	$sort = apply_filters( "get_{$adjacent}_post_sort", "ORDER BY p.post_date $order, p.ID $order LIMIT $limit", $post, $order );
+
 	$query     = "SELECT p.ID FROM $wpdb->posts AS p $join $where $sort";
 	$query_key = 'adjacent_post_' . md5( $query );
 	$result    = wp_cache_get( $query_key, 'counts' );
@@ -1875,7 +1876,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 
 	/**
 	 * Retrieves post ids.
-	 * 
+	 *
 	 * The array will contain the following
 	 *     the active's post id always,
 	 *     all the post ids that have the same post_date as the active post if they exist,
@@ -1885,9 +1886,33 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * relevant to the active post it.
 	 */
 	$results = $wpdb->get_results( $query );
-	foreach ( $results as $key => $val ) {
-		if ( ! empty( $val->ID ) && (int) $val->ID === $post->ID ) {
-			$result = ! empty( $results[ $key + 1 ]->ID ) ? (int) $results[ $key + 1 ]->ID : null;
+
+	$return_first = false;
+	if ( 1 === $limit && ! empty( $excluded_terms ) ) {
+		if ( ! is_array( $excluded_terms ) && strstr( $excluded_terms, ',' ) ) {
+			$excluded_terms = explode( ',', $excluded_terms );
+		}
+		if ( is_array( $excluded_terms ) ) {
+			$act_terms = wp_get_object_terms( $post->ID, $taxonomy, array( 'fields' => 'ids' ) );
+			if ( ! is_wp_error( $act_terms ) && ! empty( $act_terms ) ) {
+				$excluded_terms = array_map( 'intval', $excluded_terms );
+				$act_terms      = array_map( 'intval', $act_terms );
+				foreach ( $act_terms as $act_term ) {
+					if ( in_array( $act_term, $excluded_terms, true ) ) {
+						$return_first = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	if ( $return_first ) {
+		$result = ! empty( $results[0]->ID ) ? (int) $results[0]->ID : null;
+	} else {
+		foreach ( $results as $key => $val ) {
+			if ( ! empty( $val->ID ) && (int) $val->ID === $post->ID ) {
+				$result = ! empty( $results[ $key + 1 ]->ID ) ? (int) $results[ $key + 1 ]->ID : null;
+			}
 		}
 	}
 
@@ -1900,7 +1925,7 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	if ( $result ) {
 		$result = get_post( $result );
 	}
-
+	
 	return $result;
 }
 
