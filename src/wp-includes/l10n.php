@@ -1280,18 +1280,14 @@ function get_translations_for_domain( $domain ) {
  *
  * @since 3.0.0
  *
- * @global MO[]                   $l10n                   An array of all currently loaded text domains.
- * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global MO[] $l10n An array of all currently loaded text domains.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool Whether there are translations.
  */
 function is_textdomain_loaded( $domain ) {
-	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
-
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	return isset( $l10n[ $domain ] ) || ( ! isset( $l10n_unloaded[ $domain ] ) && $wp_textdomain_registry->get( $domain ) );
+	global $l10n;
+	return isset( $l10n[ $domain ] );
 }
 
 /**
