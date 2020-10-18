@@ -277,7 +277,6 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->assertSame( 'de_DE', $user_locale );
 
 		load_default_textdomain( $user_locale );
-		get_translations_for_domain( 'default' );
 		$language_header_before_switch = $l10n['default']->headers['Language']; // de_DE
 
 		$locale_switched_user_locale  = switch_to_locale( $user_locale ); // False.
@@ -329,21 +328,15 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 		$this->assertSame( 'de_DE', $user_locale );
 
 		load_default_textdomain( $user_locale );
-		get_translations_for_domain( 'default' );
 		$language_header_before_switch = $l10n['default']->headers['Language']; // de_DE
 
-		$locale_switched_user_locale = switch_to_locale( $user_locale ); // False.
-		$locale_switched_site_locale = switch_to_locale( $site_locale ); // True.
-		$site_locale_after_switch    = get_locale();
-
-		load_default_textdomain( get_locale() );
-		get_translations_for_domain( 'default' );
+		$locale_switched_user_locale  = switch_to_locale( $user_locale ); // False.
+		$locale_switched_site_locale  = switch_to_locale( $site_locale ); // True.
+		$site_locale_after_switch     = get_locale();
 		$language_header_after_switch = $l10n['default']->headers['Language']; // es_ES
 
 		restore_current_locale();
 
-		load_default_textdomain();
-		get_translations_for_domain( 'default' );
 		$language_header_after_restore = $l10n['default']->headers['Language']; // de_DE
 
 		$wp_locale_switcher = $locale_switcher;
