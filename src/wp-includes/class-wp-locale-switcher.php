@@ -215,16 +215,12 @@ class WP_Locale_Switcher {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @global WP_Locale              $wp_locale              WordPress date and time locale object.
-	 * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+	 * @global WP_Locale $wp_locale WordPress date and time locale object.
 	 *
 	 * @param string $locale The locale to change to.
 	 */
 	private function change_locale( $locale ) {
-		global $wp_locale, $wp_textdomain_registry;
-
-		// Reset translation availability information.
-		// $wp_textdomain_registry->reset(); // TODO: Should be removed?
+		global $wp_locale;
 
 		$this->load_translations( $locale );
 
