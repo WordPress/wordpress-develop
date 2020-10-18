@@ -963,15 +963,13 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket       38074
-	 * @group        38074
 	 * @dataProvider data_comments_template_top_level_query_args
 	 *
-	 * @param array $expected                     Array of expected values.
-	 * @param array $query_args                   Args for the 'comments_template_query_args' filter.
-	 * @param array $top_level_query_args         Optional. Args for the 'comments_template_top_level_query_args'
-	 *                                            filter.
+	 * @param array $expected             Array of expected values.
+	 * @param array $query_args           Args for the 'comments_template_query_args' filter.
+	 * @param array $top_level_query_args Args for the 'comments_template_top_level_query_args' filter.
 	 */
-	public function test_comments_template_top_level_query_args( $expected, $query_args, $top_level_query_args = [] ) {
+	public function test_comments_template_top_level_query_args( $expected, $query_args, $top_level_query_args ) {
 		$now         = time();
 		$offset      = 0;
 		$p           = self::factory()->post->create();
