@@ -60,7 +60,6 @@
 					'<a href="' . esc_attr__( 'https://wordpress.org/', 'twentytwentyone' ) . '">WordPress</a>'
 				);
 				?>
-				</a>
 			</div><!-- .powered-by -->
 
 		</div><!-- .site-info -->
