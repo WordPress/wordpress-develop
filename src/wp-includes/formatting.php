@@ -722,7 +722,7 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
  * @return string The regular expression
  */
 function _get_wptexturize_shortcode_regex( $tagnames ) {
-	$tagregexp = join( '|', array_map( 'preg_quote', $tagnames ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 	$tagregexp = "(?:$tagregexp)(?=[\\s\\]\\/])"; // Excerpt of get_shortcode_regex().
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
 	$regex =
@@ -824,7 +824,7 @@ function shortcode_unautop( $pee ) {
 		return $pee;
 	}
 
-	$tagregexp = join( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
 	$spaces    = wp_spaces_regexp();
 
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound,WordPress.WhiteSpace.PrecisionAlignment.Found -- don't remove regex indentation
@@ -3232,7 +3232,7 @@ function wp_targeted_link_rel_callback( $matches ) {
 	}
 
 	$atts['rel']['whole'] = 'rel="' . esc_attr( $rel ) . '"';
-	$link_html            = join( ' ', array_column( $atts, 'whole' ) );
+	$link_html            = implode( ' ', array_column( $atts, 'whole' ) );
 
 	if ( $is_escaped ) {
 		$link_html = preg_replace( '/[\'"]/', '\\\\$0', $link_html );
@@ -3696,7 +3696,7 @@ function sanitize_email( $email ) {
 	}
 
 	// Join valid subs into the new domain.
-	$domain = join( '.', $new_subs );
+	$domain = implode( '.', $new_subs );
 
 	// Put the email back together.
 	$sanitized_email = $local . '@' . $domain;
@@ -5544,33 +5544,6 @@ function wp_slash( $value ) {
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );
-}
-
-/**
- * Adds slashes to only string values in an array of values.
- *
- * This should be used when preparing data for core APIs that expect slashed data.
- * This should not be used to escape data going directly into an SQL query.
- *
- * @since 5.3.0
- *
- * @param mixed $value Scalar or array of scalars.
- * @return mixed Slashes $value
- */
-function wp_slash_strings_only( $value ) {
-	return map_deep( $value, 'addslashes_strings_only' );
-}
-
-/**
- * Adds slashes only if the provided value is a string.
- *
- * @since 5.3.0
- *
- * @param mixed $value
- * @return mixed
- */
-function addslashes_strings_only( $value ) {
-	return is_string( $value ) ? addslashes( $value ) : $value;
 }
 
 /**

@@ -126,7 +126,7 @@ if ( $doaction ) {
 			$sendback = add_query_arg(
 				array(
 					'trashed' => $trashed,
-					'ids'     => join( ',', $post_ids ),
+					'ids'     => implode( ',', $post_ids ),
 					'locked'  => $locked,
 				),
 				$sendback
@@ -442,7 +442,7 @@ foreach ( $bulk_counts as $message => $count ) {
 }
 
 if ( $messages ) {
-	echo '<div id="message" class="updated notice is-dismissible"><p>' . join( ' ', $messages ) . '</p></div>';
+	echo '<div id="message" class="updated notice is-dismissible"><p>' . implode( ' ', $messages ) . '</p></div>';
 }
 unset( $messages );
 
@@ -477,7 +477,7 @@ if ( $wp_list_table->has_items() ) {
 ?>
 
 <div id="ajax-response"></div>
-<br class="clear" />
+<div class="clear" /></div>
 </div>
 
 <?php

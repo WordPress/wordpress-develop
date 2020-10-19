@@ -12,8 +12,8 @@
  */
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
-	var $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
-	var $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
+	public $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
+	public $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
 
 	protected $http_request_args;
 

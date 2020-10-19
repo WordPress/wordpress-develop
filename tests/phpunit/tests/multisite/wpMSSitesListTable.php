@@ -12,7 +12,7 @@ if ( is_multisite() ) :
 		/**
 		 * @var WP_MS_Sites_List_Table
 		 */
-		var $table = false;
+		public $table = false;
 
 		function setUp() {
 			parent::setUp();

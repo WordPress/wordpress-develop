@@ -4,10 +4,10 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
-	var $post_data;
-	var $post_id;
-	var $post_date_ts;
-	var $post_custom_field;
+	public $post_data;
+	public $post_id;
+	public $post_date_ts;
+	public $post_custom_field;
 
 	function setUp() {
 		parent::setUp();

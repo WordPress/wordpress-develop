@@ -132,6 +132,11 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
+			'/wp-site-health/v1',
+			'/wp-site-health/v1/tests/background-updates',
+			'/wp-site-health/v1/tests/loopback-requests',
+			'/wp-site-health/v1/tests/dotorg-communication',
+			'/wp-site-health/v1/directory-sizes',
 		);
 
 		$this->assertSameSets( $expected_routes, $routes );
@@ -141,7 +146,8 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		return (
 			'/' === $route ||
 			preg_match( '#^/oembed/1\.0(/.+)?$#', $route ) ||
-			preg_match( '#^/wp/v2(/.+)?$#', $route )
+			preg_match( '#^/wp/v2(/.+)?$#', $route ) ||
+			preg_match( '#^/wp-site-health/v1(/.+)?$#', $route )
 		);
 	}
 

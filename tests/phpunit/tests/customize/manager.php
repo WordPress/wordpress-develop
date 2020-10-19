@@ -1171,6 +1171,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'save_post_customize_changeset' => 2,
 			'save_post'                     => 2,
 			'wp_insert_post'                => 2,
+			'wp_after_insert_post'          => 2,
 			'trashed_post'                  => 1,
 		);
 		$action_counts    = array();
@@ -2718,7 +2719,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		foreach ( $error->errors as $code => $messages ) {
 			$this->assertArrayHasKey( $code, $validity );
 			$this->assertInternalType( 'array', $validity[ $code ] );
-			$this->assertSame( join( ' ', $messages ), $validity[ $code ]['message'] );
+			$this->assertSame( implode( ' ', $messages ), $validity[ $code ]['message'] );
 			$this->assertArrayHasKey( 'data', $validity[ $code ] );
 			$this->assertSame( $validity[ $code ]['data'], $error->get_error_data( $code ) );
 		}
