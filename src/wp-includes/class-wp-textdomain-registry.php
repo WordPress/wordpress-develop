@@ -80,7 +80,7 @@ class WP_Textdomain_Registry {
 			$this->set_cached_mo_files();
 		}
 
-		$locale = is_admin() ? get_user_locale() : get_locale();
+		$locale = determine_locale();
 		$mofile = "{$domain}-{$locale}.mo";
 
 		$path = WP_LANG_DIR . '/plugins/' . $mofile;

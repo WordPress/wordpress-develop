@@ -4168,7 +4168,7 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
 		}
 	}
 
-	$locale = is_admin() ? get_user_locale() : get_locale();
+	$locale = determine_locale();
 	$mofile = "{$domain}-{$locale}.mo";
 
 	$path = WP_LANG_DIR . '/plugins/' . $mofile;
