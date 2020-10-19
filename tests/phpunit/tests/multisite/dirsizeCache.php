@@ -217,13 +217,13 @@ if ( is_multisite() ) :
 
 		function _get_mock_dirsize_cache_for_site( $site_id ) {
 			return array(
-				"wp-content/uploads/sites/$site_id/2/2"              => 22,
-				"wp-content/uploads/sites/$site_id/2/1"              => 21,
-				"wp-content/uploads/sites/$site_id/2"                => 2,
-				"wp-content/uploads/sites/$site_id/1/3"              => 13,
-				"wp-content/uploads/sites/$site_id/1/2"              => 12,
-				"wp-content/uploads/sites/$site_id/1/1"              => 11,
-				"wp-content/uploads/sites/$site_id/1"                => 1,
+				"wp-content/uploads/sites/$site_id/2/2" => 22,
+				"wp-content/uploads/sites/$site_id/2/1" => 21,
+				"wp-content/uploads/sites/$site_id/2"   => 2,
+				"wp-content/uploads/sites/$site_id/1/3" => 13,
+				"wp-content/uploads/sites/$site_id/1/2" => 12,
+				"wp-content/uploads/sites/$site_id/1/1" => 11,
+				"wp-content/uploads/sites/$site_id/1"   => 1,
 				"wp-content/uploads/sites/$site_id/custom_directory" => 42,
 			);
 		}
