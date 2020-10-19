@@ -40,8 +40,8 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		public function register( $wp_customize ) {
 
 			// Change site-title & description to postMessage.
-			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage'; // @phpstan-ignore-line. We will assume that this setting exist.
-			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage'; // @phpstan-ignore-line. We will assume that this setting exist.
+			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage';
+			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
 
 			// Add partial for blogname.
 			$wp_customize->selective_refresh->add_partial(
