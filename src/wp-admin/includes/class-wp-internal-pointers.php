@@ -169,21 +169,12 @@ final class WP_Internal_Pointers {
 		$content .= '<p>' . __( 'A new <strong>setting</strong> has been added to control whether search engines should display large previews of your site&#8217;s images and videos.' ) . '</p>';
 		$content .= '<p>' . __( 'By default, search engines are allowed to do so. You can change this behavior under <strong>Settings &gt; Reading</strong>.' ) . '</p>';
 
-		if ( is_rtl() ) {
-			$position = array(
-				'edge'  => 'right',
-				'align' => 'bottom',
-			);
-		} else {
-			$position = array(
-				'edge'  => 'left',
-				'align' => 'bottom',
-			);
-		}
-
 		$js_args = array(
 			'content'      => $content,
-			'position'     => $position,
+			'position'     => array(
+				'edge'  => is_rtl() ? 'right' : 'left',
+				'align' => 'bottom',
+			),
 			'pointerClass' => 'wp-pointer arrow-bottom',
 			'pointerWidth' => 420,
 		);
