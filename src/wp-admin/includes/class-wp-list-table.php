@@ -43,7 +43,7 @@ class WP_List_Table {
 	 * The current screen.
 	 *
 	 * @since 3.1.0
-	 * @var object
+	 * @var WP_Screen
 	 */
 	protected $screen;
 
@@ -166,8 +166,8 @@ class WP_List_Table {
 
 		if ( empty( $this->modes ) ) {
 			$this->modes = array(
-				'list'    => __( 'List View' ),
-				'excerpt' => __( 'Excerpt View' ),
+				'list'    => __( 'Compact view' ),
+				'excerpt' => __( 'Extended view' ),
 			);
 		}
 	}
@@ -233,8 +233,8 @@ class WP_List_Table {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|bool Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -398,7 +398,7 @@ class WP_List_Table {
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
 		 * to the ID of the current screen, usually a string.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param string[] $views An array of available list table views.
 		 */
@@ -419,12 +419,29 @@ class WP_List_Table {
 	}
 
 	/**
-	 * Gets the list of bulk actions available on this table.
+	 * Retrieves the list of bulk actions available for this table.
 	 *
-	 * The format is an associative array:
-	 * - `'option_name' => 'option_title'`
+	 * The format is an associative array where each element represents either a top level option value and label, or
+	 * an array representing an optgroup and its options.
+	 *
+	 * For a standard option, the array element key is the field value and the array element value is the field label.
+	 *
+	 * For an optgroup, the array element key is the label and the array element value is an associative array of
+	 * options as above.
+	 *
+	 * Example:
+	 *
+	 *     [
+	 *         'edit'         => 'Edit',
+	 *         'delete'       => 'Delete',
+	 *         'Change State' => [
+	 *             'feature' => 'Featured',
+	 *             'sale'    => 'On Sale',
+	 *         ]
+	 *     ]
 	 *
 	 * @since 3.1.0
+	 * @since 5.6.0 A bulk action can now contain an array of options in order to create an optgroup.
 	 *
 	 * @return array
 	 */
@@ -445,16 +462,15 @@ class WP_List_Table {
 			$this->_actions = $this->get_bulk_actions();
 
 			/**
-			 * Filters the list table Bulk Actions drop-down.
+			 * Filters the items in the bulk actions menu of the list table.
 			 *
 			 * The dynamic portion of the hook name, `$this->screen->id`, refers
-			 * to the ID of the current screen, usually a string.
+			 * to the ID of the current screen.
 			 *
-			 * This filter can currently only be used to remove bulk actions.
+			 * @since 3.1.0
+			 * @since 5.6.0 A bulk action can now contain an array of options in order to create an optgroup.
 			 *
-			 * @since 3.5.0
-			 *
-			 * @param string[] $actions An array of the available bulk actions.
+			 * @param array $actions An array of the available bulk actions.
 			 */
 			$this->_actions = apply_filters( "bulk_actions-{$this->screen->id}", $this->_actions ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
@@ -469,17 +485,28 @@ class WP_List_Table {
 
 		echo '<label for="bulk-action-selector-' . esc_attr( $which ) . '" class="screen-reader-text">' . __( 'Select bulk action' ) . '</label>';
 		echo '<select name="action' . $two . '" id="bulk-action-selector-' . esc_attr( $which ) . "\">\n";
-		echo '<option value="-1">' . __( 'Bulk Actions' ) . "</option>\n";
+		echo '<option value="-1">' . __( 'Bulk actions' ) . "</option>\n";
 
-		foreach ( $this->_actions as $name => $title ) {
-			$class = 'edit' === $name ? ' class="hide-if-no-js"' : '';
+		foreach ( $this->_actions as $key => $value ) {
+			if ( is_array( $value ) ) {
+				echo "\t" . '<optgroup label="' . esc_attr( $key ) . '">' . "\n";
 
-			echo "\t" . '<option value="' . $name . '"' . $class . '>' . $title . "</option>\n";
+				foreach ( $value as $name => $title ) {
+					$class = ( 'edit' === $name ) ? ' class="hide-if-no-js"' : '';
+
+					echo "\t\t" . '<option value="' . esc_attr( $name ) . '"' . $class . '>' . $title . "</option>\n";
+				}
+				echo "\t" . "</optgroup>\n";
+			} else {
+				$class = ( 'edit' === $key ) ? ' class="hide-if-no-js"' : '';
+
+				echo "\t" . '<option value="' . esc_attr( $key ) . '"' . $class . '>' . $value . "</option>\n";
+			}
 		}
 
 		echo "</select>\n";
 
-		submit_button( __( 'Apply' ), 'action', "doaction$two", false, array( 'id' => "doaction$two" ) );
+		submit_button( __( 'Apply' ), 'action', '', false, array( 'id' => "doaction$two" ) );
 		echo "\n";
 	}
 
@@ -495,12 +522,12 @@ class WP_List_Table {
 			return false;
 		}
 
-		if ( isset( $_REQUEST['doaction2'] ) && isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			return $_REQUEST['action2'];
-		}
-
 		if ( isset( $_REQUEST['action'] ) && -1 != $_REQUEST['action'] ) {
 			return $_REQUEST['action'];
+		}
+
+		if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
+			return $_REQUEST['action2'];
 		}
 
 		return false;
@@ -517,18 +544,29 @@ class WP_List_Table {
 	 */
 	protected function row_actions( $actions, $always_visible = false ) {
 		$action_count = count( $actions );
-		$i            = 0;
 
 		if ( ! $action_count ) {
 			return '';
 		}
 
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+
+		if ( 'excerpt' === $mode ) {
+			$always_visible = true;
+		}
+
 		$out = '<div class="' . ( $always_visible ? 'row-actions visible' : 'row-actions' ) . '">';
+
+		$i = 0;
+
 		foreach ( $actions as $action => $link ) {
 			++$i;
-			( $i == $action_count ) ? $sep = '' : $sep = ' | ';
-			$out                          .= "<span class='$action'>$link$sep</span>";
+
+			$sep = ( $i < $action_count ) ? ' | ' : '';
+
+			$out .= "<span class='$action'>$link$sep</span>";
 		}
+
 		$out .= '</div>';
 
 		$out .= '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>';
@@ -644,6 +682,7 @@ class WP_List_Table {
 				$classes[]    = 'current';
 				$aria_current = ' aria-current="page"';
 			}
+
 			printf(
 				"<a href='%s' class='%s' id='view-switch-$mode'$aria_current><span class='screen-reader-text'>%s</span></a>\n",
 				esc_url( remove_query_arg( 'attachment-filter', add_query_arg( 'mode', $mode ) ) ),
@@ -785,11 +824,22 @@ class WP_List_Table {
 		/**
 		 * Filters the number of items to be displayed on each page of the list table.
 		 *
-		 * The dynamic hook name, $option, refers to the `per_page` option depending
-		 * on the type of list table in use. Possible values include: 'edit_comments_per_page',
-		 * 'sites_network_per_page', 'site_themes_network_per_page', 'themes_network_per_page',
-		 * 'users_network_per_page', 'edit_post_per_page', 'edit_page_per_page',
-		 * 'edit_{$post_type}_per_page', etc.
+		 * The dynamic hook name, `$option`, refers to the `per_page` option depending
+		 * on the type of list table in use. Possible filter names include:
+		 *
+		 *  - `edit_comments_per_page`
+		 *  - `sites_network_per_page`
+		 *  - `site_themes_network_per_page`
+		 *  - `themes_network_per_page'`
+		 *  - `users_network_per_page`
+		 *  - `edit_post_per_page`
+		 *  - `edit_page_per_page'`
+		 *  - `edit_{$post_type}_per_page`
+		 *  - `edit_post_tag_per_page`
+		 *  - `edit_category_per_page`
+		 *  - `edit_{$taxonomy}_per_page`
+		 *  - `site_users_network_per_page`
+		 *  - `users_per_page`
 		 *
 		 * @since 2.9.0
 		 *
@@ -926,7 +976,7 @@ class WP_List_Table {
 		if ( ! empty( $infinite_scroll ) ) {
 			$pagination_links_class .= ' hide-if-js';
 		}
-		$output .= "\n<span class='$pagination_links_class'>" . join( "\n", $page_links ) . '</span>';
+		$output .= "\n<span class='$pagination_links_class'>" . implode( "\n", $page_links ) . '</span>';
 
 		if ( $total_pages ) {
 			$page_class = $total_pages < 2 ? ' one-page' : '';
@@ -1023,7 +1073,7 @@ class WP_List_Table {
 		// If the primary column doesn't exist,
 		// fall back to the first non-checkbox column.
 		if ( ! isset( $columns[ $default ] ) ) {
-			$default = WP_List_Table::get_default_primary_column_name();
+			$default = self::get_default_primary_column_name();
 		}
 
 		/**
@@ -1071,9 +1121,9 @@ class WP_List_Table {
 		 * Filters the list table sortable columns for a specific screen.
 		 *
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
-		 * to the ID of the current screen, usually a string.
+		 * to the ID of the current screen.
 		 *
-		 * @since 3.5.0
+		 * @since 3.1.0
 		 *
 		 * @param array $sortable_columns An array of sortable columns.
 		 */
@@ -1192,7 +1242,7 @@ class WP_List_Table {
 			$id    = $with_id ? "id='$column_key'" : '';
 
 			if ( ! empty( $class ) ) {
-				$class = "class='" . join( ' ', $class ) . "'";
+				$class = "class='" . implode( ' ', $class ) . "'";
 			}
 
 			echo "<$tag $scope $id $class>$column_display_name</$tag>";
@@ -1247,7 +1297,11 @@ class WP_List_Table {
 	 * @return string[] Array of CSS classes for the table tag.
 	 */
 	protected function get_table_classes() {
-		return array( 'widefat', 'fixed', 'striped', $this->_args['plural'] );
+		$mode = get_user_setting( 'posts_list_mode', 'list' );
+
+		$mode_class = esc_attr( 'table-view-' . $mode );
+
+		return array( 'widefat', 'fixed', 'striped', $mode_class, $this->_args['plural'] );
 	}
 
 	/**
@@ -1318,7 +1372,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param object $item The current item
+	 * @param object|array $item The current item
 	 */
 	public function single_row( $item ) {
 		echo '<tr>';
@@ -1327,13 +1381,13 @@ class WP_List_Table {
 	}
 
 	/**
-	 * @param object $item
+	 * @param object|array $item
 	 * @param string $column_name
 	 */
 	protected function column_default( $item, $column_name ) {}
 
 	/**
-	 * @param object $item
+	 * @param object|array $item
 	 */
 	protected function column_cb( $item ) {}
 
@@ -1342,7 +1396,7 @@ class WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param object $item The current item.
+	 * @param object|array $item The current item.
 	 */
 	protected function single_row_columns( $item ) {
 		list( $columns, $hidden, $sortable, $primary ) = $this->get_column_info();
@@ -1394,9 +1448,9 @@ class WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $item        The item being acted upon.
-	 * @param string $column_name Current column name.
-	 * @param string $primary     Primary column name.
+	 * @param object|array $item        The item being acted upon.
+	 * @param string       $column_name Current column name.
+	 * @param string       $primary     Primary column name.
 	 * @return string The row actions HTML, or an empty string
 	 *                if the current column is not the primary column.
 	 */

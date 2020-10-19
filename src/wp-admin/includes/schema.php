@@ -29,8 +29,8 @@ $charset_collate = $wpdb->get_charset_collate();
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string $scope Optional. The tables for which to retrieve SQL. Can be all, global, ms_global, or blog tables. Defaults to all.
- * @param int $blog_id Optional. The site ID for which to retrieve SQL. Default is the current site ID.
+ * @param string $scope   Optional. The tables for which to retrieve SQL. Can be all, global, ms_global, or blog tables. Defaults to all.
+ * @param int    $blog_id Optional. The site ID for which to retrieve SQL. Default is the current site ID.
  * @return string The SQL needed to create the requested tables.
  */
 function wp_get_db_schema( $scope = 'all', $blog_id = null ) {
@@ -422,11 +422,11 @@ function populate_options( array $options = array() ) {
 		'default_ping_status'             => 'open',
 		'default_pingback_flag'           => 1,
 		'posts_per_page'                  => 10,
-		/* translators: Default date format, see https://www.php.net/date */
+		/* translators: Default date format, see https://www.php.net/manual/datetime.format.php */
 		'date_format'                     => __( 'F j, Y' ),
-		/* translators: Default time format, see https://www.php.net/date */
+		/* translators: Default time format, see https://www.php.net/manual/datetime.format.php */
 		'time_format'                     => __( 'g:i a' ),
-		/* translators: Links last updated date format, see https://www.php.net/date */
+		/* translators: Links last updated date format, see https://www.php.net/manual/datetime.format.php */
 		'links_updated_date_format'       => __( 'F j, Y g:i a' ),
 		'comment_moderation'              => 0,
 		'moderation_notify'               => 1,
@@ -532,8 +532,9 @@ function populate_options( array $options = array() ) {
 		'admin_email_lifespan'            => ( time() + 6 * MONTH_IN_SECONDS ),
 
 		// 5.5.0
-		'blocklist_keys'                  => '',
+		'disallowed_keys'                 => '',
 		'comment_previously_approved'     => 1,
+		'auto_plugin_theme_update_emails' => array(),
 	);
 
 	// 3.3.0
@@ -552,7 +553,13 @@ function populate_options( array $options = array() ) {
 	$options = wp_parse_args( $options, $defaults );
 
 	// Set autoload to no for these options.
-	$fat_options = array( 'moderation_keys', 'recently_edited', 'blocklist_keys', 'uninstall_plugins' );
+	$fat_options = array(
+		'moderation_keys',
+		'recently_edited',
+		'disallowed_keys',
+		'uninstall_plugins',
+		'auto_plugin_theme_update_emails',
+	);
 
 	$keys             = "'" . implode( "', '", array_keys( $options ) ) . "'";
 	$existing_options = $wpdb->get_col( "SELECT option_name FROM $wpdb->options WHERE option_name in ( $keys )" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared

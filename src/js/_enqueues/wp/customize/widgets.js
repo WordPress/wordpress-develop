@@ -193,10 +193,9 @@
 				}
 			} );
 
-			// Clear the search results and trigger a new search.
+			// Clear the search results and trigger an `input` event to fire a new search.
 			this.$clearResults.on( 'click', function() {
-				self.$search.val( '' ).focus();
-				self.collection.doSearch( '' );
+				self.$search.val( '' ).focus().trigger( 'input' );
 			} );
 
 			// Close the panel if the URL in the preview changes.
@@ -385,7 +384,7 @@
 
 			$( 'body' ).removeClass( 'adding-widget' );
 
-			this.$search.val( '' );
+			this.$search.val( '' ).trigger( 'input' );
 		},
 
 		/**
@@ -460,7 +459,7 @@
 		/**
 		 * @param {jQuery.Event} e
 		 * @param {jQuery} widget
-		 * @param {String} newForm
+		 * @param {string} newForm
 		 */
 		rss: function( e, widget, newForm ) {
 			var oldWidgetError = widget.find( '.widget-error:first' ),
@@ -969,7 +968,7 @@
 		 *
 		 * @since 4.1.0
 		 *
-		 * @param {Boolean}   active
+		 * @param {boolean}   active
 		 * @param {Object}    args
 		 * @param {function}  args.completeCallback
 		 */
@@ -1076,7 +1075,7 @@
 		 * Get the state for an input depending on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @return {string|boolean|array|*}
+		 * @return {string|boolean|Array|*}
 		 * @private
 		 */
 		_getInputState: function( input ) {
@@ -1096,7 +1095,7 @@
 		 * Update an input's state based on its type.
 		 *
 		 * @param {jQuery|Element} input
-		 * @param {string|boolean|array|*} state
+		 * @param {string|boolean|Array|*} state
 		 * @private
 		 */
 		_setInputState: function ( input, state ) {
@@ -1144,10 +1143,10 @@
 		 * Submit the widget form via Ajax and get back the updated instance,
 		 * along with the new widget control form to render.
 		 *
-		 * @param {object} [args]
+		 * @param {Object} [args]
 		 * @param {Object|null} [args.instance=null]  When the model changes, the instance is sent here; otherwise, the inputs from the form are used
 		 * @param {Function|null} [args.complete=null]  Function which is called when the request finishes. Context is bound to the control. First argument is any error. Following arguments are for success.
-		 * @param {Boolean} [args.ignoreActiveElement=false] Whether or not updating a field will be deferred if focus is still on the element.
+		 * @param {boolean} [args.ignoreActiveElement=false] Whether or not updating a field will be deferred if focus is still on the element.
 		 */
 		updateWidget: function( args ) {
 			var self = this, instanceOverride, completeCallback, $widgetRoot, $widgetContent,
@@ -1399,7 +1398,7 @@
 		/**
 		 * Respond to change in the expanded state.
 		 *
-		 * @param {Boolean} expanded
+		 * @param {boolean} expanded
 		 * @param {Object} args  merged on top of this.defaultActiveArguments
 		 */
 		onChangeExpanded: function ( expanded, args ) {
@@ -1499,7 +1498,7 @@
 		/**
 		 * Get the position (index) of the widget in the containing sidebar
 		 *
-		 * @return {Number}
+		 * @return {number}
 		 */
 		getWidgetSidebarPosition: function() {
 			var sidebarWidgetIds, position;
@@ -1531,7 +1530,7 @@
 		/**
 		 * @private
 		 *
-		 * @param {Number} offset 1|-1
+		 * @param {number} offset 1|-1
 		 */
 		_moveWidgetByOne: function( offset ) {
 			var i, sidebarWidgetsSetting, sidebarWidgetIds,	adjacentWidgetId;
@@ -1550,7 +1549,7 @@
 		/**
 		 * Toggle visibility of the widget move area
 		 *
-		 * @param {Boolean} [showOrHide]
+		 * @param {boolean} [showOrHide]
 		 */
 		toggleWidgetMoveArea: function( showOrHide ) {
 			var self = this, $moveWidgetArea;
@@ -2008,7 +2007,7 @@
 		/**
 		 * Enable/disable the reordering UI
 		 *
-		 * @param {Boolean} showOrHide to enable/disable reordering
+		 * @param {boolean} showOrHide to enable/disable reordering
 		 *
 		 * @todo We should have a reordering state instead and rename this to onChangeReordering
 		 */
@@ -2066,7 +2065,7 @@
 
 		/**
 		 * @param {string} widgetId or an id_base for adding a previously non-existing widget.
-		 * @return {object|false} widget_form control instance, or false on error.
+		 * @return {Object|false} widget_form control instance, or false on error.
 		 */
 		addWidget: function( widgetId ) {
 			var self = this, controlHtml, $widget, controlType = 'widget_form', controlContainer, controlConstructor,
@@ -2247,7 +2246,7 @@
 	/**
 	 * Given a widget control, find the sidebar widgets control that contains it.
 	 * @param {string} widgetId
-	 * @return {object|null}
+	 * @return {Object|null}
 	 */
 	api.Widgets.getSidebarWidgetControlContainingWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2266,7 +2265,7 @@
 	 * Given a widget ID for a widget appearing in the preview, get the widget form control associated with it.
 	 *
 	 * @param {string} widgetId
-	 * @return {object|null}
+	 * @return {Object|null}
 	 */
 	api.Widgets.getWidgetFormControlForWidget = function( widgetId ) {
 		var foundControl = null;
@@ -2334,7 +2333,7 @@
 	}
 
 	/**
-	 * @param {String} widgetId
+	 * @param {string} widgetId
 	 * @return {Object}
 	 */
 	function parseWidgetId( widgetId ) {
@@ -2356,8 +2355,8 @@
 	}
 
 	/**
-	 * @param {String} widgetId
-	 * @return {String} settingId
+	 * @param {string} widgetId
+	 * @return {string} settingId
 	 */
 	function widgetIdToSettingId( widgetId ) {
 		var parsed = parseWidgetId( widgetId ), settingId;

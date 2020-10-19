@@ -61,7 +61,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var bool
 	 */
-	var $show_errors = false;
+	public $show_errors = false;
 
 	/**
 	 * Whether to suppress errors during the DB bootstrapping. Default false.
@@ -69,7 +69,7 @@ class wpdb {
 	 * @since 2.5.0
 	 * @var bool
 	 */
-	var $suppress_errors = false;
+	public $suppress_errors = false;
 
 	/**
 	 * The error encountered during the last query.
@@ -101,7 +101,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var int
 	 */
-	var $rows_affected = 0;
+	public $rows_affected = 0;
 
 	/**
 	 * The ID generated for an AUTO_INCREMENT column by the last query (usually INSERT).
@@ -117,7 +117,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var string
 	 */
-	var $last_query;
+	public $last_query;
 
 	/**
 	 * Results of the last query.
@@ -125,7 +125,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var array|null
 	 */
-	var $last_result;
+	public $last_result;
 
 	/**
 	 * MySQL result, which is either a resource or boolean.
@@ -198,7 +198,7 @@ class wpdb {
 	 *     }
 	 * }
 	 */
-	var $queries;
+	public $queries;
 
 	/**
 	 * The number of times to retry reconnecting before dying. Default 5.
@@ -234,7 +234,7 @@ class wpdb {
 	 * @since 2.3.2
 	 * @var bool
 	 */
-	var $ready = false;
+	public $ready = false;
 
 	/**
 	 * Blog ID.
@@ -259,7 +259,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $tables = array(
+	public $tables = array(
 		'posts',
 		'comments',
 		'links',
@@ -281,7 +281,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $old_tables = array( 'categories', 'post2cat', 'link2cat' );
+	public $old_tables = array( 'categories', 'post2cat', 'link2cat' );
 
 	/**
 	 * List of WordPress global tables.
@@ -290,7 +290,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $global_tables = array( 'users', 'usermeta' );
+	public $global_tables = array( 'users', 'usermeta' );
 
 	/**
 	 * List of Multisite global tables.
@@ -299,7 +299,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $ms_global_tables = array(
+	public $ms_global_tables = array(
 		'blogs',
 		'blogmeta',
 		'signups',
@@ -967,8 +967,10 @@ class wpdb {
 			if ( null === $blog_id ) {
 				$blog_id = $this->blogid;
 			}
+
 			$blog_id = (int) $blog_id;
-			if ( defined( 'MULTISITE' ) && ( 0 == $blog_id || 1 == $blog_id ) ) {
+
+			if ( defined( 'MULTISITE' ) && ( 0 === $blog_id || 1 === $blog_id ) ) {
 				return $this->base_prefix;
 			} else {
 				return $this->base_prefix . $blog_id . '_';
@@ -1157,6 +1159,10 @@ class wpdb {
 	 * @return string Escaped string.
 	 */
 	function _real_escape( $string ) {
+		if ( ! is_scalar( $string ) && ! is_null( $string ) ) {
+			return '';
+		}
+
 		if ( $this->dbh ) {
 			if ( $this->use_mysqli ) {
 				$escaped = mysqli_real_escape_string( $this->dbh, $string );
@@ -1314,7 +1320,7 @@ class wpdb {
 
 		// If args were passed as an array (as in vsprintf), move them up.
 		$passed_as_array = false;
-		if ( is_array( $args[0] ) && count( $args ) == 1 ) {
+		if ( is_array( $args[0] ) && count( $args ) === 1 ) {
 			$passed_as_array = true;
 			$args            = $args[0];
 		}
@@ -1363,7 +1369,9 @@ class wpdb {
 		// Count the number of valid placeholders in the query.
 		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format)?[sdF]/", $query, $matches );
 
-		if ( count( $args ) !== $placeholders ) {
+		$args_count = count( $args );
+
+		if ( $args_count !== $placeholders ) {
 			if ( 1 === $placeholders && $passed_as_array ) {
 				// If the passed query only expected one argument, but the wrong number of arguments were sent as an array, bail.
 				wp_load_translations_early();
@@ -1386,10 +1394,22 @@ class wpdb {
 						/* translators: 1: Number of placeholders, 2: Number of arguments passed. */
 						__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
 						$placeholders,
-						count( $args )
+						$args_count
 					),
 					'4.8.3'
 				);
+
+				/*
+				 * If we don't have enough arguments to match the placeholders,
+				 * return an empty string to avoid a fatal error on PHP 8.
+				 */
+				if ( $args_count < $placeholders ) {
+					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', $matches[3] ) ) : 0;
+
+					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
+						return '';
+					}
+				}
 			}
 		}
 
@@ -1895,6 +1915,11 @@ class wpdb {
 		 */
 		$query = apply_filters( 'query', $query );
 
+		if ( ! $query ) {
+			$this->insert_id = 0;
+			return false;
+		}
+
 		$this->flush();
 
 		// Log how the function was called.
@@ -1939,7 +1964,7 @@ class wpdb {
 			}
 		}
 
-		if ( empty( $this->dbh ) || 2006 == $mysql_errno ) {
+		if ( empty( $this->dbh ) || 2006 === $mysql_errno ) {
 			if ( $this->check_connection() ) {
 				$this->_do_query( $query );
 			} else {
@@ -2220,7 +2245,7 @@ class wpdb {
 	 *                             A format is one of '%d', '%f', '%s' (integer, float, string).
 	 *                             If omitted, all values in $data will be treated as strings unless otherwise
 	 *                             specified in wpdb::$field_types.
-	 * @param string $type         Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
+	 * @param string       $type   Optional. Type of operation. Possible values include 'INSERT' or 'REPLACE'.
 	 *                             Default 'INSERT'.
 	 * @return int|false The number of rows affected, or false on error.
 	 */
@@ -2574,9 +2599,9 @@ class wpdb {
 	 * @since 0.71
 	 *
 	 * @param string|null $query  SQL query.
-	 * @param string      $output Optional. The required return type. Possible values include
-	 *                            OBJECT, ARRAY_A, or ARRAY_N, which correspond to an stdClass object,
-	 *                            an associative array, or a numeric array, respectively. Default OBJECT.
+	 * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+	 *                            correspond to an stdClass object, an associative array, or a numeric array,
+	 *                            respectively. Default OBJECT.
 	 * @param int         $y      Optional. Row to return. Indexed from 0.
 	 * @return array|object|null|void Database query result in format specified by $output or null on failure.
 	 */
@@ -2597,11 +2622,11 @@ class wpdb {
 			return null;
 		}
 
-		if ( OBJECT == $output ) {
+		if ( OBJECT === $output ) {
 			return $this->last_result[ $y ] ? $this->last_result[ $y ] : null;
-		} elseif ( ARRAY_A == $output ) {
+		} elseif ( ARRAY_A === $output ) {
 			return $this->last_result[ $y ] ? get_object_vars( $this->last_result[ $y ] ) : null;
-		} elseif ( ARRAY_N == $output ) {
+		} elseif ( ARRAY_N === $output ) {
 			return $this->last_result[ $y ] ? array_values( get_object_vars( $this->last_result[ $y ] ) ) : null;
 		} elseif ( OBJECT === strtoupper( $output ) ) {
 			// Back compat for OBJECT being previously case-insensitive.
@@ -2659,7 +2684,6 @@ class wpdb {
 	 *                       return an associative array of row objects keyed by the value
 	 *                       of each row's first column's value. Duplicate keys are discarded.
 	 * @return array|object|null Database query results.
-	 *
 	 */
 	public function get_results( $query = null, $output = OBJECT ) {
 		$this->func_call = "\$db->get_results(\"$query\", $output)";
@@ -2675,10 +2699,10 @@ class wpdb {
 		}
 
 		$new_array = array();
-		if ( OBJECT == $output ) {
+		if ( OBJECT === $output ) {
 			// Return an integer-keyed array of row objects.
 			return $this->last_result;
-		} elseif ( OBJECT_K == $output ) {
+		} elseif ( OBJECT_K === $output ) {
 			// Return an array of row objects with keys from column 1.
 			// (Duplicates are discarded.)
 			if ( $this->last_result ) {
@@ -2691,11 +2715,11 @@ class wpdb {
 				}
 			}
 			return $new_array;
-		} elseif ( ARRAY_A == $output || ARRAY_N == $output ) {
+		} elseif ( ARRAY_A === $output || ARRAY_N === $output ) {
 			// Return an integer-keyed array of...
 			if ( $this->last_result ) {
 				foreach ( (array) $this->last_result as $row ) {
-					if ( ARRAY_N == $output ) {
+					if ( ARRAY_N === $output ) {
 						// ...integer-keyed row arrays.
 						$new_array[] = array_values( get_object_vars( $row ) );
 					} else {
@@ -3393,18 +3417,18 @@ class wpdb {
 	 *
 	 * @since 0.71
 	 *
-	 * @param string $info_type Optional. Possible values include 'name', 'table', 'def', 'max_length',
-	 *                          'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric',
-	 *                          'blob', 'type', 'unsigned', 'zerofill'. Default 'name'.
-	 * @param int $col_offset   Optional. 0: col name. 1: which table the col's in. 2: col's max length.
-	 *                          3: if the col is numeric. 4: col's type. Default -1.
+	 * @param string $info_type  Optional. Possible values include 'name', 'table', 'def', 'max_length',
+	 *                           'not_null', 'primary_key', 'multiple_key', 'unique_key', 'numeric',
+	 *                           'blob', 'type', 'unsigned', 'zerofill'. Default 'name'.
+	 * @param int    $col_offset Optional. 0: col name. 1: which table the col's in. 2: col's max length.
+	 *                           3: if the col is numeric. 4: col's type. Default -1.
 	 * @return mixed Column results.
 	 */
 	public function get_col_info( $info_type = 'name', $col_offset = -1 ) {
 		$this->load_col_info();
 
 		if ( $this->col_info ) {
-			if ( -1 == $col_offset ) {
+			if ( -1 === $col_offset ) {
 				$i         = 0;
 				$new_array = array();
 				foreach ( (array) $this->col_info as $col ) {

@@ -1085,7 +1085,7 @@ function _media_button($title, $icon, $type, $id) {
  * @see get_post()
  *
  * @param int $id
- * @return object
+ * @return WP_Post
  */
 function get_post_to_edit( $id ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'get_post()' );
@@ -1379,7 +1379,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
 			'&nbsp;<a href="' . $ilink . '" class="thickbox open-plugin-details-modal" aria-label="' .
 			/* translators: %s: Plugin name. */
-			esc_attr( sprintf( __( 'Install %s' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
+			esc_attr( sprintf( _x( 'Install %s', 'plugin' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
 
 		$feed->__destruct();
 		unset( $feed );

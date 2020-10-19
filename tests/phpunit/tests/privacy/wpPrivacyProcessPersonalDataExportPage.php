@@ -44,13 +44,13 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	protected static $response_last_page;
 
 	/**
-	 * Export Url.
+	 * Exports URL.
 	 *
 	 * @since 5.5.0
 	 *
-	 * @var string $export_url
+	 * @var string $exports_url
 	 */
-	protected static $export_url;
+	protected static $exports_url;
 
 	/**
 	 * Export File Name.
@@ -149,9 +149,9 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$requester_email      = 'requester@example.com';
-		self::$export_url           = wp_privacy_exports_url();
+		self::$exports_url          = wp_privacy_exports_url();
 		self::$export_file_name     = 'wp-personal-data-file-Wv0RfMnGIkl4CFEDEEkSeIdfLmaUrLsl.zip';
-		self::$export_file_url      = self::$export_url . self::$export_file_name;
+		self::$export_file_url      = self::$exports_url . self::$export_file_name;
 		self::$request_id           = wp_create_user_request( self::$requester_email, 'export_personal_data' );
 		self::$page_index_first     = 1;
 		self::$page_index_last      = 2;
@@ -256,7 +256,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @param string $expected_output The expected string exception output.
 	 */
 	private function _setup_expected_failure( $expected_output ) {
-		$this->setExpectedException( 'WPDieException' );
+		$this->expectException( 'WPDieException' );
 		$this->expectOutputString( $expected_output );
 	}
 
@@ -367,7 +367,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$invalid_request_id = 0;
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,
@@ -399,7 +399,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$request_id = wp_create_user_request( self::$requester_email, 'remove_personal_data' );
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,

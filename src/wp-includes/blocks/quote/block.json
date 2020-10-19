@@ -18,5 +18,9 @@
 		"align": {
 			"type": "string"
 		}
+	},
+	"supports": {
+		"anchor": true,
+		"lightBlockWrapper": true
 	}
 }

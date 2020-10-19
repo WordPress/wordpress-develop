@@ -36,6 +36,6 @@ class Tests_WP_Hook_Remove_All_Filters extends WP_UnitTestCase {
 
 		$this->assertFalse( $hook->has_filter( $tag, $callback_one ) );
 		$this->assertTrue( $hook->has_filters() );
-		$this->assertEquals( $priority + 1, $hook->has_filter( $tag, $callback_two ) );
+		$this->assertSame( $priority + 1, $hook->has_filter( $tag, $callback_two ) );
 	}
 }

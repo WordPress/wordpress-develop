@@ -591,7 +591,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
-		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true );
+		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 
@@ -677,6 +677,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, true );
 
+		wp_after_insert_post( $post, false );
+
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 
@@ -758,7 +760,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
-		$post_id = wp_update_post( wp_slash( (array) $post ), true );
+		$post_id = wp_update_post( wp_slash( (array) $post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 			if ( 'db_update_error' === $post_id->get_error_code() ) {
@@ -827,6 +829,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
+
+		wp_after_insert_post( $post, true );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 
@@ -1370,9 +1374,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 4.9.0 Added the `$validate` parameter.
 	 *
-	 * @param string  $template Page template filename.
-	 * @param integer $post_id  Post ID.
-	 * @param bool    $validate Whether to validate that the template selected is valid.
+	 * @param string $template Page template filename.
+	 * @param int    $post_id  Post ID.
+	 * @param bool   $validate Whether to validate that the template selected is valid.
 	 */
 	public function handle_template( $template, $post_id, $validate = false ) {
 
@@ -2192,6 +2196,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				'custom-fields',
 			),
 		);
+
 		foreach ( $post_type_attributes as $attribute ) {
 			if ( isset( $fixed_schemas[ $this->post_type ] ) && ! in_array( $attribute, $fixed_schemas[ $this->post_type ], true ) ) {
 				continue;
@@ -2379,7 +2384,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				_doing_it_wrong(
 					'register_taxonomy',
 					sprintf(
-						/* translators: 1. The taxonomy name, 2. The property name, either 'rest_base' or 'name', 3. The conflicting value. */
+						/* translators: 1: The taxonomy name, 2: The property name, either 'rest_base' or 'name', 3: The conflicting value. */
 						__( 'The "%1$s" taxonomy "%2$s" property (%3$s) conflicts with an existing property on the REST API Posts Controller. Specify a custom "rest_base" when registering the taxonomy to avoid this error.' ),
 						$taxonomy->name,
 						$taxonomy_field_name_with_conflict,
@@ -2410,7 +2415,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$schema_fields = array_keys( $schema['properties'] );
 
 		/**
-		 * Filter the post's schema.
+		 * Filters the post's schema.
 		 *
 		 * The dynamic portion of the filter, `$this->post_type`, refers to the
 		 * post type slug for the controller.
@@ -2424,7 +2429,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Emit a _doing_it_wrong warning if user tries to add new properties using this filter.
 		$new_fields = array_diff( array_keys( $schema['properties'] ), $schema_fields );
 		if ( count( $new_fields ) > 0 ) {
-			_doing_it_wrong( __METHOD__, __( 'Please use register_rest_field to add new schema properties.' ), '5.4.0' );
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf(
+					/* translators: %s: register_rest_field */
+					__( 'Please use %s to add new schema properties.' ),
+					'register_rest_field'
+				),
+				'5.4.0'
+			);
 		}
 
 		$this->schema = $schema;
@@ -2743,7 +2756,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filter collection parameters for the posts controller.
+		 * Filters collection parameters for the posts controller.
 		 *
 		 * The dynamic part of the filter `$this->post_type` refers to the post
 		 * type slug for the controller.

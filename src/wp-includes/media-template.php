@@ -310,10 +310,10 @@ function wp_print_media_templates() {
 	<?php // Template for the view switchers, used for example in the Media Grid. ?>
 	<script type="text/html" id="tmpl-media-library-view-switcher">
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'list', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-list">
-			<span class="screen-reader-text"><?php _e( 'List View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'List view' ); ?></span>
 		</a>
 		<a href="<?php echo esc_url( add_query_arg( 'mode', 'grid', $_SERVER['REQUEST_URI'] ) ); ?>" class="view-grid current" aria-current="page">
-			<span class="screen-reader-text"><?php _e( 'Grid View' ); ?></span>
+			<span class="screen-reader-text"><?php _e( 'Grid view' ); ?></span>
 		</a>
 	</script>
 
@@ -366,7 +366,7 @@ function wp_print_media_templates() {
 				<# } #>
 
 				<# if ( 'audio' === data.type ) { #>
-				<div class="wp-media-wrapper">
+				<div class="wp-media-wrapper wp-audio">
 					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
 						<source type="{{ data.mime }}" src="{{ data.url }}"/>
 					</audio>
@@ -503,7 +503,7 @@ function wp_print_media_templates() {
 					<label for="attachment-details-two-column-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
 					<input type="text" class="attachment-details-copy-link" id="attachment-details-two-column-copy-link" value="{{ data.url }}" readonly />
 					<span class="copy-to-clipboard-container">
-						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL' ); ?></button>
+						<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-two-column-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 						<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 					</span>
 				</span>
@@ -523,7 +523,7 @@ function wp_print_media_templates() {
 							<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 						<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 			</div>
@@ -536,7 +536,7 @@ function wp_print_media_templates() {
 			<div class="thumbnail">
 				<# if ( data.uploading ) { #>
 					<div class="media-progress-bar"><div style="width: {{ data.percent }}%"></div></div>
-				<# } else if ( 'image' === data.type && data.sizes ) { #>
+				<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>
 					<div class="centered">
 						<img src="{{ data.size.url }}" draggable="false" alt="" />
 					</div>
@@ -595,15 +595,41 @@ function wp_print_media_templates() {
 			</span>
 		</h2>
 		<div class="attachment-info">
-			<div class="thumbnail thumbnail-{{ data.type }}">
-				<# if ( data.uploading ) { #>
-					<div class="media-progress-bar"><div></div></div>
-				<# } else if ( 'image' === data.type && data.sizes ) { #>
-					<img src="{{ data.size.url }}" draggable="false" alt="" />
-				<# } else { #>
-					<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
-				<# } #>
-			</div>
+
+			<# if ( 'audio' === data.type ) { #>
+				<div class="wp-media-wrapper wp-audio">
+					<audio style="visibility: hidden" controls class="wp-audio-shortcode" width="100%" preload="none">
+						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+					</audio>
+				</div>
+			<# } else if ( 'video' === data.type ) {
+				var w_rule = '';
+				if ( data.width ) {
+					w_rule = 'width: ' + data.width + 'px;';
+				} else if ( wp.media.view.settings.contentWidth ) {
+					w_rule = 'width: ' + wp.media.view.settings.contentWidth + 'px;';
+				}
+			#>
+				<div style="{{ w_rule }}" class="wp-media-wrapper wp-video">
+					<video controls="controls" class="wp-video-shortcode" preload="metadata"
+						<# if ( data.width ) { #>width="{{ data.width }}"<# } #>
+						<# if ( data.height ) { #>height="{{ data.height }}"<# } #>
+						<# if ( data.image && data.image.src !== data.icon ) { #>poster="{{ data.image.src }}"<# } #>>
+						<source type="{{ data.mime }}" src="{{ data.url }}"/>
+					</video>
+				</div>
+			<# } else { #>
+				<div class="thumbnail thumbnail-{{ data.type }}">
+					<# if ( data.uploading ) { #>
+						<div class="media-progress-bar"><div></div></div>
+					<# } else if ( 'image' === data.type && data.size && data.size.url ) { #>
+						<img src="{{ data.size.url }}" draggable="false" alt="" />
+					<# } else { #>
+						<img src="{{ data.icon }}" class="icon" draggable="false" alt="" />
+					<# } #>
+				</div>
+			<# } #>
+
 			<div class="details">
 				<div class="filename">{{ data.filename }}</div>
 				<div class="uploaded">{{ data.dateFormatted }}</div>
@@ -644,7 +670,7 @@ function wp_print_media_templates() {
 						<button type="button" class="button-link trash-attachment"><?php _e( 'Move to Trash' ); ?></button>
 					<# } #>
 					<?php else : ?>
-						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete Permanently' ); ?></button>
+						<button type="button" class="button-link delete-attachment"><?php _e( 'Delete permanently' ); ?></button>
 					<?php endif; ?>
 				<# } #>
 
@@ -694,7 +720,7 @@ function wp_print_media_templates() {
 			<label for="attachment-details-copy-link" class="name"><?php _e( 'File URL:' ); ?></label>
 			<input type="text" class="attachment-details-copy-link" id="attachment-details-copy-link" value="{{ data.url }}" readonly />
 			<div class="copy-to-clipboard-container">
-				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL' ); ?></button>
+				<button type="button" class="button button-small copy-attachment-url" data-clipboard-target="#attachment-details-copy-link"><?php _e( 'Copy URL to clipboard' ); ?></button>
 				<span class="success hidden" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 			</div>
 		</span>

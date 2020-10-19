@@ -162,7 +162,7 @@ if ( $action ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html( $title ) . '</h1>';
 
-			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( join( ',', $plugins ) ) );
+			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( implode( ',', $plugins ) ) );
 			$url = wp_nonce_url( $url, 'bulk-update-plugins' );
 
 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
@@ -574,6 +574,7 @@ if ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type(
 			'title'   => __( 'Auto-updates' ),
 			'content' =>
 					'<p>' . __( 'Auto-updates can be enabled or disabled for each individual plugin. Plugins with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>' .
+					'<p>' . __( 'Auto-updates are only available for plugins recognized by WordPress.org, or that include a compatible update system.' ) . '</p>' .
 					'<p>' . __( 'Please note: Third-party themes and plugins, or custom code, may override WordPress scheduling.' ) . '</p>',
 		)
 	);

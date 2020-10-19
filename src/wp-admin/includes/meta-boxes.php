@@ -17,8 +17,8 @@
  *
  * @global string $action
  *
- * @param WP_Post  $post Current post object.
- * @param array    $args {
+ * @param WP_Post $post Current post object.
+ * @param array   $args {
  *     Array of arguments for building the post submit meta box.
  *
  *     @type string   $id       Meta box 'id' attribute.
@@ -212,11 +212,11 @@ function post_submit_meta_box( $post, $args = array() ) {
 		</div>
 
 		<?php
-		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 		$date_string = __( '%1$s at %2$s' );
-		/* translators: Publish box date format, see https://www.php.net/date */
+		/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 		$date_format = _x( 'M j, Y', 'publish box date format' );
-		/* translators: Publish box time format, see https://www.php.net/date */
+		/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 		$time_format = _x( 'H:i', 'publish box time format' );
 
 		if ( 0 !== $post_id ) {
@@ -332,7 +332,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 		<?php
 		if ( current_user_can( 'delete_post', $post_id ) ) {
 			if ( ! EMPTY_TRASH_DAYS ) {
-				$delete_text = __( 'Delete Permanently' );
+				$delete_text = __( 'Delete permanently' );
 			} else {
 				$delete_text = __( 'Move to Trash' );
 			}
@@ -385,7 +385,7 @@ function post_submit_meta_box( $post, $args = array() ) {
  *
  * @since 3.5.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function attachment_submit_meta_box( $post ) {
 	?>
@@ -404,11 +404,11 @@ function attachment_submit_meta_box( $post ) {
 		<span id="timestamp">
 			<?php
 			$uploaded_on = sprintf(
-				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 				__( '%1$s at %2$s' ),
-				/* translators: Publish box date format, see https://www.php.net/date */
+				/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-				/* translators: Publish box time format, see https://www.php.net/date */
+				/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 			);
 			/* translators: Attachment information. %s: Date the attachment was uploaded. */
@@ -441,7 +441,7 @@ function attachment_submit_meta_box( $post ) {
 			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
 			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete Permanently' ) . '</a>';
+			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
 		}
 	}
 	?>
@@ -695,7 +695,7 @@ function post_categories_meta_box( $post, $box ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_excerpt_meta_box( $post ) {
 	?>
@@ -717,7 +717,7 @@ function post_excerpt_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_trackback_meta_box( $post ) {
 	$form_trackback = '<input type="text" name="trackback_url" id="trackback_url" class="code" value="' .
@@ -758,7 +758,7 @@ function post_trackback_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_custom_meta_box( $post ) {
 	?>
@@ -792,7 +792,7 @@ function post_custom_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_status_meta_box( $post ) {
 	?>
@@ -840,7 +840,7 @@ function post_comment_meta_box_thead( $result ) {
  *
  * @since 2.8.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_meta_box( $post ) {
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
@@ -881,7 +881,7 @@ function post_comment_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_slug_meta_box( $post ) {
 	/** This filter is documented in wp-admin/edit-tag-form.php */
@@ -898,7 +898,7 @@ function post_slug_meta_box( $post ) {
  *
  * @global int $user_ID
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
@@ -921,7 +921,7 @@ function post_author_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_revisions_meta_box( $post ) {
 	wp_list_post_revisions( $post );
@@ -936,7 +936,7 @@ function post_revisions_meta_box( $post ) {
  *
  * @since 2.7.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function page_attributes_meta_box( $post ) {
 	if ( is_post_type_hierarchical( $post->post_type ) ) :
@@ -998,7 +998,7 @@ function page_attributes_meta_box( $post ) {
 		 * @param string $context Where the option label is displayed. Possible values
 		 *                        include 'meta-box' or 'quick-edit'.
 		 */
-		$default_title = apply_filters( 'default_page_template_title', __( 'Default Template' ), 'meta-box' );
+		$default_title = apply_filters( 'default_page_template_title', __( 'Default template' ), 'meta-box' );
 		?>
 <option value="default"><?php echo esc_html( $default_title ); ?></option>
 		<?php page_template_dropdown( $template, $post->post_type ); ?>
@@ -1115,7 +1115,7 @@ function link_categories_meta_box( $link ) {
 	?>
 <div id="taxonomy-linkcategory" class="categorydiv">
 	<ul id="category-tabs" class="category-tabs">
-		<li class="tabs"><a href="#categories-all"><?php _e( 'All Categories' ); ?></a></li>
+		<li class="tabs"><a href="#categories-all"><?php _e( 'All categories' ); ?></a></li>
 		<li class="hide-if-no-js"><a href="#categories-pop"><?php _ex( 'Most Used', 'categories' ); ?></a></li>
 	</ul>
 
@@ -1185,7 +1185,7 @@ function link_target_meta_box( $link ) {
  *
  * @param string $class
  * @param string $value
- * @param mixed $deprecated Never used.
+ * @param mixed  $deprecated Never used.
  */
 function xfn_check( $class, $value = '', $deprecated = '' ) {
 	global $link;
@@ -1228,110 +1228,110 @@ function link_xfn_meta_box( $link ) {
 	?>
 <table class="links-table">
 	<tr>
-		<th scope="row"><label for="link_rel"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'rel:' ); ?></label></th>
+		<th scope="row"><label for="link_rel"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'rel:' ); ?></label></th>
 		<td><input type="text" name="link_rel" id="link_rel" value="<?php echo ( isset( $link->link_rel ) ? esc_attr( $link->link_rel ) : '' ); ?>" /></td>
 	</tr>
 	<tr>
-		<th scope="row"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'identity' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'identity' ); ?></span></legend>
+		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></th>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'identity' ); ?></span></legend>
 			<label for="me">
 			<input type="checkbox" name="identity" value="me" id="me" <?php xfn_check( 'identity', 'me' ); ?> />
 			<?php _e( 'another web address of mine' ); ?></label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'friendship' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'friendship' ); ?></span></legend>
+		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></th>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friendship' ); ?></span></legend>
 			<label for="contact">
-			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'contact' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="contact" id="contact" <?php xfn_check( 'friendship', 'contact' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'contact' ); ?>
 			</label>
 			<label for="acquaintance">
-			<input class="valinp" type="radio" name="friendship" value="acquaintance" id="acquaintance" <?php xfn_check( 'friendship', 'acquaintance' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'acquaintance' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="acquaintance" id="acquaintance" <?php xfn_check( 'friendship', 'acquaintance' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'acquaintance' ); ?>
 			</label>
 			<label for="friend">
-			<input class="valinp" type="radio" name="friendship" value="friend" id="friend" <?php xfn_check( 'friendship', 'friend' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'friend' ); ?>
+			<input class="valinp" type="radio" name="friendship" value="friend" id="friend" <?php xfn_check( 'friendship', 'friend' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'friend' ); ?>
 			</label>
 			<label for="friendship">
-			<input name="friendship" type="radio" class="valinp" value="" id="friendship" <?php xfn_check( 'friendship' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input name="friendship" type="radio" class="valinp" value="" id="friendship" <?php xfn_check( 'friendship' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"> <?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'physical' ); ?> </th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'physical' ); ?></span></legend>
+		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?> </th>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'physical' ); ?></span></legend>
 			<label for="met">
-			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'met' ); ?>
+			<input class="valinp" type="checkbox" name="physical" value="met" id="met" <?php xfn_check( 'physical', 'met' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'met' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"> <?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'professional' ); ?> </th>
-		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'professional' ); ?></span></legend>
+		<th scope="row"> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?> </th>
+		<td><fieldset><legend class="screen-reader-text"><span><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'professional' ); ?></span></legend>
 			<label for="co-worker">
-			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
+			<input class="valinp" type="checkbox" name="professional" value="co-worker" id="co-worker" <?php xfn_check( 'professional', 'co-worker' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-worker' ); ?>
 			</label>
 			<label for="colleague">
-			<input class="valinp" type="checkbox" name="professional" value="colleague" id="colleague" <?php xfn_check( 'professional', 'colleague' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'colleague' ); ?>
+			<input class="valinp" type="checkbox" name="professional" value="colleague" id="colleague" <?php xfn_check( 'professional', 'colleague' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'colleague' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'geographical' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'geographical' ); ?> </span></legend>
+		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?></th>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'geographical' ); ?> </span></legend>
 			<label for="co-resident">
-			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="co-resident" id="co-resident" <?php xfn_check( 'geographical', 'co-resident' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'co-resident' ); ?>
 			</label>
 			<label for="neighbor">
-			<input class="valinp" type="radio" name="geographical" value="neighbor" id="neighbor" <?php xfn_check( 'geographical', 'neighbor' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'neighbor' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="neighbor" id="neighbor" <?php xfn_check( 'geographical', 'neighbor' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'neighbor' ); ?>
 			</label>
 			<label for="geographical">
-			<input class="valinp" type="radio" name="geographical" value="" id="geographical" <?php xfn_check( 'geographical' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input class="valinp" type="radio" name="geographical" value="" id="geographical" <?php xfn_check( 'geographical' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'family' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'family' ); ?> </span></legend>
+		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?></th>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'family' ); ?> </span></legend>
 			<label for="child">
-			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'child' ); ?>
+			<input class="valinp" type="radio" name="family" value="child" id="child" <?php xfn_check( 'family', 'child' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'child' ); ?>
 			</label>
 			<label for="kin">
-			<input class="valinp" type="radio" name="family" value="kin" id="kin" <?php xfn_check( 'family', 'kin' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'kin' ); ?>
+			<input class="valinp" type="radio" name="family" value="kin" id="kin" <?php xfn_check( 'family', 'kin' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'kin' ); ?>
 			</label>
 			<label for="parent">
-			<input class="valinp" type="radio" name="family" value="parent" id="parent" <?php xfn_check( 'family', 'parent' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'parent' ); ?>
+			<input class="valinp" type="radio" name="family" value="parent" id="parent" <?php xfn_check( 'family', 'parent' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'parent' ); ?>
 			</label>
 			<label for="sibling">
-			<input class="valinp" type="radio" name="family" value="sibling" id="sibling" <?php xfn_check( 'family', 'sibling' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'sibling' ); ?>
+			<input class="valinp" type="radio" name="family" value="sibling" id="sibling" <?php xfn_check( 'family', 'sibling' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sibling' ); ?>
 			</label>
 			<label for="spouse">
-			<input class="valinp" type="radio" name="family" value="spouse" id="spouse" <?php xfn_check( 'family', 'spouse' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'spouse' ); ?>
+			<input class="valinp" type="radio" name="family" value="spouse" id="spouse" <?php xfn_check( 'family', 'spouse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'spouse' ); ?>
 			</label>
 			<label for="family">
-			<input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'none' ); ?>
+			<input class="valinp" type="radio" name="family" value="" id="family" <?php xfn_check( 'family' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'none' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 	<tr>
-		<th scope="row"><?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'romantic' ); ?></th>
-		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'romantic' ); ?> </span></legend>
+		<th scope="row"><?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?></th>
+		<td><fieldset><legend class="screen-reader-text"><span> <?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'romantic' ); ?> </span></legend>
 			<label for="muse">
-			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'muse' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="muse" id="muse" <?php xfn_check( 'romantic', 'muse' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'muse' ); ?>
 			</label>
 			<label for="crush">
-			<input class="valinp" type="checkbox" name="romantic" value="crush" id="crush" <?php xfn_check( 'romantic', 'crush' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'crush' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="crush" id="crush" <?php xfn_check( 'romantic', 'crush' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'crush' ); ?>
 			</label>
 			<label for="date">
-			<input class="valinp" type="checkbox" name="romantic" value="date" id="date" <?php xfn_check( 'romantic', 'date' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'date' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="date" id="date" <?php xfn_check( 'romantic', 'date' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'date' ); ?>
 			</label>
 			<label for="romantic">
-			<input class="valinp" type="checkbox" name="romantic" value="sweetheart" id="romantic" <?php xfn_check( 'romantic', 'sweetheart' ); ?> />&nbsp;<?php /* translators: xfn: http://gmpg.org/xfn/ */ _e( 'sweetheart' ); ?>
+			<input class="valinp" type="checkbox" name="romantic" value="sweetheart" id="romantic" <?php xfn_check( 'romantic', 'sweetheart' ); ?> />&nbsp;<?php /* translators: xfn: https://gmpg.org/xfn/ */ _e( 'sweetheart' ); ?>
 			</label>
 		</fieldset></td>
 	</tr>
 
 </table>
-<p><?php _e( 'If the link is to a person, you can specify your relationship with them using the above form. If you would like to learn more about the idea check out <a href="http://gmpg.org/xfn/">XFN</a>.' ); ?></p>
+<p><?php _e( 'If the link is to a person, you can specify your relationship with them using the above form. If you would like to learn more about the idea check out <a href="https://gmpg.org/xfn/">XFN</a>.' ); ?></p>
 	<?php
 }
 
@@ -1436,17 +1436,18 @@ function register_and_do_post_meta_boxes( $post ) {
 	}
 
 	$publish_callback_args = array( '__back_compat_meta_box' => true );
+
 	if ( post_type_supports( $post_type, 'revisions' ) && 'auto-draft' !== $post->post_status ) {
-		$revisions = wp_get_post_revisions( $post->ID );
+		$revisions = wp_get_post_revisions( $post->ID, array( 'fields' => 'ids' ) );
 
 		// We should aim to show the revisions meta box only when there are revisions.
 		if ( count( $revisions ) > 1 ) {
-			reset( $revisions ); // Reset pointer for key().
 			$publish_callback_args = array(
 				'revisions_count'        => count( $revisions ),
-				'revision_id'            => key( $revisions ),
+				'revision_id'            => reset( $revisions ),
 				'__back_compat_meta_box' => true,
 			);
+
 			add_meta_box( 'revisionsdiv', __( 'Revisions' ), 'post_revisions_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
 		}
 	}

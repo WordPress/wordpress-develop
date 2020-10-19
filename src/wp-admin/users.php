@@ -53,9 +53,9 @@ $help = '<p>' . __( 'Hovering over a row in the users list will display action l
 	'<li>' . __( '<strong>Edit</strong> takes you to the editable profile screen for that user. You can also reach that screen by clicking on the username.' ) . '</li>';
 
 if ( is_multisite() ) {
-	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using bulk actions.' ) . '</li>';
 } else {
-	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using bulk actions.' ) . '</li>';
 }
 
 $help .= '</ul>';
@@ -230,7 +230,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = array_map( 'intval', (array) $_REQUEST['users'] );
 		}
@@ -247,8 +247,8 @@ switch ( $wp_list_table->current_action() ) {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param boolean $users_have_additional_content Whether the users have additional content. Default false.
-		 * @param int[]   $userids                       Array of IDs for users being deleted.
+		 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
+		 * @param int[] $userids                       Array of IDs for users being deleted.
 		 */
 		$users_have_content = (bool) apply_filters( 'users_have_additional_content', false, $userids );
 
@@ -401,7 +401,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = $_REQUEST['users'];
 		}
@@ -590,7 +590,7 @@ if ( strlen( $usersearch ) ) {
 		<?php $wp_list_table->display(); ?>
 </form>
 
-<br class="clear" />
+<div class="clear" /></div>
 </div>
 		<?php
 		break;

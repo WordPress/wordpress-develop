@@ -37,14 +37,14 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/taxonomies/post_tag' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -52,14 +52,14 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
-		$this->assertEquals( count( $taxonomies ), count( $data ) );
-		$this->assertEquals( 'Categories', $data['category']['name'] );
-		$this->assertEquals( 'category', $data['category']['slug'] );
-		$this->assertEquals( true, $data['category']['hierarchical'] );
-		$this->assertEquals( 'Tags', $data['post_tag']['name'] );
-		$this->assertEquals( 'post_tag', $data['post_tag']['slug'] );
-		$this->assertEquals( false, $data['post_tag']['hierarchical'] );
-		$this->assertEquals( 'tags', $data['post_tag']['rest_base'] );
+		$this->assertSame( count( $taxonomies ), count( $data ) );
+		$this->assertSame( 'Categories', $data['category']['name'] );
+		$this->assertSame( 'category', $data['category']['slug'] );
+		$this->assertTrue( $data['category']['hierarchical'] );
+		$this->assertSame( 'Tags', $data['post_tag']['name'] );
+		$this->assertSame( 'post_tag', $data['post_tag']['slug'] );
+		$this->assertFalse( $data['post_tag']['hierarchical'] );
+		$this->assertSame( 'tags', $data['post_tag']['rest_base'] );
 	}
 
 	public function test_get_items_context_edit() {
@@ -69,14 +69,14 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_taxonomies( '', 'objects' ) );
-		$this->assertEquals( count( $taxonomies ), count( $data ) );
-		$this->assertEquals( 'Categories', $data['category']['name'] );
-		$this->assertEquals( 'category', $data['category']['slug'] );
-		$this->assertEquals( true, $data['category']['hierarchical'] );
-		$this->assertEquals( 'Tags', $data['post_tag']['name'] );
-		$this->assertEquals( 'post_tag', $data['post_tag']['slug'] );
-		$this->assertEquals( false, $data['post_tag']['hierarchical'] );
-		$this->assertEquals( 'tags', $data['post_tag']['rest_base'] );
+		$this->assertSame( count( $taxonomies ), count( $data ) );
+		$this->assertSame( 'Categories', $data['category']['name'] );
+		$this->assertSame( 'category', $data['category']['slug'] );
+		$this->assertTrue( $data['category']['hierarchical'] );
+		$this->assertSame( 'Tags', $data['post_tag']['name'] );
+		$this->assertSame( 'post_tag', $data['post_tag']['slug'] );
+		$this->assertFalse( $data['post_tag']['hierarchical'] );
+		$this->assertSame( 'tags', $data['post_tag']['rest_base'] );
 	}
 
 	public function test_get_items_invalid_permission_for_context() {
@@ -98,9 +98,9 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request = new WP_REST_Request( 'GET', '/wp/v2/taxonomies' );
 		$request->set_param( 'type', 'wingding' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( '{}', json_encode( $data ) );
+		$this->assertSame( '{}', json_encode( $data ) );
 	}
 
 	public function test_get_item() {
@@ -153,21 +153,21 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		/** Taxonomies can't be created */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/taxonomies' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_update_item() {
 		/** Taxonomies can't be updated */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/taxonomies/category' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_delete_item() {
 		/** Taxonomies can't be deleted */
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/taxonomies/category' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_prepare_item() {
@@ -186,7 +186,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $tax, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				// 'id' doesn't exist in this context.
 				'name',
@@ -208,10 +208,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 		$types = $response->get_data()['types'];
 		$this->assertArrayHasKey( 0, $types );
-		$this->assertEquals( 'post', $types[0] );
+		$this->assertSame( 'post', $types[0] );
 		$this->assertArrayHasKey( 1, $types );
-		$this->assertEquals( 'attachment', $types[1] );
-		$this->assertEquals( 2, count( $types ) );
+		$this->assertSame( 'attachment', $types[1] );
+		$this->assertSame( 2, count( $types ) );
 	}
 
 	public function test_get_item_schema() {
@@ -219,7 +219,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 10, count( $properties ) );
+		$this->assertSame( 10, count( $properties ) );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );
@@ -251,24 +251,24 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	protected function check_taxonomy_object( $context, $tax_obj, $data, $links ) {
-		$this->assertEquals( $tax_obj->label, $data['name'] );
-		$this->assertEquals( $tax_obj->name, $data['slug'] );
-		$this->assertEquals( $tax_obj->description, $data['description'] );
-		$this->assertEquals( $tax_obj->hierarchical, $data['hierarchical'] );
-		$this->assertEquals( $tax_obj->rest_base, $data['rest_base'] );
-		$this->assertEquals( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
+		$this->assertSame( $tax_obj->label, $data['name'] );
+		$this->assertSame( $tax_obj->name, $data['slug'] );
+		$this->assertSame( $tax_obj->description, $data['description'] );
+		$this->assertSame( $tax_obj->hierarchical, $data['hierarchical'] );
+		$this->assertSame( $tax_obj->rest_base, $data['rest_base'] );
+		$this->assertSame( rest_url( 'wp/v2/taxonomies' ), $links['collection'][0]['href'] );
 		$this->assertArrayHasKey( 'https://api.w.org/items', $links );
 		if ( 'edit' === $context ) {
-			$this->assertEquals( $tax_obj->cap, $data['capabilities'] );
-			$this->assertEquals( $tax_obj->labels, $data['labels'] );
-			$this->assertEquals( $tax_obj->show_tagcloud, $data['show_cloud'] );
+			$this->assertSame( $tax_obj->cap, $data['capabilities'] );
+			$this->assertSame( $tax_obj->labels, $data['labels'] );
+			$this->assertSame( $tax_obj->show_tagcloud, $data['show_cloud'] );
 
-			$this->assertEquals( $tax_obj->public, $data['visibility']['public'] );
-			$this->assertEquals( $tax_obj->publicly_queryable, $data['visibility']['publicly_queryable'] );
-			$this->assertEquals( $tax_obj->show_admin_column, $data['visibility']['show_admin_column'] );
-			$this->assertEquals( $tax_obj->show_in_nav_menus, $data['visibility']['show_in_nav_menus'] );
-			$this->assertEquals( $tax_obj->show_in_quick_edit, $data['visibility']['show_in_quick_edit'] );
-			$this->assertEquals( $tax_obj->show_ui, $data['visibility']['show_ui'] );
+			$this->assertSame( $tax_obj->public, $data['visibility']['public'] );
+			$this->assertSame( $tax_obj->publicly_queryable, $data['visibility']['publicly_queryable'] );
+			$this->assertSame( $tax_obj->show_admin_column, $data['visibility']['show_admin_column'] );
+			$this->assertSame( $tax_obj->show_in_nav_menus, $data['visibility']['show_in_nav_menus'] );
+			$this->assertSame( $tax_obj->show_in_quick_edit, $data['visibility']['show_in_quick_edit'] );
+			$this->assertSame( $tax_obj->show_ui, $data['visibility']['show_ui'] );
 		} else {
 			$this->assertFalse( isset( $data['capabilities'] ) );
 			$this->assertFalse( isset( $data['labels'] ) );
@@ -278,17 +278,45 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 	}
 
 	protected function check_taxonomy_object_response( $context, $response ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data     = $response->get_data();
 		$category = get_taxonomy( 'category' );
 		$this->check_taxonomy_object( $context, $category, $data, $response->get_links() );
 	}
 
 	protected function check_taxonomies_for_type_response( $type, $response ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data       = $response->get_data();
 		$taxonomies = $this->get_public_taxonomies( get_object_taxonomies( $type, 'objects' ) );
-		$this->assertEquals( count( $taxonomies ), count( $data ) );
+		$this->assertSame( count( $taxonomies ), count( $data ) );
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_get_for_taxonomy_reuses_same_instance() {
+		$this->assertSame(
+			get_taxonomy( 'category' )->get_rest_controller(),
+			get_taxonomy( 'category' )->get_rest_controller()
+		);
+	}
+
+	/**
+	 * @ticket 49116
+	 */
+	public function test_get_for_taxonomy_returns_terms_controller_if_custom_class_not_specified() {
+		register_taxonomy(
+			'test',
+			'post',
+			array(
+				'show_in_rest' => true,
+			)
+		);
+
+		$this->assertInstanceOf(
+			WP_REST_Terms_Controller::class,
+			get_taxonomy( 'test' )->get_rest_controller()
+		);
 	}
 
 }

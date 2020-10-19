@@ -48,8 +48,38 @@
 }
 
 #dashboard-widgets .meta-box-sortables {
-	margin: 0 8px;
-	min-height: 100px;
+	display: flow-root; /* avoid margin collapsing between parent and first/last child elements */
+	margin: 0 8px 20px;
+}
+
+/* The following four selectors also apply on the Edit Post screen. */
+.screen-options-open .meta-box-sortables {
+	outline: 3px dashed #606a73;
+	min-height: 250px;
+}
+
+.screen-options-open .postbox-container .empty-container {
+	outline-color: #b4b9be;
+}
+
+.postbox-container .empty-container:after {
+	content: attr(data-emptystring);
+	margin: auto;
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	transform: translateY( -50% );
+	padding: 0 2em;
+	text-align: center;
+	color: #606a73;
+	font-size: 16px;
+	line-height: 1.5;
+	display: none;
+}
+
+.screen-options-open .postbox-container .empty-container:after {
+	display: block;
 }
 
 /* @todo: this was originally in this section, but likely belongs elsewhere */
@@ -1058,6 +1088,10 @@ a.rsswidget {
 	color: #df3232;
 }
 
+#dashboard_php_nag h2 {
+	display: inline-block;
+}
+
 #dashboard_php_nag p {
 	margin: 12px 0;
 }
@@ -1078,6 +1112,18 @@ a.rsswidget {
 	#wpbody-content #dashboard-widgets .postbox-container {
 		width: 100%;
 	}
+
+	#dashboard-widgets .meta-box-sortables {
+		min-height: 0;
+	}
+
+	.screen-options-open #dashboard-widgets .meta-box-sortables {
+		min-height: 100px;
+	}
+
+	#dashboard-widgets .meta-box-sortables.empty-container {
+		margin-bottom: 0;
+	}
 }
 
 /* two columns on the dash, but keep the setting if one is selected */
@@ -1095,9 +1141,10 @@ a.rsswidget {
 
 	#dashboard-widgets #postbox-container-3 .empty-container,
 	#dashboard-widgets #postbox-container-4 .empty-container {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	#dashboard-widgets #postbox-container-3 .empty-container:after,
@@ -1109,10 +1156,11 @@ a.rsswidget {
 		width: 100%;
 	}
 
-	#wpbody #wpbody-content .metabox-holder.columns-1 .postbox-container .empty-container {
-		border: 0 none;
+	#wpbody #dashboard-widgets .metabox-holder.columns-1 .postbox-container .empty-container {
+		outline: none;
 		height: 0;
 		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	/* show the radio buttons for column prefs only for one or two columns */
@@ -1125,10 +1173,11 @@ a.rsswidget {
 	.columns-prefs .columns-prefs-4 {
 		display: none;
 	}
-
-	.metabox-holder .postbox-container .empty-container:after {
+/*
+	#dashboard-widgets .postbox-container .empty-container:after {
 		display: block;
 	}
+*/
 }
 
 /* three columns on the dash */
@@ -1147,20 +1196,29 @@ a.rsswidget {
 	}
 
 	#dashboard-widgets #postbox-container-4 .empty-container {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	#dashboard-widgets #postbox-container-4 .empty-container:after {
 		display: none;
 	}
+/*
+	#dashboard-widgets .postbox-container .empty-container:after {
+		display: block;
+	}
+*/
+}
 
-	.metabox-holder .postbox-container .empty-container:after {
+/* Always show the "Drag boxes here" CSS generated content on large screens.
+@media only screen and (min-width: 1801px) {
+	#dashboard-widgets .postbox-container .empty-container:after {
 		display: block;
 	}
 }
-
+*/
 @media screen and (max-width: 870px) {
 	.welcome-panel .welcome-panel-column,
 	.welcome-panel .welcome-panel-column:first-child {

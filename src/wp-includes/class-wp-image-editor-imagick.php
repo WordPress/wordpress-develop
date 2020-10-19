@@ -140,15 +140,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			$this->image    = new Imagick();
 			$file_extension = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$filename       = $this->file;
 
 			if ( 'pdf' === $file_extension ) {
-				$filename = $this->pdf_setup();
-			}
+				$pdf_loaded = $this->pdf_load_source();
 
-			// Reading image after Imagick instantiation because `setResolution`
-			// only applies correctly before the image is read.
-			$this->image->readImage( $filename );
+				if ( is_wp_error( $pdf_loaded ) ) {
+					return $pdf_loaded;
+				}
+			} else {
+				$this->image->readImage( $this->file );
+			}
 
 			if ( ! $this->image->valid() ) {
 				return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
@@ -165,6 +166,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		$updated_size = $this->update_size();
+
 		if ( is_wp_error( $updated_size ) ) {
 			return $updated_size;
 		}
@@ -509,12 +511,12 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param int  $src_x The start x position to crop from.
-	 * @param int  $src_y The start y position to crop from.
-	 * @param int  $src_w The width to crop.
-	 * @param int  $src_h The height to crop.
-	 * @param int  $dst_w Optional. The destination width.
-	 * @param int  $dst_h Optional. The destination height.
+	 * @param int  $src_x   The start x position to crop from.
+	 * @param int  $src_y   The start y position to crop from.
+	 * @param int  $src_w   The width to crop.
+	 * @param int  $src_h   The height to crop.
+	 * @param int  $dst_w   Optional. The destination width.
+	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
 	 * @return bool|WP_Error
 	 */
@@ -548,6 +550,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_crop_error', $e->getMessage() );
 		}
+
 		return $this->update_size();
 	}
 
@@ -582,6 +585,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		} catch ( Exception $e ) {
 			return new WP_Error( 'image_rotate_error', $e->getMessage() );
 		}
+
 		return true;
 	}
 
@@ -662,8 +666,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 
 	/**
 	 * @param Imagick $image
-	 * @param string $filename
-	 * @param string $mime_type
+	 * @param string  $filename
+	 * @param string  $mime_type
 	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
@@ -793,15 +797,46 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			// We want the thumbnail to be readable, so increase the rendering DPI.
 			$this->image->setResolution( 128, 128 );
 
-			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			// area (resulting in unnecessary whitespace) unless the following option is set.
-			$this->image->setOption( 'pdf:use-cropbox', true );
-
 			// Only load the first page.
 			return $this->file . '[0]';
 		} catch ( Exception $e ) {
 			return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
 		}
+	}
+
+	/**
+	 * Load the image produced by Ghostscript.
+	 *
+	 * Includes a workaround for a bug in Ghostscript 8.70 that prevents processing of some PDF files
+	 * when `use-cropbox` is set.
+	 *
+	 * @since 5.6
+	 *
+	 * @return true|WP_error
+	 */
+	protected function pdf_load_source() {
+		$filename = $this->pdf_setup();
+
+		if ( is_wp_error( $filename ) ) {
+			return $filename;
+		}
+
+		try {
+			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			// area (resulting in unnecessary whitespace) unless the following option is set.
+			$this->image->setOption( 'pdf:use-cropbox', true );
+
+			// Reading image after Imagick instantiation because `setResolution`
+			// only applies correctly before the image is read.
+			$this->image->readImage( $filename );
+		} catch ( Exception $e ) {
+			// Attempt to run `gs` without the `use-cropbox` option. See #48853.
+			$this->image->setOption( 'pdf:use-cropbox', false );
+
+			$this->image->readImage( $filename );
+		}
+
+		return true;
 	}
 
 }

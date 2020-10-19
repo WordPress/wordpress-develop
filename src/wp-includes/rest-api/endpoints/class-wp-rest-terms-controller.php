@@ -263,9 +263,9 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 
 		unset( $count_args['number'], $count_args['offset'] );
 
-		$total_terms = wp_count_terms( $this->taxonomy, $count_args );
+		$total_terms = wp_count_terms( $count_args );
 
-		// wp_count_terms() can return a falsy value when the term has no children.
+		// wp_count_terms() can return a falsey value when the term has no children.
 		if ( ! $total_terms ) {
 			$total_terms = 0;
 		}
@@ -1081,7 +1081,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the terms controller.
+		 * Filters collection parameters for the terms controller.
 		 *
 		 * The dynamic part of the filter `$this->taxonomy` refers to the taxonomy
 		 * slug for the controller.

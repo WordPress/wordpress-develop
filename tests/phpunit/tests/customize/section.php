@@ -39,16 +39,16 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	function test_construct_default_args() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
 		$this->assertInternalType( 'int', $section->instance_number );
-		$this->assertEquals( $this->manager, $section->manager );
-		$this->assertEquals( 'foo', $section->id );
-		$this->assertEquals( 160, $section->priority );
-		$this->assertEquals( 'edit_theme_options', $section->capability );
-		$this->assertEquals( '', $section->theme_supports );
-		$this->assertEquals( '', $section->title );
-		$this->assertEquals( '', $section->description );
+		$this->assertSame( $this->manager, $section->manager );
+		$this->assertSame( 'foo', $section->id );
+		$this->assertSame( 160, $section->priority );
+		$this->assertSame( 'edit_theme_options', $section->capability );
+		$this->assertSame( '', $section->theme_supports );
+		$this->assertSame( '', $section->title );
+		$this->assertSame( '', $section->description );
 		$this->assertEmpty( $section->panel );
-		$this->assertEquals( 'default', $section->type );
-		$this->assertEquals( array( $section, 'active_callback' ), $section->active_callback );
+		$this->assertSame( 'default', $section->type );
+		$this->assertSame( array( $section, 'active_callback' ), $section->active_callback );
 	}
 
 	/**
@@ -70,7 +70,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 		$section = new WP_Customize_Section( $this->manager, 'foo', $args );
 		foreach ( $args as $key => $value ) {
-			$this->assertEquals( $value, $section->$key );
+			$this->assertSame( $value, $section->$key );
 		}
 	}
 
@@ -79,7 +79,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_construct_custom_type() {
 		$section = new Custom_Section_Test( $this->manager, 'foo' );
-		$this->assertEquals( 'titleless', $section->type );
+		$this->assertSame( 'titleless', $section->type );
 	}
 
 	/**
@@ -133,9 +133,9 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 
 		$section = new WP_Customize_Section( $this->manager, 'foo', $args );
 		$data    = $section->json();
-		$this->assertEquals( 'foo', $data['id'] );
+		$this->assertSame( 'foo', $data['id'] );
 		foreach ( array( 'title', 'description', 'priority', 'panel', 'type' ) as $key ) {
-			$this->assertEquals( $args[ $key ], $data[ $key ] );
+			$this->assertSame( $args[ $key ], $data[ $key ] );
 		}
 		$this->assertEmpty( $data['content'] );
 		$this->assertTrue( $data['active'] );
@@ -180,8 +180,8 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		$content = ob_get_clean();
 		$this->assertTrue( $section->check_capabilities() );
 		$this->assertEmpty( $content );
-		$this->assertEquals( $customize_render_section_count + 1, did_action( 'customize_render_section' ), 'Unexpected did_action count for customize_render_section' );
-		$this->assertEquals( 1, did_action( "customize_render_section_{$section->id}" ), "Unexpected did_action count for customize_render_section_{$section->id}" );
+		$this->assertSame( $customize_render_section_count + 1, did_action( 'customize_render_section' ), 'Unexpected did_action count for customize_render_section' );
+		$this->assertSame( 1, did_action( "customize_render_section_{$section->id}" ), "Unexpected did_action count for customize_render_section_{$section->id}" );
 	}
 
 	/**

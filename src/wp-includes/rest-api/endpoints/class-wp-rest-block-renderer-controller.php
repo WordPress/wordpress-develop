@@ -51,7 +51,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 					'args'                => array(
 						'context'    => $this->get_context_param( array( 'default' => 'view' ) ),
 						'attributes' => array(
-							'description'       => __( 'Attributes for the block' ),
+							'description'       => __( 'Attributes for the block.' ),
 							'type'              => 'object',
 							'default'           => array(),
 							'validate_callback' => static function ( $value, $request ) {
@@ -69,6 +69,22 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 								);
 
 								return rest_validate_value_from_schema( $value, $schema );
+							},
+							'sanitize_callback' => static function ( $value, $request ) {
+								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+
+								if ( ! $block ) {
+									// This will get rejected in ::get_item().
+									return true;
+								}
+
+								$schema = array(
+									'type'                 => 'object',
+									'properties'           => $block->get_attributes(),
+									'additionalProperties' => false,
+								);
+
+								return rest_sanitize_value_from_schema( $value, $schema );
 							},
 						),
 						'post_id'    => array(
@@ -93,7 +109,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	public function get_item_permissions_check( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
 		if ( 0 < $post_id ) {
 			$post = get_post( $post_id );
@@ -133,7 +149,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
 		if ( 0 < $post_id ) {
 			$post = get_post( $post_id );

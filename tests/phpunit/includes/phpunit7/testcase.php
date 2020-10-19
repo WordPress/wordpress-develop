@@ -14,19 +14,27 @@ require_once dirname( __DIR__ ) . '/abstract-testcase.php';
 class WP_UnitTestCase extends WP_UnitTestCase_Base {
 
 	/**
-	 * Asserts that a condition is not false.
+	 * Asserts that two variables are equal (with delta).
 	 *
-	 * This method has been backported from a more recent PHPUnit version, as tests running on PHP 5.2 use
-	 * PHPUnit 3.6.x.
+	 * This method has been backported from a more recent PHPUnit version,
+	 * as tests running on PHP 5.6 use PHPUnit 5.7.x.
 	 *
-	 * @since 4.7.4
+	 * @since 5.6.0
 	 *
-	 * @param bool   $condition Condition to check.
-	 * @param string $message   Optional. Message to display when the assertion fails.
+	 * @param mixed  $expected First value to compare.
+	 * @param mixed  $actual   Second value to compare.
+	 * @param float  $delta    Allowed numerical distance between two values to consider them equal.
+	 * @param string $message  Optional. Message to display when the assertion fails.
 	 *
-	 * @throws PHPUnit_Framework_AssertionFailedError
+	 * @throws ExpectationFailedException
+	 * @throws \SebastianBergmann\RecursionContext\InvalidArgumentException
 	 */
-	public static function assertNotFalse( $condition, string $message = '' ): void {
-		self::assertThat( $condition, self::logicalNot( self::isFalse() ), $message );
+	public static function assertEqualsWithDelta( $expected, $actual, float $delta, string $message = '' ): void {
+		$constraint = new PHPUnit\Framework\Constraint\IsEqual(
+			$expected,
+			$delta
+		);
+
+		static::assertThat( $actual, $constraint, $message );
 	}
 }

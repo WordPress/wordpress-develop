@@ -147,8 +147,19 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 /* Post Screen */
-#post-body #normal-sortables {
-	min-height: 50px;
+
+.screen-options-open .metabox-holder .postbox-container .meta-box-sortables {
+	margin-bottom: 20px;
+}
+
+.screen-options-open #postbox-container-2 #advanced-sortables.empty-container {
+	height: 0;
+	min-height: 0;
+	outline: none;
+}
+
+.screen-options-open #postbox-container-2 #advanced-sortables.empty-container:after {
+	display: none;
 }
 
 .postbox {
@@ -713,7 +724,19 @@ form#tags-filter {
 
 .text-removed .policy-text {
 	color: #666;
-	font-weight: 600;
+	font-weight: 300;
+	padding-left: 1em;
+	border-left: 3px solid #ffb900;
+}
+
+.text-removed .policy-text h1,
+.text-removed .policy-text h2,
+.text-removed .policy-text h3,
+.text-removed .policy-text h4,
+.text-removed .policy-text h5,
+.text-removed .policy-text h6 {
+	color: #39424a;
+	font-weight: 500;
 }
 
 .privacy-text-actions {
@@ -943,7 +966,7 @@ strong.privacy-policy-tutorial {
 }
 
 a.post-format-icon:hover:before {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #post-formats-select {
@@ -1453,7 +1476,10 @@ table.links-table {
 	}
 }
 
-/* one column on the attachment editor screen */
+/*
+ * The edit attachment screen auto-switches to one column layout when the
+ * viewport is smaller than 1200 pixels.
+ */
 @media only screen and (max-width: 1200px) {
 	.post-type-attachment #poststuff {
 		min-width: 0;
@@ -1470,7 +1496,7 @@ table.links-table {
 
 	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
 	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1478,6 +1504,12 @@ table.links-table {
 	.post-type-attachment #poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	.screen-options-open.post-type-attachment #post-body .meta-box-sortables {
+		outline: none;
+		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1504,7 +1536,6 @@ table.links-table {
 
 	#poststuff #postbox-container-1 .empty-container,
 	#poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1512,6 +1543,15 @@ table.links-table {
 	#poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
+	.screen-options-open #poststuff #postbox-container-1 .empty-container,
+	.screen-options-open #poststuff #postbox-container-1 #side-sortables:empty,
+	.screen-options-open #poststuff #post-body.columns-2 #side-sortables,
+	.screen-options-open #poststuff #post-body.columns-2 .meta-box-sortables {
+		height: auto;
+		min-height: 60px;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1753,6 +1793,10 @@ table.links-table {
 	.links-table th,
 	.links-table td {
 		padding: 10px 0;
+	}
+
+	.edit-term-notes {
+		display: none;
 	}
 
 	.privacy-text-box {

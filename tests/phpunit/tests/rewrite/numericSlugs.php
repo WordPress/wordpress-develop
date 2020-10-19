@@ -75,7 +75,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			array( 'ID' => $id )
 		);
 
-		$this->assertEquals( '2015', url_to_postid( get_permalink( '2015' ) ) );
+		$this->assertSame( 2015, url_to_postid( get_permalink( '2015' ) ) );
 	}
 
 	public function test_go_to_year_segment_collision_with_title() {
@@ -109,7 +109,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title() {
@@ -145,7 +145,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_without_title_no_leading_zero() {
@@ -181,7 +181,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title() {
@@ -215,7 +215,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_month_segment_collision_with_title_no_leading_zero() {
@@ -249,7 +249,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_without_title() {
@@ -285,7 +285,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_go_to_day_segment_collision_with_title() {
@@ -319,7 +319,7 @@ class Tests_Rewrite_NumericSlugs extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $id, url_to_postid( get_permalink( $id ) ) );
+		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
 	public function test_numeric_slug_permalink_conflicts_should_only_be_resolved_for_the_main_query() {

@@ -100,7 +100,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function _get_sitemap_entries() {
 		$entries = array();
 
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		foreach ( $providers as $provider ) {
 			// Using `array_push` is more efficient than `array_merge` in the loop.
@@ -192,16 +192,39 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test sitemap index entries with public and private custom post types.
+	 *
+	 * @ticket 50607
+	 */
+	public function test_get_sitemap_entries_not_publicly_queryable_post_types() {
+		register_post_type(
+			'non_queryable_cpt',
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
+		self::factory()->post->create( array( 'post_type' => 'non_queryable_cpt' ) );
+
+		$entries = wp_list_pluck( $this->_get_sitemap_entries(), 'loc' );
+
+		// Clean up.
+		unregister_post_type( 'non_queryable_cpt' );
+
+		$this->assertNotContains( 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=non_queryable_cpt&paged=1', $entries, 'Non-publicly queryable CPTs are visible in the index.' );
+	}
+
+	/**
 	 * Tests getting a URL list for post type post.
 	 */
 	public function test_get_url_list_post() {
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'post' );
 
 		$expected = $this->_get_expected_url_list( 'post', self::$posts );
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -211,20 +234,20 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Short circuit the show on front option.
 		add_filter( 'pre_option_show_on_front', '__return_true' );
 
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
 	 * Tests getting a URL list for post type page with included home page.
 	 */
 	public function test_get_url_list_page_with_home() {
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, 'page' );
 
@@ -234,11 +257,11 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		array_unshift(
 			$expected,
 			array(
-				'loc' => home_url(),
+				'loc' => home_url( '/' ),
 			)
 		);
 
-		$this->assertEquals( $expected, $post_list );
+		$this->assertSame( $expected, $post_list );
 	}
 
 	/**
@@ -247,7 +270,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function test_get_url_list_private_post() {
 		wp_set_current_user( self::$editor_id );
 
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list_before = $providers['posts']->get_url_list( 1, 'post' );
 
@@ -260,7 +283,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		);
 
 		$this->assertNotContains( $private_post, $post_list_after );
-		$this->assertEqualSets( $post_list_before, $post_list_after );
+		$this->assertSameSets( $post_list_before, $post_list_after );
 	}
 
 	/**
@@ -274,7 +297,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$ids = self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
 
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, $post_type );
 
@@ -283,7 +306,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		// Clean up.
 		unregister_post_type( $post_type );
 
-		$this->assertEquals( $expected, $post_list, 'Custom post type posts are not visible.' );
+		$this->assertSame( $expected, $post_list, 'Custom post type posts are not visible.' );
 	}
 
 	/**
@@ -297,7 +320,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
 
-		$providers = wp_get_sitemaps();
+		$providers = wp_get_sitemap_providers();
 
 		$post_list = $providers['posts']->get_url_list( 1, $post_type );
 
@@ -305,6 +328,34 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		unregister_post_type( $post_type );
 
 		$this->assertEmpty( $post_list, 'Private post types may be returned by the post provider.' );
+	}
+
+	/**
+	 * Tests getting a URL list for a private custom post type.
+	 *
+	 * @ticket 50607
+	 */
+	public function test_get_url_list_cpt_not_publicly_queryable() {
+		$post_type = 'non_queryable_cpt';
+
+		register_post_type(
+			$post_type,
+			array(
+				'public'             => true,
+				'publicly_queryable' => false,
+			)
+		);
+
+		self::factory()->post->create_many( 10, array( 'post_type' => $post_type ) );
+
+		$providers = wp_get_sitemap_providers();
+
+		$post_list = $providers['posts']->get_url_list( 1, $post_type );
+
+		// Clean up.
+		unregister_post_type( $post_type );
+
+		$this->assertEmpty( $post_list, 'Non-publicly queryable post types may be returned by the post provider.' );
 	}
 
 	/**
@@ -338,11 +389,11 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * Test functionality that adds a new sitemap provider to the registry.
 	 */
 	public function test_register_sitemap_provider() {
-		wp_register_sitemap( 'test_sitemap', self::$test_provider );
+		wp_register_sitemap_provider( 'test_sitemap', self::$test_provider );
 
-		$sitemaps = wp_get_sitemaps();
+		$sitemaps = wp_get_sitemap_providers();
 
-		$this->assertEquals( $sitemaps['test_sitemap'], self::$test_provider, 'Can not confirm sitemap registration is working.' );
+		$this->assertSame( $sitemaps['test_sitemap'], self::$test_provider, 'Can not confirm sitemap registration is working.' );
 	}
 
 	/**
@@ -392,5 +443,50 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		$sitemap_string = "\nSitemap: ";
 
 		$this->assertContains( $sitemap_string, $robots_text, 'Sitemap URL not prefixed with "\n".' );
+	}
+
+	/**
+	 * @ticket 50643
+	 */
+	public function test_sitemaps_enabled() {
+		$before = wp_sitemaps_get_server()->sitemaps_enabled();
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+		$after = wp_sitemaps_get_server()->sitemaps_enabled();
+		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->assertTrue( $before );
+		$this->assertFalse( $after );
+	}
+
+	/**
+	 * @ticket 50643
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_disable_sitemap_should_return_404() {
+		add_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->go_to( home_url( '/?sitemap=index' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		remove_filter( 'wp_sitemaps_enabled', '__return_false' );
+
+		$this->assertTrue( is_404() );
+	}
+
+	/**
+	 * @ticket 50643
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_empty_url_list_should_return_404() {
+		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );
+
+		$this->go_to( home_url( '/?sitemap=foo' ) );
+
+		wp_sitemaps_get_server()->render_sitemaps();
+
+		$this->assertTrue( is_404() );
 	}
 }

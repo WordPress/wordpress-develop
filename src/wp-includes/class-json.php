@@ -579,7 +579,7 @@ class Services_JSON
             return $encoded_value;
         }
 
-        return $this->_encode(strval($name)) . ':' . $encoded_value;
+        return $this->_encode((string) $name) . ':' . $encoded_value;
     }
 
    /**
@@ -918,7 +918,7 @@ class Services_JSON
 
         if (class_exists('pear')) {
             return PEAR::isError($data, $code);
-        } elseif (is_object($data) && (get_class($data) == 'services_json_error' ||
+        } elseif (is_object($data) && ($data instanceof services_json_error ||
                                  is_subclass_of($data, 'services_json_error'))) {
             return true;
         }

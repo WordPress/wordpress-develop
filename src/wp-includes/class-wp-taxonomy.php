@@ -181,6 +181,14 @@ final class WP_Taxonomy {
 	public $update_count_callback;
 
 	/**
+	 * Function that will be called when the count is modified by an amount.
+	 *
+	 * @since 5.6.0
+	 * @var callable
+	 */
+	public $update_count_by_callback;
+
+	/**
 	 * Whether this taxonomy should appear in the REST API.
 	 *
 	 * Default false. If true, standard endpoints will be registered with
@@ -208,6 +216,25 @@ final class WP_Taxonomy {
 	 * @var string|bool $rest_controller_class
 	 */
 	public $rest_controller_class;
+
+	/**
+	 * The default term name for this taxonomy. If you pass an array you have
+	 * to set 'name' and optionally 'slug' and 'description'.
+	 *
+	 * @since 5.5.0
+	 * @var array|string
+	 */
+	public $default_term;
+
+	/**
+	 * The controller instance for this taxonomy's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
 
 	/**
 	 * Whether it is a built-in taxonomy.
@@ -258,27 +285,29 @@ final class WP_Taxonomy {
 		$args = apply_filters( 'register_taxonomy_args', $args, $this->name, (array) $object_type );
 
 		$defaults = array(
-			'labels'                => array(),
-			'description'           => '',
-			'public'                => true,
-			'publicly_queryable'    => null,
-			'hierarchical'          => false,
-			'show_ui'               => null,
-			'show_in_menu'          => null,
-			'show_in_nav_menus'     => null,
-			'show_tagcloud'         => null,
-			'show_in_quick_edit'    => null,
-			'show_admin_column'     => false,
-			'meta_box_cb'           => null,
-			'meta_box_sanitize_cb'  => null,
-			'capabilities'          => array(),
-			'rewrite'               => true,
-			'query_var'             => $this->name,
-			'update_count_callback' => '',
-			'show_in_rest'          => false,
-			'rest_base'             => false,
-			'rest_controller_class' => false,
-			'_builtin'              => false,
+			'labels'                   => array(),
+			'description'              => '',
+			'public'                   => true,
+			'publicly_queryable'       => null,
+			'hierarchical'             => false,
+			'show_ui'                  => null,
+			'show_in_menu'             => null,
+			'show_in_nav_menus'        => null,
+			'show_tagcloud'            => null,
+			'show_in_quick_edit'       => null,
+			'show_admin_column'        => false,
+			'meta_box_cb'              => null,
+			'meta_box_sanitize_cb'     => null,
+			'capabilities'             => array(),
+			'rewrite'                  => true,
+			'query_var'                => $this->name,
+			'update_count_callback'    => '',
+			'update_count_by_callback' => '',
+			'show_in_rest'             => false,
+			'rest_base'                => false,
+			'rest_controller_class'    => false,
+			'default_term'             => null,
+			'_builtin'                 => false,
 		);
 
 		$args = array_merge( $defaults, $args );
@@ -376,6 +405,32 @@ final class WP_Taxonomy {
 			}
 		}
 
+		// Default taxonomy term.
+		if ( ! empty( $args['default_term'] ) ) {
+			if ( ! is_array( $args['default_term'] ) ) {
+				$args['default_term'] = array( 'name' => $args['default_term'] );
+			}
+			$args['default_term'] = wp_parse_args(
+				$args['default_term'],
+				array(
+					'name'        => '',
+					'slug'        => '',
+					'description' => '',
+				)
+			);
+		}
+
+		// If generic update callback is defined but increment/decrement callback is not.
+		if (
+			! empty( $args['update_count_callback'] ) &&
+			is_callable( $args['update_count_callback'] ) &&
+			empty( $args['update_count_by_callback'] )
+		) {
+			$args['update_count_by_callback'] = function( $tt_ids, $taxonomy ) use ( $args ) {
+				return call_user_func( $args['update_count_callback'], $tt_ids, $taxonomy );
+			};
+		}
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -451,5 +506,41 @@ final class WP_Taxonomy {
 	 */
 	public function remove_hooks() {
 		remove_filter( 'wp_ajax_add-' . $this->name, '_wp_ajax_add_hierarchical_term' );
+	}
+
+	/**
+	 * Gets the REST API controller for this taxonomy.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the taxonomy
+	 *                                 is set not to show in rest.
+	 */
+	public function get_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Terms_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->rest_controller ) {
+			$this->rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->rest_controller;
 	}
 }

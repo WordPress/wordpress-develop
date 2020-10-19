@@ -1696,7 +1696,7 @@ div.action-links,
 	}
 
 	.tablenav.bottom .tablenav-pages.one-page {
-		margin: 15px 0 0 0;
+		margin-top: 15px;
 		height: 0;
 	}
 
@@ -2094,6 +2094,16 @@ div.action-links,
 		line-height: 1.5;
 	}
 
+	.plugins tbody th.check-column {
+		padding: 8px 0 0 5px;
+	}
+
+	.plugins thead td.check-column,
+	.plugins tfoot td.check-column,
+	.plugins .inactive th.check-column {
+		padding-left: 9px;
+	}
+
 	/* Add New plugins page */
 	table.plugin-install .column-name,
 	table.plugin-install .column-version,
@@ -2140,6 +2150,18 @@ div.action-links,
 	.row-actions:not(.plugins-php) {
 		-ms-grid-columns: auto auto;
 		grid-template-columns: auto auto;
+	}
+
+	.tablenav.bottom .displaying-num {
+		position: relative;
+		top: 0;
+		display: block;
+		text-align: right;
+		padding-bottom: 0.5em;
+	}
+
+	.tablenav.bottom .tablenav-pages.one-page {
+		height: auto;
 	}
 
 	.tablenav-pages .tablenav-paging-text {

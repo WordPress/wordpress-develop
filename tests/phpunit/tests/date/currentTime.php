@@ -16,8 +16,8 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$timestamp    = time();
 		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
 
-		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( current_time( $format, true ) ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( $format ) ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format ) ), strtotime( current_time( $format, true ) ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( $format ) ), 2, 'The dates should be equal' );
 	}
 
 	/**
@@ -30,8 +30,8 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$timestamp    = time();
 		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
 
-		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( current_time( 'mysql', true ) ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( 'mysql' ) ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format ) ), strtotime( current_time( 'mysql', true ) ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format, $wp_timestamp ) ), strtotime( current_time( 'mysql' ) ), 2, 'The dates should be equal' );
 	}
 
 	/**
@@ -44,9 +44,9 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$wp_timestamp = $timestamp + 6 * HOUR_IN_SECONDS;
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEquals( $timestamp, current_time( 'timestamp', true ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'The dates should be equal' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEquals( $wp_timestamp, current_time( 'timestamp' ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'The dates should be equal' );
 	}
 
 	/**
@@ -70,10 +70,10 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$current_time_gmt = current_time( $format, true );
 		$current_time     = current_time( $format );
 
-		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( $current_time_custom_timezone_gmt ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( $datetime->format( $format ) ), strtotime( $current_time_custom_timezone ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( gmdate( $format ) ), strtotime( $current_time_gmt ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( $datetime->format( $format ) ), strtotime( $current_time ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format ) ), strtotime( $current_time_custom_timezone_gmt ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $datetime->format( $format ) ), strtotime( $current_time_custom_timezone ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( $format ) ), strtotime( $current_time_gmt ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $datetime->format( $format ) ), strtotime( $current_time ), 2, 'The dates should be equal' );
 	}
 
 	/**
@@ -88,14 +88,14 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$wp_timestamp = $timestamp + $datetime->getOffset();
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEquals( $timestamp, current_time( 'timestamp', true ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'timestamp', true ), 2, 'The dates should be equal' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.RequestedUTC
-		$this->assertEquals( $timestamp, current_time( 'U', true ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $timestamp, current_time( 'U', true ), 2, 'The dates should be equal' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEquals( $wp_timestamp, current_time( 'timestamp' ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'timestamp' ), 2, 'The dates should be equal' );
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
-		$this->assertEquals( $wp_timestamp, current_time( 'U' ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( $wp_timestamp, current_time( 'U' ), 2, 'The dates should be equal' );
 
 		// phpcs:ignore WordPress.DateTime.CurrentTimeTimestamp.Requested
 		$this->assertInternalType( 'int', current_time( 'timestamp' ) );
@@ -113,7 +113,7 @@ class Tests_Date_Current_Time extends WP_UnitTestCase {
 		$datetime_utc = new DateTime( '@' . $timestamp );
 		$datetime_utc->setTimezone( new DateTimeZone( 'UTC' ) );
 
-		$this->assertEquals( strtotime( $datetime_local->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C ) ), 'The dates should be equal', 2 );
-		$this->assertEquals( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 'The dates should be equal', 2 );
+		$this->assertEqualsWithDelta( strtotime( $datetime_local->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C ) ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( $datetime_utc->format( DATE_W3C ) ), strtotime( current_time( DATE_W3C, true ) ), 2, 'The dates should be equal' );
 	}
 }

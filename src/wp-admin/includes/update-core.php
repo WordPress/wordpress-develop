@@ -1310,7 +1310,7 @@ function update_core( $from, $to ) {
 	 */
 	do_action( '_core_updated_successfully', $wp_version );
 
-	// Clear the option that blocks auto updates after failures, now that we've been successful.
+	// Clear the option that blocks auto-updates after failures, now that we've been successful.
 	if ( function_exists( 'delete_site_option' ) ) {
 		delete_site_option( 'auto_core_update_failed' );
 	}
@@ -1429,7 +1429,7 @@ function _redirect_to_about_wordpress( $new_version ) {
 	load_default_textdomain();
 
 	// See do_core_upgrade().
-	show_message( __( 'WordPress updated successfully' ) );
+	show_message( __( 'WordPress updated successfully.' ) );
 
 	// self_admin_url() won't exist when upgrading from <= 3.0, so relative URLs are intentional.
 	show_message(
