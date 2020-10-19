@@ -30,7 +30,7 @@ function wp_robots() {
 	 */
 	$robots = apply_filters( 'wp_robots', array() );
 
-	// TODO: Implement additional sanitization.
+	// Don't allow mutually exclusive directives.
 	if ( ! empty( $robots['follow'] ) ) {
 		unset( $robots['nofollow'] );
 	}
