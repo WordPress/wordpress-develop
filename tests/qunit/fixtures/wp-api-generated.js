@@ -15,7 +15,8 @@ mockedApiResponse.Schema = {
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
-        "wp-site-health/v1"
+        "wp-site-health/v1",
+        "__experimental"
     ],
     "authentication": [],
     "routes": {
@@ -5173,6 +5174,210 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/__experimental": {
+            "namespace": "__experimental",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "required": false,
+                            "default": "__experimental"
+                        },
+                        "context": {
+                            "required": false,
+                            "default": "view"
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/__experimental"
+                    }
+                ]
+            }
+        },
+        "/__experimental/sidebars": {
+            "namespace": "__experimental",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/__experimental/sidebars"
+                    }
+                ]
+            }
+        },
+        "/__experimental/sidebars/(?P<id>[\\w-]+)": {
+            "namespace": "__experimental",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "required": false,
+                            "description": "The id of a registered sidebar",
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "widgets": {
+                            "required": false,
+                            "description": "Nested widgets.",
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "id": {
+                                        "description": "Unique identifier for the widget.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "id_base": {
+                                        "description": "Type of widget for the object.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "widget_class": {
+                                        "description": "Class name of the widget implementation.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "name": {
+                                        "description": "Name of the widget.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "description": {
+                                        "description": "Description of the widget.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "number": {
+                                        "description": "Number of the widget.",
+                                        "type": "integer",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ]
+                                    },
+                                    "rendered": {
+                                        "description": "HTML representation of the widget.",
+                                        "type": "string",
+                                        "context": [
+                                            "view",
+                                            "embed"
+                                        ],
+                                        "readonly": true
+                                    },
+                                    "rendered_form": {
+                                        "description": "HTML representation of the widget admin form.",
+                                        "type": "string",
+                                        "context": [
+                                            "edit"
+                                        ],
+                                        "readonly": true
+                                    },
+                                    "settings": {
+                                        "description": "Settings of the widget.",
+                                        "type": "object",
+                                        "context": [
+                                            "view",
+                                            "edit",
+                                            "embed"
+                                        ],
+                                        "default": []
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "/__experimental/widget-utils/form/(?P<widget_class>[^/]*)": {
+            "namespace": "__experimental",
+            "methods": [
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "widget_class": {
+                            "required": true,
+                            "description": "Class name of the widget.",
+                            "type": "string"
+                        },
+                        "instance": {
+                            "required": false,
+                            "default": [],
+                            "description": "Current widget instance",
+                            "type": "object"
+                        }
+                    }
+                }
+            ]
         }
     }
 };
