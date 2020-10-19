@@ -24,7 +24,7 @@ wp.customize.controlConstructor['twenty-twenty-one-color'] = wp.customize.Contro
 				updating = true;
 				control.setting.set( '' );
 				updating = false;
-			},
+			}
 		} );
 
 		control.setting.bind( function( value ) {
@@ -49,5 +49,5 @@ wp.customize.controlConstructor['twenty-twenty-one-color'] = wp.customize.Contro
 				event.stopPropagation(); // Prevent section from being collapsed.
 			}
 		} );
-	},
+	}
 } );
