@@ -129,7 +129,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/block-types/(?P<namespace>[a-zA-Z0-9_-]+)/(?P<name>[a-zA-Z0-9_-]+)',
 			'/wp/v2/settings',
 			'/wp/v2/themes',
-			'/wp/v2/themes/(?P<name>[\w-]+)',
+			'/wp/v2/themes/(?P<stylesheet>[\w-]+)',
 			'/wp/v2/plugins',
 			'/wp/v2/plugins/(?P<plugin>[^.\/]+(?:\/[^.\/]+)?)',
 			'/wp/v2/block-directory/search',
