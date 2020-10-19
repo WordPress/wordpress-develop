@@ -133,6 +133,8 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 			)
 		);
 
+		error_log( print_r( $response, true ) );
+
 		$this->skipTestOnTimeout( $response );
 
 		$cookies = wp_remote_retrieve_cookies( $response );
