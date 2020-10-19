@@ -1230,10 +1230,6 @@ function _load_textdomain_just_in_time( $domain ) {
 	}
 
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	if ( null === $wp_textdomain_registry->get( $domain ) ) {
-		$wp_textdomain_registry->get_translation_from_lang_dir( $domain );
-	}
-
 	$path = $wp_textdomain_registry->get( $domain );
 	if ( ! $path ) {
 		return false;
@@ -1242,12 +1238,12 @@ function _load_textdomain_just_in_time( $domain ) {
 	$locale = determine_locale();
 
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
-	$template_directory   = get_template_directory();
-	$stylesheet_directory = get_stylesheet_directory();
+	$template_directory   = trailingslashit( get_template_directory() );
+	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
 	if ( 0 === strpos( $path, $template_directory ) || 0 === strpos( $path, $stylesheet_directory ) ) {
-		$mofile = "{$path}/{$locale}.mo";
+		$mofile = "{$path}{$locale}.mo";
 	} else {
-		$mofile = "{$path}/{$domain}-{$locale}.mo";
+		$mofile = "{$path}{$domain}-{$locale}.mo";
 	}
 
 	return load_textdomain( $domain, $mofile );

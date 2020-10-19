@@ -41,7 +41,11 @@ class WP_Textdomain_Registry {
 	 *                           Null if none have been fetched yet.
 	 */
 	public function get( $domain ) {
-		return isset( $this->domains[ $domain ] ) ? $this->domains[ $domain ] : null;
+		if ( isset( $this->domains[ $domain ] ) ) {
+			return $this->domains[ $domain ];
+		}
+
+		return $this->get_path_from_lang_dir( $domain );
 	}
 
 	/**
@@ -50,10 +54,10 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 *
 	 * @param string $domain Text domain.
-	 * @param string $path Language directory path.
+	 * @param string|false $path Language directory path or false if there is none available.
 	 */
 	public function set( $domain, $path ) {
-		$this->domains[ $domain ] = $path;
+		$this->domains[ $domain ] = $path ? trailingslashit( $path ) : false;
 	}
 
 	/**
@@ -72,8 +76,9 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 *
 	 * @param string $domain Text domain.
+	 * @return string|false MO file path or false if there is none available.
 	 */
-	public function get_translation_from_lang_dir( $domain ) {
+	private function get_path_from_lang_dir( $domain ) {
 		if ( null === $this->cached_mo_files ) {
 			$this->cached_mo_files = array();
 
@@ -85,19 +90,23 @@ class WP_Textdomain_Registry {
 
 		$path = WP_LANG_DIR . '/plugins/' . $mofile;
 		if ( in_array( $path, $this->cached_mo_files, true ) ) {
-			$this->set( $domain, WP_LANG_DIR . '/plugins/' );
+			$path = WP_LANG_DIR . '/plugins/';
+			$this->set( $domain, $path );
 
-			return;
+			return $path;
 		}
 
 		$path = WP_LANG_DIR . '/themes/' . $mofile;
 		if ( in_array( $path, $this->cached_mo_files, true ) ) {
-			$this->set( $domain, WP_LANG_DIR . '/themes/' );
+			$path = WP_LANG_DIR . '/themes/';
+			$this->set( $domain, $path );
 
-			return;
+			return $path;
 		}
 
 		$this->set( $domain, false );
+
+		return false;
 	}
 
 	/**
