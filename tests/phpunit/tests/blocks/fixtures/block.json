@@ -1,4 +1,5 @@
 {
+	"apiVersion": 2,
 	"name": "my-plugin/notice",
 	"title": "Notice",
 	"category": "common",

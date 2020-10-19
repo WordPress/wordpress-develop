@@ -285,6 +285,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 2, $result->api_version );
 		$this->assertSame( 'my-plugin/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
