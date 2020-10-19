@@ -767,15 +767,14 @@ function load_textdomain( $domain, $mofile ) {
  *
  * @since 3.0.0
  *
- * @global MO[]                   $l10n                   An array of all currently loaded text domains.
- * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
- * @global WP_Textdomain_Registry $wp_textdomain_registry WordPress Textdomain Registry.
+ * @global MO[] $l10n          An array of all currently loaded text domains.
+ * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
  *
  * @param string $domain Text domain. Unique identifier for retrieving translated strings.
  * @return bool Whether textdomain was unloaded.
  */
 function unload_textdomain( $domain ) {
-	global $l10n, $l10n_unloaded, $wp_textdomain_registry;
+	global $l10n, $l10n_unloaded;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
 
@@ -806,10 +805,7 @@ function unload_textdomain( $domain ) {
 
 	if ( isset( $l10n[ $domain ] ) ) {
 		unset( $l10n[ $domain ] );
-	}
 
-	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	if ( null !== $wp_textdomain_registry->get( $domain ) ) {
 		$l10n_unloaded[ $domain ] = true;
 
 		return true;
