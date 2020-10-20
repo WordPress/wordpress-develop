@@ -1903,6 +1903,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			}
 		);
 
+		$GLOBALS['wp_rest_server'] = null;
+		add_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
+		$GLOBALS['wp_rest_server'] = rest_get_server();
+
 		register_rest_route(
 			'test-ns/v1',
 			'/test/(?P<id>[\d+])',
