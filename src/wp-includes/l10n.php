@@ -766,14 +766,16 @@ function load_textdomain( $domain, $mofile ) {
  * Unload translations for a text domain.
  *
  * @since 3.0.0
+ * @since 5.6.0 Added the `$reloadable` parameter.
  *
  * @global MO[] $l10n          An array of all currently loaded text domains.
  * @global MO[] $l10n_unloaded An array of all text domains that have been unloaded again.
  *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+ * @param string $domain     Text domain. Unique identifier for retrieving translated strings.
+ * @param bool   $reloadable Whether the text domain can be loaded just-in-time again.
  * @return bool Whether textdomain was unloaded.
  */
-function unload_textdomain( $domain ) {
+function unload_textdomain( $domain, $reloadable = false ) {
 	global $l10n, $l10n_unloaded;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -782,14 +784,18 @@ function unload_textdomain( $domain ) {
 	 * Filters whether to override the text domain unloading.
 	 *
 	 * @since 3.0.0
+	 * @since 5.6.0 Added the `$reloadable` parameter.
 	 *
-	 * @param bool   $override Whether to override the text domain unloading. Default false.
-	 * @param string $domain   Text domain. Unique identifier for retrieving translated strings.
+	 * @param bool   $override   Whether to override the text domain unloading. Default false.
+	 * @param string $domain     Text domain. Unique identifier for retrieving translated strings.
+	 * @param bool   $reloadable Whether the text domain can be loaded just-in-time again.
 	 */
-	$plugin_override = apply_filters( 'override_unload_textdomain', false, $domain );
+	$plugin_override = apply_filters( 'override_unload_textdomain', false, $domain, $reloadable );
 
 	if ( $plugin_override ) {
-		$l10n_unloaded[ $domain ] = true;
+		if ( ! $reloadable ) {
+			$l10n_unloaded[ $domain ] = true;
+		}
 
 		return true;
 	}
@@ -798,15 +804,19 @@ function unload_textdomain( $domain ) {
 	 * Fires before the text domain is unloaded.
 	 *
 	 * @since 3.0.0
+	 * @since 5.6.0 Added the `$reloadable` parameter.
 	 *
-	 * @param string $domain Text domain. Unique identifier for retrieving translated strings.
+	 * @param string $domain     Text domain. Unique identifier for retrieving translated strings.
+	 * @param bool   $reloadable Whether the text domain can be loaded just-in-time again.
 	 */
-	do_action( 'unload_textdomain', $domain );
+	do_action( 'unload_textdomain', $domain, $reloadable );
 
 	if ( isset( $l10n[ $domain ] ) ) {
 		unset( $l10n[ $domain ] );
 
-		$l10n_unloaded[ $domain ] = true;
+		if ( ! $reloadable ) {
+			$l10n_unloaded[ $domain ] = true;
+		}
 
 		return true;
 	}
