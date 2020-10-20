@@ -47,7 +47,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:button --></div>',
 					'<!-- /wp:buttons -->',
 				)
-			)
+			),
 		)
 	);
 
@@ -81,7 +81,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:button --></div>',
 					'<!-- /wp:buttons -->',
 				)
-			)
+			),
 		)
 	);
 
@@ -134,7 +134,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:column --></div>',
 					'<!-- /wp:columns -->',
 				)
-			)
+			),
 		)
 	);
 
@@ -168,7 +168,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<!-- /wp:paragraph --></div></div>',
 					'<!-- /wp:media-text -->',
 				)
-			)
+			),
 		)
 	);
 
@@ -195,7 +195,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 					'<figure class="wp-block-pullquote alignwide has-background is-style-solid-color" style="background-color:#f7f7f7"><blockquote class="has-text-color" style="color:#111111"><p>' . esc_html__( 'Spark interest on social media', 'twentynineteen' ) . '</p><cite>' . esc_html__( 'We help companies communicate with their customers.', 'twentynineteen' ) . '</cite></blockquote></figure>',
 					'<!-- /wp:pullquote -->',
 				)
-			)
+			),
 		)
 	);
 }
