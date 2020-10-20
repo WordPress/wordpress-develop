@@ -16,6 +16,7 @@ jobs:
   # Runs the end-to-end test suite.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Set environment variables.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
@@ -34,6 +35,12 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
