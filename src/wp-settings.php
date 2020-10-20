@@ -285,6 +285,7 @@ require ABSPATH . WPINC . '/class-wp-block-type.php';
 require ABSPATH . WPINC . '/class-wp-block-pattern-categories-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-patterns-registry.php';
 require ABSPATH . WPINC . '/class-wp-block-styles-registry.php';
+require ABSPATH . WPINC . '/class-wp-block-supports.php';
 require ABSPATH . WPINC . '/class-wp-block-type-registry.php';
 require ABSPATH . WPINC . '/class-wp-block.php';
 require ABSPATH . WPINC . '/class-wp-block-list.php';
@@ -292,7 +293,11 @@ require ABSPATH . WPINC . '/class-wp-block-parser.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-patterns.php';
-require ABSPATH . WPINC . '/block-supports/index.php';
+require ABSPATH . WPINC . '/block-supports/align.php';
+require ABSPATH . WPINC . '/block-supports/colors.php';
+require ABSPATH . WPINC . '/block-supports/custom-classname.php';
+require ABSPATH . WPINC . '/block-supports/generated-classname.php';
+require ABSPATH . WPINC . '/block-supports/typography.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
 
