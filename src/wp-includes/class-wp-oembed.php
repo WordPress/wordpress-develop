@@ -539,6 +539,12 @@ class WP_oEmbed {
 			if ( is_wp_error( $result ) && 'not-implemented' === $result->get_error_code() ) {
 				continue;
 			}
+			// use youtube-nocookie.com for YouTube embeds
+			if ( strpos( $provider, 'https://www.youtube.com/oembed' ) === 0 && ! empty( $result->html ) ) {
+				$from = 'src="https://www.youtube.com/embed/';
+				$to   = 'src="https://www.youtube-nocookie.com/embed/';
+				$result->html = str_replace( $from, $to, $result->html );
+			}
 			return ( $result && ! is_wp_error( $result ) ) ? $result : false;
 		}
 		return false;
