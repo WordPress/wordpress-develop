@@ -130,7 +130,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<?php
 					printf(
 						/* translators: 1: url to my-sites.php, 2: Number of blogs the user has. */
-						__( 'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.' ),
+						_n(
+							'This will grant access to <a href="%1$s">the %2$s blog in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.',
+							count( $blogs )
+						),
 						admin_url( 'my-sites.php' ),
 						number_format_i18n( count( $blogs ) )
 					);
