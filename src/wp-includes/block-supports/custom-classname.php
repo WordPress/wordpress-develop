@@ -8,6 +8,8 @@
 /**
  * Registers the custom classname block attribute for block types that support it.
  *
+ * @access private
+ *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_custom_classname_support( $block_type ) {
@@ -30,6 +32,8 @@ function wp_register_custom_classname_support( $block_type ) {
 
 /**
  * Add the custom classnames to the output.
+ *
+ * @access private
  *
  * @param  WP_Block_Type $block_type       Block Type.
  * @param  array         $block_attributes Block attributes.

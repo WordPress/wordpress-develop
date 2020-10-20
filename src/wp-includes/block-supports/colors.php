@@ -8,6 +8,8 @@
 /**
  * Registers the style and colors block attributes for block types that support it.
  *
+ * @access private
+ *
  * @param WP_Block_Type $block_type Block Type.
  */
 function wp_register_colors_support( $block_type ) {
@@ -52,6 +54,8 @@ function wp_register_colors_support( $block_type ) {
 /**
  * Add CSS classes and inline styles for colors to the incoming attributes array.
  * This will be applied to the block markup in the front-end.
+ *
+ * @access private
  *
  * @param  WP_Block_Type $block_type       Block type.
 * @param  array         $block_attributes Block attributes.
