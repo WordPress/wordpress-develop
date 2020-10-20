@@ -312,7 +312,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 19, $properties );
+		$this->assertCount( 20, $properties );
+		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
@@ -431,6 +432,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( $data['is_dynamic'], $block_type->is_dynamic() );
 
 		$extra_fields = array(
+			'api_version',
 			'name',
 			'category',
 			'editor_script',

@@ -3696,12 +3696,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 						'rendered' => '<a href="#">link</a>',
 					),
 					'content' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 					'excerpt' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 				),
 			),

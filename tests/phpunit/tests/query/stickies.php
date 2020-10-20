@@ -6,7 +6,7 @@
  * @group query
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
-	static $posts = array();
+	public static $posts = array();
 
 	public static function wpSetUpBeforeClass( $factory ) {
 		// Set post times to get a reliable order.

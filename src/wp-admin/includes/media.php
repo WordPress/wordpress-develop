@@ -960,11 +960,11 @@ function wp_media_upload_handler() {
 }
 
 /**
- * Downloads an image from the specified URL and attaches it to a post.
+ * Downloads an image from the specified URL, saves it as an attachment, and optionally attaches it to a post.
  *
  * @since 2.6.0
  * @since 4.2.0 Introduced the `$return` parameter.
- * @since 4.8.0 Introduced the 'id' option within the `$return` parameter.
+ * @since 4.8.0 Introduced the 'id' option for the `$return` parameter.
  * @since 5.3.0 The `$post_id` parameter was made optional.
  * @since 5.4.0 The original URL of the attachment is stored in the `_source_url`
  *              post meta value.
@@ -974,13 +974,35 @@ function wp_media_upload_handler() {
  * @param string $desc    Optional. Description of the image.
  * @param string $return  Optional. Accepts 'html' (image tag html) or 'src' (URL),
  *                        or 'id' (attachment ID). Default 'html'.
- * @return string|WP_Error Populated HTML img tag on success, WP_Error object otherwise.
+ * @return string|int|WP_Error Populated HTML img tag, attachment ID, or attachment source
+ *                             on success, WP_Error object otherwise.
  */
 function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'html' ) {
 	if ( ! empty( $file ) ) {
 
+		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif' );
+
+		/**
+		 * Filters the list of allowed file extensions when sideloading an image from a URL.
+		 *
+		 * The default allowed extensions are:
+		 *
+		 *  - `jpg`
+		 *  - `jpeg`
+		 *  - `jpe`
+		 *  - `png`
+		 *  - `gif`
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param string[] $allowed_extensions Array of allowed file extensions.
+		 * @param string   $file               The URL of the image to download.
+		 */
+		$allowed_extensions = apply_filters( 'image_sideload_extensions', $allowed_extensions, $file );
+		$allowed_extensions = array_map( 'preg_quote', $allowed_extensions );
+
 		// Set variables for storage, fix file filename for query strings.
-		preg_match( '/[^\?]+\.(jpe?g|jpe|gif|png)\b/i', $file, $matches );
+		preg_match( '/[^\?]+\.(' . implode( '|', $allowed_extensions ) . ')\b/i', $file, $matches );
 
 		if ( ! $matches ) {
 			return new WP_Error( 'image_sideload_failed', __( 'Invalid image URL.' ) );
@@ -1117,7 +1139,7 @@ function image_align_input_fields( $post, $checked = '' ) {
 			" /><label for='image-align-{$name}-{$post->ID}' class='align image-align-{$name}-label'>$label</label>";
 	}
 
-	return join( "\n", $out );
+	return implode( "\n", $out );
 }
 
 /**
@@ -1194,7 +1216,7 @@ function image_size_input_fields( $post, $check = '' ) {
 	return array(
 		'label' => __( 'Size' ),
 		'input' => 'html',
-		'html'  => join( "\n", $out ),
+		'html'  => implode( "\n", $out ),
 	);
 }
 
@@ -1423,7 +1445,7 @@ function get_attachment_fields_to_edit( $post, $errors = null ) {
 			$values[] = $term->slug;
 		}
 
-		$t['value'] = join( ', ', $values );
+		$t['value'] = implode( ', ', $values );
 
 		$form_fields[ $taxonomy ] = $t;
 	}
@@ -1783,7 +1805,7 @@ function get_media_item( $attachment_id, $args = null ) {
 		}
 
 		if ( ! empty( $field['helps'] ) ) {
-			$item .= "<p class='help'>" . join( "</p>\n<p class='help'>", array_unique( (array) $field['helps'] ) ) . '</p>';
+			$item .= "<p class='help'>" . implode( "</p>\n<p class='help'>", array_unique( (array) $field['helps'] ) ) . '</p>';
 		}
 		$item .= "</td>\n\t\t</tr>\n";
 
@@ -1882,7 +1904,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 				$values[] = $term->slug;
 			}
 
-			$t['value']    = join( ', ', $values );
+			$t['value']    = implode( ', ', $values );
 			$t['taxonomy'] = true;
 
 			$form_fields[ $taxonomy ] = $t;
@@ -1975,7 +1997,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 		}
 
 		if ( ! empty( $field['helps'] ) ) {
-			$item .= "<p class='help'>" . join( "</p>\n<p class='help'>", array_unique( (array) $field['helps'] ) ) . '</p>';
+			$item .= "<p class='help'>" . implode( "</p>\n<p class='help'>", array_unique( (array) $field['helps'] ) ) . '</p>';
 		}
 
 		$item .= "</td>\n\t\t</tr>\n";
@@ -2273,9 +2295,9 @@ function media_upload_form( $errors = null ) {
  *
  * @since 2.5.0
  *
- * @param string  $type
- * @param object  $errors
- * @param int     $id
+ * @param string       $type
+ * @param array        $errors
+ * @param int|WP_Error $id
  */
 function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
@@ -3194,7 +3216,7 @@ function edit_form_image_editor( $post ) {
 			/* translators: 1: Link to tutorial, 2: Additional link attributes, 3: Accessibility text. */
 			__( '<a href="%1$s" %2$s>Describe the purpose of the image%3$s</a>. Leave empty if the image is purely decorative.' ),
 			esc_url( 'https://www.w3.org/WAI/tutorials/images/decision-tree' ),
-			'target="_blank" rel="noopener noreferrer"',
+			'target="_blank" rel="noopener"',
 			sprintf(
 				'<span class="screen-reader-text"> %s</span>',
 				/* translators: Accessibility text. */
@@ -3266,7 +3288,42 @@ function attachment_submitbox_metadata() {
 
 	$att_url = wp_get_attachment_url( $attachment_id );
 
+	$author = get_userdata( $post->post_author );
+
+	$uploaded_by_name = __( '(no author)' );
+	$uploaded_by_link = '';
+	if ( $author->exists() ) {
+		$uploaded_by_name = $author->display_name ? $author->display_name : $author->nickname;
+		$uploaded_by_link = get_edit_user_link( $author->ID );
+	}
 	?>
+	<div class="misc-pub-section misc-pub-uploadedby">
+		<?php if ( $uploaded_by_link ) { ?>
+			<?php _e( 'Uploaded by:' ); ?> <a href="<?php echo $uploaded_by_link; ?>"><strong><?php echo $uploaded_by_name; ?></strong></a>
+		<?php } else { ?>
+			<?php _e( 'Uploaded by:' ); ?> <strong><?php echo $uploaded_by_name; ?></strong>
+		<?php } ?>
+	</div>
+
+	<?php
+	if ( $post->post_parent ) {
+		$post_parent = get_post( $post->post_parent );
+		if ( $post_parent ) {
+			$uploaded_to_title = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$uploaded_to_link  = get_edit_post_link( $post->post_parent, 'raw' );
+			?>
+			<div class="misc-pub-section misc-pub-uploadedto">
+				<?php if ( $uploaded_to_link ) { ?>
+					<?php _e( 'Uploaded to:' ); ?> <a href="<?php echo $uploaded_to_link; ?>"><strong><?php echo $uploaded_to_title; ?></strong></a>
+				<?php } else { ?>
+					<?php _e( 'Uploaded to:' ); ?> <strong><?php echo $uploaded_to_title; ?></strong>
+				<?php } ?>
+			</div>
+			<?php
+		}
+	}
+	?>
+
 	<div class="misc-pub-section misc-pub-attachment">
 		<label for="attachment_url"><?php _e( 'File URL:' ); ?></label>
 		<input type="text" class="widefat urlfield" readonly="readonly" name="attachment_url" id="attachment_url" value="<?php echo esc_attr( $att_url ); ?>" />

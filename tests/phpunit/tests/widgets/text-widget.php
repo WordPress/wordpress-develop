@@ -1003,7 +1003,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure that rel="noopener noreferrer" is added to links with a target.
+	 * Ensure that rel="noopener" is added to links with a target.
 	 *
 	 * @ticket 46421
 	 */
@@ -1026,11 +1026,11 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
 
-		$this->assertContains( 'rel="noopener noreferrer"', $output );
+		$this->assertContains( 'rel="noopener"', $output );
 	}
 
 	/**
-	 * Ensure that rel="noopener noreferrer" is not added to links without a target.
+	 * Ensure that rel="noopener" is not added to links without a target.
 	 *
 	 * @ticket 46421
 	 */
@@ -1053,6 +1053,6 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 
 		$output = get_echo( array( $widget, 'widget' ), array( $args, $instance ) );
 
-		$this->assertNotContains( 'rel="noopener noreferrer"', $output );
+		$this->assertNotContains( 'rel="noopener"', $output );
 	}
 }

@@ -28,7 +28,7 @@ function strip_ws( $txt ) {
 		}
 	}
 
-	return trim( join( "\n", $result ) );
+	return trim( implode( "\n", $result ) );
 }
 
 /*
@@ -38,8 +38,8 @@ function strip_ws( $txt ) {
  * add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
-	var $events;
-	var $debug;
+	public $events;
+	public $debug;
 
 	/**
 	 * PHP5 constructor.
@@ -184,8 +184,8 @@ class MockAction {
 // Convert valid XML to an array tree structure.
 // Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
-	var $xml;
-	var $data = array();
+	public $xml;
+	public $data = array();
 
 	/**
 	 * PHP5 constructor.
@@ -275,7 +275,7 @@ function xml_join_atts( $atts ) {
 	foreach ( $atts as $k => $v ) {
 		$a[] = $k . '="' . $v . '"';
 	}
-	return join( ' ', $a );
+	return implode( ' ', $a );
 }
 
 function xml_array_dumbdown( &$data ) {
@@ -332,7 +332,7 @@ function gen_tests_array( $name, $array ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
 	}
-	return join( "\n", $out ) . "\n";
+	return implode( "\n", $out ) . "\n";
 }
 
 /**
