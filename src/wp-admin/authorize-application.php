@@ -126,11 +126,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			$blogs = get_blogs_of_user( $user->ID, true );
 			if ( sizeof( $blogs ) > 1 ) {
 				?>
-				<p><?php printf(
-					__( 'This will grant access to <a href="%s">all %s blogs in this installation that you have permissions on</a>.' ),
-					admin_url( 'my-sites.php' ),
-					number_format_i18n( sizeof( $blogs ) )
-				); ?></p>
+				<p>
+				<?php
+					printf(
+						/* translators: 1: url to my-sites.php, 2: Number of blogs the user has. */
+						__( 'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.' ),
+						admin_url( 'my-sites.php' ),
+						number_format_i18n( sizeof( $blogs ) )
+					);
+				?>
+				</p>
 				<?php
 			}
 		}
