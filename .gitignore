@@ -45,6 +45,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
 !/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwentyone
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php

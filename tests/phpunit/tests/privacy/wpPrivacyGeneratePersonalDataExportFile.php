@@ -478,7 +478,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
 						),
 					),
 					'comment-3' => array(
@@ -508,7 +508,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a>',
 						),
 					),
 				),
@@ -620,7 +620,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
 						),
 					),
 				),

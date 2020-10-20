@@ -3809,26 +3809,18 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$author = new WP_User( $attachment->post_author );
 	if ( $author->exists() ) {
-		$response['authorName'] = html_entity_decode( $author->display_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
+		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$response['authorLink'] = get_edit_user_link( $author->ID );
 	} else {
 		$response['authorName'] = __( '(no author)' );
 	}
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-	} else {
-		$post_parent = false;
-	}
-
-	if ( $post_parent ) {
-		$parent_type = get_post_type_object( $post_parent->post_type );
-
-		if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $attachment->post_parent ) ) {
-			$response['uploadedToLink'] = get_edit_post_link( $attachment->post_parent, 'raw' );
-		}
-
-		if ( $parent_type && current_user_can( 'read_post', $attachment->post_parent ) ) {
+		if ( $post_parent ) {
 			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
 	}
 
@@ -3982,6 +3974,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( function_exists( 'get_compat_media_markup' ) ) {
 		$response['compat'] = get_compat_media_markup( $attachment->ID, array( 'in_modal' => true ) );
+	}
+
+	$media_states = get_media_states( $attachment );
+	if ( ! empty( $media_states ) ) {
+		$response['mediaStates'] = implode( ', ', $media_states );
 	}
 
 	/**
