@@ -155,6 +155,8 @@ class WP_Block_Supports {
  *
  * @since 5.6.0
  *
+ * @global array    $current_parsed_block Block currently being parsed.
+ *
  * @param array $extra_attributes Optional. Extra attributes to render on the block wrapper.
  *
  * @return string String of HTML classes.
