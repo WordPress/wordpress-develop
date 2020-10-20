@@ -143,7 +143,7 @@
 		"polyfill-library": "3.42.0",
 		"react": "16.13.1",
 		"react-dom": "16.13.1",
-		"twemoji": "13.0.0",
+		"twemoji": "13.0.1",
 		"underscore": "1.8.3",
 		"whatwg-fetch": "3.0.0"
 	},
