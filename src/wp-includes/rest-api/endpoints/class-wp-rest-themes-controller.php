@@ -305,7 +305,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					$data['theme_supports'][ $name ] = $prepared;
 				}
 			} else {
-				$data['theme_supports'] = [];
+				$data['theme_supports'] = array();
 			}
 		}
 
