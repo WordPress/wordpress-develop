@@ -1253,4 +1253,312 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		$this->assertWPError( rest_validate_value_from_schema( 15.5, $schema ) );
 	}
 
+	/**
+	 * @ticket 51025
+	 *
+	 * @dataProvider data_any_of
+	 *
+	 * @param array $data
+	 * @param array $schema
+	 * @param bool $valid
+	 */
+	public function test_any_of( $data, $schema, $valid ) {
+		$is_valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $valid ) {
+			$this->assertTrue( $is_valid );
+		} else {
+			$this->assertWPError( $is_valid );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_any_of() {
+		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/anyof.json' ), true );
+		$skip   = array(
+			'anyOf with boolean schemas, all true',
+			'anyOf with boolean schemas, some true',
+			'anyOf with boolean schemas, all false',
+			'anyOf with one empty schema',
+			'nested anyOf, to check validation semantics',
+		);
+
+		$tests = array();
+
+		foreach ( $suites as $suite ) {
+			if ( in_array( $suite['description'], $skip, true ) ) {
+				continue;
+			}
+
+			foreach ( $suite['tests'] as $test ) {
+				$tests[ $suite['description'] . ': ' . $test['description'] ] = array(
+					$test['data'],
+					$suite['schema'],
+					$test['valid'],
+				);
+			}
+		}
+
+		return $tests;
+	}
+
+	/**
+	 * @ticket 51025
+	 *
+	 * @dataProvider data_one_of
+	 *
+	 * @param array $data
+	 * @param array $schema
+	 * @param bool $valid
+	 */
+	public function test_one_of( $data, $schema, $valid ) {
+		$is_valid = rest_validate_value_from_schema( $data, $schema );
+
+		if ( $valid ) {
+			$this->assertTrue( $is_valid );
+		} else {
+			$this->assertWPError( $is_valid );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_one_of() {
+		$suites = json_decode( file_get_contents( __DIR__ . '/json_schema_test_suite/oneof.json' ), true );
+		$skip   = array(
+			'oneOf with boolean schemas, all true',
+			'oneOf with boolean schemas, one true',
+			'oneOf with boolean schemas, more than one true',
+			'oneOf with boolean schemas, all false',
+			'oneOf with empty schema',
+			'nested oneOf, to check validation semantics',
+		);
+
+		$tests = array();
+
+		foreach ( $suites as $suite ) {
+			if ( in_array( $suite['description'], $skip, true ) ) {
+				continue;
+			}
+
+			foreach ( $suite['tests'] as $test ) {
+				$tests[ $suite['description'] . ': ' . $test['description'] ] = array(
+					$test['data'],
+					$suite['schema'],
+					$test['valid'],
+				);
+			}
+		}
+
+		return $tests;
+	}
+
+	/**
+	 * @ticket 51025
+	 *
+	 * @dataProvider data_combining_operation_error_message
+	 *
+	 * @param $data
+	 * @param $schema
+	 * @param $expected
+	 */
+	public function test_combining_operation_error_message( $data, $schema, $expected ) {
+		$is_valid = rest_validate_value_from_schema( $data, $schema, 'foo' );
+
+		$this->assertWPError( $is_valid );
+		$this->assertSame( $expected, $is_valid->get_error_message() );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_combining_operation_error_message() {
+		return array(
+			array(
+				10,
+				array(
+					'anyOf' => array(
+						array(
+							'title'   => 'circle',
+							'type'    => 'integer',
+							'maximum' => 5,
+						),
+					),
+				),
+				'foo is not a valid circle. Reason: foo must be less than or equal to 5',
+			),
+			array(
+				10,
+				array(
+					'anyOf' => array(
+						array(
+							'type'    => 'integer',
+							'maximum' => 5,
+						),
+					),
+				),
+				'foo does not match the expected format. Reason: foo must be less than or equal to 5',
+			),
+			array(
+				array( 'a' => 1 ),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'title'      => 'circle',
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+					),
+				),
+				'foo is not a valid circle. Reason: foo[a] is not of type string.',
+			),
+			array(
+				array( 'a' => 1 ),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+					),
+				),
+				'foo does not match the expected format. Reason: foo[a] is not of type string.',
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'title'      => 'square',
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'string' ),
+								'c' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'boolean' ),
+								'x' => array( 'type' => 'boolean' ),
+							),
+						),
+					),
+				),
+				'foo is not a valid square. Reason: foo[b] is not of type string.',
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'a' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'string' ),
+								'c' => array( 'type' => 'string' ),
+							),
+						),
+						array(
+							'type'       => 'object',
+							'properties' => array(
+								'b' => array( 'type' => 'boolean' ),
+								'x' => array( 'type' => 'boolean' ),
+							),
+						),
+					),
+				),
+				'foo does not match the expected format. Reason: foo[b] is not of type string.',
+			),
+			array(
+				'test',
+				array(
+					'anyOf' => array(
+						array(
+							'title' => 'circle',
+							'type'  => 'boolean',
+						),
+						array(
+							'title' => 'square',
+							'type'  => 'integer',
+						),
+						array(
+							'title' => 'triangle',
+							'type'  => 'null',
+						),
+					),
+				),
+				'foo is not a valid circle, square, and triangle.',
+			),
+			array(
+				'test',
+				array(
+					'anyOf' => array(
+						array( 'type' => 'boolean' ),
+						array( 'type' => 'integer' ),
+						array( 'type' => 'null' ),
+					),
+				),
+				'foo does not match any of the expected formats.',
+			),
+			array(
+				'test',
+				array(
+					'oneOf' => array(
+						array(
+							'title' => 'circle',
+							'type'  => 'string',
+						),
+						array( 'type' => 'integer' ),
+						array(
+							'title' => 'triangle',
+							'type'  => 'string',
+						),
+					),
+				),
+				'foo matches circle and triangle, but should match only one.',
+			),
+			array(
+				'test',
+				array(
+					'oneOf' => array(
+						array( 'type' => 'string' ),
+						array( 'type' => 'integer' ),
+						array( 'type' => 'string' ),
+					),
+				),
+				'foo matches more than one of the expected formats.',
+			),
+		);
+	}
 }

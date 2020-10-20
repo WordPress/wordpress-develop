@@ -587,4 +587,51 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 		$this->assertWPError( rest_sanitize_value_from_schema( $data, $schema ) );
 	}
+
+	/**
+	 * @ticket 51025
+	 */
+	public function test_any_of() {
+		$schema = array(
+			'anyOf' => array(
+				array(
+					'type'       => 'integer',
+					'multipleOf' => 2,
+				),
+				array(
+					'type'      => 'string',
+					'maxLength' => 1,
+				),
+			),
+		);
+
+		$this->assertSame( 4, rest_sanitize_value_from_schema( '4', $schema ) );
+		$this->assertSame( '5', rest_sanitize_value_from_schema( '5', $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( true, $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( '11', $schema ) );
+	}
+
+	/**
+	 * @ticket 51025
+	 */
+	public function test_one_of() {
+		$schema = array(
+			'oneOf' => array(
+				array(
+					'type'       => 'integer',
+					'multipleOf' => 2,
+				),
+				array(
+					'type'      => 'string',
+					'maxLength' => 1,
+				),
+			),
+		);
+
+		$this->assertSame( 10, rest_sanitize_value_from_schema( '10', $schema ) );
+		$this->assertSame( '5', rest_sanitize_value_from_schema( '5', $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( true, $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( '11', $schema ) );
+		$this->assertWPError( rest_sanitize_value_from_schema( '4', $schema ) );
+	}
 }

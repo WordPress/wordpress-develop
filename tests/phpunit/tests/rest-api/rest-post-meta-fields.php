@@ -692,7 +692,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request->set_body_params( $data );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
 	}
 
 	public function test_set_value_invalid_value_multiple() {
@@ -717,7 +717,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$request->set_body_params( $data );
 
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+		$this->assertErrorResponse( 'rest_invalid_type', $response, 400 );
 	}
 
 	public function test_set_value_sanitized() {
