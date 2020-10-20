@@ -1416,7 +1416,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				'foo does not match any of the expected formats. Closest format: circle. Possible reason: foo[a] is not of type string.',
+				'foo is not a valid circle. Reason: foo[a] is not of type string.',
 			),
 			array(
 				array( 'a' => 1 ),
@@ -1431,7 +1431,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				'foo does not match any of the expected formats. Possible reason: foo[a] is not of type string.',
+				'foo does not match the expected format. Reason: foo[a] is not of type string.',
 			),
 			array(
 				array(
@@ -1465,7 +1465,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				'foo does not match any of the expected formats. Closest format: square. Possible reason: foo[b] is not of type string.',
+				'foo is not a valid square. Reason: foo[b] is not of type string.',
 			),
 			array(
 				array(
@@ -1498,7 +1498,7 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 						),
 					),
 				),
-				'foo does not match any of the expected formats. Possible reason: foo[b] is not of type string.',
+				'foo does not match the expected format. Reason: foo[b] is not of type string.',
 			),
 			array(
 				'test',

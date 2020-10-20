@@ -1665,6 +1665,38 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
 }
 
 /**
+ * Formats a combining operation error into a WP_Error object.
+ *
+ * @since 5.6.0
+ *
+ * @param string $param The parameter name.
+ * @param array $error  The error details.
+ * @return WP_Error
+ */
+function rest_format_combining_operation_error( $param, $error ) {
+	$position = $error['index'];
+	$reason   = $error['error_object']->get_error_message();
+
+	if ( isset( $error['schema']['title'] ) ) {
+		$title = $error['schema']['title'];
+
+		return new WP_Error(
+			'rest_invalid_param',
+			/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
+			sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
+			array( 'position' => $position )
+		);
+	}
+
+	return new WP_Error(
+		'rest_invalid_param',
+		/* translators: 1: Parameter, 2: Reason. */
+		sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
+		array( 'position' => $position )
+	);
+}
+
+/**
  * Gets the error of combining operation.
  *
  * @since 5.6.0
@@ -1677,26 +1709,7 @@ function rest_find_matching_pattern_property_schema( $property, $args ) {
 function rest_get_combining_operation_error( $value, $param, $errors ) {
 	// If there is only one error, simply return it.
 	if ( 1 === count( $errors ) ) {
-		$position = $errors[0]['index'];
-		$reason   = $errors[0]['error_object']->get_error_message();
-
-		if ( isset( $errors[0]['schema']['title'] ) ) {
-			$title = $errors[0]['schema']['title'];
-
-			return new WP_Error(
-				'rest_invalid_param',
-				/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
-				sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
-				array( 'position' => $position )
-			);
-		}
-
-		return new WP_Error(
-			'rest_invalid_param',
-			/* translators: 1: Parameter, 2: Reason. */
-			sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
-			array( 'position' => $position )
-		);
+		return rest_format_combining_operation_error( $param, $errors[0] );
 	}
 
 	// Filter out all errors related to type validation.
@@ -1712,26 +1725,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 
 	// If there is only one error left, simply return it.
 	if ( 1 === count( $filtered_errors ) ) {
-		$position = $filtered_errors[0]['index'];
-		$reason   = $filtered_errors[0]['error_object']->get_error_message();
-
-		if ( isset( $filtered_errors[0]['schema']['title'] ) ) {
-			$title = $filtered_errors[0]['schema']['title'];
-
-			return new WP_Error(
-				'rest_invalid_param',
-				/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
-				sprintf( __( '%1$s does not match any of the expected formats. Closest format: %2$s. Possible reason: %3$s' ), $param, $title, $reason ),
-				array( 'position' => $position )
-			);
-		}
-
-		return new WP_Error(
-			'rest_invalid_param',
-			/* translators: 1: Parameter, 2: Possible reason. */
-			sprintf( __( '%1$s does not match any of the expected formats. Possible reason: %2$s' ), $param, $reason ),
-			array( 'position' => $position )
-		);
+		return rest_format_combining_operation_error( $param, $filtered_errors[0] );
 	}
 
 	// If there are only errors related to object validation, try choosing the most appropriate one.
@@ -1750,26 +1744,7 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		}
 
 		if ( null !== $result ) {
-			$position = $result['index'];
-			$reason   = $result['error_object']->get_error_message();
-
-			if ( isset( $result['schema']['title'] ) ) {
-				$title = $result['schema']['title'];
-
-				return new WP_Error(
-					'rest_invalid_param',
-					/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
-					sprintf( __( '%1$s does not match any of the expected formats. Closest format: %2$s. Possible reason: %3$s' ), $param, $title, $reason ),
-					array( 'position' => $position )
-				);
-			}
-
-			return new WP_Error(
-				'rest_invalid_param',
-				/* translators: 1: Parameter, 2: Possible reason. */
-				sprintf( __( '%1$s does not match any of the expected formats. Possible reason: %2$s' ), $param, $reason ),
-				array( 'position' => $position )
-			);
+			return rest_format_combining_operation_error( $param, $result );
 		}
 	}
 
@@ -1804,7 +1779,7 @@ function rest_find_any_matching_schema( $value, $args, $param ) {
 	$errors = array();
 
 	foreach ( $args['anyOf'] as $index => $schema ) {
-		if ( ! isset( $schema['type'] ) ) {
+		if ( ! isset( $schema['type'] ) && isset( $args['type'] ) ) {
 			$schema['type'] = $args['type'];
 		}
 
@@ -1839,7 +1814,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 	$errors           = array();
 
 	foreach ( $args['oneOf'] as $index => $schema ) {
-		if ( ! isset( $schema['type'] ) ) {
+		if ( ! isset( $schema['type'] ) && isset( $args['type'] ) ) {
 			$schema['type'] = $args['type'];
 		}
 
@@ -1928,7 +1903,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return $matching_schema;
 		}
 
-		if ( ! isset( $args['type'] ) ) {
+		if ( ! isset( $args['type'] ) && isset( $matching_schema['type'] ) ) {
 			$args['type'] = $matching_schema['type'];
 		}
 	}
@@ -1939,7 +1914,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			return $matching_schema;
 		}
 
-		if ( ! isset( $args['type'] ) ) {
+		if ( ! isset( $args['type'] ) && isset( $matching_schema['type'] ) ) {
 			$args['type'] = $matching_schema['type'];
 		}
 	}
