@@ -658,7 +658,7 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
  * @return string String of rendered HTML.
  */
 function render_block( $parsed_block ) {
-	global $post, $wp_query;
+	global $post, $wp_query, $current_parsed_block;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
@@ -672,6 +672,11 @@ function render_block( $parsed_block ) {
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
+
+	$current_parsed_block = array(
+		'blockName'  => null,
+		'attributes' => null,
+	);
 
 	$source_block = $parsed_block;
 
