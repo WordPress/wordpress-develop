@@ -41,6 +41,78 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/"
             }
         },
+        "/batch/v1": {
+            "namespace": "",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "validation": {
+                            "required": false,
+                            "default": "normal",
+                            "enum": [
+                                "require-all-validate",
+                                "normal"
+                            ],
+                            "type": "string"
+                        },
+                        "requests": {
+                            "required": true,
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "POST",
+                                            "PUT",
+                                            "PATCH",
+                                            "DELETE"
+                                        ],
+                                        "default": "POST"
+                                    },
+                                    "path": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "body": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": true
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "array"
+                                            ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/batch/v1"
+                    }
+                ]
+            }
+        },
         "/oembed/1.0": {
             "namespace": "oembed/1.0",
             "methods": [
