@@ -7,9 +7,6 @@ on:
       - '*.*'
   pull_request:
 
-env:
-  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-
 jobs:
   # Runs the QUnit tests for WordPress.
   #
