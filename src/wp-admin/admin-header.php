@@ -190,8 +190,12 @@ if ( is_network_admin() ) {
 $admin_body_class .= ' no-customize-support no-svg';
 
 if ( $current_screen->is_block_editor() ) {
+	$admin_body_class .= ' block-editor-page wp-embed-responsive';
+
 	// Default to is-fullscreen-mode to avoid jumps in the UI.
-	$admin_body_class .= ' block-editor-page is-fullscreen-mode wp-embed-responsive';
+	if ( 'widgets' !== $current_screen->base ) {
+		$admin_body_class .= ' is-fullscreen-mode';
+	}
 
 	if ( current_theme_supports( 'editor-styles' ) && current_theme_supports( 'dark-editor-style' ) ) {
 		$admin_body_class .= ' is-dark-theme';

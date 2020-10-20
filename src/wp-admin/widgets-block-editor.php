@@ -24,8 +24,9 @@ if ( isset( $_GET['widget-preview'] ) ) {
 	exit;
 }
 
-// Load block editor scripts and styles on this screen.
-add_filter( 'should_load_block_editor_scripts_and_styles', '__return_true' );
+// Flag that we're loading the block editor.
+$current_screen = get_current_screen();
+$current_screen->is_block_editor( true );
 
 $max_upload_size = wp_max_upload_size();
 if ( ! $max_upload_size ) {
