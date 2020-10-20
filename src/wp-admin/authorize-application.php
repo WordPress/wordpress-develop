@@ -124,7 +124,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php
 		if ( is_multisite() ) {
 			$blogs = get_blogs_of_user( $user->ID, true );
-			if ( sizeof( $blogs ) > 1 ) {
+			if ( count( $blogs ) > 1 ) {
 				?>
 				<p>
 				<?php
@@ -132,7 +132,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						/* translators: 1: url to my-sites.php, 2: Number of blogs the user has. */
 						__( 'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.' ),
 						admin_url( 'my-sites.php' ),
-						number_format_i18n( sizeof( $blogs ) )
+						number_format_i18n( count( $blogs ) )
 					);
 				?>
 				</p>
