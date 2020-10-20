@@ -2803,6 +2803,7 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	$schema_properties       = ! empty( $schema['properties'] ) ? $schema['properties'] : array();
 	$endpoint_args           = array();
 	$valid_schema_properties = rest_get_allowed_schema_keywords();
+	$valid_schema_properties = array_diff_key( $valid_schema_properties, array( 'default', 'required' ) );
 
 	foreach ( $schema_properties as $field_id => $params ) {
 
@@ -2815,10 +2816,6 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 			'validate_callback' => 'rest_validate_request_arg',
 			'sanitize_callback' => 'rest_sanitize_request_arg',
 		);
-
-		if ( isset( $params['description'] ) ) {
-			$endpoint_args[ $field_id ]['description'] = $params['description'];
-		}
 
 		if ( WP_REST_Server::CREATABLE === $method && isset( $params['default'] ) ) {
 			$endpoint_args[ $field_id ]['default'] = $params['default'];

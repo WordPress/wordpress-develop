@@ -1939,6 +1939,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			'title'                => 'Hi',
 			'description'          => 'World',
 			'type'                 => 'string',
+			'default'              => 0,
 			'format'               => 'uri',
 			'enum'                 => array( 'https://example.org' ),
 			'items'                => array( 'type' => 'string' ),
