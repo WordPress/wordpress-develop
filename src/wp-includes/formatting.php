@@ -722,7 +722,7 @@ function _get_wptexturize_split_regex( $shortcode_regex = '' ) {
  * @return string The regular expression
  */
 function _get_wptexturize_shortcode_regex( $tagnames ) {
-	$tagregexp = join( '|', array_map( 'preg_quote', $tagnames ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 	$tagregexp = "(?:$tagregexp)(?=[\\s\\]\\/])"; // Excerpt of get_shortcode_regex().
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound -- don't remove regex indentation
 	$regex =
@@ -824,7 +824,7 @@ function shortcode_unautop( $pee ) {
 		return $pee;
 	}
 
-	$tagregexp = join( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', array_keys( $shortcode_tags ) ) );
 	$spaces    = wp_spaces_regexp();
 
 	// phpcs:disable Squiz.Strings.ConcatenationSpacing.PaddingFound,WordPress.WhiteSpace.PrecisionAlignment.Found -- don't remove regex indentation
@@ -3153,9 +3153,10 @@ function wp_rel_ugc( $text ) {
 }
 
 /**
- * Adds rel noreferrer and noopener to all HTML A elements that have a target.
+ * Adds `rel="noopener"` to all HTML A elements that have a target.
  *
  * @since 5.1.0
+ * @since 5.6.0 Removed 'noreferrer' relationship.
  *
  * @param string $text Content that may contain HTML A elements.
  * @return string Converted content.
@@ -3188,15 +3189,15 @@ function wp_targeted_link_rel( $text ) {
 }
 
 /**
- * Callback to add rel="noreferrer noopener" string to HTML A element.
+ * Callback to add `rel="noopener"` string to HTML A element.
  *
- * Will not duplicate existing noreferrer and noopener values
- * to prevent from invalidating the HTML.
+ * Will not duplicate an existing 'noopener' value to avoid invalidating the HTML.
  *
  * @since 5.1.0
+ * @since 5.6.0 Removed 'noreferrer' relationship.
  *
- * @param array $matches Single Match
- * @return string HTML A Element with rel noreferrer noopener in addition to any existing values
+ * @param array $matches Single match.
+ * @return string HTML A Element with `rel="noopener"` in addition to any existing values.
  */
 function wp_targeted_link_rel_callback( $matches ) {
 	$link_html          = $matches[1];
@@ -3219,7 +3220,7 @@ function wp_targeted_link_rel_callback( $matches ) {
 	 * @param string $rel       The rel values.
 	 * @param string $link_html The matched content of the link tag including all HTML attributes.
 	 */
-	$rel = apply_filters( 'wp_targeted_link_rel', 'noopener noreferrer', $link_html );
+	$rel = apply_filters( 'wp_targeted_link_rel', 'noopener', $link_html );
 
 	// Return early if no rel values to be added or if no actual target attribute.
 	if ( ! $rel || ! isset( $atts['target'] ) ) {
@@ -3232,7 +3233,7 @@ function wp_targeted_link_rel_callback( $matches ) {
 	}
 
 	$atts['rel']['whole'] = 'rel="' . esc_attr( $rel ) . '"';
-	$link_html            = join( ' ', array_column( $atts, 'whole' ) );
+	$link_html            = implode( ' ', array_column( $atts, 'whole' ) );
 
 	if ( $is_escaped ) {
 		$link_html = preg_replace( '/[\'"]/', '\\\\$0', $link_html );
@@ -3696,7 +3697,7 @@ function sanitize_email( $email ) {
 	}
 
 	// Join valid subs into the new domain.
-	$domain = join( '.', $new_subs );
+	$domain = implode( '.', $new_subs );
 
 	// Put the email back together.
 	$sanitized_email = $local . '@' . $domain;
