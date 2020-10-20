@@ -2540,7 +2540,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 			$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
 		}
 
-		return abs( intval( $value ) );
+		return abs( (int) $value );
 	}
 endif;
 
@@ -2723,7 +2723,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			esc_attr( $args['alt'] ),
 			esc_url( $url ),
 			esc_url( $url2x ) . ' 2x',
-			esc_attr( join( ' ', $class ) ),
+			esc_attr( implode( ' ', $class ) ),
 			(int) $args['height'],
 			(int) $args['width'],
 			$extra_attr

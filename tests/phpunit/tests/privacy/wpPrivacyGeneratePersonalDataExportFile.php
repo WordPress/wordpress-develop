@@ -164,7 +164,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$request_id = wp_create_user_request( 'removal-requester@example.com', 'remove_personal_data' );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -175,7 +175,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function test_invalid_request_id() {
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( 123456789 );
 	}
 
@@ -195,7 +195,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		);
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating user privacy export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -209,7 +209,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		touch( untrailingslashit( self::$exports_dir ) );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to create export folder."}' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to create user privacy export folder."}' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
@@ -478,7 +478,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
 						),
 					),
 					'comment-3' => array(
@@ -508,7 +508,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-3" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-3</a>',
 						),
 					),
 				),
@@ -620,7 +620,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 						array(
 							'name'  => 'Comment URL',
-							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noreferrer noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
+							'value' => '<a href="http://localhost:8888/46894/2020/01/31/hello-world/#comment-2" target="_blank" rel="noopener">http://localhost:8888/46894/2020/01/31/hello-world/#comment-2</a>',
 						),
 					),
 				),

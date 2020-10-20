@@ -543,7 +543,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Has someone already signed up for this username?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$registered_at = mysql2date( 'U', $signup->registered );
 		$now           = time();
 		$diff          = $now - $registered_at;
@@ -556,7 +556,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	}
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -708,7 +708,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
 		$path     = $base;
 	} else {
-		$mydomain = "$domain";
+		$mydomain = $domain;
 		$path     = $base . $blogname . '/';
 	}
 	if ( domain_exists( $mydomain, $path, $current_network->id ) ) {
@@ -724,7 +724,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	// Has someone already signed up for this domain?
 	// TODO: Check email too?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) );
-	if ( ! empty( $signup ) ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -1696,6 +1696,120 @@ We hope you enjoy your new site. Thanks!
 }
 
 /**
+ * Notifies the Multisite network administrator that a new site was created.
+ *
+ * Filter {@see 'send_new_site_email'} to disable or bypass.
+ *
+ * Filter {@see 'new_site_email'} to filter the contents.
+ *
+ * @since 5.6.0
+ *
+ * @param int $site_id Site ID of the new site.
+ * @param int $user_id User ID of the administrator of the new site.
+ * @return bool Whether the email notification was sent.
+ */
+function wpmu_new_site_admin_notification( $site_id, $user_id ) {
+	$site  = get_site( $site_id );
+	$user  = get_userdata( $user_id );
+	$email = get_site_option( 'admin_email' );
+
+	if ( ! $site || ! $user || ! $email ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether to send an email to the Multisite network administrator when a new site is created.
+	 *
+	 * Return false to disable sending the email.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $send Whether to send the email.
+	 * @param WP_Site $site Site object of the new site.
+	 * @param WP_User $user User object of the administrator of the new site.
+	 */
+	if ( ! apply_filters( 'send_new_site_email', true, $site, $user ) ) {
+		return false;
+	}
+
+	$switched_locale = false;
+	$network_admin   = get_user_by( 'email', $email );
+
+	if ( $network_admin ) {
+		// If the network admin email address corresponds to a user, switch to their locale.
+		$switched_locale = switch_to_locale( get_user_locale( $network_admin ) );
+	} else {
+		// Otherwise switch to the locale of the current site.
+		$switched_locale = switch_to_locale( get_locale() );
+	}
+
+	$subject = sprintf(
+		/* translators: New site notification email subject. %s: Network title. */
+		__( '[%s] New Site Created' ),
+		get_network()->site_name
+	);
+
+	$message = sprintf(
+		/* translators: New site notification email. 1: User login, 2: Site URL, 3: Site title. */
+		__(
+			'New site created by %1$s
+
+Address: %2$s
+Name: %3$s'
+		),
+		$user->user_login,
+		get_site_url( $site->id ),
+		get_blog_option( $site->id, 'blogname' )
+	);
+
+	$header = sprintf(
+		'From: "%1$s" <%2$s>',
+		_x( 'Site Admin', 'email "From" field' ),
+		$email
+	);
+
+	$new_site_email = array(
+		'to'      => $email,
+		'subject' => $subject,
+		'message' => $message,
+		'headers' => $header,
+	);
+
+	/**
+	 * Filters the content of the email sent to the Multisite network administrator when a new site is created.
+	 *
+	 * Content should be formatted for transmission via wp_mail().
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $new_site_email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The email address of the recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *     @type string $headers Headers.
+	 * }
+	 * @param WP_Site $site         Site object of the new site.
+	 * @param WP_User $user         User object of the administrator of the new site.
+	 */
+	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
+
+	wp_mail(
+		$new_site_email['to'],
+		wp_specialchars_decode( $new_site_email['subject'] ),
+		$new_site_email['message'],
+		$new_site_email['headers']
+	);
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return true;
+}
+
+/**
  * Notify a user that their account activation has been successful.
  *
  * Filter {@see 'wpmu_welcome_user_notification'} to disable or bypass.
@@ -1970,7 +2084,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 		return $term_id;
 	}
 
-	$term_id = intval( $term_id );
+	$term_id = (int) $term_id;
 	$c       = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
 
 	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );

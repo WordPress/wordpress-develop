@@ -432,7 +432,7 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  */
 function comment_class( $class = '', $comment = null, $post_id = null, $echo = true ) {
 	// Separates classes with a single space, collates classes for comment DIV.
-	$class = 'class="' . join( ' ', get_comment_class( $class, $comment, $post_id ) ) . '"';
+	$class = 'class="' . implode( ' ', get_comment_class( $class, $comment, $post_id ) ) . '"';
 
 	if ( $echo ) {
 		echo $class;
@@ -604,7 +604,7 @@ function get_comment_excerpt( $comment_ID = 0 ) {
 	}
 
 	/* translators: Maximum number of words used in a comment excerpt. */
-	$comment_excerpt_length = intval( _x( '20', 'comment_excerpt_length' ) );
+	$comment_excerpt_length = (int) _x( '20', 'comment_excerpt_length' );
 
 	/**
 	 * Filters the maximum number of words used in the comment excerpt.
@@ -2205,7 +2205,7 @@ function wp_list_comments( $args = array(), $comments = null ) {
 		}
 	}
 	// Validation check.
-	$parsed_args['page'] = intval( $parsed_args['page'] );
+	$parsed_args['page'] = (int) $parsed_args['page'];
 	if ( 0 == $parsed_args['page'] && 0 != $parsed_args['per_page'] ) {
 		$parsed_args['page'] = 1;
 	}

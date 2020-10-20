@@ -16,6 +16,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public function setUp() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 		parent::setUp();
 	}
@@ -555,7 +556,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$data = wp_read_image_metadata( $file );
 
 		// The orientation value 3 is equivalent to rotated upside down (180 degrees).
-		$this->assertSame( 3, intval( $data['orientation'] ), 'Orientation value read from does not match image file Exif data: ' . $file );
+		$this->assertSame( 3, (int) $data['orientation'], 'Orientation value read from does not match image file Exif data: ' . $file );
 
 		$temp_file = wp_tempnam( $file );
 		$image     = wp_get_image_editor( $file );
@@ -567,11 +568,40 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$data = wp_read_image_metadata( $ret['path'] );
 
 		// Make sure the image is no longer in The Upside Down Exif orientation.
-		$this->assertSame( 1, intval( $data['orientation'] ), 'Orientation Exif data was not updated after rotating image: ' . $file );
+		$this->assertSame( 1, (int) $data['orientation'], 'Orientation Exif data was not updated after rotating image: ' . $file );
 
 		// Remove both the generated file ending in .tmp and tmp.jpg due to wp_tempnam().
 		unlink( $temp_file );
 		unlink( $ret['path'] );
 	}
 
+	/**
+	 * Test that images can be loaded and written over streams
+	 */
+	public function test_streams() {
+		stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
+		WP_Test_Stream::$data = array(
+			'Tests_Image_Editor_Imagick' => array(
+				'/read.jpg' => file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' ),
+			),
+		);
+
+		$file                 = 'wptest://Tests_Image_Editor_Imagick/read.jpg';
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+
+		$ret = $imagick_image_editor->load();
+		$this->assertNotWPError( $ret );
+
+		$temp_file = 'wptest://Tests_Image_Editor_Imagick/write.jpg';
+
+		$ret = $imagick_image_editor->save( $temp_file );
+		$this->assertNotWPError( $ret );
+
+		$this->assertSame( $temp_file, $ret['path'] );
+
+		if ( $temp_file !== $ret['path'] ) {
+			unlink( $ret['path'] );
+		}
+		unlink( $temp_file );
+	}
 }

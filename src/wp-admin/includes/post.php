@@ -685,12 +685,15 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 				'post_title'  => __( 'Auto Draft' ),
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
-			)
+			),
+			false,
+			true
 		);
 		$post    = get_post( $post_id );
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
+		wp_after_insert_post( $post, false );
 
 		// Schedule auto-draft cleanup.
 		if ( ! wp_next_scheduled( 'wp_scheduled_auto_draft_delete' ) ) {
@@ -1923,7 +1926,7 @@ function post_preview() {
 		}
 
 		if ( isset( $_POST['_thumbnail_id'] ) ) {
-			$query_args['_thumbnail_id'] = ( intval( $_POST['_thumbnail_id'] ) <= 0 ) ? '-1' : intval( $_POST['_thumbnail_id'] );
+			$query_args['_thumbnail_id'] = ( (int) $_POST['_thumbnail_id'] <= 0 ) ? '-1' : (int) $_POST['_thumbnail_id'];
 		}
 	}
 
@@ -2085,7 +2088,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 		);
 
 		if ( ! empty( $_term ) ) {
-			$clean_terms[] = intval( $_term[0] );
+			$clean_terms[] = (int) $_term[0];
 		} else {
 			// No existing term was found, so pass the string. A new term will be created.
 			$clean_terms[] = $term;

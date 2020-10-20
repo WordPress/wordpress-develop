@@ -452,6 +452,8 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	 * Filters the permalink for an attachment.
 	 *
 	 * @since 2.0.0
+	 * @since 5.6.0 Providing an empty string will now disable
+	 *              the view attachment page link on the media modal.
 	 *
 	 * @param string $link    The attachment's permalink.
 	 * @param int    $post_id Attachment ID.
@@ -515,7 +517,7 @@ function get_month_link( $year, $month ) {
 	$monthlink = $wp_rewrite->get_month_permastruct();
 	if ( ! empty( $monthlink ) ) {
 		$monthlink = str_replace( '%year%', $year, $monthlink );
-		$monthlink = str_replace( '%monthnum%', zeroise( intval( $month ), 2 ), $monthlink );
+		$monthlink = str_replace( '%monthnum%', zeroise( (int) $month, 2 ), $monthlink );
 		$monthlink = home_url( user_trailingslashit( $monthlink, 'month' ) );
 	} else {
 		$monthlink = home_url( '?m=' . $year . zeroise( $month, 2 ) );
@@ -560,8 +562,8 @@ function get_day_link( $year, $month, $day ) {
 	$daylink = $wp_rewrite->get_day_permastruct();
 	if ( ! empty( $daylink ) ) {
 		$daylink = str_replace( '%year%', $year, $daylink );
-		$daylink = str_replace( '%monthnum%', zeroise( intval( $month ), 2 ), $daylink );
-		$daylink = str_replace( '%day%', zeroise( intval( $day ), 2 ), $daylink );
+		$daylink = str_replace( '%monthnum%', zeroise( (int) $month, 2 ), $daylink );
+		$daylink = str_replace( '%day%', zeroise( (int) $day, 2 ), $daylink );
 		$daylink = home_url( user_trailingslashit( $daylink, 'day' ) );
 	} else {
 		$daylink = home_url( '?m=' . $year . zeroise( $month, 2 ) . zeroise( $day, 2 ) );
@@ -2320,7 +2322,7 @@ function get_next_posts_page_link( $max_page = 0 ) {
 		if ( ! $paged ) {
 			$paged = 1;
 		}
-		$nextpage = intval( $paged ) + 1;
+		$nextpage = (int) $paged + 1;
 		if ( ! $max_page || $max_page >= $nextpage ) {
 			return get_pagenum_link( $nextpage );
 		}
@@ -2369,7 +2371,7 @@ function get_next_posts_link( $label = null, $max_page = 0 ) {
 		$paged = 1;
 	}
 
-	$nextpage = intval( $paged ) + 1;
+	$nextpage = (int) $paged + 1;
 
 	if ( null === $label ) {
 		$label = __( 'Next Page &raquo;' );
@@ -2418,7 +2420,7 @@ function get_previous_posts_page_link() {
 	global $paged;
 
 	if ( ! is_single() ) {
-		$nextpage = intval( $paged ) - 1;
+		$nextpage = (int) $paged - 1;
 		if ( $nextpage < 1 ) {
 			$nextpage = 1;
 		}
@@ -2891,7 +2893,7 @@ function get_next_comments_link( $label = '', $max_page = 0 ) {
 		$page = 1;
 	}
 
-	$nextpage = intval( $page ) + 1;
+	$nextpage = (int) $page + 1;
 
 	if ( empty( $max_page ) ) {
 		$max_page = $wp_query->max_num_comment_pages;
@@ -2946,11 +2948,11 @@ function get_previous_comments_link( $label = '' ) {
 
 	$page = get_query_var( 'cpage' );
 
-	if ( intval( $page ) <= 1 ) {
+	if ( (int) $page <= 1 ) {
 		return;
 	}
 
-	$prevpage = intval( $page ) - 1;
+	$prevpage = (int) $page - 1;
 
 	if ( empty( $label ) ) {
 		$label = __( '&laquo; Older Comments' );

@@ -353,6 +353,42 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19278
+	 */
+	public function test_bulk_action_menu_supports_options_and_optgroups() {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		add_filter(
+			'bulk_actions-edit-comments',
+			function() {
+				return array(
+					'delete'       => 'Delete',
+					'Change State' => array(
+						'feature' => 'Featured',
+						'sale'    => 'On Sale',
+					),
+				);
+			}
+		);
+
+		ob_start();
+		$table->bulk_actions();
+		$output = ob_get_clean();
+
+		$this->assertContains(
+			<<<'OPTIONS'
+<option value="delete">Delete</option>
+	<optgroup label="Change State">
+		<option value="feature">Featured</option>
+		<option value="sale">On Sale</option>
+	</optgroup>
+OPTIONS
+			,
+			$output
+		);
+	}
+
+	/**
 	 * @ticket 45089
 	 */
 	public function test_sortable_columns() {

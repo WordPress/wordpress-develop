@@ -367,7 +367,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$invalid_request_id = 0;
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,
@@ -399,7 +399,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		$request_id = wp_create_user_request( self::$requester_email, 'remove_personal_data' );
 
 		// Process data, given the last exporter, on the last page and send as email.
-		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging exporter data."}' );
+		$this->_setup_expected_failure( '{"success":false,"data":"Invalid request ID when merging user privacy exporter data."}' );
 
 		wp_privacy_process_personal_data_export_page(
 			$response,

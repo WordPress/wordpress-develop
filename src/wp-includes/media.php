@@ -70,23 +70,23 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		$max_width  = $size[0];
 		$max_height = $size[1];
 	} elseif ( 'thumb' === $size || 'thumbnail' === $size ) {
-		$max_width  = intval( get_option( 'thumbnail_size_w' ) );
-		$max_height = intval( get_option( 'thumbnail_size_h' ) );
+		$max_width  = (int) get_option( 'thumbnail_size_w' );
+		$max_height = (int) get_option( 'thumbnail_size_h' );
 		// Last chance thumbnail size defaults.
 		if ( ! $max_width && ! $max_height ) {
 			$max_width  = 128;
 			$max_height = 96;
 		}
 	} elseif ( 'medium' === $size ) {
-		$max_width  = intval( get_option( 'medium_size_w' ) );
-		$max_height = intval( get_option( 'medium_size_h' ) );
+		$max_width  = (int) get_option( 'medium_size_w' );
+		$max_height = (int) get_option( 'medium_size_h' );
 
 	} elseif ( 'medium_large' === $size ) {
-		$max_width  = intval( get_option( 'medium_large_size_w' ) );
-		$max_height = intval( get_option( 'medium_large_size_h' ) );
+		$max_width  = (int) get_option( 'medium_large_size_w' );
+		$max_height = (int) get_option( 'medium_large_size_h' );
 
-		if ( intval( $content_width ) > 0 ) {
-			$max_width = min( intval( $content_width ), $max_width );
+		if ( (int) $content_width > 0 ) {
+			$max_width = min( (int) $content_width, $max_width );
 		}
 	} elseif ( 'large' === $size ) {
 		/*
@@ -95,18 +95,18 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 		 * itself, and within the theme's content width if it's known. The user
 		 * can resize it in the editor if they wish.
 		 */
-		$max_width  = intval( get_option( 'large_size_w' ) );
-		$max_height = intval( get_option( 'large_size_h' ) );
+		$max_width  = (int) get_option( 'large_size_w' );
+		$max_height = (int) get_option( 'large_size_h' );
 
-		if ( intval( $content_width ) > 0 ) {
-			$max_width = min( intval( $content_width ), $max_width );
+		if ( (int) $content_width > 0 ) {
+			$max_width = min( (int) $content_width, $max_width );
 		}
 	} elseif ( ! empty( $_wp_additional_image_sizes ) && in_array( $size, array_keys( $_wp_additional_image_sizes ), true ) ) {
-		$max_width  = intval( $_wp_additional_image_sizes[ $size ]['width'] );
-		$max_height = intval( $_wp_additional_image_sizes[ $size ]['height'] );
+		$max_width  = (int) $_wp_additional_image_sizes[ $size ]['width'];
+		$max_height = (int) $_wp_additional_image_sizes[ $size ]['height'];
 		// Only in admin. Assume that theme authors know what they're doing.
-		if ( intval( $content_width ) > 0 && 'edit' === $context ) {
-			$max_width = min( intval( $content_width ), $max_width );
+		if ( (int) $content_width > 0 && 'edit' === $context ) {
+			$max_width = min( (int) $content_width, $max_width );
 		}
 	} else { // $size === 'full' has no constraint.
 		$max_width  = $width;
@@ -155,10 +155,10 @@ function image_constrain_size_for_editor( $width, $height, $size = 'medium', $co
 function image_hwstring( $width, $height ) {
 	$out = '';
 	if ( $width ) {
-		$out .= 'width="' . intval( $width ) . '" ';
+		$out .= 'width="' . (int) $width . '" ';
 	}
 	if ( $height ) {
-		$out .= 'height="' . intval( $height ) . '" ';
+		$out .= 'height="' . (int) $height . '" ';
 	}
 	return $out;
 }
@@ -367,7 +367,7 @@ function set_post_thumbnail_size( $width = 0, $height = 0, $crop = false ) {
  * @param string       $title Image description for the title attribute.
  * @param string       $align Part of the class name for aligning the image.
  * @param string|int[] $size  Optional. Image size. Accepts any registered image size name, or an array of
- *                           width and height values in pixels (in that order). Default 'medium'.
+ *                            width and height values in pixels (in that order). Default 'medium'.
  * @return string HTML IMG element for given image attachment
  */
 function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
@@ -377,7 +377,8 @@ function get_image_tag( $id, $alt, $title, $align, $size = 'medium' ) {
 
 	$title = $title ? 'title="' . esc_attr( $title ) . '" ' : '';
 
-	$class = 'align' . esc_attr( $align ) . ' size-' . esc_attr( $size ) . ' wp-image-' . $id;
+	$size_class = is_array( $size ) ? implode( 'x', $size ) : $size;
+	$class      = 'align' . esc_attr( $align ) . ' size-' . esc_attr( $size_class ) . ' wp-image-' . $id;
 
 	/**
 	 * Filters the value of the attachment's image tag class attribute.
@@ -775,7 +776,7 @@ function image_get_intermediate_size( $post_id, $size = 'thumbnail' ) {
 
 		foreach ( $imagedata['sizes'] as $_size => $data ) {
 			// If there's an exact match to an existing image size, short circuit.
-			if ( intval( $data['width'] ) === intval( $size[0] ) && intval( $data['height'] ) === intval( $size[1] ) ) {
+			if ( (int) $data['width'] === (int) $size[0] && (int) $data['height'] === (int) $size[1] ) {
 				$candidates[ $data['width'] * $data['height'] ] = $data;
 				break;
 			}
@@ -896,16 +897,16 @@ function wp_get_registered_image_subsizes() {
 
 		if ( isset( $additional_sizes[ $size_name ]['width'] ) ) {
 			// For sizes added by plugins and themes.
-			$size_data['width'] = intval( $additional_sizes[ $size_name ]['width'] );
+			$size_data['width'] = (int) $additional_sizes[ $size_name ]['width'];
 		} else {
 			// For default sizes set in options.
-			$size_data['width'] = intval( get_option( "{$size_name}_size_w" ) );
+			$size_data['width'] = (int) get_option( "{$size_name}_size_w" );
 		}
 
 		if ( isset( $additional_sizes[ $size_name ]['height'] ) ) {
-			$size_data['height'] = intval( $additional_sizes[ $size_name ]['height'] );
+			$size_data['height'] = (int) $additional_sizes[ $size_name ]['height'];
 		} else {
-			$size_data['height'] = intval( get_option( "{$size_name}_size_h" ) );
+			$size_data['height'] = (int) get_option( "{$size_name}_size_h" );
 		}
 
 		if ( empty( $size_data['width'] ) && empty( $size_data['height'] ) ) {
@@ -1034,7 +1035,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$size_class = $size;
 
 		if ( is_array( $size_class ) ) {
-			$size_class = join( 'x', $size_class );
+			$size_class = implode( 'x', $size_class );
 		}
 
 		$default_attr = array(
@@ -2215,7 +2216,7 @@ function gallery_shortcode( $attr ) {
 		'gallery'
 	);
 
-	$id = intval( $atts['id'] );
+	$id = (int) $atts['id'];
 
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts(
@@ -2293,7 +2294,7 @@ function gallery_shortcode( $attr ) {
 		$icontag = 'dt';
 	}
 
-	$columns   = intval( $atts['columns'] );
+	$columns   = (int) $atts['columns'];
 	$itemwidth = $columns > 0 ? floor( 100 / $columns ) : 100;
 	$float     = is_rtl() ? 'right' : 'left';
 
@@ -2334,7 +2335,7 @@ function gallery_shortcode( $attr ) {
 		</style>\n\t\t";
 	}
 
-	$size_class  = sanitize_html_class( $atts['size'] );
+	$size_class  = sanitize_html_class( is_array( $atts['size'] ) ? implode( 'x', $atts['size'] ) : $atts['size'] );
 	$gallery_div = "<div id='$selector' class='gallery galleryid-{$id} gallery-columns-{$columns} gallery-size-{$size_class}'>";
 
 	/**
@@ -2553,7 +2554,7 @@ function wp_playlist_shortcode( $attr ) {
 		'playlist'
 	);
 
-	$id = intval( $atts['id'] );
+	$id = (int) $atts['id'];
 
 	if ( 'audio' !== $atts['type'] ) {
 		$atts['type'] = 'video';
@@ -2949,7 +2950,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<audio %s controls="controls">', join( ' ', $attr_strings ) );
+	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
@@ -3217,7 +3218,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<video %s controls="controls">', join( ' ', $attr_strings ) );
+	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
@@ -3330,7 +3331,7 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
 	);
 
 	foreach ( $attachments as $k => $attachment ) {
-		if ( intval( $attachment->ID ) === intval( $post->ID ) ) {
+		if ( (int) $attachment->ID === (int) $post->ID ) {
 			break;
 		}
 	}
@@ -3808,26 +3809,18 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$author = new WP_User( $attachment->post_author );
 	if ( $author->exists() ) {
-		$response['authorName'] = html_entity_decode( $author->display_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
+		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$response['authorLink'] = get_edit_user_link( $author->ID );
 	} else {
 		$response['authorName'] = __( '(no author)' );
 	}
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-	} else {
-		$post_parent = false;
-	}
-
-	if ( $post_parent ) {
-		$parent_type = get_post_type_object( $post_parent->post_type );
-
-		if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $attachment->post_parent ) ) {
-			$response['uploadedToLink'] = get_edit_post_link( $attachment->post_parent, 'raw' );
-		}
-
-		if ( $parent_type && current_user_can( 'read_post', $attachment->post_parent ) ) {
+		if ( $post_parent ) {
 			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
 	}
 
@@ -3981,6 +3974,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( function_exists( 'get_compat_media_markup' ) ) {
 		$response['compat'] = get_compat_media_markup( $attachment->ID, array( 'in_modal' => true ) );
+	}
+
+	$media_states = get_media_states( $attachment );
+	if ( ! empty( $media_states ) ) {
+		$response['mediaStates'] = implode( ', ', $media_states );
 	}
 
 	/**
@@ -4516,7 +4514,7 @@ function get_post_galleries( $post, $html = true ) {
 
 				// Specify the post ID of the gallery we're viewing if the shortcode doesn't reference another post already.
 				if ( ! isset( $shortcode_attrs['id'] ) ) {
-					$shortcode[3] .= ' id="' . intval( $post->ID ) . '"';
+					$shortcode[3] .= ' id="' . (int) $post->ID . '"';
 				}
 
 				$gallery = do_shortcode_tag( $shortcode );

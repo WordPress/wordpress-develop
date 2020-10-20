@@ -145,7 +145,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 			// Remember which term has which term_id.
 			for ( $i = 0; $i < 3; $i++ ) {
 				$term                    = get_term_by( 'name', $terms[ $i ], $this->taxonomy );
-				$term_id[ $terms[ $i ] ] = intval( $term->term_id );
+				$term_id[ $terms[ $i ] ] = (int) $term->term_id;
 			}
 		}
 
