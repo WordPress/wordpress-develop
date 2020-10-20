@@ -798,6 +798,8 @@ $_old_files = array(
 	'wp-admin/css/ie.min.css',
 	'wp-admin/css/ie-rtl.css',
 	'wp-admin/css/ie-rtl.min.css',
+	// 5.6
+	'wp-includes/block-supports/index.php',
 );
 
 /**
