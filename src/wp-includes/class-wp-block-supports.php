@@ -3,13 +3,13 @@
  * Block support flags.
  *
  * @package WordPress
- * 
+ *
  * @since 5.6.0
  */
 
 /**
  * Class encapsulating and implementing Block Supports.
- * 
+ *
  * @since 5.6.0
  *
  * @access private
@@ -34,7 +34,7 @@ class WP_Block_Supports {
 	 * Utility method to retrieve the main instance of the class.
 	 *
 	 * The instance will be created if it does not exist yet.
-	 * 
+	 *
 	 * @since 5.6.0
 	 *
 	 * @return WP_Block_Supports The main instance.
@@ -49,7 +49,7 @@ class WP_Block_Supports {
 
 	/**
 	 * Initializes the block supports. It registes the block supports block attributes.
-	 * 
+	 *
 	 * @since 5.6.0
 	 */
 	public static function init() {
@@ -59,7 +59,7 @@ class WP_Block_Supports {
 
 	/**
 	 * Registers a block support.
-	 * 
+	 *
 	 * @since 5.6.0
 	 *
 	 * @param string $block_support_name Block support name.
@@ -76,7 +76,7 @@ class WP_Block_Supports {
 	/**
 	 * Generates an array of HTML attributes, such as classes, by applying to
 	 * the given block all of the features that the block supports.
-	 * 
+	 *
 	 * @since 5.6.0
 	 *
 	 * @param  array $parsed_block Block as parsed from content.
@@ -121,7 +121,7 @@ class WP_Block_Supports {
 
 	/**
 	 * Registers the block attributes required by the different block supports.
-	 * 
+	 *
 	 * @since 5.6.0
 	 */
 	private function register_attributes() {
@@ -152,7 +152,7 @@ class WP_Block_Supports {
 /**
  * Generates a string of attributes by applying to the current block being
  * rendered all of the features that the block supports.
- * 
+ *
  * @since 5.6.0
  *
  * @param array $extra_attributes Optional. Extra attributes to render on the block wrapper.
