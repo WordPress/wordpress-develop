@@ -1640,7 +1640,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			$args
 		);
 
-		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
 				'requests' => array(
@@ -1699,7 +1699,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
 				'validation' => 'require-all-validate',
@@ -1755,7 +1755,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
 				'validation' => 'require-all-validate',
@@ -1810,7 +1810,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
 				'requests' => array(
@@ -1860,7 +1860,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
 		$request->set_body_params(
 			array(
 				'requests' => array(

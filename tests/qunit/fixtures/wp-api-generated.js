@@ -41,7 +41,7 @@ mockedApiResponse.Schema = {
                 "self": "http://example.org/index.php?rest_route=/"
             }
         },
-        "/v1/batch": {
+        "/batch/v1": {
             "namespace": "",
             "methods": [
                 "POST"
@@ -108,7 +108,7 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": [
                     {
-                        "href": "http://example.org/index.php?rest_route=/v1/batch"
+                        "href": "http://example.org/index.php?rest_route=/batch/v1"
                     }
                 ]
             }

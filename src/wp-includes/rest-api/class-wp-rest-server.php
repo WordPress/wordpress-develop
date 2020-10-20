@@ -103,7 +103,7 @@ class WP_REST_Server {
 					),
 				),
 			),
-			'/v1/batch' => array(
+			'/batch/v1' => array(
 				'callback' => array( $this, 'serve_batch_request_v1' ),
 				'methods'  => 'POST',
 				'args'     => array(
@@ -1442,7 +1442,7 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Serves the v1/batch request.
+	 * Serves the batch/v1 request.
 	 *
 	 * @since 5.6.0
 	 *
