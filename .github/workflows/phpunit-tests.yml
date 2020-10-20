@@ -46,6 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
+
       - name: Checkout the WordPress Importer plugin
         run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
 
