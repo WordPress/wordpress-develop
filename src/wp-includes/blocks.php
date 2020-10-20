@@ -646,12 +646,11 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 	return $output;
 }
 
-/** 
+/**
  * Block currently being parsed.
- * 
+ *
  * @type array
 */
-
 global $current_parsed_block;
 
 $current_parsed_block = array(
