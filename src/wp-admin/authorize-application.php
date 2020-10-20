@@ -121,6 +121,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<p><?php _e( 'Would you like to give this application access to your account? You should only do this if you trust the app in question.' ); ?></p>
 		<?php endif; ?>
 
+		<?php
+		if ( is_multisite() ) {
+			$blogs = get_blogs_of_user( $user->ID, true );
+			if ( sizeof( $blogs ) > 1 ) {
+				?>
+				<p><?php echo sprintf(
+					__( 'This will grant access to <a href="%s">all %s blogs in this installation that you have permissions on</a>.' ),
+					admin_url( 'my-sites.php' ),
+					number_format_i18n( sizeof( $blogs ) )
+				); ?></p>
+			}
+		}
+		?>
+
+
 		<?php if ( $new_password ) : ?>
 			<div class="notice notice-success notice-alt below-h2">
 				<p class="password-display">
