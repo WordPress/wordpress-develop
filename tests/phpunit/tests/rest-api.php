@@ -1705,6 +1705,52 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'b' => false,
 				),
 			),
+			'oneOf combined with base'                     => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'c' => array(
+							'type'    => 'integer',
+							'context' => array( 'edit' ),
+						),
+					),
+					'oneOf'      => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'b' => 2,
+				),
+			),
 		);
 	}
 
