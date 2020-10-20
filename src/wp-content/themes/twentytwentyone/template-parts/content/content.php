@@ -35,7 +35,7 @@
 			array(
 				'before'   => '<nav class="page-links" aria-label="' . esc_attr__( 'Page', 'twentytwentyone' ) . '">',
 				'after'    => '</nav>',
-				/* translaors: There is a space after page. */
+				/* translators: There is a space after page. */
 				'pagelink' => esc_html__( 'Page ', 'twentytwentyone' ) . '%',
 			)
 		);
