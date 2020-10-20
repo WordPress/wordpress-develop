@@ -1617,6 +1617,280 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 'rest_invalid_param', $events[0]['args'][0]->get_error_code() );
 	}
 
+	/**
+	 * @ticket       50244
+	 * @dataProvider data_batch_v1_optin
+	 */
+	public function test_batch_v1_optin( $allow_batch, $allowed ) {
+		$args = array(
+			'methods'             => 'POST',
+			'callback'            => static function () {
+				return new WP_REST_Response( 'data' );
+			},
+			'permission_callback' => '__return_true',
+		);
+
+		if ( null !== $allow_batch ) {
+			$args['allow_batch'] = $allow_batch;
+		}
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			$args
+		);
+
+		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/test-ns/v1/test',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertEquals( 207, $response->get_status() );
+
+		if ( $allowed ) {
+			$this->assertEquals( 'data', $response->get_data()['responses'][0]['body'] );
+		} else {
+			$this->assertEquals( 'rest_batch_not_allowed', $response->get_data()['responses'][0]['body']['code'] );
+		}
+	}
+
+	public function data_batch_v1_optin() {
+		return array(
+			'missing'             => array( null, false ),
+			'invalid type'        => array( true, false ),
+			'invalid type string' => array( 'v1', false ),
+			'wrong version'       => array( array( 'version1' => true ), false ),
+			'false version'       => array( array( 'v1' => false ), false ),
+			'valid'               => array( array( 'v1' => true ), true ),
+		);
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_pre_validation() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					$project = $request['project'];
+					update_option( 'test_project', $project );
+
+					return new WP_REST_Response( $project );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request->set_body_params(
+			array(
+				'validation' => 'require-all-validate',
+				'requests'   => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'buddypress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertArrayHasKey( 'failed', $data );
+		$this->assertEquals( 'validation', $data['failed'] );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertNull( $data['responses'][0] );
+		$this->assertEquals( 400, $data['responses'][1]['status'] );
+		$this->assertFalse( get_option( 'test_project' ) );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_pre_validation_all_successful() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					return new WP_REST_Response( $request['project'] );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request->set_body_params(
+			array(
+				'validation' => 'require-all-validate',
+				'requests'   => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'WordPress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertArrayNotHasKey( 'failed', $data );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertEquals( 'gutenberg', $data['responses'][0]['body'] );
+		$this->assertEquals( 'WordPress', $data['responses'][1]['body'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test/(?P<id>[\d+])',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'callback'            => function ( WP_REST_Request $request ) {
+					$this->assertEquals( 'DELETE', $request->get_method() );
+					$this->assertEquals( '/test-ns/v1/test/5', $request->get_route() );
+					$this->assertEquals( array( 'id' => '5' ), $request->get_url_params() );
+					$this->assertEquals( array( 'query' => 'param' ), $request->get_query_params() );
+					$this->assertEquals( array( 'project' => 'gutenberg' ), $request->get_body_params() );
+					$this->assertEquals( array( 'my_header' => array( 'my-value' ) ), $request->get_headers() );
+
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method'  => 'DELETE',
+						'path'    => '/test-ns/v1/test/5?query=param',
+						'headers' => array(
+							'My-Header' => 'my-value',
+						),
+						'body'    => array(
+							'project' => 'gutenberg',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertEquals( 'test', $response->get_data()['responses'][0]['body'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_partial_error() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					$project = $request['project'];
+					update_option( 'test_project', $project );
+
+					return new WP_REST_Response( $project );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/v1/batch' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'buddypress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEquals( 207, $response->get_status() );
+		$this->assertArrayNotHasKey( 'failed', $data );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertEquals( 'gutenberg', $data['responses'][0]['body'] );
+		$this->assertEquals( 400, $data['responses'][1]['status'] );
+		$this->assertEquals( 'gutenberg', get_option( 'test_project' ) );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
