@@ -11,6 +11,7 @@ jobs:
   # Verifies that installing NPM dependencies and building WordPress works on Windows.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
   # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
@@ -21,6 +22,12 @@ jobs:
     name: Tests NPM on Windows
     runs-on: windows-latest
     steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
