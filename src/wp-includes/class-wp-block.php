@@ -192,8 +192,7 @@ class WP_Block {
 	 * @return string Rendered block output.
 	 */
 	public function render( $options = array() ) {
-		global $post;
-		global $current_parsed_block;
+		global $post, $current_parsed_block;
 		$options = wp_parse_args(
 			$options,
 			array(

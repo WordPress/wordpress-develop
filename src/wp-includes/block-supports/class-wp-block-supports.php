@@ -9,6 +9,8 @@
 
 /**
  * Class encapsulating and implementing Block Supports.
+ * 
+ * @since 5.6.0
  *
  * @access private
  */
@@ -32,6 +34,8 @@ class WP_Block_Supports {
 	 * Utility method to retrieve the main instance of the class.
 	 *
 	 * The instance will be created if it does not exist yet.
+	 * 
+	 * @since 5.6.0
 	 *
 	 * @return WP_Block_Supports The main instance.
 	 */
@@ -45,6 +49,8 @@ class WP_Block_Supports {
 
 	/**
 	 * Initializes the block supports. It registes the block supports block attributes.
+	 * 
+	 * @since 5.6.0
 	 */
 	public static function init() {
 		$instance = self::get_instance();
@@ -53,6 +59,8 @@ class WP_Block_Supports {
 
 	/**
 	 * Registers a block support.
+	 * 
+	 * @since 5.6.0
 	 *
 	 * @param string $block_support_name Block support name.
 	 * @param array  $block_support_config Array containing the properties of the block support.
@@ -68,6 +76,8 @@ class WP_Block_Supports {
 	/**
 	 * Generates an array of HTML attributes, such as classes, by applying to
 	 * the given block all of the features that the block supports.
+	 * 
+	 * @since 5.6.0
 	 *
 	 * @param  array $parsed_block Block as parsed from content.
 	 * @return array               Array of HTML attributes.
@@ -111,6 +121,8 @@ class WP_Block_Supports {
 
 	/**
 	 * Registers the block attributes required by the different block supports.
+	 * 
+	 * @since 5.6.0
 	 */
 	private function register_attributes() {
 		$block_registry         = WP_Block_Type_Registry::get_instance();
@@ -140,6 +152,8 @@ class WP_Block_Supports {
 /**
  * Generates a string of attributes by applying to the current block being
  * rendered all of the features that the block supports.
+ * 
+ * @since 5.6.0
  *
  * @param array $extra_attributes Optional. Extra attributes to render on the block wrapper.
  *
@@ -193,4 +207,3 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	return implode( ' ', $normalized_attributes );
 }
 
-add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
