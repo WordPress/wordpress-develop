@@ -131,10 +131,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					admin_url( 'my-sites.php' ),
 					number_format_i18n( sizeof( $blogs ) )
 				); ?></p>
+				<?php
 			}
 		}
 		?>
-
 
 		<?php if ( $new_password ) : ?>
 			<div class="notice notice-success notice-alt below-h2">
