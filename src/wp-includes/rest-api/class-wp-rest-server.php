@@ -115,7 +115,7 @@ class WP_REST_Server {
 					'requests'   => array(
 						'required' => true,
 						'type'     => 'array',
-						'maxItems' => 25,
+						'maxItems' => $this->get_max_batch_size(),
 						'items'    => array(
 							'type'       => 'object',
 							'properties' => array(
@@ -1439,6 +1439,22 @@ class WP_REST_Server {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Gets the maximum number of requests that can be included in a batch.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return int The maximum requests.
+	 */
+	protected function get_max_batch_size() {
+		/**
+		 * Filters the maximum number of requests that can be included in a batch.
+		 *
+		 * @param int $max_size The maximum size.
+		 */
+		return apply_filters( 'rest_get_max_batch_size', 25 );
 	}
 
 	/**

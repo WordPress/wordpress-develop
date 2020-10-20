@@ -1891,6 +1891,42 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 'gutenberg', get_option( 'test_project' ) );
 	}
 
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_max_requests() {
+		add_filter(
+			'rest_get_max_batch_size',
+			static function() {
+				return 5;
+			}
+		);
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test/(?P<id>[\d+])',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'callback'            => function ( WP_REST_Request $request ) {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array_fill( 0, 6, array( 'path' => '/test-ns/v1/test/5' ) ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertEquals( 400, $response->get_status() );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
