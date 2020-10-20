@@ -1931,6 +1931,71 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( 400, $response->get_status() );
 	}
 
+	/**
+	 * @ticket 51020
+	 */
+	public function test_get_data_for_route_includes_permitted_schema_keywords() {
+		$keywords = array(
+			'title'                => 'Hi',
+			'description'          => 'World',
+			'type'                 => 'string',
+			'default'              => 0,
+			'format'               => 'uri',
+			'enum'                 => array( 'https://example.org' ),
+			'items'                => array( 'type' => 'string' ),
+			'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+			'additionalProperties' => false,
+			'patternProperties'    => array( '\d' => array( 'type' => 'string' ) ),
+			'minProperties'        => 1,
+			'maxProperties'        => 5,
+			'minimum'              => 1,
+			'maximum'              => 5,
+			'exclusiveMinimum'     => true,
+			'exclusiveMaximum'     => false,
+			'multipleOf'           => 2,
+			'minLength'            => 1,
+			'maxLength'            => 5,
+			'pattern'              => '\d',
+			'minItems'             => 1,
+			'maxItems'             => 5,
+			'uniqueItems'          => true,
+			'anyOf'                => array(
+				array( 'type' => 'string' ),
+				array( 'type' => 'integer' ),
+			),
+			'oneOf'                => array(
+				array( 'type' => 'string' ),
+				array( 'type' => 'integer' ),
+			),
+		);
+
+		$param            = $keywords;
+		$param['invalid'] = true;
+
+		$expected             = $keywords;
+		$expected['required'] = false;
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'param' => $param,
+				),
+			)
+		);
+
+		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
+		$args     = $response->get_data()['endpoints'][0]['args'];
+
+		$this->assertSameSetsWithIndex( $expected, $args['param'] );
+	}
+
 	public function _validate_as_integer_123( $value, $request, $key ) {
 		if ( ! is_int( $value ) ) {
 			return new WP_Error( 'some-error', 'This is not valid!' );
