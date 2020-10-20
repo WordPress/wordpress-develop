@@ -1594,17 +1594,17 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		if ( isset( $errors[0]['schema']['title'] ) ) {
 			$title = $errors[0]['schema']['title'];
 
-			/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
 				sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
 				array( 'position' => $position )
 			);
 		}
 
-		/* translators: 1: Parameter, 2: Reason. */
 		return new WP_Error(
 			'rest_invalid_param',
+			/* translators: 1: Parameter, 2: Reason. */
 			sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
 			array( 'position' => $position )
 		);
@@ -1629,17 +1629,17 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		if ( isset( $filtered_errors[0]['schema']['title'] ) ) {
 			$title = $filtered_errors[0]['schema']['title'];
 
-			/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
 				sprintf( __( '%1$s does not match any of the expected formats. Closest format: %2$s. Possible reason: %3$s' ), $param, $title, $reason ),
 				array( 'position' => $position )
 			);
 		}
 
-		/* translators: 1: Parameter, 2: Possible reason. */
 		return new WP_Error(
 			'rest_invalid_param',
+			/* translators: 1: Parameter, 2: Possible reason. */
 			sprintf( __( '%1$s does not match any of the expected formats. Possible reason: %2$s' ), $param, $reason ),
 			array( 'position' => $position )
 		);
@@ -1667,17 +1667,17 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 			if ( isset( $result['schema']['title'] ) ) {
 				$title = $result['schema']['title'];
 
-				/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
 				return new WP_Error(
 					'rest_invalid_param',
+					/* translators: 1: Parameter, 2: Schema title, 3: Possible reason. */
 					sprintf( __( '%1$s does not match any of the expected formats. Closest format: %2$s. Possible reason: %3$s' ), $param, $title, $reason ),
 					array( 'position' => $position )
 				);
 			}
 
-			/* translators: 1: Parameter, 2: Possible reason. */
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: 1: Parameter, 2: Possible reason. */
 				sprintf( __( '%1$s does not match any of the expected formats. Possible reason: %2$s' ), $param, $reason ),
 				array( 'position' => $position )
 			);
@@ -1791,17 +1791,17 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 
 		// If each schema has a title, include those titles in the error message.
 		if ( count( $schema_titles ) === count( $matching_schemas ) ) {
-			/* translators: 1: Parameter, 2: Schema titles. */
 			return new WP_Error(
 				'rest_invalid_param',
+				/* translators: 1: Parameter, 2: Schema titles. */
 				wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
 				array( 'positions' => $schema_positions )
 			);
 		}
 
-		/* translators: 1: Parameter. */
 		return new WP_Error(
 			'rest_invalid_param',
+			/* translators: 1: Parameter. */
 			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
 		);
@@ -1866,9 +1866,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		$best_type = rest_handle_multi_type_schema( $value, $args, $param );
 
 		if ( ! $best_type ) {
-			/* translators: 1: Parameter, 2: List of types. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: List of types. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, implode( ',', $args['type'] ) ),
 				array( 'param' => $param )
 			);
@@ -1888,9 +1888,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( 'array' === $args['type'] ) {
 		if ( ! rest_is_array( $value ) ) {
-			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: Type name. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'array' ),
 				array( 'param' => $param )
 			);
@@ -1925,9 +1925,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( 'object' === $args['type'] ) {
 		if ( ! rest_is_object( $value ) ) {
-			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: Type name. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'object' ),
 				array( 'param' => $param )
 			);
@@ -1997,9 +1997,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( 'null' === $args['type'] ) {
 		if ( null !== $value ) {
-			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: Type name. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'null' ),
 				array( 'param' => $param )
 			);
@@ -2017,9 +2017,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
 		if ( ! is_numeric( $value ) ) {
-			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: Type name. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, $args['type'] ),
 				array( 'param' => $param )
 			);
@@ -2032,18 +2032,18 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 	}
 
 	if ( 'integer' === $args['type'] && ! rest_is_integer( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
 		return new WP_Error(
 			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
 			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'integer' ),
 			array( 'param' => $param )
 		);
 	}
 
 	if ( 'boolean' === $args['type'] && ! rest_is_boolean( $value ) ) {
-		/* translators: 1: Parameter, 2: Type name. */
 		return new WP_Error(
 			'rest_invalid_type',
+			/* translators: 1: Parameter, 2: Type name. */
 			sprintf( __( '%1$s is not of type %2$s.' ), $param, 'boolean' ),
 			array( 'param' => $param )
 		);
@@ -2051,9 +2051,9 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 	if ( 'string' === $args['type'] ) {
 		if ( ! is_string( $value ) ) {
-			/* translators: 1: Parameter, 2: Type name. */
 			return new WP_Error(
 				'rest_invalid_type',
+				/* translators: 1: Parameter, 2: Type name. */
 				sprintf( __( '%1$s is not of type %2$s.' ), $param, 'string' ),
 				array( 'param' => $param )
 			);
