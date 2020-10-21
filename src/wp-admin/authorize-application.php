@@ -57,8 +57,16 @@ $title = __( 'Authorize Application' );
 
 $app_name    = ! empty( $_REQUEST['app_name'] ) ? $_REQUEST['app_name'] : '';
 $success_url = ! empty( $_REQUEST['success_url'] ) ? $_REQUEST['success_url'] : null;
-$reject_url  = ! empty( $_REQUEST['reject_url'] ) ? $_REQUEST['reject_url'] : add_query_arg( 'success', 'false', $success_url );
-$user        = wp_get_current_user();
+
+if ( ! empty( $_REQUEST['reject_url'] ) ) {
+	$reject_url = $_REQUEST['reject_url'];
+} elseif ( $success_url ) {
+	$reject_url = add_query_arg( 'success', 'false', $success_url );
+} else {
+	$reject_url = null;
+}
+
+$user = wp_get_current_user();
 
 $request  = compact( 'app_name', 'success_url', 'reject_url' );
 $is_valid = wp_is_authorize_application_password_request_valid( $request, $user );
