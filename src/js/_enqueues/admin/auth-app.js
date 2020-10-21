@@ -29,7 +29,8 @@
 		$approveBtn.prop( 'disabled', true );
 
 		var request = {
-			name: name
+			name: name,
+			app_id: $( 'input[name="app_id"]', $form ).val()
 		};
 
 		/**
