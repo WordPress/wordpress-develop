@@ -730,6 +730,7 @@ endif;
 			do_action( 'wp_create_application_password_form', $profileuser );
 			?>
 
+			<br />
 			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
 		</div>
 
