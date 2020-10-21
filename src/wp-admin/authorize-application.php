@@ -123,7 +123,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<?php if ( $new_password ) : ?>
 			<div class="notice notice-success notice-alt below-h2">
-				<p class="password-display">
+				<p class="application-password-display">
 					<?php
 					printf(
 						/* translators: 1: Application name, 2: Generated password. */

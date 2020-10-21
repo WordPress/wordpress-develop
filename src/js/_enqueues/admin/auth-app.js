@@ -82,7 +82,7 @@
 					.attr( 'role', 'alert' )
 					.attr( 'tabindex', 0 )
 					.addClass( 'notice notice-success notice-alt' )
-					.append( $( '<p></p>' ).addClass( 'password-display' ).html( message ) );
+					.append( $( '<p></p>' ).addClass( 'application-password-display' ).html( message ) );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
 				$( 'strong', $notice ).text( name );
