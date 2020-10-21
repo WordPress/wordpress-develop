@@ -175,6 +175,42 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
+
+		// convert hex to rgb.
+		function hex2rgb( $color ) {
+			$color = trim( $color, '#' );
+		  
+			if ( strlen( $color ) == 3 ) {
+			  $r = hexdec( substr( $color, 0, 1 ) . substr( $color, 0, 1 ) );
+			  $g = hexdec( substr( $color, 1, 1 ) . substr( $color, 1, 1 ) );
+			  $b = hexdec( substr( $color, 2, 1 ) . substr( $color, 2, 1 ) );
+			} elseif ( strlen( $color ) == 6 ) {
+			  $r = hexdec( substr( $color, 0, 2 ) );
+			  $g = hexdec( substr( $color, 2, 2 ) );
+			  $b = hexdec( substr( $color, 4, 2 ) );
+			} else {
+			  return array();
+			}
+		  
+			return array(
+			  'red'   => $r,
+			  'green' => $g,
+			  'blue'  => $b,
+			);
+		  };
+
+		// Add gradient presets for Blocks.
+		$primary_gradient = hex2rgb(twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ));
+		add_theme_support(
+			'editor-gradient-presets',
+			array(
+				array(
+					'name'  => __( 'Primary color to lighter primary color', 'themeLangDomain' ),
+					'gradient' => 'linear-gradient(135deg,rgb('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].') 0%,rgba('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].', 0.8) 100%)',
+					'slug'  => 'primary-color-to-lighter-primary',
+				)
+			)
+		);
 	}
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );

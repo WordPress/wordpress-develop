@@ -17,6 +17,8 @@ function twentynineteen_custom_colors_css() {
 		$primary_color = absint( get_theme_mod( 'primary_color_hue', 199 ) );
 	}
 
+	$primary_gradient = hex2rgb(twentynineteen_hsl_hex( 'default' === get_theme_mod( 'primary_color' ) ? 199 : get_theme_mod( 'primary_color_hue', 199 ), 100, 33 ));
+
 	/**
 	 * Filters Twenty Nineteen default saturation level.
 	 *
@@ -204,7 +206,13 @@ function twentynineteen_custom_colors_css() {
 		}
 		::-moz-selection {
 			background-color: hsl( ' . $primary_color . ', ' . $saturation_selection . ', ' . $lightness_selection . ' ); /* base: #005177; */
-		}';
+		}
+
+		/* Gradient background for blocks */
+		.has-primary-color-to-lighter-primary-gradient-background {
+			background: linear-gradient(135deg,rgb('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].') 0%,rgba('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].', 0.8) 100%) 
+		}
+		';
 
 	$editor_css = '
 		/*
@@ -251,6 +259,11 @@ function twentynineteen_custom_colors_css() {
 		.editor-block-list__layout .editor-block-list__block .wp-block-pullquote.is-style-solid-color a,
 		.editor-block-list__layout .editor-block-list__block .wp-block-cover a {
 			color: inherit;
+		}
+
+		/* Gradient background for blocks */
+		.has-primary-color-to-lighter-primary-gradient-background {
+			background: linear-gradient(135deg,rgb('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].') 0%,rgba('.$primary_gradient['red'].','.$primary_gradient['green'].','.$primary_gradient['blue'].', 0.8) 100%) 
 		}
 		';
 
