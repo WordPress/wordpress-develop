@@ -18,7 +18,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 	$success_url = $_POST['success_url'];
 	$reject_url  = $_POST['reject_url'];
 	$app_name    = $_POST['app_name'];
-	$app_id      = ! empty( $_REQUEST['app_id'] ) ? $_REQUEST['app_id'] : '';
+	$app_id      = $_POST['app_id'];
 	$redirect    = '';
 
 	if ( isset( $_POST['reject'] ) ) {
