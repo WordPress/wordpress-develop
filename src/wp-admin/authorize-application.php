@@ -175,8 +175,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				do_action( 'wp_authorize_application_password_form', $request, $user );
 				?>
 
-				<p><?php submit_button( __( 'Yes, I approve of this connection.' ), 'primary', 'approve', false ); ?>
-					<br /><em>
+				<p>
+					<?php
+					submit_button(
+						__( 'Yes, I approve of this connection.' ),
+						'primary',
+						'approve',
+						false,
+						array(
+							'aria-describedby' => 'description-approve',
+						)
+					);
+					?>
+					<br /><em id="description-approve">
 					<?php
 					if ( $success_url ) {
 						printf(
@@ -199,8 +210,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</em>
 				</p>
 
-				<p><?php submit_button( __( 'No, I do not approve of this connection.' ), 'secondary', 'reject', false ); ?>
-					<br /><em>
+				<p>
+					<?php
+					submit_button(
+						__( 'No, I do not approve of this connection.' ),
+						'secondary',
+						'reject',
+						false,
+						array(
+							'aria-describedby' => 'description-reject',
+						)
+					);
+					?>
+					<br /><em id="description-reject">
 					<?php
 					if ( $reject_url ) {
 						printf(
