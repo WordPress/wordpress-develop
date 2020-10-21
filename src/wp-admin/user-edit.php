@@ -839,7 +839,7 @@ endif;
 					/* translators: 1: Application name, 2: Generated password. */
 					esc_html__( 'Your new password for %1$s is: %2$s' ),
 					'<strong>{{ data.name }}</strong>',
-					'<kbd>{{ data.password }}</kbd>'
+					'<input type="text" class="code" readonly="readonly" value="{{ data.password }}" />'
 				);
 				?>
 			</p>
