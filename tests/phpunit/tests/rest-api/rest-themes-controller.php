@@ -215,6 +215,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'tags',
 			'template',
 			'textdomain',
+			'theme_supports',
 			'theme_uri',
 			'version',
 		);
@@ -1172,6 +1173,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'tags',
 			'template',
 			'textdomain',
+			'theme_supports',
 			'theme_uri',
 			'version',
 		);
@@ -1219,7 +1221,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function data_theme_status() {
 		return array(
-			array( 'active', 'rest_forbidden' ),
+			array( 'active', 'rest_user_cannot_view' ),
 			array( 'active, inactive', 'rest_user_cannot_view' ),
 			array( 'inactive', 'rest_user_cannot_view' ),
 			array( '', 'rest_user_cannot_view' ),

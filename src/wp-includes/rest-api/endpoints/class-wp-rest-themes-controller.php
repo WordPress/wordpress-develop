@@ -50,11 +50,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		register_rest_route(
 			$this->namespace,
-			'/' . $this->rest_base . '/(?P<name>[\w-]+)',
+			'/' . $this->rest_base . '/(?P<stylesheet>[\w-]+)',
 			array(
 				'args'   => array(
-					'name' => array(
-						'description' => __( 'Slug name of the theme.' ),
+					'stylesheet' => array(
+						'description' => __( "The theme's stylesheet. This uniquely identifies the theme." ),
 						'type'        => 'string',
 					),
 				),
@@ -77,7 +77,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @since 5.0.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, otherwise WP_Error object.
+	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' ) ) {
@@ -111,7 +111,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		$wp_theme      = wp_get_theme( $request['name'] );
 		$current_theme = wp_get_theme();
-		if ( $this->is_current_theme( $wp_theme, $current_theme ) && $this->check_read_active_theme_permission() ) {
+		if ( $this->is_same_theme( $wp_theme, $current_theme ) && true === $this->check_read_active_theme_permission() ) {
 			return true;
 		}
 
@@ -127,7 +127,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return bool Whether the theme can be read.
+	 * @return bool|WP_Error Whether the theme can be read.
 	 */
 	protected function check_read_active_theme_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -140,7 +140,11 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			}
 		}
 
-		return false;
+		return new WP_Error(
+			'rest_user_cannot_view',
+			__( 'Sorry, you are not allowed to view active theme.' ),
+			array( 'status' => rest_authorization_required_code() )
+		);
 	}
 
 	/**
@@ -152,7 +156,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
-		$wp_theme = wp_get_theme( $request['name'] );
+		$wp_theme = wp_get_theme( $request['stylesheet'] );
 		if ( ! $wp_theme->exists() ) {
 			return new WP_Error(
 				'rest_theme_invalid_slug',
@@ -181,7 +185,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$status        = $request['status'];
 
 		foreach ( $active_themes as $theme_name => $theme ) {
-			$theme_status = ( $this->is_current_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+			$theme_status = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
 			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
 				continue;
 			}
@@ -260,43 +264,48 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 				$data[ $field ]['rendered'] = $theme->display( $header );
 			}
 		}
+
 		$current_theme = wp_get_theme();
 		if ( rest_is_field_included( 'status', $fields ) ) {
-			$data['status'] = ( $this->is_current_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
+			$data['status'] = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
 		}
 
-		if ( rest_is_field_included( 'theme_supports', $fields ) && $this->is_current_theme( $theme, $current_theme ) ) {
-			foreach ( get_registered_theme_features() as $feature => $config ) {
-				if ( ! is_array( $config['show_in_rest'] ) ) {
-					continue;
+		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
+			if ( $this->is_same_theme( $theme, $current_theme ) ) {
+				foreach ( get_registered_theme_features() as $feature => $config ) {
+					if ( ! is_array( $config['show_in_rest'] ) ) {
+						continue;
+					}
+
+					$name = $config['show_in_rest']['name'];
+
+					if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
+						continue;
+					}
+
+					if ( ! current_theme_supports( $feature ) ) {
+						$data['theme_supports'][ $name ] = $config['show_in_rest']['schema']['default'];
+						continue;
+					}
+
+					$support = get_theme_support( $feature );
+
+					if ( isset( $config['show_in_rest']['prepare_callback'] ) ) {
+						$prepare = $config['show_in_rest']['prepare_callback'];
+					} else {
+						$prepare = array( $this, 'prepare_theme_support' );
+					}
+
+					$prepared = $prepare( $support, $config, $feature, $request );
+
+					if ( is_wp_error( $prepared ) ) {
+						continue;
+					}
+
+					$data['theme_supports'][ $name ] = $prepared;
 				}
-
-				$name = $config['show_in_rest']['name'];
-
-				if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
-					continue;
-				}
-
-				if ( ! current_theme_supports( $feature ) ) {
-					$data['theme_supports'][ $name ] = $config['show_in_rest']['schema']['default'];
-					continue;
-				}
-
-				$support = get_theme_support( $feature );
-
-				if ( isset( $config['show_in_rest']['prepare_callback'] ) ) {
-					$prepare = $config['show_in_rest']['prepare_callback'];
-				} else {
-					$prepare = array( $this, 'prepare_theme_support' );
-				}
-
-				$prepared = $prepare( $support, $config, $feature, $request );
-
-				if ( is_wp_error( $prepared ) ) {
-					continue;
-				}
-
-				$data['theme_supports'][ $name ] = $prepared;
+			} else {
+				$data['theme_supports'] = array();
 			}
 		}
 
@@ -341,12 +350,14 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Helper function to compare theme to current theme.
 	 *
+	 * @since 5.5.0
+	 *
 	 * @param WP_Theme $theme  Theme to compare to active theme.
 	 * @param WP_Theme $current_theme Current active theme.
 	 *
 	 * @return bool
 	 */
-	protected function is_current_theme( $theme, $current_theme ) {
+	protected function is_same_theme( $theme, $current_theme ) {
 		return (string) $theme === (string) $current_theme;
 	}
 
