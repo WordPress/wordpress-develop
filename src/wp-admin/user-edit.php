@@ -845,7 +845,7 @@ endif;
 			</p>
 			<p><?php esc_attr_e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			<button type="button" class="notice-dismiss">
-				<span class="screen-reader-text"><?php __( 'Dismiss this notice.' ); ?></span>
+				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.' ); ?></span>
 			</button>
 		</div>
 	</script>
