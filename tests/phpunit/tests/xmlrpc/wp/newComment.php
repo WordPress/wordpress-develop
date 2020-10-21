@@ -5,16 +5,26 @@
  */
 class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 
+	/**
+	 * Post object for shared fixture.
+	 *
+	 * @var WP_Post
+	 */
+	public static $post;
+
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::$post = $factory->post->create_and_get();
+	}
+
 	function test_valid_comment() {
 		$this->make_user_by_role( 'administrator' );
-		$post = self::factory()->post->create_and_get();
 
 		$result = $this->myxmlrpcserver->wp_newComment(
 			array(
 				1,
 				'administrator',
 				'administrator',
-				$post->ID,
+				self::$post->ID,
 				array(
 					'content' => rand_str( 100 ),
 				),
@@ -26,14 +36,13 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 
 	function test_empty_comment() {
 		$this->make_user_by_role( 'administrator' );
-		$post = self::factory()->post->create_and_get();
 
 		$result = $this->myxmlrpcserver->wp_newComment(
 			array(
 				1,
 				'administrator',
 				'administrator',
-				$post->ID,
+				self::$post->ID,
 				array(
 					'content' => '',
 				),
@@ -72,13 +81,12 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 
 	function test_new_comment_duplicated() {
 		$this->make_user_by_role( 'administrator' );
-		$post = self::factory()->post->create_and_get();
 
 		$comment_args = array(
 			1,
 			'administrator',
 			'administrator',
-			$post->ID,
+			self::$post->ID,
 			array(
 				'content' => rand_str( 100 ),
 			),
@@ -94,5 +102,4 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
-
 }
