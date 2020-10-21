@@ -129,7 +129,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						/* translators: 1: Application name, 2: Generated password. */
 						__( 'Your new password for %1$s is %2$s.' ),
 						'<strong>' . esc_html( $app_name ) . '</strong>',
-						'<kbd>' . esc_html( WP_Application_Passwords::chunk_password( $new_password ) ) . '</kbd>'
+						sprintf( '<input type="text" class="code" readonly="readonly" value="%s" />', esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ) )
 					);
 					?>
 				</p>

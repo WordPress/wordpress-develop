@@ -76,17 +76,17 @@
 				message = wp.i18n.sprintf(
 					wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
 					'<strong></strong>',
-					'<kbd></kbd>'
+					'<input type="text" class="code" readonly="readonly" value="" />'
 				);
 				$notice = $( '<div></div>' )
 					.attr( 'role', 'alert' )
 					.attr( 'tabindex', 0 )
 					.addClass( 'notice notice-success notice-alt' )
-					.append( $( '<p></p>' ).html( message ) );
+					.append( $( '<p></p>' ).addClass( 'password-display' ).html( message ) );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
 				$( 'strong', $notice ).text( name );
-				$( 'kbd', $notice ).text( response.password );
+				$( 'input', $notice ).val( response.password );
 
 				$form.replaceWith( $notice );
 				$notice.focus();
