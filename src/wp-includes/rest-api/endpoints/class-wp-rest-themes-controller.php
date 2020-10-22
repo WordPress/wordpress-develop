@@ -599,7 +599,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes and validates the list of theme status.
 	 *
-	 * @since 5.5.0
+	 * @since 5.0.0
 	 *
 	 * @param string|array    $statuses  One or more theme statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
