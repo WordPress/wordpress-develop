@@ -1218,7 +1218,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_context_param() {}
 
-
+	/**
+	 * Data provider for tests.
+	 *
+	 * @ticket 50152
+	 */
 	public function data_theme_status() {
 		return array(
 			array( 'active', 'rest_cannot_view_active_theme' ),
