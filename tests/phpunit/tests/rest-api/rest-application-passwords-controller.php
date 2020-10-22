@@ -529,7 +529,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$uuid    = $item['uuid'];
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $uuid );
-		$request->set_body_params( array( 'app_id' => 'new-id' ) );
+		$request->set_body_params( array( 'app_id' => wp_generate_uuid4() ) );
 		$response = rest_do_request( $request );
 		$this->assertEquals( '', $response->get_data()['app_id'] );
 
