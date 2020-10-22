@@ -37,6 +37,7 @@ if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['a
 			if ( $success_url ) {
 				$redirect = add_query_arg(
 					array(
+						'siteurl'  => urlencode( site_url() ),
 						'username' => urlencode( wp_get_current_user()->user_login ),
 						'password' => urlencode( $new_password ),
 					),
