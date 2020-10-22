@@ -68,6 +68,7 @@
 
 			if ( raw ) {
 				url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
+					'site_url=' + encodeURIComponent( authApp.site_url ) +
 					'user_login=' + encodeURIComponent( authApp.user_login ) +
 					'&password=' + encodeURIComponent( response.password );
 
