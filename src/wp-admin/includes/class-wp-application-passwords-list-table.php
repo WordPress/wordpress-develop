@@ -104,6 +104,8 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * Handles the revoke column output.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @param array $item The current application password item.
 	 */
 	public function column_revoke( $item ) {
 		submit_button(
