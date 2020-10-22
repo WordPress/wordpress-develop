@@ -220,9 +220,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 							'<strong><kbd>' . esc_html(
 								add_query_arg(
 									array(
-										'site_url' => site_url(),
+										'site_url'   => site_url(),
 										'user_login' => $user->user_login,
-										'password' => '[------]',
+										'password'   => '[------]',
 									),
 									$success_url
 								)
