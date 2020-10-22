@@ -231,7 +231,12 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					echo "{{ data.last_ip || '—' }}";
 					break;
 				case 'revoke':
-					echo $this->column_revoke();
+					printf(
+						'<input type="submit" class="button delete" value="%1$s" title="%2$s">',
+						esc_attr( __( 'Revoke' ) ),
+						/* translators: %s: the application password's given name. */
+						esc_attr( sprintf( __( 'Revoke "%s"' ), '{{ data.name }}' ) )
+					);
 					break;
 				default:
 					/**
