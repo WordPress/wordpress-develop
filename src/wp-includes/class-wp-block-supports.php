@@ -24,18 +24,18 @@ class WP_Block_Supports {
 	private $block_supports = array();
 
 	/**
+	 * Tracks the current block to be rendered.
+	 *
+	 * @var array
+	 */
+	public static $block_to_render = null;
+
+	/**
 	 * Container for the main instance of the class.
 	 *
 	 * @var WP_Block_Supports|null
 	 */
 	private static $instance = null;
-
-	/**
-	 * Tracks the current block to be rendered.
-	 *
-	 * @var array
-	 */
-	private static $block_to_render = null;
 
 	/**
 	 * Utility method to retrieve the main instance of the class.
@@ -65,32 +65,6 @@ class WP_Block_Supports {
 	}
 
 	/**
-	 * Callback hooked to the register_block_type_args filter.
-	 *
-	 * @since 5.6.0
-	 *
-	 * This hooks into block registration to wrap the render_callback
-	 * of dynamic blocks with a closure that keeps track of the
-	 * current block to be rendered.
-	 *
-	 * @param array $args Block attributes.
-	 * @return array Block attributes.
-	 */
-	public static function track_block_to_render( $args ) {
-		if ( null !== $args['render_callback'] ) {
-			$block_render_callback   = $args['render_callback'];
-			$args['render_callback'] = function( $attributes, $content, $block ) use ( $block_render_callback ) {
-				$parent_block          = self::$block_to_render;
-				self::$block_to_render = $block->parsed_block;
-				$result                = $block_render_callback( $attributes, $content, $block );
-				self::$block_to_render = $parent_block;
-				return $result;
-			};
-		}
-		return $args;
-	}
-
-	/**
 	 * Registers a block support.
 	 *
 	 * @since 5.6.0
@@ -104,7 +78,6 @@ class WP_Block_Supports {
 			array( 'name' => $block_support_name )
 		);
 	}
-
 
 	/**
 	 * Generates an array of HTML attributes, such as classes, by applying to
@@ -238,3 +211,27 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
 	return implode( ' ', $normalized_attributes );
 }
 
+
+/**
+ * Callback hooked to the register_block_type_args filter.
+ *
+ * This hooks into block registration to wrap the render_callback
+ * of dynamic blocks with a closure that keeps track of the
+ * current block to be rendered.
+ *
+ * @param array $args Block attributes.
+ * @return array Block attributes.
+ */
+function wp_block_supports_track_block_to_render( $args ) {
+	if ( null !== $args['render_callback'] ) {
+		$block_render_callback   = $args['render_callback'];
+		$args['render_callback'] = function( $attributes, $content, $block ) use ( $block_render_callback ) {
+			$parent_block                       = WP_Block_Supports::$block_to_render;
+			WP_Block_Supports::$block_to_render = $block->parsed_block;
+			$result                             = $block_render_callback( $attributes, $content, $block );
+			WP_Block_Supports::$block_to_render = $parent_block;
+			return $result;
+		};
+	}
+	return $args;
+}
