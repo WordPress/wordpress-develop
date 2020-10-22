@@ -111,7 +111,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		submit_button(
 			__( 'Revoke' ),
 			'delete',
-			'revoke-application-password',
+			'revoke-application-password-' . $item['uuid'],
 			false,
 			array(
 				/* translators: %s: the application password's given name. */
