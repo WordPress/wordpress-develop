@@ -96,4 +96,81 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertIXRError( $result );
 		$this->assertSame( 403, $result->code );
 	}
+
+	/**
+	 * Ensure anonymous comments can be made via XML-RPC.
+	 *
+	 * @ticket 51595
+	 */
+	function test_allowed_anon_comments() {
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$comment_args = array(
+			1,
+			'',
+			'',
+			self::$post->ID,
+			array(
+				'author'       => 'WordPress',
+				'author_email' => 'noreply@wordpress.org',
+				'content'      => 'Test Anon Comments',
+			),
+		);
+
+		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
+		$this->assertNotIXRError( $result );
+		$this->assertInternalType( 'int', $result );
+	}
+
+	/**
+	 * Ensure anonymous XML-RPC comments require a valid email.
+	 *
+	 * @ticket 51595
+	 */
+	function test_anon_comments_require_email() {
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$comment_args = array(
+			1,
+			'',
+			'',
+			self::$post->ID,
+			array(
+				'author'       => 'WordPress',
+				'author_email' => 'noreply at wordpress.org',
+				'content'      => 'Test Anon Comments',
+			),
+		);
+
+		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+	}
+
+	/**
+	 * Ensure valid users don't use the anon flow.
+	 *
+	 * @ticket 51595
+	 */
+	function test_username_avoids_anon_flow() {
+		add_filter( 'xmlrpc_allow_anonymous_comments', '__return_true' );
+
+		$comment_args = array(
+			1,
+			'administrator',
+			'administrator',
+			self::$post->ID,
+			array(
+				'author'       => 'WordPress',
+				'author_email' => 'noreply at wordpress.org',
+				'content'      => 'Test Anon Comments',
+			),
+		);
+
+		$result  = $this->myxmlrpcserver->wp_newComment( $comment_args );
+		$comment = get_comment( $result );
+		$user_id = get_user_by( 'login', 'administrator' )->ID;
+
+		$this->assertSame( $user_id, (int) $comment->user_id );
+	}
 }
