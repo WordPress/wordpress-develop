@@ -32,7 +32,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Admin user ID.
 	 *
-	 * @since 5.5.0
+	 * @since 5.7.0
 	 *
 	 * @var int $admin_id
 	 */

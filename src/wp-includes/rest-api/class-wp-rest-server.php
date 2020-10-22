@@ -1525,7 +1525,7 @@ class WP_REST_Server {
 		}
 
 		$theme = wp_get_theme();
-		$response->add_link( 'active_theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+		$response->add_link( 'https://api.w.org/active-theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
 
 		return $response;
 	}
