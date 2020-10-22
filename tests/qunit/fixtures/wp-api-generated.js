@@ -4917,6 +4917,11 @@ mockedApiResponse.Schema = {
                         "POST"
                     ],
                     "args": {
+                        "app_id": {
+                            "description": "A machine-readable string provided by the application to uniquely identify it.",
+                            "type": "string",
+                            "required": false
+                        },
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
@@ -4967,6 +4972,11 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "app_id": {
+                            "description": "A machine-readable string provided by the application to uniquely identify it.",
+                            "type": "string",
+                            "required": false
+                        },
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
