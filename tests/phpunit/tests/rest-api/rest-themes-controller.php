@@ -1192,7 +1192,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$subscriber_id );
 		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/' . WP_DEFAULT_THEME );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_view_active_theme', $response, 403 );
 	}
 
 	/**
@@ -1221,7 +1221,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 	public function data_theme_status() {
 		return array(
-			array( 'active', 'rest_user_cannot_view' ),
+			array( 'active', 'rest_cannot_view_active_theme' ),
 			array( 'active, inactive', 'rest_user_cannot_view' ),
 			array( 'inactive', 'rest_user_cannot_view' ),
 			array( '', 'rest_user_cannot_view' ),

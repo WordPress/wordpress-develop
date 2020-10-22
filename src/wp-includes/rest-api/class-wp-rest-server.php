@@ -1202,6 +1202,8 @@ class WP_REST_Server {
 
 		$response->add_link( 'help', 'http://v2.wp-api.org/' );
 
+		$response = $this->maybe_add_current_theme_link( $response );
+
 		/**
 		 * Filters the API root index data.
 		 *
@@ -1506,5 +1508,25 @@ class WP_REST_Server {
 		}
 
 		return $headers;
+	}
+
+	/**
+	 * Add current theme link to API response for users who have proper permissions.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 *
+	 * @return WP_REST_Response REST API response.
+	 */
+	protected function maybe_add_current_theme_link( \WP_REST_Response $response ) {
+		if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'manage_network_themes' ) ) {
+			return $response;
+		}
+
+		$theme = wp_get_theme();
+		$response->add_link( 'active_theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+
+		return $response;
 	}
 }

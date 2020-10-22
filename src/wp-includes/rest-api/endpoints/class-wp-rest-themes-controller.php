@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage REST_API
- * @since 5.0.0
+ * @since 5.7.0
  */
 
 /**
  * Core class used to manage themes via the REST API.
  *
- * @since 5.0.0
+ * @since 5.7.0
  *
  * @see WP_REST_Controller
  */
@@ -19,7 +19,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Constructor.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 */
 	public function __construct() {
 		$this->namespace = 'wp/v2';
@@ -29,7 +29,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the routes for the objects of the controller.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @see register_rest_route()
 	 */
@@ -74,7 +74,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read the theme.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, otherwise WP_Error object.
@@ -116,7 +116,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error(
-			'rest_user_cannot_view',
+			'rest_cannot_view_active_theme',
 			__( 'Sorry, you are not allowed to view themes.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
@@ -141,7 +141,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error(
-			'rest_user_cannot_view',
+			'rest_cannot_view_active_theme',
 			__( 'Sorry, you are not allowed to view active theme.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
@@ -172,7 +172,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves a collection of themes.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -204,7 +204,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares a single theme output for response.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @param WP_Theme        $theme   Theme object.
 	 * @param WP_REST_Request $request Request object.
@@ -319,7 +319,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		/**
 		 * Filters theme data returned from the REST API.
 		 *
-		 * @since 5.0.0
+		 * @since 5.7.0
 		 *
 		 * @param WP_REST_Response $response The response object.
 		 * @param WP_Theme         $theme    Theme object used to create response.
@@ -390,7 +390,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the theme's schema, conforming to JSON Schema.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @return array Item schema data.
 	 */
@@ -569,7 +569,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the search params for the themes collection.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -589,7 +589,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		/**
 		 * Filters collection parameters for the themes controller.
 		 *
-		 * @since 5.0.0
+		 * @since 5.7.0
 		 *
 		 * @param array $query_params JSON Schema-formatted collection parameters.
 		 */
@@ -599,7 +599,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	/**
 	 * Sanitizes and validates the list of theme status.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @param string|array    $statuses  One or more theme statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
