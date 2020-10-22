@@ -717,7 +717,7 @@ endif;
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
 			<?php
 			if ( is_multisite() ) {
-				$blogs = get_blogs_of_user( $user->ID, true );
+				$blogs = get_blogs_of_user( $user_id, true );
 				if ( count( $blogs ) > 1 ) {
 					?>
 					<p>
