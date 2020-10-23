@@ -7785,23 +7785,22 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @param array $attributes Optional. Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
-function wp_sanitize_script_attributes( $attributes = array() ) {
-	$attributes_string = '';
-	// Only the attribute name is added to $attributes_string for entries with a boolean value, and that are true.
+function wp_sanitize_script_attributes( $attributes ) {
+	$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
+	$attributes_string    = '';
+	
+	// If HTML5 scirpt tag is supported, only the attribute name is added
+	// to $attributes_string for entries with a boolean value, and that are true.
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
 			if ( $attribute_value ) {
-				if ( ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-					$attributes_string .= sprintf( ' %1$s="%1$s"', $attribute_name );
-				} else {
-					$attributes_string .= ' ' . $attribute_name;
-				}
+				$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', $attribute_name, esc_attr( $attribute_name ) ) : ' ' . $attribute_name;
 			}
 		} else {
-			$attributes_string .= sprintf( ' %s="%s"', $attribute_name, esc_attr( $attribute_value ) );
+			$attributes_string .= sprintf( ' %1$s="%2$s"', $attribute_name, esc_attr( $attribute_value ) );
 		}
 	}
-
+	
 	return $attributes_string;
 }
 
