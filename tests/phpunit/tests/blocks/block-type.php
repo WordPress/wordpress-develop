@@ -69,18 +69,21 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 * 
+	 * @since 5.6 Removed testing whether render_callback
+	 * is the same as the one passed because we wrap
+	 * it in wp_block_supports_track_block_to_render
+	 * so it's not equal.
 	 */
 	public function test_set_props() {
 		$name = 'core/fake';
 		$args = array(
-			'render_callback' => array( $this, 'render_fake_block' ),
 			'foo'             => 'bar',
 		);
 
 		$block_type = new WP_Block_Type( $name, $args );
 
 		$this->assertSame( $name, $block_type->name );
-		$this->assertSame( $args['render_callback'], $block_type->render_callback );
 		$this->assertSame( $args['foo'], $block_type->foo );
 	}
 
