@@ -78,7 +78,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 	public function test_set_props() {
 		$name = 'core/fake';
 		$args = array(
-			'foo'             => 'bar',
+			'foo' => 'bar',
 		);
 
 		$block_type = new WP_Block_Type( $name, $args );
