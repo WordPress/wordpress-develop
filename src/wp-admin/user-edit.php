@@ -716,27 +716,22 @@ endif;
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
 		<div class="create-application-password">
-			<table class="form-table" role="presentation">
-				<tr>
-					<th><label for="new_application_password_name"><?php _e( 'New Application Name' ); ?></label></th>
-					<td>
-						<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" />
+			<label for="new_application_password_name" class="screen-reader-text"><?php _e( 'New Application Password Name' ); ?></label>
+			<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
 
-						<?php
-						/**
-						 * Fires in the create Application Passwords form.
-						 *
-						 * @since 5.6.0
-						 *
-						 * @param WP_User $profileuser The current WP_User object.
-						 */
-						do_action( 'wp_create_application_password_form', $profileuser );
-						?>
+			<?php
+			/**
+			 * Fires in the create Application Passwords form.
+			 *
+			 * @since 5.6.0
+			 *
+			 * @param WP_User $profileuser The current WP_User object.
+			 */
+			do_action( 'wp_create_application_password_form', $profileuser );
+			?>
 
-						<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password' ); ?>
-					</td>
-				</tr>
-			</table>
+			<br />
+			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
 		</div>
 
 		<div class="application-passwords-list-table-wrapper">
