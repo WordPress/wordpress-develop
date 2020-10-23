@@ -69,7 +69,7 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
-	 * 
+	 *
 	 * @since 5.6 Removed testing whether render_callback
 	 * is the same as the one passed because we wrap
 	 * it in wp_block_supports_track_block_to_render
