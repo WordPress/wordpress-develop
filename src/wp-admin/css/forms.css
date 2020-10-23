@@ -849,6 +849,16 @@ table.form-table td .updated p {
 	cursor: pointer;
 }
 
+.create-application-password label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.create-application-password p.submit {
+	margin-top: 0;
+}
+
 .new-application-password-notice.notice {
 	margin-top: 20px;
 	margin-bottom: 0;
