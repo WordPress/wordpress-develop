@@ -215,7 +215,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'tags',
 			'template',
 			'textdomain',
-			'theme_supports',
 			'theme_uri',
 			'version',
 		);
@@ -1173,7 +1172,6 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'tags',
 			'template',
 			'textdomain',
-			'theme_supports',
 			'theme_uri',
 			'version',
 		);
