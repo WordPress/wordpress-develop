@@ -54,7 +54,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 
 		$this->assertSame(
-			' src="https://DOMAIN.TLD/PATH/FILE.js" nomodule="nomodule" type="text/javascript"',
+			' src="https://DOMAIN.TLD/PATH/FILE.js" nomodule="nomodule"',
 			wp_sanitize_script_attributes(
 				array(
 					'src'      => 'https://DOMAIN.TLD/PATH/FILE.js',
@@ -71,7 +71,7 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'',
-			wp_sanitize_script_attributes()
+			wp_sanitize_script_attributes( array() )
 		);
 
 		remove_theme_support( 'html5' );
@@ -127,31 +127,4 @@ class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 	}
 
-	function test_sanitize_script_attributes_wp_script_attributes_filter() {
-		add_theme_support( 'html5', array( 'script' ) );
-
-		add_filter(
-			'wp_script_attributes',
-			function( $attributes ) {
-				if ( isset( $attributes['id'] ) && 'utils-js-extra' === $attributes['id'] ) {
-					$attributes['async'] = true;
-				}
-				return $attributes;
-			}
-		);
-
-		$this->assertSame(
-			' src="https://DOMAIN.TLD/PATH/FILE.js" id="utils-js-extra" async nomodule',
-			wp_sanitize_script_attributes(
-				array(
-					'src'      => 'https://DOMAIN.TLD/PATH/FILE.js',
-					'id'       => 'utils-js-extra',
-					'async'    => false,
-					'nomodule' => true,
-				)
-			)
-		);
-
-		remove_theme_support( 'html5' );
-	}
 }

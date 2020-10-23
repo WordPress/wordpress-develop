@@ -7786,20 +7786,6 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes = array() ) {
-	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
-		$attributes['type'] = 'text/javascript';
-	}
-	/**
-	 * Filters attributes to be added to a script tag.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
-	 *                          Only the attribute name is added to the `<script>` tag for
-	 *                          entries with a boolean value, and that are true.
-	 */
-	$attributes = apply_filters( 'wp_script_attributes', $attributes );
-
 	$attributes_string = '';
 	// Only the attribute name is added to $attributes_string for entries with a boolean value, and that are true.
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
@@ -7831,6 +7817,20 @@ function wp_sanitize_script_attributes( $attributes = array() ) {
  * @return string String containing `<script>` opening and closing tags.
  */
 function wp_get_script_tag( $attributes ) {
+	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+		$attributes['type'] = 'text/javascript';
+	}
+	/**
+	 * Filters attributes to be added to a script tag.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                          Only the attribute name is added to the `<script>` tag for
+	 *                          entries with a boolean value, and that are true.
+	 */
+	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+
 	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
 }
 
@@ -7862,6 +7862,20 @@ function wp_print_script_tag( $attributes ) {
  * @return string String containing inline JavaScript code wrapped around `<script>` tags.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
+	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+		$attributes['type'] = 'text/javascript';
+	}
+	/**
+	 * Filters attributes to be added to a script tag.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                          Only the attribute name is added to the `<script>` tag for
+	 *                          entries with a boolean value, and that are true.
+	 */
+	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+
 	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
 	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
