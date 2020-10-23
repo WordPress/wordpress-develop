@@ -222,7 +222,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'parent'           => 'invalid_parent',
 			'supports'         => 'invalid_supports',
 			'styles'           => 'invalid_styles',
-			'render_callback'  => null,
+			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
 		);
 		register_block_type( $block_type, $settings );

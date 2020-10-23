@@ -223,7 +223,7 @@ function get_block_wrapper_attributes( $extra_attributes = array() ) {
  * @return array Block attributes.
  */
 function wp_block_supports_track_block_to_render( $args ) {
-	if ( null !== $args['render_callback'] ) {
+	if ( is_callable( $args['render_callback'] ) ) {
 		$block_render_callback   = $args['render_callback'];
 		$args['render_callback'] = function( $attributes, $content, $block ) use ( $block_render_callback ) {
 			// Check for null for back compatibility with WP_Block_Type->render
