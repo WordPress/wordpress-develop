@@ -270,42 +270,38 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			$data['status'] = ( $this->is_same_theme( $theme, $current_theme ) ) ? 'active' : 'inactive';
 		}
 
-		if ( rest_is_field_included( 'theme_supports', $fields ) ) {
-			if ( $this->is_same_theme( $theme, $current_theme ) ) {
-				foreach ( get_registered_theme_features() as $feature => $config ) {
-					if ( ! is_array( $config['show_in_rest'] ) ) {
-						continue;
-					}
-
-					$name = $config['show_in_rest']['name'];
-
-					if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
-						continue;
-					}
-
-					if ( ! current_theme_supports( $feature ) ) {
-						$data['theme_supports'][ $name ] = $config['show_in_rest']['schema']['default'];
-						continue;
-					}
-
-					$support = get_theme_support( $feature );
-
-					if ( isset( $config['show_in_rest']['prepare_callback'] ) ) {
-						$prepare = $config['show_in_rest']['prepare_callback'];
-					} else {
-						$prepare = array( $this, 'prepare_theme_support' );
-					}
-
-					$prepared = $prepare( $support, $config, $feature, $request );
-
-					if ( is_wp_error( $prepared ) ) {
-						continue;
-					}
-
-					$data['theme_supports'][ $name ] = $prepared;
+		if ( rest_is_field_included( 'theme_supports', $fields ) && $this->is_same_theme( $theme, $current_theme ) ) {
+			foreach ( get_registered_theme_features() as $feature => $config ) {
+				if ( ! is_array( $config['show_in_rest'] ) ) {
+					continue;
 				}
-			} else {
-				$data['theme_supports'] = array();
+
+				$name = $config['show_in_rest']['name'];
+
+				if ( ! rest_is_field_included( "theme_supports.{$name}", $fields ) ) {
+					continue;
+				}
+
+				if ( ! current_theme_supports( $feature ) ) {
+					$data['theme_supports'][ $name ] = $config['show_in_rest']['schema']['default'];
+					continue;
+				}
+
+				$support = get_theme_support( $feature );
+
+				if ( isset( $config['show_in_rest']['prepare_callback'] ) ) {
+					$prepare = $config['show_in_rest']['prepare_callback'];
+				} else {
+					$prepare = array( $this, 'prepare_theme_support' );
+				}
+
+				$prepared = $prepare( $support, $config, $feature, $request );
+
+				if ( is_wp_error( $prepared ) ) {
+					continue;
+				}
+
+				$data['theme_supports'][ $name ] = $prepared;
 			}
 		}
 
