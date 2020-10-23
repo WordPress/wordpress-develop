@@ -7782,13 +7782,13 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  *
  * @since 5.6.0
  *
- * @param array $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param array $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
  */
 function wp_sanitize_script_attributes( $attributes ) {
 	$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
 	$attributes_string    = '';
-	
+
 	// If HTML5 scirpt tag is supported, only the attribute name is added
 	// to $attributes_string for entries with a boolean value, and that are true.
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
@@ -7800,14 +7800,14 @@ function wp_sanitize_script_attributes( $attributes ) {
 			$attributes_string .= sprintf( ' %1$s="%2$s"', $attribute_name, esc_attr( $attribute_value ) );
 		}
 	}
-	
+
 	return $attributes_string;
 }
 
 /**
  * Formats `<script>` loader tags.
  *
- * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.6.0
@@ -7834,31 +7834,30 @@ function wp_get_script_tag( $attributes ) {
 }
 
 /**
- * Prints formatted `<script>` loader tags.
+ * Prints formatted `<script>` loader tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.6.0
  *
  * @param array $attributes Key-value pairs representing `<script>` tag attributes.
- * @return null Null value.
  */
 function wp_print_script_tag( $attributes ) {
 	echo wp_get_script_tag( $attributes );
 }
 
 /**
- * Wraps inline JavaScript in `<script>` tags.
+ * Wraps inline JavaScript in `<script>` tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.6.0
  *
  * @param string $javascript Inline JavaScript code.
  * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return string String containing inline JavaScript code wrapped around `<script>` tags.
+ * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
@@ -7881,16 +7880,15 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 }
 
 /**
- * Prints inline JavaScript wrapped in `<script>` tags.
+ * Prints inline JavaScript wrapped in `<script>` tag.
  *
- * It is possible to inject attributes in the `<script>` tag via the `wp_script_attributes` filter.
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
  * @since 5.6.0
  *
  * @param string $javascript Inline JavaScript code.
  * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
- * @return null Null value.
  */
 function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $javascript, $attributes );
