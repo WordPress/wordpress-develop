@@ -180,6 +180,8 @@ class WP_Block_Type {
 	 *
 	 * @since 5.0.0
 	 *
+	 * @deprecated 5.6 See WP_Block->render introduced in 5.5.
+	 *
 	 * @param array  $attributes Optional. Block attributes. Default empty array.
 	 * @param string $content    Optional. Block content. Default empty string.
 	 * @return string Rendered block type output.
@@ -191,7 +193,7 @@ class WP_Block_Type {
 
 		$attributes = $this->prepare_attributes_for_render( $attributes );
 
-		return (string) call_user_func( $this->render_callback, $attributes, $content );
+		return (string) call_user_func( $this->render_callback, $attributes, $content, null );
 	}
 
 	/**
