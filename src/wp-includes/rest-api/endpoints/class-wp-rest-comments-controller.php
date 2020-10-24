@@ -587,6 +587,10 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment['comment_type'] = 'comment';
 
+		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+			$prepared_comment['comment_content'] = '';
+		}
+
 		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
 			return new WP_Error(
 				'rest_comment_content_invalid',
@@ -1881,7 +1885,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				'comment_author'       => null,
 				'comment_author_email' => null,
 				'comment_author_url'   => null,
-				'comment_content'      => null,
 			)
 		);
 
