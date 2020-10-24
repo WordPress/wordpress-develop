@@ -3254,6 +3254,10 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 			array_keys( $links )
 		);
 
+		if ( $comment->comment_post_ID ) {
+			$this->assertEquals( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
+		}
+
 		if ( 'edit' === $context ) {
 			$this->assertSame( $comment->comment_author_email, $data['author_email'] );
 			$this->assertSame( $comment->comment_author_IP, $data['author_ip'] );
