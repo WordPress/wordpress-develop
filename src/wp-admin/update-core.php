@@ -322,13 +322,17 @@ function core_auto_updates_settings() {
 	$upgrade_minor = get_site_option( 'auto_update_core_minor', true );
 	$upgrade_major = get_site_option( 'auto_update_core_major', false );
 
+	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 		if ( false === WP_AUTO_UPDATE_CORE ) {
 			// Defaults to turned off, unless a filter allows it.
 			$upgrade_dev   = false;
 			$upgrade_minor = false;
 			$upgrade_major = false;
-		} elseif ( true === WP_AUTO_UPDATE_CORE ) {
+		} elseif ( true === WP_AUTO_UPDATE_CORE
+			|| 'beta' === WP_AUTO_UPDATE_CORE
+			|| 'rc' === WP_AUTO_UPDATE_CORE
+		) {
 			// ALL updates for core.
 			$upgrade_dev   = true;
 			$upgrade_minor = true;
@@ -341,8 +345,11 @@ function core_auto_updates_settings() {
 		}
 	}
 
-	$upgrade_dev   = apply_filters( 'allow_dev_auto_core_updates', $upgrade_dev );
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
+	$upgrade_dev = apply_filters( 'allow_dev_auto_core_updates', $upgrade_dev );
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
 	$upgrade_minor = apply_filters( 'allow_minor_auto_core_updates', $upgrade_minor );
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
 	$upgrade_major = apply_filters( 'allow_major_auto_core_updates', $upgrade_major );
 
 	$auto_update_settings = array(
@@ -368,7 +375,7 @@ function core_auto_updates_settings() {
 		<p>
 			<input type="checkbox" name="core-auto-updates-major" id="core-auto-updates-major" value="1" <?php checked( $auto_update_settings['major'], 1 ); ?> />
 			<label for="core-auto-updates-major">
-				<?php _e( 'Keep my site up-to-date with regular feature updates (major versions).' ); ?>
+				<?php _e( 'Automatically keep this site up-to-date with regular feature updates.' ); ?>
 			</label>
 		</p>
 		<?php
@@ -382,6 +389,7 @@ function core_auto_updates_settings() {
 		<p>
 			<input id="core-auto-updates-settings" class="button" type="submit" value="<?php esc_attr_e( 'Save' ); ?>" name="core-auto-updates-settings" />
 		</p>
+	</form>
 	<?php
 }
 

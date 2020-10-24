@@ -16,7 +16,8 @@
 		};
 
 	$approveBtn.click( function( e ) {
-		var name = $appNameField.val();
+		var name = $appNameField.val(),
+			appId = $( 'input[name="app_id"]', $form ).val();
 
 		e.preventDefault();
 
@@ -34,6 +35,10 @@
 		var request = {
 			name: name
 		};
+
+		if ( appId.length > 0 ) {
+			request.app_id = appId;
+		}
 
 		/**
 		 * Filters the request data used to Authorize an Application Password request.
@@ -71,7 +76,8 @@
 
 			if ( raw ) {
 				url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
-					'user_login=' + encodeURIComponent( authApp.user_login ) +
+					'site_url=' + encodeURIComponent( authApp.site_url ) +
+					'&user_login=' + encodeURIComponent( authApp.user_login ) +
 					'&password=' + encodeURIComponent( response.password );
 
 				window.location = url;
