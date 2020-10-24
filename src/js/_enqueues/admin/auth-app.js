@@ -20,13 +20,16 @@
 
 		e.preventDefault();
 
+		if ( $approveBtn.prop( 'aria-disabled' ) ) {
+			return;
+		}
+
 		if ( 0 === name.length ) {
 			$appNameField.focus();
 			return;
 		}
 
-		$appNameField.prop( 'disabled', true );
-		$approveBtn.prop( 'disabled', true );
+		$approveBtn.prop( 'aria-disabled', true ).addClass( 'disabled' );
 
 		var request = {
 			name: name
@@ -110,8 +113,7 @@
 
 			$( 'h1' ).after( $notice );
 
-			$appNameField.prop( 'disabled', false );
-			$approveBtn.prop( 'disabled', false );
+			$approveBtn.removeProp( 'aria-disabled', false ).removeClass( 'disabled' );
 
 			/**
 			 * Fires when an Authorize Application Password request encountered an error when trying to approve the request.

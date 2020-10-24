@@ -852,11 +852,13 @@ table.form-table td .updated p {
 .create-application-password label {
 	display: block;
 	font-weight: 600;
-	margin-bottom: 5px;
+	margin: 0.35em 0 0.5em !important;
 }
 
 .create-application-password p.submit {
 	margin-top: 0;
+	margin-bottom: 0;
+	padding-bottom: 0;
 }
 
 .new-application-password-notice.notice {
