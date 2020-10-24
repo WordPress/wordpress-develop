@@ -50,6 +50,65 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 403, $result->code );
 	}
 
+	/**
+	 * @ticket 43177
+	 */
+	public function test_empty_content_multiple_spaces() {
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				self::$post->ID,
+				array(
+					'content' => '   ',
+				),
+			)
+		);
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 403, $result->code );
+	}
+
+	/**
+	 * @ticket 43177
+	 */
+	public function test_valid_comment_0_content() {
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				self::$post->ID,
+				array(
+					'content' => '0',
+				),
+			)
+		);
+
+		$this->assertNotIXRError( $result );
+	}
+
+	/**
+	 * @ticket 43177
+	 */
+	public function test_valid_comment_allow_empty_content() {
+		add_filter( 'allow_empty_comment', '__return_true' );
+		$result = $this->myxmlrpcserver->wp_newComment(
+			array(
+				1,
+				'administrator',
+				'administrator',
+				self::$post->ID,
+				array(
+					'content' => '   ',
+				),
+			)
+		);
+
+		$this->assertNotIXRError( $result );
+	}
+
 	function test_new_comment_post_closed() {
 		$post = self::factory()->post->create_and_get(
 			array(
