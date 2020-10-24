@@ -108,7 +108,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="notice notice-error"><p><?php echo $error->get_error_message(); ?></p></div>
 	<?php endif; ?>
 
-	<div class="card js-auth-app-card">
+	<div class="card auth-app-card">
 		<h2 class="title"><?php __( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
 			<p>
@@ -148,14 +148,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			do_action( 'wp_authorize_application_password_form', $request, $user );
 			?>
 		<?php else : ?>
-			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post">
+			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post" class="form-wrap">
 				<?php wp_nonce_field( 'authorize_application_password' ); ?>
 				<input type="hidden" name="action" value="authorize_application_password" />
 				<input type="hidden" name="success_url" value="<?php echo esc_url( $success_url ); ?>" />
 				<input type="hidden" name="reject_url" value="<?php echo esc_url( $reject_url ); ?>" />
 
-				<label for="app_name"><?php esc_html_e( 'Application Title:' ); ?></label>
-				<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'Name this connection&hellip;' ); ?>" required aria-required="true" />
+				<div class="form-field">
+					<label for="app_name"><?php _e( 'Application Title' ); ?></label>
+					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'Name this connection&hellip;' ); ?>" required aria-required="true" />
+				</div>
 
 				<?php
 				/**
@@ -175,19 +177,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				do_action( 'wp_authorize_application_password_form', $request, $user );
 				?>
 
-				<p>
-					<?php
-					submit_button(
-						__( 'Yes, I approve of this connection.' ),
-						'primary',
-						'approve',
-						false,
-						array(
-							'aria-describedby' => 'description-approve',
-						)
-					);
-					?>
-					<br /><em id="description-approve">
+				<?php
+				submit_button(
+					__( 'Yes, I approve of this connection.' ),
+					'primary',
+					'approve',
+					false,
+					array(
+						'aria-describedby' => 'description-approve',
+					)
+				);
+				?>
+				<p class="description" id="description-approve">
 					<?php
 					if ( $success_url ) {
 						printf(
@@ -207,22 +208,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						_e( 'You will be given a password to manually enter into the application in question.' );
 					}
 					?>
-					</em>
 				</p>
 
-				<p>
-					<?php
-					submit_button(
-						__( 'No, I do not approve of this connection.' ),
-						'secondary',
-						'reject',
-						false,
-						array(
-							'aria-describedby' => 'description-reject',
-						)
-					);
-					?>
-					<br /><em id="description-reject">
+				<?php
+				submit_button(
+					__( 'No, I do not approve of this connection.' ),
+					'secondary',
+					'reject',
+					false,
+					array(
+						'aria-describedby' => 'description-reject',
+					)
+				);
+				?>
+				<p class="description" id="description-reject">
 					<?php
 					if ( $reject_url ) {
 						printf(
@@ -241,7 +240,6 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						_e( 'You will be returned to the WordPress Dashboard, and no changes will be made.' );
 					}
 					?>
-					</em>
 				</p>
 			</form>
 		<?php endif; ?>
