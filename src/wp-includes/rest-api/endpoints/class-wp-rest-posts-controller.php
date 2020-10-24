@@ -985,7 +985,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$query_args = array();
 
 		if ( isset( $request['status'] ) ) {
-			//$query_args['perm'] = 'edit' === $request['context'] ? 'editable' : 'readable';
+			$query_args['perm'] = 'edit' === $request['context'] ? 'editable' : 'readable';
 		}
 
 		foreach ( $prepared_args as $key => $value ) {
