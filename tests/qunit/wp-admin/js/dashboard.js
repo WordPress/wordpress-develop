@@ -103,7 +103,12 @@ jQuery( document ).ready( function () {
 					communityEventsData.l10n.date_formats
 				);
 
-				assert.strictEqual( actual, 'September 15–17, 2020' );
+				var expected = 'September 15' + String.fromCharCode( 8211 ) + '17, 2020';
+
+				console.log( actual.charCodeAt( 12 ) );
+				console.log( expected.charCodeAt( 12 ) );
+
+				assert.strictEqual( actual, expected );
 			} );
 
 			QUnit.test( 'multiple month event should use corresponding format', function( assert ) {
@@ -114,7 +119,15 @@ jQuery( document ).ready( function () {
 					communityEventsData.l10n.date_formats
 				);
 
-				assert.strictEqual( actual, 'September 15 – October 6, 2020' );
+				var expected = 'September 15 ' + String.fromCharCode( 8211 ) +' October 6, 2020';
+
+				// don't need ^? can just type a hyphon? or  is phostorm converting it to an hyphon
+				// what do other places in core do?
+				// maybe some kind of interaction with datei18n / moment is part of problem?
+
+				console.log( actual.charCodeAt( 13 ) );
+				console.log( expected.charCodeAt( 13 ) );
+				assert.strictEqual( actual, expected );
 			} );
 
 			QUnit.test( 'undefined end date should be treated as a single-day event', function( assert ) {

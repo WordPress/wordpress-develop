@@ -745,9 +745,12 @@ jQuery( function( $ ) {
 			/* translators: Date format for upcoming events on the dashboard. Include the day of the week. See https://www.php.net/manual/datetime.format.php */
 			var singleDayEvent = __( 'l, M j, Y' ),
 				/* translators: Date string for upcoming events. 1: Month, 2: Starting day, 3: Ending day, 4: Year. */
-				multipleDayEvent = __( '%1$s %2$d–%3$d, %4$d' ),
+				multipleDayEvent = __( '%1$s %2$d'+ String.fromCharCode( 8211 ) + '%3$d, %4$d' ),
 				/* translators: Date string for upcoming events. 1: Starting month, 2: Starting day, 3: Ending month, 4: Ending day, 5: Ending year. */
-				multipleMonthEvent = __( '%1$s %2$d – %3$s %4$d, %5$d' );
+				multipleMonthEvent = __( '%1$s %2$d '+ String.fromCharCode( 8211 ) +' %3$s %4$d, %5$d' );
+
+				console.log( multipleDayEvent.charCodeAt( 9 ) ); // 8211
+				console.log( multipleMonthEvent.charCodeAt( 10 ) ); // 8211
 
 			// Detect single-day events.
 			if ( ! endDate || format( 'Y-m-d', startDate ) === format( 'Y-m-d', endDate ) ) {
