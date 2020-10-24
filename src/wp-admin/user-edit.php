@@ -715,7 +715,8 @@ endif;
 	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-    <?php if ( is_multisite() ) {
+			<?php
+			if ( is_multisite() ) {
 				$blogs       = get_blogs_of_user( $user_id, true );
 				$blogs_count = count( $blogs );
 				if ( $blogs_count > 1 ) {
@@ -737,7 +738,7 @@ endif;
 					<?php
 				}
 			}
-		?>
+			?>
 		<div class="create-application-password form-wrap">
 			<div class="form-field">
 				<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
