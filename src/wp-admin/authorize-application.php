@@ -155,8 +155,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<input type="hidden" name="reject_url" value="<?php echo esc_url( $reject_url ); ?>" />
 
 				<div class="form-field">
-					<label for="app_name"><?php _e( 'Application Title' ); ?></label>
-					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'Name this connection&hellip;' ); ?>" required aria-required="true" />
+					<label for="app_name"><?php _e( 'New Application Password Name' ); ?></label>
+					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" required aria-required="true" />
 				</div>
 
 				<?php
