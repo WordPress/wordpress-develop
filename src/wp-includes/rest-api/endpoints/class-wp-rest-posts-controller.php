@@ -984,6 +984,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	protected function prepare_items_query( $prepared_args = array(), $request = null ) {
 		$query_args = array();
 
+		if ( isset( $request['status'] ) ) {
+			//$query_args['perm'] = 'edit' === $request['context'] ? 'editable' : 'readable';
+		}
+
 		foreach ( $prepared_args as $key => $value ) {
 			/**
 			 * Filters the query_vars used in get_items() for the constructed query.

@@ -4876,6 +4876,92 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$GLOBALS['wp_rest_server']->override_by_default = false;
 	}
 
+	/**
+	 * @ticket 42947
+	 * @dataProvider data_get_items_status_permissions
+	 * @param string[] $grant_cap   Capability to grant the contributor.
+	 * @param string   $context     The context to request the posts in.
+	 * @param bool     $has_private Whether the other user's private post should be included.
+	 * @param bool     $has_public  Whether the other user's public post should be included.
+	 */
+	public function test_get_items_status_permissions( $grant_cap, $context, $has_private, $has_public ) {
+		$user = self::factory()->user->create_and_get( array( 'role' => 'contributor' ) );
+
+		foreach ( $grant_cap as $cap ) {
+			$user->add_cap( $cap );
+		}
+
+		// Isolate to just these posts.
+		$tag       = self::factory()->term->create();
+		$a_private = self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_status' => 'private',
+				'tags_input'  => array( $tag ),
+			)
+		);
+		$a_publish = self::factory()->post->create(
+			array(
+				'post_author' => self::$author_id,
+				'post_status' => 'publish',
+				'tags_input'  => array( $tag ),
+			)
+		);
+		$c_private = self::factory()->post->create(
+			array(
+				'post_author' => $user->ID,
+				'post_status' => 'private',
+				'tags_input'  => array( $tag ),
+			)
+		);
+		$c_publish = self::factory()->post->create(
+			array(
+				'post_author' => $user->ID,
+				'post_status' => 'publish',
+				'tags_input'  => array( $tag ),
+			)
+		);
+
+		$expected = array( $c_private, $c_publish );
+
+		if ( $has_public ) {
+			$expected[] = $a_publish;
+		}
+
+		if ( $has_private ) {
+			$expected[] = $a_private;
+		}
+
+		$count = count( $expected );
+
+		wp_set_current_user( $user->ID );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_query_params(
+			array(
+				'status'   => 'publish,private',
+				'per_page' => $count,
+				'orderby'  => 'id',
+				'context'  => $context,
+				'tags'     => array( $tag ),
+			)
+		);
+
+		$posts = rest_do_request( $request );
+		$this->assertNotWPError( $posts->as_error() );
+		$this->assertSameSets( $expected, wp_list_pluck( $posts->get_data(), 'id' ) );
+
+		$this->assertEquals( $count, $posts->get_headers()['X-WP-Total'] );
+	}
+
+	public function data_get_items_status_permissions() {
+		return array(
+			array( array(), 'view', false, true ),
+			array( array( 'read_private_posts' ), 'view', true, true ),
+			array( array(), 'edit', false, false ),
+			array( array( 'read_private_posts', 'edit_others_posts' ), 'edit', true, true ),
+		);
+	}
+
 	public function tearDown() {
 		_unregister_post_type( 'private-post' );
 		_unregister_post_type( 'youseeme' );
