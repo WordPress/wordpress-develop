@@ -715,9 +715,11 @@ endif;
 	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-		<div class="create-application-password">
-			<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-			<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" />
+		<div class="create-application-password form-wrap">
+			<div class="form-field">
+				<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
+				<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" />
+			</div>
 
 			<?php
 			/**
