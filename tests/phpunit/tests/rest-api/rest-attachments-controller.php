@@ -1007,6 +1007,53 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * @ticket 40399
+	 */
+	public function test_update_item_with_existing_inherit_status() {
+		wp_set_current_user( self::$editor_id );
+		$parent_id     = self::factory()->post->create( array() );
+		$attachment_id = self::factory()->attachment->create_object(
+			$this->test_file,
+			$parent_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+				'post_author'    => self::$editor_id,
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'status', 'inherit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertEquals( 'inherit', $response->get_data()['status'] );
+	}
+
+	/**
+	 * @ticket 40399
+	 */
+	public function test_update_item_with_new_inherit_status() {
+		wp_set_current_user( self::$editor_id );
+		$attachment_id = self::factory()->attachment->create_object(
+			$this->test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+				'post_author'    => self::$editor_id,
+				'post_status'    => 'private',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'status', 'inherit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function verify_attachment_roundtrip( $input = array(), $expected_output = array() ) {
 		// Create the post.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
