@@ -571,7 +571,7 @@ abstract class WP_REST_Meta_Fields {
 	 * default.
 	 *
 	 * @since 5.3.0
-	 * @deprecated 5.5.0 Use rest_default_additional_properties_to_false()
+	 * @deprecated 5.6.0 Use rest_default_additional_properties_to_false() instead.
 	 *
 	 * @param array $schema The schema array.
 	 * @return array
