@@ -578,22 +578,8 @@ abstract class WP_REST_Meta_Fields {
 	 */
 	protected function default_additional_properties_to_false( $schema ) {
 		_deprecated_function( __METHOD__, '5.6.0', 'rest_default_additional_properties_to_false()' );
-		switch ( $schema['type'] ) {
-			case 'object':
-				foreach ( $schema['properties'] as $key => $child_schema ) {
-					$schema['properties'][ $key ] = $this->default_additional_properties_to_false( $child_schema );
-				}
-
-				if ( ! isset( $schema['additionalProperties'] ) ) {
-					$schema['additionalProperties'] = false;
-				}
-				break;
-			case 'array':
-				$schema['items'] = $this->default_additional_properties_to_false( $schema['items'] );
-				break;
-		}
-
-		return $schema;
+		
+		return rest_default_additional_properties_to_false( $schema );
 	}
 
 	/**
