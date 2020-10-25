@@ -466,7 +466,7 @@ abstract class WP_REST_Meta_Fields {
 				$rest_args['schema']['default'] = static::get_empty_value_for_type( $type );
 			}
 
-			$rest_args['schema'] = $this->default_additional_properties_to_false( $rest_args['schema'] );
+			$rest_args['schema'] = rest_default_additional_properties_to_false( $rest_args['schema'] );
 
 			if ( ! in_array( $type, array( 'string', 'boolean', 'integer', 'number', 'array', 'object' ), true ) ) {
 				continue;
@@ -571,11 +571,13 @@ abstract class WP_REST_Meta_Fields {
 	 * default.
 	 *
 	 * @since 5.3.0
+	 * @deprecated 5.5.0 Use rest_default_additional_properties_to_false()
 	 *
 	 * @param array $schema The schema array.
 	 * @return array
 	 */
 	protected function default_additional_properties_to_false( $schema ) {
+		_deprecated_function( __METHOD__, '5.5.0', 'rest_default_additional_properties_to_false()' );
 		switch ( $schema['type'] ) {
 			case 'object':
 				foreach ( $schema['properties'] as $key => $child_schema ) {
