@@ -577,7 +577,7 @@ abstract class WP_REST_Meta_Fields {
 	 * @return array
 	 */
 	protected function default_additional_properties_to_false( $schema ) {
-		_deprecated_function( __METHOD__, '5.5.0', 'rest_default_additional_properties_to_false()' );
+		_deprecated_function( __METHOD__, '5.6.0', 'rest_default_additional_properties_to_false()' );
 		switch ( $schema['type'] ) {
 			case 'object':
 				foreach ( $schema['properties'] as $key => $child_schema ) {
