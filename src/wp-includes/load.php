@@ -1486,11 +1486,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false !== strpos( $_SERVER['HTTP_ACCEPT'], 'application/json' ) ) {
+	if ( wp_is_json_content_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+	if ( wp_is_json_content_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 

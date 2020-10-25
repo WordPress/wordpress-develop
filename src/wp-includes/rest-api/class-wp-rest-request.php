@@ -161,7 +161,7 @@ class WP_REST_Request implements ArrayAccess {
 			return $this->is_json_content_type;
 		}
 
-		if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type['value'] ) ) {
+		if ( wp_is_json_content_type( $content_type['value'] ) ) {
 			$this->is_json_content_type = true;
 			$this->content_type_cache   = $content_type;
 		} else {
