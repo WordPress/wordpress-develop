@@ -1486,11 +1486,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( wp_is_json_content_type( $_SERVER['HTTP_ACCEPT'] ) ) {
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_content_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( wp_is_json_content_type( $_SERVER['CONTENT_TYPE'] ) ) {
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && wp_is_json_content_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 
@@ -1524,6 +1524,22 @@ function wp_is_jsonp_request() {
 
 	return $jsonp_enabled;
 
+}
+
+/**
+ * Checks whether a string is a valid JSON Content-Type.
+ *
+ * @since 5.6.0
+ *
+ * @param string $content_type A Content-Type string
+ * @return bool True if string is a valid JSON Content-Type.
+ */
+function wp_is_json_content_type( $content_type ) {
+	if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type ) ) {
+		return true;
+	}
+
+	return false;
 }
 
 /**

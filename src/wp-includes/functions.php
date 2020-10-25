@@ -7613,20 +7613,3 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
-
-/**
- * Checks whether a string is a valid JSON Content-Type.
- *
- * @since 5.6.0
- *
- * @param string $content_type A Content-Type string
- * @return bool True if string is a valid JSON Content-Type.
- */
-function wp_is_json_content_type( $content_type ) {
-	if ( ! empty( $content_type ) && preg_match( '/^application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?$/i', $content_type ) ) {
-		return true;
-	}
-
-	return false;
-
-}

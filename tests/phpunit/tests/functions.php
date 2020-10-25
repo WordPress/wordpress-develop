@@ -1743,4 +1743,23 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '03:61:59', false ), // Out of bound.
 		);
 	}
+
+	/**
+	 * @dataProvider data_test_wp_is_stream
+	 */
+	public function test_wp_is_json_content_type( $input, $expected ) {
+		$this->assertEquals( $expected, wp_is_json_content_type( $input ) );
+	}
+
+
+	public function data_test_wp_is_json_content_type() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+		);
+	}
 }
