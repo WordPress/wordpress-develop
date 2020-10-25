@@ -1,5 +1,5 @@
 /*!
- * jQuery Migrate - v3.3.2-pre - 2020-10-24T15:54Z
+ * jQuery Migrate - v3.3.2-pre - 2020-10-25T12:21Z
  * Copyright OpenJS Foundation and other contributors
  */
 ( function( factory ) {
@@ -498,17 +498,13 @@ jQuery.fn.css = function( name, value ) {
 		jQuery.each( name, function( n, v ) {
 			jQuery.fn.css.call( origThis, n, v );
 		} );
+		return this;
 	}
 	if ( typeof value === "number" ) {
-		if ( typeof name === "object" ) {
+		camelName = camelCase( name );
+		if ( !isAutoPx( camelName ) && !jQuery.cssNumber[ camelName ] ) {
 			migrateWarn( "Number-typed values are deprecated for jQuery.fn.css( \"" +
-					JSON.stringify( name ) + "\", value )" );
-		} else {
-			camelName = camelCase( name );
-			if ( !isAutoPx( camelName ) && !jQuery.cssNumber[ camelName ] ) {
-				migrateWarn( "Number-typed values are deprecated for jQuery.fn.css( \"" +
-					name + "\", value )" );
-			}
+				name + "\", value )" );
 		}
 	}
 
