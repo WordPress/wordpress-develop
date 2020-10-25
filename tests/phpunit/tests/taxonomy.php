@@ -1049,7 +1049,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	/**
 	 * Ensure custom callbacks are used when registered.
 	 *
-	 * @covers register_taxonomy
+	 * @covers ::register_taxonomy
 	 * @ticket 40351
 	 */
 	function test_register_taxonomy_counting_callbacks() {
