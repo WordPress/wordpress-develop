@@ -190,6 +190,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49404
 	 * @dataProvider alternate_json_content_type_provider
 	 *
 	 * @param string  $content_type The content-type
