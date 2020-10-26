@@ -1531,37 +1531,23 @@ function wp_is_jsonp_request() {
  *
  * @since 5.6.0
  *
+ * @staticvar bool $is_json
+ *
  * @param string $content_type A Content-Type string
  * @return bool True if string is a valid JSON Content-Type.
  */
 function wp_is_json_content_type( $content_type ) {
-	static $content_type_cache = null;
-	static $is_json = null;
+	static $is_json_content_type = array();
 
-	if ( empty( $content_type ) ) {
+	if ( ! isset( $is_json_content_type[ $content_type ] ) ) {
+		$is_json_content_type[ $content_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $content_type );
+	}
+
+	if ( ! is_bool( $is_json_content_type[ $content_type ] ) ) {
 		return false;
 	}
 
-	if ( is_null( $content_type_cache ) ) {
-		$content_type_cache = $content_type;
-	}
-
-	if ( $content_type_cache !== $content_type ) {
-		$content_type_cache = $content_type;
-		$is_json = null;
-	}
-
-	if ( is_bool( $is_json ) ) {
-		return $is_json;
-	}
-
-	if ( preg_match( '/(^|\s|;|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $content_type ) ) {
-		$is_json = true;
-	} else {
-		$is_json = false;
-	}
-
-	return $is_json;
+	return $is_json_content_type[ $content_type ];
 }
 
 /**
