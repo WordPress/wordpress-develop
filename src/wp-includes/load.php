@@ -1540,11 +1540,7 @@ function wp_is_json_content_type( $content_type ) {
 	static $cache = array();
 
 	if ( ! isset( $cache[ $content_type ] ) ) {
-		$cache[ $content_type ] = preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $content_type );
-	}
-
-	if ( ! is_bool( $cache[ $content_type ] ) ) {
-		return false;
+		$cache[ $content_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $content_type );
 	}
 
 	return $cache[ $content_type ];
