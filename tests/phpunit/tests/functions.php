@@ -1758,8 +1758,11 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
 			array( 'application/activity+json', true ),
 			array( 'application/json+oembed', true ),
+			array( 'application/json', true ),
 			array( 'application/nojson', false ),
 			array( 'application/no.json', false ),
+			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
+			array( 'application/activity+json, application/nojson', true ),
 		);
 	}
 }
