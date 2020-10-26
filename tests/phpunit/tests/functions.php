@@ -1745,6 +1745,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49404
 	 * @dataProvider data_test_wp_is_json_content_type
 	 */
 	public function test_wp_is_json_content_type( $input, $expected ) {

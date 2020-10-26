@@ -220,6 +220,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49404
 	 * @dataProvider is_json_content_type_provider
 	 *
 	 * @param string  $content_type The content-type
@@ -234,6 +235,9 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals( $is_json, $this->request->is_json_content_type() );
 	}
 
+	/**
+	 * @ticket 49404
+	 */
 	public function test_content_type_cache() {
 		$this->request_with_parameters();
 		$this->assertFalse( $this->request->is_json_content_type() );

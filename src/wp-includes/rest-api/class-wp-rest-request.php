@@ -137,11 +137,7 @@ class WP_REST_Request implements ArrayAccess {
 	public function is_json_content_type() {
 		$content_type = $this->get_content_type();
 
-		if ( isset( $content_type['value'] ) && wp_is_json_content_type( $content_type['value'] ) ) {
-			return true;
-		}
-
-		return false;
+		return isset( $content_type['value'] ) && wp_is_json_content_type( $content_type['value'] );
 	}
 
 	/**
