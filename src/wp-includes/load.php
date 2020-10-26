@@ -1555,7 +1555,7 @@ function wp_is_json_content_type( $content_type ) {
 		return $is_json;
 	}
 
-	if ( preg_match( '/(^|\s|;)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;)/i', $content_type ) ) {
+	if ( preg_match( '/(^|\s|;|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $content_type ) ) {
 		$is_json = true;
 	} else {
 		$is_json = false;
