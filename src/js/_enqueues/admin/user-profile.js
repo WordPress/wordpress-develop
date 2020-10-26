@@ -146,12 +146,15 @@
 
 		bindToggleButton();
 
-		// Generate the first password and cache it, but don't set it yet.
-		wp.ajax.post( 'generate-password' )
-			.done( function( data ) {
-				// Cache password.
-				$pass1.data( 'pw', data );
-			} );
+		// Skip wp login pages.
+		if ( ! /\/wp-login\.php/.test( document.location ) ) {
+			// Generate the first password and cache it, but don't set it yet.
+			wp.ajax.post( 'generate-password' )
+				.done( function( data ) {
+					// Cache password.
+					$pass1.data( 'pw', data );
+				} );
+		}
 
 		$generateButton.show();
 		$generateButton.on( 'click', function () {
