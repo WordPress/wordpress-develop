@@ -692,4 +692,41 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		// Ensure number of queries correct.
 		$this->assertSame( $expected, get_num_queries() );
 	}
+
+	/**
+	 * Ensure calling `_wp_prevent_term_counting()` only affects the object on which it is called.
+	 *
+	 * @ticket 51630
+	 * @covers _wp_prevent_term_counting.
+	 */
+	public function test_preventing_double_counts_does_not_affect_other_objects() {
+		$other_post = self::$post_ids['publish'];
+		$terms      = self::$tag_ids;
+
+		// Filter to add tag to another post.
+		add_action(
+			'set_object_terms',
+			function() use ( $other_post, $terms ) {
+				static $avoid_recursion = false;
+				if ( ! $avoid_recursion ) {
+						$avoid_recursion = true;
+						wp_set_object_terms( $other_post, array( $terms[1] ), 'post_tag' );
+				}
+				$avoid_recursion = false;
+			}
+		);
+
+		/*
+		 * Create a post via `wp_insert_post()`.
+		 * Do not use shared fixture for this as the test relies on a new post.
+		 */
+		$post_id = $this->factory()->post->create( array( 'tags_input' => array( $terms[2] ) ) );
+		// Term applied to inserted object.
+		$term = get_term( $terms[2] );
+		$this->assertEquals( 1, $term->count, "Count on original object's term incorrect." );
+
+		// Term applied to secondary object.
+		$term = get_term( $terms[1] );
+		$this->assertEquals( 1, $term->count, "Count on secondary object's term incorrect." );
+	}
 }
