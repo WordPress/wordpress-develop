@@ -96,11 +96,13 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	 * Returns the rendered output for the current block.
 	 *
 	 * @param array $block Block to render.
+	 *
+	 * @return string Rendered output for the current block.
 	 */
 	private function render_example_block( $block ) {
-		global $current_parsed_block;
-		$current_parsed_block = $block;
-		$wrapper_attributes   = get_block_wrapper_attributes(
+		WP_Block_Supports::init();
+		WP_Block_Supports::$block_to_render = $block;
+		$wrapper_attributes                 = get_block_wrapper_attributes(
 			array(
 				'class' => 'foo-bar-class',
 				'style' => 'test: style;',
