@@ -83,22 +83,6 @@ class WP_REST_Request implements ArrayAccess {
 	protected $attributes = array();
 
 	/**
-	 * Used to determine if the Content-Type is JSON.
-	 *
-	 * @since @todo
-	 * @var boolean
-	 */
-	protected $is_json_content_type;
-
-	/**
-	 * Used to track Content-Type changes.
-	 *
-	 * @since @todo
-	 * @var string
-	 */
-	protected $content_type_cache;
-
-	/**
 	 * Used to determine if the JSON data has been parsed yet.
 	 *
 	 * Allows lazy-parsing of JSON data where possible.
@@ -153,23 +137,11 @@ class WP_REST_Request implements ArrayAccess {
 	public function is_json_content_type() {
 		$content_type = $this->get_content_type();
 
-		if ( $this->content_type_cache !== $content_type ) {
-			$this->is_json_content_type = null;
-		}
-
-		if ( is_bool( $this->is_json_content_type ) ) {
-			return $this->is_json_content_type;
-		}
-
 		if ( isset( $content_type['value'] ) && wp_is_json_content_type( $content_type['value'] ) ) {
-			$this->is_json_content_type = true;
-			$this->content_type_cache   = $content_type;
-		} else {
-			$this->is_json_content_type = false;
-			$this->content_type_cache   = $content_type;
+			return true;
 		}
 
-		return $this->is_json_content_type;
+		return false;
 	}
 
 	/**
