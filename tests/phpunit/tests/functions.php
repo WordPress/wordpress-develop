@@ -1745,7 +1745,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_wp_is_stream
+	 * @dataProvider data_test_wp_is_json_content_type
 	 */
 	public function test_wp_is_json_content_type( $input, $expected ) {
 		$this->assertEquals( $expected, wp_is_json_content_type( $input ) );
