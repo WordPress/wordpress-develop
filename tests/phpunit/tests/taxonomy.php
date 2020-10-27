@@ -1007,14 +1007,14 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		);
 
 		// Add post.
-		$post_id = wp_insert_post(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'Foo',
 				'post_type'  => 'post',
 			)
 		);
 
-		// Test default category.
+		// Test default term.
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
 
@@ -1028,22 +1028,44 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'taxonomies' => array( $tax ),
 			)
 		);
-		$post_id = wp_insert_post(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'Foo',
 				'post_type'  => 'post-custom-tax',
 			)
 		);
-		$term    = wp_get_post_terms( $post_id, $tax );
+
+		// Test default term.
+		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
 
-		// wp_set_object_terms shouldn't assign default category.
+		// wp_set_object_terms() should not assign default term.
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
 
 		unregister_taxonomy( $tax );
 		$this->assertSame( get_option( 'default_term_' . $tax ), false );
+	}
+
+	/**
+	 * @ticket 51320
+	 */
+	function test_default_term_for_post_in_multiple_taxonomies() {
+		$post_type = 'test_post_type';
+		$tax1      = 'test_tax1';
+		$tax2      = 'test_tax2';
+
+		register_post_type( $post_type, array( 'taxonomies' => array( $tax1, $tax2 ) ) );
+		register_taxonomy( $tax1, $post_type, array( 'default_term' => 'term_1' ) );
+		register_taxonomy( $tax2, $post_type, array( 'default_term' => 'term_2' ) );
+
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
+
+		$taxonomies = get_post_taxonomies( $post_id );
+
+		$this->assertContains( $tax1, $taxonomies );
+		$this->assertContains( $tax2, $taxonomies );
 	}
 
 	/**
