@@ -3288,6 +3288,12 @@ function wp_defer_term_counting( $defer = null ) {
  * This is used by functions calling wp_transition_post_status() to indicate the
  * term count will be handled during the post's transition.
  *
+ *      *********************************** REMOVE THIS WILSON ***********
+ * @todo fix this so it only affects the current object.
+ *       - setting per object maybe, say `'post:10', $new_setting = null`.
+ *       - does it default to the current global post? Probably not.
+ *      *********************************** REMOVE THIS WILSON ***********
+ *
  * @private
  * @since 5.6.0
  *
