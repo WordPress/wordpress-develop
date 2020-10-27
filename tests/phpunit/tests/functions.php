@@ -1728,4 +1728,27 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '03:61:59', false ), // Out of bound.
 		);
 	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider data_test_wp_is_json_media_type
+	 */
+	public function test_wp_is_json_media_type( $input, $expected ) {
+		$this->assertEquals( $expected, wp_is_json_media_type( $input ) );
+	}
+
+
+	public function data_test_wp_is_json_media_type() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/json', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
+			array( 'application/activity+json, application/nojson', true ),
+		);
+	}
 }
