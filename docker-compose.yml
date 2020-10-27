@@ -21,7 +21,7 @@ services:
       - ./tools/local-env/default.template:/etc/nginx/conf.d/default.template
       - ./:/var/www
 
-    # Load our config file, substituning environment variables into the config.
+    # Load our config file, substituting environment variables into the config.
     command: /bin/sh -c "envsubst '$$LOCAL_DIR' < /etc/nginx/conf.d/default.template > /etc/nginx/conf.d/default.conf && exec nginx -g 'daemon off;'"
 
     depends_on:
@@ -57,6 +57,9 @@ services:
 
     networks:
       - wpdevnet
+
+    ports:
+      - "3306"
 
     environment:
       MYSQL_ROOT_PASSWORD: password
@@ -107,6 +110,8 @@ services:
       PHP_FPM_GID: ${PHP_FPM_GID-1000}
       TRAVIS_BRANCH: ${TRAVIS_BRANCH-false}
       TRAVIS_PULL_REQUEST: ${TRAVIS_PULL_REQUEST-false}
+      GITHUB_REF: ${GITHUB_REF-false}
+      GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini
