@@ -722,10 +722,12 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		 */
 		$post_id = $this->factory()->post->create( array( 'tags_input' => array( $terms[2] ) ) );
 		// Term applied to inserted object.
+		$this->assertSame( array( $terms[2] ), wp_get_post_tags( $post_id, array( 'fields' => 'ids' ) ), 'Term not applied to original object.' );
 		$term = get_term( $terms[2] );
 		$this->assertEquals( 1, $term->count, "Count on original object's term incorrect." );
 
 		// Term applied to secondary object.
+		$this->assertSame( array( $terms[1] ), wp_get_post_tags( $other_post, array( 'fields' => 'ids' ) ), 'Term not applied to secondary object.' );
 		$term = get_term( $terms[1] );
 		$this->assertEquals( 1, $term->count, "Count on secondary object's term incorrect." );
 	}
@@ -759,6 +761,8 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		 */
 		$post_id = $this->factory()->post->create( array( 'tags_input' => array( $terms[1] ) ) );
 		// Term applied to both objects.
+		$this->assertSame( array( $terms[1] ), wp_get_post_tags( $post_id, array( 'fields' => 'ids' ) ), 'Term not applied to original object.' );
+		$this->assertSame( array( $terms[1] ), wp_get_post_tags( $other_post, array( 'fields' => 'ids' ) ), 'Term not applied to secondary object.' );
 		$term = get_term( $terms[1] );
 		$this->assertEquals( 2, $term->count, 'Count on term did not increment for both objects.' );
 	}
