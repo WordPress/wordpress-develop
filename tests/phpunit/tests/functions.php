@@ -1746,14 +1746,14 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49404
-	 * @dataProvider data_test_wp_is_json_content_type
+	 * @dataProvider data_test_wp_is_json_media_type
 	 */
-	public function test_wp_is_json_content_type( $input, $expected ) {
-		$this->assertEquals( $expected, wp_is_json_content_type( $input ) );
+	public function test_wp_is_json_media_type( $input, $expected ) {
+		$this->assertEquals( $expected, wp_is_json_media_type( $input ) );
 	}
 
 
-	public function data_test_wp_is_json_content_type() {
+	public function data_test_wp_is_json_media_type() {
 		return array(
 			array( 'application/ld+json', true ),
 			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),

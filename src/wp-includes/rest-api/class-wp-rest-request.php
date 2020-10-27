@@ -128,19 +128,6 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
-	 * Checks if the request's Content-Type is JSON.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @return bool
-	 */
-	public function is_json_content_type() {
-		$content_type = $this->get_content_type();
-
-		return isset( $content_type['value'] ) && wp_is_json_content_type( $content_type['value'] );
-	}
-
-	/**
 	 * Retrieves the HTTP method for the request.
 	 *
 	 * @since 4.4.0
@@ -334,6 +321,19 @@ class WP_REST_Request implements ArrayAccess {
 		$data = array_map( 'trim', $data );
 
 		return $data;
+	}
+
+	/**
+	 * Checks if the request has specified a JSON content-type.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return bool True if the content-type header is JSON.
+	 */
+	public function is_json_content_type() {
+		$content_type = $this->get_content_type();
+
+		return isset( $content_type['value'] ) && wp_is_json_media_type( $content_type['value'] );
 	}
 
 	/**
