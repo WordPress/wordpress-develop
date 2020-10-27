@@ -2088,7 +2088,7 @@ class WP_Site_Health {
 	 */
 	public function get_test_authorization_header() {
 		$result = array(
-			'label'       => __( 'The Authorization header is working as expected' ),
+			'label'       => __( 'The Authorization header is working as expected.' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -2096,26 +2096,37 @@ class WP_Site_Health {
 			),
 			'description' => sprintf(
 				'<p>%s</p>',
-				__( 'The Authorization header is used by third party applications you approve to connect with your website.' )
+				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
 			),
 			'actions'     => '',
 			'test'        => 'authorization_header',
 		);
 
 		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
-			$result['label'] = __( 'The authorization header is missing' );
+			$result['label'] = __( 'The authorization header is missing.' );
 		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
-			$result['label'] = __( 'The authorization header is invalid' );
+			$result['label'] = __( 'The authorization header is invalid.' );
 		} else {
 			return $result;
 		}
 
-		$result['status']   = 'recommended';
-		$result['actions'] .= sprintf(
-			'<p><a href="%s">%s</a></p>',
-			esc_url( admin_url( 'options-permalink.php' ) ),
-			__( 'Flush permalinks' )
-		);
+		$result['status'] = 'recommended';
+
+		if ( got_mod_rewrite() ) {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-permalink.php' ) ),
+				__( 'Flush permalinks' )
+			);
+		} else {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working',
+				__( 'Learn how to configure the Authorization header.' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			);
+		}
 
 		return $result;
 	}
@@ -2223,7 +2234,7 @@ class WP_Site_Health {
 					'label'     => __( 'Authorization header' ),
 					'test'      => rest_url( 'wp-site-health/v1/tests/authorization-header' ),
 					'has_rest'  => true,
-					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
+					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'usr:pwd' ) ),
 					'skip_cron' => true,
 				),
 			),
