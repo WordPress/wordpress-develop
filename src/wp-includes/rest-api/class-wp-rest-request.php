@@ -130,7 +130,7 @@ class WP_REST_Request implements ArrayAccess {
 	/**
 	 * Checks if Content-Type is JSON.
 	 *
-	 * @since @todo
+	 * @since 5.6.0
 	 *
 	 * @return boolean
 	 */
