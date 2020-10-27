@@ -38,7 +38,7 @@ function twentytwentyoneCollapseMenuOnClickOutside( event ) {
  *
  * @param {Element} el - The element.
  */
-function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
+function twentytwentyoneExpandSubMenu( el ) { // eslint-disable-line no-unused-vars
 	// Close other expanded items.
 	el.closest( 'nav' ).querySelectorAll( '.sub-menu-toggle' ).forEach( function( button ) {
 		if ( button !== el ) {
