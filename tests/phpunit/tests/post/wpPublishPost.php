@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_WPPublishPost extends WP_UnitTestCase {
+class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Auto-draft post ID.
