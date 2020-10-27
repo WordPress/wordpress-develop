@@ -8,6 +8,16 @@ class Tests_Post_Formats extends WP_UnitTestCase {
 		parent::setUp();
 	}
 
+	/**
+	 * @ticket 51390
+	 */
+	function test_post_format_doing_it_wrong() {
+		$this->setExpectedIncorrectUsage( "add_theme_support( 'post-formats' )" );
+
+		// The second parameter should be an array.
+		$this->assertFalse( add_theme_support( 'post-formats' ) );
+	}
+
 	function test_set_get_post_format_for_post() {
 		$post_id = self::factory()->post->create();
 
