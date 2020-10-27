@@ -12,7 +12,7 @@
  *
  * @group privacy
  * @group user
- * @covers _wp_privacy_send_request_confirmation_notification()
+ * @covers ::_wp_privacy_send_request_confirmation_notification
  */
 class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
@@ -235,7 +235,7 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(

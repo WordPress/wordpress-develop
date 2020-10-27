@@ -76,7 +76,7 @@ final class WP_Customize_Nav_Menus {
 	 * @since 4.5.0
 	 *
 	 * @param string[] $nonces Array of nonces.
-	 * @return string[] $nonces Modified array of nonces.
+	 * @return string[] Modified array of nonces.
 	 */
 	public function filter_nonces( $nonces ) {
 		$nonces['customize-menus'] = wp_create_nonce( 'customize-menus' );
@@ -146,16 +146,48 @@ final class WP_Customize_Nav_Menus {
 				return new WP_Error( 'nav_menus_invalid_post_type' );
 			}
 
+			/*
+			 * If we're dealing with pages, let's prioritize the Front Page,
+			 * Posts Page and Privacy Policy Page at the top of the list.
+			 */
+			$important_pages   = array();
+			$suppress_page_ids = array();
 			if ( 0 === $page && 'page' === $object ) {
-				// Add "Home" link. Treat as a page, but switch to custom on add.
-				$items[] = array(
-					'id'         => 'home',
-					'title'      => _x( 'Home', 'nav menu home label' ),
-					'type'       => 'custom',
-					'type_label' => __( 'Custom Link' ),
-					'object'     => '',
-					'url'        => home_url(),
-				);
+				// Insert Front Page or custom "Home" link.
+				$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+				if ( ! empty( $front_page ) ) {
+					$front_page_obj      = get_post( $front_page );
+					$important_pages[]   = $front_page_obj;
+					$suppress_page_ids[] = $front_page_obj->ID;
+				} else {
+					// Add "Home" link. Treat as a page, but switch to custom on add.
+					$items[] = array(
+						'id'         => 'home',
+						'title'      => _x( 'Home', 'nav menu home label' ),
+						'type'       => 'custom',
+						'type_label' => __( 'Custom Link' ),
+						'object'     => '',
+						'url'        => home_url(),
+					);
+				}
+
+				// Insert Posts Page.
+				$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+				if ( ! empty( $posts_page ) ) {
+					$posts_page_obj      = get_post( $posts_page );
+					$important_pages[]   = $posts_page_obj;
+					$suppress_page_ids[] = $posts_page_obj->ID;
+				}
+
+				// Insert Privacy Policy Page.
+				$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
+				if ( ! empty( $privacy_policy_page_id ) ) {
+					$privacy_policy_page = get_post( $privacy_policy_page_id );
+					if ( $privacy_policy_page instanceof WP_Post && 'publish' === $privacy_policy_page->post_status ) {
+						$important_pages[]   = $privacy_policy_page;
+						$suppress_page_ids[] = $privacy_policy_page->ID;
+					}
+				}
 			} elseif ( 'post' !== $object && 0 === $page && $post_type->has_archive ) {
 				// Add a post type archive link.
 				$items[] = array(
@@ -179,17 +211,23 @@ final class WP_Customize_Nav_Menus {
 				}
 			}
 
+			$args = array(
+				'numberposts' => 10,
+				'offset'      => 10 * $page,
+				'orderby'     => 'date',
+				'order'       => 'DESC',
+				'post_type'   => $object,
+			);
+
+			// Add suppression array to arguments for get_posts.
+			if ( ! empty( $suppress_page_ids ) ) {
+				$args['post__not_in'] = $suppress_page_ids;
+			}
+
 			$posts = array_merge(
 				$posts,
-				get_posts(
-					array(
-						'numberposts' => 10,
-						'offset'      => 10 * $page,
-						'orderby'     => 'date',
-						'order'       => 'DESC',
-						'post_type'   => $object,
-					)
-				)
+				$important_pages,
+				get_posts( $args )
 			);
 
 			foreach ( $posts as $post ) {
@@ -198,14 +236,21 @@ final class WP_Customize_Nav_Menus {
 					/* translators: %d: ID of a post. */
 					$post_title = sprintf( __( '#%d (no title)' ), $post->ID );
 				}
+
+				$post_type_label = get_post_type_object( $post->post_type )->labels->singular_name;
+				$post_states     = get_post_states( $post );
+				if ( ! empty( $post_states ) ) {
+					$post_type_label = implode( ',', $post_states );
+				}
+
 				$items[] = array(
 					'id'         => "post-{$post->ID}",
 					'title'      => html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) ),
 					'type'       => 'post_type',
-					'type_label' => get_post_type_object( $post->post_type )->labels->singular_name,
+					'type_label' => $post_type_label,
 					'object'     => $post->post_type,
-					'object_id'  => intval( $post->ID ),
-					'url'        => get_permalink( intval( $post->ID ) ),
+					'object_id'  => (int) $post->ID,
+					'url'        => get_permalink( (int) $post->ID ),
 				);
 			}
 		} elseif ( 'taxonomy' === $type ) {
@@ -224,6 +269,7 @@ final class WP_Customize_Nav_Menus {
 					'pad_counts'   => false,
 				)
 			);
+
 			if ( is_wp_error( $terms ) ) {
 				return $terms;
 			}
@@ -235,8 +281,8 @@ final class WP_Customize_Nav_Menus {
 					'type'       => 'taxonomy',
 					'type_label' => get_taxonomy( $term->taxonomy )->labels->singular_name,
 					'object'     => $term->taxonomy,
-					'object_id'  => intval( $term->term_id ),
-					'url'        => get_term_link( intval( $term->term_id ), $term->taxonomy ),
+					'object_id'  => (int) $term->term_id,
+					'url'        => get_term_link( (int) $term->term_id, $term->taxonomy ),
 				);
 			}
 		}
@@ -351,14 +397,21 @@ final class WP_Customize_Nav_Menus {
 				/* translators: %d: ID of a post. */
 				$post_title = sprintf( __( '#%d (no title)' ), $post->ID );
 			}
+
+			$post_type_label = $post_type_objects[ $post->post_type ]->labels->singular_name;
+			$post_states     = get_post_states( $post );
+			if ( ! empty( $post_states ) ) {
+				$post_type_label = implode( ',', $post_states );
+			}
+
 			$items[] = array(
 				'id'         => 'post-' . $post->ID,
 				'title'      => html_entity_decode( $post_title, ENT_QUOTES, get_bloginfo( 'charset' ) ),
 				'type'       => 'post_type',
-				'type_label' => $post_type_objects[ $post->post_type ]->labels->singular_name,
+				'type_label' => $post_type_label,
 				'object'     => $post->post_type,
-				'object_id'  => intval( $post->ID ),
-				'url'        => get_permalink( intval( $post->ID ) ),
+				'object_id'  => (int) $post->ID,
+				'url'        => get_permalink( (int) $post->ID ),
 			);
 		}
 
@@ -369,6 +422,7 @@ final class WP_Customize_Nav_Menus {
 				'taxonomies' => $taxonomies,
 				'name__like' => $args['s'],
 				'number'     => 20,
+				'hide_empty' => false,
 				'offset'     => 20 * ( $args['pagenum'] - 1 ),
 			)
 		);
@@ -382,25 +436,29 @@ final class WP_Customize_Nav_Menus {
 					'type'       => 'taxonomy',
 					'type_label' => get_taxonomy( $term->taxonomy )->labels->singular_name,
 					'object'     => $term->taxonomy,
-					'object_id'  => intval( $term->term_id ),
-					'url'        => get_term_link( intval( $term->term_id ), $term->taxonomy ),
+					'object_id'  => (int) $term->term_id,
+					'url'        => get_term_link( (int) $term->term_id, $term->taxonomy ),
 				);
 			}
 		}
 
 		// Add "Home" link if search term matches. Treat as a page, but switch to custom on add.
 		if ( isset( $args['s'] ) ) {
-			$title   = _x( 'Home', 'nav menu home label' );
-			$matches = function_exists( 'mb_stripos' ) ? false !== mb_stripos( $title, $args['s'] ) : false !== stripos( $title, $args['s'] );
-			if ( $matches ) {
-				$items[] = array(
-					'id'         => 'home',
-					'title'      => $title,
-					'type'       => 'custom',
-					'type_label' => __( 'Custom Link' ),
-					'object'     => '',
-					'url'        => home_url(),
-				);
+			// Only insert custom "Home" link if there's no Front Page
+			$front_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_on_front' ) : 0;
+			if ( empty( $front_page ) ) {
+				$title   = _x( 'Home', 'nav menu home label' );
+				$matches = function_exists( 'mb_stripos' ) ? false !== mb_stripos( $title, $args['s'] ) : false !== stripos( $title, $args['s'] );
+				if ( $matches ) {
+					$items[] = array(
+						'id'         => 'home',
+						'title'      => $title,
+						'type'       => 'custom',
+						'type_label' => __( 'Custom Link' ),
+						'object'     => '',
+						'url'        => home_url(),
+					);
+				}
 			}
 		}
 
@@ -699,6 +757,11 @@ final class WP_Customize_Nav_Menus {
 					)
 				)
 			);
+		}
+
+		// Used to denote post states for special pages.
+		if ( ! function_exists( 'get_post_states' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/template.php';
 		}
 
 		// Register each menu as a Customizer section, and add each menu item to each menu.
@@ -1069,7 +1132,7 @@ final class WP_Customize_Nav_Menus {
 	}
 
 	/**
-	 * Print the html template used to render the add-menu-item frame.
+	 * Print the HTML template used to render the add-menu-item frame.
 	 *
 	 * @since 4.3.0
 	 */
@@ -1298,7 +1361,7 @@ final class WP_Customize_Nav_Menus {
 			if ( ! $post_type_obj ) {
 				continue;
 			}
-			if ( ! current_user_can( $post_type_obj->cap->publish_posts ) || ! current_user_can( $post_type_obj->cap->edit_post, $post_id ) ) {
+			if ( ! current_user_can( $post_type_obj->cap->publish_posts ) || ! current_user_can( 'edit_post', $post_id ) ) {
 				continue;
 			}
 			$post_ids[] = $post->ID;
@@ -1351,6 +1414,7 @@ final class WP_Customize_Nav_Menus {
 	 * Keep track of the arguments that are being passed to wp_nav_menu().
 	 *
 	 * @since 4.3.0
+	 *
 	 * @see wp_nav_menu()
 	 * @see WP_Customize_Widgets::filter_dynamic_sidebar_params()
 	 *

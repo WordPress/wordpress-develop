@@ -62,13 +62,6 @@
 	text-align: center;
 }
 
-.ie8 .column-response .comment-count-no-comments,
-.ie8 .column-response .comment-count-approved,
-.ie8 .column-comments .comment-count-no-comments,
-.ie8 .column-comments .comment-count-approved {
-	min-width: 0;
-}
-
 .column-response .post-com-count-no-comments:after,
 .column-response .post-com-count-approved:after,
 .column-comments .post-com-count-no-comments:after,
@@ -82,17 +75,17 @@
 	border-right: 5px solid transparent;
 }
 
-.column-response .post-com-count-approved:hover .comment-count-approved,
-.column-response .post-com-count-approved:focus .comment-count-approved,
-.column-comments .post-com-count-approved:hover .comment-count-approved,
-.column-comments .post-com-count-approved:focus .comment-count-approved {
+.column-response a.post-com-count-approved:hover .comment-count-approved,
+.column-response a.post-com-count-approved:focus .comment-count-approved,
+.column-comments a.post-com-count-approved:hover .comment-count-approved,
+.column-comments a.post-com-count-approved:focus .comment-count-approved {
 	background: #0073aa;
 }
 
-.column-response .post-com-count-approved:hover:after,
-.column-response .post-com-count-approved:focus:after,
-.column-comments .post-com-count-approved:hover:after,
-.column-comments .post-com-count-approved:focus:after {
+.column-response a.post-com-count-approved:hover:after,
+.column-response a.post-com-count-approved:focus:after,
+.column-comments a.post-com-count-approved:hover:after,
+.column-comments a.post-com-count-approved:focus:after {
 	border-top-color: #0073aa;
 }
 
@@ -275,7 +268,7 @@ th .comment-grey-bubble {
 th .comment-grey-bubble:before {
 	content: "\f101";
 	font: normal 20px/.5 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	padding: 0;
 	top: 4px;
@@ -302,12 +295,15 @@ table.fixed {
 }
 
 .fixed .column-posts,
-.fixed .column-date,
 .fixed .column-parent,
 .fixed .column-links,
 .fixed .column-author,
 .fixed .column-format {
 	width: 10%;
+}
+
+.fixed .column-date {
+	width: 14%;
 }
 
 .column-date span[title] {
@@ -317,6 +313,9 @@ table.fixed {
 
 .fixed .column-posts {
 	width: 74px;
+	-webkit-hyphens: auto;
+	-ms-hyphens: auto;
+	hyphens: auto;
 }
 
 .fixed .column-comment .comment-author {
@@ -397,10 +396,6 @@ table.media .column-title .filename {
 	width: 20%;
 }
 
-#comments-form .fixed .column-date {
-	width: 14%;
-}
-
 #commentsdiv.postbox .inside {
 	margin: 0;
 	padding: 0;
@@ -458,7 +453,7 @@ table.media .column-title .filename {
 .sorting-indicator:before {
 	content: "\f142";
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	padding: 0;
 	top: -4px;
@@ -513,10 +508,6 @@ th.asc a:focus span.sorting-indicator:before {
 		0 0 2px 1px rgba(30, 140, 190, 0.8);
 }
 
-.ie8 .wp-list-table .toggle-row:focus:before {
-	outline: #5b9dd9 solid 1px;
-}
-
 .wp-list-table .toggle-row:active {
 	box-shadow: none;
 }
@@ -534,7 +525,7 @@ th.asc a:focus span.sorting-indicator:before {
 	line-height: 1;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	speak: none;
+	speak: never;
 }
 
 .wp-list-table .is-expanded .toggle-row:before {
@@ -553,7 +544,7 @@ th.asc a:focus span.sorting-indicator:before {
 	content: "\f160";
 	display: inline-block;
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	vertical-align: middle;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -721,7 +712,7 @@ th.asc a:focus span.sorting-indicator {
 	color: #b4b9be;
 	display: inline-block;
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	vertical-align: middle;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -1080,11 +1071,6 @@ ul.cat-checklist {
 	max-width: 80%;
 }
 
-.ie8 .inline-edit-row #post_parent,
-.ie8 .inline-edit-row select[name="page_template"] {
-	width: 250px;
-}
-
 .quick-edit-row-post fieldset label.inline-edit-status {
 	float: left;
 }
@@ -1252,6 +1238,10 @@ ul.cat-checklist {
 	width: 85px;
 }
 
+.plugins .column-auto-updates {
+	width: 14.2em;
+}
+
 .plugins .inactive .plugin-title strong {
 	font-weight: 400;
 }
@@ -1325,7 +1315,7 @@ ul.cat-checklist {
 	display: inline-block;
 	font: normal 20px/1 dashicons;
 	margin: 3px 5px 0 -2px;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	vertical-align: top;
@@ -1461,7 +1451,7 @@ div.action-links,
 .plugin-card .name,
 .plugin-card .desc {
 	margin-left: 148px; /* icon + margin */
-	margin-right: 120px; /* action links */
+	margin-right: 128px; /* action links + margin */
 }
 
 .plugin-card .action-links {
@@ -1474,7 +1464,6 @@ div.action-links,
 .plugin-action-buttons {
 	clear: right;
 	float: right;
-	margin-left: 2em;
 	margin-bottom: 1em;
 	text-align: right;
 }
@@ -1536,7 +1525,7 @@ div.action-links,
 
 .plugin-card .column-compatibility span:before {
 	font: normal 20px/.5 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	padding: 0;
 	top: 4px;
@@ -1646,10 +1635,6 @@ div.action-links,
 	.plugin-card .desc p:first-of-type {
 		margin-top: 0;
 	}
-
-	.fixed .column-date {
-		width: 14%;
-	}
 }
 
 @media screen and (max-width: 782px) {
@@ -1714,7 +1699,7 @@ div.action-links,
 	}
 
 	.tablenav.bottom .tablenav-pages.one-page {
-		margin: 15px 0 0 0;
+		margin-top: 15px;
 		height: 0;
 	}
 
@@ -2112,6 +2097,16 @@ div.action-links,
 		line-height: 1.5;
 	}
 
+	.plugins tbody th.check-column {
+		padding: 8px 0 0 5px;
+	}
+
+	.plugins thead td.check-column,
+	.plugins tfoot td.check-column,
+	.plugins .inactive th.check-column {
+		padding-left: 9px;
+	}
+
 	/* Add New plugins page */
 	table.plugin-install .column-name,
 	table.plugin-install .column-version,
@@ -2158,6 +2153,18 @@ div.action-links,
 	.row-actions:not(.plugins-php) {
 		-ms-grid-columns: auto auto;
 		grid-template-columns: auto auto;
+	}
+
+	.tablenav.bottom .displaying-num {
+		position: relative;
+		top: 0;
+		display: block;
+		text-align: right;
+		padding-bottom: 0.5em;
+	}
+
+	.tablenav.bottom .tablenav-pages.one-page {
+		height: auto;
 	}
 
 	.tablenav-pages .tablenav-paging-text {

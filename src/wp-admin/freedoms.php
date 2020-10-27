@@ -24,16 +24,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap about__container">
 
 	<div class="about__header">
+		<div class="about__header-text">
+			<?php _e( 'Speed. Search. Security.' ); ?>
+		</div>
+
 		<div class="about__header-title">
 			<p>
 				<?php _e( 'WordPress' ); ?>
 				<span><?php echo $display_version; ?></span>
-			</p>
-		</div>
-
-		<div class="about__header-text">
-			<p>
-				<?php _e( 'Building more with blocks, faster and easier.' ); ?>
 			</p>
 		</div>
 
@@ -64,22 +62,22 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="about__section has-4-columns">
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 1st Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 1st Freedom' ); ?></h2>
 			<p><?php _e( 'To run the program for any purpose.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 2nd Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 2nd Freedom' ); ?></h2>
 			<p><?php _e( 'To study how the program works and change it to make it do what you wish.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 3rd Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 3rd Freedom' ); ?></h2>
 			<p><?php _e( 'To redistribute.' ); ?></p>
 		</div>
 		<div class="column">
 			<div class="freedoms-image"></div>
-			<h3><?php _e( 'The 4th Freedom' ); ?></h3>
+			<h2 class="is-smaller-heading"><?php _e( 'The 4th Freedom' ); ?></h2>
 			<p><?php _e( 'To distribute copies of your modified versions to others.' ); ?></p>
 		</div>
 	</div>

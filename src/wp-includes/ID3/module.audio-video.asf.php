@@ -13,6 +13,9 @@
 //                                                            ///
 /////////////////////////////////////////////////////////////////
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
 getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.audio-video.riff.php', __FILE__, true);
 
 class getid3_asf extends getid3_handler
@@ -363,7 +366,7 @@ class getid3_asf extends getid3_handler
 								$thisfile_audio['codec'] = $this->TrimConvert($thisfile_asf_codeclistobject_codecentries_current['name']);
 
 								if (!isset($thisfile_audio['bitrate']) && strstr($AudioCodecBitrate, 'kbps')) {
-									$thisfile_audio['bitrate'] = (int) (trim(str_replace('kbps', '', $AudioCodecBitrate)) * 1000);
+									$thisfile_audio['bitrate'] = (int) trim(str_replace('kbps', '', $AudioCodecBitrate)) * 1000;
 								}
 								//if (!isset($thisfile_video['bitrate']) && isset($thisfile_audio['bitrate']) && isset($thisfile_asf['file_properties_object']['max_bitrate']) && ($thisfile_asf_codeclistobject['codec_entries_count'] > 1)) {
 								if (empty($thisfile_video['bitrate']) && !empty($thisfile_audio['bitrate']) && !empty($info['bitrate'])) {
@@ -807,7 +810,7 @@ class getid3_asf extends getid3_handler
 
 							case 'wm/track':
 								if (empty($thisfile_asf_comments['track_number'])) {
-									$thisfile_asf_comments['track_number'] = array(1 + $this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
+									$thisfile_asf_comments['track_number'] = array(1 + (int) $this->TrimConvert($thisfile_asf_extendedcontentdescriptionobject_contentdescriptor_current['value']));
 								}
 								break;
 

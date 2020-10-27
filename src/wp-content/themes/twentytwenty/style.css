@@ -1,7 +1,7 @@
 /*
 Theme Name: Twenty Twenty
 Text Domain: twentytwenty
-Version: 1.2
+Version: 1.5
 Requires at least: 4.7
 Requires PHP: 5.2.4
 Description: Our default theme for 2020 is designed to take full advantage of the flexibility of the block editor. Organizations and businesses have the ability to create dynamic landing pages with endless layouts using the group and column blocks. The centered content column and fine-tuned typography also makes it perfect for traditional blogs. Complete editor styles give you a good idea of what your content will look like, even before you publish. You can give your site a personal touch by changing the background colors and the accent color in the Customizer. The colors of all elements on your site are automatically calculated based on the colors you pick, ensuring a high, accessible color contrast for your visitors.
@@ -3506,6 +3506,10 @@ figure.wp-block-table.is-style-stripes {
 	line-height: 1.4;
 }
 
+.entry-content li img {
+	display: inline-block;
+}
+
 .entry-content h1,
 .entry-content h2,
 .entry-content h3,
@@ -3524,6 +3528,11 @@ figure.wp-block-table.is-style-stripes {
 
 .entry-content hr {
 	margin: 4rem auto;
+}
+
+.post-inner .entry-content > .wp-block-cover.alignwide:first-child,
+.post-inner .entry-content > .wp-block-cover.alignfull:first-child {
+	margin-top: 0;
 }
 
 /* Font Families ----------------------------- */
@@ -5404,6 +5413,11 @@ a.to-the-top > * {
 		margin-right: 4rem;
 	}
 
+	.entry-content > .alignwide:first-child,
+	.entry-content > .alignfull:first-child {
+		margin-bottom: 8rem;
+	}
+
 	/* ENTRY MEDIA */
 
 	.alignfull > figcaption,
@@ -5656,7 +5670,7 @@ a.to-the-top > * {
 	/* Site Header --------------------------- */
 
 	#site-header {
-		z-index: 1;
+		z-index: 2;
 	}
 
 	.header-inner {
@@ -5913,6 +5927,10 @@ a.to-the-top > * {
 		/*rtl:ignore*/
 		margin-left: 0;
 	}
+
+    .wp-block-image .aligncenter figcaption {
+        text-align: center;
+    }
 
 	/* BLOCK: SEPARATOR */
 

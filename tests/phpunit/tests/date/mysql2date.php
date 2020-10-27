@@ -14,6 +14,21 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 28310
+	 */
+	function test_mysql2date_returns_false_with_no_date() {
+		$this->assertFalse( mysql2date( 'F j, Y H:i:s', '' ) );
+	}
+
+	/**
+	 * @ticket 28310
+	 */
+	function test_mysql2date_returns_gmt_or_unix_timestamp() {
+		$this->assertSame( 441013392, mysql2date( 'G', '1983-12-23 07:43:12' ) );
+		$this->assertSame( 441013392, mysql2date( 'U', '1983-12-23 07:43:12' ) );
+	}
+
+	/**
 	 * @ticket 28992
 	 */
 	function test_mysql2date_should_format_time() {
@@ -23,8 +38,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 		$rfc3339  = $datetime->format( DATE_RFC3339 );
 		$mysql    = $datetime->format( 'Y-m-d H:i:s' );
 
-		$this->assertEquals( $rfc3339, mysql2date( DATE_RFC3339, $mysql ) );
-		$this->assertEquals( $rfc3339, mysql2date( DATE_RFC3339, $mysql, false ) );
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql ) );
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql, false ) );
 	}
 
 	/**
@@ -39,8 +54,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 		$rfc3339  = $datetime->format( DATE_RFC3339 );
 		$mysql    = $datetime->format( 'Y-m-d H:i:s' );
 
-		$this->assertEquals( $rfc3339, mysql2date( DATE_RFC3339, $mysql ) );
-		$this->assertEquals( $rfc3339, mysql2date( DATE_RFC3339, $mysql, false ) );
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql ) );
+		$this->assertSame( $rfc3339, mysql2date( DATE_RFC3339, $mysql, false ) );
 	}
 
 	/**
@@ -53,8 +68,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 		$wp_timestamp = $datetime->getTimestamp() + $datetime->getOffset();
 		$mysql        = $datetime->format( 'Y-m-d H:i:s' );
 
-		$this->assertEquals( $wp_timestamp, mysql2date( 'U', $mysql, false ) );
-		$this->assertEquals( $wp_timestamp, mysql2date( 'G', $mysql, false ) );
+		$this->assertSame( $wp_timestamp, mysql2date( 'U', $mysql, false ) );
+		$this->assertSame( $wp_timestamp, mysql2date( 'G', $mysql, false ) );
 	}
 
 	/**
@@ -67,7 +82,7 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 		$timestamp = $datetime->getTimestamp();
 		$mysql     = $datetime->format( 'Y-m-d H:i:s' );
 
-		$this->assertEquals( $timestamp, mysql2date( 'U', $mysql, false ) );
-		$this->assertEquals( $timestamp, mysql2date( 'G', $mysql, false ) );
+		$this->assertSame( $timestamp, mysql2date( 'U', $mysql, false ) );
+		$this->assertSame( $timestamp, mysql2date( 'G', $mysql, false ) );
 	}
 }

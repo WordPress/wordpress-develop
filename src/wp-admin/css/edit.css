@@ -147,8 +147,19 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 /* Post Screen */
-#post-body #normal-sortables {
-	min-height: 50px;
+
+.screen-options-open .metabox-holder .postbox-container .meta-box-sortables {
+	margin-bottom: 20px;
+}
+
+.screen-options-open #postbox-container-2 #advanced-sortables.empty-container {
+	height: 0;
+	min-height: 0;
+	outline: none;
+}
+
+.screen-options-open #postbox-container-2 #advanced-sortables.empty-container:after {
+	display: none;
 }
 
 .postbox {
@@ -447,6 +458,8 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
@@ -456,11 +469,13 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	margin-left: -1px;
 	padding-right: 3px;
@@ -480,6 +495,18 @@ form#tags-filter {
 
 .curtime #timestamp:before {
 	content: "\f145";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedby:before {
+	content: "\f110";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedto:before {
+	content: "\f318";
 	position: relative;
 	top: -1px;
 }
@@ -635,11 +662,6 @@ form#tags-filter {
 	max-width: 100%;
 }
 
-.ie8 #poststuff .inside #parent_id,
-.ie8 #poststuff .inside #page_template {
-	width: 250px;
-}
-
 .post-attributes-label-wrapper {
 	margin-bottom: 0.5em;
 }
@@ -717,15 +739,40 @@ form#tags-filter {
 }
 
 .text-removed .policy-text {
-	font-style: italic;
 	color: #666;
-	font-weight: 600;
+	font-weight: 300;
+	padding-left: 1em;
+	border-left: 3px solid #ffb900;
+}
+
+.text-removed .policy-text h1,
+.text-removed .policy-text h2,
+.text-removed .policy-text h3,
+.text-removed .policy-text h4,
+.text-removed .policy-text h5,
+.text-removed .policy-text h6 {
+	color: #39424a;
+	font-weight: 500;
 }
 
 .privacy-text-actions {
+	display: inline-block;
+	width: 100%;
 	height: 32px;
 	line-height: 2.46153846;
 	padding-bottom: 6px;
+}
+
+.privacy-text-actions .success {
+	display: none;
+	color: #40860a;
+	float: right;
+	padding-right: 1em;
+}
+
+.privacy-text-actions .success.visible {
+	display: inline-block;
+	height: 32px;
 }
 
 .wp-privacy-policy-guide .policy-text h2 {
@@ -737,10 +784,17 @@ form#tags-filter {
 	font-style: italic;
 }
 
-.privacy-text-section a.return-to-top {
+.privacy-text-section .return-to-top {
 	float: right;
 	margin-right: -250px;
 	margin-top: 6px;
+}
+
+#wpbody:target:before {
+	content: "";
+	display: block;
+	padding-top: 50px;
+	margin-top: -50px;
 }
 
 .hide-privacy-policy-tutorial {
@@ -756,19 +810,30 @@ form#tags-filter {
 	margin-bottom: 1em;
 }
 
-.policy-text p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	background-color: #fff;
 	margin: 0;
 	padding: 1em;
 }
 
-.policy-text p:not(.privacy-policy-tutorial):not(.wp-policy-help) + p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
+.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	padding-top: 0;
 }
 
-.hide-privacy-policy-tutorial p:not(.privacy-policy-tutorial):not(.wp-policy-help) {
+.hide-privacy-policy-tutorial > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
 	margin: 1em 0;
 	padding: 0;
+}
+
+.policy-text ul li,
+.policy-text ol li {
+	margin-left: 2em;
+}
+
+.policy-text ul {
+	list-style: disc;
 }
 
 strong.wp-policy-help, /* For back-compat, see #49282 */
@@ -911,13 +976,13 @@ strong.privacy-policy-tutorial {
 	margin-right: 7px;
 	color: #ddd;
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
 a.post-format-icon:hover:before {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #post-formats-select {
@@ -1080,7 +1145,6 @@ p.description,
 span.description,
 .form-wrap p {
 	font-size: 13px;
-	font-style: italic;
 }
 
 p.description code {
@@ -1174,7 +1238,7 @@ p.popular-tags a {
 	display: inline-block;
 }
 
-/* Suggest.js autocomplete, no more used by core. */
+/* Back-compat styles from deprecated jQuery.suggest, see ticket #40260. */
 .ac_results {
 	display: none;
 	margin: -1px 0 0;
@@ -1428,7 +1492,10 @@ table.links-table {
 	}
 }
 
-/* one column on the attachment editor screen */
+/*
+ * The edit attachment screen auto-switches to one column layout when the
+ * viewport is smaller than 1200 pixels.
+ */
 @media only screen and (max-width: 1200px) {
 	.post-type-attachment #poststuff {
 		min-width: 0;
@@ -1445,7 +1512,7 @@ table.links-table {
 
 	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
 	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1453,6 +1520,12 @@ table.links-table {
 	.post-type-attachment #poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	.screen-options-open.post-type-attachment #post-body .meta-box-sortables {
+		outline: none;
+		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1479,7 +1552,6 @@ table.links-table {
 
 	#poststuff #postbox-container-1 .empty-container,
 	#poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1487,6 +1559,15 @@ table.links-table {
 	#poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
+	.screen-options-open #poststuff #postbox-container-1 .empty-container,
+	.screen-options-open #poststuff #postbox-container-1 #side-sortables:empty,
+	.screen-options-open #poststuff #post-body.columns-2 #side-sortables,
+	.screen-options-open #poststuff #post-body.columns-2 .meta-box-sortables {
+		height: auto;
+		min-height: 60px;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1730,6 +1811,10 @@ table.links-table {
 		padding: 10px 0;
 	}
 
+	.edit-term-notes {
+		display: none;
+	}
+
 	.privacy-text-box {
 		width: auto;
 	}
@@ -1742,8 +1827,7 @@ table.links-table {
 		flex-direction: column;
 	}
 
-	.privacy-text-section a.return-to-top {
-		float: none;
-		margin: 0;
+	.privacy-text-section .return-to-top {
+		margin: 2em 0 0;
 	}
 }

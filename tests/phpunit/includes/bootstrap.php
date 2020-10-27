@@ -37,10 +37,12 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+$phpunit_version = tests_get_phpunit_version();
+
+if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
 	printf(
-		"Error: Looks like you're using PHPUnit %s. WordPress is currently only compatible with PHPUnit up to 7.x.\n",
-		tests_get_phpunit_version()
+		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
+		$phpunit_version
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
 	exit( 1 );
@@ -51,13 +53,34 @@ if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) 
 	exit( 1 );
 }
 
+$required_constants = array(
+	'WP_TESTS_DOMAIN',
+	'WP_TESTS_EMAIL',
+	'WP_TESTS_TITLE',
+	'WP_PHP_BINARY',
+);
+
+foreach ( $required_constants as $constant ) {
+	if ( ! defined( $constant ) ) {
+		printf(
+			"Error: The required %s constant is not defined. Check out `wp-tests-config-sample.php` for an example.\n",
+			$constant
+		);
+		exit( 1 );
+	}
+}
+
 tests_reset__SERVER();
 
 define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
-define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
+define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
+}
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
@@ -152,13 +175,18 @@ require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
+require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-sitemaps-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

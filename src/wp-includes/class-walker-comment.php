@@ -181,7 +181,11 @@ class Walker_Comment extends Walker {
 			return;
 		}
 
-		if ( ( 'pingback' == $comment->comment_type || 'trackback' == $comment->comment_type ) && $args['short_ping'] ) {
+		if ( 'comment' === $comment->comment_type ) {
+			add_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40, 2 );
+		}
+
+		if ( ( 'pingback' === $comment->comment_type || 'trackback' === $comment->comment_type ) && $args['short_ping'] ) {
 			ob_start();
 			$this->ping( $comment, $depth, $args );
 			$output .= ob_get_clean();
@@ -193,6 +197,10 @@ class Walker_Comment extends Walker {
 			ob_start();
 			$this->comment( $comment, $depth, $args );
 			$output .= ob_get_clean();
+		}
+
+		if ( 'comment' === $comment->comment_type ) {
+			remove_filter( 'comment_text', array( $this, 'filter_comment_text' ), 40, 2 );
 		}
 	}
 
@@ -216,7 +224,7 @@ class Walker_Comment extends Walker {
 			$output .= ob_get_clean();
 			return;
 		}
-		if ( 'div' == $args['style'] ) {
+		if ( 'div' === $args['style'] ) {
 			$output .= "</div><!-- #comment-## -->\n";
 		} else {
 			$output .= "</li><!-- #comment-## -->\n";
@@ -235,13 +243,36 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function ping( $comment, $depth, $args ) {
-		$tag = ( 'div' == $args['style'] ) ? 'div' : 'li';
+		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 		?>
 		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( '', $comment ); ?>>
 			<div class="comment-body">
 				<?php _e( 'Pingback:' ); ?> <?php comment_author_link( $comment ); ?> <?php edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ?>
 			</div>
 		<?php
+	}
+
+	/**
+	 * Filters the comment text.
+	 *
+	 * Removes links from the pending comment's text if the commenter did not consent
+	 * to the comment cookies.
+	 *
+	 * @since 5.4.2
+	 *
+	 * @param string          $comment_text Text of the current comment.
+	 * @param WP_Comment|null $comment      The comment object. Null if not found.
+	 * @return string Filtered text of the current comment.
+	 */
+	public function filter_comment_text( $comment_text, $comment ) {
+		$commenter          = wp_get_current_commenter();
+		$show_pending_links = ! empty( $commenter['comment_author'] );
+
+		if ( $comment && '0' == $comment->comment_approved && ! $show_pending_links ) {
+			$comment_text = wp_kses( $comment_text, array() );
+		}
+
+		return $comment_text;
 	}
 
 	/**
@@ -256,7 +287,7 @@ class Walker_Comment extends Walker {
 	 * @param array      $args    An array of arguments.
 	 */
 	protected function comment( $comment, $depth, $args ) {
-		if ( 'div' == $args['style'] ) {
+		if ( 'div' === $args['style'] ) {
 			$tag       = 'div';
 			$add_below = 'comment';
 		} else {
@@ -264,29 +295,37 @@ class Walker_Comment extends Walker {
 			$add_below = 'div-comment';
 		}
 
-		$commenter = wp_get_current_commenter();
+		$commenter          = wp_get_current_commenter();
+		$show_pending_links = isset( $commenter['comment_author'] ) && $commenter['comment_author'];
+
 		if ( $commenter['comment_author_email'] ) {
 			$moderation_note = __( 'Your comment is awaiting moderation.' );
 		} else {
-			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.' );
+			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
 		}
-
 		?>
 		<<?php echo $tag; ?> <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?> id="comment-<?php comment_ID(); ?>">
-		<?php if ( 'div' != $args['style'] ) : ?>
+		<?php if ( 'div' !== $args['style'] ) : ?>
 		<div id="div-comment-<?php comment_ID(); ?>" class="comment-body">
 		<?php endif; ?>
 		<div class="comment-author vcard">
 			<?php
 			if ( 0 != $args['avatar_size'] ) {
-				echo get_avatar( $comment, $args['avatar_size'] );}
+				echo get_avatar( $comment, $args['avatar_size'] );
+			}
 			?>
 			<?php
-				printf(
-					/* translators: %s: Comment author link. */
-					__( '%s <span class="says">says:</span>' ),
-					sprintf( '<cite class="fn">%s</cite>', get_comment_author_link( $comment ) )
-				);
+			$comment_author = get_comment_author_link( $comment );
+
+			if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+				$comment_author = get_comment_author( $comment );
+			}
+
+			printf(
+				/* translators: %s: Comment author link. */
+				__( '%s <span class="says">says:</span>' ),
+				sprintf( '<cite class="fn">%s</cite>', $comment_author )
+			);
 			?>
 		</div>
 		<?php if ( '0' == $comment->comment_approved ) : ?>
@@ -294,15 +333,21 @@ class Walker_Comment extends Walker {
 		<br />
 		<?php endif; ?>
 
-		<div class="comment-meta commentmetadata"><a href="<?php echo esc_url( get_comment_link( $comment, $args ) ); ?>">
+		<div class="comment-meta commentmetadata">
 			<?php
-				/* translators: 1: Comment date, 2: Comment time. */
-				printf( __( '%1$s at %2$s' ), get_comment_date( '', $comment ), get_comment_time() );
+			printf(
+				'<a href="%s">%s</a>',
+				esc_url( get_comment_link( $comment, $args ) ),
+				sprintf(
+					/* translators: 1: Comment date, 2: Comment time. */
+					__( '%1$s at %2$s' ),
+					get_comment_date( '', $comment ),
+					get_comment_time()
+				)
+			);
+
+			edit_comment_link( __( '(Edit)' ), ' &nbsp;&nbsp;', '' );
 			?>
-				</a>
-				<?php
-				edit_comment_link( __( '(Edit)' ), '&nbsp;&nbsp;', '' );
-				?>
 		</div>
 
 		<?php
@@ -334,7 +379,7 @@ class Walker_Comment extends Walker {
 		);
 		?>
 
-		<?php if ( 'div' != $args['style'] ) : ?>
+		<?php if ( 'div' !== $args['style'] ) : ?>
 		</div>
 		<?php endif; ?>
 		<?php
@@ -354,13 +399,14 @@ class Walker_Comment extends Walker {
 	protected function html5_comment( $comment, $depth, $args ) {
 		$tag = ( 'div' === $args['style'] ) ? 'div' : 'li';
 
-		$commenter = wp_get_current_commenter();
+		$commenter          = wp_get_current_commenter();
+		$show_pending_links = ! empty( $commenter['comment_author'] );
+
 		if ( $commenter['comment_author_email'] ) {
 			$moderation_note = __( 'Your comment is awaiting moderation.' );
 		} else {
-			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.' );
+			$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.' );
 		}
-
 		?>
 		<<?php echo $tag; ?> id="comment-<?php comment_ID(); ?>" <?php comment_class( $this->has_children ? 'parent' : '', $comment ); ?>>
 			<article id="div-comment-<?php comment_ID(); ?>" class="comment-body">
@@ -372,24 +418,36 @@ class Walker_Comment extends Walker {
 						}
 						?>
 						<?php
-							printf(
-								/* translators: %s: Comment author link. */
-								__( '%s <span class="says">says:</span>' ),
-								sprintf( '<b class="fn">%s</b>', get_comment_author_link( $comment ) )
-							);
+						$comment_author = get_comment_author_link( $comment );
+
+						if ( '0' == $comment->comment_approved && ! $show_pending_links ) {
+							$comment_author = get_comment_author( $comment );
+						}
+
+						printf(
+							/* translators: %s: Comment author link. */
+							__( '%s <span class="says">says:</span>' ),
+							sprintf( '<b class="fn">%s</b>', $comment_author )
+						);
 						?>
 					</div><!-- .comment-author -->
 
 					<div class="comment-metadata">
-						<a href="<?php echo esc_url( get_comment_link( $comment, $args ) ); ?>">
-							<time datetime="<?php comment_time( 'c' ); ?>">
-								<?php
-									/* translators: 1: Comment date, 2: Comment time. */
-									printf( __( '%1$s at %2$s' ), get_comment_date( '', $comment ), get_comment_time() );
-								?>
-							</time>
-						</a>
-						<?php edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ?>
+						<?php
+						printf(
+							'<a href="%s"><time datetime="%s">%s</time></a>',
+							esc_url( get_comment_link( $comment, $args ) ),
+							get_comment_time( 'c' ),
+							sprintf(
+								/* translators: 1: Comment date, 2: Comment time. */
+								__( '%1$s at %2$s' ),
+								get_comment_date( '', $comment ),
+								get_comment_time()
+							)
+						);
+
+						edit_comment_link( __( 'Edit' ), ' <span class="edit-link">', '</span>' );
+						?>
 					</div><!-- .comment-metadata -->
 
 					<?php if ( '0' == $comment->comment_approved ) : ?>
@@ -402,18 +460,20 @@ class Walker_Comment extends Walker {
 				</div><!-- .comment-content -->
 
 				<?php
-				comment_reply_link(
-					array_merge(
-						$args,
-						array(
-							'add_below' => 'div-comment',
-							'depth'     => $depth,
-							'max_depth' => $args['max_depth'],
-							'before'    => '<div class="reply">',
-							'after'     => '</div>',
+				if ( '1' == $comment->comment_approved || $show_pending_links ) {
+					comment_reply_link(
+						array_merge(
+							$args,
+							array(
+								'add_below' => 'div-comment',
+								'depth'     => $depth,
+								'max_depth' => $args['max_depth'],
+								'before'    => '<div class="reply">',
+								'after'     => '</div>',
+							)
 						)
-					)
-				);
+					);
+				}
 				?>
 			</article><!-- .comment-body -->
 		<?php

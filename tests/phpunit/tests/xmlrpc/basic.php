@@ -13,7 +13,7 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertIXRError( $result );
 		// If disabled, 405 would result.
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_login_pass_ok() {

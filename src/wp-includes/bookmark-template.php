@@ -22,7 +22,7 @@
  * @since 2.1.0
  * @access private
  *
- * @param array $bookmarks List of bookmarks to traverse.
+ * @param array        $bookmarks List of bookmarks to traverse.
  * @param string|array $args {
  *     Optional. Bookmarks arguments.
  *
@@ -83,7 +83,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		$title = $desc;
 
 		if ( $parsed_args['show_updated'] ) {
-			if ( '00' != substr( $bookmark->link_updated_f, 0, 2 ) ) {
+			if ( '00' !== substr( $bookmark->link_updated_f, 0, 2 ) ) {
 				$title .= ' (';
 				$title .= sprintf(
 					/* translators: %s: Date and time of last update. */
@@ -98,15 +98,15 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 		}
 		$alt = ' alt="' . $name . ( $parsed_args['show_description'] ? ' ' . $title : '' ) . '"';
 
-		if ( '' != $title ) {
+		if ( '' !== $title ) {
 			$title = ' title="' . $title . '"';
 		}
 		$rel = $bookmark->link_rel;
-		if ( '' != $rel ) {
+		if ( '' !== $rel ) {
 			$rel = ' rel="' . esc_attr( $rel ) . '"';
 		}
 		$target = $bookmark->link_target;
-		if ( '' != $target ) {
+		if ( '' !== $target ) {
 			$target = ' target="' . $target . '"';
 		}
 		$output .= '<a href="' . $the_link . '"' . $rel . $title . $target . '>';
@@ -134,7 +134,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
 			$output .= '</em>';
 		}
 
-		if ( $parsed_args['show_description'] && '' != $desc ) {
+		if ( $parsed_args['show_description'] && '' !== $desc ) {
 			$output .= $parsed_args['between'] . $desc;
 		}
 
@@ -173,7 +173,7 @@ function _walk_bookmarks( $bookmarks, $args = '' ) {
  *                                      Accepts 'ASC' (ascending) or 'DESC' (descending). Default 'ASC'.
  *     @type int      $limit            Amount of bookmarks to display. Accepts 1+ or -1 for all.
  *                                      Default -1.
- *     @type string   $category         Comma-separated list of category ids to include links from.
+ *     @type string   $category         Comma-separated list of category IDs to include links from.
  *                                      Default empty.
  *     @type string   $category_name    Category to retrieve links for by name. Default empty.
  *     @type int|bool $hide_invisible   Whether to show or hide links marked as 'invisible'. Accepts
@@ -234,7 +234,7 @@ function wp_list_bookmarks( $args = '' ) {
 		$parsed_args['class'] = explode( ' ', $parsed_args['class'] );
 	}
 	$parsed_args['class'] = array_map( 'sanitize_html_class', $parsed_args['class'] );
-	$parsed_args['class'] = trim( join( ' ', $parsed_args['class'] ) );
+	$parsed_args['class'] = trim( implode( ' ', $parsed_args['class'] ) );
 
 	if ( $parsed_args['categorize'] ) {
 		$cats = get_terms(

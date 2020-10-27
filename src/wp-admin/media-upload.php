@@ -29,11 +29,11 @@ wp_enqueue_script( 'media-gallery' );
 header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 
 // IDs should be integers.
-$ID      = isset( $ID ) ? (int) $ID : 0;
+$ID      = isset( $ID ) ? (int) $ID : 0; // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 $post_id = isset( $post_id ) ? (int) $post_id : 0;
 
 // Require an ID for the edit screen.
-if ( isset( $action ) && 'edit' == $action && ! $ID ) {
+if ( isset( $action ) && 'edit' === $action && ! $ID ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName
 	wp_die(
 		'<h1>' . __( 'Something went wrong.' ) . '</h1>' .
 		'<p>' . __( 'Invalid item ID.' ) . '</p>',
@@ -51,7 +51,7 @@ if ( ! empty( $_REQUEST['post_id'] ) && ! current_user_can( 'edit_post', $_REQUE
 
 // Upload type: image, video, file, ...?
 if ( isset( $_GET['type'] ) ) {
-	$type = strval( $_GET['type'] );
+	$type = (string) $_GET['type'];
 } else {
 	/**
 	 * Filters the default media upload type in the legacy (pre-3.5.0) media popup.
@@ -66,14 +66,14 @@ if ( isset( $_GET['type'] ) ) {
 
 // Tab: gallery, library, or type-specific.
 if ( isset( $_GET['tab'] ) ) {
-	$tab = strval( $_GET['tab'] );
+	$tab = (string) $_GET['tab'];
 } else {
 	/**
 	 * Filters the default tab in the legacy (pre-3.5.0) media popup.
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string $type The default media popup tab. Default 'type' (From Computer).
+	 * @param string $tab The default media popup tab. Default 'type' (From Computer).
 	 */
 	$tab = apply_filters( 'media_upload_default_tab', 'type' );
 }
@@ -81,7 +81,7 @@ if ( isset( $_GET['tab'] ) ) {
 $body_id = 'media-upload';
 
 // Let the action code decide how to handle the request.
-if ( 'type' == $tab || 'type_url' == $tab || ! array_key_exists( $tab, media_upload_tabs() ) ) {
+if ( 'type' === $tab || 'type_url' === $tab || ! array_key_exists( $tab, media_upload_tabs() ) ) {
 	/**
 	 * Fires inside specific upload-type views in the legacy (pre-3.5.0)
 	 * media popup based on the current tab.

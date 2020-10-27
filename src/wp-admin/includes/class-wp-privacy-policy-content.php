@@ -87,7 +87,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Remove the extra values added to the meta.
 		foreach ( $old as $key => $data ) {
-			if ( ! empty( $data['removed'] ) ) {
+			if ( ! is_array( $data ) || ! empty( $data['removed'] ) ) {
 				unset( $old[ $key ] );
 				continue;
 			}
@@ -155,6 +155,8 @@ final class WP_Privacy_Policy_Content {
 	 *
 	 * @since 4.9.6
 	 * @access private
+	 *
+	 * @param int $post_id The ID of the updated post.
 	 */
 	public static function _policy_page_updated( $post_id ) {
 		$policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
@@ -372,12 +374,9 @@ final class WP_Privacy_Policy_Content {
 	public static function privacy_policy_guide() {
 
 		$content_array = self::get_suggested_policy_text();
-
 		$content       = '';
 		$toc           = array( '<li><a href="#wp-privacy-policy-guide-introduction">' . __( 'Introduction' ) . '</a></li>' );
 		$date_format   = __( 'F j, Y' );
-		$copy          = __( 'Copy this section to clipboard' );
-		$return_to_top = '<a href="#" class="return-to-top">' . __( '&uarr; Return to Top' ) . '</a>';
 
 		foreach ( $content_array as $section ) {
 			$class   = '';
@@ -385,16 +384,16 @@ final class WP_Privacy_Policy_Content {
 			$removed = '';
 
 			if ( ! empty( $section['removed'] ) ) {
-				$class = ' text-removed';
+				$class = 'text-removed';
 				$date  = date_i18n( $date_format, $section['removed'] );
 				/* translators: %s: Date of plugin deactivation. */
 				$meta = sprintf( __( 'Removed %s.' ), $date );
 
 				/* translators: %s: Date of plugin deactivation. */
 				$removed = __( 'You deactivated this plugin on %s and may no longer need this policy.' );
-				$removed = '<div class="error inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
+				$removed = '<div class="notice notice-info inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
 			} elseif ( ! empty( $section['updated'] ) ) {
-				$class = ' text-updated';
+				$class = 'text-updated';
 				$date  = date_i18n( $date_format, $section['updated'] );
 				/* translators: %s: Date of privacy policy text update. */
 				$meta = sprintf( __( 'Updated %s.' ), $date );
@@ -408,36 +407,34 @@ final class WP_Privacy_Policy_Content {
 			$toc_id      = 'wp-privacy-policy-guide-' . sanitize_title( $plugin_name );
 			$toc[]       = sprintf( '<li><a href="#%1$s">%2$s</a>' . $meta . '</li>', $toc_id, $plugin_name );
 
-			$content .= '<div class="privacy-text-section' . $class . '">';
+			$content .= '<div class="privacy-text-section ' . $class . '">';
 			$content .= '<a id="' . $toc_id . '">&nbsp;</a>';
 			/* translators: %s: Plugin name. */
 			$content .= '<h2>' . sprintf( __( 'Source: %s' ), $plugin_name ) . '</h2>';
 			$content .= $removed;
 
 			$content .= '<div class="policy-text">' . $section['policy_text'] . '</div>';
-			$content .= $return_to_top;
 
 			if ( empty( $section['removed'] ) ) {
-				$content         .= '<div class="privacy-text-actions">';
-					$content     .= '<button type="button" class="privacy-text-copy button">';
-						$content .= $copy;
-						$content .= '<span class="screen-reader-text">';
-						/* translators: %s: Plugin name. */
-						$content .= sprintf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
-						$content .= '</span>';
-					$content     .= '</button>';
-				$content         .= '</div>';
+				$content .= '<div class="privacy-text-actions">';
+				$content .= '<button type="button" class="privacy-text-copy button">';
+				$content .= __( 'Copy this section to clipboard' );
+				$content .= '</button>';
+				$content .= '<span class="success" aria-hidden="true">' . __( 'Copied!' ) . '</span>';
+				$content .= '</div>';
 			}
 
-			$content .= "</div>\n"; // End of .privacy-text-section.
+			$content .= '<a href="#wpbody" class="return-to-top"><span aria-hidden="true">&uarr; </span> ' . __( 'Return to top' ) . '</a>';
+
+			$content .= '</div>'; // End of .privacy-text-section.
 		}
 
 		if ( count( $toc ) > 2 ) {
 			?>
-			<div  class="privacy-text-box-toc">
+			<div class="privacy-text-box-toc">
 				<p><?php _e( 'Table of Contents' ); ?></p>
 				<ol>
-					<?php echo implode( "\n", $toc ); ?>
+					<?php echo implode( $toc ); ?>
 				</ol>
 			</div>
 			<?php
@@ -586,6 +583,9 @@ final class WP_Privacy_Policy_Content {
 			/* translators: Privacy policy tutorial. */
 			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'By default WordPress does not share any personal data with anyone.' ) . '</p>';
 		}
+
+		/* translators: Default privacy policy text. */
+		$strings[] = '<p>' . $suggested_text . __( 'If you request a password reset, your IP address will be included in the reset email.' ) . '</p>';
 
 		/* translators: Default privacy policy heading. */
 		$strings[] = '<h2>' . __( 'How long we retain your data' ) . '</h2>';

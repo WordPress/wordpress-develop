@@ -1,0 +1,11 @@
+{
+	"apiVersion": 2,
+	"name": "core/nextpage",
+	"category": "design",
+	"parent": [ "core/post-content" ],
+	"supports": {
+		"customClassName": false,
+		"className": false,
+		"html": false
+	}
+}

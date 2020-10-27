@@ -11,7 +11,8 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
-				'post_status' => 'publish',
+				'post_content' => 'Page 1 <!--nextpage--> Page 2 <!--nextpage--> Page 3',
+				'post_status'  => 'publish',
 			)
 		);
 	}
@@ -40,7 +41,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 	 * Test for a page that is not the queried object.
 	 */
 	public function test_non_current_page() {
-		$this->assertEquals( get_permalink( self::$post_id ), wp_get_canonical_url( self::$post_id ) );
+		$this->assertSame( get_permalink( self::$post_id ), wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
@@ -64,7 +65,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			get_permalink( self::$post_id )
 		);
 
-		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
+		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
@@ -86,7 +87,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 
 		$expected = trailingslashit( get_permalink( self::$post_id ) ) . user_trailingslashit( $page, 'single_paged' );
 
-		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
+		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
@@ -112,7 +113,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 			get_permalink( self::$post_id ) . '#comments'
 		);
 
-		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
+		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
@@ -136,7 +137,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 
 		$expected = user_trailingslashit( trailingslashit( get_permalink( self::$post_id ) ) . $wp_rewrite->comments_pagination_base . '-' . $cpage, 'commentpaged' ) . '#comments';
 
-		$this->assertEquals( $expected, wp_get_canonical_url( self::$post_id ) );
+		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
 	}
 
 	/**
@@ -147,7 +148,7 @@ class Tests_WpGetCanonicalURL extends WP_UnitTestCase {
 		$canonical_url = wp_get_canonical_url( self::$post_id );
 		remove_filter( 'get_canonical_url', array( $this, 'canonical_url_filter' ) );
 
-		$this->assertEquals( $this->canonical_url_filter(), $canonical_url );
+		$this->assertSame( $this->canonical_url_filter(), $canonical_url );
 	}
 
 	/**

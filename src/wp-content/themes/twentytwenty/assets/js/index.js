@@ -75,7 +75,7 @@ twentytwenty.touchEnabled = {
 
 	init: function() {
 		var matchMedia = function() {
-			// Include the 'heartz' as a way to have a non matching MQ to help terminate the join. See <https://git.io/vznFH>.
+			// Include the 'heartz' as a way to have a non-matching MQ to help terminate the join. See <https://git.io/vznFH>.
 			var prefixes = [ '-webkit-', '-moz-', '-o-', '-ms-' ];
 			var query = [ '(', prefixes.join( 'touch-enabled),(' ), 'heartz', ')' ].join( '' );
 			return window.matchMedia && window.matchMedia( query ).matches;
@@ -136,6 +136,17 @@ twentytwenty.coverModals = {
 		document.addEventListener( 'click', function( event ) {
 			var target = event.target;
 			var modal = document.querySelector( '.cover-modal.active' );
+
+			// if target onclick is <a> with # within the href attribute
+			if ( event.target.tagName.toLowerCase() === 'a' && event.target.hash.includes( '#' ) && modal !== null ) {
+				// untoggle the modal
+				this.untoggleModal( modal );
+				// wait 550 and scroll to the anchor
+				setTimeout( function() {
+					var anchor = document.getElementById( event.target.hash.slice( 1 ) );
+					anchor.scrollIntoView();
+				}, 550 );
+			}
 
 			if ( target === modal ) {
 				this.untoggleModal( target );

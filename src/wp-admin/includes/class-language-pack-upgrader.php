@@ -188,7 +188,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return true;
 		}
 
-		if ( 'upgrader_process_complete' == current_filter() ) {
+		if ( 'upgrader_process_complete' === current_filter() ) {
 			$this->skin->feedback( 'starting_upgrade' );
 		}
 
@@ -232,9 +232,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$this->skin->language_update = $language_update;
 
 			$destination = WP_LANG_DIR;
-			if ( 'plugin' == $language_update->type ) {
+			if ( 'plugin' === $language_update->type ) {
 				$destination .= '/plugins';
-			} elseif ( 'theme' == $language_update->type ) {
+			} elseif ( 'theme' === $language_update->type ) {
 				$destination .= '/themes';
 			}
 
@@ -309,17 +309,18 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Check the package source to make sure there are .mo and .po files.
+	 * Checks that the package source contains .mo and .po files.
 	 *
 	 * Hooked to the {@see 'upgrader_source_selection'} filter by
 	 * Language_Pack_Upgrader::bulk_upgrade().
 	 *
 	 * @since 3.7.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param string|WP_Error $source
-	 * @param string          $remote_source
+	 * @param string|WP_Error $source        The path to the downloaded package source.
+	 * @param string          $remote_source Remote file source location.
+	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
 	public function check_package( $source, $remote_source ) {
 		global $wp_filesystem;
@@ -335,9 +336,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$po = false;
 		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' == substr( $file, -3 ) ) {
+			if ( '.po' === substr( $file, -3 ) ) {
 				$po = true;
-			} elseif ( '.mo' == substr( $file, -3 ) ) {
+			} elseif ( '.mo' === substr( $file, -3 ) ) {
 				$mo = true;
 			}
 		}

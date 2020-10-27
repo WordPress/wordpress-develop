@@ -3,8 +3,9 @@
  * @group http
  * @group external-http
  * @group functions.php
+ * @covers ::wp_remote_fopen
  */
-class Tests_Functions_wp_remote_fopen extends WP_UnitTestCase {
+class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845
@@ -29,6 +30,6 @@ class Tests_Functions_wp_remote_fopen extends WP_UnitTestCase {
 		$response = wp_remote_fopen( $url );
 
 		$this->assertInternalType( 'string', $response );
-		$this->assertEquals( 40148, strlen( $response ) );
+		$this->assertSame( 40148, strlen( $response ) );
 	}
 }

@@ -20,7 +20,7 @@ class Tests_Admin_includesMisc extends WP_UnitTestCase {
 				=> 'wordpress.org/about/philosophy/#&hellip;', // Shorten to 32 if > 35 after cleaning.
 		);
 		foreach ( $tests as $k => $v ) {
-			$this->assertEquals( $v, url_shorten( $k ) );
+			$this->assertSame( $v, url_shorten( $k ) );
 		}
 	}
 }

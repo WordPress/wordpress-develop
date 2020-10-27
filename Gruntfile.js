@@ -131,12 +131,18 @@ module.exports = function(grunt) {
 			qunit: ['tests/qunit/compiled.html']
 		},
 		file_append: {
+			// grunt-file-append supports only strings for input and output.
 			default_options: {
 				files: [
 					{
 						append: 'jQuery.noConflict();',
 						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.js',
 						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.js'
+					},
+					{
+						append: 'jQuery.noConflict();',
+						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js',
+						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js'
 					}
 				]
 			}
@@ -179,18 +185,10 @@ module.exports = function(grunt) {
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
-					},
-					{
-						expand: true,
-						cwd: './node_modules/jquery-ui/ui/',
-						src: '*.js',
-						dest: SOURCE_DIR + 'wp-includes/js/jquery/ui/'
 					}
 				]
 			},
@@ -240,6 +238,8 @@ module.exports = function(grunt) {
 			'admin-js': {
 				files: {
 					[ WORKING_DIR + 'wp-admin/js/accordion.js' ]: [ './src/js/_enqueues/lib/accordion.js' ],
+					[ WORKING_DIR + 'wp-admin/js/application-passwords.js' ]: [ './src/js/_enqueues/admin/application-passwords.js' ],
+					[ WORKING_DIR + 'wp-admin/js/auth-app.js' ]: [ './src/js/_enqueues/admin/auth-app.js' ],
 					[ WORKING_DIR + 'wp-admin/js/code-editor.js' ]: [ './src/js/_enqueues/wp/code-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/color-picker.js' ]: [ './src/js/_enqueues/lib/color-picker.js' ],
 					[ WORKING_DIR + 'wp-admin/js/comment.js' ]: [ './src/js/_enqueues/admin/comment.js' ],
@@ -413,7 +413,7 @@ module.exports = function(grunt) {
 		},
 		cssmin: {
 			options: {
-				compatibility: 'ie7'
+				compatibility: 'ie11'
 			},
 			core: {
 				expand: true,
@@ -542,7 +542,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jshint: {
-			options: grunt.file.readJSON('.jshintrc'),
+			options: grunt.file.readJSON( '.jshintrc' ),
 			grunt: {
 				src: ['Gruntfile.js']
 			},
@@ -552,7 +552,7 @@ module.exports = function(grunt) {
 					'!tests/qunit/vendor/*',
 					'!tests/qunit/editor/**'
 				],
-				options: grunt.file.readJSON('tests/qunit/.jshintrc')
+				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
 			themes: {
 				expand: true,
@@ -727,7 +727,7 @@ module.exports = function(grunt) {
 				ext: '.min.js',
 				src: ['wp-includes/js/wp-embed.js']
 			},
-			jqueryui: {
+			'jquery-ui': {
 				options: {
 					// Preserve comments that start with a bang.
 					output: {
@@ -735,7 +735,7 @@ module.exports = function(grunt) {
 					}
 				},
 				expand: true,
-				cwd: 'node_modules/jquery-ui/ui/',
+				cwd: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				ext: '.min.js',
 				src: ['*.js']
@@ -747,6 +747,10 @@ module.exports = function(grunt) {
 			jqueryform: {
 				src: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/jquery.form.min.js'
+			},
+			moment: {
+				src: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.js',
+				dest: WORKING_DIR + 'wp-includes/js/dist/vendor/moment.min.js'
 			},
 			dynamic: {
 				expand: true,
@@ -794,6 +798,8 @@ module.exports = function(grunt) {
 			options: {
 				file_mappings: {
 					'src/wp-admin/js/accordion.js': 'src/js/_enqueues/lib/accordion.js',
+					'src/wp-admin/js/application-passwords.js': 'src/js/_enqueues/admin/application-passwords.js',
+					'src/wp-admin/js/auth-app.js': 'src/js/_enqueues/admin/auth-app.js',
 					'src/wp-admin/js/code-editor.js': 'src/js/_enqueues/wp/code-editor.js',
 					'src/wp-admin/js/color-picker.js': 'src/js/_enqueues/lib/color-picker.js',
 					'src/wp-admin/js/comment.js': 'src/js/_enqueues/admin/comment.js',
@@ -1027,7 +1033,7 @@ module.exports = function(grunt) {
 					patterns: [
 						{
 							match: /\/\/ START: emoji arrays[\S\s]*\/\/ END: emoji arrays/g,
-							replacement: function () {
+							replacement: function() {
 								var regex, files,
 									partials, partialsSet,
 									entities, emojiArray;
@@ -1053,7 +1059,7 @@ module.exports = function(grunt) {
 								entities = entities.replace( /-/g, '' );
 
 								// Sort the entities list by length, so the longest emoji will be found first.
-								emojiArray = entities.split( '\n' ).sort( function ( a, b ) {
+								emojiArray = entities.split( '\n' ).sort( function( a, b ) {
 									return b.length - a.length;
 								} );
 
@@ -1091,6 +1097,26 @@ module.exports = function(grunt) {
 							SOURCE_DIR + 'wp-includes/formatting.php'
 						],
 						dest: SOURCE_DIR + 'wp-includes/'
+					}
+				]
+			},
+			emojiBannerText: {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '\\s*' + BANNER_TEXT.replace( /[\/\*\!]/g, '\\$&' ) ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/formatting.php'
+						],
+						dest: BUILD_DIR + 'wp-includes/'
 					}
 				]
 			}
@@ -1222,6 +1248,7 @@ module.exports = function(grunt) {
 		'jshint:corejs',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
+		'uglify:moment',
 		'qunit:compiled'
 	] );
 
@@ -1360,9 +1387,10 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
 		'uglify:embed',
-		'uglify:jqueryui',
+		'uglify:jquery-ui',
 		'uglify:imgareaselect',
-		'uglify:jqueryform'
+		'uglify:jqueryform',
+		'uglify:moment'
 	] );
 
 	grunt.registerTask( 'build:webpack', [
@@ -1413,6 +1441,7 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
+				'replace:emojiBannerText'
 			] );
 		}
 	} );

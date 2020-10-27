@@ -81,8 +81,8 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	public function json() {
 		$data = parent::json();
 
-		$data['maxYear']          = intval( $this->max_year );
-		$data['minYear']          = intval( $this->min_year );
+		$data['maxYear']          = (int) $this->max_year;
+		$data['minYear']          = (int) $this->min_year;
 		$data['allowPastDate']    = (bool) $this->allow_past_date;
 		$data['twelveHourFormat'] = (bool) $this->twelve_hour_format;
 		$data['includeTime']      = (bool) $this->include_time;
@@ -187,6 +187,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 * Based on touch_time().
 	 *
 	 * @since 4.9.0
+	 *
 	 * @see touch_time()
 	 *
 	 * @global WP_Locale $wp_locale WordPress date and time locale object.
@@ -244,7 +245,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 				$timezone_info['description'] = '';
 			}
 		} else {
-			$formatted_gmt_offset = $this->format_gmt_offset( intval( get_option( 'gmt_offset', 0 ) ) );
+			$formatted_gmt_offset = $this->format_gmt_offset( (int) get_option( 'gmt_offset', 0 ) );
 
 			$timezone_info['description'] = sprintf(
 				/* translators: 1: UTC abbreviation and offset, 2: UTC offset. */
@@ -261,6 +262,7 @@ class WP_Customize_Date_Time_Control extends WP_Customize_Control {
 	 * Format GMT Offset.
 	 *
 	 * @since 4.9.0
+	 *
 	 * @see wp_timezone_choice()
 	 *
 	 * @param float $offset Offset in hours.

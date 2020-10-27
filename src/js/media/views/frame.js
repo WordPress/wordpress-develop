@@ -152,7 +152,7 @@ var Frame = wp.media.View.extend(/** @lends wp.media.view.Frame.prototype */{
 	/**
 	 * Check if a mode is enabled on the frame.
 	 *
-	 * @param  string mode Mode ID.
+	 * @param string mode Mode ID.
 	 * @return bool
 	 */
 	isModeActive: function( mode ) {

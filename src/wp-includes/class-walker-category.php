@@ -53,7 +53,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function start_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 
@@ -74,7 +74,7 @@ class Walker_Category extends Walker {
 	 *                       value is 'list'. See wp_list_categories(). Default empty array.
 	 */
 	public function end_lvl( &$output, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 
@@ -89,11 +89,11 @@ class Walker_Category extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string $output   Used to append additional content (passed by reference).
-	 * @param object $category Category data object.
-	 * @param int    $depth    Optional. Depth of category in reference to parents. Default 0.
-	 * @param array  $args     Optional. An array of arguments. See wp_list_categories(). Default empty array.
-	 * @param int    $id       Optional. ID of the current category. Default 0.
+	 * @param string  $output   Used to append additional content (passed by reference).
+	 * @param WP_Term $category Category data object.
+	 * @param int     $depth    Optional. Depth of category in reference to parents. Default 0.
+	 * @param array   $args     Optional. An array of arguments. See wp_list_categories(). Default empty array.
+	 * @param int     $id       Optional. ID of the current category. Default 0.
 	 */
 	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
 		/** This filter is documented in wp-includes/category-template.php */
@@ -113,8 +113,8 @@ class Walker_Category extends Walker {
 			 *
 			 * @since 1.2.0
 			 *
-			 * @param string $description Category description.
-			 * @param object $category    Category object.
+			 * @param string  $description Category description.
+			 * @param WP_Term $category    Category object.
 			 */
 			$atts['title'] = strip_tags( apply_filters( 'category_description', $category->description, $category ) );
 		}
@@ -186,7 +186,7 @@ class Walker_Category extends Walker {
 		if ( ! empty( $args['show_count'] ) ) {
 			$link .= ' (' . number_format_i18n( $category->count ) . ')';
 		}
-		if ( 'list' == $args['style'] ) {
+		if ( 'list' === $args['style'] ) {
 			$output     .= "\t<li";
 			$css_classes = array(
 				'cat-item',
@@ -227,10 +227,10 @@ class Walker_Category extends Walker {
 			 *
 			 * @see wp_list_categories()
 			 *
-			 * @param array  $css_classes An array of CSS classes to be applied to each list item.
-			 * @param object $category    Category data object.
-			 * @param int    $depth       Depth of page, used for padding.
-			 * @param array  $args        An array of wp_list_categories() arguments.
+			 * @param string[] $css_classes An array of CSS classes to be applied to each list item.
+			 * @param WP_Term  $category    Category data object.
+			 * @param int      $depth       Depth of page, used for padding.
+			 * @param array    $args        An array of wp_list_categories() arguments.
 			 */
 			$css_classes = implode( ' ', apply_filters( 'category_css_class', $css_classes, $category, $depth, $args ) );
 			$css_classes = $css_classes ? ' class="' . esc_attr( $css_classes ) . '"' : '';
@@ -258,7 +258,7 @@ class Walker_Category extends Walker {
 	 *                       to output. See wp_list_categories(). Default empty array.
 	 */
 	public function end_el( &$output, $page, $depth = 0, $args = array() ) {
-		if ( 'list' != $args['style'] ) {
+		if ( 'list' !== $args['style'] ) {
 			return;
 		}
 

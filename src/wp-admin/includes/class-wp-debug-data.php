@@ -39,9 +39,11 @@ class WP_Debug_Data {
 		$upload_dir             = wp_upload_dir();
 		$permalink_structure    = get_option( 'permalink_structure' );
 		$is_ssl                 = is_ssl();
-		$users_can_register     = get_option( 'users_can_register' );
-		$default_comment_status = get_option( 'default_comment_status' );
 		$is_multisite           = is_multisite();
+		$users_can_register     = get_option( 'users_can_register' );
+		$blog_public            = get_option( 'blog_public' );
+		$default_comment_status = get_option( 'default_comment_status' );
+		$environment_type       = wp_get_environment_type();
 		$core_version           = get_bloginfo( 'version' );
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
@@ -98,20 +100,30 @@ class WP_Debug_Data {
 					'value' => $is_ssl ? __( 'Yes' ) : __( 'No' ),
 					'debug' => $is_ssl,
 				),
+				'multisite'              => array(
+					'label' => __( 'Is this a multisite?' ),
+					'value' => $is_multisite ? __( 'Yes' ) : __( 'No' ),
+					'debug' => $is_multisite,
+				),
 				'user_registration'      => array(
 					'label' => __( 'Can anyone register on this site?' ),
 					'value' => $users_can_register ? __( 'Yes' ) : __( 'No' ),
 					'debug' => $users_can_register,
+				),
+				'blog_public'            => array(
+					'label' => __( 'Is this site discouraging search engines?' ),
+					'value' => $blog_public ? __( 'No' ) : __( 'Yes' ),
+					'debug' => $blog_public,
 				),
 				'default_comment_status' => array(
 					'label' => __( 'Default comment status' ),
 					'value' => 'open' === $default_comment_status ? _x( 'Open', 'comment status' ) : _x( 'Closed', 'comment status' ),
 					'debug' => $default_comment_status,
 				),
-				'multisite'              => array(
-					'label' => __( 'Is this a multisite?' ),
-					'value' => $is_multisite ? __( 'Yes' ) : __( 'No' ),
-					'debug' => $is_multisite,
+				'environment_type'       => array(
+					'label' => __( 'Environment type' ),
+					'value' => $environment_type,
+					'debug' => $environment_type,
 				),
 			),
 		);
@@ -322,7 +334,7 @@ class WP_Debug_Data {
 		$is_writable_wp_content_dir     = wp_is_writable( WP_CONTENT_DIR );
 		$is_writable_upload_dir         = wp_is_writable( $upload_dir['basedir'] );
 		$is_writable_wp_plugin_dir      = wp_is_writable( WP_PLUGIN_DIR );
-		$is_writable_template_directory = wp_is_writable( get_template_directory() . '/..' );
+		$is_writable_template_directory = wp_is_writable( get_theme_root( get_template() ) );
 
 		$info['wp-filesystem'] = array(
 			'label'       => __( 'Filesystem Permissions' ),
@@ -513,6 +525,47 @@ class WP_Debug_Data {
 			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionString'] : $imagick_version ),
 		);
 
+		if ( ! function_exists( 'ini_get' ) ) {
+			$info['wp-media']['fields']['ini_get'] = array(
+				'label' => __( 'File upload settings' ),
+				'value' => sprintf(
+					/* translators: %s: ini_get() */
+					__( 'Unable to determine some settings, as the %s function has been disabled.' ),
+					'ini_get()'
+				),
+				'debug' => 'ini_get() is disabled',
+			);
+		} else {
+			// Get the PHP ini directive values.
+			$post_max_size       = ini_get( 'post_max_size' );
+			$upload_max_filesize = ini_get( 'upload_max_filesize' );
+			$max_file_uploads    = ini_get( 'max_file_uploads' );
+			$effective           = min( wp_convert_hr_to_bytes( $post_max_size ), wp_convert_hr_to_bytes( $upload_max_filesize ) );
+
+			// Add info in Media section.
+			$info['wp-media']['fields']['file_uploads']        = array(
+				'label' => __( 'File uploads' ),
+				'value' => empty( ini_get( 'file_uploads' ) ) ? __( 'Disabled' ) : __( 'Enabled' ),
+				'debug' => 'File uploads is turned off',
+			);
+			$info['wp-media']['fields']['post_max_size']       = array(
+				'label' => __( 'Max size of post data allowed' ),
+				'value' => $post_max_size,
+			);
+			$info['wp-media']['fields']['upload_max_filesize'] = array(
+				'label' => __( 'Max size of an uploaded file' ),
+				'value' => $upload_max_filesize,
+			);
+			$info['wp-media']['fields']['max_effective_size']  = array(
+				'label' => __( 'Max effective file size' ),
+				'value' => size_format( $effective ),
+			);
+			$info['wp-media']['fields']['max_file_uploads']    = array(
+				'label' => __( 'Max number of files allowed' ),
+				'value' => number_format( $max_file_uploads ),
+			);
+		}
+
 		// If Imagick is used as our editor, provide some more information about its limitations.
 		if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() && isset( $imagick ) && $imagick instanceof Imagick ) {
 			$limits = array(
@@ -647,15 +700,28 @@ class WP_Debug_Data {
 				'label' => __( 'PHP time limit' ),
 				'value' => ini_get( 'max_execution_time' ),
 			);
-			$info['wp-server']['fields']['memory_limit']        = array(
-				'label' => __( 'PHP memory limit' ),
-				'value' => ini_get( 'memory_limit' ),
-			);
+
+			if ( WP_Site_Health::get_instance()->php_memory_limit !== ini_get( 'memory_limit' ) ) {
+				$info['wp-server']['fields']['memory_limit']       = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => WP_Site_Health::get_instance()->php_memory_limit,
+				);
+				$info['wp-server']['fields']['admin_memory_limit'] = array(
+					'label' => __( 'PHP memory limit (only for admin screens)' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			} else {
+				$info['wp-server']['fields']['memory_limit'] = array(
+					'label' => __( 'PHP memory limit' ),
+					'value' => ini_get( 'memory_limit' ),
+				);
+			}
+
 			$info['wp-server']['fields']['max_input_time']      = array(
 				'label' => __( 'Max input time' ),
 				'value' => ini_get( 'max_input_time' ),
 			);
-			$info['wp-server']['fields']['upload_max_size']     = array(
+			$info['wp-server']['fields']['upload_max_filesize'] = array(
 				'label' => __( 'Upload max filesize' ),
 				'value' => ini_get( 'upload_max_filesize' ),
 			);
@@ -845,6 +911,15 @@ class WP_Debug_Data {
 		// List all available plugins.
 		$plugins        = get_plugins();
 		$plugin_updates = get_plugin_updates();
+		$transient      = get_site_transient( 'update_plugins' );
+
+		$auto_updates = array();
+
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'plugin' );
+
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_plugins', array() );
+		}
 
 		foreach ( $plugins as $plugin_path => $plugin ) {
 			$plugin_part = ( is_plugin_active( $plugin_path ) ) ? 'wp-plugins-active' : 'wp-plugins-inactive';
@@ -879,6 +954,59 @@ class WP_Debug_Data {
 				$plugin_version_string_debug .= sprintf( ' (latest version: %s)', $plugin_updates[ $plugin_path ]->update->new_version );
 			}
 
+			if ( $auto_updates_enabled ) {
+				if ( isset( $transient->response[ $plugin_path ] ) ) {
+					$item = $transient->response[ $plugin_path ];
+				} elseif ( isset( $transient->no_update[ $plugin_path ] ) ) {
+					$item = $transient->no_update[ $plugin_path ];
+				} else {
+					$item = array(
+						'id'            => $plugin_path,
+						'slug'          => '',
+						'plugin'        => $plugin_path,
+						'new_version'   => '',
+						'url'           => '',
+						'package'       => '',
+						'icons'         => array(),
+						'banners'       => array(),
+						'banners_rtl'   => array(),
+						'tested'        => '',
+						'requires_php'  => '',
+						'compatibility' => new stdClass(),
+					);
+					$item = array_merge( $item, array_intersect_key( $plugin, $item ) );
+				}
+
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
+
+				if ( ! is_null( $auto_update_forced ) ) {
+					$enabled = $auto_update_forced;
+				} else {
+					$enabled = in_array( $plugin_path, $auto_updates, true );
+				}
+
+				if ( $enabled ) {
+					$auto_updates_string = __( 'Auto-updates enabled' );
+				} else {
+					$auto_updates_string = __( 'Auto-updates disabled' );
+				}
+
+				/**
+				 * Filters the text string of the auto-updates setting for each plugin in the Site Health debug data.
+				 *
+				 * @since 5.5.0
+				 *
+				 * @param string $auto_updates_string The string output for the auto-updates column.
+				 * @param string $plugin_path         The path to the plugin file.
+				 * @param array  $plugin              An array of plugin data.
+				 * @param bool   $enabled             Whether auto-updates are enabled for this item.
+				 */
+				$auto_updates_string = apply_filters( 'plugin_auto_update_debug_string', $auto_updates_string, $plugin_path, $plugin, $enabled );
+
+				$plugin_version_string       .= ' | ' . $auto_updates_string;
+				$plugin_version_string_debug .= ', ' . $auto_updates_string;
+			}
+
 			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
 				'label' => $plugin['Name'],
 				'value' => $plugin_version_string,
@@ -898,9 +1026,16 @@ class WP_Debug_Data {
 
 		$active_theme  = wp_get_theme();
 		$theme_updates = get_theme_updates();
+		$transient     = get_site_transient( 'update_themes' );
 
 		$active_theme_version       = $active_theme->version;
 		$active_theme_version_debug = $active_theme_version;
+
+		$auto_updates         = array();
+		$auto_updates_enabled = wp_is_auto_update_enabled_for_type( 'theme' );
+		if ( $auto_updates_enabled ) {
+			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+		}
 
 		if ( array_key_exists( $active_theme->stylesheet, $theme_updates ) ) {
 			$theme_update_new_version = $theme_updates[ $active_theme->stylesheet ]->update['new_version'];
@@ -968,6 +1103,46 @@ class WP_Debug_Data {
 			),
 		);
 
+		if ( $auto_updates_enabled ) {
+			if ( isset( $transient->response[ $active_theme->stylesheet ] ) ) {
+				$item = $transient->response[ $active_theme->stylesheet ];
+			} elseif ( isset( $transient->no_update[ $active_theme->stylesheet ] ) ) {
+				$item = $transient->no_update[ $active_theme->stylesheet ];
+			} else {
+				$item = array(
+					'theme'        => $active_theme->stylesheet,
+					'new_version'  => $active_theme->version,
+					'url'          => '',
+					'package'      => '',
+					'requires'     => '',
+					'requires_php' => '',
+				);
+			}
+
+			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
+
+			if ( ! is_null( $auto_update_forced ) ) {
+				$enabled = $auto_update_forced;
+			} else {
+				$enabled = in_array( $active_theme->stylesheet, $auto_updates, true );
+			}
+
+			if ( $enabled ) {
+				$auto_updates_string = __( 'Enabled' );
+			} else {
+				$auto_updates_string = __( 'Disabled' );
+			}
+
+			/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
+			$auto_updates_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $active_theme, $enabled );
+
+			$info['wp-active-theme']['fields']['auto_update'] = array(
+				'label' => __( 'Auto-updates' ),
+				'value' => $auto_updates_string,
+				'debug' => $auto_updates_string,
+			);
+		}
+
 		$parent_theme = $active_theme->parent();
 
 		if ( $parent_theme ) {
@@ -1013,6 +1188,46 @@ class WP_Debug_Data {
 					'value' => get_template_directory(),
 				),
 			);
+
+			if ( $auto_updates_enabled ) {
+				if ( isset( $transient->response[ $parent_theme->stylesheet ] ) ) {
+					$item = $transient->response[ $parent_theme->stylesheet ];
+				} elseif ( isset( $transient->no_update[ $parent_theme->stylesheet ] ) ) {
+					$item = $transient->no_update[ $parent_theme->stylesheet ];
+				} else {
+					$item = array(
+						'theme'        => $parent_theme->stylesheet,
+						'new_version'  => $parent_theme->version,
+						'url'          => '',
+						'package'      => '',
+						'requires'     => '',
+						'requires_php' => '',
+					);
+				}
+
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
+
+				if ( ! is_null( $auto_update_forced ) ) {
+					$enabled = $auto_update_forced;
+				} else {
+					$enabled = in_array( $parent_theme->stylesheet, $auto_updates, true );
+				}
+
+				if ( $enabled ) {
+					$parent_theme_auto_update_string = __( 'Enabled' );
+				} else {
+					$parent_theme_auto_update_string = __( 'Disabled' );
+				}
+
+				/** This filter is documented in wp-admin/includes/class-wp-debug-data.php */
+				$parent_theme_auto_update_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $parent_theme, $enabled );
+
+				$info['wp-parent-theme']['fields']['auto_update'] = array(
+					'label' => __( 'Auto-update' ),
+					'value' => $parent_theme_auto_update_string,
+					'debug' => $parent_theme_auto_update_string,
+				);
+			}
 		}
 
 		// Populate a list of all themes available in the install.
@@ -1060,6 +1275,51 @@ class WP_Debug_Data {
 				/* translators: %s: Latest theme version number. */
 				$theme_version_string       .= ' ' . sprintf( __( '(Latest version: %s)' ), $theme_updates[ $theme_slug ]->update['new_version'] );
 				$theme_version_string_debug .= sprintf( ' (latest version: %s)', $theme_updates[ $theme_slug ]->update['new_version'] );
+			}
+
+			if ( $auto_updates_enabled ) {
+				if ( isset( $transient->response[ $theme_slug ] ) ) {
+					$item = $transient->response[ $theme_slug ];
+				} elseif ( isset( $transient->no_update[ $theme_slug ] ) ) {
+					$item = $transient->no_update[ $theme_slug ];
+				} else {
+					$item = array(
+						'theme'        => $theme_slug,
+						'new_version'  => $theme->version,
+						'url'          => '',
+						'package'      => '',
+						'requires'     => '',
+						'requires_php' => '',
+					);
+				}
+
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
+
+				if ( ! is_null( $auto_update_forced ) ) {
+					$enabled = $auto_update_forced;
+				} else {
+					$enabled = in_array( $theme_slug, $auto_updates, true );
+				}
+
+				if ( $enabled ) {
+					$auto_updates_string = __( 'Auto-updates enabled' );
+				} else {
+					$auto_updates_string = __( 'Auto-updates disabled' );
+				}
+
+				/**
+				 * Filters the text string of the auto-updates setting for each theme in the Site Health debug data.
+				 *
+				 * @since 5.5.0
+				 *
+				 * @param string   $auto_updates_string The string output for the auto-updates column.
+				 * @param WP_Theme $theme               An object of theme data.
+				 * @param bool     $enabled             Whether auto-updates are enabled for this item.
+				 */
+				$auto_updates_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $theme, $enabled );
+
+				$theme_version_string       .= ' | ' . $auto_updates_string;
+				$theme_version_string_debug .= ', ' . $auto_updates_string;
 			}
 
 			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(
@@ -1137,8 +1397,8 @@ class WP_Debug_Data {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param array $info_array Information gathered from the `WP_Debug_Data::debug_data` function.
-	 * @param string $type      The data type to return, either 'info' or 'debug'.
+	 * @param array  $info_array Information gathered from the `WP_Debug_Data::debug_data` function.
+	 * @param string $type       The data type to return, either 'info' or 'debug'.
 	 * @return string The formatted data.
 	 */
 	public static function format( $info_array, $type ) {

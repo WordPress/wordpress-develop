@@ -97,7 +97,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->request_count += 1;
 
 		// Mock request to YouTube Embed.
-		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], self::YOUTUBE_VIDEO_ID ) ) {
+		if ( ! empty( $query_params['url'] ) && false !== strpos( $query_params['url'], '?v=' . self::YOUTUBE_VIDEO_ID ) ) {
 			return array(
 				'response' => array(
 					'code' => 200,
@@ -175,11 +175,11 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	function test_wp_oembed_ensure_format() {
-		$this->assertEquals( 'json', wp_oembed_ensure_format( 'json' ) );
-		$this->assertEquals( 'xml', wp_oembed_ensure_format( 'xml' ) );
-		$this->assertEquals( 'json', wp_oembed_ensure_format( 123 ) );
-		$this->assertEquals( 'json', wp_oembed_ensure_format( 'random' ) );
-		$this->assertEquals( 'json', wp_oembed_ensure_format( array() ) );
+		$this->assertSame( 'json', wp_oembed_ensure_format( 'json' ) );
+		$this->assertSame( 'xml', wp_oembed_ensure_format( 'xml' ) );
+		$this->assertSame( 'json', wp_oembed_ensure_format( 123 ) );
+		$this->assertSame( 'json', wp_oembed_ensure_format( 'random' ) );
+		$this->assertSame( 'json', wp_oembed_ensure_format( array() ) );
 	}
 
 	function test_oembed_create_xml() {
@@ -265,7 +265,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'rest_no_route', $data['code'] );
+		$this->assertSame( 'rest_no_route', $data['code'] );
 	}
 
 	function test_request_without_url_param() {
@@ -274,8 +274,8 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'rest_missing_callback_param', $data['code'] );
-		$this->assertEquals( 'url', $data['data']['params'][0] );
+		$this->assertSame( 'rest_missing_callback_param', $data['code'] );
+		$this->assertSame( 'url', $data['data']['params'][0] );
 	}
 
 	function test_request_with_bad_url() {
@@ -285,7 +285,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'oembed_invalid_url', $data['code'] );
+		$this->assertSame( 'oembed_invalid_url', $data['code'] );
 	}
 
 	function test_request_invalid_format() {
@@ -334,13 +334,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type', $data );
 		$this->assertArrayHasKey( 'width', $data );
 
-		$this->assertEquals( '1.0', $data['version'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
-		$this->assertEquals( $user->display_name, $data['author_name'] );
-		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
-		$this->assertEquals( $post->post_title, $data['title'] );
-		$this->assertEquals( 'rich', $data['type'] );
+		$this->assertSame( '1.0', $data['version'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['provider_name'] );
+		$this->assertSame( home_url(), $data['provider_url'] );
+		$this->assertSame( $user->display_name, $data['author_name'] );
+		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
+		$this->assertSame( $post->post_title, $data['title'] );
+		$this->assertSame( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
 	}
 
@@ -377,13 +377,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type', $data );
 		$this->assertArrayHasKey( 'width', $data );
 
-		$this->assertEquals( '1.0', $data['version'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['author_name'] );
-		$this->assertEquals( get_home_url(), $data['author_url'] );
-		$this->assertEquals( $post->post_title, $data['title'] );
-		$this->assertEquals( 'rich', $data['type'] );
+		$this->assertSame( '1.0', $data['version'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['provider_name'] );
+		$this->assertSame( home_url(), $data['provider_url'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['author_name'] );
+		$this->assertSame( home_url(), $data['author_url'] );
+		$this->assertSame( $post->post_title, $data['title'] );
+		$this->assertSame( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
 
 		update_option( 'show_on_front', 'posts' );
@@ -422,13 +422,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type', $data );
 		$this->assertArrayHasKey( 'width', $data );
 
-		$this->assertEquals( '1.0', $data['version'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
-		$this->assertEquals( $user->display_name, $data['author_name'] );
-		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
-		$this->assertEquals( $post->post_title, $data['title'] );
-		$this->assertEquals( 'rich', $data['type'] );
+		$this->assertSame( '1.0', $data['version'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['provider_name'] );
+		$this->assertSame( home_url(), $data['provider_url'] );
+		$this->assertSame( $user->display_name, $data['author_name'] );
+		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
+		$this->assertSame( $post->post_title, $data['title'] );
+		$this->assertSame( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
 	}
 
@@ -508,30 +508,30 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 	}
 
 	function test_get_oembed_endpoint_url() {
-		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
-		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
-		$this->assertEquals( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
+		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url() );
+		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'json' ) );
+		$this->assertSame( home_url() . '/index.php?rest_route=/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
 		$post_id     = $this->factory()->post->create();
 		$url         = get_permalink( $post_id );
 		$url_encoded = urlencode( $url );
 
-		$this->assertEquals( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
-		$this->assertEquals( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
+		$this->assertSame( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
+		$this->assertSame( home_url() . '/index.php?rest_route=%2Foembed%2F1.0%2Fembed&url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
 	}
 
 	function test_get_oembed_endpoint_url_pretty_permalinks() {
 		update_option( 'permalink_structure', '/%postname%' );
 
-		$this->assertEquals( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url() );
-		$this->assertEquals( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
+		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url() );
+		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed', get_oembed_endpoint_url( '', 'xml' ) );
 
 		$post_id     = $this->factory()->post->create();
 		$url         = get_permalink( $post_id );
 		$url_encoded = urlencode( $url );
 
-		$this->assertEquals( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
-		$this->assertEquals( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
+		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded, get_oembed_endpoint_url( $url ) );
+		$this->assertSame( home_url() . '/wp-json/oembed/1.0/embed?url=' . $url_encoded . '&format=xml', get_oembed_endpoint_url( $url, 'xml' ) );
 
 		update_option( 'permalink_structure', '' );
 	}
@@ -541,7 +541,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request  = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 
 		// Test with a user that does not have edit_posts capability.
 		wp_set_current_user( self::$subscriber );
@@ -549,9 +549,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 403, $response->get_status() );
+		$this->assertSame( 403, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $data['code'], 'rest_forbidden' );
+		$this->assertSame( $data['code'], 'rest_forbidden' );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider() {
@@ -559,9 +559,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( 'oembed_invalid_url', $data['code'] );
+		$this->assertSame( 'oembed_invalid_url', $data['code'] );
 	}
 
 	public function test_proxy_with_invalid_type() {
@@ -570,7 +570,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request->set_param( 'type', 'xml' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 	}
 
 	public function test_proxy_with_valid_oembed_provider() {
@@ -581,12 +581,12 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request->set_param( 'maxheight', 789 );
 		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEquals( 1, $this->request_count );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 1, $this->request_count );
 
 		// Subsequent request is cached and so it should not cause a request.
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( 1, $this->request_count );
+		$this->assertSame( 1, $this->request_count );
 
 		// Rest with another user should also be cached.
 		wp_set_current_user( self::$administrator );
@@ -596,40 +596,65 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$request->set_param( 'maxwidth', 456 );
 		$request->set_param( 'maxheight', 789 );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 1, $this->request_count );
+		$this->assertSame( 1, $this->request_count );
 
 		// Test data object.
 		$data = $response->get_data();
 
 		$this->assertNotEmpty( $data );
 		$this->assertInternalType( 'object', $data );
-		$this->assertEquals( 'YouTube', $data->provider_name );
-		$this->assertEquals( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
+		$this->assertSame( 'YouTube', $data->provider_name );
+		$this->assertSame( 'https://i.ytimg.com/vi/' . self::YOUTUBE_VIDEO_ID . '/hqdefault.jpg', $data->thumbnail_url );
 		$this->assertEquals( $data->width, $request['maxwidth'] );
 		$this->assertEquals( $data->height, $request['maxheight'] );
+	}
+
+	/**
+	 * @ticket 45447
+	 *
+	 * @see wp_maybe_load_embeds()
+	 */
+	public function test_proxy_with_classic_embed_provider() {
+		wp_set_current_user( self::$editor );
+		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
+		$request->set_param( 'url', 'https://www.youtube.com/embed/' . self::YOUTUBE_VIDEO_ID );
+		$request->set_param( 'maxwidth', 456 );
+		$request->set_param( 'maxheight', 789 );
+		$request->set_param( '_wpnonce', wp_create_nonce( 'wp_rest' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 2, $this->request_count );
+
+		// Test data object.
+		$data = $response->get_data();
+
+		$this->assertNotEmpty( $data );
+		$this->assertInternalType( 'object', $data );
+		$this->assertInternalType( 'string', $data->html );
+		$this->assertInternalType( 'array', $data->scripts );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider_no_discovery() {
 		wp_set_current_user( self::$editor );
 
-		// If discover is false for an unkown provider, no discovery request should take place.
+		// If discover is false for an unknown provider, no discovery request should take place.
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
-		$request->set_param( 'discover', 0 );
+		$request->set_param( 'discover', false );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
-		$this->assertEquals( 0, $this->request_count );
+		$this->assertSame( 404, $response->get_status() );
+		$this->assertSame( 0, $this->request_count );
 	}
 
 	public function test_proxy_with_invalid_oembed_provider_with_default_discover_param() {
 		wp_set_current_user( self::$editor );
 
-		// For an unkown provider, a discovery request should happen.
+		// For an unknown provider, a discovery request should happen.
 		$request = new WP_REST_Request( 'GET', '/oembed/1.0/proxy' );
 		$request->set_param( 'url', self::INVALID_OEMBED_URL );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
-		$this->assertEquals( 1, $this->request_count );
+		$this->assertSame( 404, $response->get_status() );
+		$this->assertSame( 1, $this->request_count );
 	}
 
 	public function test_proxy_with_invalid_discover_param() {
@@ -640,9 +665,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertEquals( $data['code'], 'rest_invalid_param' );
+		$this->assertSame( $data['code'], 'rest_invalid_param' );
 	}
 
 	/**
@@ -683,13 +708,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type', $data );
 		$this->assertArrayHasKey( 'width', $data );
 
-		$this->assertEquals( '1.0', $data['version'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
-		$this->assertEquals( $user->display_name, $data['author_name'] );
-		$this->assertEquals( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
-		$this->assertEquals( $post->post_title, $data['title'] );
-		$this->assertEquals( 'rich', $data['type'] );
+		$this->assertSame( '1.0', $data['version'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['provider_name'] );
+		$this->assertSame( home_url(), $data['provider_url'] );
+		$this->assertSame( $user->display_name, $data['author_name'] );
+		$this->assertSame( get_author_posts_url( $user->ID, $user->user_nicename ), $data['author_url'] );
+		$this->assertSame( $post->post_title, $data['title'] );
+		$this->assertSame( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
 	}
 
@@ -732,13 +757,13 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'type', $data );
 		$this->assertArrayHasKey( 'width', $data );
 
-		$this->assertEquals( '1.0', $data['version'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['provider_name'] );
-		$this->assertEquals( get_home_url(), $data['provider_url'] );
-		$this->assertEquals( get_bloginfo( 'name' ), $data['author_name'] );
-		$this->assertEquals( get_home_url(), $data['author_url'] );
-		$this->assertEquals( $post->post_title, $data['title'] );
-		$this->assertEquals( 'rich', $data['type'] );
+		$this->assertSame( '1.0', $data['version'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['provider_name'] );
+		$this->assertSame( home_url(), $data['provider_url'] );
+		$this->assertSame( get_bloginfo( 'name' ), $data['author_name'] );
+		$this->assertSame( home_url(), $data['author_url'] );
+		$this->assertSame( $post->post_title, $data['title'] );
+		$this->assertSame( 'rich', $data['type'] );
 		$this->assertTrue( $data['width'] <= $request['maxwidth'] );
 
 		update_option( 'show_on_front', 'posts' );
@@ -759,11 +784,11 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 1, $this->oembed_result_filter_count );
+		$this->assertSame( 1, $this->oembed_result_filter_count );
 		$this->assertInternalType( 'object', $data );
-		$this->assertEquals( 'Untrusted', $data->provider_name );
-		$this->assertEquals( self::UNTRUSTED_PROVIDER_URL, $data->provider_url );
-		$this->assertEquals( 'rich', $data->type );
+		$this->assertSame( 'Untrusted', $data->provider_name );
+		$this->assertSame( self::UNTRUSTED_PROVIDER_URL, $data->provider_url );
+		$this->assertSame( 'rich', $data->type );
 		$this->assertFalse( $data->html );
 	}
 
@@ -782,7 +807,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 1, $this->oembed_result_filter_count );
+		$this->assertSame( 1, $this->oembed_result_filter_count );
 		$this->assertInternalType( 'object', $data );
 
 		$this->assertStringStartsWith( '<b>Unfiltered</b>', $data->html );

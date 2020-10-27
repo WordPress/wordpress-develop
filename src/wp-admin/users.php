@@ -53,9 +53,9 @@ $help = '<p>' . __( 'Hovering over a row in the users list will display action l
 	'<li>' . __( '<strong>Edit</strong> takes you to the editable profile screen for that user. You can also reach that screen by clicking on the username.' ) . '</li>';
 
 if ( is_multisite() ) {
-	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using bulk actions.' ) . '</li>';
 } else {
-	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using bulk actions.' ) . '</li>';
 }
 
 $help .= '</ul>';
@@ -108,7 +108,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		$editable_roles = get_editable_roles();
@@ -153,7 +153,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		wp_redirect( add_query_arg( 'update', $update, $redirect ) );
-		exit();
+		exit;
 
 	case 'dodelete':
 		if ( is_multisite() ) {
@@ -164,7 +164,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		$userids = array_map( 'intval', (array) $_REQUEST['users'] );
@@ -211,7 +211,7 @@ switch ( $wp_list_table->current_action() ) {
 			$redirect
 		);
 		wp_redirect( $redirect );
-		exit();
+		exit;
 
 	case 'delete':
 		if ( is_multisite() ) {
@@ -222,7 +222,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		if ( ! current_user_can( 'delete_users' ) ) {
@@ -230,14 +230,14 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = array_map( 'intval', (array) $_REQUEST['users'] );
 		}
 
 		$all_userids = $userids;
 
-		if ( in_array( $current_user->ID, $userids ) ) {
+		if ( in_array( $current_user->ID, $userids, true ) ) {
 			$userids = array_diff( $userids, array( $current_user->ID ) );
 		}
 
@@ -247,8 +247,8 @@ switch ( $wp_list_table->current_action() ) {
 		 *
 		 * @since 5.2.0
 		 *
-		 * @param boolean $users_have_additional_content Whether the users have additional content. Default false.
-		 * @param int[]   $userids                       Array of IDs for users being deleted.
+		 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
+		 * @param int[] $userids                       Array of IDs for users being deleted.
 		 */
 		$users_have_content = (bool) apply_filters( 'users_have_additional_content', false, $userids );
 
@@ -278,7 +278,7 @@ switch ( $wp_list_table->current_action() ) {
 	</div>
 		<?php endif; ?>
 
-		<?php if ( 1 == count( $all_userids ) ) : ?>
+		<?php if ( 1 === count( $all_userids ) ) : ?>
 	<p><?php _e( 'You have specified this user for deletion:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for deletion:' ); ?></p>
@@ -393,7 +393,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		if ( ! current_user_can( 'remove_users' ) ) {
@@ -401,7 +401,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = $_REQUEST['users'];
 		}
@@ -415,7 +415,7 @@ switch ( $wp_list_table->current_action() ) {
 <div class="wrap">
 <h1><?php _e( 'Remove Users from Site' ); ?></h1>
 
-		<?php if ( 1 == count( $userids ) ) : ?>
+		<?php if ( 1 === count( $userids ) ) : ?>
 	<p><?php _e( 'You have specified this user for removal:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for removal:' ); ?></p>
@@ -570,8 +570,13 @@ switch ( $wp_list_table->current_action() ) {
 }
 
 if ( strlen( $usersearch ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $usersearch ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $usersearch ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 
@@ -590,7 +595,7 @@ if ( strlen( $usersearch ) ) {
 		<?php $wp_list_table->display(); ?>
 </form>
 
-<br class="clear" />
+<div class="clear" /></div>
 </div>
 		<?php
 		break;

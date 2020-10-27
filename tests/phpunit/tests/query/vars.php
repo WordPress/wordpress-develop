@@ -9,6 +9,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35115
+	 * @ticket 51154
 	 */
 	public function testPublicQueryVarsAreAsExpected() {
 		global $wp;
@@ -16,7 +17,7 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 		// Re-initialise any dynamically-added public query vars:
 		do_action( 'init' );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 
 				// Static public query vars:
@@ -70,6 +71,9 @@ class Tests_Query_Vars extends WP_UnitTestCase {
 				// Dynamically added public query vars:
 				'post_format',
 				'rest_route',
+				'sitemap',
+				'sitemap-subtype',
+				'sitemap-stylesheet',
 
 			),
 			$wp->public_query_vars,

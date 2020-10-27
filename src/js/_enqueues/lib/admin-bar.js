@@ -22,7 +22,6 @@
 			shortlink,
 			skipLink,
 			mobileEvent,
-			fontFaceRegex,
 			adminBarSearchInput,
 			i;
 
@@ -37,7 +36,6 @@
 		shortlink = document.getElementById( 'wp-admin-bar-get-shortlink' );
 		skipLink = adminBar.querySelector( '.screen-reader-shortcut' );
 		mobileEvent = /Mobile\/.+Safari/.test( navigator.userAgent ) ? 'touchstart' : 'click';
-		fontFaceRegex = /Android (1.0|1.1|1.5|1.6|2.0|2.1)|Nokia|Opera Mini|w(eb)?OSBrowser|webOS|UCWEB|Windows Phone OS 7|XBLWP7|ZuneWP7|MSIE 7/;
 
 		// Remove nojs class after the DOM is loaded.
 		removeClass( adminBar, 'nojs' );
@@ -109,15 +107,6 @@
 		// Prevents the toolbar from covering up content when a hash is present in the URL.
 		if ( window.location.hash ) {
 			window.scrollBy( 0, -32 );
-		}
-
-		// Add no-font-face class to body if needed.
-		if (
-			navigator.userAgent &&
-			fontFaceRegex.test( navigator.userAgent ) &&
-			! hasClass( document.body, 'no-font-face' )
-		) {
-			addClass( document.body, 'no-font-face' );
 		}
 
 		// Clear sessionStorage on logging out.
@@ -305,8 +294,8 @@
 	 * @since 5.3.1
 	 *
 	 * @param {HTMLElement} element The HTML element.
-	 * @param {String}      className The class name.
-	 * @return {bool} Whether the element has the className.
+	 * @param {string}      className The class name.
+	 * @return {boolean} Whether the element has the className.
 	 */
 	function hasClass( element, className ) {
 		var classNames;
@@ -331,7 +320,7 @@
 	 * @since 5.3.1
 	 *
 	 * @param {HTMLElement} element The HTML element.
-	 * @param {String}      className The class name.
+	 * @param {string}      className The class name.
 	 */
 	function addClass( element, className ) {
 		if ( ! element ) {
@@ -355,7 +344,7 @@
 	 * @since 5.3.1
 	 *
 	 * @param {HTMLElement} element The HTML element.
-	 * @param {String}      className The class name.
+	 * @param {string}      className The class name.
 	 */
 	function removeClass( element, className ) {
 		var testName,

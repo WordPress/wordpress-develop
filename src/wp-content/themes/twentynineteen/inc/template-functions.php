@@ -19,7 +19,7 @@ function twentynineteen_body_classes( $classes ) {
 		// Adds `singular` to singular pages.
 		$classes[] = 'singular';
 	} else {
-		// Adds `hfeed` to non singular pages.
+		// Adds `hfeed` to non-singular pages.
 		$classes[] = 'hfeed';
 	}
 
@@ -120,7 +120,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail
 /**
  * Add an extra menu to our nav for our priority+ navigation to use
  *
- * @param object $nav_menu  Nav menu.
+ * @param string $nav_menu  Nav menu.
  * @param object $args      Nav menu args.
  * @return string More link for hidden menu items.
  */

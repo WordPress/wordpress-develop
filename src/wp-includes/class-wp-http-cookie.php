@@ -93,13 +93,13 @@ class WP_Http_Cookie {
 	 */
 	public function __construct( $data, $requested_url = '' ) {
 		if ( $requested_url ) {
-			$arrURL = @parse_url( $requested_url );
+			$arrURL = parse_url( $requested_url );
 		}
 		if ( isset( $arrURL['host'] ) ) {
 			$this->domain = $arrURL['host'];
 		}
 		$this->path = isset( $arrURL['path'] ) ? $arrURL['path'] : '/';
-		if ( '/' != substr( $this->path, -1 ) ) {
+		if ( '/' !== substr( $this->path, -1 ) ) {
 			$this->path = dirname( $this->path ) . '/';
 		}
 
@@ -127,7 +127,7 @@ class WP_Http_Cookie {
 
 				list( $key, $val ) = strpos( $pair, '=' ) ? explode( '=', $pair ) : array( $pair, '' );
 				$key               = strtolower( trim( $key ) );
-				if ( 'expires' == $key ) {
+				if ( 'expires' === $key ) {
 					$val = strtotime( $val );
 				}
 				$this->$key = $val;
@@ -174,7 +174,7 @@ class WP_Http_Cookie {
 
 		// Get details on the URL we're thinking about sending to.
 		$url         = parse_url( $url );
-		$url['port'] = isset( $url['port'] ) ? $url['port'] : ( 'https' == $url['scheme'] ? 443 : 80 );
+		$url['port'] = isset( $url['port'] ) ? $url['port'] : ( 'https' === $url['scheme'] ? 443 : 80 );
 		$url['path'] = isset( $url['path'] ) ? $url['path'] : '/';
 
 		// Values to use for comparison against the URL.
@@ -186,13 +186,13 @@ class WP_Http_Cookie {
 		}
 
 		// Host - very basic check that the request URL ends with the domain restriction (minus leading dot).
-		$domain = substr( $domain, 0, 1 ) == '.' ? substr( $domain, 1 ) : $domain;
+		$domain = ( '.' === substr( $domain, 0, 1 ) ) ? substr( $domain, 1 ) : $domain;
 		if ( substr( $url['host'], -strlen( $domain ) ) != $domain ) {
 			return false;
 		}
 
 		// Port - supports "port-lists" in the format: "80,8000,8080".
-		if ( ! empty( $port ) && ! in_array( $url['port'], explode( ',', $port ) ) ) {
+		if ( ! empty( $port ) && ! in_array( $url['port'], array_map( 'intval', explode( ',', $port ) ), true ) ) {
 			return false;
 		}
 
@@ -244,11 +244,11 @@ class WP_Http_Cookie {
 	 * @since 4.6.0
 	 *
 	 * @return array {
-	 *    List of attributes.
+	 *     List of attributes.
 	 *
-	 *    @type string|int|null $expires When the cookie expires. Unix timestamp or formatted date.
-	 *    @type string          $path    Cookie URL path.
-	 *    @type string          $domain  Cookie domain.
+	 *     @type string|int|null $expires When the cookie expires. Unix timestamp or formatted date.
+	 *     @type string          $path    Cookie URL path.
+	 *     @type string          $domain  Cookie domain.
 	 * }
 	 */
 	public function get_attributes() {

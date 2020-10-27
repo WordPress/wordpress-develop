@@ -250,7 +250,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertSame( $user->display_name, $comment->comment_author );
 		$this->assertSame( $user->user_email, $comment->comment_author_email );
 		$this->assertSame( $user->user_url, $comment->comment_author_url );
-		$this->assertSame( $user->ID, intval( $comment->user_id ) );
+		$this->assertSame( $user->ID, (int) $comment->user_id );
 
 	}
 
@@ -716,6 +716,45 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 49236
+	 */
+	public function test_submitting_comment_with_empty_type_results_in_correct_type() {
+		$data    = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment = wp_handle_comment_submission( $data );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
+	 * @ticket 49236
+	 */
+	public function test_inserting_comment_with_empty_type_results_in_correct_type() {
+		$data       = array(
+			'comment_post_ID' => self::$post->ID,
+			'comment'         => 'Comment',
+			'author'          => 'Comment Author',
+			'email'           => 'comment@example.org',
+			'comment_type'    => '',
+		);
+		$comment_id = wp_insert_comment( $data );
+		$comment    = get_comment( $comment_id );
+
+		$this->assertNotWPError( $comment );
+		$this->assertInstanceOf( 'WP_Comment', $comment );
+
+		$this->assertSame( 'comment', $comment->comment_type );
+	}
+
+	/**
 	 * @ticket 34997
 	 */
 	public function test_comment_submission_sends_all_expected_parameters_to_preprocess_comment_filter() {
@@ -735,17 +774,19 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		remove_filter( 'preprocess_comment', array( $this, 'filter_preprocess_comment' ) );
 
 		$this->assertNotWPError( $comment );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'comment_post_ID'      => self::$post->ID,
 				'comment_author'       => $user->display_name,
 				'comment_author_email' => $user->user_email,
 				'comment_author_url'   => $user->user_url,
 				'comment_content'      => $data['comment'],
-				'comment_type'         => '',
-				'comment_parent'       => '0',
+				'comment_type'         => 'comment',
+				'comment_parent'       => 0,
 				'user_ID'              => $user->ID,
 				'user_id'              => $user->ID,
+				'comment_author_IP'    => '127.0.0.1',
+				'comment_agent'        => '',
 			),
 			$this->preprocess_comment_data
 		);

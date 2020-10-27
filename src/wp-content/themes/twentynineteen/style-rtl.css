@@ -7,7 +7,7 @@ Author URI: https://wordpress.org/
 Description: Our 2019 default theme is designed to show off the power of the block editor. It features custom styles for all the default blocks, and is built so that what you see in the editor looks like what you'll see on your website. Twenty Nineteen is designed to be adaptable to a wide range of websites, whether you’re running a photo blog, launching a new business, or supporting a non-profit. Featuring ample whitespace and modern sans-serif headlines paired with classic serif body text, it's built to be beautiful on all screen sizes.
 Requires at least: 4.9.6
 Requires PHP: 5.2.4
-Version: 1.5
+Version: 1.7
 License: GNU General Public License v2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: twentynineteen
@@ -2527,6 +2527,17 @@ h2:before {
   width: 1em;
 }
 
+h1:not(.site-title).has-text-align-center:before,
+h2.has-text-align-center:before {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+h1:not(.site-title).has-text-align-right:before,
+h2.has-text-align-right:before {
+  margin-right: auto;
+}
+
 hr {
   background-color: #767676;
   border: 0;
@@ -2786,8 +2797,7 @@ body.page .main-navigation {
   background: transparent;
   color: inherit;
   cursor: pointer;
-  transition: background 250ms ease-in-out,
- transform 150ms ease;
+  transition: background 250ms ease-in-out, transform 150ms ease;
   -webkit-appearance: none;
   -moz-appearance: none;
 }
@@ -2948,7 +2958,7 @@ body.page .main-navigation {
   line-height: 1.2;
   text-shadow: none;
   padding: calc( .5 * 1rem) 1rem calc( .5 * 1rem) calc( 24px + 1rem);
-  white-space: nowrap;
+  max-width: 20rem;
 }
 
 .main-navigation .sub-menu > li > a:hover, .main-navigation .sub-menu > li > a:focus,
@@ -4209,6 +4219,15 @@ body.page .main-navigation {
   width: 1em;
 }
 
+.entry .entry-title.has-text-align-center:before {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.entry .entry-title.has-text-align-right:before {
+  margin-right: auto;
+}
+
 .entry .entry-title a {
   color: inherit;
 }
@@ -4493,6 +4512,15 @@ body.page .main-navigation {
   width: 1em;
 }
 
+.author-bio .author-title.has-text-align-center:before {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.author-bio .author-title.has-text-align-right:before {
+  margin-right: auto;
+}
+
 .author-bio .author-description {
   display: inline;
   color: #767676;
@@ -4585,6 +4613,15 @@ body.page .main-navigation {
   height: 2px;
   margin: 1rem 0;
   width: 1em;
+}
+
+.comments-area .comments-title-wrap .comments-title.has-text-align-center:before {
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.comments-area .comments-title-wrap .comments-title.has-text-align-right:before {
+  margin-right: auto;
 }
 
 @media only screen and (min-width: 768px) {
@@ -5069,6 +5106,10 @@ body.page .main-navigation {
 .widget {
   margin: 0 0 1rem;
   /* Make sure select elements fit in widgets. */
+}
+
+.widget .widget-title {
+  font-size: 1.6875em;
 }
 
 .widget select {
@@ -5598,6 +5639,12 @@ body.page .main-navigation {
   margin: 0 0 0 0.25em;
 }
 
+@-moz-document url-prefix() {
+  .entry .entry-content .has-drop-cap:not(:focus):first-letter {
+    margin-top: 0.2em;
+  }
+}
+
 .entry .entry-content .wp-block-pullquote {
   border-color: transparent;
   border-width: 2px;
@@ -5974,6 +6021,25 @@ body.page .main-navigation {
   text-align: right;
   /* Remove duplicate rule-line when a separator
 		 * is followed by an H1, or H2 */
+}
+
+.entry .entry-content .wp-block-separator:not(.wp-block-separator),
+.entry .entry-content hr:not(.wp-block-separator) {
+  max-width: 100%;
+}
+
+@media only screen and (min-width: 768px) {
+  .entry .entry-content .wp-block-separator:not(.wp-block-separator),
+  .entry .entry-content hr:not(.wp-block-separator) {
+    max-width: calc(8 * (100vw / 12) - 28px);
+  }
+}
+
+@media only screen and (min-width: 1168px) {
+  .entry .entry-content .wp-block-separator:not(.wp-block-separator),
+  .entry .entry-content hr:not(.wp-block-separator) {
+    max-width: calc(6 * (100vw / 12) - 28px);
+  }
 }
 
 .entry .entry-content .wp-block-separator.is-style-wide,

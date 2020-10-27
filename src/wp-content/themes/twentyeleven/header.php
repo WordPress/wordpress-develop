@@ -48,7 +48,7 @@ if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
 
 ?>
 	</title>
-<link rel="profile" href="http://gmpg.org/xfn/11" />
+<link rel="profile" href="https://gmpg.org/xfn/11" />
 <link rel="stylesheet" type="text/css" media="all" href="<?php bloginfo( 'stylesheet_url' ); ?>?ver=20190507" />
 <link rel="pingback" href="<?php echo esc_url( get_bloginfo( 'pingback_url' ) ); ?>">
 <!--[if lt IE 9]>
@@ -128,7 +128,7 @@ if ( is_singular() && get_option( 'thread_comments' ) ) {
 
 			<?php
 				// Has the text been hidden?
-			if ( 'blank' == get_header_textcolor() ) :
+			if ( 'blank' === get_header_textcolor() ) :
 				$header_image_class = '';
 				if ( $header_image ) {
 					$header_image_class = ' with-image';

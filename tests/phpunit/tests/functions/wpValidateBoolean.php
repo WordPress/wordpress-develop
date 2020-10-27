@@ -3,10 +3,10 @@
 /**
  * Tests the wp_validate_boolean function.
  *
- * @covers ::wp_validate_boolean
  * @group functions.php
+ * @covers ::wp_validate_boolean
  */
-class Tests_Functions_WpValidateBoolean extends WP_UnitTestCase {
+class Tests_Functions_wpValidateBoolean extends WP_UnitTestCase {
 	/**
 	 * Provides test scenarios for all possible scenarios in wp_validate_boolean().
 	 *
@@ -47,8 +47,8 @@ class Tests_Functions_WpValidateBoolean extends WP_UnitTestCase {
 	 *
 	 * @dataProvider data_provider
 	 *
-	 * @param mixed $test_value.
-	 * @param bool $expected.
+	 * @param mixed $test_value
+	 * @param bool $expected
 	 *
 	 * @ticket 30238
 	 * @ticket 39868

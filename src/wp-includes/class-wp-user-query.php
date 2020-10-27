@@ -25,7 +25,7 @@ class WP_User_Query {
 	public $query_vars = array();
 
 	/**
-	 * List of found user ids
+	 * List of found user IDs.
 	 *
 	 * @since 3.1.0
 	 * @var array
@@ -242,7 +242,7 @@ class WP_User_Query {
 				$this->query_fields[] = "$wpdb->users.$field";
 			}
 			$this->query_fields = implode( ',', $this->query_fields );
-		} elseif ( 'all' == $qv['fields'] ) {
+		} elseif ( 'all' === $qv['fields'] ) {
 			$this->query_fields = "$wpdb->users.*";
 		} else {
 			$this->query_fields = "$wpdb->users.ID";
@@ -279,7 +279,7 @@ class WP_User_Query {
 			}
 
 			$posts_table        = $wpdb->get_blog_prefix( $blog_id ) . 'posts';
-			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . join( ', ', $post_types ) . ' ) )';
+			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . implode( ', ', $post_types ) . ' ) )';
 		}
 
 		// nicename
@@ -320,7 +320,7 @@ class WP_User_Query {
 		$this->meta_query = new WP_Meta_Query();
 		$this->meta_query->parse_query_vars( $qv );
 
-		if ( isset( $qv['who'] ) && 'authors' == $qv['who'] && $blog_id ) {
+		if ( isset( $qv['who'] ) && 'authors' === $qv['who'] && $blog_id ) {
 			$who_query = array(
 				'key'     => $wpdb->get_blog_prefix( $blog_id ) . 'user_level',
 				'value'   => 0,
@@ -597,7 +597,8 @@ class WP_User_Query {
 		/**
 		 * Filters the users array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default user queries.
+		 * Return a non-null value to bypass WordPress' default user queries.
+		 *
 		 * Filtering functions that require pagination information are encouraged to set
 		 * the `total_users` property of the WP_User_Query object, passed to the filter
 		 * by reference. If WP_User_Query does not perform a database query, it will not
@@ -614,7 +615,7 @@ class WP_User_Query {
 		if ( null === $this->results ) {
 			$this->request = "SELECT $this->query_fields $this->query_from $this->query_where $this->query_orderby $this->query_limit";
 
-			if ( is_array( $qv['fields'] ) || 'all' == $qv['fields'] ) {
+			if ( is_array( $qv['fields'] ) || 'all' === $qv['fields'] ) {
 				$this->results = $wpdb->get_results( $this->request );
 			} else {
 				$this->results = $wpdb->get_col( $this->request );
@@ -642,7 +643,7 @@ class WP_User_Query {
 			return;
 		}
 
-		if ( 'all_with_meta' == $qv['fields'] ) {
+		if ( 'all_with_meta' === $qv['fields'] ) {
 			cache_users( $this->results );
 
 			$r = array();
@@ -651,7 +652,7 @@ class WP_User_Query {
 			}
 
 			$this->results = $r;
-		} elseif ( 'all' == $qv['fields'] ) {
+		} elseif ( 'all' === $qv['fields'] ) {
 			foreach ( $this->results as $key => $user ) {
 				$this->results[ $key ] = new WP_User( $user, '', $qv['blog_id'] );
 			}
@@ -680,7 +681,7 @@ class WP_User_Query {
 	 * @since 3.5.0
 	 *
 	 * @param string $query_var Query variable key.
-	 * @param mixed $value Query variable value.
+	 * @param mixed  $value     Query variable value.
 	 */
 	public function set( $query_var, $value ) {
 		$this->query_vars[ $query_var ] = $value;
@@ -703,12 +704,12 @@ class WP_User_Query {
 		global $wpdb;
 
 		$searches      = array();
-		$leading_wild  = ( 'leading' == $wild || 'both' == $wild ) ? '%' : '';
-		$trailing_wild = ( 'trailing' == $wild || 'both' == $wild ) ? '%' : '';
+		$leading_wild  = ( 'leading' === $wild || 'both' === $wild ) ? '%' : '';
+		$trailing_wild = ( 'trailing' === $wild || 'both' === $wild ) ? '%' : '';
 		$like          = $leading_wild . $wpdb->esc_like( $string ) . $trailing_wild;
 
 		foreach ( $cols as $col ) {
-			if ( 'ID' == $col ) {
+			if ( 'ID' === $col ) {
 				$searches[] = $wpdb->prepare( "$col = %s", $string );
 			} else {
 				$searches[] = $wpdb->prepare( "$col LIKE %s", $like );
@@ -760,9 +761,9 @@ class WP_User_Query {
 			$_orderby = 'user_' . $orderby;
 		} elseif ( in_array( $orderby, array( 'user_login', 'user_nicename', 'user_email', 'user_url', 'user_registered' ), true ) ) {
 			$_orderby = $orderby;
-		} elseif ( 'name' == $orderby || 'display_name' == $orderby ) {
+		} elseif ( 'name' === $orderby || 'display_name' === $orderby ) {
 			$_orderby = 'display_name';
-		} elseif ( 'post_count' == $orderby ) {
+		} elseif ( 'post_count' === $orderby ) {
 			// @todo Avoid the JOIN.
 			$where             = get_posts_by_author_sql( 'post' );
 			$this->query_from .= " LEFT OUTER JOIN (
@@ -773,11 +774,11 @@ class WP_User_Query {
 			) p ON ({$wpdb->users}.ID = p.post_author)
 			";
 			$_orderby          = 'post_count';
-		} elseif ( 'ID' == $orderby || 'id' == $orderby ) {
+		} elseif ( 'ID' === $orderby || 'id' === $orderby ) {
 			$_orderby = 'ID';
-		} elseif ( 'meta_value' == $orderby || $this->get( 'meta_key' ) == $orderby ) {
+		} elseif ( 'meta_value' === $orderby || $this->get( 'meta_key' ) == $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value";
-		} elseif ( 'meta_value_num' == $orderby ) {
+		} elseif ( 'meta_value_num' === $orderby ) {
 			$_orderby = "$wpdb->usermeta.meta_value+0";
 		} elseif ( 'include' === $orderby && ! empty( $this->query_vars['include'] ) ) {
 			$include     = wp_parse_id_list( $this->query_vars['include'] );
@@ -880,8 +881,8 @@ class WP_User_Query {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {

@@ -198,7 +198,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $user_email The email address of the notification recipient.
-	 * @return string $user_email The email address of the notification recipient.
+	 * @return string The email address of the notification recipient.
 	 */
 	public function filter_email_address( $user_email ) {
 		return 'modified-' . $user_email;
@@ -224,7 +224,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $subject The email subject.
-	 * @return string $subject The email subject.
+	 * @return string The email subject.
 	 */
 	public function filter_email_subject( $subject ) {
 		return 'Modified subject';
@@ -250,7 +250,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.1.0
 	 *
 	 * @param string $email_text Text in the email.
-	 * @return string $email_text Text in the email.
+	 * @return string Text in the email.
 	 */
 	public function filter_email_body_text( $email_text ) {
 		return 'Modified text';
@@ -278,7 +278,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.4.0
 	 *
 	 * @param string|array $headers The email headers.
-	 * @return array       $headers The new email headers.
+	 * @return array The new email headers.
 	 */
 	public function modify_email_headers( $headers ) {
 		$headers = array(

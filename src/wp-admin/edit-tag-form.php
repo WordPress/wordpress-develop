@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Back compat hooks.
-if ( 'category' == $taxonomy ) {
+if ( 'category' === $taxonomy ) {
 	/**
 	 * Fires before the Edit Category form.
 	 *
@@ -22,7 +22,7 @@ if ( 'category' == $taxonomy ) {
 	 * @param WP_Term $tag Current category term object.
 	 */
 	do_action_deprecated( 'edit_category_form_pre', array( $tag ), '3.0.0', '{$taxonomy}_pre_edit_form' );
-} elseif ( 'link_category' == $taxonomy ) {
+} elseif ( 'link_category' === $taxonomy ) {
 	/**
 	 * Fires before the Edit Link Category form.
 	 *
@@ -138,7 +138,7 @@ if ( isset( $tag->name ) ) {
 			<th scope="row"><label for="slug"><?php _e( 'Slug' ); ?></label></th>
 			<?php
 			/**
-			 * Filters the editable slug.
+			 * Filters the editable slug for a post or term.
 			 *
 			 * Note: This is a multi-use hook in that it is leveraged both for editable
 			 * post URIs and term slugs.
@@ -148,7 +148,7 @@ if ( isset( $tag->name ) ) {
 			 *
 			 * @param string          $slug The editable slug. Will be either a term slug or post URI depending
 			 *                              upon the context in which it is evaluated.
-			 * @param WP_Term|WP_Post $tag  Term or WP_Post object.
+			 * @param WP_Term|WP_Post $tag  Term or post object.
 			 */
 			$slug = isset( $tag->slug ) ? apply_filters( 'editable_slug', $tag->slug, $tag ) : '';
 			?>
@@ -177,7 +177,7 @@ if ( isset( $tag->name ) ) {
 				$dropdown_args = apply_filters( 'taxonomy_parent_dropdown_args', $dropdown_args, $taxonomy, 'edit' );
 				wp_dropdown_categories( $dropdown_args );
 				?>
-				<?php if ( 'category' == $taxonomy ) : ?>
+				<?php if ( 'category' === $taxonomy ) : ?>
 					<p class="description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.' ); ?></p>
 				<?php else : ?>
 					<p class="description"><?php _e( 'Assign a parent term to create a hierarchy. The term Jazz, for example, would be the parent of Bebop and Big Band.' ); ?></p>
@@ -192,7 +192,7 @@ if ( isset( $tag->name ) ) {
 		</tr>
 		<?php
 		// Back compat hooks.
-		if ( 'category' == $taxonomy ) {
+		if ( 'category' === $taxonomy ) {
 			/**
 			 * Fires after the Edit Category form fields are displayed.
 			 *
@@ -202,7 +202,7 @@ if ( isset( $tag->name ) ) {
 			 * @param WP_Term $tag Current category term object.
 			 */
 			do_action_deprecated( 'edit_category_form_fields', array( $tag ), '3.0.0', '{$taxonomy}_edit_form_fields' );
-		} elseif ( 'link_category' == $taxonomy ) {
+		} elseif ( 'link_category' === $taxonomy ) {
 			/**
 			 * Fires after the Edit Link Category form fields are displayed.
 			 *
@@ -239,10 +239,10 @@ if ( isset( $tag->name ) ) {
 	</table>
 <?php
 // Back compat hooks.
-if ( 'category' == $taxonomy ) {
+if ( 'category' === $taxonomy ) {
 	/** This action is documented in wp-admin/edit-tags.php */
 	do_action_deprecated( 'edit_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
-} elseif ( 'link_category' == $taxonomy ) {
+} elseif ( 'link_category' === $taxonomy ) {
 	/** This action is documented in wp-admin/edit-tags.php */
 	do_action_deprecated( 'edit_link_category_form', array( $tag ), '3.0.0', '{$taxonomy}_add_form' );
 } else {

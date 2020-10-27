@@ -27,7 +27,7 @@ a {
 
 a:hover,
 a:active {
-	color: #00a0d2;
+	color: #006799;
 }
 
 a:focus {
@@ -157,13 +157,25 @@ p {
 	}
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.login form.shake {
+		animation: none;
+		transform: none;
+	}
+}
+
 .login-action-confirm_admin_email #login {
 	width: 60vw;
+	max-width: 650px;
 	margin-top: -2vh;
 }
 
 @media screen and (max-width: 782px) {
 	.login-action-confirm_admin_email #login {
+		box-sizing: border-box;
+		margin-top: 0;
+		padding-left: 4vw;
+		padding-right: 4vw;
 		width: 100vw;
 	}
 }
@@ -284,7 +296,7 @@ p {
 .login #nav a:hover,
 .login #backtoblog a:hover,
 .login h1 a:hover {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .login #nav a:focus,

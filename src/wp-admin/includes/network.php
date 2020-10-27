@@ -52,13 +52,15 @@ function allow_subdomain_install() {
  */
 function allow_subdirectory_install() {
 	global $wpdb;
-		/**
-		 * Filters whether to enable the subdirectory installation feature in Multisite.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite. Default is false.
-		 */
+
+	/**
+	 * Filters whether to enable the subdirectory installation feature in Multisite.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite.
+	 *                    Default false.
+	 */
 	if ( apply_filters( 'allow_subdirectory_install', false ) ) {
 		return true;
 	}
@@ -97,8 +99,9 @@ function get_clean_basedomain() {
 /**
  * Prints step 1 for Network installation process.
  *
- * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such. Navigating to Tools > Network
- *  should not be a sudden "Welcome to a new install process! Fill this out and click here." See also contextual help todo.
+ * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such.
+ *       Navigating to Tools > Network should not be a sudden "Welcome to a new install process!
+ *       Fill this out and click here." See also contextual help todo.
  *
  * @since 3.0.0
  *
@@ -378,12 +381,13 @@ function network_step1( $errors = false ) {
  *
  * @since 3.0.0
  *
- * @global wpdb $wpdb WordPress database abstraction object.
+ * @global wpdb $wpdb     WordPress database abstraction object.
+ * @global bool $is_nginx Whether the server software is Nginx or something else.
  *
  * @param WP_Error $errors
  */
 function network_step2( $errors = false ) {
-	global $wpdb;
+	global $wpdb, $is_nginx;
 
 	$hostname          = get_clean_basedomain();
 	$slashed_home      = trailingslashit( get_option( 'home' ) );
@@ -616,7 +620,17 @@ define('BLOG_ID_CURRENT_SITE', 1);
 	</ol>
 
 		<?php
-	else : // End iis7_supports_permalinks(). Construct an .htaccess file instead:
+	elseif ( $is_nginx ) : // End iis7_supports_permalinks(). Link to Nginx documentation instead:
+
+		echo '<li><p>';
+		printf(
+			/* translators: %s: Documentation URL. */
+			__( 'It seems your network is running with Nginx web server. <a href="%s">Learn more about further configuration</a>.' ),
+			__( 'https://wordpress.org/support/article/nginx/' )
+		);
+		echo '</p></li>';
+
+	else : // End $is_nginx. Construct an .htaccess file instead:
 
 		$ms_files_rewriting = '';
 		if ( is_multisite() && get_site_option( 'ms_files_rewriting' ) ) {
@@ -658,7 +672,7 @@ EOF;
 	</ol>
 
 		<?php
-	endif; // End IIS/Apache code branches.
+	endif; // End IIS/Nginx/Apache code branches.
 
 	if ( ! is_multisite() ) {
 		?>

@@ -17,7 +17,7 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 		 * GET SVG CODE
 		 * Get the SVG code for the specified icon
 		 *
-		 * @param string $icon Icon name.
+		 * @param string $icon  Icon name.
 		 * @param string $group Icon group.
 		 * @param string $color Color.
 		 */
@@ -29,6 +29,30 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			} else {
 				$arr = array();
 			}
+
+			/**
+			 * Filters Twenty Twenty's array of icons.
+			 *
+			 * The dynamic portion of the hook name, `$group`, refers to
+			 * the name of the group of icons, either "ui" or "social".
+			 *
+			 * @since Twenty Twenty 1.5
+			 *
+			 * @param array $arr Array of icons.
+			 */
+			$arr = apply_filters( "twentytwenty_svg_icons_{$group}", $arr );
+
+			/**
+			 * Filters an SVG icon's color.
+			 *
+			 * @since Twenty Twenty 1.5
+			 *
+			 * @param string $color The icon color.
+			 * @param string $icon  The icon name.
+			 * @param string $group The icon group.
+			 */
+			$color = apply_filters( 'twentytwenty_svg_icon_color', $color, $icon, $group );
+
 			if ( array_key_exists( $icon, $arr ) ) {
 				$repl = '<svg class="svg-icon" aria-hidden="true" role="img" focusable="false" ';
 				$svg  = preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
@@ -51,8 +75,29 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			static $regex_map; // Only compute regex map once, for performance.
 			if ( ! isset( $regex_map ) ) {
 				$regex_map = array();
-				$map       = &self::$social_icons_map; // Use reference instead of copy, to save memory.
-				foreach ( array_keys( self::$social_icons ) as $icon ) {
+
+				/**
+				 * Filters Twenty Twenty's array of domain mappings for social icons.
+				 *
+				 * By default, each Icon ID is matched against a .com TLD. To override this behavior,
+				 * specify all the domains it covers (including the .com TLD too, if applicable).
+				 *
+				 * @since Twenty Twenty 1.5
+				 *
+				 * @param array $social_icons_map Array of default social icons.
+				 */
+				$map = apply_filters( 'twentytwenty_social_icons_map', self::$social_icons_map );
+
+				/**
+				 * Filters Twenty Twenty's array of social icons.
+				 *
+				 * @since Twenty Twenty 1.5
+				 *
+				 * @param array $social_icons Array of default social icons.
+				 */
+				$social_icons = apply_filters( 'twentytwenty_svg_icons_social', self::$social_icons );
+
+				foreach ( array_keys( $social_icons ) as $icon ) {
 					$domains            = array_key_exists( $icon, $map ) ? $map[ $icon ] : array( sprintf( '%s.com', $icon ) );
 					$domains            = array_map( 'trim', $domains ); // Remove leading/trailing spaces, to prevent regex from failing to match.
 					$domains            = array_map( 'preg_quote', $domains );
@@ -152,6 +197,9 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			'feed'      => array(
 				'feed',
 			),
+			'google'    => array(
+				'g.page',
+			),
 			'lastfm'    => array(
 				'last.fm',
 			),
@@ -160,6 +208,9 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			),
 			'pocket'    => array(
 				'getpocket.com',
+			),
+			'tiktok'    => array(
+				'tiktok.com',
 			),
 			'twitch'    => array(
 				'twitch.tv',
@@ -237,6 +288,8 @@ if ( ! class_exists( 'TwentyTwenty_SVG_Icons' ) ) {
 			'spotify'    => '<svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M12,2C6.477,2,2,6.477,2,12c0,5.523,4.477,10,10,10c5.523,0,10-4.477,10-10C22,6.477,17.523,2,12,2 M16.586,16.424 c-0.18,0.295-0.563,0.387-0.857,0.207c-2.348-1.435-5.304-1.76-8.785-0.964c-0.335,0.077-0.67-0.133-0.746-0.469 c-0.077-0.335,0.132-0.67,0.469-0.746c3.809-0.871,7.077-0.496,9.713,1.115C16.673,15.746,16.766,16.13,16.586,16.424 M17.81,13.7 c-0.226,0.367-0.706,0.482-1.072,0.257c-2.687-1.652-6.785-2.131-9.965-1.166C6.36,12.917,5.925,12.684,5.8,12.273 C5.675,11.86,5.908,11.425,6.32,11.3c3.632-1.102,8.147-0.568,11.234,1.328C17.92,12.854,18.035,13.335,17.81,13.7 M17.915,10.865 c-3.223-1.914-8.54-2.09-11.618-1.156C5.804,9.859,5.281,9.58,5.131,9.086C4.982,8.591,5.26,8.069,5.755,7.919 c3.532-1.072,9.404-0.865,13.115,1.338c0.445,0.264,0.59,0.838,0.327,1.282C18.933,10.983,18.359,11.129,17.915,10.865"></path></svg>',
 
 			'tumblr'     => '<svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M16.749,17.396c-0.357,0.17-1.041,0.319-1.551,0.332c-1.539,0.041-1.837-1.081-1.85-1.896V9.847h3.861V6.937h-3.847V2.039 c0,0-2.77,0-2.817,0c-0.046,0-0.127,0.041-0.138,0.144c-0.165,1.499-0.867,4.13-3.783,5.181v2.484h1.945v6.282 c0,2.151,1.587,5.206,5.775,5.135c1.413-0.024,2.982-0.616,3.329-1.126L16.749,17.396z"></path></svg>',
+
+			'tiktok'     => '<svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M22.601273,3.99398422 C22.3543419,3.81786432 22.035286,3.77722295 21.7519316,3.88579503 C20.7673827,4.3053476 19.6367473,4.19781761 18.749359,3.60023293 C17.8619707,3.00264826 17.3390468,1.99663905 17.3606558,0.92862387 C17.366873,0.687165991 17.2757319,0.453316101 17.1076605,0.279488738 C16.937965,0.101864383 16.7030375,0.000936521363 16.4571011,0 L12.8428824,0 C12.343863,0 11.9393277,0.403649581 11.9393277,0.901576573 L11.9393277,16.3365675 C11.9393277,17.581385 10.9279897,18.5905089 9.68044104,18.5905089 C8.43289237,18.5905089 7.42155434,17.581385 7.42155434,16.3365675 C7.42155434,15.09175 8.43289237,14.0826261 9.68044104,14.0826261 C10.1794605,14.0826261 10.5839957,13.6789765 10.5839957,13.1810495 L10.5839957,9.57474321 C10.5839957,9.07681622 10.1794605,8.67316663 9.68044104,8.67316663 C5.44083962,8.67813472 2.00520525,12.1062476 2.00022626,16.3365675 C1.98771579,17.9546233 2.49430163,19.5342383 3.44591375,20.8444504 C3.61458557,21.0808398 5.05966461,19.9481604 4.91870788,19.7535427 C4.19555103,18.760421 3.80646351,17.5641499 3.80733562,16.3365675 C3.81165144,13.4484211 5.91803869,10.991254 8.77688636,10.5394301 L8.77688636,12.3425833 C6.70706914,12.8134053 5.34862709,14.7938709 5.65804701,16.8895228 C5.96746693,18.9851748 7.84059425,20.4905907 9.95854931,20.3457987 C12.0765044,20.2010067 13.7263573,18.4547454 13.7464371,16.3365675 L13.7464371,1.80315315 L15.6167953,1.80315315 C16.0103639,4.20249558 18.0864975,5.96506252 20.5230972,5.96843692 C20.7496837,5.96688212 20.975975,5.95182905 21.2007632,5.92335809 L21.2007632,7.67241664 C19.7293748,7.92650626 18.2152284,7.66195137 16.917914,6.92410808 C16.6383532,6.76305694 16.2939201,6.76305694 16.0143593,6.92410808 C15.7336844,7.0857977 15.5612953,7.38509793 15.562582,7.7084797 L15.562582,16.3365675 C15.5580692,18.2941869 14.5756972,20.1206948 12.9432814,21.2065896 C11.9060301,21.8965766 10.6930991,22.229824 9.48148608,22.189012 C8.78627447,22.1655944 8.08246121,22.0477035 7.42155434,21.774707 C7.12504167,21.5395062 5.484375,20.8444504 4.91870788,19.7535427 C4.66351437,19.2613936 3.0238563,20.6306805 3.44591375,20.8444504 C4.91870788,23.1351563 7.99726562,23.9999684 9.69851213,23.9999684 C13.7074483,23.9999684 17.0406982,20.9190082 17.3606558,16.931608 C17.3657425,16.8836579 17.3657425,16.8353059 17.3606558,16.7873558 L17.3606558,9.10592339 C18.9684136,9.66657941 20.7106733,9.71696914 22.3482777,9.25017564 C22.7469793,9.13449784 23.0153499,8.76257691 22.998837,8.34859907 L22.998837,4.7873716 C23.0148813,4.47165088 22.8640303,4.17060935 22.601273,3.99398422 Z" /></svg>',
 
 			'twitch'     => '<svg width="24" height="24" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M16.499,8.089h-1.636v4.91h1.636V8.089z M12,8.089h-1.637v4.91H12V8.089z M4.228,3.178L3,6.451v13.092h4.499V22h2.456 l2.454-2.456h3.681L21,14.636V3.178H4.228z M19.364,13.816l-2.864,2.865H12l-2.453,2.453V16.68H5.863V4.814h13.501V13.816z"></path></svg>',
 

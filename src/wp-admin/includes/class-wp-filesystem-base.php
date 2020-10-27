@@ -55,11 +55,13 @@ class WP_Filesystem_Base {
 	 */
 	public function abspath() {
 		$folder = $this->find_folder( ABSPATH );
+
 		// Perhaps the FTP folder is rooted at the WordPress install.
 		// Check for wp-includes folder in root. Could have some false positives, but rare.
 		if ( ! $folder && $this->is_dir( '/' . WPINC ) ) {
 			$folder = '/';
 		}
+
 		return $folder;
 	}
 
@@ -98,7 +100,7 @@ class WP_Filesystem_Base {
 		$theme_root = get_theme_root( $theme );
 
 		// Account for relative theme roots.
-		if ( '/themes' == $theme_root || ! is_dir( $theme_root ) ) {
+		if ( '/themes' === $theme_root || ! is_dir( $theme_root ) ) {
 			$theme_root = WP_CONTENT_DIR . $theme_root;
 		}
 
@@ -120,12 +122,12 @@ class WP_Filesystem_Base {
 	 * Locates a folder on the remote filesystem.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 2.7.0 use WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir() instead.
-	 * @see WP_Filesystem::abspath()
-	 * @see WP_Filesystem::wp_content_dir()
-	 * @see WP_Filesystem::wp_plugins_dir()
-	 * @see WP_Filesystem::wp_themes_dir()
-	 * @see WP_Filesystem::wp_lang_dir()
+	 * @deprecated 2.7.0 use WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir() instead.
+	 * @see WP_Filesystem_Base::abspath()
+	 * @see WP_Filesystem_Base::wp_content_dir()
+	 * @see WP_Filesystem_Base::wp_plugins_dir()
+	 * @see WP_Filesystem_Base::wp_themes_dir()
+	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
 	 * @param string $base The folder to start searching from.
 	 * @param bool   $echo True to display debug information.
@@ -133,7 +135,7 @@ class WP_Filesystem_Base {
 	 * @return string The location of the remote path.
 	 */
 	public function find_base_dir( $base = '.', $echo = false ) {
-		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir()' );
+		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
 		$this->verbose = $echo;
 		return $this->abspath();
 	}
@@ -142,19 +144,19 @@ class WP_Filesystem_Base {
 	 * Locates a folder on the remote filesystem.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 2.7.0 use WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir() methods instead.
-	 * @see WP_Filesystem::abspath()
-	 * @see WP_Filesystem::wp_content_dir()
-	 * @see WP_Filesystem::wp_plugins_dir()
-	 * @see WP_Filesystem::wp_themes_dir()
-	 * @see WP_Filesystem::wp_lang_dir()
+	 * @deprecated 2.7.0 use WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir() methods instead.
+	 * @see WP_Filesystem_Base::abspath()
+	 * @see WP_Filesystem_Base::wp_content_dir()
+	 * @see WP_Filesystem_Base::wp_plugins_dir()
+	 * @see WP_Filesystem_Base::wp_themes_dir()
+	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
 	 * @param string $base The folder to start searching from.
 	 * @param bool   $echo True to display debug information.
 	 * @return string The location of the remote path.
 	 */
 	public function get_base_dir( $base = '.', $echo = false ) {
-		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir()' );
+		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
 		$this->verbose = $echo;
 		return $this->abspath();
 	}
@@ -188,6 +190,7 @@ class WP_Filesystem_Base {
 				if ( ! defined( $constant ) ) {
 					continue;
 				}
+
 				if ( $folder === $dir ) {
 					return trailingslashit( constant( $constant ) );
 				}
@@ -198,18 +201,21 @@ class WP_Filesystem_Base {
 				if ( ! defined( $constant ) ) {
 					continue;
 				}
+
 				if ( 0 === stripos( $folder, $dir ) ) { // $folder starts with $dir.
 					$potential_folder = preg_replace( '#^' . preg_quote( $dir, '#' ) . '/#i', trailingslashit( constant( $constant ) ), $folder );
 					$potential_folder = trailingslashit( $potential_folder );
 
 					if ( $this->is_dir( $potential_folder ) ) {
 						$this->cache[ $folder ] = $potential_folder;
+
 						return $potential_folder;
 					}
 				}
 			}
-		} elseif ( 'direct' == $this->method ) {
+		} elseif ( 'direct' === $this->method ) {
 			$folder = str_replace( '\\', '/', $folder ); // Windows path sanitisation.
+
 			return trailingslashit( $folder );
 		}
 
@@ -223,12 +229,16 @@ class WP_Filesystem_Base {
 		if ( $this->exists( $folder ) ) { // Folder exists at that absolute path.
 			$folder                 = trailingslashit( $folder );
 			$this->cache[ $folder ] = $folder;
+
 			return $folder;
 		}
+
 		$return = $this->search_for_folder( $folder );
+
 		if ( $return ) {
 			$this->cache[ $folder ] = $return;
 		}
+
 		return $return;
 	}
 
@@ -245,7 +255,7 @@ class WP_Filesystem_Base {
 	 * @return string|false The location of the remote path, false to cease looping.
 	 */
 	public function search_for_folder( $folder, $base = '.', $loop = false ) {
-		if ( empty( $base ) || '.' == $base ) {
+		if ( empty( $base ) || '.' === $base ) {
 			$base = trailingslashit( $this->cwd() );
 		}
 
@@ -279,6 +289,7 @@ class WP_Filesystem_Base {
 
 				// Let's try that folder:
 				$newdir = trailingslashit( path_join( $base, $key ) );
+
 				if ( $this->verbose ) {
 					/* translators: %s: Directory name. */
 					printf( "\n" . __( 'Changing to %s' ) . "<br/>\n", $newdir );
@@ -287,6 +298,7 @@ class WP_Filesystem_Base {
 				// Only search for the remaining path tokens in the directory, not the full path again.
 				$newfolder = implode( '/', array_slice( $folder_parts, $index + 1 ) );
 				$ret       = $this->search_for_folder( $newfolder, $newdir, $loop );
+
 				if ( $ret ) {
 					return $ret;
 				}
@@ -300,12 +312,13 @@ class WP_Filesystem_Base {
 				/* translators: %s: Directory name. */
 				printf( "\n" . __( 'Found %s' ) . "<br/>\n", $base . $last_path );
 			}
+
 			return trailingslashit( $base . $last_path );
 		}
 
 		// Prevent this function from looping again.
 		// No need to proceed if we've just searched in `/`.
-		if ( $loop || '/' == $base ) {
+		if ( $loop || '/' === $base ) {
 			return false;
 		}
 
@@ -329,6 +342,7 @@ class WP_Filesystem_Base {
 	 */
 	public function gethchmod( $file ) {
 		$perms = intval( $this->getchmod( $file ), 8 );
+
 		if ( ( $perms & 0xC000 ) == 0xC000 ) { // Socket.
 			$info = 's';
 		} elseif ( ( $perms & 0xA000 ) == 0xA000 ) { // Symbolic Link.
@@ -367,6 +381,7 @@ class WP_Filesystem_Base {
 		$info .= ( ( $perms & 0x0001 ) ?
 					( ( $perms & 0x0200 ) ? 't' : 'x' ) :
 					( ( $perms & 0x0200 ) ? 'T' : '-' ) );
+
 		return $info;
 	}
 
@@ -401,7 +416,8 @@ class WP_Filesystem_Base {
 		$attarray = preg_split( '//', $mode );
 
 		for ( $i = 0, $c = count( $attarray ); $i < $c; $i++ ) {
-			$key = array_search( $attarray[ $i ], $legal );
+			$key = array_search( $attarray[ $i ], $legal, true );
+
 			if ( $key ) {
 				$realmode .= $legal[ $key ];
 			}
@@ -420,6 +436,7 @@ class WP_Filesystem_Base {
 		$newmode .= $mode[1] + $mode[2] + $mode[3];
 		$newmode .= $mode[4] + $mode[5] + $mode[6];
 		$newmode .= $mode[7] + $mode[8] + $mode[9];
+
 		return $newmode;
 	}
 

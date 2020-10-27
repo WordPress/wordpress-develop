@@ -331,7 +331,8 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 */
 	public function test_failure_with_invalid_nonce() {
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 
 		$this->_make_ajax_call(
 			array(
@@ -784,7 +785,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 * @param  string $email_address The comment author email address.
 	 * @param  int    $page          Page number.
 	 *
-	 * @return array  $return Erase data.
+	 * @return array Erase data.
 	 */
 	public function callback_personal_data_eraser( $email_address, $page = 1 ) {
 		if ( 1 === $page ) {

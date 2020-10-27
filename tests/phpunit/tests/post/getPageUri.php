@@ -16,7 +16,7 @@ class Tests_Post_getPageUri extends WP_UnitTestCase {
 		unset( $post_array->ancestors );
 
 		// Dummy assertion. If this test fails, it will actually error out on an E_WARNING.
-		$this->assertEquals( 'get-page-uri-post-name', get_page_uri( $post_array ) );
+		$this->assertSame( 'get-page-uri-post-name', get_page_uri( $post_array ) );
 	}
 
 	/**
@@ -41,14 +41,14 @@ class Tests_Post_getPageUri extends WP_UnitTestCase {
 		);
 
 		// Check the parent for good measure.
-		$this->assertEquals( 'parent', get_page_uri( $parent_id ) );
+		$this->assertSame( 'parent', get_page_uri( $parent_id ) );
 
 		// Try the child normally.
-		$this->assertEquals( 'parent/child', get_page_uri( $child_id ) );
+		$this->assertSame( 'parent/child', get_page_uri( $child_id ) );
 
 		// Now delete the parent from the database and check.
 		wp_delete_post( $parent_id, true );
-		$this->assertEquals( 'child', get_page_uri( $child_id ) );
+		$this->assertSame( 'child', get_page_uri( $child_id ) );
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Tests_Post_getPageUri extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 'child', get_page_uri( $child_id ) );
+		$this->assertSame( 'child', get_page_uri( $child_id ) );
 	}
 
 	/**
@@ -86,6 +86,6 @@ class Tests_Post_getPageUri extends WP_UnitTestCase {
 		);
 		$post    = get_post( $post_id );
 		$this->go_to( get_permalink( $post_id ) );
-		$this->assertEquals( 'blood-orange-announces-summer-tour-dates', get_page_uri() );
+		$this->assertSame( 'blood-orange-announces-summer-tour-dates', get_page_uri() );
 	}
 }

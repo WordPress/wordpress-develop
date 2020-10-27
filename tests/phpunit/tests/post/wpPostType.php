@@ -22,14 +22,14 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_supports();
 		$post_type_supports_after = get_all_post_type_supports( $post_type );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'title'  => true,
 				'editor' => true,
 			),
 			$post_type_supports
 		);
-		$this->assertEqualSets( array(), $post_type_supports_after );
+		$this->assertSameSets( array(), $post_type_supports_after );
 	}
 
 	public function test_add_supports_custom() {
@@ -51,7 +51,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_supports();
 		$post_type_supports_after = get_all_post_type_supports( $post_type );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'editor'    => true,
 				'comments'  => true,
@@ -59,7 +59,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 			),
 			$post_type_supports
 		);
-		$this->assertEqualSets( array(), $post_type_supports_after );
+		$this->assertSameSets( array(), $post_type_supports_after );
 	}
 
 	/**
@@ -88,7 +88,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 		$post_type_object->remove_supports();
 		$post_type_supports_after = get_all_post_type_supports( $post_type );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'support_with_args'    => array(
 					array(
@@ -100,7 +100,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 			),
 			$post_type_supports
 		);
-		$this->assertEqualSets( array(), $post_type_supports_after );
+		$this->assertSameSets( array(), $post_type_supports_after );
 	}
 
 	public function test_does_not_add_query_var_if_not_public() {
@@ -213,7 +213,7 @@ class Tests_WP_Post_Type extends WP_UnitTestCase {
 
 		unset( $wp_post_types[ $post_type ] );
 
-		$this->assertEqualSets( array( 'post_tag' ), $taxonomies );
-		$this->assertEqualSets( array(), $taxonomies_after );
+		$this->assertSameSets( array( 'post_tag' ), $taxonomies );
+		$this->assertSameSets( array(), $taxonomies_after );
 	}
 }

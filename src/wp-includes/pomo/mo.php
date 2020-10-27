@@ -13,7 +13,7 @@ require_once __DIR__ . '/streams.php';
 if ( ! class_exists( 'MO', false ) ) :
 	class MO extends Gettext_Translations {
 
-		var $_nplurals = 2;
+		public $_nplurals = 2;
 
 		/**
 		 * Loaded MO file.
@@ -221,7 +221,7 @@ if ( ! class_exists( 'MO', false ) ) :
 			}
 			$reader->setEndian( $endian_string );
 
-			$endian = ( 'big' == $endian_string ) ? 'N' : 'V';
+			$endian = ( 'big' === $endian_string ) ? 'N' : 'V';
 
 			$header = $reader->read( 24 );
 			if ( $reader->strlen( $header ) != 24 ) {

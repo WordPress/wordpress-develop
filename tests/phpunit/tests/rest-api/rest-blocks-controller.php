@@ -133,7 +133,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 				);
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				break;
 
@@ -141,7 +141,7 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 				$request = new WP_REST_Request( 'GET', '/wp/v2/blocks/' . self::$post_id );
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				break;
 
@@ -165,12 +165,12 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 				);
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				$request = new WP_REST_Request( 'DELETE', '/wp/v2/blocks/' . $post_id );
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				wp_delete_post( $post_id );
 
@@ -186,12 +186,12 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 				);
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				$request = new WP_REST_Request( 'DELETE', '/wp/v2/blocks/' . self::$post_id );
 
 				$response = rest_get_server()->dispatch( $request );
-				$this->assertEquals( $expected_status, $response->get_status() );
+				$this->assertSame( $expected_status, $response->get_status() );
 
 				break;
 
@@ -212,13 +212,13 @@ class REST_Blocks_Controller_Test extends WP_UnitTestCase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'raw' => 'My cool block',
 			),
 			$data['title']
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'raw'       => '<!-- wp:paragraph --><p>Hello!</p><!-- /wp:paragraph -->',
 				'protected' => false,

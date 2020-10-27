@@ -449,7 +449,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/**
-			 * Filter whether comments can be created without authentication.
+			 * Filters whether comments can be created without authentication.
 			 *
 			 * Enables creating comments for anonymous users.
 			 *
@@ -585,13 +585,13 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			return $prepared_comment;
 		}
 
-		$prepared_comment['comment_type'] = '';
+		$prepared_comment['comment_type'] = 'comment';
 
-		/*
-		 * Do not allow a comment to be created with missing or empty
-		 * comment_content. See wp_handle_comment_submission().
-		 */
-		if ( empty( $prepared_comment['comment_content'] ) ) {
+		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+			$prepared_comment['comment_content'] = '';
+		}
+
+		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
 			return new WP_Error(
 				'rest_comment_content_invalid',
 				__( 'Invalid comment content.' ),
@@ -682,11 +682,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * Filters a comment before it is inserted via the REST API.
 		 *
 		 * Allows modification of the comment right before it is inserted via wp_insert_comment().
-		 * Returning a WP_Error value from the filter will shortcircuit insertion and allow
+		 * Returning a WP_Error value from the filter will short-circuit insertion and allow
 		 * skipping further processing.
 		 *
 		 * @since 4.7.0
-		 * @since 4.8.0 `$prepared_comment` can now be a WP_Error to shortcircuit insertion.
+		 * @since 4.8.0 `$prepared_comment` can now be a WP_Error to short-circuit insertion.
 		 *
 		 * @param array|WP_Error  $prepared_comment The prepared comment data for wp_insert_comment().
 		 * @param WP_REST_Request $request          Request used to insert the comment.
@@ -868,9 +868,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 				);
 			}
 
-			$updated = wp_update_comment( wp_slash( (array) $prepared_args ) );
+			$updated = wp_update_comment( wp_slash( (array) $prepared_args ), true );
 
-			if ( false === $updated ) {
+			if ( is_wp_error( $updated ) ) {
 				return new WP_Error(
 					'rest_comment_failed_edit',
 					__( 'Updating comment failed.' ),
@@ -1159,14 +1159,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( 0 !== (int) $comment->comment_post_ID ) {
-			$post = get_post( $comment->comment_post_ID );
+			$post       = get_post( $comment->comment_post_ID );
+			$post_route = rest_get_route_for_post( $post );
 
-			if ( ! empty( $post->ID ) ) {
-				$obj  = get_post_type_object( $post->post_type );
-				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
-
+			if ( ! empty( $post->ID ) && $post_route ) {
 				$links['up'] = array(
-					'href'       => rest_url( 'wp/v2/' . $base . '/' . $comment->comment_post_ID ),
+					'href'       => rest_url( $post_route ),
 					'embeddable' => true,
 					'post_type'  => $post->post_type,
 				);
@@ -1282,9 +1280,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * the 'content.raw' properties of the Request object.
 		 */
 		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+			$prepared_comment['comment_content'] = trim( $request['content'] );
 		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
-			$prepared_comment['comment_content'] = $request['content']['raw'];
+			$prepared_comment['comment_content'] = trim( $request['content']['raw'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -1676,7 +1674,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the comments controller.
+		 * Filters collection parameters for the comments controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_Comment_Query parameter. Use the
@@ -1774,7 +1772,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( post_password_required( $post ) ) {
-			$result = current_user_can( $post_type->cap->edit_post, $post->ID );
+			$result = current_user_can( 'edit_post', $post->ID );
 		} else {
 			$result = $posts_controller->check_read_permission( $post );
 		}
@@ -1867,5 +1865,40 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return $email;
+	}
+
+	/**
+	 * If empty comments are not allowed, checks if the provided comment content is not empty.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $prepared_comment The prepared comment data.
+	 * @return bool True if the content is allowed, false otherwise.
+	 */
+	protected function check_is_comment_content_allowed( $prepared_comment ) {
+		$check = wp_parse_args(
+			$prepared_comment,
+			array(
+				'comment_post_ID'      => 0,
+				'comment_parent'       => 0,
+				'user_ID'              => 0,
+				'comment_author'       => null,
+				'comment_author_email' => null,
+				'comment_author_url'   => null,
+			)
+		);
+
+		/** This filter is documented in wp-includes/comment.php */
+		$allow_empty = apply_filters( 'allow_empty_comment', false, $check );
+
+		if ( $allow_empty ) {
+			return true;
+		}
+
+		/*
+		 * Do not allow a comment to be created with missing or empty
+		 * comment_content. See wp_handle_comment_submission().
+		 */
+		return '' !== $check['comment_content'];
 	}
 }

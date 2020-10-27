@@ -130,6 +130,22 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51370
+	 */
+	public function test_include_selected_with_non_existing_user_id() {
+		$found = wp_dropdown_users(
+			array(
+				'echo'             => false,
+				'selected'         => PHP_INT_MAX,
+				'include_selected' => true,
+				'show'             => 'user_login',
+			)
+		);
+
+		$this->assertNotContains( (string) PHP_INT_MAX, $found );
+	}
+
+	/**
 	 * @ticket 38135
 	 */
 	public function test_role() {

@@ -17,6 +17,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 	 * actions on users who aren't signed in.
 	 *
 	 * @since 2.0.3
+	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
 	 * @param int    $id   User ID
@@ -158,7 +159,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 *
 	 * @since 1.2.1
 	 *
-	 * @global PHPMailer $phpmailer
+	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
 	 * @param string|array $to          Array or comma-separated list of email addresses to send message.
 	 * @param string       $subject     Email subject
@@ -210,10 +211,15 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		global $phpmailer;
 
 		// (Re)create it, if it's gone missing.
-		if ( ! ( $phpmailer instanceof PHPMailer ) ) {
-			require_once ABSPATH . WPINC . '/class-phpmailer.php';
-			require_once ABSPATH . WPINC . '/class-smtp.php';
-			$phpmailer = new PHPMailer( true );
+		if ( ! ( $phpmailer instanceof PHPMailer\PHPMailer\PHPMailer ) ) {
+			require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/SMTP.php';
+			require_once ABSPATH . WPINC . '/PHPMailer/Exception.php';
+			$phpmailer = new PHPMailer\PHPMailer\PHPMailer( true );
+
+			$phpmailer::$validator = static function ( $email ) {
+				return (bool) is_email( $email );
+			};
 		}
 
 		// Headers.
@@ -328,8 +334,8 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 */
 		if ( ! isset( $from_email ) ) {
 			// Get the site domain and get rid of www.
-			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
-			if ( substr( $sitename, 0, 4 ) == 'www.' ) {
+			$sitename = wp_parse_url( network_home_url(), PHP_URL_HOST );
+			if ( 'www.' === substr( $sitename, 0, 4 ) ) {
 				$sitename = substr( $sitename, 4 );
 			}
 
@@ -356,7 +362,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 
 		try {
 			$phpmailer->setFrom( $from_email, $from_name, false );
-		} catch ( phpmailerException $e ) {
+		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
 
@@ -404,7 +410,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 							$phpmailer->addReplyTo( $address, $recipient_name );
 							break;
 					}
-				} catch ( phpmailerException $e ) {
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
 			}
@@ -432,7 +438,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		$phpmailer->ContentType = $content_type;
 
 		// Set whether it's plaintext, depending on $content_type.
-		if ( 'text/html' == $content_type ) {
+		if ( 'text/html' === $content_type ) {
 			$phpmailer->isHTML( true );
 		}
 
@@ -455,12 +461,16 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( (array) $headers as $name => $content ) {
 				// Only add custom headers not added automatically by PHPMailer.
 				if ( ! in_array( $name, array( 'MIME-Version', 'X-Mailer' ), true ) ) {
-					$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					try {
+						$phpmailer->addCustomHeader( sprintf( '%1$s: %2$s', $name, $content ) );
+					} catch ( PHPMailer\PHPMailer\Exception $e ) {
+						continue;
+					}
 				}
 			}
 
 			if ( false !== stripos( $content_type, 'multipart' ) && ! empty( $boundary ) ) {
-				$phpmailer->addCustomHeader( sprintf( "Content-Type: %s;\n\t boundary=\"%s\"", $content_type, $boundary ) );
+				$phpmailer->addCustomHeader( sprintf( 'Content-Type: %s; boundary="%s"', $content_type, $boundary ) );
 			}
 		}
 
@@ -468,7 +478,7 @@ if ( ! function_exists( 'wp_mail' ) ) :
 			foreach ( $attachments as $attachment ) {
 				try {
 					$phpmailer->addAttachment( $attachment );
-				} catch ( phpmailerException $e ) {
+				} catch ( PHPMailer\PHPMailer\Exception $e ) {
 					continue;
 				}
 			}
@@ -486,17 +496,17 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		// Send!
 		try {
 			return $phpmailer->send();
-		} catch ( phpmailerException $e ) {
+		} catch ( PHPMailer\PHPMailer\Exception $e ) {
 
 			$mail_error_data                             = compact( 'to', 'subject', 'message', 'headers', 'attachments' );
 			$mail_error_data['phpmailer_exception_code'] = $e->getCode();
 
 			/**
-			 * Fires after a phpmailerException is caught.
+			 * Fires after a PHPMailer\PHPMailer\Exception is caught.
 			 *
 			 * @since 4.4.0
 			 *
-			 * @param WP_Error $error A WP_Error object with the phpmailerException message, and an array
+			 * @param WP_Error $error A WP_Error object with the PHPMailer\PHPMailer\Exception message, and an array
 			 *                        containing the mail recipient, subject, message, headers, and attachments.
 			 */
 			do_action( 'wp_mail_failed', new WP_Error( 'wp_mail_failed', $e->getMessage(), $mail_error_data ) );
@@ -573,16 +583,21 @@ if ( ! function_exists( 'wp_logout' ) ) :
 	 * @since 2.5.0
 	 */
 	function wp_logout() {
+		$user_id = get_current_user_id();
+
 		wp_destroy_current_session();
 		wp_clear_auth_cookie();
 		wp_set_current_user( 0 );
 
 		/**
-		 * Fires after a user is logged-out.
+		 * Fires after a user is logged out.
 		 *
 		 * @since 1.5.0
+		 * @since 5.5.0 Added the `$user_id` parameter.
+		 *
+		 * @param int $user_id ID of the user that was logged out.
 		 */
-		do_action( 'wp_logout' );
+		do_action( 'wp_logout', $user_id );
 	}
 endif;
 
@@ -628,7 +643,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 		$expiration = $cookie_elements['expiration'];
 
 		// Allow a grace period for POST and Ajax requests.
-		if ( wp_doing_ajax() || 'POST' == $_SERVER['REQUEST_METHOD'] ) {
+		if ( wp_doing_ajax() || 'POST' === $_SERVER['REQUEST_METHOD'] ) {
 			$expired += HOUR_IN_SECONDS;
 		}
 
@@ -1043,10 +1058,10 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 		if ( $secure && ! is_ssl() && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
 			if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
 				wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
-				exit();
+				exit;
 			} else {
 				wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-				exit();
+				exit;
 			}
 		}
 
@@ -1074,10 +1089,10 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 			if ( ! $secure && get_user_option( 'use_ssl', $user_id ) && false !== strpos( $_SERVER['REQUEST_URI'], 'wp-admin' ) ) {
 				if ( 0 === strpos( $_SERVER['REQUEST_URI'], 'http' ) ) {
 					wp_redirect( set_url_scheme( $_SERVER['REQUEST_URI'], 'https' ) );
-					exit();
+					exit;
 				} else {
 					wp_redirect( 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] );
-					exit();
+					exit;
 				}
 			}
 
@@ -1092,7 +1107,7 @@ if ( ! function_exists( 'auth_redirect' ) ) :
 		$login_url = wp_login_url( $redirect, true );
 
 		wp_redirect( $login_url );
-		exit();
+		exit;
 	}
 endif;
 
@@ -1261,7 +1276,7 @@ if ( ! function_exists( 'wp_redirect' ) ) :
 
 		$location = wp_sanitize_redirect( $location );
 
-		if ( ! $is_IIS && PHP_SAPI != 'cgi-fcgi' ) {
+		if ( ! $is_IIS && 'cgi-fcgi' !== PHP_SAPI ) {
 			status_header( $status ); // This causes problems on IIS and some FastCGI setups.
 		}
 
@@ -1369,7 +1384,7 @@ if ( ! function_exists( 'wp_safe_redirect' ) ) :
 	 * @param string $location      The path or URL to redirect to.
 	 * @param int    $status        Optional. HTTP response status code to use. Default '302' (Moved Temporarily).
 	 * @param string $x_redirect_by Optional. The application doing the redirect. Default 'WordPress'.
-	 * @return bool  $redirect False if the redirect was cancelled, true otherwise.
+	 * @return bool False if the redirect was cancelled, true otherwise.
 	 */
 	function wp_safe_redirect( $location, $status = 302, $x_redirect_by = 'WordPress' ) {
 
@@ -1407,9 +1422,9 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 	 * @return string redirect-sanitized URL
 	 */
 	function wp_validate_redirect( $location, $default = '' ) {
-		$location = trim( $location, " \t\n\r\0\x08\x0B" );
+		$location = wp_sanitize_redirect( trim( $location, " \t\n\r\0\x08\x0B" ) );
 		// Browsers will assume 'http' is your protocol, and will obey a redirect to a URL starting with '//'.
-		if ( substr( $location, 0, 2 ) == '//' ) {
+		if ( '//' === substr( $location, 0, 2 ) ) {
 			$location = 'http:' . $location;
 		}
 
@@ -1418,8 +1433,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$cut  = strpos( $location, '?' );
 		$test = $cut ? substr( $location, 0, $cut ) : $location;
 
-		// @-operator is used to prevent possible warnings in PHP < 5.3.3.
-		$lp = @parse_url( $test );
+		$lp = parse_url( $test );
 
 		// Give up if malformed URL.
 		if ( false === $lp ) {
@@ -1427,7 +1441,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		}
 
 		// Allow only 'http' and 'https' schemes. No 'data:', etc.
-		if ( isset( $lp['scheme'] ) && ! ( 'http' == $lp['scheme'] || 'https' == $lp['scheme'] ) ) {
+		if ( isset( $lp['scheme'] ) && ! ( 'http' === $lp['scheme'] || 'https' === $lp['scheme'] ) ) {
 			return $default;
 		}
 
@@ -1456,7 +1470,7 @@ if ( ! function_exists( 'wp_validate_redirect' ) ) :
 		$wpp = parse_url( home_url() );
 
 		/**
-		 * Filters the whitelist of hosts to redirect to.
+		 * Filters the list of allowed hosts to redirect to.
 		 *
 		 * @since 2.3.0
 		 *
@@ -1479,8 +1493,8 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param int|WP_Comment  $comment_id Comment ID or WP_Comment object.
-	 * @param string          $deprecated Not used
+	 * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
+	 * @param string         $deprecated Not used
 	 * @return bool True on completion. False if no email addresses were specified.
 	 */
 	function wp_notify_postauthor( $comment_id, $deprecated = null ) {
@@ -1640,16 +1654,16 @@ if ( ! function_exists( 'wp_notify_postauthor' ) ) :
 			$notify_message .= sprintf( __( 'Spam it: %s' ), admin_url( "comment.php?action=spam&c={$comment->comment_ID}#wpbody-content" ) ) . "\r\n";
 		}
 
-		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', strtolower( $_SERVER['SERVER_NAME'] ) );
+		$wp_email = 'wordpress@' . preg_replace( '#^www\.#', '', wp_parse_url( network_home_url(), PHP_URL_HOST ) );
 
-		if ( '' == $comment->comment_author ) {
+		if ( '' === $comment->comment_author ) {
 			$from = "From: \"$blogname\" <$wp_email>";
-			if ( '' != $comment->comment_author_email ) {
+			if ( '' !== $comment->comment_author_email ) {
 				$reply_to = "Reply-To: $comment->comment_author_email";
 			}
 		} else {
 			$from = "From: \"$comment->comment_author\" <$wp_email>";
-			if ( '' != $comment->comment_author_email ) {
+			if ( '' !== $comment->comment_author_email ) {
 				$reply_to = "Reply-To: \"$comment->comment_author_email\" <$comment->comment_author_email>";
 			}
 		}
@@ -2225,9 +2239,6 @@ if ( ! function_exists( 'wp_salt' ) ) :
 	 *
 	 * @link https://api.wordpress.org/secret-key/1.1/salt/ Create secrets for wp-config.php
 	 *
-	 * @staticvar array $cached_salts
-	 * @staticvar array $duplicated_keys
-	 *
 	 * @param string $scheme Authentication scheme (auth, secure_auth, logged_in, nonce)
 	 * @return string Salt value
 	 */
@@ -2267,7 +2278,7 @@ if ( ! function_exists( 'wp_salt' ) ) :
 		if ( defined( 'SECRET_KEY' ) && SECRET_KEY && empty( $duplicated_keys[ SECRET_KEY ] ) ) {
 			$values['key'] = SECRET_KEY;
 		}
-		if ( 'auth' == $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
+		if ( 'auth' === $scheme && defined( 'SECRET_SALT' ) && SECRET_SALT && empty( $duplicated_keys[ SECRET_SALT ] ) ) {
 			$values['salt'] = SECRET_SALT;
 		}
 
@@ -2361,7 +2372,7 @@ if ( ! function_exists( 'wp_check_password' ) ) :
 	 * @since 2.5.0
 	 *
 	 * @global PasswordHash $wp_hasher PHPass object used for checking the password
-	 *  against the $hash + $password
+	 *                                 against the $hash + $password
 	 * @uses PasswordHash::CheckPassword
 	 *
 	 * @param string     $password Plaintext user's password
@@ -2462,8 +2473,6 @@ if ( ! function_exists( 'wp_rand' ) ) :
 	 * @since 4.4.0 Uses PHP7 random_int() or the random_compat library if available.
 	 *
 	 * @global string $rnd_value
-	 * @staticvar string $seed
-	 * @staticvar bool $use_random_int_functionality
 	 *
 	 * @param int $min Lower limit for the generated number
 	 * @param int $max Upper limit for the generated number
@@ -2531,7 +2540,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 			$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
 		}
 
-		return abs( intval( $value ) );
+		return abs( (int) $value );
 	}
 endif;
 
@@ -2577,17 +2586,17 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 * @since 2.5.0
 	 * @since 4.2.0 Optional `$args` parameter added.
 	 *
-	 * @param mixed $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
-	 *                           user email, WP_User object, WP_Post object, or WP_Comment object.
-	 * @param int    $size       Optional. Height and width of the avatar image file in pixels. Default 96.
-	 * @param string $default    Optional. URL for the default image or a default type. Accepts '404'
-	 *                           (return a 404 instead of a default image), 'retro' (8bit), 'monsterid'
-	 *                           (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
-	 *                           'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
-	 *                           or 'gravatar_default' (the Gravatar logo). Default is the value of the
-	 *                           'avatar_default' option, with a fallback of 'mystery'.
-	 * @param string $alt        Optional. Alternative text to use in &lt;img&gt; tag. Default empty.
-	 * @param array  $args       {
+	 * @param mixed  $id_or_email The Gravatar to retrieve. Accepts a user_id, gravatar md5 hash,
+	 *                            user email, WP_User object, WP_Post object, or WP_Comment object.
+	 * @param int    $size        Optional. Height and width of the avatar image file in pixels. Default 96.
+	 * @param string $default     Optional. URL for the default image or a default type. Accepts '404'
+	 *                            (return a 404 instead of a default image), 'retro' (8bit), 'monsterid'
+	 *                            (monster), 'wavatar' (cartoon face), 'indenticon' (the "quilt"),
+	 *                            'mystery', 'mm', or 'mysteryman' (The Oyster Man), 'blank' (transparent GIF),
+	 *                            or 'gravatar_default' (the Gravatar logo). Default is the value of the
+	 *                            'avatar_default' option, with a fallback of 'mystery'.
+	 * @param string $alt         Optional. Alternative text to use in img tag. Default empty.
+	 * @param array  $args {
 	 *     Optional. Extra arguments to retrieve the avatar.
 	 *
 	 *     @type int          $height        Display height of the avatar in pixels. Defaults to $size.
@@ -2597,10 +2606,12 @@ if ( ! function_exists( 'get_avatar' ) ) :
 	 *                                       judged in that order. Default is the value of the 'avatar_rating' option.
 	 *     @type string       $scheme        URL scheme to use. See set_url_scheme() for accepted values.
 	 *                                       Default null.
-	 *     @type array|string $class         Array or string of additional classes to add to the &lt;img&gt; element.
+	 *     @type array|string $class         Array or string of additional classes to add to the img element.
 	 *                                       Default null.
 	 *     @type bool         $force_display Whether to always show the avatar - ignores the show_avatars option.
 	 *                                       Default false.
+	 *     @type string       $loading       Value for the `loading` attribute.
+	 *                                       Default null.
 	 *     @type string       $extra_attr    HTML attributes to insert in the IMG element. Is not sanitized. Default empty.
 	 * }
 	 * @return string|false `<img>` tag for the user's avatar. False on failure.
@@ -2618,8 +2629,13 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			'alt'           => '',
 			'class'         => null,
 			'force_display' => false,
+			'loading'       => null,
 			'extra_attr'    => '',
 		);
+
+		if ( wp_lazy_loading_enabled( 'img', 'get_avatar' ) ) {
+			$defaults['loading'] = 'lazy';
+		}
 
 		if ( empty( $args ) ) {
 			$args = array();
@@ -2690,15 +2706,27 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			}
 		}
 
+		// Add `loading` attribute.
+		$extra_attr = $args['extra_attr'];
+		$loading    = $args['loading'];
+
+		if ( in_array( $loading, array( 'lazy', 'eager' ), true ) && ! preg_match( '/\bloading\s*=/', $extra_attr ) ) {
+			if ( ! empty( $extra_attr ) ) {
+				$extra_attr .= ' ';
+			}
+
+			$extra_attr .= "loading='{$loading}'";
+		}
+
 		$avatar = sprintf(
 			"<img alt='%s' src='%s' srcset='%s' class='%s' height='%d' width='%d' %s/>",
 			esc_attr( $args['alt'] ),
 			esc_url( $url ),
 			esc_url( $url2x ) . ' 2x',
-			esc_attr( join( ' ', $class ) ),
+			esc_attr( implode( ' ', $class ) ),
 			(int) $args['height'],
 			(int) $args['width'],
-			$args['extra_attr']
+			$extra_attr
 		);
 
 		/**
@@ -2807,4 +2835,3 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 		return $r;
 	}
 endif;
-
