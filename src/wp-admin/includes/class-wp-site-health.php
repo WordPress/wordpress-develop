@@ -2112,6 +2112,10 @@ class WP_Site_Health {
 
 		$result['status'] = 'recommended';
 
+		if ( ! function_exists( 'got_mod_rewrite' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/misc.php';
+		}
+
 		if ( got_mod_rewrite() ) {
 			$result['actions'] .= sprintf(
 				'<p><a href="%s">%s</a></p>',
