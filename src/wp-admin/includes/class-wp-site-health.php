@@ -2234,7 +2234,7 @@ class WP_Site_Health {
 					'label'     => __( 'Authorization header' ),
 					'test'      => rest_url( 'wp-site-health/v1/tests/authorization-header' ),
 					'has_rest'  => true,
-					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'usr:pwd' ) ),
+					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
 					'skip_cron' => true,
 				),
 			),
