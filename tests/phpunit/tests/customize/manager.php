@@ -1161,6 +1161,171 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test saving changeset post without Kses or other content_save_pre filters mutating content.
+	 *
+	 * @covers WP_Customize_Manager::save_changeset_post()
+	 */
+	public function test_save_changeset_post_without_kses_corrupting_json() {
+		global $wp_customize;
+		$lesser_admin_user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
+
+		$uuid         = wp_generate_uuid4();
+		$wp_customize = new WP_Customize_Manager(
+			array(
+				'changeset_uuid' => $uuid,
+			)
+		);
+
+		add_filter( 'map_meta_cap', array( $this, 'filter_map_meta_cap_to_disallow_unfiltered_html' ), 10, 2 );
+		kses_init();
+		add_filter( 'content_save_pre', 'capital_P_dangit' );
+		add_post_type_support( 'customize_changeset', 'revisions' );
+
+		$options = array(
+			'custom_html_1' => '<script>document.write(" Wordpress 1")</script>',
+			'custom_html_2' => '<script>document.write(" Wordpress 2")</script>',
+			'custom_html_3' => '<script>document.write(" Wordpress 3")</script>',
+		);
+
+		// Populate setting as user who can bypass content_save_pre filter.
+		wp_set_current_user( self::$admin_user_id );
+		$wp_customize = $this->get_manager_for_testing_json_corruption_protection( $uuid );
+		$wp_customize->set_post_value( 'custom_html_1', $options['custom_html_1'] );
+		$wp_customize->save_changeset_post(
+			array(
+				'status' => 'draft',
+			)
+		);
+
+		// Populate setting as user who cannot bypass content_save_pre filter.
+		wp_set_current_user( $lesser_admin_user_id );
+		$wp_customize = $this->get_manager_for_testing_json_corruption_protection( $uuid );
+		$wp_customize->set_post_value( 'custom_html_2', $options['custom_html_2'] );
+		$wp_customize->save_changeset_post(
+			array(
+				'autosave' => true,
+			)
+		);
+
+		/*
+		 * Ensure that the unsanitized value (the "POST data") is preserved in the autosave revision.
+		 * The value is sent through the sanitize function when it is read from the changeset.
+		 */
+		$autosave_revision = wp_get_post_autosave( $wp_customize->changeset_post_id(), get_current_user_id() );
+		$saved_data        = json_decode( $autosave_revision->post_content, true );
+		$this->assertEquals( $options['custom_html_1'], $saved_data['custom_html_1']['value'] );
+		$this->assertEquals( $options['custom_html_2'], $saved_data['custom_html_2']['value'] );
+
+		// Update post to discard autosave.
+		$wp_customize->save_changeset_post(
+			array(
+				'status' => 'draft',
+			)
+		);
+
+		/*
+		 * Ensure that the unsanitized value (the "POST data") is preserved in the post content.
+		 * The value is sent through the sanitize function when it is read from the changeset.
+		 */
+		$wp_customize = $this->get_manager_for_testing_json_corruption_protection( $uuid );
+		$saved_data   = json_decode( get_post( $wp_customize->changeset_post_id() )->post_content, true );
+		$this->assertEquals( $options['custom_html_1'], $saved_data['custom_html_1']['value'] );
+		$this->assertEquals( $options['custom_html_2'], $saved_data['custom_html_2']['value'] );
+
+		/*
+		 * Ensure that the unsanitized value (the "POST data") is preserved in the revisions' content.
+		 * The value is sent through the sanitize function when it is read from the changeset.
+		 */
+		$revisions  = wp_get_post_revisions( $wp_customize->changeset_post_id() );
+		$revision   = array_shift( $revisions );
+		$saved_data = json_decode( $revision->post_content, true );
+		$this->assertEquals( $options['custom_html_1'], $saved_data['custom_html_1']['value'] );
+		$this->assertEquals( $options['custom_html_2'], $saved_data['custom_html_2']['value'] );
+
+		/*
+		 * Now when publishing the changeset, the unsanitized values will be read from the changeset
+		 * and sanitized according to the capabilities of the users who originally updated each
+		 * setting in the changeset to begin with.
+		 */
+		wp_set_current_user( $lesser_admin_user_id );
+		$wp_customize = $this->get_manager_for_testing_json_corruption_protection( $uuid );
+		$wp_customize->set_post_value( 'custom_html_3', $options['custom_html_3'] );
+		$wp_customize->save_changeset_post(
+			array(
+				'status' => 'publish',
+			)
+		);
+
+		// User saved as one who can bypass content_save_pre filter.
+		$this->assertContains( '<script>', get_option( 'custom_html_1' ) );
+		$this->assertContains( 'Wordpress', get_option( 'custom_html_1' ) ); // phpcs:ignore WordPress.WP.CapitalPDangit.Misspelled
+
+		// User saved as one who cannot bypass content_save_pre filter.
+		$this->assertNotContains( '<script>', get_option( 'custom_html_2' ) );
+		$this->assertContains( 'WordPress', get_option( 'custom_html_2' ) );
+
+		// User saved as one who also cannot bypass content_save_pre filter.
+		$this->assertNotContains( '<script>', get_option( 'custom_html_3' ) );
+		$this->assertContains( 'WordPress', get_option( 'custom_html_3' ) );
+	}
+
+	/**
+	 * Get a manager for testing JSON corruption protection.
+	 *
+	 * @param string $uuid UUID.
+	 * @return WP_Customize_Manager Manager.
+	 */
+	private function get_manager_for_testing_json_corruption_protection( $uuid ) {
+		global $wp_customize;
+		$wp_customize = new WP_Customize_Manager(
+			array(
+				'changeset_uuid' => $uuid,
+			)
+		);
+		for ( $i = 0; $i < 5; $i++ ) {
+			$wp_customize->add_setting(
+				sprintf( 'custom_html_%d', $i ),
+				array(
+					'type'              => 'option',
+					'sanitize_callback' => array( $this, 'apply_content_save_pre_filters_if_not_main_admin_user' ),
+				)
+			);
+		}
+		return $wp_customize;
+	}
+
+	/**
+	 * Sanitize content with Kses if the current user is not the main admin.
+	 *
+	 * @since 5.4.1
+	 *
+	 * @param string $content Content to sanitize.
+	 * @return string Sanitized content.
+	 */
+	public function apply_content_save_pre_filters_if_not_main_admin_user( $content ) {
+		if ( get_current_user_id() !== self::$admin_user_id ) {
+			$content = apply_filters( 'content_save_pre', $content );
+		}
+		return $content;
+	}
+
+	/**
+	 * Filter map_meta_cap to disallow unfiltered_html.
+	 *
+	 * @since 5.4.1
+	 *
+	 * @param array  $caps User's capabilities.
+	 * @param string $cap  Requested cap.
+	 * @return array Caps.
+	 */
+	public function filter_map_meta_cap_to_disallow_unfiltered_html( $caps, $cap ) {
+		if ( 'unfiltered_html' === $cap ) {
+			$caps = array( 'do_not_allow' );
+		}
+		return $caps;
+	}
+
+	/**
 	 * Call count for customize_changeset_save_data filter.
 	 *
 	 * @var int

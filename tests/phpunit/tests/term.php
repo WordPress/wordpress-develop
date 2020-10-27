@@ -194,18 +194,6 @@ class Tests_Term extends WP_UnitTestCase {
 		$this->assertEquals( 0, sanitize_term_field( 'parent', '', $term['term_id'], $this->taxonomy, 'raw' ) );
 	}
 
-	private function assertPostHasTerms( $post_id, $expected_term_ids, $taxonomy ) {
-		$assigned_term_ids = wp_get_object_terms(
-			$post_id,
-			$taxonomy,
-			array(
-				'fields' => 'ids',
-			)
-		);
-
-		$this->assertEquals( $expected_term_ids, $assigned_term_ids );
-	}
-
 	/**
 	 * @ticket 19205
 	 */

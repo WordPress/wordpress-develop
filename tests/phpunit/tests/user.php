@@ -977,7 +977,7 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertEquals( $u, wp_cache_get( $updated_user->user_nicename, 'userslugs' ) );
 	}
 
-	function test_changing_email_invalidates_password_reset_key() {
+	public function test_changing_email_invalidates_password_reset_key() {
 		global $wpdb;
 
 		$user = $this->author;
@@ -1002,6 +1002,26 @@ class Tests_User extends WP_UnitTestCase {
 			'ID'            => $user->ID,
 			'user_nicename' => 'cat',
 			'user_email'    => 'foo@bar.dev',
+		);
+		wp_update_user( $userdata );
+
+		$user = get_userdata( $user->ID );
+		$this->assertEmpty( $user->user_activation_key );
+	}
+
+	public function test_changing_password_invalidates_password_reset_key() {
+		global $wpdb;
+
+		$user = $this->author;
+		$wpdb->update( $wpdb->users, array( 'user_activation_key' => 'key' ), array( 'ID' => $user->ID ) );
+		clean_user_cache( $user );
+
+		$user = get_userdata( $user->ID );
+		$this->assertEquals( 'key', $user->user_activation_key );
+
+		$userdata = array(
+			'ID'        => $user->ID,
+			'user_pass' => 'password',
 		);
 		wp_update_user( $userdata );
 
