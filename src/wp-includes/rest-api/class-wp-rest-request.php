@@ -132,7 +132,7 @@ class WP_REST_Request implements ArrayAccess {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	public function is_json_content_type() {
 		$content_type = $this->get_content_type();
