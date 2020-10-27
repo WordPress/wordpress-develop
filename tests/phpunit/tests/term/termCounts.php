@@ -699,7 +699,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 * @ticket 51630
 	 * @covers _wp_prevent_term_counting.
 	 */
-	public function test_preventing_double_counts_does_not_affect_other_objects() {
+	public function test_preventing_double_counts_does_not_affect_other_objects_with_different_term() {
 		$other_post = self::$post_ids['publish'];
 		$terms      = self::$tag_ids;
 
@@ -728,5 +728,38 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		// Term applied to secondary object.
 		$term = get_term( $terms[1] );
 		$this->assertEquals( 1, $term->count, "Count on secondary object's term incorrect." );
+	}
+
+	/**
+	 * Ensure calling `_wp_prevent_term_counting()` only affects the object on which it is called.
+	 *
+	 * @ticket 51630
+	 * @covers _wp_prevent_term_counting.
+	 */
+	public function test_preventing_double_counts_does_not_affect_other_objects_with_same_term() {
+		$other_post = self::$post_ids['publish'];
+		$terms      = self::$tag_ids;
+
+		// Filter to add tag to another post.
+		add_action(
+			'set_object_terms',
+			function() use ( $other_post, $terms ) {
+				static $avoid_recursion = false;
+				if ( ! $avoid_recursion ) {
+						$avoid_recursion = true;
+						wp_set_object_terms( $other_post, array( $terms[1] ), 'post_tag' );
+				}
+				$avoid_recursion = false;
+			}
+		);
+
+		/*
+		 * Create a post via `wp_insert_post()`.
+		 * Do not use shared fixture for this as the test relies on a new post.
+		 */
+		$post_id = $this->factory()->post->create( array( 'tags_input' => array( $terms[1] ) ) );
+		// Term applied to both objects.
+		$term = get_term( $terms[1] );
+		$this->assertEquals( 2, $term->count, 'Count on term did not increment for both objects.' );
 	}
 }
