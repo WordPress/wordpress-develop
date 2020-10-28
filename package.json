@@ -13,7 +13,7 @@
   "license": "GPL-2.0+",
   "devDependencies": {
     "autoprefixer": "^6.5.1",
-    "dotenv": "8.1.0",
+    "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
     "grunt": "~0.4.5",
     "grunt-browserify": "~5.0.0",

@@ -1204,9 +1204,9 @@
       "dev": true
     },
     "dotenv": {
-      "version": "8.1.0",
-      "from": "dotenv@8.1.0",
-      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-8.1.0.tgz",
+      "version": "8.2.0",
+      "from": "dotenv@8.2.0",
+      "resolved": "https://registry.npmjs.org/dotenv/-/dotenv-8.2.0.tgz",
       "dev": true
     },
     "dotenv-expand": {
