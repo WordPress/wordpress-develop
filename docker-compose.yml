@@ -93,7 +93,7 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHP-7.2-fpm}
+    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-7.2-fpm}
 
     networks:
       - wpdevnet
