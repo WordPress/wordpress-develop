@@ -2955,7 +2955,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 	}
 
 	if ( ! empty( $wheres ) ) {
-		$where = ' AND (' . join( ' OR ', $wheres ) . ') ';
+		$where = ' AND (' . implode( ' OR ', $wheres ) . ') ';
 	}
 
 	return $where;
@@ -4091,7 +4091,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 			if ( ! empty( $tax_object->default_term ) ) {
 
 				// Filter out empty terms.
-				if ( isset( $postarr['tax_input'] ) && is_array( $postarr['tax_input'][ $taxonomy ] ) ) {
+				if ( isset( $postarr['tax_input'][ $taxonomy ] ) && is_array( $postarr['tax_input'][ $taxonomy ] ) ) {
 					$postarr['tax_input'][ $taxonomy ] = array_filter( $postarr['tax_input'][ $taxonomy ] );
 				}
 
@@ -4897,7 +4897,7 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	/**
 	 * Fires when a post is transitioned from one status to another.
 	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$old status`,
+	 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
 	 * refer to the old and new post statuses, respectively.
 	 *
 	 * @since 2.3.0
@@ -5914,7 +5914,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	$file         = get_attached_file( $post_id );
 
 	if ( is_multisite() ) {
-		delete_transient( 'dirsize_cache' );
+		invalidate_dirsize_cache( $file );
 	}
 
 	/**
@@ -7466,7 +7466,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'posts' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", join( ',', $non_cached_ids ) ) );
+		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
 		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
 	}

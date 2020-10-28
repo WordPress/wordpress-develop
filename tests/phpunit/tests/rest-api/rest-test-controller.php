@@ -128,6 +128,42 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					),
 					'minProperties'        => 1,
 					'maxProperties'        => 10,
+					'anyOf'                => array(
+						array(
+							'properties' => array(
+								'object_id' => array(
+									'type'    => 'integer',
+									'minimum' => 100,
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'object_id' => array(
+									'type'    => 'integer',
+									'maximum' => 100,
+								),
+							),
+						),
+					),
+					'oneOf'                => array(
+						array(
+							'properties' => array(
+								'object_id' => array(
+									'type'    => 'integer',
+									'minimum' => 100,
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'object_id' => array(
+									'type'    => 'integer',
+									'maximum' => 100,
+								),
+							),
+						),
+					),
 					'ignored_prop'         => 'ignored_prop',
 					'context'              => array( 'view' ),
 				),

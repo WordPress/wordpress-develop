@@ -1526,7 +1526,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
  *
  * @since 3.0.0
  *
- * @param WP_User $user User object to be cached
+ * @param object|WP_User $user User object or database row to be cached
  * @return bool|null Returns false on failure.
  */
 function update_user_caches( $user ) {
@@ -1979,7 +1979,7 @@ function wp_insert_user( $userdata ) {
 	/**
 	 * Filters user data before the record is created or updated.
 	 *
-	 * It only includes data in the wp_users table wp_user, not any user metadata.
+	 * It only includes data in the users table, not any user metadata.
 	 *
 	 * @since 4.9.0
 	 *

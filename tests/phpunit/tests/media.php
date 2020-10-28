@@ -512,8 +512,8 @@ https://w.org</a>',
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = join( ',', $ids1 );
-		$ids2_joined = join( ',', $ids2 );
+		$ids1_joined = implode( ',', $ids1 );
+		$ids2_joined = implode( ',', $ids2 );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -662,8 +662,8 @@ BLOB;
 			$ids2_srcs[] = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/' . "image$i.jpg";
 		}
 
-		$ids1_joined = join( ',', $ids1 );
-		$ids2_joined = join( ',', $ids2 );
+		$ids1_joined = implode( ',', $ids1 );
+		$ids2_joined = implode( ',', $ids2 );
 
 		$blob    = <<<BLOB
 [gallery ids="$ids1_joined"]
@@ -1341,6 +1341,24 @@ EOF;
 		);
 
 		$this->assertSame( $expected, wp_get_attachment_image( self::$large_id ) );
+	}
+
+	/**
+	 * @ticket 50801
+	 */
+	function test_wp_get_attachment_image_filter_output() {
+		$image    = image_downsize( self::$large_id, 'thumbnail' );
+		$expected = 'Override wp_get_attachment_image';
+
+		add_filter( 'wp_get_attachment_image', array( $this, 'filter_wp_get_attachment_image' ) );
+		$output = wp_get_attachment_image( self::$large_id );
+		remove_filter( 'wp_get_attachment_image', array( $this, 'filter_wp_get_attachment_image' ) );
+
+		$this->assertSame( $expected, $output );
+	}
+
+	function filter_wp_get_attachment_image() {
+		return 'Override wp_get_attachment_image';
 	}
 
 	/**

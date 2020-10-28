@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_getPageUri extends WP_UnitTestCase {
+class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22883

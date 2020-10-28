@@ -16,6 +16,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public function setUp() {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
 		parent::setUp();
 	}
@@ -574,4 +575,33 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		unlink( $ret['path'] );
 	}
 
+	/**
+	 * Test that images can be loaded and written over streams
+	 */
+	public function test_streams() {
+		stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
+		WP_Test_Stream::$data = array(
+			'Tests_Image_Editor_Imagick' => array(
+				'/read.jpg' => file_get_contents( DIR_TESTDATA . '/images/waffles.jpg' ),
+			),
+		);
+
+		$file                 = 'wptest://Tests_Image_Editor_Imagick/read.jpg';
+		$imagick_image_editor = new WP_Image_Editor_Imagick( $file );
+
+		$ret = $imagick_image_editor->load();
+		$this->assertNotWPError( $ret );
+
+		$temp_file = 'wptest://Tests_Image_Editor_Imagick/write.jpg';
+
+		$ret = $imagick_image_editor->save( $temp_file );
+		$this->assertNotWPError( $ret );
+
+		$this->assertSame( $temp_file, $ret['path'] );
+
+		if ( $temp_file !== $ret['path'] ) {
+			unlink( $ret['path'] );
+		}
+		unlink( $temp_file );
+	}
 }

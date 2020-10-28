@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_List_Pages extends WP_UnitTestCase {
+class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Editor user ID.
 	 *

@@ -162,7 +162,7 @@ if ( $action ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html( $title ) . '</h1>';
 
-			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( join( ',', $plugins ) ) );
+			$url = self_admin_url( 'update.php?action=update-selected&amp;plugins=' . urlencode( implode( ',', $plugins ) ) );
 			$url = wp_nonce_url( $url, 'bulk-update-plugins' );
 
 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
@@ -727,8 +727,13 @@ if ( ( ! is_multisite() || is_network_admin() ) && current_user_can( 'install_pl
 }
 
 if ( strlen( $s ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( urldecode( $s ) ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( urldecode( $s ) ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

@@ -85,6 +85,8 @@ jobs:
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
