@@ -1590,7 +1590,7 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  *
  * @since 5.0.0
  *
- * @return bool True if `Accepts` or `Content-Type` headers contain `application/json`.
+ * @return bool True if `Accepts` or `Content-Type` headers contain `application/json` or REST_REQUEST defined and set to true.
  *              False otherwise.
  */
 function wp_is_json_request() {
@@ -1600,6 +1600,10 @@ function wp_is_json_request() {
 	}
 
 	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+		return true;
+	}
+
+	if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 		return true;
 	}
 
