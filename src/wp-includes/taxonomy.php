@@ -3304,7 +3304,7 @@ function wp_defer_term_counting( $defer = null ) {
  */
 function _wp_prevent_term_counting( $object_id, $object_type = 'post', $new_setting = null ) {
 	static $prevent = array();
-	$object_key = "{$object_type}::{$object_id}";
+	$object_key     = "{$object_type}::{$object_id}";
 
 	if ( is_bool( $new_setting ) ) {
 		$prevent[ $object_key ] = $new_setting;
