@@ -225,7 +225,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	 */
 	$templates = apply_filters( 'get_template_part_{$slug}_templates', $templates, $slug, $name, $args );
 
-	if ( empty( $templates ) {
+	if ( empty( $templates ) ) {
 		return false;
 	}
     
