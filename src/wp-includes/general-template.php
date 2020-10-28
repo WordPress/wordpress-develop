@@ -45,7 +45,7 @@ function get_header( $name = null, $args = array() ) {
 	}
 
 	$templates[] = 'header.php';
-	
+
 	/**
 	 * Filters the array of templates to look for.
 	 *
@@ -240,7 +240,7 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 	if ( empty( $templates ) ) {
 		return false;
 	}
-    
+
 	/**
 	 * Fires before a template part is loaded.
 	 *
