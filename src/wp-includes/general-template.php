@@ -44,8 +44,17 @@ function get_header( $name = null, $args = array() ) {
 	}
 
 	$templates[] = 'header.php';
+	
+	/**
+	 * Filters the array of templates to look for.
+	 *
+	 * @param string|null $name      The name of the specialized template.
+	 * @param string[]    $templates Array of template files to search for, in order.
+	 * @param array       $args      Additional arguments passed to the template.
+	 */
+	$templates = apply_filters( 'get_header_templates', $name, $templates, $args );
 
-	if ( ! locate_template( $templates, true, true, $args ) ) {
+	if ( empty( $templates ) || ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
 }
@@ -89,7 +98,16 @@ function get_footer( $name = null, $args = array() ) {
 
 	$templates[] = 'footer.php';
 
-	if ( ! locate_template( $templates, true, true, $args ) ) {
+	/**
+	 * Filters the array of templates to look for.
+	 *
+	 * @param string|null $name      The name of the specialized template.
+	 * @param string[]    $templates Array of template files to search for, in order.
+	 * @param array       $args      Additional arguments passed to the template.
+	 */
+	$templates = apply_filters( 'get_footer_templates', $name, $templates, $args );
+
+	if ( empty( $templates ) || ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
 }
@@ -133,7 +151,16 @@ function get_sidebar( $name = null, $args = array() ) {
 
 	$templates[] = 'sidebar.php';
 
-	if ( ! locate_template( $templates, true, true, $args ) ) {
+	/**
+	 * Filters the array of templates to look for.
+	 *
+	 * @param string|null $name      The name of the specialized template.
+	 * @param string[]    $templates Array of template files to search for, in order.
+	 * @param array       $args      Additional arguments passed to the template.
+	 */
+	$templates = apply_filters( 'get_sidebar_templates', $name, $templates, $args );
+
+	if ( empty( $templates ) || ! locate_template( $templates, true, true, $args ) ) {
 		return false;
 	}
 }
@@ -188,6 +215,20 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 
 	$templates[] = "{$slug}.php";
 
+	/**
+	 * Filters the array of templates to look for.
+	 *
+	 * @param string      $slug      The slug name for the generic template.
+	 * @param string|null $name      The name of the specialized template.
+	 * @param string[]    $templates Array of template files to search for, in order.
+	 * @param array       $args      Additional arguments passed to the template.
+	 */
+	$templates = apply_filters( 'get_template_part_{$slug}_templates', $slug, $name, $templates, $args );
+
+	if ( empty( $templates ) {
+		return false;
+	}
+    
 	/**
 	 * Fires before a template part is loaded.
 	 *
