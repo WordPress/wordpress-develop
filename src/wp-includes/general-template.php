@@ -18,6 +18,7 @@
  * @since 1.5.0
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
+ * @since 5.5.2 Template filter added.
  *
  * @param string $name The name of the specialised header.
  * @param array  $args Optional. Additional arguments passed to the header template.
@@ -48,6 +49,8 @@ function get_header( $name = null, $args = array() ) {
 	/**
 	 * Filters the array of templates to look for.
 	 *
+	 * @since 5.5.2
+	 *
 	 * @param string[]    $templates Array of template files to search for, in order.
 	 * @param string|null $name      The name of the specialized template.
 	 * @param array       $args      Additional arguments passed to the template.
@@ -71,6 +74,7 @@ function get_header( $name = null, $args = array() ) {
  * @since 1.5.0
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
+ * @since 5.5.2 Template filter added.
  *
  * @param string $name The name of the specialised footer.
  * @param array  $args Optional. Additional arguments passed to the footer template.
@@ -101,6 +105,8 @@ function get_footer( $name = null, $args = array() ) {
 	/**
 	 * Filters the array of templates to look for.
 	 *
+	 * @since 5.5.2
+	 *
 	 * @param string[]    $templates Array of template files to search for, in order.
 	 * @param string|null $name      The name of the specialized template.
 	 * @param array       $args      Additional arguments passed to the template.
@@ -124,6 +130,7 @@ function get_footer( $name = null, $args = array() ) {
  * @since 1.5.0
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
+ * @since 5.5.2 Template filter added.
  *
  * @param string $name The name of the specialised sidebar.
  * @param array  $args Optional. Additional arguments passed to the sidebar template.
@@ -153,6 +160,8 @@ function get_sidebar( $name = null, $args = array() ) {
 
 	/**
 	 * Filters the array of templates to look for.
+	 *
+	 * @since 5.5.2
 	 *
 	 * @param string[]    $templates Array of template files to search for, in order.
 	 * @param string|null $name      The name of the specialized template.
@@ -184,6 +193,7 @@ function get_sidebar( $name = null, $args = array() ) {
  * @since 3.0.0
  * @since 5.5.0 A return value was added.
  * @since 5.5.0 The `$args` parameter was added.
+ * @since 5.5.2 Template filter added.
  *
  * @param string $slug The slug name for the generic template.
  * @param string $name The name of the specialised template.
@@ -217,6 +227,8 @@ function get_template_part( $slug, $name = null, $args = array() ) {
 
 	/**
 	 * Filters the array of templates to look for.
+	 *
+	 * @since 5.5.2
 	 *
 	 * @param string[]    $templates Array of template files to search for, in order.
 	 * @param string      $slug      The slug name for the generic template.
