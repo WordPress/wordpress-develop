@@ -2576,10 +2576,10 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 
 	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
 		// This taxonomy applies to non-posts, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
+		$do_recount = ! _wp_prevent_term_counting( $object_id, reset( $object_types ) );
 	} elseif ( 'publish' === get_post_status( $object_id ) ) {
 		// Published post, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
+		$do_recount = ! _wp_prevent_term_counting( $object_id, 'post' );
 	} else {
 		$do_recount = false;
 	}
@@ -2780,7 +2780,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 
 	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
 		// This taxonomy applies to non-posts, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
+		$do_recount = ! _wp_prevent_term_counting( $object_id, reset( $object_types ) );
 	} elseif (
 		'publish' === get_post_status( $object_id ) ||
 		(
@@ -2789,7 +2789,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		)
 	) {
 		// Published post, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
+		$do_recount = ! _wp_prevent_term_counting( $object_id, 'post' );
 	} else {
 		$do_recount = false;
 	}
@@ -3283,7 +3283,7 @@ function wp_defer_term_counting( $defer = null ) {
 }
 
 /**
- * Prevents add/removing a term from modifying a term count.
+ * Prevents add/removing a term from modifying a term count for an object.
  *
  * This is used by functions calling wp_transition_post_status() to indicate the
  * term count will be handled during the post's transition.
@@ -3297,17 +3297,24 @@ function wp_defer_term_counting( $defer = null ) {
  * @private
  * @since 5.6.0
  *
- * @param bool $new_setting The new setting for preventing term counts.
+ * @param int    $object_id   The ID of the object.
+ * @param string $object_type Optional. Type of object: post, comment, term, user or site. Default post.
+ * @param bool   $new_setting Optional. The new setting for preventing term counts on the object.
  * @return bool Whether term count prevention is enabled or disabled.
  */
-function _wp_prevent_term_counting( $new_setting = null ) {
-	static $prevent = false;
+function _wp_prevent_term_counting( $object_id, $object_type = 'post', $new_setting = null ) {
+	static $prevent = array();
+	$object_key = "{$object_type}::{$object_id}";
 
 	if ( is_bool( $new_setting ) ) {
-		$prevent = $new_setting;
+		$prevent[ $object_key ] = $new_setting;
 	}
 
-	return $prevent;
+	if ( ! isset( $prevent[ $object_key ] ) ) {
+		return false;
+	}
+
+	return $prevent[ $object_key ];
 }
 
 /**

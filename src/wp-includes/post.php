@@ -4075,7 +4075,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	}
 
 	// Allow term counts to be handled by transitioning post type.
-	_wp_prevent_term_counting( true );
+	_wp_prevent_term_counting( $post_ID, 'post', true );
 	if ( is_object_in_taxonomy( $post_type, 'category' ) ) {
 		wp_set_post_categories( $post_ID, $post_category );
 	}
@@ -4133,7 +4133,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		}
 	}
 	// Restore term counting.
-	_wp_prevent_term_counting( false );
+	_wp_prevent_term_counting( $post_ID, 'post', false );
 
 	if ( ! empty( $postarr['meta_input'] ) ) {
 		foreach ( $postarr['meta_input'] as $field => $value ) {
@@ -4450,9 +4450,9 @@ function wp_publish_post( $post ) {
 		if ( ! $default_term_id ) {
 			continue;
 		}
-		_wp_prevent_term_counting( true );
+		_wp_prevent_term_counting( $post->ID, 'post', true );
 		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
-		_wp_prevent_term_counting( false );
+		_wp_prevent_term_counting( $post->ID, 'post', false );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
