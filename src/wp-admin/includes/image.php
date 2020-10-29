@@ -208,6 +208,9 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	// Store the original image file name in image_meta.
 	$image_meta['original_image'] = wp_basename( $original_file );
 
+	// Add image file size.
+	$image_meta['filesize'] = (int) filesize( $new_file );
+ 
 	return $image_meta;
 }
 
