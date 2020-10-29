@@ -475,6 +475,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
 		$expected = array(
 			'sizes'    => array(
 				'full'      => array(
@@ -508,8 +510,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			'filesize' => (int) filesize( $test_file ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -551,6 +551,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $attachment_id );
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
 		$expected = array(
 			'sizes'    => array(
 				'full'      => array(
@@ -584,8 +586,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			),
 			'filesize' => (int) filesize( $test_file ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -625,6 +625,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		add_image_size( 'test-size', 100, 100 );
 		add_filter( 'fallback_intermediate_image_sizes', array( $this, 'filter_fallback_intermediate_image_sizes' ), 10, 2 );
 
+		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
 			'width'     => 77,
@@ -632,8 +634,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'mime-type' => 'image/jpeg',
 			'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'test-size' )['path'] ),
 		);
-
-		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
 		$this->assertTrue( isset( $metadata['sizes']['test-size'] ), 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
