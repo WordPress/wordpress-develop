@@ -34,11 +34,11 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 	 * @ticket 49412
 	 */
 	function test_filesize_in_png_meta() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-large.jpg' );
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.png' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 22053 );
+		$this->assertEquals( $metadata['filesize'], 1011 );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
