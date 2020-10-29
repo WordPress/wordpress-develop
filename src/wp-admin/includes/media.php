@@ -3363,7 +3363,11 @@ function attachment_submitbox_metadata() {
 	if ( isset( $meta['filesize'] ) ) {
 		$file_size = $meta['filesize'];
 	} elseif ( file_exists( $file ) ) {
-		$file_size = filesize( $file );
+		$meta = wp_generate_attachment_metadata( $attachment_id, $file );
+
+		if ( is_array( $meta ) && isset( $meta['filesize'] ) ) {
+			$file_size = $meta['filesize'];
+		}
 	}
 
 	if ( ! empty( $file_size ) ) {
