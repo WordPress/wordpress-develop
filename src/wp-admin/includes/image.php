@@ -210,7 +210,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 
 	// Add image file size.
 	$image_meta['filesize'] = (int) filesize( $new_file );
- 
+
 	return $image_meta;
 }
 
