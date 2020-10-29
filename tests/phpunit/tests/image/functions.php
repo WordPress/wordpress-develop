@@ -639,13 +639,17 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
-			'filesize'  => 4575,
+			'filesize'  => 5000,
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
+		// Filesize results differ between environments.
+		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
+
 		$this->assertTrue( isset( $metadata['sizes']['test-size'] ), 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
 
