@@ -639,10 +639,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
-			'filesize'  => 5000,
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
+			'filesize'  => 5000,
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
