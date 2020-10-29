@@ -238,6 +238,30 @@ class Tests_Functions extends WP_UnitTestCase {
 
 
 	/**
+	 * @dataProvider data_serialize_deserialize_objects
+	 */
+	function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
+		$serialized = maybe_serialize( $value );
+		if ( is_array( $value ) ) {
+			$deserialized = unserialize( $serialized );
+			$this->assertNotEquals( reset( $value )->count(), reset( $deserialized )->count() );
+		} elseif ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
+			$this->assertNotEquals( $value->count(), unserialize( $serialized )->count() );
+		} else {
+			$this->assertEquals( $value->count(), unserialize( $serialized )->count() );
+		}
+	}
+
+	function data_serialize_deserialize_objects() {
+		return array(
+			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
+			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
+			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
+			array( array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ) ),
+		);
+	}
+
+	/**
 	 * @group add_query_arg
 	 */
 	function test_add_query_arg() {
