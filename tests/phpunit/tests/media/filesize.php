@@ -21,7 +21,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 176615 );
+		$this->assertEquals( round_to_nearest_thousand( $metadata['filesize'] ), 177000 );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
@@ -38,7 +38,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 1011 );
+		$this->assertEquals( round_to_nearest_thousand( $metadata['filesize'] ), 1000 );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
@@ -55,7 +55,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 12895 );
+		$this->assertEquals( round_to_nearest_thousand( $metadata['filesize'] ), 13000 );
 	}
 
 	/**
@@ -68,6 +68,6 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 41154 );
+		$this->assertEquals( round_to_nearest_thousand( $metadata['filesize'] ), 41000 );
 	}
 }

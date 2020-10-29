@@ -513,9 +513,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// Different environments produce slightly different filesize results.
 		foreach ( $metadata['sizes'] as &$item ) {
-			$item['filesize'] = (int) round( $item['filesize'], -3 );
+			$item['filesize'] = round_to_nearest_thousand( $item['filesize'] );
 		}
-		$metadata['filesize'] = (int) round( $metadata['filesize'], -3 );
+		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -595,9 +595,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// Different environments produce slightly different filesize results.
 		foreach ( $metadata['sizes'] as &$item ) {
-			$item['filesize'] = (int) round( $item['filesize'], -3 );
+			$item['filesize'] = round_to_nearest_thousand( $item['filesize'] );
 		}
-		$metadata['filesize'] = (int) round( $metadata['filesize'], -3 );
+		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
 
 		$this->assertSame( $expected, $metadata );
 

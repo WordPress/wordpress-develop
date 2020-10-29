@@ -83,7 +83,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$resized = $imagick_image_editor->multi_resize( $sizes_array );
 
 		// Different environments produce slightly different filesize results.
-		$resized[0]['filesize'] = (int) round( $resized[0]['filesize'], -3 );
+		$resized[0]['filesize'] = round_to_nearest_thousand( $resized[0]['filesize'] );
 
 		# First, check to see if returned array is as expected
 		$expected_array = array(
@@ -286,7 +286,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		// Different environments produce slightly different filesize results.
 		foreach ( $resized as &$item ) {
-			$item['filesize'] = (int) round( $item['filesize'], -3 );
+			$item['filesize'] = round_to_nearest_thousand( $item['filesize'] );
 		}
 
 		$expected_array = array(
