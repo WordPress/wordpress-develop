@@ -520,13 +520,3 @@ function test_rest_expand_compact_links( $links ) {
 	}
 	return $links;
 }
-
-/**
- * Rounds a number to the nearest thousand.
- *
- * @param int|float $number Any number.
- * @return int Rounded number.
- */
-function round_to_nearest_thousand( $number ) {
-	return (int) round( $number, -3 );
-}

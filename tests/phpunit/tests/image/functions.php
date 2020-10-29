@@ -482,40 +482,34 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 115000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'full' )['path'] ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
 					'width'     => 232,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 13000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'medium' )['path'] ),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 66000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'large' )['path'] ),
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 6000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'thumbnail' )['path'] ),
 				),
 			),
-			'filesize' => 13000,
+			'filesize' => (int) filesize( $test_file ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-
-		// Different environments produce slightly different filesize results.
-		foreach ( $metadata['sizes'] as &$item ) {
-			$item['filesize'] = round_to_nearest_thousand( $item['filesize'] );
-		}
-		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -564,40 +558,34 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 115000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'full' )['path'] ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
 					'width'     => 300,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 18000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'medium' )['path'] ),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 66000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'large' )['path'] ),
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 6000,
+					'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'thumbnail' )['path'] ),
 				),
 			),
-			'filesize' => 13000,
+			'filesize' => (int) filesize( $test_file ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-
-		// Different environments produce slightly different filesize results.
-		foreach ( $metadata['sizes'] as &$item ) {
-			$item['filesize'] = round_to_nearest_thousand( $item['filesize'] );
-		}
-		$metadata['filesize'] = round_to_nearest_thousand( $metadata['filesize'] );
 
 		$this->assertSame( $expected, $metadata );
 
@@ -642,13 +630,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
-			'filesize'  => 5000,
+			'filesize'  => (int) filesize( image_get_intermediate_size( $attachment_id, 'test-size' )['path'] ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-
-		// Different environments produce slightly different filesize results.
-		$metadata['sizes']['test-size']['filesize'] = round_to_nearest_thousand( $metadata['sizes']['test-size']['filesize'] );
 
 		$this->assertTrue( isset( $metadata['sizes']['test-size'] ), 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
