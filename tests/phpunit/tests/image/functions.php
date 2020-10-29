@@ -476,7 +476,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		$expected = array(
-			'sizes' => array(
+			'sizes'    => array(
 				'full'      => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
 					'filesize'  => 115203,
@@ -551,7 +551,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertNotEmpty( $attachment_id );
 
 		$expected = array(
-			'sizes' => array(
+			'sizes'    => array(
 				'full'      => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
 					'filesize'  => 115203,
