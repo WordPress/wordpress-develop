@@ -95,6 +95,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 1244,
 			),
 		);
 
@@ -294,6 +295,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 10,
 				'height'    => 7,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 750,
 			),
 
 			// #1
@@ -302,6 +304,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 75,
 				'height'    => 50,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 1669,
 			),
 
 			// #2
@@ -310,6 +313,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 30,
 				'height'    => 20,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 958,
 			),
 
 			// #3
@@ -318,6 +322,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 45,
 				'height'    => 400,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 4100,
 			),
 
 			// #4
@@ -326,6 +331,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 1244,
 			),
 
 			// #5
@@ -334,6 +340,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 55,
 				'height'    => 37,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 1344,
 			),
 
 			// #6
@@ -342,6 +349,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 83,
 				'height'    => 55,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 1891,
 			),
 
 			// #7
@@ -350,6 +358,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 90,
 				'height'    => 60,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 2059,
 			),
 
 			// #8
@@ -358,6 +367,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 105,
 				'height'    => 70,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 2405,
 			),
 
 			// #9
@@ -366,6 +376,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 200,
 				'height'    => 133,
 				'mime-type' => 'image/jpeg',
+				'filesize'  => 5569,
 			),
 		);
 

@@ -479,29 +479,34 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'sizes' => array(
 				'full'      => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
+					'filesize'  => 115203,
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
+					'filesize'  => 13390,
 					'width'     => 232,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+					'filesize'  => 66248,
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+					'filesize'  => 5945,
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
 				),
 			),
+			'filesize' => 12895,
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
@@ -549,29 +554,34 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'sizes' => array(
 				'full'      => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf.jpg',
+					'filesize'  => 115203,
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
+					'filesize'  => 17897,
 					'width'     => 300,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
+					'filesize'  => 66248,
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
+					'filesize'  => 5945,
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
 				),
 			),
+			'filesize' => 12895,
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
@@ -615,6 +625,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$expected = array(
 			'file'      => 'wordpress-gsoc-flyer-pdf-77x100.jpg',
+			'filesize'  => 4575,
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
