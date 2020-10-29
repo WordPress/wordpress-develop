@@ -472,10 +472,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			 * @param string $filename Name of the file.
 			 */
 			'file'      => wp_basename( apply_filters( 'image_make_intermediate_size', $filename ) ),
-			'filesize'  => (int) filesize( $filename ),
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
 			'mime-type' => $mime_type,
+			'filesize'  => (int) filesize( $filename ),
 		);
 	}
 
