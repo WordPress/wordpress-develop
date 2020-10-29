@@ -236,7 +236,6 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
 
-
 	/**
 	 * @group add_query_arg
 	 */
