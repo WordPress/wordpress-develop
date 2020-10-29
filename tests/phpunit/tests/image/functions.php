@@ -486,7 +486,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( get_attached_file( $attachment_id ) ),
+					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
@@ -538,7 +538,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		copy( $orig_file, $test_file );
 
 		$editor = wp_get_image_editor( $test_file );
-		var_dump( $editor );
 		if ( is_wp_error( $editor ) ) {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
@@ -564,7 +563,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( get_attached_file( $attachment_id ) ),
+					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
