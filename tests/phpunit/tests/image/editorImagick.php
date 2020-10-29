@@ -81,7 +81,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		);
 
 		$resized = $imagick_image_editor->multi_resize( $sizes_array );
-		
+
 		// Different environments produce slightly different filesize results.
 		$resized[0]['filesize'] = (int) round( $resized[0]['filesize'], -3 );
 
@@ -286,7 +286,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		// Different environments produce slightly different filesize results.
 		foreach ( $resized as &$item ) {
-			$item['filesize'] = (int) round( $item['filesize'], -3 );		
+			$item['filesize'] = (int) round( $item['filesize'], -3 );
 		}
 
 		$expected_array = array(
