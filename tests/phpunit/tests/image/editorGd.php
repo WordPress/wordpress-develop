@@ -88,6 +88,9 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$resized = $gd_image_editor->multi_resize( $sizes_array );
 
+		// Different environments produce slightly different filesize results.
+		$resized[0]['filesize'] = (int) round( $resized[0]['filesize'], -3 );
+
 		# First, check to see if returned array is as expected
 		$expected_array = array(
 			array(
@@ -95,7 +98,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 1244,
+				'filesize'  => 1000,
 			),
 		);
 
@@ -287,6 +290,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$resized = $gd_image_editor->multi_resize( $sizes_array );
 
+		// Different environments produce slightly different filesize results.
+		foreach ( $resized as &$item ) {
+			$item['filesize'] = (int) round( $item['filesize'], -3 );
+		}
+
 		$expected_array = array(
 
 			// #0
@@ -295,7 +303,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 10,
 				'height'    => 7,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 750,
+				'filesize'  => 1000,
 			),
 
 			// #1
@@ -304,7 +312,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 75,
 				'height'    => 50,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 1669,
+				'filesize'  => 2000,
 			),
 
 			// #2
@@ -313,7 +321,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 30,
 				'height'    => 20,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 958,
+				'filesize'  => 1000,
 			),
 
 			// #3
@@ -322,7 +330,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 45,
 				'height'    => 400,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 4100,
+				'filesize'  => 4000,
 			),
 
 			// #4
@@ -331,7 +339,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 50,
 				'height'    => 33,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 1244,
+				'filesize'  => 1000,
 			),
 
 			// #5
@@ -340,7 +348,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 55,
 				'height'    => 37,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 1344,
+				'filesize'  => 1000,
 			),
 
 			// #6
@@ -349,7 +357,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 83,
 				'height'    => 55,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 1891,
+				'filesize'  => 2000,
 			),
 
 			// #7
@@ -358,7 +366,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 90,
 				'height'    => 60,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 2059,
+				'filesize'  => 2000,
 			),
 
 			// #8
@@ -367,7 +375,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 105,
 				'height'    => 70,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 2405,
+				'filesize'  => 2000,
 			),
 
 			// #9
@@ -376,7 +384,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'width'     => 200,
 				'height'    => 133,
 				'mime-type' => 'image/jpeg',
-				'filesize'  => 5569,
+				'filesize'  => 6000,
 			),
 		);
 

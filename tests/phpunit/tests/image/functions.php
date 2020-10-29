@@ -482,34 +482,41 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 115132,
+					'filesize'  => 115000,
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
 					'width'     => 232,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 13382,
+					'filesize'  => 13000,
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 66308,
+					'filesize'  => 66000,
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 5934,
+					'filesize'  => 6000,
 				),
 			),
-			'filesize' => 12895,
+			'filesize' => 13000,
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
+		// Different environments produce slightly different filesize results.
+		foreach ( $metadata['sizes'] as &$item ) {
+			$item['filesize'] = (int) round( $item['filesize'], -3 );
+		}
+		$metadata['filesize'] = (int) round( $metadata['filesize'], -3 );
+
 		$this->assertSame( $expected, $metadata );
 
 		unlink( $test_file );
@@ -557,34 +564,41 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 115132,
+					'filesize'  => 115000,
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
 					'width'     => 300,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 17872,
+					'filesize'  => 18000,
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 66308,
+					'filesize'  => 66000,
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => 5934,
+					'filesize'  => 6000,
 				),
 			),
-			'filesize' => 12895,
+			'filesize' => 13000,
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
+
+		// Different environments produce slightly different filesize results.
+		foreach ( $metadata['sizes'] as &$item ) {
+			$item['filesize'] = (int) round( $item['filesize'], -3 );
+		}
+		$metadata['filesize'] = (int) round( $metadata['filesize'], -3 );
+
 		$this->assertSame( $expected, $metadata );
 
 		unlink( $test_file );
