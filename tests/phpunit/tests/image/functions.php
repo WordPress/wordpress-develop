@@ -667,7 +667,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
 
-		// Filesize results differ between environments.
+		// Different environments produce slightly different filesize results.
 		$metadata['sizes']['test-size']['filesize'] = round_to_nearest_thousand( $metadata['sizes']['test-size']['filesize'] );
 
 		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
