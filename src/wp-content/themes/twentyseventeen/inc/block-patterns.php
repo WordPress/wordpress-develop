@@ -28,7 +28,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
-            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'We can put together marketing campaigns and attract leads through search engine optimization.', 'twentyseventeen' ) . '</h1>
+            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'Attract The Right Leads with Marketing Campaigns that Work', 'twentyseventeen' ) . '</h1>
             <!-- /wp:heading -->
 
             <!-- wp:buttons -->
@@ -57,7 +57,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Branding', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Our team of talented designers can create a beautiful logo and brand to encapsulate your business purpose and goals.', 'twentyseventeen' ) . '</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Communicate your purpose and goals with a beautiful logo that encapsulates your business.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3"}}} -->
             <p style="line-height:3"><a href="#"><strong>' . __( 'See Case Study', 'twentyseventeen' ) . ' →</strong></a></p>
@@ -74,7 +74,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Web Design', 'twentyseventeen' ) . '</h2>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"textColor":"black","style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Need a website? We’ve got you covered. Our design team will work to transform your brand into a stunning site design.', 'twentyseventeen' ) . '</p>
+            <p class="has-black-color has-text-color" style="line-height:1.8">' . __( 'Need a website? We&#39;ve got you covered. Our design team will create a stunning design to transform your brand.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"3.0"}}} -->
             <p style="line-height:3.0"><a href="#"><strong>' . __( 'See Case Study', 'twentyseventeen' ) . ' →</strong></a></p>
@@ -185,7 +185,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:cover {"customOverlayColor":"#93aab8","minHeight":700,"align":"center"} -->
             <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:700px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","textColor":"white","style":{"typography":{"fontSize":50}}} -->
-            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'Outstanding clients have allowed us to produce work we are proud of.', 'twentyseventeen' ) . '</p>
+            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'We are proud to serve outstanding clients like you.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             
             <!-- wp:buttons -->
