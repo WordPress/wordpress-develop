@@ -2374,3 +2374,25 @@ function wp_opcache_invalidate( $filepath, $force = false ) {
 
 	return false;
 }
+
+/**
+ * Wrapper for PHP filesize with filters and casting the result as an integer.
+ *
+ * @since 5.6.0
+ *
+ * @link https://www.php.net/manual/en/function.filesize.php
+ *
+ * @param string $path Path to the file.
+ * @return int The size of the file in bytes, or 0 in the event of an error.
+ */
+function wp_filesize( $path ) {
+	$size = apply_filters( 'pre_wp_filesize', null, $path );
+
+	if ( is_int( $size ) ) {
+		return $size;
+	}
+
+	$size = (int) @filesize( $path );
+
+	return apply_filters( 'wp_filesize', $size, $path );
+}

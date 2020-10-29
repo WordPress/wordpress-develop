@@ -21,7 +21,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( (int) filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
+		$this->assertEquals( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
@@ -38,7 +38,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( (int) filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
+		$this->assertEquals( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
@@ -55,7 +55,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( (int) filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
+		$this->assertEquals( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 	}
 
 	/**
@@ -84,7 +84,7 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( (int) filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
+		$this->assertEquals( wp_filesize( get_attached_file( $attachment ) ), $metadata['filesize'] );
 
 		if ( is_multisite() ) {
 			remove_filter( 'upload_mimes', array( $this, 'allow_psd_mime_type' ) );

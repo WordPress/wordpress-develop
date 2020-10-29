@@ -209,7 +209,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
 	$image_meta['original_image'] = wp_basename( $original_file );
 
 	// Add image file size.
-	$image_meta['filesize'] = (int) filesize( $new_file );
+	$image_meta['filesize'] = wp_filesize( $new_file );
 
 	return $image_meta;
 }
@@ -239,7 +239,7 @@ function wp_create_image_subsizes( $file, $attachment_id ) {
 		'width'    => $imagesize[0],
 		'height'   => $imagesize[1],
 		'file'     => _wp_relative_upload_path( $file ),
-		'filesize' => (int) filesize( $file ),
+		'filesize' => wp_filesize( $file ),
 		'sizes'    => array(),
 	);
 
@@ -623,7 +623,7 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 
 	// Capture file size for cases where it has not been captured yet, such as PDFs.
 	if ( ! isset( $metadata['filesize'] ) && file_exists( $file ) ) {
-		$metadata['filesize'] = (int) filesize( $file );
+		$metadata['filesize'] = wp_filesize( $file );
 	}
 
 	/**

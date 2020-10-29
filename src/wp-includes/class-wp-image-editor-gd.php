@@ -475,7 +475,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			'width'     => $this->size['width'],
 			'height'    => $this->size['height'],
 			'mime-type' => $mime_type,
-			'filesize'  => (int) filesize( $filename ),
+			'filesize'  => wp_filesize( $filename ),
 		);
 	}
 
