@@ -34,11 +34,11 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 	 * @ticket 49412
 	 */
 	function test_filesize_in_png_meta() {
-		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-large.png' );
+		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image-large.jpg' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
 
-		$this->assertEquals( $metadata['filesize'], 4409 );
+		$this->assertEquals( $metadata['filesize'], 22053 );
 
 		foreach ( $metadata['sizes'] as $intermediate_size ) {
 			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
@@ -56,10 +56,6 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 		$metadata = wp_get_attachment_metadata( $attachment );
 
 		$this->assertEquals( $metadata['filesize'], 12895 );
-
-		foreach ( $metadata['sizes'] as $intermediate_size ) {
-			$this->assertTrue( ! empty( $intermediate_size['filesize'] ) && is_numeric( $intermediate_size['filesize'] ) );
-		}
 	}
 
 	/**
@@ -71,8 +67,6 @@ class Tests_Image_Filesize extends WP_UnitTestCase {
 		$attachment = $this->factory->attachment->create_upload_object( DIR_TESTDATA . '/images/test-image.psd' );
 
 		$metadata = wp_get_attachment_metadata( $attachment );
-
-		print_r( $metadata );
 
 		$this->assertEquals( $metadata['filesize'], 41154 );
 	}
