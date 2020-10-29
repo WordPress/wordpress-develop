@@ -1506,6 +1506,6 @@ class WP_List_Table {
 			),
 		);
 
-		printf( "<script type='text/javascript'>list_args = %s;</script>\n", wp_json_encode( $args ) );
+		wp_print_inline_script_tag( sprintf( 'list_args = %s;', wp_json_encode( $args ) ) );
 	}
 }

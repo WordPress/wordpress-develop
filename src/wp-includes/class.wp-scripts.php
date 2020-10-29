@@ -227,20 +227,14 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+		$js = $output;
 
 		// CDATA is not needed for HTML 5.
 		if ( $this->type_attr ) {
-			echo "/* <![CDATA[ */\n";
+			$js = "/* <![CDATA[ */\n$js\n/* ]]> */";
 		}
 
-		echo "$output\n";
-
-		if ( $this->type_attr ) {
-			echo "/* ]]> */\n";
-		}
-
-		echo "</script>\n";
+		wp_print_inline_script_tag( $js, array( 'id' => "$handle-js-extra" ) );
 
 		return true;
 	}
@@ -298,11 +292,17 @@ class WP_Scripts extends WP_Dependencies {
 		$after_handle  = $this->print_inline_script( $handle, 'after', false );
 
 		if ( $before_handle ) {
-			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
+			$before_handle = wp_get_inline_script_tag(
+				$before_handle,
+				array( 'id' => "$handle-js-before" )
+			);
 		}
 
 		if ( $after_handle ) {
-			$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+			$after_handle = wp_get_inline_script_tag(
+				$after_handle,
+				array( 'id' => "$handle-js-after" )
+			);
 		}
 
 		if ( $before_handle || $after_handle ) {
@@ -313,7 +313,10 @@ class WP_Scripts extends WP_Dependencies {
 
 		$translations = $this->print_translations( $handle, false );
 		if ( $translations ) {
-			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
+			$translations = wp_get_inline_script_tag(
+				$translations,
+				array( 'id' => "$handle-js-translations" )
+			);
 		}
 
 		if ( $this->do_concat ) {
@@ -385,7 +388,12 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$tag  = $translations . $cond_before . $before_handle;
-		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= wp_get_script_tag(
+			array(
+				'src' => $src,
+				'id'  => "$handle-js",
+			)
+		);
 		$tag .= $after_handle . $cond_after;
 
 		/**
@@ -458,7 +466,7 @@ class WP_Scripts extends WP_Dependencies {
 		$output = trim( implode( "\n", $output ), "\n" );
 
 		if ( $echo ) {
-			printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
+			wp_print_inline_script_tag( $output, array( 'id' => "$handle-js-$position" ) );
 		}
 
 		return $output;
@@ -595,7 +603,7 @@ class WP_Scripts extends WP_Dependencies {
 JS;
 
 		if ( $echo ) {
-			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+			wp_print_inline_script_tag( $output, array( 'id' => "$handle-js-translations" ) );
 		}
 
 		return $output;

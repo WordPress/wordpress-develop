@@ -2281,10 +2281,15 @@
 	};
 
 	/**
-	 * Initialize Edit Menu button in Nav Menu widget.
+	 * Initialize 'Edit Menu' and 'Create some' buttons in Nav Menu widget.
 	 */
 	$( document ).on( 'widget-added', function( event, widgetContainer ) {
-		var parsedWidgetId, widgetControl, navMenuSelect, editMenuButton;
+		var parsedWidgetId,
+			widgetControl,
+			navMenuSelect,
+			editMenuButton,
+			focusNavMenus = $( '.focus-nav-menus' );
+
 		parsedWidgetId = parseWidgetId( widgetContainer.find( '> .widget-inside > .form > .widget-id' ).val() );
 		if ( 'nav_menu' !== parsedWidgetId.id_base ) {
 			return;
@@ -2310,6 +2315,12 @@
 			if ( section ) {
 				focusConstructWithBreadcrumb( section, widgetControl );
 			}
+		} );
+
+		// 'Create some' button is shown when there are no menus. Switches focus to nav_menus view.
+		focusNavMenus.click( function () {
+			api.panel( 'nav_menus' ).focus();
+			return false;
 		} );
 	} );
 

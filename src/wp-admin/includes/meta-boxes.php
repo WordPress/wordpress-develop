@@ -440,8 +440,10 @@ function attachment_submit_meta_box( $post ) {
 		if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
 			echo "<a class='submitdelete deletion' href='" . get_delete_post_link( $post->ID ) . "'>" . __( 'Move to Trash' ) . '</a>';
 		} else {
-			$delete_ays = ! MEDIA_TRASH ? " onclick='return showNotice.warn();'" : '';
-			echo "<a class='submitdelete deletion'$delete_ays href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
+			if ( ! MEDIA_TRASH ) {
+				wp_enqueue_script( 'metabox-events' );
+			}
+			echo "<a class='submitdelete deletion permanent-deletion' href='" . get_delete_post_link( $post->ID, null, true ) . "'>" . __( 'Delete permanently' ) . '</a>';
 		}
 	}
 	?>
@@ -843,9 +845,10 @@ function post_comment_meta_box_thead( $result ) {
  * @param WP_Post $post
  */
 function post_comment_meta_box( $post ) {
+	wp_enqueue_script( 'metabox-events' );
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
 	?>
-	<p class="hide-if-no-js" id="add-new-comment"><button type="button" class="button" onclick="window.commentReply && commentReply.addcomment(<?php echo $post->ID; ?>);"><?php _e( 'Add Comment' ); ?></button></p>
+	<p class="hide-if-no-js" id="add-new-comment"><button type="button" data-post-id="<?php echo $post->ID; ?>" class="button"><?php _e( 'Add Comment' ); ?></button></p>
 	<?php
 
 	$total         = get_comments(
@@ -863,13 +866,11 @@ function post_comment_meta_box( $post ) {
 	} else {
 		$hidden = get_hidden_meta_boxes( get_current_screen() );
 		if ( ! in_array( 'commentsdiv', $hidden, true ) ) {
-			?>
-			<script type="text/javascript">jQuery(document).ready(function(){commentsBox.get(<?php echo $total; ?>, 10);});</script>
-			<?php
+			wp_print_inline_script_tag( 'jQuery(document).ready(function(){commentsBox.get(' . $total . ', 10);});' );
 		}
 
 		?>
-		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" onclick="commentsBox.load(<?php echo $total; ?>);return false;"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
+		<p class="hide-if-no-js" id="show-comments"><a href="#commentstatusdiv" data-total="<?php echo $total; ?>"><?php _e( 'Show comments' ); ?></a> <span class="spinner"></span></p>
 		<?php
 	}
 
@@ -1072,10 +1073,10 @@ function link_submit_meta_box( $link ) {
 	<?php
 	if ( ! empty( $_GET['action'] ) && 'edit' === $_GET['action'] && current_user_can( 'manage_links' ) ) {
 		printf(
-			'<a class="submitdelete deletion" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
+			'<a class="submitdelete deletion submitdelete-link" href="%s" data-prompt="%s">%s</a>',
 			wp_nonce_url( "link.php?action=delete&amp;link_id=$link->link_id", 'delete-bookmark_' . $link->link_id ),
 			/* translators: %s: Link name. */
-			esc_js( sprintf( __( "You are about to delete this link '%s'\n  'Cancel' to stop, 'OK' to delete." ), $link->link_name ) ),
+			esc_attr( sprintf( __( "You are about to delete this link '%s'\n  'Cancel' to stop, 'OK' to delete." ), $link->link_name ) ),
 			__( 'Delete' )
 		);
 	}

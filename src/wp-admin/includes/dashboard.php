@@ -711,7 +711,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 		);
 
 		$actions['reply'] = sprintf(
-			'<button type="button" onclick="window.commentReply && commentReply.open(\'%s\',\'%s\');" class="vim-r button-link hide-if-no-js" aria-label="%s">%s</button>',
+			'<button type="button"  data-comment-id="%s" data-post-id="%s" class="vim-r button-link hide-if-no-js open-comment-reply" aria-label="%s">%s</button>',
 			$comment->comment_ID,
 			$comment->comment_post_ID,
 			esc_attr__( 'Reply to this comment' ),

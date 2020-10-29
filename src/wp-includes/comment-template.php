@@ -1304,7 +1304,7 @@ function wp_comment_form_unfiltered_html_nonce() {
 
 	if ( current_user_can( 'unfiltered_html' ) ) {
 		wp_nonce_field( 'unfiltered-html-comment_' . $post_id, '_wp_unfiltered_html_comment_disabled', false );
-		echo "<script>(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();</script>\n";
+		wp_print_inline_script_tag( "(function(){if(window===window.parent){document.getElementById('_wp_unfiltered_html_comment_disabled').name='_wp_unfiltered_html_comment';}})();" );
 	}
 }
 
@@ -1836,19 +1836,23 @@ function get_post_reply_link( $args = array(), $post = null ) {
 			$args['login_text']
 		);
 	} else {
-		$onclick = sprintf(
-			'return addComment.moveForm( "%1$s-%2$s", "0", "%3$s", "%2$s" )',
-			$args['add_below'],
-			$post->ID,
-			$args['respond_id']
-		);
-
 		$link = sprintf(
-			"<a rel='nofollow' class='comment-reply-link' href='%s' onclick='%s'>%s</a>",
+			"<a rel='nofollow' id='comment-reply-link-%d' class='comment-reply-link' href='%s'>%s</a>",
+			$post->ID,
 			get_permalink( $post->ID ) . '#' . $args['respond_id'],
-			$onclick,
 			$args['reply_text']
 		);
+
+		$js = <<<JS
+document.addEventListener( 'DOMContentLoaded', function () {
+	document.getElementById( 'comment-reply-link-{$post->ID}' ).addEventListener( 'click', function ( event ) {
+		if ( addComment.moveForm( "{$args['add_below']}-{$post->ID}", "0", "{$args['respond_id']}", "{$post->ID}" ) === false ) {
+			event.preventDefault();
+		}
+	} );
+} );
+JS;
+		wp_print_inline_script_tag( $js );
 	}
 	$formatted_link = $args['before'] . $link . $args['after'];
 

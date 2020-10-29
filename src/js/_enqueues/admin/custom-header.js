@@ -27,6 +27,13 @@
 			});
 		});
 
+		var name = document.getElementById( 'name' );
+		if ( name !== null ) {
+			name.addEventListener( 'click', function ( event ) {
+				event.preventDefault();
+			} );
+		}
+
 		/**
 		 * Opens the 'choose from library' frame and creates it if it doesn't exist.
 		 *

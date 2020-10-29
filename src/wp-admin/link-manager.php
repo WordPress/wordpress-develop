@@ -139,4 +139,6 @@ if ( isset( $_REQUEST['deleted'] ) ) {
 </div>
 
 <?php
+wp_enqueue_script( 'link-manager' );
+
 require_once ABSPATH . 'wp-admin/admin-footer.php';

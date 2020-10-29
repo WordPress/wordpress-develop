@@ -40,6 +40,8 @@ require_once ABSPATH . 'wp-admin/includes/translation-install.php';
 
 nocache_headers();
 
+wp_print_scripts( 'setup-config' );
+
 // Support wp-config-sample.php one level up, for the develop repo.
 if ( file_exists( ABSPATH . 'wp-config-sample.php' ) ) {
 	$config_file = file( ABSPATH . 'wp-config-sample.php' );
@@ -277,7 +279,7 @@ switch ( $step ) {
 			$install .= '?language=en_US';
 		}
 
-		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" onclick="javascript:history.go(-1);return false;" class="button button-large">' . __( 'Try Again' ) . '</a>';
+		$tryagain_link = '</p><p class="step"><a href="' . $step_1 . '" class="button button-large go-back">' . __( 'Try Again' ) . '</a>';
 
 		if ( empty( $prefix ) ) {
 			wp_die( __( '<strong>Error</strong>: "Table Prefix" must not be empty.' ) . $tryagain_link );
@@ -416,16 +418,17 @@ switch ( $step ) {
 <textarea id="wp-config" cols="98" rows="15" class="code" readonly="readonly"><?php echo $config_text; ?></textarea>
 <p><?php _e( 'After you&#8217;ve done that, click &#8220;Run the installation&#8221;.' ); ?></p>
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
-<script>
-(function(){
-if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
-	var el = document.getElementById('wp-config');
-	el.focus();
-	el.select();
-}
-})();
-</script>
 			<?php
+			$js = <<<'JS'
+(function(){
+	if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
+		var el = document.getElementById('wp-config');
+		el.focus();
+		el.select();
+	}
+})();
+JS;
+			wp_print_inline_script_tag( $js );
 	else :
 		/*
 		 * If this file doesn't exist, then we are using the wp-config-sample.php

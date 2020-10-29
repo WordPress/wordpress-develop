@@ -171,6 +171,19 @@
 			}
 		});
 
+		// Binds the click event to the 'Delete Permanently' button.
+		$( '.warn-media-delete' ).click( function () {
+				return showNotice.warn();
+		});
+
+		// Binds the click event to the 'Attach' button.
+		$( '.attach-to-existing' ).each( function () {
+			$( this ).click( function ( event ) {
+				findPosts.open( 'media[]', this.dataset.postId );
+				event.preventDefault();
+			});
+		});
+
 		// Binds the click event to the search button.
 		$( '#find-posts-search' ).click( findPosts.send );
 

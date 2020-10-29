@@ -2,7 +2,7 @@
  * @output wp-admin/js/link.js
  */
 
-/* global postboxes, deleteUserSetting, setUserSetting, getUserSetting */
+/* global confirm, postboxes, deleteUserSetting, setUserSetting, getUserSetting */
 
 jQuery(document).ready( function($) {
 
@@ -42,6 +42,11 @@ jQuery(document).ready( function($) {
 	 * @return {void}
 	 */
 	$('#link-category-add-submit').click( function() { newCat.focus(); } );
+
+	// Adds event handler that prompts the user with confirmation dialog
+	$('.submitdelete-link' ).click( function () {
+			return confirm( this.dataset.prompt );
+	} );
 
 	/**
 	 * Synchronize category checkboxes.

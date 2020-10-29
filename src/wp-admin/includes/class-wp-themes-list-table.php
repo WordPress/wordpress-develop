@@ -225,11 +225,12 @@ class WP_Themes_List_Table extends WP_List_Table {
 			}
 
 			if ( ! is_multisite() && current_user_can( 'delete_themes' ) ) {
+				wp_enqueue_script( 'themes-list' );
 				$actions['delete'] = sprintf(
-					'<a class="submitdelete deletion" href="%s" onclick="return confirm( \'%s\' );">%s</a>',
+					'<a class="submitdelete submitdelete-theme deletion" href="%s" data-prompt="%s">%s</a>',
 					wp_nonce_url( 'themes.php?action=delete&amp;stylesheet=' . urlencode( $stylesheet ), 'delete-theme_' . $stylesheet ),
 					/* translators: %s: Theme name. */
-					esc_js( sprintf( __( "You are about to delete this theme '%s'\n  'Cancel' to stop, 'OK' to delete." ), $title ) ),
+					esc_attr( sprintf( __( "You are about to delete this theme '%s'\n  'Cancel' to stop, 'OK' to delete." ), $title ) ),
 					__( 'Delete' )
 				);
 			}
@@ -355,7 +356,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 			$args = array_merge( $args, $extra_args );
 		}
 
-		printf( "<script type='text/javascript'>var theme_list_args = %s;</script>\n", wp_json_encode( $args ) );
+		wp_print_inline_script_tag( sprintf( 'var theme_list_args = %s;', wp_json_encode( $args ) ) );
 		parent::_js_vars();
 	}
 }

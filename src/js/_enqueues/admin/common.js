@@ -1939,6 +1939,12 @@ $document.ready( function() {
 		// Toggle the Show Details button expanded state.
 		$( this ).attr( 'aria-expanded', $progressDiv.is( ':visible' ) );
 	});
+
+	// Event handler for "Go back" link (if present)
+	$( '.go-back' ).click( function () {
+		window.history.go( -1 );
+		return false;
+	} );
 });
 
 /**

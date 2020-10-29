@@ -445,10 +445,9 @@ function get_post_embed_html( $width, $height, $post = null ) {
 
 	$output = '<blockquote class="wp-embedded-content"><a href="' . esc_url( get_permalink( $post ) ) . '">' . get_the_title( $post ) . "</a></blockquote>\n";
 
-	$output .= "<script type='text/javascript'>\n";
-	$output .= "<!--//--><![CDATA[//><!--\n";
+	$script_output = "<!--//--><![CDATA[//><!--\n";
 	if ( SCRIPT_DEBUG ) {
-		$output .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
+		$script_output .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' );
 	} else {
 		/*
 		 * If you're looking at a src version of this file, you'll see an "include"
@@ -460,12 +459,13 @@ function get_post_embed_html( $width, $height, $post = null ) {
 		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
 		 * and edit wp-embed.js directly.
 		 */
-		$output .= <<<JS
+		$script_output .= <<<JS
 		include "js/wp-embed.min.js"
 JS;
 	}
-	$output .= "\n//--><!]]>";
-	$output .= "\n</script>";
+	$script_output .= "\n//--><!]]>";
+
+	$output .= wp_get_inline_script_tag( $script_output );
 
 	$output .= sprintf(
 		'<iframe sandbox="allow-scripts" security="restricted" src="%1$s" width="%2$d" height="%3$d" title="%4$s" frameborder="0" marginwidth="0" marginheight="0" scrolling="no" class="wp-embedded-content"></iframe>',
@@ -1051,12 +1051,9 @@ function print_embed_styles() {
  * @since 4.4.0
  */
 function print_embed_scripts() {
-	$type_attr = current_theme_supports( 'html5', 'script' ) ? '' : ' type="text/javascript"';
-	?>
-	<script<?php echo $type_attr; ?>>
-	<?php
+	$js = '';
 	if ( SCRIPT_DEBUG ) {
-		readfile( ABSPATH . WPINC . '/js/wp-embed-template.js' );
+		$js .= file_get_contents( ABSPATH . WPINC . '/js/wp-embed-template.js' );
 	} else {
 		/*
 		 * If you're looking at a src version of this file, you'll see an "include"
@@ -1068,13 +1065,12 @@ function print_embed_scripts() {
 		 * minified JavaScript. If you need to debug it, please turn on SCRIPT_DEBUG
 		 * and edit wp-embed-template.js directly.
 		 */
-		?>
+		$js .= <<<'JS'
 			include "js/wp-embed-template.min.js"
-		<?php
+JS;
 	}
-	?>
-	</script>
-	<?php
+
+	wp_print_inline_script_tag( $js );
 }
 
 /**

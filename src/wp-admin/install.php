@@ -444,17 +444,18 @@ switch ( $step ) {
 }
 
 if ( ! wp_is_mobile() ) {
-	?>
-<script type="text/javascript">var t = document.getElementById('weblog_title'); if (t){ t.focus(); }</script>
-	<?php
+	wp_print_inline_script_tag( 'var t = document.getElementById("weblog_title"); if (t){ t.focus(); }' );
 }
 
 wp_print_scripts( $scripts_to_print );
-?>
-<script type="text/javascript">
+
+$js = <<<'JS'
 jQuery( function( $ ) {
 	$( '.hide-if-no-js' ).removeClass( 'hide-if-no-js' );
 } );
-</script>
+JS;
+
+wp_print_inline_script_tag( $js );
+?>
 </body>
 </html>

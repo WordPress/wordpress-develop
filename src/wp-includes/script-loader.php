@@ -202,6 +202,8 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			continue;
 		}
 
+		$script_string = substr( wp_get_script_tag( array( 'src' => $src ) ), 0, -10 ) . "</scr' + 'ipt>";
+
 		$polyfill .= (
 			// Test presence of feature...
 			'( ' . $test . ' ) || ' .
@@ -210,9 +212,7 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 			 * at the `document.write`. Its caveat of synchronous mid-stream
 			 * blocking write is exactly the behavior we need though.
 			 */
-			'document.write( \'<script src="' .
-			$src .
-			'"></scr\' + \'ipt>\' );'
+			'document.write( \'' . $script_string . '\' );'
 		);
 	}
 
@@ -1040,6 +1040,14 @@ function wp_default_scripts( $scripts ) {
 	$scripts->add( 'code-editor', "/wp-admin/js/code-editor$suffix.js", array( 'jquery', 'wp-codemirror', 'underscore' ) );
 	$scripts->add( 'wp-theme-plugin-editor', "/wp-admin/js/theme-plugin-editor$suffix.js", array( 'common', 'wp-util', 'wp-sanitize', 'jquery', 'jquery-ui-core', 'wp-a11y', 'underscore' ) );
 	$scripts->set_translations( 'wp-theme-plugin-editor' );
+	$scripts->localize(
+		'wp-theme-plugin-editor',
+		'themePluginEditorL10n',
+		array(
+			'locale'    => get_user_locale(),
+			'wpVersion' => get_bloginfo( 'version' ),
+		)
+	);
 
 	$scripts->add( 'wp-playlist', "/wp-includes/js/mediaelement/wp-playlist$suffix.js", array( 'wp-util', 'backbone', 'mediaelement' ), false, 1 );
 
@@ -1077,6 +1085,8 @@ function wp_default_scripts( $scripts ) {
 	$scripts->set_translations( 'user-profile' );
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
+
+	$scripts->add( 'setup-config', "/wp-admin/js/setup-config$suffix.js", array(), false, 1 );
 
 	$scripts->add( 'user-suggest', "/wp-admin/js/user-suggest$suffix.js", array( 'jquery-ui-autocomplete' ), false, 1 );
 
@@ -1228,6 +1238,8 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'admin-tags', "/wp-admin/js/tags$suffix.js", array( 'jquery', 'wp-ajax-response' ), false, 1 );
 		$scripts->set_translations( 'admin-tags' );
 
+		$scripts->add( 'metabox-events', "/wp-includes/js/metabox-events$suffix.js", array( 'common', 'admin-comments', 'post' ), false, 1 );
+
 		$scripts->add( 'admin-comments', "/wp-admin/js/edit-comments$suffix.js", array( 'wp-lists', 'quicktags', 'jquery-query' ), false, 1 );
 		$scripts->set_translations( 'admin-comments' );
 		did_action( 'init' ) && $scripts->localize(
@@ -1250,10 +1262,14 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'tags-suggest', "/wp-admin/js/tags-suggest$suffix.js", array( 'jquery-ui-autocomplete', 'wp-a11y' ), false, 1 );
 		$scripts->set_translations( 'tags-suggest' );
 
+		$scripts->add( 'themes-list', "/wp-admin/js/themes-list$suffix.js", array(), false, 1 );
+
 		$scripts->add( 'post', "/wp-admin/js/post$suffix.js", array( 'suggest', 'wp-lists', 'postbox', 'tags-box', 'underscore', 'word-count', 'wp-a11y', 'wp-sanitize', 'clipboard' ), false, 1 );
 		$scripts->set_translations( 'post' );
 
 		$scripts->add( 'editor-expand', "/wp-admin/js/editor-expand$suffix.js", array( 'jquery', 'underscore' ), false, 1 );
+
+		$scripts->add( 'link-manager', "/wp-admin/js/link-manager$suffix.js", array(), false, 1 );
 
 		$scripts->add( 'link', "/wp-admin/js/link$suffix.js", array( 'wp-lists', 'postbox' ), false, 1 );
 
@@ -1333,6 +1349,8 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( 'custom-header', '/wp-admin/js/custom-header.js', array( 'jquery-masonry' ), false, 1 );
 		$scripts->add( 'custom-background', "/wp-admin/js/custom-background$suffix.js", array( 'wp-color-picker', 'media-views' ), false, 1 );
 		$scripts->add( 'media-gallery', "/wp-admin/js/media-gallery$suffix.js", array( 'jquery' ), false, 1 );
+
+		$scripts->add( 'media-events', "/wp-admin/js/media-events$suffix.js", array( 'image-edit', 'jquery' ), false, 1 );
 
 		$scripts->add( 'svg-painter', '/wp-admin/js/svg-painter.js', array( 'jquery' ), false, 1 );
 	}
@@ -1914,11 +1932,7 @@ function _print_scripts() {
 
 	if ( $concat ) {
 		if ( ! empty( $wp_scripts->print_code ) ) {
-			echo "\n<script{$type_attr}>\n";
-			echo "/* <![CDATA[ */\n"; // Not needed in HTML 5.
-			echo $wp_scripts->print_code;
-			echo "/* ]]> */\n";
-			echo "</script>\n";
+			wp_print_inline_script_tag( "\n/* <![CDATA[ */\n{$wp_scripts->print_code}/* ]]> */\n" );
 		}
 
 		$concat       = str_split( $concat, 128 );
@@ -1929,7 +1943,7 @@ function _print_scripts() {
 		}
 
 		$src = $wp_scripts->base_url . "/wp-admin/load-scripts.php?c={$zip}" . $concatenated . '&ver=' . $wp_scripts->default_version;
-		echo "<script{$type_attr} src='" . esc_attr( $src ) . "'></script>\n";
+		wp_print_script_tag( array( 'src' => $src ) );
 	}
 
 	if ( ! empty( $wp_scripts->print_html ) ) {

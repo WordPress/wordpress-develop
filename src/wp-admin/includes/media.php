@@ -268,12 +268,10 @@ function _cleanup_image_add_caption( $matches ) {
  * @param string $html
  */
 function media_send_to_editor( $html ) {
-	?>
-	<script type="text/javascript">
-	var win = window.dialogArguments || opener || parent || top;
-	win.send_to_editor( <?php echo wp_json_encode( $html ); ?> );
-	</script>
-	<?php
+	$js = 'var win = window.dialogArguments || opener || parent || top; 
+	win.send_to_editor( ' . wp_json_encode( $html ) . ' );';
+	wp_print_inline_script_tag( $js );
+
 	exit;
 }
 
@@ -528,14 +526,12 @@ function wp_iframe( $content_func, ...$args ) {
 	) {
 		wp_enqueue_style( 'deprecated-media' );
 	}
+	$js = 'addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!="function"){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+	var ajaxurl = "' . admin_url( 'admin-ajax.php', 'relative' ) . '", pagenow = "media-upload-popup", adminpage = "media-upload-popup",
+	isRtl = ' . ( (int) is_rtl() ) . ';';
 
-	?>
-	<script type="text/javascript">
-	addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-	var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>', pagenow = 'media-upload-popup', adminpage = 'media-upload-popup',
-	isRtl = <?php echo (int) is_rtl(); ?>;
-	</script>
-	<?php
+	wp_print_inline_script_tag( $js );
+
 	/** This action is documented in wp-admin/admin-header.php */
 	do_action( 'admin_enqueue_scripts', 'media-upload-popup' );
 
@@ -594,18 +590,18 @@ function wp_iframe( $content_func, ...$args ) {
 	?>
 	</head>
 	<body<?php echo $body_id_attr; ?> class="wp-core-ui no-js">
-	<script type="text/javascript">
-	document.body.className = document.body.className.replace('no-js', 'js');
-	</script>
 	<?php
+
+	wp_print_inline_script_tag( 'document.body.className = document.body.className.replace("no-js", "js");' );
 
 	call_user_func_array( $content_func, $args );
 
 	/** This action is documented in wp-admin/admin-footer.php */
 	do_action( 'admin_print_footer_scripts' );
 
+	wp_print_inline_script_tag( 'if(typeof wpOnload=="function")wpOnload();' );
+
 	?>
-	<script type="text/javascript">if(typeof wpOnload=='function')wpOnload();</script>
 	</body>
 	</html>
 	<?php
@@ -792,13 +788,9 @@ function media_upload_form_handler() {
 	}
 
 	if ( isset( $_POST['insert-gallery'] ) || isset( $_POST['update-gallery'] ) ) {
-		?>
-		<script type="text/javascript">
-		var win = window.dialogArguments || opener || parent || top;
-		win.tb_remove();
-		</script>
-		<?php
-
+		$js = 'var win = window.dialogArguments || opener || parent || top; 
+		win.tb_remove();';
+		wp_print_inline_script_tag( $js );
 		exit;
 	}
 
@@ -1668,8 +1660,9 @@ function get_media_item( $attachment_id, $args = null ) {
 	$image_edit_button = '';
 
 	if ( wp_attachment_is_image( $post->ID ) && wp_image_editor_supports( array( 'mime_type' => $post->post_mime_type ) ) ) {
+		wp_enqueue_script( 'media-events' );
 		$nonce             = wp_create_nonce( "image_editor-$post->ID" );
-		$image_edit_button = "<input type='button' id='imgedit-open-btn-$post->ID' onclick='imageEdit.open( $post->ID, \"$nonce\" )' class='button' value='" . esc_attr__( 'Edit Image' ) . "' /> <span class='spinner'></span>";
+		$image_edit_button = "<input type='button' id='imgedit-open-btn-$post->ID' data-post-id='$post->ID' data-nonce='$nonce' class='imgedit-open-btn button' value='" . esc_attr__( 'Edit Image' ) . "' /> <span class='spinner'></span>";
 	}
 
 	$attachment_url = get_permalink( $attachment_id );
@@ -1723,12 +1716,13 @@ function get_media_item( $attachment_id, $args = null ) {
 		if ( ! EMPTY_TRASH_DAYS ) {
 			$delete = "<a href='" . wp_nonce_url( "post.php?action=delete&amp;post=$attachment_id", 'delete-post_' . $attachment_id ) . "' id='del[$attachment_id]' class='delete-permanently'>" . __( 'Delete Permanently' ) . '</a>';
 		} elseif ( ! MEDIA_TRASH ) {
-			$delete = "<a href='#' class='del-link' onclick=\"document.getElementById('del_attachment_$attachment_id').style.display='block';return false;\">" . __( 'Delete' ) . "</a>
+			wp_enqueue_script( 'media-events' );
+			$delete = "<a href='#' class='del-link' data-attachment-id='$attachment_id'>" . __( 'Delete' ) . "</a>
 				<div id='del_attachment_$attachment_id' class='del-attachment' style='display:none;'>" .
 				/* translators: %s: File name. */
 				'<p>' . sprintf( __( 'You are about to delete %s.' ), '<strong>' . $filename . '</strong>' ) . "</p>
 				<a href='" . wp_nonce_url( "post.php?action=delete&amp;post=$attachment_id", 'delete-post_' . $attachment_id ) . "' id='del[$attachment_id]' class='button'>" . __( 'Continue' ) . "</a>
-				<a href='#' class='button' onclick=\"this.parentNode.style.display='none';return false;\">" . __( 'Cancel' ) . '</a>
+				<a href='#' class='button cancel-del-link'>" . __( 'Cancel' ) . '</a>
 				</div>';
 		} else {
 			$delete = "<a href='" . wp_nonce_url( "post.php?action=trash&amp;post=$attachment_id", 'trash-post_' . $attachment_id ) . "' id='del[$attachment_id]' class='delete'>" . __( 'Move to Trash' ) . "</a>
@@ -1752,12 +1746,13 @@ function get_media_item( $attachment_id, $args = null ) {
 		&& post_type_supports( get_post_type( $calling_post_id ), 'thumbnail' )
 		&& get_post_thumbnail_id( $calling_post_id ) != $attachment_id
 	) {
+		wp_enqueue_script( 'media-events' );
 
 		$calling_post             = get_post( $calling_post_id );
 		$calling_post_type_object = get_post_type_object( $calling_post->post_type );
 
 		$ajax_nonce = wp_create_nonce( "set_post_thumbnail-$calling_post_id" );
-		$thumbnail  = "<a class='wp-post-thumbnail' id='wp-post-thumbnail-" . $attachment_id . "' href='#' onclick='WPSetAsThumbnail(\"$attachment_id\", \"$ajax_nonce\");return false;'>" . esc_html( $calling_post_type_object->labels->use_featured_image ) . '</a>';
+		$thumbnail  = "<a class='wp-post-thumbnail' id='wp-post-thumbnail-" . $attachment_id . "' data-attachment-id='$attachment_id' data-ajax-nonce='$ajax_nonce' href='#'>" . esc_html( $calling_post_type_object->labels->use_featured_image ) . '</a>';
 	}
 
 	if ( ( $parsed_args['send'] || $thumbnail || $delete ) && ! isset( $form_fields['buttons'] ) ) {
@@ -2059,7 +2054,7 @@ function get_compat_media_markup( $attachment_id, $args = null ) {
 function media_upload_header() {
 	$post_id = isset( $_REQUEST['post_id'] ) ? (int) $_REQUEST['post_id'] : 0;
 
-	echo '<script type="text/javascript">post_id = ' . $post_id . ';</script>';
+	wp_print_inline_script_tag( "post_id = $post_id;" );
 
 	if ( empty( $_GET['chromeless'] ) ) {
 		echo '<div id="media-upload-header">';
@@ -2194,9 +2189,6 @@ function media_upload_form( $errors = null ) {
 	 */
 	$plupload_init = apply_filters( 'plupload_init', $plupload_init );
 
-	?>
-	<script type="text/javascript">
-	<?php
 	// Verify size is an int. If not return default value.
 	$large_size_h = absint( get_option( 'large_size_h' ) );
 
@@ -2210,11 +2202,11 @@ function media_upload_form( $errors = null ) {
 		$large_size_w = 1024;
 	}
 
-	?>
-	var resize_height = <?php echo $large_size_h; ?>, resize_width = <?php echo $large_size_w; ?>,
-	wpUploaderInit = <?php echo wp_json_encode( $plupload_init ); ?>;
-	</script>
+	$js  = "var resize_height = $large_size_h, resize_width = $large_size_w,\n";
+	$js .= 'wpUploaderInit = ' . wp_json_encode( $plupload_init ) . ';';
+	wp_print_inline_script_tag( $js );
 
+	?>
 	<div id="plupload-upload-ui" class="hide-if-no-js">
 	<?php
 	/**
@@ -2258,10 +2250,13 @@ function media_upload_form( $errors = null ) {
 		<label class="screen-reader-text" for="async-upload"><?php _e( 'Upload' ); ?></label>
 		<input type="file" name="async-upload" id="async-upload" />
 		<?php submit_button( __( 'Upload' ), 'primary', 'html-upload', false ); ?>
-		<a href="#" onclick="try{top.tb_remove();}catch(e){}; return false;"><?php _e( 'Cancel' ); ?></a>
+		<a href="#" id="cancel-async-upload"><?php _e( 'Cancel' ); ?></a>
 	</p>
 	<div class="clear"></div>
 	<?php
+
+	wp_enqueue_script( 'media-events' );
+
 	/**
 	 * Fires after the upload button in the media upload interface.
 	 *
@@ -2330,9 +2325,11 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 
 	<h3 class="media-title"><?php _e( 'Add media files from your computer' ); ?></h3>
 
-	<?php media_upload_form( $errors ); ?>
+	<?php
 
-	<script type="text/javascript">
+	media_upload_form( $errors );
+
+	$js = <<<'JS'
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2340,7 +2337,10 @@ function media_upload_type_form( $type = 'file', $errors = null, $id = null ) {
 		}
 		updateMediaForm();
 	});
-	</script>
+JS;
+	wp_print_inline_script_tag( $js );
+
+	?>
 	<div id="media-items">
 	<?php
 
@@ -2398,7 +2398,8 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 	<h3 class="media-title"><?php _e( 'Insert media from another website' ); ?></h3>
 
-	<script type="text/javascript">
+	<?php
+	$js = <<<'JS'
 	var addExtImage = {
 
 	width : '',
@@ -2413,11 +2414,10 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 		if ( f.alt.value )
 			alt = f.alt.value.replace(/'/g, '&#039;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-		<?php
+JS;
 		/** This filter is documented in wp-admin/includes/media.php */
-		if ( ! apply_filters( 'disable_captions', '' ) ) {
-			?>
+	if ( ! apply_filters( 'disable_captions', '' ) ) {
+		$js .= <<<'JS'
 			if ( f.caption.value ) {
 				caption = f.caption.value.replace(/\r\n|\r/g, '\n');
 				caption = caption.replace(/<[a-zA-Z0-9]+( [^<>]+)?>/g, function(a){
@@ -2426,10 +2426,9 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 
 				caption = caption.replace(/\s*\n\s*/g, '<br />');
 			}
-			<?php
-		}
-
-		?>
+JS;
+	}
+		$js .= <<<'JS'
 		cls = caption ? '' : ' class="'+t.align+'"';
 
 		html = '<img alt="'+alt+'" src="'+f.src.value+'"'+cls+' width="'+t.width+'" height="'+t.height+'" />';
@@ -2454,7 +2453,9 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 		document.getElementById('go_button').style.color = '#bbb';
 		if ( ! document.forms[0].src.value )
 			document.getElementById('status_img').innerHTML = '';
-		else document.getElementById('status_img').innerHTML = '<img src="<?php echo esc_url( admin_url( 'images/no.png' ) ); ?>" alt="" />';
+JS;
+		$js .= 'else document.getElementById(\'status_img\').innerHTML = \'<img src="' . esc_url( admin_url( 'images/no.png' ) ) . '" alt="" />\';';
+		$js .= <<<'JS'
 	},
 
 	updateImageData : function() {
@@ -2463,7 +2464,9 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 		t.width = t.preloadImg.width;
 		t.height = t.preloadImg.height;
 		document.getElementById('go_button').style.color = '#333';
-		document.getElementById('status_img').innerHTML = '<img src="<?php echo esc_url( admin_url( 'images/yes.png' ) ); ?>" alt="" />';
+JS;
+		$js .= 'document.getElementById(\'status_img\').innerHTML = \'<img src="' . esc_url( admin_url( 'images/yes.png' ) ) . '" alt="" />\';';
+		$js .= <<<'JS'
 	},
 
 	getImageData : function() {
@@ -2476,8 +2479,9 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 			t.resetImageData();
 			return false;
 		}
-
-		document.getElementById('status_img').innerHTML = '<img src="<?php echo esc_url( admin_url( 'images/spinner-2x.gif' ) ); ?>" alt="" width="16" height="16" />';
+JS;
+	$js     .= 'document.getElementById(\'status_img\').innerHTML = \'<img src="' . esc_url( admin_url( 'images/spinner-2x.gif' ) ) . '" alt="" width="16" height="16" />\';';
+	$js     .= <<<'JS'
 		t.preloadImg = new Image();
 		t.preloadImg.onload = t.updateImageData;
 		t.preloadImg.onerror = t.resetImageData;
@@ -2490,8 +2494,9 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 			$('table.describe').toggleClass('not-image', $('#not-image').prop('checked') );
 		});
 	});
-	</script>
-
+JS;
+	wp_print_inline_script_tag( $js );
+	?>
 	<div id="media-items">
 	<div class="media-item media-blank">
 	<?php
@@ -2525,6 +2530,8 @@ function media_upload_type_url_form( $type = null, $errors = null, $id = null ) 
 function media_upload_gallery_form( $errors ) {
 	global $redir_tab, $type;
 
+	wp_enqueue_script( 'media-events' );
+
 	$redir_tab = 'gallery';
 	media_upload_header();
 
@@ -2538,8 +2545,7 @@ function media_upload_gallery_form( $errors ) {
 		$form_class .= ' html-uploader';
 	}
 
-	?>
-	<script type="text/javascript">
+	$js = <<<'JS'
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2547,7 +2553,10 @@ function media_upload_gallery_form( $errors ) {
 			updateMediaForm();
 		}
 	});
-	</script>
+JS;
+	wp_print_inline_script_tag( $js );
+
+	?>
 	<div id="sort-buttons" class="hide-if-no-js">
 	<span>
 		<?php _e( 'All Tabs:' ); ?>
@@ -2664,8 +2673,8 @@ function media_upload_gallery_form( $errors ) {
 	</tbody></table>
 
 	<p class="ml-submit">
-	<input type="button" class="button" style="display:none;" onMouseDown="wpgallery.update();" name="insert-gallery" id="insert-gallery" value="<?php esc_attr_e( 'Insert gallery' ); ?>" />
-	<input type="button" class="button" style="display:none;" onMouseDown="wpgallery.update();" name="update-gallery" id="update-gallery" value="<?php esc_attr_e( 'Update gallery settings' ); ?>" />
+	<input type="button" class="button gallery-actions" style="display:none;" name="insert-gallery" id="insert-gallery" value="<?php esc_attr_e( 'Insert gallery' ); ?>" />
+	<input type="button" class="button gallery-actions" style="display:none;" name="update-gallery" id="update-gallery" value="<?php esc_attr_e( 'Update gallery settings' ); ?>" />
 	</p>
 	</div>
 	</form>
@@ -2863,9 +2872,10 @@ function media_upload_library_form( $errors ) {
 
 	<form enctype="multipart/form-data" method="post" action="<?php echo esc_url( $form_action_url ); ?>" class="<?php echo $form_class; ?>" id="library-form">
 	<?php wp_nonce_field( 'media-form' ); ?>
-	<?php // media_upload_form( $errors ); ?>
+	<?php
+	// media_upload_form( $errors );
 
-	<script type="text/javascript">
+	$js = <<<'JS'
 	jQuery(function($){
 		var preloaded = $(".media-item.preloaded");
 		if ( preloaded.length > 0 ) {
@@ -2873,8 +2883,9 @@ function media_upload_library_form( $errors ) {
 			updateMediaForm();
 		}
 	});
-	</script>
-
+JS;
+	wp_print_inline_script_tag( $js );
+	?>
 	<div id="media-items">
 		<?php add_filter( 'attachment_fields_to_edit', 'media_post_single_attachment_fields_to_edit', 10, 2 ); ?>
 		<?php echo get_media_items( null, $errors ); ?>
@@ -2923,6 +2934,8 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 		$table_class = $view;
 	}
 
+	wp_enqueue_script( 'media-events' );
+
 	return '
 	<p class="media-types"><label><input type="radio" name="media_type" value="image" id="image-only"' . checked( 'image-only', $view, false ) . ' /> ' . __( 'Image' ) . '</label> &nbsp; &nbsp; <label><input type="radio" name="media_type" value="generic" id="not-image"' . checked( 'not-image', $view, false ) . ' /> ' . __( 'Audio, Video, or Other File' ) . '</label></p>
 	<p class="media-types media-types-required-info">' .
@@ -2935,7 +2948,7 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 				<label for="src"><span class="alignleft">' . __( 'URL' ) . '</span> <span class="required">*</span></label>
 				<span class="alignright" id="status_img"></span>
 			</th>
-			<td class="field"><input id="src" name="src" value="" type="text" required onblur="addExtImage.getImageData()" /></td>
+			<td class="field"><input id="src" name="src" value="" type="text" required/></td>
 		</tr>
 
 		<tr>
@@ -2958,13 +2971,13 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 		<tr class="align image-only">
 			<th scope="row" class="label"><p><label for="align">' . __( 'Alignment' ) . '</label></p></th>
 			<td class="field">
-				<input name="align" id="align-none" value="none" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'none' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-none" value="none" type="radio"' . ( 'none' === $default_align ? ' checked="checked"' : '' ) . ' />
 				<label for="align-none" class="align image-align-none-label">' . __( 'None' ) . '</label>
-				<input name="align" id="align-left" value="left" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'left' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-left" value="left" type="radio"' . ( 'left' === $default_align ? ' checked="checked"' : '' ) . ' />
 				<label for="align-left" class="align image-align-left-label">' . __( 'Left' ) . '</label>
-				<input name="align" id="align-center" value="center" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'center' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-center" value="center" type="radio"' . ( 'center' === $default_align ? ' checked="checked"' : '' ) . ' />
 				<label for="align-center" class="align image-align-center-label">' . __( 'Center' ) . '</label>
-				<input name="align" id="align-right" value="right" onclick="addExtImage.align=\'align\'+this.value" type="radio"' . ( 'right' === $default_align ? ' checked="checked"' : '' ) . ' />
+				<input name="align" id="align-right" value="right" type="radio"' . ( 'right' === $default_align ? ' checked="checked"' : '' ) . ' />
 				<label for="align-right" class="align image-align-right-label">' . __( 'Right' ) . '</label>
 			</td>
 		</tr>
@@ -2975,14 +2988,14 @@ function wp_media_insert_url_form( $default_view = 'image' ) {
 			</th>
 			<td class="field"><input id="url" name="url" value="" type="text" /><br />
 
-			<button type="button" class="button" value="" onclick="document.forms[0].url.value=null">' . __( 'None' ) . '</button>
-			<button type="button" class="button" value="" onclick="document.forms[0].url.value=document.forms[0].src.value">' . __( 'Link to image' ) . '</button>
+			<button type="button" class="button" id="image-only-none" value="">' . __( 'None' ) . '</button>
+			<button type="button" class="button" id="image-only-link" value="">' . __( 'Link to image' ) . '</button>
 			<p class="help">' . __( 'Enter a link URL or click above for presets.' ) . '</p></td>
 		</tr>
 		<tr class="image-only">
 			<td></td>
 			<td>
-				<input type="button" class="button" id="go_button" style="color:#bbb;" onclick="addExtImage.insert()" value="' . esc_attr__( 'Insert into Post' ) . '" />
+				<input type="button" class="button" id="go_button" style="color:#bbb;" value="' . esc_attr__( 'Insert into Post' ) . '" />
 			</td>
 		</tr>
 		<tr class="not-image">
@@ -3116,8 +3129,9 @@ function edit_form_image_editor( $post ) {
 	if ( wp_attachment_is_image( $post->ID ) ) :
 		$image_edit_button = '';
 		if ( wp_image_editor_supports( array( 'mime_type' => $post->post_mime_type ) ) ) {
+			wp_enqueue_script( 'media-events' );
 			$nonce             = wp_create_nonce( "image_editor-$post->ID" );
-			$image_edit_button = "<input type='button' id='imgedit-open-btn-$post->ID' onclick='imageEdit.open( $post->ID, \"$nonce\" )' class='button' value='" . esc_attr__( 'Edit Image' ) . "' /> <span class='spinner'></span>";
+			$image_edit_button = "<input type='button' class='imgedit-open-btn' id='imgedit-open-btn-$post->ID' data-post-id='$post->ID' data-nonce='$nonce' class='button' value='" . esc_attr__( 'Edit Image' ) . "' /> <span class='spinner'></span>";
 		}
 
 		$open_style     = '';

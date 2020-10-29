@@ -1500,8 +1500,7 @@ function post_form_autocomplete_off() {
  * @deprecated 4.9.0
  */
 function options_permalink_add_js() {
-	?>
-	<script type="text/javascript">
+	$js = <<<'JS'
 		jQuery(document).ready(function() {
 			jQuery('.permalink-structure input:radio').change(function() {
 				if ( 'custom' == this.value )
@@ -1512,8 +1511,8 @@ function options_permalink_add_js() {
 				jQuery( '#custom_selection' ).prop( 'checked', true );
 			});
 		});
-	</script>
-	<?php
+JS;
+	wp_print_inline_script_tag( $js );
 }
 
 /**

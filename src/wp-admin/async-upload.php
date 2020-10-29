@@ -96,7 +96,7 @@ if ( is_wp_error( $id ) ) {
 	printf(
 		'<div class="error-div error">%s <strong>%s</strong><br />%s</div>',
 		sprintf(
-			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
+			'<button type="button" id="async-upload-dismiss" class="dismiss button-link">%s</button>',
 			__( 'Dismiss' )
 		),
 		sprintf(
@@ -106,6 +106,14 @@ if ( is_wp_error( $id ) ) {
 		),
 		esc_html( $id->get_error_message() )
 	);
+	$js = <<<'JS'
+jQuery(document).ready(function () { 
+	jQuery('#async-upload-dismiss').click(function () {
+		jQuery(this).parents('div.media-item').slideUp(200, function(){jQuery(this).remove();});
+	});
+});
+JS;
+	wp_print_inline_script_tag( $js );
 	exit;
 }
 

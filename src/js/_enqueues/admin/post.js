@@ -4,7 +4,7 @@
  * @output wp-admin/js/post.js
  */
 
- /* global ajaxurl, wpAjax, postboxes, pagenow, tinymce, alert, deleteUserSetting, ClipboardJS */
+ /* global ajaxurl, wpAjax, postboxes, pagenow, prompt, tinymce, alert, deleteUserSetting, ClipboardJS */
  /* global theList:true, theExtraList:true, getUserSetting, setUserSetting, commentReply, commentsBox */
  /* global WPSetThumbnailHTML, wptitlehint */
 
@@ -1266,6 +1266,11 @@ jQuery(document).ready( function($) {
 
 		// Handle success audible feedback.
 		wp.a11y.speak( __( 'The file URL has been copied to your clipboard' ) );
+	} );
+	
+	// Handle "Get Shortlink" button click event.
+	$( '#get-shortlink' ).click( function () {
+		prompt( 'URL:',	$( '#shortlink' ).val() );
 	} );
 } );
 
