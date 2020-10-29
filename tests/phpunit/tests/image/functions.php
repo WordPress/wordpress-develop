@@ -528,31 +528,31 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-232x300.jpg',
 					'width'     => 232,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-232x300.jpg' ),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 				),
 			),
-			'filesize' => (int) filesize( $test_file ),
+			'filesize' => wp_filesize( $test_file ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
@@ -607,31 +607,31 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 					'width'     => 1088,
 					'height'    => 1408,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf.jpg' ),
 				),
 				'medium'    => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-300x300.jpg',
 					'width'     => 300,
 					'height'    => 300,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-300x300.jpg' ),
 				),
 				'large'     => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-791x1024.jpg',
 					'width'     => 791,
 					'height'    => 1024,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-791x1024.jpg' ),
 				),
 				'thumbnail' => array(
 					'file'      => 'wordpress-gsoc-flyer-pdf-116x150.jpg',
 					'width'     => 116,
 					'height'    => 150,
 					'mime-type' => 'image/jpeg',
-					'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
+					'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-116x150.jpg' ),
 				),
 			),
-			'filesize' => (int) filesize( $test_file ),
+			'filesize' => wp_filesize( $test_file ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
@@ -689,7 +689,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'width'     => 77,
 			'height'    => 100,
 			'mime-type' => 'image/jpeg',
-			'filesize'  => (int) filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
+			'filesize'  => wp_filesize( $temp_dir . 'wordpress-gsoc-flyer-pdf-77x100.jpg' ),
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
