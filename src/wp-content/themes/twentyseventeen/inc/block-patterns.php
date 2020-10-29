@@ -28,7 +28,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'title'      => __( 'Large Heading with Button', 'twentyseventeen' ),
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:heading {"level":1,"textColor":"black","style":{"typography":{"fontSize":50}}} -->
-            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'Attract The Right Leads with Marketing Campaigns that Work', 'twentyseventeen' ) . '</h1>
+            <h1 class="has-black-color has-text-color" style="font-size:50px">' . __( 'Attract Leads with Marketing Campaigns that Work', 'twentyseventeen' ) . '</h1>
             <!-- /wp:heading -->
 
             <!-- wp:buttons -->
@@ -185,7 +185,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'categories' => array( 'twentyseventeen' ),
 			'content'    => '<!-- wp:cover {"customOverlayColor":"#93aab8","minHeight":700,"align":"center"} -->
             <div class="wp-block-cover aligncenter has-background-dim" style="background-color:#93aab8;min-height:700px"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"left","textColor":"white","style":{"typography":{"fontSize":50}}} -->
-            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'We are proud to serve outstanding clients like you.', 'twentyseventeen' ) . '</p>
+            <p class="has-text-align-left has-white-color has-text-color" style="font-size:50px">' . __( 'We are proud to serve outstanding clients.', 'twentyseventeen' ) . '</p>
             <!-- /wp:paragraph -->
             
             <!-- wp:buttons -->
