@@ -25,7 +25,7 @@ env:
 
 matrix:
   include:
-  - env: WP_TRAVISCI=test:e2e
+  - env: WP_TRAVISCI=test:e2e LOCAL_PHPUNIT=7.4-fpm
     name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
@@ -33,25 +33,25 @@ matrix:
     name: JS Tests
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: "PHP Compatibility Check"
-  - env: LOCAL_PHP=7.4-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.4-fpm LOCAL_PHPUNIT=7.4-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.4"
-  - env: LOCAL_PHP=7.3-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.3-fpm LOCAL_PHPUNIT=7.3-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3"
-  - env: LOCAL_PHP=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.3-fpm LOCAL_PHPUNIT=7.3-fpm LOCAL_PHP_MEMCACHED=true WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.3 with Memcached"
-  - env: LOCAL_PHP=7.2-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.2-fpm LOCAL_PHPUNIT=7.2-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.2"
-  - env: LOCAL_PHP=7.1-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.1-fpm LOCAL_PHPUNIT=7.1-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.1"
-  - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=7.0-fpm LOCAL_PHPUNIT=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 7.0"
-  - env: LOCAL_PHP=5.6-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=5.6-fpm LOCAL_PHPUNIT=5.6-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 5.6"
-  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=8.0-fpm LOCAL_PHPUNIT=8.0-fpm WP_TRAVISCI=test:php
     name: "PHPUnit Tests: PHP 8.0"
   allow_failures:
   - env: WP_TRAVISCI=test:compat COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
-  - env: LOCAL_PHP=8.0-fpm WP_TRAVISCI=test:php
+  - env: LOCAL_PHP=8.0-fpm LOCAL_PHPUNIT=8.0-fpm WP_TRAVISCI=test:php
   fast_finish: true
 
 before_install:
