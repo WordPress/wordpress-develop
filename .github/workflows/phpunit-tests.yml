@@ -26,11 +26,11 @@ jobs:
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
-  # - Creates a ZIP file of compiled WordPress
+  # - Creates a ZIP file of compiled WordPress.
   # - Uploads ZIP file as an artifact.
   setup-wordpress:
     name: Setup WordPress
@@ -108,14 +108,14 @@ jobs:
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Configures caching for Composer.
-  # _ Installs Composer dependencies (if desired)
-  # - Logs Docker debug information (about both the Docker installation within the runner)
+  # _ Installs Composer dependencies (if desired).
+  # - Logs Docker debug information (about both the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
   # - Logs WordPress Docker container debug information.
   # - Logs debug general information.
   # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)
+  # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Reports test results to the Distributed Hosting Tests.
@@ -236,8 +236,6 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker -v
-          docker-compose -v
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
