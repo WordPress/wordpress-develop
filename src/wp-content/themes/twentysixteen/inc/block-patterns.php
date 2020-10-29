@@ -31,10 +31,10 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div style="height:60px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
             <!-- wp:heading {"level":6,"style":{"typography":{"lineHeight":"1.5","fontSize":35}}} -->
-            <h6 style="font-size:35px;line-height:1.5"><strong>' . esc_html__( 'Twenty Sixteen is a modernized take on an ever-popular WordPress layout — the horizontal masthead with an optional right sidebar that works perfectly for blogs and websites.', 'twentysixteen' ) . '</strong></h6>
+            <h6 style="font-size:35px;line-height:1.5"><strong>' . esc_html__( 'Twenty Sixteen is a modern take on the horizontal masthead with an optional right sidebar. It works perfectly for WordPress websites and blogs.', 'twentysixteen' ) . '</strong></h6>
             <!-- /wp:heading -->
             <!-- wp:paragraph {"style":{"typography":{"lineHeight":"1.8"}}} -->
-            <p style="line-height:1.8">' . esc_html__( 'It has custom color options with beautiful default color schemes, a harmonious fluid grid using a mobile-first approach, and impeccable polish in every detail. Twenty Sixteen will make your WordPress look beautiful everywhere.', 'twentysixteen' ) . '</p>
+            <p style="line-height:1.8">' . esc_html__( 'Twenty Sixteen will make your WordPress website look beautiful everywhere. Take advantage of custom color options, beautiful default color schemes, a harmonious fluid grid using a mobile-first approach, and impeccable polish in every detail.', 'twentysixteen' ) . '</p>
             <!-- /wp:paragraph -->
             <!-- wp:spacer {"height":60} -->
             <div style="height:60px" aria-hidden="true" class="wp-block-spacer"></div>
