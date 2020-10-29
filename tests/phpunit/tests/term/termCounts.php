@@ -503,6 +503,87 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Term counts increment on attachments based on parents status.
+	 *
+	 * @covers ::wp_modify_term_count_by
+	 * @covers ::wp_publish_post
+	 * @dataProvider data_term_counts_on_attachments_based_on_inherited_status
+	 * @ticket 40351
+	 *
+	 * @param string $parent_post_status Post status of parent object.
+	 * @param int    $change             Expected change after adding term.
+	 */
+	public function test_term_counts_on_attachments_based_on_inherited_status_increment( $parent_post_status, $change ) {
+		$post_id       = self::$post_ids[ $parent_post_status ];
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'        => 'image.jpg',
+				'post_parent' => $post_id,
+				'post_status' => 'inherit',
+			)
+		);
+		$term_count    = get_term( self::$attachment_term )->count;
+		wp_add_object_terms( $attachment_id, self::$attachment_term, 'wp_test_tax_counts' );
+
+		$expected = $term_count + $change;
+		$this->assertSame( $expected, get_term( self::$attachment_term )->count );
+	}
+
+	/**
+	 * Term counts decrement on attachments based on parents status.
+	 *
+	 * @covers ::wp_modify_term_count_by
+	 * @covers ::wp_remove_object_terms
+	 * @dataProvider data_term_counts_on_attachments_based_on_inherited_status
+	 * @ticket 40351
+	 *
+	 * @param string $parent_post_status Post status of parent object.
+	 * @param int    $change             Expected change after adding term.
+	 */
+	public function test_term_counts_on_attachments_based_on_inherited_status_decrement( $parent_post_status, $change ) {
+		$post_id       = self::$post_ids[ $parent_post_status ];
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'        => 'image.jpg',
+				'post_parent' => $post_id,
+				'post_status' => 'inherit',
+			)
+		);
+		wp_add_object_terms( $attachment_id, self::$attachment_term, 'wp_test_tax_counts' );
+		$term_count = get_term( self::$attachment_term )->count;
+		wp_remove_object_terms( $attachment_id, self::$attachment_term, 'wp_test_tax_counts' );
+
+		// Unlike most tests, this subtracts the change due to the shared dataProvider.
+		$expected = $term_count - $change;
+		$this->assertSame( $expected, get_term( self::$attachment_term )->count );
+	}
+
+	/**
+	 * Data provider for inherited status tests.
+	 *
+	 * Data provider for:
+	 * - test_term_counts_on_attachments_based_on_inherited_status_increment
+	 * - test_term_counts_on_attachments_based_on_inherited_status_decrement
+	 *
+	 * @return array[] {
+	 *     @type string $parent_post_status Post status of parent object.
+	 *     @type int    $change             Expected change after adding term.
+	 * }
+	 */
+	function data_term_counts_on_attachments_based_on_inherited_status() {
+		return array(
+			// 0. Published post
+			array( 'publish', 1 ),
+			// 1. Auto draft
+			array( 'auto-draft', 0 ),
+			// 2. Draft
+			array( 'draft', 0 ),
+			// 3. Private post
+			array( 'private', 0 ),
+		);
+	}
+
+	/**
 	 * Test post status transition update term counts correctly.
 	 *
 	 * @covers ::wp_modify_term_count_by
