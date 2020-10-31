@@ -3,7 +3,6 @@
 /**
  * @group l10n
  * @group i18n
- * @group load_script_textdomain
  */
 class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 
@@ -60,6 +59,30 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'https://content.example.com/plugins/my-plugin/js/script.js',
 				'internationalized-plugin',
 				array( 'content_url', function() { return 'https://content.example.com'; } ),
+			),
+			// @ticket 49145
+			array(
+				'/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'test-when-no-content_url-host',
+				'https://content.example.com/plugins/my-plugin/js/script.js',
+				'internationalized-plugin',
+				array( 'content_url', function() { return '/'; } ),
+			),
+			// @ticket 49145
+			array(
+				'/languages/plugins/internationalized-plugin-en_US-2f86cb96a0233e7cb3b6f03ad573be0b.json',
+				'test-when-no-plugins_url-host',
+				'https://plugins.example.com/my-plugin/js/script.js',
+				'internationalized-plugin',
+				array( 'plugins_url', function() { return '/'; } ),
+			),
+			// @ticket 49145
+			array(
+				'/languages/en_US-813e104eb47e13dd4cc5af844c618754.json',
+				'test-when-no-site_url-host',
+				'/wp/wp-includes/js/script.js',
+				'default',
+				array( 'site_url', function() { return '/wp'; } ),
 			),
 		);
 	}
