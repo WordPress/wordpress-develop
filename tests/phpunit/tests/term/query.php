@@ -846,4 +846,24 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$this->assertContains( $t1, $q->terms );
 	}
+
+	/**
+	 * @ticket 49145
+	 */
+	public function test_should_return_null_when_include_0() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		self::factory()->term->create_many( 3, array( 'taxonomy' => 'wptests_tax' ) );
+
+		$query = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'include'    => [ 0 ],
+				'orderby'    => 'include',
+				'hide_empty' => false,
+			)
+		);
+
+		$this->assertNull( $query->terms );
+	}
 }
