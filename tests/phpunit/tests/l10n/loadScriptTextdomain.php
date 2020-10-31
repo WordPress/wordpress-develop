@@ -26,7 +26,7 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'/languages/en_US-813e104eb47e13dd4cc5af844c618754.json',
 				'test-example-root',
 				'/wp-includes/js/script.js',
-				'default'
+				'default',
 			),
 			// Assets on a CDN.
 			array(
@@ -34,7 +34,7 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'test-example-cdn',
 				'https://my-cdn.com/wordpress/wp-includes/js/script.js',
 				'default',
-				array( 'load_script_textdomain_relative_path', array( $this, 'relative_path_from_cdn'  ), 2 ),
+				array( 'load_script_textdomain_relative_path', array( $this, 'relative_path_from_cdn' ), 2 ),
 			),
 			// Test for WordPress installs in a subdirectory.
 			array(
@@ -42,7 +42,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'test-example-subdir',
 				'/wp/wp-includes/js/script.js',
 				'default',
-				array( 'site_url', function( $site_url ) { return $site_url . '/wp'; } ),
+				array(
+					'site_url',
+					function ( $site_url ) {
+						return $site_url . '/wp';
+					},
+				),
 			),
 			// @ticket 46336
 			array(
@@ -50,7 +55,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'plugin-example-1',
 				'https://plugins.example.com/my-plugin/js/script.js',
 				'internationalized-plugin',
-				array( 'plugins_url', function() { return 'https://plugins.example.com'; } ),
+				array(
+					'plugins_url',
+					function () {
+						return 'https://plugins.example.com';
+					},
+				),
 			),
 			// @ticket 46387
 			array(
@@ -58,7 +68,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'plugin-example-2',
 				'https://content.example.com/plugins/my-plugin/js/script.js',
 				'internationalized-plugin',
-				array( 'content_url', function() { return 'https://content.example.com'; } ),
+				array(
+					'content_url',
+					function () {
+						return 'https://content.example.com';
+					},
+				),
 			),
 			// @ticket 49145
 			array(
@@ -66,7 +81,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'test-when-no-content_url-host',
 				'https://content.example.com/plugins/my-plugin/js/script.js',
 				'internationalized-plugin',
-				array( 'content_url', function() { return '/'; } ),
+				array(
+					'content_url',
+					function () {
+						return '/';
+					},
+				),
 			),
 			// @ticket 49145
 			array(
@@ -74,7 +94,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'test-when-no-plugins_url-host',
 				'https://plugins.example.com/my-plugin/js/script.js',
 				'internationalized-plugin',
-				array( 'plugins_url', function() { return '/'; } ),
+				array(
+					'plugins_url',
+					function () {
+						return '/';
+					},
+				),
 			),
 			// @ticket 49145
 			array(
@@ -82,7 +107,12 @@ class Tests_L10n_loadScriptTextdomain extends WP_UnitTestCase {
 				'test-when-no-site_url-host',
 				'/wp/wp-includes/js/script.js',
 				'default',
-				array( 'site_url', function() { return '/wp'; } ),
+				array(
+					'site_url',
+					function () {
+						return '/wp';
+					},
+				),
 			),
 		);
 	}
