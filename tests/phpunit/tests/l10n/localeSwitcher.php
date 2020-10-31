@@ -396,6 +396,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39210
+	 * @ticket 51678
 	 */
 	public function test_switch_reloads_plugin_translations_outside_wp_lang_dir() {
 		global $wp_locale_switcher, $wp_textdomain_registry;
@@ -407,7 +408,7 @@ class Tests_Locale_Switcher extends WP_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/plugins/custom-internationalized-plugin/custom-internationalized-plugin.php';
 
-		$this->assertSame( WP_PLUGIN_DIR . '/custom-internationalized-plugin/languages/', $wp_textdomain_registry->get( 'custom-internationalized-plugin' ) );
+		$this->assertFalse( $wp_textdomain_registry->get( 'custom-internationalized-plugin' ) );
 
 		$expected = custom_i18n_plugin_test();
 		$this->assertSame( 'This is a dummy plugin', $expected );
