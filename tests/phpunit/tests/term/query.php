@@ -858,7 +858,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$query = new WP_Term_Query(
 			array(
 				'taxonomy'   => 'wptests_tax',
-				'include'    => [ 0 ],
+				'include'    => array( 0 ),
 				'orderby'    => 'include',
 				'hide_empty' => false,
 			)

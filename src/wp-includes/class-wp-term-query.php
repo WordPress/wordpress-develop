@@ -423,9 +423,9 @@ class WP_Term_Query {
 		$include      = $args['include'];
 
 		if ( ! empty( $include ) ) {
-			$exclude      = '';
-			$exclude_tree = '';
-			$inclusions   = implode( ',', wp_parse_id_list( $include ) );
+			$exclude                                  = '';
+			$exclude_tree                             = '';
+			$inclusions                               = implode( ',', wp_parse_id_list( $include ) );
 			$this->sql_clauses['where']['inclusions'] = 't.term_id IN ( ' . $inclusions . ' )';
 		}
 
