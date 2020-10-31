@@ -688,6 +688,7 @@ function translate_nooped_plural( $nooped_plural, $count, $domain = 'default' ) 
  * and will be a MO object.
  *
  * @since 1.5.0
+ * @since 5.6.0 Sets text domain registry to `false` when .mo file is not readable.
  *
  * @global MO[]                   $l10n                   An array of all currently loaded text domains.
  * @global MO[]                   $l10n_unloaded          An array of all text domains that have been unloaded again.
@@ -740,6 +741,7 @@ function load_textdomain( $domain, $mofile ) {
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
 	if ( ! is_readable( $mofile ) ) {
+		$wp_textdomain_registry->set( $domain, false );
 		return false;
 	}
 
