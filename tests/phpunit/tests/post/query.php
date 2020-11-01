@@ -758,4 +758,21 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->assertInternalType( 'int', $q->found_posts );
 	}
+
+	/**
+	 * @ticket 47719
+	 */
+	public function test_should_return_no_posts_when_post__in_0() {
+		self::factory()->post->create_many( 4 );
+
+		$query = new WP_Query(
+			array(
+				'post_type' => 'post',
+				'post__in'  => array( 0 ),
+			)
+		);
+
+		$this->assertSame( array(), $query->posts );
+		$this->assertSame( 0, $query->found_posts );
+	}
 }

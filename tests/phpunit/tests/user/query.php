@@ -1720,6 +1720,20 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$this->assertSame( 1, $q->total_users );
 	}
 
+	/**
+	 * @ticket 47719
+	 */
+	public function test_should_return_no_users_when_include_0() {
+		$query = new WP_User_Query(
+			array(
+				'include' => array( 0 ),
+				'role'    => '',
+			)
+		);
+
+		$this->assertSame( array(), $query->get_results() );
+	}
+
 	public static function filter_users_pre_query( $posts, $query ) {
 		$query->total_users = 1;
 
