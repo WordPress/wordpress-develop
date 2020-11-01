@@ -862,7 +862,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNull( $query->terms );
-		$this->assertSame( array(), $query->get_terms() );
+		$expected = array();
+		$this->assertSame( $expected, $query->terms );
+		$this->assertSame( $expected, $query->get_terms() );
 	}
 }

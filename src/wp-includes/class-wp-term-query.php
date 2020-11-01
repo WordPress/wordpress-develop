@@ -734,7 +734,8 @@ class WP_Term_Query {
 
 		if ( empty( $terms ) ) {
 			wp_cache_add( $cache_key, array(), 'terms', DAY_IN_SECONDS );
-			return array();
+			$this->terms = array();
+			return $this->terms;
 		}
 
 		if ( $child_of ) {
