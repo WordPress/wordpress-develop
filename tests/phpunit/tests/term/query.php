@@ -848,7 +848,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 49145
+	 * @ticket 47719
 	 */
 	public function test_should_return_null_when_include_0() {
 		register_taxonomy( 'wptests_tax', 'post' );
