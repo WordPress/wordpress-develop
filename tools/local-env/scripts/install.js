@@ -1,9 +1,10 @@
-const dotenv = require( 'dotenv' );
+const dotenv       = require( 'dotenv' );
+const dotenvExpand = require( 'dotenv-expand' );
 const wait_on = require( 'wait-on' );
 const { execSync } = require( 'child_process' );
 const { renameSync, readFileSync, writeFileSync } = require( 'fs' );
 
-dotenv.config();
+dotenvExpand( dotenv.config() );
 
 // Create wp-config.php.
 wp_cli( 'config create --dbname=wordpress_develop --dbuser=root --dbpass=password --dbhost=mysql --path=/var/www/src --force' );
@@ -14,6 +15,7 @@ wp_cli( `config set WP_DEBUG ${process.env.LOCAL_WP_DEBUG} --raw --type=constant
 wp_cli( `config set WP_DEBUG_LOG ${process.env.LOCAL_WP_DEBUG_LOG} --raw --type=constant` );
 wp_cli( `config set WP_DEBUG_DISPLAY ${process.env.LOCAL_WP_DEBUG_DISPLAY} --raw --type=constant` );
 wp_cli( `config set SCRIPT_DEBUG ${process.env.LOCAL_SCRIPT_DEBUG} --raw --type=constant` );
+wp_cli( `config set WP_ENVIRONMENT_TYPE ${process.env.LOCAL_WP_ENVIRONMENT_TYPE} --type=constant` );
 
 // Move wp-config.php to the base directory, so it doesn't get mixed up in the src or build directories.
 renameSync( 'src/wp-config.php', 'wp-config.php' );
