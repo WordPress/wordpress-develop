@@ -19,6 +19,8 @@
 		"check-node-version": "3.2.0",
 		"copy-webpack-plugin": "^4.6.0",
 		"cssnano": "4.1.8",
+		"dotenv": "8.1.0",
+		"dotenv-expand": "5.1.0",
 		"grunt": "~1.0.3",
 		"grunt-banner": "^0.6.0",
 		"grunt-contrib-clean": "~2.0.0",
@@ -48,6 +50,7 @@
 		"source-map-loader": "^0.2.4",
 		"uglify-js": "^3.4.9",
 		"uglifyjs-webpack-plugin": "2.1.1",
+		"wait-on": "3.3.0",
 		"webpack": "4.29.2",
 		"webpack-dev-server": "3.1.14",
 		"webpack-livereload-plugin": "2.2.0"
@@ -113,6 +116,20 @@
 		"whatwg-fetch": "3.0.0"
 	},
 	"scripts": {
-		"grunt": "grunt"
+		"build": "grunt build",
+		"build:dev": "grunt build --dev",
+		"dev": "grunt watch --dev",
+		"test": "grunt test",
+		"watch": "grunt watch",
+		"grunt": "grunt",
+		"env:start": "node ./tools/local-env/scripts/start.js",
+		"env:stop": "node ./tools/local-env/scripts/docker.js down",
+		"env:clean": "node ./tools/local-env/scripts/docker.js down -v --remove-orphans",
+		"env:reset": "node ./tools/local-env/scripts/docker.js down --rmi all -v --remove-orphans",
+		"env:install": "node ./tools/local-env/scripts/install.js",
+		"env:cli": "node ./tools/local-env/scripts/docker.js run cli",
+		"env:logs": "node ./tools/local-env/scripts/docker.js logs",
+		"env:pull": "node ./tools/local-env/scripts/docker.js pull",
+		"test:php": "node ./tools/local-env/scripts/docker.js run --rm phpunit phpunit"
 	}
 }
