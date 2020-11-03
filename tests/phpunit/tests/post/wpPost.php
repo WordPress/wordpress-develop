@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_WpPost extends WP_UnitTestCase {
+class Tests_Post_wpPost extends WP_UnitTestCase {
 	protected static $post_id;
 
 	public static function wpSetUpBeforeClass( $factory ) {
