@@ -937,6 +937,25 @@ class WP_Upgrader {
 		return delete_option( $lock_name . '.lock' );
 	}
 
+	/**
+	 * Gets the hook extra action.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $package_type The package type (plugin or theme).
+	 * @return string hook extra action type. Default is "install".
+	 */
+	protected function get_hook_extra_action( $package_type ) {
+		if (
+			! empty( $this->skin->overwrite )
+			&&
+			in_array( $this->skin->overwrite, array( "update-{$package_type}", "downgrade-{$package_type}" ), true )
+		) {
+			return $this->skin->overwrite;
+		}
+
+		return 'install';
+	}
 }
 
 /** Plugin_Upgrader class */

@@ -253,7 +253,7 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_working'     => true,
 				'hook_extra'        => array(
 					'type'   => 'theme',
-					'action' => 'install',
+					'action' => $this->get_hook_extra_action( 'theme' ),
 				),
 			)
 		);
