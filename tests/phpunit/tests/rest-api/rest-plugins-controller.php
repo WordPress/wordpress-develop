@@ -43,15 +43,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	private static $admin;
 
 	/**
-	 * Don't update translations asynchronously.
-	 */
-	public function setUp() {
-		parent::setUp();
-
-		add_filter( 'async_update_translation', '__return_false' );
-	}
-
-	/**
 	 * Set up class test fixtures.
 	 *
 	 * @since 5.5.0
@@ -97,8 +88,6 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
-
-		remove_filter( 'async_update_translation', '__return_false' );
 	}
 
 	/**
