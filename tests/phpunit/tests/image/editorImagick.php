@@ -465,9 +465,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
 		$editor = new WP_Image_Editor_Imagick( $file );
-
-		$this->assertNotWPError( $editor );
-
 		$editor->load();
 		$editor->resize( 5, 5 );
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
@@ -492,9 +489,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
 		$editor = new WP_Image_Editor_Imagick( $file );
-
-		$this->assertNotWPError( $editor );
-
 		$editor->load();
 
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
@@ -525,7 +519,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$image_editor = new WP_Image_Editor_Imagick( $save_to_file );
 		$image_editor->load();
-		$this->assertNotWPError( $image_editor );
 		$image_editor->rotate( 180 );
 		$image_editor->save( $save_to_file );
 
