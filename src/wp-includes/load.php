@@ -429,7 +429,7 @@ function wp_debug_mode() {
 		error_reporting( E_ALL );
 
 		if ( WP_DEBUG_DISPLAY ) {
-			ini_set( 'display_errors', 1 );
+			ini_set( 'display_errors', 0 );
 		} elseif ( null !== WP_DEBUG_DISPLAY ) {
 			ini_set( 'display_errors', 0 );
 		}

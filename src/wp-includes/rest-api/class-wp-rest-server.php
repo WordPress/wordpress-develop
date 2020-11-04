@@ -437,12 +437,7 @@ class WP_REST_Server {
 		$result = $this->check_authentication();
 
 		if ( ! is_wp_error( $result ) ) {
-			try {
-				$result = $this->dispatch( $request );
-			} catch ( Exception $exception ) {
-				$message = WP_DEBUG ? $exception->getMessage() : __( 'An unhandled exception has been thrown.' );
-				$result  = new WP_Error( 'rest_request_exception', $message, array( 'status' => 500 ) );
-			}
+			$result = $this->dispatch( $request );
 		}
 
 		// Normalize to either WP_Error or WP_REST_Response...
