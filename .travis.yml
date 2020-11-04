@@ -25,6 +25,19 @@ env:
 
 matrix:
   include:
+    # Old test matrix
+    - php: 7.2
+      env: WP_TRAVISCI=travis:format
+    - php: 7.1
+      env: WP_TRAVISCI=travis:js
+    - php: 7.3
+      env: WP_TRAVIS_OBJECT_CACHE=true
+      services: memcached
+    - php: 7.0
+      env: WP_TEST_REPORTER=true
+    - php: 5.6
+
+    # New Test matrix to test the Docker containers running and testing.
     - env: WP_TRAVISCI=lint:php LOCAL_PHP=7.2-fpm LOCAL_PHPUNIT=latest COMPOSER_INSTALL=true WP_INSTALL=false
       name: "PHP Linting"
     - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
