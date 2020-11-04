@@ -25,8 +25,6 @@ env:
 
 matrix:
   include:
-  - env: WP_TRAVISCI=test:e2e LOCAL_PHPUNIT=7.4-fpm
-    name: E2E Tests
   - env: WP_TRAVISCI=lint:php COMPOSER_INSTALL=true NPM_INSTALL=false WP_INSTALL=false
     name: PHP Linting
   - env: WP_TRAVISCI=travis:js WP_INSTALL=false
@@ -66,7 +64,7 @@ before_script:
     npm ci
   fi
 - |
-  if [[ "$WP_TRAVISCI" == "test:e2e" ]] || [[ "$WP_TRAVISCI" == "test:php" ]]; then
+  if [[ "$WP_TRAVISCI" == "test:php" ]]; then
     npm run env:start
     npm run build
     docker-compose run --rm mysql mysql --version
@@ -96,9 +94,7 @@ before_script:
 
 script:
   - |
-    if [[ "$WP_TRAVISCI" == "test:e2e" ]]; then
-      npm run test:e2e
-    elif [[ "$WP_TRAVISCI" == "test:php" ]]; then
+    if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       npm run test:php -- --verbose -c phpunit.xml.dist &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
       npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
