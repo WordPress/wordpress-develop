@@ -25,7 +25,7 @@ env:
 
 matrix:
   include:
-    - env: WP_TRAVISCI=lint:php LOCAL_PHP=7.2-fpm LOCAL_PHPUNIT=latest COMPOSER_INSTALL=true WP_INSTALL=false
+    - env: WP_TRAVISCI=travis:format LOCAL_PHP=7.2-fpm LOCAL_PHPUNIT=7.2-fpm COMPOSER_INSTALL=true WP_INSTALL=false
       name: "PHP Linting"
     - env: WP_TRAVISCI=travis:js LOCAL_PHP=7.1-fpm WP_INSTALL=false
       name: "JS Tests"
@@ -33,11 +33,7 @@ matrix:
       name: "PHPUnit Tests: PHP 7.3"
     - env: LOCAL_PHP_MEMCACHED=true LOCAL_PHPUNIT=7.3-fpm WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.3 with Memcached"
-    - env: LOCAL_PHP=7.2-fpm LOCAL_PHPUNIT=7.2-fpm WP_TRAVISCI=test:php
-      name: "PHPUnit Tests: PHP 7.2"
-    - env: LOCAL_PHP=7.1-fpm LOCAL_PHPUNIT=7.1-fpm WP_TRAVISCI=test:php
-      name: "PHPUnit Tests: PHP 7.1"
-    - env: LOCAL_PHP=7.0-fpm WP_TEST_REPORTER=true LOCAL_PHPUNIT=7.0-fpm WP_TRAVISCI=test:php
+    - env: LOCAL_PHP=7.0-fpm LOCAL_PHPUNIT=7.0-fpm WP_TEST_REPORTER=true WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 7.0"
     - env: LOCAL_PHP=5.6-fpm LOCAL_PHPUNIT=5.6-fpm WP_TRAVISCI=test:php
       name: "PHPUnit Tests: PHP 5.6"
