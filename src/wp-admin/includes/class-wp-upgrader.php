@@ -812,7 +812,13 @@ class WP_Upgrader {
 
 		$this->skin->after();
 
-		if ( ! $options['is_multi'] ) {
+		if (
+			! $options['is_multi']
+			&&
+			isset( $options['hook_extra']['action'] )
+			&&
+			'install' !== $options['hook_extra']['action']
+		) {
 
 			/**
 			 * Fires when the upgrader process is complete.
