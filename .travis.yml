@@ -51,8 +51,8 @@ before_install:
 before_script:
   - |
     if [[ "$COMPOSER_INSTALL" == "true" ]]; then
-      docker-compose run --rm php composer --version
-      docker-compose run --rm php composer install
+      composer --version
+      composer install
     fi
   - npm --version
   - node --version
