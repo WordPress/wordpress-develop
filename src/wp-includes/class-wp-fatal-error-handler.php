@@ -241,7 +241,7 @@ class WP_Fatal_Error_Handler {
 	 * @param array         $error   Error information retrieved from `error_get_last()`.
 	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
 	 */
-	protected function send_rest_api_error_response(  $error, $handled  ) {
+	protected function send_rest_api_error_response( $error, $handled ) {
 
 		$this->maybe_load_error_dependencies();
 
@@ -329,5 +329,5 @@ class WP_Fatal_Error_Handler {
 		}
 
 		return $message;
-}
+	}
 }
