@@ -24,15 +24,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-text">
-			<?php _e( 'Speed. Search. Security.' ); ?>
-		</div>
-
 		<div class="about__header-title">
 			<p>
 				<?php _e( 'WordPress' ); ?>
-				<span><?php echo $display_version; ?></span>
+				<?php echo $display_version; ?>
 			</p>
+		</div>
+
+		<div class="about__header-text">
+			<?php printf( 'Introducing the new default Twenty Twenty-One theme in WordPress 5.6.' ); ?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
