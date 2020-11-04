@@ -218,6 +218,13 @@
 	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2);
 }
 
+#adminmenu .wp-submenu{
+	padding-top: 0;
+}
+#adminmenu .wp-submenu .wp-first-item > a{
+	padding-top: 12px;
+}
+
 .js #adminmenu .sub-open,
 .js #adminmenu .opensub .wp-submenu,
 #adminmenu a.menu-top:focus + .wp-submenu,
@@ -646,7 +653,7 @@ li#wp-admin-bar-menu-toggle {
 	.auto-fold #adminmenu .wp-has-current-submenu a.menu-top:focus + .wp-submenu {
 		top: 0px;
 		left: 36px;
-	}
+	}	
 
 	.auto-fold #adminmenu a.wp-has-current-submenu:focus + .wp-submenu,
 	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
@@ -655,6 +662,9 @@ li#wp-admin-bar-menu-toggle {
 		margin-right: -1px;
 		padding: 7px 0 8px;
 		z-index: 9999;
+	}
+	.auto-fold #adminmenu .wp-submenu {
+		padding-top: 7px;
 	}
 
 	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
@@ -669,6 +679,7 @@ li#wp-admin-bar-menu-toggle {
 
 
 	.auto-fold #adminmenu li.menu-top .wp-submenu > li > a {
+		padding-top: 5px;
 		padding-left: 12px;
 	}
 
@@ -787,6 +798,10 @@ li#wp-admin-bar-menu-toggle {
 		padding: 10px 10px 10px 20px;
 	}
 
+	.auto-fold #adminmenu li.menu-top .wp-submenu > li.wp-first-item > a{
+		padding-top: 12px;
+	}	
+
 	/* Restore the menu names */
 	.auto-fold #adminmenu .wp-menu-name {
 		position: static;
@@ -816,6 +831,7 @@ li#wp-admin-bar-menu-toggle {
 		top: 0;
 		left: -1px;
 		box-shadow: none;
+		padding-top: 0;
 	}
 
 	.auto-fold #adminmenu .selected .wp-submenu:after,
