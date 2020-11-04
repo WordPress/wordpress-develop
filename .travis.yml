@@ -106,7 +106,7 @@ before_script:
 
 script:
   - |
-     [[ "$WP_TRAVISCI" == "test:php" ]]; then
+    if [[ "$WP_TRAVISCI" == "test:php" ]]; then
       npm run test:php -- --verbose -c phpunit.xml.dist &&
       npm run test:php -- --verbose -c phpunit.xml.dist --group ajax &&
       npm run test:php -- --verbose -c tests/phpunit/multisite.xml &&
