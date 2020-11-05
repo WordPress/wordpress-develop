@@ -361,7 +361,7 @@ class Requests_Cookie {
 	 * @deprecated Use {@see Requests_Cookie::format_for_set_cookie}
 	 * @return string
 	 */
-	public function formatForwp_setcookie() {
+	public function formatForSetCookie() {
 		return $this->format_for_set_cookie();
 	}
 
