@@ -101,13 +101,11 @@ if ( !function_exists('wp_setcookie') ) :
  * @param string $siteurl Optional. Will be used instead of SITECOOKIEPATH if set
  * @param bool $remember Optional. Remember that the user is logged in
  */
-function wp_wp_setcookie($username, $password = '', $already_md5 = false, $home = '', $siteurl = '', $remember = false) {
+function wp_setcookie($username, $password = '', $already_md5 = false, $home = '', $siteurl = '', $remember = false) {
 	_deprecated_function( __FUNCTION__, '2.5.0', 'wp_set_auth_cookie()' );
 	$user = get_user_by('login', $username);
 	wp_set_auth_cookie($user->ID, $remember);
 }
-else :
-	_deprecated_function( 'wp_setcookie', '2.5.0', 'wp_set_auth_cookie()' );
 endif;
 
 if ( !function_exists('wp_clearcookie') ) :
