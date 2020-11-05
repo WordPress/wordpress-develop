@@ -1700,6 +1700,6 @@ function wp_is_xml_request() {
  * @param bool   $httponly When TRUE the cookie will be made accessible only through the HTTP protocol.
  * @return void
  */
-function wp_setcookie( $name, $value, $expires = 0, $path, $domain, $secure = false, $httponly = false ) {
+function wp_setcookie( $name, $value, $expires, $path, $domain, $secure = false, $httponly = false ) {
 	do_action( 'wp_setcookie', $name, $value, $expires, $path, $domain, $secure, $httponly );
 }
