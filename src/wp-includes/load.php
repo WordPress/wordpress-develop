@@ -1685,3 +1685,21 @@ function wp_is_xml_request() {
 
 	return false;
 }
+
+/**
+ * Wrapper for wp_setcookie action.
+ *
+ * @since 5.3.4
+ *
+ * @param string $name The name of the cookie.
+ * @param string $value The value of the cookie.
+ * @param int    $expires The time the cookie expires.
+ * @param string $path The path on the server in which the cookie will be available on.
+ * @param string $domain The (sub)domain that the cookie is available to.
+ * @param bool   $secure Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+ * @param bool   $httponly When TRUE the cookie will be made accessible only through the HTTP protocol.
+ * @return void
+ */
+function wp_setcookie( $name, $value, $expires = 0, $path, $domain, $secure = false, $httponly = false ) {
+	do_action( 'wp_setcookie', $name, $value, $expires, $path, $domain, $secure, $httponly );
+}

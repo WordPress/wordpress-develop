@@ -282,6 +282,7 @@ add_filter( 'rest_authentication_errors', 'rest_application_password_check_error
 add_filter( 'rest_authentication_errors', 'rest_cookie_check_errors', 100 );
 
 // Actions.
+add_action( 'wp_setcookie', '_wp_setcookie', 10, 7 );
 add_action( 'wp_head', '_wp_render_title_tag', 1 );
 add_action( 'wp_head', 'wp_enqueue_scripts', 1 );
 add_action( 'wp_head', 'wp_resource_hints', 2 );

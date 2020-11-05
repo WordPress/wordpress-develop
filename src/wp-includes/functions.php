@@ -7777,3 +7777,21 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Default action for wp_setcookie.
+ *
+ * @since 5.3.4
+ *
+ * @param string $name The name of the cookie.
+ * @param string $value The value of the cookie.
+ * @param int    $expires The time the cookie expires.
+ * @param string $path The path on the server in which the cookie will be available on.
+ * @param string $domain The (sub)domain that the cookie is available to.
+ * @param bool   $secure Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client.
+ * @param bool   $httponly When TRUE the cookie will be made accessible only through the HTTP protocol.
+ * @return void
+ */
+function _wp_setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly ) {
+	setcookie( $name, $value, $expires, $path, $domain, $secure, $httponly );
+}
