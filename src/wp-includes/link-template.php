@@ -131,6 +131,9 @@ function get_permalink( $post = 0, $leavename = false ) {
 	);
 
 	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+		if ( ! $post instanceof WP_Post ) {
+			$post = get_post( $post );
+		}
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
