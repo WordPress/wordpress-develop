@@ -2390,7 +2390,7 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	if ( isset( $wp_registered_settings[ $option_name ] ) ) {
 		// Remove the validate callback if one was set during registration.
 		if ( ! empty( $wp_registered_settings[ $option_name ]['validate_callback'] ) ) {
-			remove_filter( "validate_option_{$option_name}", $wp_registered_settings[ $option_name ]['validate_callback'], 10 );
+			remove_action( "validate_option_{$option_name}", $wp_registered_settings[ $option_name ]['validate_callback'], 10 );
 		}
 
 		// Remove the sanitize callback if one was set during registration.
