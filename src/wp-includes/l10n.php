@@ -740,6 +740,7 @@ function load_textdomain( $domain, $mofile ) {
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
 	if ( ! is_readable( $mofile ) ) {
+		$wp_textdomain_registry->set( $domain, get_locale_from_mo_file( $mofile ), false );
 		return false;
 	}
 
@@ -757,7 +758,7 @@ function load_textdomain( $domain, $mofile ) {
 	$l10n[ $domain ] = &$mo;
 
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	$wp_textdomain_registry->set( $domain, dirname( $mofile ) );
+	$wp_textdomain_registry->set( $domain, get_locale_from_mo_file( $mofile ), dirname( $mofile ) );
 
 	return true;
 }
@@ -910,7 +911,7 @@ function load_plugin_textdomain( $domain, $deprecated = false, $plugin_rel_path 
 	}
 
 	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
-	$wp_textdomain_registry->set( $domain, $path );
+	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
 }
@@ -944,7 +945,7 @@ function load_muplugin_textdomain( $domain, $mu_plugin_rel_path = '' ) {
 	$path = WPMU_PLUGIN_DIR . '/' . ltrim( $mu_plugin_rel_path, '/' );
 
 	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
-	$wp_textdomain_registry->set( $domain, $path );
+	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $mofile );
 }
@@ -992,7 +993,7 @@ function load_theme_textdomain( $domain, $path = false ) {
 	}
 
 	/* @var WP_Textdomain_Registry $wp_textdomain_registry */
-	$wp_textdomain_registry->set( $domain, $path );
+	$wp_textdomain_registry->set( $domain, $locale, $path );
 
 	return load_textdomain( $domain, $path . '/' . $locale . '.mo' );
 }
@@ -1239,13 +1240,13 @@ function _load_textdomain_just_in_time( $domain ) {
 		return false;
 	}
 
+	$locale = determine_locale();
+
 	/** @var WP_Textdomain_Registry $wp_textdomain_registry */
-	$path = $wp_textdomain_registry->get( $domain );
+	$path = $wp_textdomain_registry->get( $domain, $locale );
 	if ( ! $path ) {
 		return false;
 	}
-
-	$locale = determine_locale();
 
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
@@ -1681,3 +1682,29 @@ function is_locale_switched() {
 
 	return $wp_locale_switcher->is_switched();
 }
+
+/**
+ * Parses the mo file path & name and returns the locale part.
+ * 
+ * I.e. Extracts 'locale' from '/path/to/mo/file/domain-name-locale.mo'.
+ *
+ * @since 5.6.0
+ * 
+ * @param string $mofile Path to the .mo file.
+ * @return string Locale, if found in the mo file path.
+ */
+function get_locale_from_mo_file( $mofile ) {
+	// Get the file name out of path.
+	$dir_separator           = '/';
+	$path_chunks             = explode( $dir_separator, $mofile );
+	$file_name               = array_pop( $path_chunks );
+	// Split between domain and locale.
+	$file_name_chunks        = explode( '-', $file_name );
+	$locale_extension        = array_pop( $file_name_chunks );
+	// Remove file extension.
+	$locale_extension_chunks = explode( '.', $locale_extension );
+	$locale                  = array_shift( $locale_extension_chunks );
+
+	return $locale;
+}
+
