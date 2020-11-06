@@ -83,13 +83,14 @@
 				window.location = url;
 			} else {
 				message = wp.i18n.sprintf(
-					wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
+					/* translators: %s: Application name */
+					'<label for="new-application-password-value">' + wp.i18n.__( 'Your new password for %s is:' ) + '</label>',
 					'<strong></strong>',
-					'<input type="text" class="code" readonly="readonly" value="" />'
+					'<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="" />'
 				);
 				$notice = $( '<div></div>' )
 					.attr( 'role', 'alert' )
-					.attr( 'tabindex', 0 )
+					.attr( 'tabindex', -1 )
 					.addClass( 'notice notice-success notice-alt' )
 					.append( $( '<p></p>' ).addClass( 'application-password-display' ).html( message ) );
 
