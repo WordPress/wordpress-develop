@@ -1781,7 +1781,7 @@ function wp_filter_content_tags( $content, $context = null ) {
 						// If exactly the same image tag is used more than once, overwrite it.
 						// All identical tags will be replaced later with 'str_replace()'.
 						$images[ $tag ] = $attachment_id;
-						continue;
+						break;
 					}
 				}
 				$images[ $tag ] = 0;
