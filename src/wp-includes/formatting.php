@@ -4637,7 +4637,7 @@ function wp_make_link_relative( $link ) {
  * The {@see 'validate_option_$option'} action should be used to add errors
  * to the `WP_Error` object passed-through.
  *
- * @since 5.0.0
+ * @since 5.7.0
  *
  * @param string $option The name of the option.
  * @param string $value  The unsanitized value.
@@ -4653,7 +4653,7 @@ function validate_option( $option, $value ) {
 	 *
 	 * The dynamic portion of the hook name, `$option`, refers to the option name.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @param WP_Error $errors Error object to add validation errors to.
 	 * @param mixed    $value  The option value.

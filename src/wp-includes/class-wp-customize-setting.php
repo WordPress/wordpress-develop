@@ -857,7 +857,7 @@ class WP_Customize_Setting {
 	/**
 	 * Checks whether the setting is part of a multidimensional root.
 	 *
-	 * @since 5.0.0
+	 * @since 5.7.0
 	 *
 	 * @return bool True if the setting is multidimensional, false otherwise.
 	 */

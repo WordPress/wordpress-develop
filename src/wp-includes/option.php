@@ -2194,7 +2194,7 @@ function register_initial_settings() {
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
- * @since 5.0.0 Introduced the `$validate_callback` argument.
+ * @since 5.7.0 Introduced the `$validate_callback` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
