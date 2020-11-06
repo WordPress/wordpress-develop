@@ -2706,25 +2706,29 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 * @ticket 50756
 	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
-		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img_xhtml           = str_replace( ' />', '/>', $img );
-		$img_html5           = str_replace( ' />', '>', $img );
-		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
-		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
-		$iframe              = '<iframe src="https://www.example.com"></iframe>';
+		$img                    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml              = str_replace( ' />', '/>', $img );
+		$img_html5              = str_replace( ' />', '>', $img );
+		$img_no_width_height    = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height    = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$iframe_no_width_height = '<iframe src="https://www.example.com"></iframe>';
 
 		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
 		$lazy_img_html5 = wp_img_tag_add_loading_attr( $img_html5, 'test' );
+		$lazy_iframe    = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		// The following should not be modified because there already is a 'loading' attribute.
-		$img_eager = str_replace( ' />', ' loading="eager" />', $img );
+		$img_eager    = str_replace( ' />', ' loading="eager" />', $img );
+		$iframe_eager = str_replace( '">', '" loading="eager">', $iframe );
 
 		$content = '
 			<p>Image, standard.</p>
@@ -2737,11 +2741,15 @@ EOF;
 			%4$s
 			<p>Image, without dimension attributes. Should not be modified.</p>
 			%5$s
-			<p>Iframe, standard. Should not be modified.</p>
-			%6$s';
+			<p>Iframe, standard.</p>
+			%6$s
+			<p>Iframe, with pre-existing "loading" attribute. Should not be modified.</p>
+			%7$s
+			<p>Iframe, without dimension attributes. Should not be modified.</p>
+			%8$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $iframe );
+		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2755,17 +2763,22 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50756
 	 */
 	function test_wp_filter_content_tags_loading_lazy_opted_in() {
-		$img      = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$lazy_img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$lazy_img    = wp_img_tag_add_loading_attr( $img, 'test' );
+		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		$content = '
 			<p>Image, standard.</p>
-			%1$s';
+			%1$s
+			<p>Iframe, standard.</p>
+			%2$s';
 
-		$content_unfiltered = sprintf( $content, $img );
-		$content_filtered   = sprintf( $content, $lazy_img );
+		$content_unfiltered = sprintf( $content, $img, $iframe );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -2780,14 +2793,18 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50756
 	 */
 	function test_wp_filter_content_tags_loading_lazy_opted_out() {
-		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
 			<p>Image, standard.</p>
-			%1$s';
-		$content = sprintf( $content, $img );
+			%1$s
+			<p>Iframe, standard.</p>
+			%2$s';
+		$content = sprintf( $content, $img, $iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -2849,6 +2866,50 @@ EOF;
 	}
 
 	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr() {
+		$img = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_without_src() {
+		$img = '<iframe width="640" height="360"></iframe>';
+		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_with_single_quotes() {
+		$img = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
+		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+
+		$this->assertNotContains( ' loading=', $img );
+
+		// Test specifically that the attribute is not there with double-quotes,
+		// to avoid regressions.
+		$this->assertNotContains( ' loading="lazy"', $img );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_opt_out() {
+		$img = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
+
+		$this->assertNotContains( ' loading=', $img );
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50425
 	 */
@@ -2888,6 +2949,7 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50425
+	 * @ticket 50756
 	 * @dataProvider data_wp_lazy_loading_enabled_tag_name_defaults
 	 *
 	 * @param string $tag_name Tag name.
@@ -2904,7 +2966,7 @@ EOF;
 	function data_wp_lazy_loading_enabled_tag_name_defaults() {
 		return array(
 			'img => true'            => array( 'img', true ),
-			'iframe => false'        => array( 'iframe', false ),
+			'iframe => true'         => array( 'iframe', true ),
 			'arbitrary tag => false' => array( 'blink', false ),
 		);
 	}
