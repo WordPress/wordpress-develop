@@ -875,7 +875,7 @@ function upgrade_all() {
 	}
 
 	if ( $wp_current_db_version < 49138 ) {
-		upgrade_560();
+		upgrade_570();
 	}
 
 	maybe_disable_link_manager();
@@ -2241,12 +2241,12 @@ function upgrade_550() {
 }
 
 /**
- * Executes changes made in WordPress 5.6.0.
+ * Executes changes made in WordPress 5.7.0.
  *
  * @ignore
- * @since 5.6.0
+ * @since 5.7.0
  */
-function upgrade_560() {
+function upgrade_570() {
 	if ( false === get_option( 'media_search_engine_visibility' ) ) {
 		update_option( 'media_search_engine_visibility', '1' );
 	}

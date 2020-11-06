@@ -536,7 +536,7 @@ function populate_options( array $options = array() ) {
 		'comment_previously_approved'     => 1,
 		'auto_plugin_theme_update_emails' => array(),
 
-		// 5.6.0
+		// 5.7.0
 		'media_search_engine_visibility'  => '1',
 	);
 

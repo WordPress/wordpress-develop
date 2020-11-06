@@ -4231,10 +4231,10 @@ function _get_path_to_translation_from_lang_dir( $domain ) {
  * @see wp_no_robots()
  *
  * @since 2.1.0
- * @deprecated 5.6.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
+ * @deprecated 5.7.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
  */
 function noindex() {
-	_deprecated_function( __FUNCTION__, '5.6.0', 'wp_robots_noindex()' );
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
 
 	// If the blog is not public, tell robots to go away.
 	if ( '0' == get_option( 'blog_public' ) ) {
@@ -4250,10 +4250,10 @@ function noindex() {
  *
  * @since 3.3.0
  * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
- * @deprecated 5.6.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
+ * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
  */
 function wp_no_robots() {
-	_deprecated_function( __FUNCTION__, '5.6.0', 'wp_robots_no_robots()' );
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_no_robots()' );
 
 	if ( get_option( 'blog_public' ) ) {
 		echo "<meta name='robots' content='noindex,follow' />\n";
@@ -4273,11 +4273,11 @@ function wp_no_robots() {
  * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
  *
  * @since 5.0.1
- * @deprecated 5.6.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
+ * @deprecated 5.7.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
  *                   and wp_strict_cross_origin_referrer() on 'wp_head' action.
  */
 function wp_sensitive_page_meta() {
-	_deprecated_function( __FUNCTION__, '5.6.0', 'wp_robots_sensitive_page()' );
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
 
 	?>
 	<meta name='robots' content='noindex,noarchive' />

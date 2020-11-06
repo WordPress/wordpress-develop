@@ -1244,7 +1244,7 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
  *
  *     add_filter( 'wp_robots', 'wp_embed_no_robots' );
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param array $robots Associative array of robots directives.
  * @return array Filtered robots directives.

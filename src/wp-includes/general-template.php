@@ -3194,7 +3194,7 @@ function wlwmanifest_link() {
  *
  * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
  *
- * @since 5.6.0
+ * @since 5.7.0
  */
 function wp_strict_cross_origin_referrer() {
 	?>
