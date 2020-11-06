@@ -208,14 +208,6 @@ else :
 </fieldset></td>
 </tr>
 
-<tr class="option-media-visibility">
-<th scope="row"><?php _e( 'Media search engine visibility' ); ?> </th>
-<td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Media search engine visibility' ); ?> </span></legend>
-<label for="media_search_engine_visibility"><input name="media_search_engine_visibility" type="checkbox" id="media_search_engine_visibility" value="0" <?php checked( '0', get_option( 'media_search_engine_visibility' ) ); ?> />
-<?php _e( 'Discourage search engines from displaying large previews of this site&#8217;s media' ); ?></label>
-</fieldset></td>
-</tr>
-
 <?php do_settings_fields( 'reading', 'default' ); ?>
 </table>
 

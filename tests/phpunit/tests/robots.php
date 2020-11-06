@@ -136,40 +136,6 @@ class Tests_Robots extends WP_UnitTestCase {
 		$this->assertContains( "'noindex, noarchive'", $output );
 	}
 
-	/**
-	 * @ticket 51511
-	 */
-	public function test_wp_robots_media_search_engine_visibility() {
-		add_filter( 'wp_robots', 'wp_robots_media_search_engine_visibility' );
-
-		update_option( 'blog_public', '1' );
-		update_option( 'media_search_engine_visibility', '1' );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'max-image-preview:large'", $output );
-
-		// The site not being public takes precedence over the media-specific
-		// directive.
-		update_option( 'blog_public', '0' );
-		update_option( 'media_search_engine_visibility', '1' );
-		$output = get_echo( 'wp_robots' );
-		$this->assertEmpty( $output );
-
-		update_option( 'blog_public', '0' );
-		update_option( 'media_search_engine_visibility', '0' );
-		$output = get_echo( 'wp_robots' );
-		$this->assertEmpty( $output );
-	}
-
-	/**
-	 * @ticket 51511
-	 */
-	public function test_wp_robots_max_image_preview() {
-		add_filter( 'wp_robots', 'wp_robots_max_image_preview' );
-
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'max-image-preview:large'", $output );
-	}
-
 	public function add_noindex_directive( array $robots ) {
 		$robots['noindex'] = true;
 		return $robots;

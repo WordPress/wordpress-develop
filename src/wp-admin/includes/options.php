@@ -113,19 +113,11 @@ function options_reading_add_js() {
 		var section = $('#front-static-pages'),
 			staticPage = section.find('input:radio[value="page"]'),
 			selects = section.find('select'),
-			checkPageSelectsDisabled = function(){
+			check_disabled = function(){
 				selects.prop( 'disabled', ! staticPage.prop('checked') );
 			};
-		checkPageSelectsDisabled();
-		section.find( 'input:radio' ).change( checkPageSelectsDisabled );
-
-		var discourage = $( 'input[name="blog_public"][value="0"]' ),
-			discourageMedia = $( 'input[name="media_search_engine_visibility"][value="0"]' ),
-			checkDiscourageMediaDisabled = function() {
-				discourageMedia.prop( 'disabled', !! discourage.prop( 'checked' ) );
-			};
-		checkDiscourageMediaDisabled();
-		discourage.change( checkDiscourageMediaDisabled );
+		check_disabled();
+		section.find( 'input:radio' ).change( check_disabled );
 	});
 </script>
 	<?php
