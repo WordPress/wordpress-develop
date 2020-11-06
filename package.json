@@ -13,9 +13,12 @@
   "license": "GPL-2.0+",
   "devDependencies": {
     "autoprefixer": "^6.5.1",
+    "dotenv": "^8.2.0",
+    "dotenv-expand": "^5.1.0",
     "grunt": "~0.4.5",
     "grunt-banner": "^0.6.0",
     "grunt-contrib-clean": "~1.0.0",
+    "grunt-cli": "0.1.13",
     "grunt-contrib-compress": "~1.3.0",
     "grunt-contrib-concat": "~1.0.0",
     "grunt-contrib-copy": "~1.0.0",
@@ -34,10 +37,29 @@
     "grunt-replace": "~1.0.1",
     "grunt-rtlcss": "~2.0.1",
     "grunt-sass": "~1.2.1",
-    "ink-docstrap": "^1.3.0",
     "grunt-webpack": "^3.0.2",
+    "ink-docstrap": "^1.3.0",
     "matchdep": "~1.0.0",
+    "wait-on": "^3.3.0",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
+  },
+  "scripts": {
+    "build": "grunt build",
+    "build:dev": "grunt build --dev",
+    "dev": "grunt watch --dev",
+    "test": "grunt test",
+    "watch": "grunt watch",
+    "grunt": "grunt",
+    "env:start": "node ./tools/local-env/scripts/start.js",
+    "env:stop": "node ./tools/local-env/scripts/docker.js down",
+    "env:restart": "npm run env:stop && npm run env:start",
+    "env:clean": "node ./tools/local-env/scripts/docker.js down -v --remove-orphans",
+    "env:reset": "node ./tools/local-env/scripts/docker.js down --rmi all -v --remove-orphans",
+    "env:install": "node ./tools/local-env/scripts/install.js",
+    "env:cli": "node ./tools/local-env/scripts/docker.js run cli",
+    "env:logs": "node ./tools/local-env/scripts/docker.js logs",
+    "env:pull": "node ./tools/local-env/scripts/docker.js pull",
+    "test:php": "node ./tools/local-env/scripts/docker.js run --rm phpunit phpunit"
   }
 }
