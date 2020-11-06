@@ -103,13 +103,37 @@ class WP_Block {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param array                  $block             Array of parsed block properties.
+	 * @param array                  $parsed_block      Array of parsed block properties.
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
-	public function __construct( $block, $available_context = array(), $registry = null ) {
-		$this->parsed_block = $block;
-		$this->name         = $block['blockName'];
+	public function __construct( $parsed_block, $available_context = array(), $registry = null ) {
+		$source_block = $parsed_block;
+
+		/**
+		 * Filters a block which is to be rendered by render_block() or
+		 * WP_Block::render().
+		 *
+		 * @since 5.1.0
+		 *
+		 * @param array $parsed_block The block being rendered.
+		 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+		 */
+		$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+
+		/**
+		 * Filters the default context of a block which is to be rendered by
+		 * render_block() or WP_Block::render().
+		 *
+		 * @since 5.5.0
+		 *
+		 * @param array $available_context Default context.
+		 * @param array $parsed_block      Block being rendered, filtered by `render_block_data`.
+		 */
+		$available_context = apply_filters( 'render_block_context', $available_context, $parsed_block );
+
+		$this->parsed_block = $parsed_block;
+		$this->name         = $parsed_block['blockName'];
 
 		if ( is_null( $registry ) ) {
 			$registry = WP_Block_Type_Registry::get_instance();
@@ -127,7 +151,7 @@ class WP_Block {
 			}
 		}
 
-		if ( ! empty( $block['innerBlocks'] ) ) {
+		if ( ! empty( $parsed_block['innerBlocks'] ) ) {
 			$child_context = $this->available_context;
 
 			if ( ! empty( $this->block_type->provides_context ) ) {
@@ -138,15 +162,15 @@ class WP_Block {
 				}
 			}
 
-			$this->inner_blocks = new WP_Block_List( $block['innerBlocks'], $child_context, $registry );
+			$this->inner_blocks = new WP_Block_List( $parsed_block['innerBlocks'], $child_context, $registry );
 		}
 
-		if ( ! empty( $block['innerHTML'] ) ) {
-			$this->inner_html = $block['innerHTML'];
+		if ( ! empty( $parsed_block['innerHTML'] ) ) {
+			$this->inner_html = $parsed_block['innerHTML'];
 		}
 
-		if ( ! empty( $block['innerContent'] ) ) {
-			$this->inner_content = $block['innerContent'];
+		if ( ! empty( $parsed_block['innerContent'] ) ) {
+			$this->inner_content = $parsed_block['innerContent'];
 		}
 	}
 
@@ -193,6 +217,21 @@ class WP_Block {
 	 */
 	public function render( $options = array() ) {
 		global $post;
+
+		/**
+		 * Allows render_block() or WP_Block::render() to be short-circuited, by
+		 * returning a non-null value.
+		 *
+		 * @since 5.1.0
+		 *
+		 * @param string|null $pre_render   The pre-rendered content. Default null.
+		 * @param array       $parsed_block The block being rendered.
+		 */
+		$pre_render = apply_filters( 'pre_render_block', null, $this->parsed_block );
+		if ( ! is_null( $pre_render ) ) {
+			return $pre_render;
+		}
+
 		$options = wp_parse_args(
 			$options,
 			array(
