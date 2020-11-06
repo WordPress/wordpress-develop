@@ -4632,6 +4632,42 @@ function wp_make_link_relative( $link ) {
 }
 
 /**
+ * Validates an option value based on the nature of the option.
+ *
+ * The {@see 'validate_option_$option'} action should be used to add errors
+ * to the `WP_Error` object passed-through.
+ *
+ * @since 5.0.0
+ *
+ * @param string $option The name of the option.
+ * @param string $value  The unsanitized value.
+ * @return true|WP_Error True if the input was validated, otherwise WP_Error.
+ */
+function validate_option( $option, $value ) {
+	$errors = new WP_Error();
+
+	/**
+	 * Validates an option value.
+	 *
+	 * Plugins should amend the `$errors` object via its `WP_Error::add()` method.
+	 *
+	 * The dynamic portion of the hook name, `$option`, refers to the option name.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param WP_Error $errors Error object to add validation errors to.
+	 * @param mixed    $value  The option value.
+	 */
+	do_action( "validate_option_{$option}", $errors, $value );
+
+	if ( empty( $errors->errors ) ) {
+		return true;
+	}
+
+	return $errors;
+}
+
+/**
  * Sanitises various option values based on the nature of the option.
  *
  * This is basically a switch statement which will pass $value through a number

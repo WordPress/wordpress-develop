@@ -201,6 +201,15 @@ class WP_REST_Settings_Controller extends WP_REST_Controller {
 
 				delete_option( $args['option_name'] );
 			} else {
+				$validity = validate_option( $args['option_name'], $request[ $name ] );
+				if ( is_wp_error( $validity ) ) {
+					foreach ( $validity->errors as $code => $messages ) {
+						$validity->add_data( array( 'status' => 400 ), $code );
+					}
+
+					return $validity;
+				}
+
 				update_option( $args['option_name'], $request[ $name ] );
 			}
 		}

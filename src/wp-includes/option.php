@@ -2194,6 +2194,7 @@ function register_initial_settings() {
  * @since 4.7.0 `$args` can be passed to set flags on the setting, similar to `register_meta()`.
  * @since 5.5.0 `$new_whitelist_options` was renamed to `$new_allowed_options`.
  *              Please consider writing more inclusive code.
+ * @since 5.0.0 Introduced the `$validate_callback` argument.
  *
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
@@ -2208,6 +2209,7 @@ function register_initial_settings() {
  *     @type string     $type              The type of data associated with this setting.
  *                                         Valid values are 'string', 'boolean', 'integer', 'number', 'array', and 'object'.
  *     @type string     $description       A description of the data attached to this setting.
+ *     @type callable   $validate_callback A callback that checks validity of the option's value.
  *     @type callable   $sanitize_callback A callback function that sanitizes the option's value.
  *     @type bool|array $show_in_rest      Whether data associated with this setting should be included in the REST API.
  *                                         When registering complex settings, this argument may optionally be an
@@ -2228,6 +2230,7 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 		'type'              => 'string',
 		'group'             => $option_group,
 		'description'       => '',
+		'validate_callback' => null,
 		'sanitize_callback' => null,
 		'show_in_rest'      => false,
 	);
@@ -2290,6 +2293,9 @@ function register_setting( $option_group, $option_name, $args = array() ) {
 
 	$new_allowed_options[ $option_group ][] = $option_name;
 
+	if ( ! empty( $args['validate_callback'] ) ) {
+		add_action( "validate_option_{$option_name}", $args['validate_callback'], 10, 2 );
+	}
 	if ( ! empty( $args['sanitize_callback'] ) ) {
 		add_filter( "sanitize_option_{$option_name}", $args['sanitize_callback'] );
 	}
@@ -2382,6 +2388,11 @@ function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	}
 
 	if ( isset( $wp_registered_settings[ $option_name ] ) ) {
+		// Remove the validate callback if one was set during registration.
+		if ( ! empty( $wp_registered_settings[ $option_name ]['validate_callback'] ) ) {
+			remove_filter( "validate_option_{$option_name}", $wp_registered_settings[ $option_name ]['validate_callback'], 10 );
+		}
+
 		// Remove the sanitize callback if one was set during registration.
 		if ( ! empty( $wp_registered_settings[ $option_name ]['sanitize_callback'] ) ) {
 			remove_filter( "sanitize_option_{$option_name}", $wp_registered_settings[ $option_name ]['sanitize_callback'] );

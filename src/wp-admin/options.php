@@ -311,7 +311,18 @@ if ( 'update' === $action ) { // We are saving settings sent from a settings pag
 				}
 				$value = wp_unslash( $value );
 			}
-			update_option( $option, $value );
+
+			$validity = validate_option( $option, $value );
+
+			if ( is_wp_error( $validity ) ) {
+				foreach ( $validity->errors as $code => $messages ) {
+					foreach ( $messages as $message ) {
+						add_settings_error( $option, $code, $message );
+					}
+				}
+			} else {
+				update_option( $option, $value );
+			}
 		}
 
 		/*

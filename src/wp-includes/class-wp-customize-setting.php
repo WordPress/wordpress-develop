@@ -326,7 +326,7 @@ class WP_Customize_Setting {
 		}
 
 		$id_base                 = $this->id_data['base'];
-		$is_multidimensional     = ! empty( $this->id_data['keys'] );
+		$is_multidimensional     = $this->is_multidimensional();
 		$multidimensional_filter = array( $this, '_multidimensional_preview_filter' );
 
 		/*
@@ -594,6 +594,14 @@ class WP_Customize_Setting {
 
 		$validity = new WP_Error();
 
+		// Use the regular option validation if the Customize setting is an option.
+		if ( 'option' === $this->type && ! $this->is_multidimensional() ) {
+			$option_validity = validate_option( $this->id, $value );
+			if ( is_wp_error( $option_validity ) ) {
+				$validity = $option_validity;
+			}
+		}
+
 		/**
 		 * Validates a Customize setting value.
 		 *
@@ -650,6 +658,11 @@ class WP_Customize_Setting {
 	protected function set_root_value( $value ) {
 		$id_base = $this->id_data['base'];
 		if ( 'option' === $this->type ) {
+			$option_validity = validate_option( $id_base, $value );
+			if ( is_wp_error( $option_validity ) ) {
+				return false;
+			}
+
 			$autoload = true;
 			if ( isset( self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'] ) ) {
 				$autoload = self::$aggregated_multidimensionals[ $this->type ][ $this->id_data['base'] ]['autoload'];
@@ -839,6 +852,17 @@ class WP_Customize_Setting {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Checks whether the setting is part of a multidimensional root.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @return bool True if the setting is multidimensional, false otherwise.
+	 */
+	final public function is_multidimensional() {
+		return ! empty( $this->id_data['keys'] );
 	}
 
 	/**

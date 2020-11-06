@@ -2357,8 +2357,18 @@ final class WP_Customize_Manager {
 				$validity = $setting->validate( $unsanitized_value );
 			}
 			if ( ! is_wp_error( $validity ) ) {
+				$late_validity = new WP_Error();
+
+				// Use the regular option validation if the Customize setting is an option.
+				if ( 'option' === $setting->type && ! $setting->is_multidimensional() ) {
+					$option_validity = validate_option( $setting->id, $unsanitized_value );
+					if ( is_wp_error( $option_validity ) ) {
+						$late_validity = $option_validity;
+					}
+				}
+
 				/** This filter is documented in wp-includes/class-wp-customize-setting.php */
-				$late_validity = apply_filters( "customize_validate_{$setting->id}", new WP_Error(), $unsanitized_value, $setting );
+				$late_validity = apply_filters( "customize_validate_{$setting->id}", $late_validity, $unsanitized_value, $setting );
 				if ( is_wp_error( $late_validity ) && $late_validity->has_errors() ) {
 					$validity = $late_validity;
 				}
