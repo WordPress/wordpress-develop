@@ -465,7 +465,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$editor = new WP_Image_Editor_Imagick( $file );
 
 		$this->assertNotInstanceOf( 'WP_Error', $editor );
-		
+
 		$editor->load();
 		$editor->resize( 5, 5 );
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
