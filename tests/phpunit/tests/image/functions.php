@@ -492,7 +492,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$pdf_path = '/tmp/test.pdf';
 		copy( DIR_TESTDATA . '/images/wordpress-gsoc-flyer.pdf', $pdf_path );
 
-		$editor = wp_get_image_editor( $test_file );
+		$editor = wp_get_image_editor( $pdf_path );
 		if ( is_wp_error( $editor ) ) {
 			$this->markTestSkipped( $editor->get_error_message() );
 		}
