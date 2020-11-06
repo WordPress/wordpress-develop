@@ -182,6 +182,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					</label>
 					<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="<?php esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ); ?>" />
 				</p>
+				<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			</div>
 
 			<?php

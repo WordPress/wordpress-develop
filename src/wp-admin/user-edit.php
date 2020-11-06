@@ -863,14 +863,14 @@ endif;
 					<?php
 					printf(
 						/* translators: %s: Application name */
-						esc_html__( 'Your new password for %s is:' ),
+						__( 'Your new password for %s is:' ),
 						'<strong>{{ data.name }}</strong>'
 					);
 					?>
 				</label>
 				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="{{ data.password }}" />
 			</p>
-			<p><?php esc_attr_e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
+			<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			<button type="button" class="notice-dismiss">
 				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.' ); ?></span>
 			</button>
