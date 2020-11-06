@@ -143,6 +143,9 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		// Combo!
 		$this->assertSame( trailingslashit( realpath( get_temp_dir() ) ) . 'canola-new.png', $editor->generate_filename( 'new', realpath( get_temp_dir() ), 'png' ) );
+
+		// Test with a stream destination.
+		$this->assertSame( 'file://testing/path/canola-100x50.jpg', $editor->generate_filename( null, 'file://testing/path' ) );
 	}
 
 	/**

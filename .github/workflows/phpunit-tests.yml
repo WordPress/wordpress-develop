@@ -22,20 +22,27 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
   # - Sets up caching for NPM.
-  # _ Installs NPM dependencies.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
-  # - Creates a ZIP file of compiled WordPress
+  # - Creates a ZIP file of compiled WordPress.
   # - Uploads ZIP file as an artifact.
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -44,6 +51,8 @@ jobs:
 
       - name: Log debug information
         run: |
+          echo "$GITHUB_REF"
+          echo "$GITHUB_EVENT_NAME"
           npm --version
           node --version
           curl --version
@@ -70,7 +79,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npm ci
+        run: npx install-changed --install-command="npm ci"
 
       - name: Build WordPress
         run: npm run build
@@ -79,7 +88,7 @@ jobs:
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: built-wp-${{ github.sha }}.zip
-          exclusions: '/*node_modules/*'
+          exclusions: '*.git* /*node_modules/* packagehash.txt'
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v2
@@ -97,42 +106,48 @@ jobs:
   # - Unzips the artifact.
   # - Installs NodeJS 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
   # - Sets up caching for NPM.
-  # _ Installs NPM dependencies.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Configures caching for Composer.
-  # _ Installs Composer dependencies (if desired)
-  # - Logs Docker debug information (about both the Docker installation within the runner)
+  # _ Installs Composer dependencies (if desired).
+  # - Logs Docker debug information (about both the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Starts the memcached server after the Docker network has been created (if desired).
   # - Logs WordPress Docker container debug information.
   # - Logs debug general information.
   # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)
+  # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Reports test results to the Distributed Hosting Tests.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
-    name: ${{ matrix.php_versions }} on ${{ matrix.os }}
+    name: ${{ matrix.php }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        php_versions: [ '8.0', 7.4, '7.4 with memcached', 7.3, 7.2, 7.1, '7.0', 5.6.20 ]
+        php: [ '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6.20' ]
         os: [ ubuntu-latest ]
+        memcached: [ false ]
+        include:
+          # Include job for PHP 7.4 with memcached.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: true
+          # Report the results of the PHP 7.4 without memcached job.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: false
+            report: true
     env:
-      LOCAL_PHP: ${{ matrix.php_versions }}-fpm
+      LOCAL_PHP: ${{ matrix.php }}-fpm
+      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
     steps:
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
-
-      - name: Configure memcached
-        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
-        run: |
-          echo "LOCAL_PHP=$(echo ${{ matrix.php_versions }} | cut -c1-3)-fpm" >> $GITHUB_ENV
-          echo "LOCAL_PHP_MEMCACHED=true" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
         uses: actions/download-artifact@v2
@@ -159,7 +174,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npm ci
+        run: npx install-changed --install-command="npm ci"
 
       - name: Get composer cache directory
         id: composer-cache
@@ -203,7 +218,7 @@ jobs:
 
       # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
       - name: Start the Memcached server.
-        if: ${{ contains( matrix.php_versions, 'memcached' ) }}
+        if: ${{ matrix.memcached }}
         run: |
           cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
@@ -221,8 +236,6 @@ jobs:
 
       - name: WordPress Docker container debug information
         run: |
-          docker -v
-          docker-compose -v
           docker-compose run --rm mysql mysql --version
           docker-compose run --rm php php --version
           docker-compose run --rm php php -m
@@ -241,7 +254,7 @@ jobs:
       - name: Run tests as a multisite install
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml
 
-      - name: Run mutlisite file tests
+      - name: Run ms-files tests as a multisite install
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
@@ -258,7 +271,7 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: WordPress Test Reporter
-        if: ${{ matrix.php_versions == '7.4' }}
+        if: ${{ matrix.report }}
         uses: actions/checkout@v2
         with:
           repository: 'WordPress/phpunit-test-runner'

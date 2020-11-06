@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_WPPublishPost extends WP_UnitTestCase {
+class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 
 	/**
 	 * Auto-draft post ID.
@@ -44,7 +44,7 @@ class Tests_WPPublishPost extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_publish_post adds default category.
 	 *
-	 * @covers wp_publish_post
+	 * @covers ::wp_publish_post
 	 * @ticket 51292
 	 */
 	function test_wp_publish_post_adds_default_category() {
@@ -64,7 +64,7 @@ class Tests_WPPublishPost extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_publish_post adds default category when tagged.
 	 *
-	 * @covers wp_publish_post
+	 * @covers ::wp_publish_post
 	 * @ticket 51292
 	 */
 	function test_wp_publish_post_adds_default_category_when_tagged() {
@@ -85,7 +85,7 @@ class Tests_WPPublishPost extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_publish_post does not add default term in error.
 	 *
-	 * @covers wp_publish_post
+	 * @covers ::wp_publish_post
 	 * @ticket 51292
 	 */
 	function test_wp_publish_post_respects_current_terms() {
@@ -120,7 +120,7 @@ class Tests_WPPublishPost extends WP_UnitTestCase {
 	/**
 	 * Ensure wp_publish_post adds default term.
 	 *
-	 * @covers wp_publish_post
+	 * @covers ::wp_publish_post
 	 * @ticket 51292
 	 */
 	function test_wp_publish_post_adds_default_term() {

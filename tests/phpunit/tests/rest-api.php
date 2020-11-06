@@ -1085,7 +1085,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	public function _dp_rest_filter_response_by_context() {
 		return array(
-			'default'                             => array(
+			'default'                                      => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1106,7 +1106,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'keeps missing context'               => array(
+			'keeps missing context'                        => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1129,7 +1129,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'second' => 'b',
 				),
 			),
-			'removes empty context'               => array(
+			'removes empty context'                        => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1150,7 +1150,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'first' => 'a' ),
 			),
-			'nested properties'                   => array(
+			'nested properties'                            => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1179,7 +1179,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => 'hi' ) ),
 			),
-			'grand child properties'              => array(
+			'grand child properties'                       => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1215,7 +1215,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'parent' => array( 'child' => array( 'grand' => 'hi' ) ) ),
 			),
-			'array'                               => array(
+			'array'                                        => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1250,7 +1250,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'arr' => array( array( 'visible' => 'hi' ) ) ),
 			),
-			'additional properties'               => array(
+			'additional properties'                        => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1284,7 +1284,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'additional' => array( 'a' => '1' ) ),
 			),
-			'pattern properties'                  => array(
+			'pattern properties'                           => array(
 				array(
 					'$schema'              => 'http://json-schema.org/draft-04/schema#',
 					'type'                 => 'object',
@@ -1320,7 +1320,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'0' => '3',
 				),
 			),
-			'multiple types object'               => array(
+			'multiple types object'                        => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1349,7 +1349,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( 'a' => '1' ) ),
 			),
-			'multiple types array'                => array(
+			'multiple types array'                         => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1384,7 +1384,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'multi' => array( array( 'visible' => '1' ) ) ),
 			),
-			'does not traverse missing context'   => array(
+			'does not traverse missing context'            => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1427,7 +1427,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 			),
-			'object with no matching properties'  => array(
+			'object with no matching properties'           => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1448,7 +1448,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array(),
 			),
-			'array whose type does not match'     => array(
+			'array whose type does not match'              => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => 'object',
@@ -1468,7 +1468,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 				array( 'arr' => array() ),
 			),
-			'array and object type passed object' => array(
+			'array and object type passed object'          => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => array( 'array', 'object' ),
@@ -1506,7 +1506,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'b' => 'bar',
 				),
 			),
-			'array and object type passed array'  => array(
+			'array and object type passed array'           => array(
 				array(
 					'$schema'    => 'http://json-schema.org/draft-04/schema#',
 					'type'       => array( 'array', 'object' ),
@@ -1546,6 +1546,210 @@ class Tests_REST_API extends WP_UnitTestCase {
 					),
 				),
 				array(),
+			),
+			'anyOf applies the correct schema'             => array(
+				array(
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'type'    => 'object',
+					'anyOf'   => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				array(
+					'b' => 2,
+				),
+			),
+			'anyOf is ignored if no valid schema is found' => array(
+				array(
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'type'    => 'object',
+					'anyOf'   => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => true,
+					'b' => false,
+				),
+				array(
+					'a' => true,
+					'b' => false,
+				),
+			),
+			'oneOf applies the correct schema'             => array(
+				array(
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'type'    => 'object',
+					'oneOf'   => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				array(
+					'b' => 2,
+				),
+			),
+			'oneOf ignored if no valid schema was found'   => array(
+				array(
+					'$schema' => 'http://json-schema.org/draft-04/schema#',
+					'type'    => 'object',
+					'anyOf'   => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => true,
+					'b' => false,
+				),
+				array(
+					'a' => true,
+					'b' => false,
+				),
+			),
+			'oneOf combined with base'                     => array(
+				array(
+					'$schema'    => 'http://json-schema.org/draft-04/schema#',
+					'type'       => 'object',
+					'properties' => array(
+						'c' => array(
+							'type'    => 'integer',
+							'context' => array( 'edit' ),
+						),
+					),
+					'oneOf'      => array(
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'string',
+									'context' => array( 'view' ),
+								),
+								'b' => array(
+									'type'    => 'string',
+									'context' => array( 'edit' ),
+								),
+							),
+						),
+						array(
+							'properties' => array(
+								'a' => array(
+									'type'    => 'integer',
+									'context' => array( 'edit' ),
+								),
+								'b' => array(
+									'type'    => 'integer',
+									'context' => array( 'view' ),
+								),
+							),
+						),
+					),
+				),
+				array(
+					'a' => 1,
+					'b' => 2,
+					'c' => 3,
+				),
+				array(
+					'b' => 2,
+				),
 			),
 		);
 	}

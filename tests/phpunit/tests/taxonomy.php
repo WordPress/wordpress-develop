@@ -4,21 +4,6 @@
  * @group taxonomy
  */
 class Tests_Taxonomy extends WP_UnitTestCase {
-
-	/**
-	 * Number of times full count callback has been called.
-	 *
-	 * @var int
-	 */
-	public $full_count_cb_called = 0;
-
-	/**
-	 * Number of times partial count callback has been called.
-	 *
-	 * @var int
-	 */
-	public $partial_count_cb_called = 0;
-
 	function test_get_post_taxonomies() {
 		$this->assertSame( array( 'category', 'post_tag', 'post_format' ), get_object_taxonomies( 'post' ) );
 	}
@@ -1007,14 +992,14 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		);
 
 		// Add post.
-		$post_id = wp_insert_post(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'Foo',
 				'post_type'  => 'post',
 			)
 		);
 
-		// Test default category.
+		// Test default term.
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
 
@@ -1028,16 +1013,18 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 				'taxonomies' => array( $tax ),
 			)
 		);
-		$post_id = wp_insert_post(
+		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'Foo',
 				'post_type'  => 'post-custom-tax',
 			)
 		);
-		$term    = wp_get_post_terms( $post_id, $tax );
+
+		// Test default term.
+		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( get_option( 'default_term_' . $tax ), $term[0]->term_id );
 
-		// wp_set_object_terms shouldn't assign default category.
+		// wp_set_object_terms() should not assign default term.
 		wp_set_object_terms( $post_id, array(), $tax );
 		$term = wp_get_post_terms( $post_id, $tax );
 		$this->assertSame( array(), $term );
@@ -1047,99 +1034,22 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure custom callbacks are used when registered.
-	 *
-	 * @covers register_taxonomy
-	 * @ticket 40351
+	 * @ticket 51320
 	 */
-	function test_register_taxonomy_counting_callbacks() {
-		$post_id = self::factory()->post->create();
+	function test_default_term_for_post_in_multiple_taxonomies() {
+		$post_type = 'test_post_type';
+		$tax1      = 'test_tax1';
+		$tax2      = 'test_tax2';
 
-		register_taxonomy(
-			'wp_tax_40351_full_only',
-			'post',
-			array(
-				'update_count_callback' => array( $this, 'cb_register_taxonomy_full_count_callback' ),
-			)
-		);
-		$full_term    = self::factory()->term->create_and_get(
-			array(
-				'taxonomy' => 'wp_tax_40351_full_only',
-			)
-		);
-		$full_term_id = $full_term->term_id;
+		register_post_type( $post_type, array( 'taxonomies' => array( $tax1, $tax2 ) ) );
+		register_taxonomy( $tax1, $post_type, array( 'default_term' => 'term_1' ) );
+		register_taxonomy( $tax2, $post_type, array( 'default_term' => 'term_2' ) );
 
-		register_taxonomy(
-			'wp_tax_40351_partial_only',
-			'post',
-			array(
-				'update_count_by_callback' => array( $this, 'cb_register_taxonomy_partial_count_callback' ),
-			)
-		);
-		$partial_term    = self::factory()->term->create_and_get(
-			array(
-				'taxonomy' => 'wp_tax_40351_partial_only',
-			)
-		);
-		$partial_term_id = $partial_term->term_id;
+		$post_id = self::factory()->post->create( array( 'post_type' => $post_type ) );
 
-		register_taxonomy(
-			'wp_tax_40351_both',
-			'post',
-			array(
-				'update_count_callback'    => array( $this, 'cb_register_taxonomy_full_count_callback' ),
-				'update_count_by_callback' => array( $this, 'cb_register_taxonomy_partial_count_callback' ),
-			)
-		);
-		$both_term      = self::factory()->term->create_and_get(
-			array(
-				'taxonomy' => 'wp_tax_40351_both',
-			)
-		);
-		$both_term_id   = $both_term->term_id;
-		$both_term_ttid = $both_term->term_taxonomy_id;
+		$taxonomies = get_post_taxonomies( $post_id );
 
-		wp_set_post_terms( $post_id, $full_term_id, 'wp_tax_40351_full_only' );
-		$this->assertSame( 0, $this->partial_count_cb_called );
-		$this->assertSame( 1, $this->full_count_cb_called );
-
-		wp_set_post_terms( $post_id, $partial_term_id, 'wp_tax_40351_partial_only' );
-		$this->assertSame( 1, $this->partial_count_cb_called );
-		$this->assertSame( 1, $this->full_count_cb_called );
-
-		wp_set_post_terms( $post_id, $both_term_id, 'wp_tax_40351_both' );
-		$this->assertSame( 2, $this->partial_count_cb_called );
-		$this->assertSame( 1, $this->full_count_cb_called );
-
-		// Force a full recount `$both_term` to ensure callback is called.
-		wp_update_term_count( $both_term_ttid, 'wp_tax_40351_both' );
-		$this->assertSame( 2, $this->full_count_cb_called );
-	}
-
-	/**
-	 * Custom full count callback for `test_register_taxonomy_counting_callbacks()`.
-	 *
-	 * For the purpose of this test no database modifications are required, therefore
-	 * the parameters passed are unused.
-	 *
-	 * @param int|array $tt_ids   The term_taxonomy_id of the terms.
-	 * @param string    $taxonomy The context of the term.
-	 */
-	function cb_register_taxonomy_full_count_callback( $tt_ids, $taxonomy ) {
-		$this->full_count_cb_called++;
-	}
-
-	/**
-	 * Custom partial count callback for `test_register_taxonomy_counting_callbacks()`.
-	 *
-	 * For the purpose of this test no database modifications are required, therefore
-	 * the parameters passed are unused.
-	 *
-	 * @param int|array $tt_ids    The term_taxonomy_id of the terms.
-	 * @param string    $taxonomy  The context of the term.
-	 * @param int       $modify_by By how many the term count is to be modified.
-	 */
-	function cb_register_taxonomy_partial_count_callback( $tt_ids, $taxonomy, $modify_by ) {
-		$this->partial_count_cb_called++;
+		$this->assertContains( $tax1, $taxonomies );
+		$this->assertContains( $tax2, $taxonomies );
 	}
 }
