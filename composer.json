@@ -10,11 +10,12 @@
 		"issues": "https://core.trac.wordpress.org/"
 	},
 	"require-dev": {
-		"dealerdirect/phpcodesniffer-composer-installer": "~0.5.0",
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.6.2 || ^0.7.0",
 		"wp-coding-standards/wpcs": "~2.0.0"
 	},
 	"scripts": {
-		"format": "phpcbf --standard=phpcs.xml.dist --report-summary --report-source",
-		"lint": "phpcs --standard=phpcs.xml.dist --report-summary --report-source"
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --standard=phpcs.xml.dist --report=summary,source",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"lint:errors": "@lint -n"
 	}
 }
