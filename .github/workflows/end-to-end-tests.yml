@@ -16,17 +16,18 @@ jobs:
   # Runs the end-to-end test suite.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Set environment variables.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
   # - Sets up caching for NPM.
-  # _ Installs NPM dependencies.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Starts the WordPress Docker container.
   # - Logs general debug information.
   # - Logs the running Docker containers.
-  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container)
+  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
   # - todo: Configure Slack notifications for failing tests.
@@ -34,6 +35,12 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
       - name: Configure environment variables
         run: |
           echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
@@ -70,7 +77,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npm ci
+        run: npx install-changed --install-command="npm ci"
 
       - name: Build WordPress
         run: npm run build

@@ -9,10 +9,10 @@
  * @group feed
  */
 class Tests_Feeds_RSS2 extends WP_UnitTestCase {
-	static $user_id;
-	static $posts;
-	static $category;
-	static $post_date;
+	public static $user_id;
+	public static $posts;
+	public static $category;
+	public static $post_date;
 
 	/**
 	 * Setup a new user and attribute some posts.

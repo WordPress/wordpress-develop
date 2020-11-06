@@ -107,6 +107,25 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 		register_rest_route(
 			$this->namespace,
 			sprintf(
+				'/%s/%s',
+				$this->rest_base,
+				'authorization-header'
+			),
+			array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( $this, 'test_authorization_header' ),
+					'permission_callback' => function () {
+						return $this->validate_request_permission( 'authorization_header' );
+					},
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			sprintf(
 				'/%s',
 				'directory-sizes'
 			),
@@ -178,6 +197,17 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks that the authorization header is valid.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return array
+	 */
+	public function test_authorization_header() {
+		return $this->site_health->get_test_authorization_header();
+	}
+
+	/**
 	 * Gets the current directory sizes for this install.
 	 *
 	 * @since 5.6.0
@@ -186,7 +216,7 @@ class WP_REST_Site_Health_Controller extends WP_REST_Controller {
 	 */
 	public function get_directory_sizes() {
 		if ( ! class_exists( 'WP_Debug_Data' ) ) {
-			require_once( ABSPATH . 'wp-admin/includes/class-wp-debug-data.php' );
+			require_once ABSPATH . 'wp-admin/includes/class-wp-debug-data.php';
 		}
 
 		$sizes_data = WP_Debug_Data::get_sizes();

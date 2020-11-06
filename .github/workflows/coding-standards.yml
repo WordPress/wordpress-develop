@@ -79,12 +79,14 @@ jobs:
   # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
   # - Sets up caching for NPM.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress JSHint checks.
   # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
+    env:
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -118,7 +120,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npm ci
+        run: npx install-changed --install-command="npm ci"
 
       - name: Run JSHint
         run: npm run grunt jshint

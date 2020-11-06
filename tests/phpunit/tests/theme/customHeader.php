@@ -4,7 +4,7 @@
  */
 class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
-	static $post;
+	public static $post;
 
 	protected static $header_video_id;
 

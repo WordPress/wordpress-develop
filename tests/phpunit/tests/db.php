@@ -489,7 +489,7 @@ class Tests_DB extends WP_UnitTestCase {
 		global $wpdb;
 		$str    = $wpdb->get_caller();
 		$calls  = explode( ', ', $str );
-		$called = join( '->', array( __CLASS__, __FUNCTION__ ) );
+		$called = implode( '->', array( __CLASS__, __FUNCTION__ ) );
 		$this->assertSame( $called, end( $calls ) );
 	}
 

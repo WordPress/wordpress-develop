@@ -762,8 +762,8 @@ function get_users( $args = array() ) {
  * @param int  $user_id User ID
  * @param bool $all     Whether to retrieve all sites, or only sites that are not
  *                      marked as deleted, archived, or spam.
- * @return array A list of the user's sites. An empty array if the user doesn't exist
- *               or belongs to no sites.
+ * @return object[] A list of the user's sites. An empty array if the user doesn't exist
+ *                  or belongs to no sites.
  */
 function get_blogs_of_user( $user_id, $all = false ) {
 	global $wpdb;
@@ -783,10 +783,10 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @param null|array $sites   An array of site objects of which the user is a member.
-	 * @param int        $user_id User ID.
-	 * @param bool       $all     Whether the returned array should contain all sites, including
-	 *                            those marked 'deleted', 'archived', or 'spam'. Default false.
+	 * @param null|object[] $sites   An array of site objects of which the user is a member.
+	 * @param int           $user_id User ID.
+	 * @param bool          $all     Whether the returned array should contain all sites, including
+	 *                               those marked 'deleted', 'archived', or 'spam'. Default false.
 	 */
 	$sites = apply_filters( 'pre_get_blogs_of_user', null, $user_id, $all );
 
@@ -875,10 +875,10 @@ function get_blogs_of_user( $user_id, $all = false ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param array $sites   An array of site objects belonging to the user.
-	 * @param int   $user_id User ID.
-	 * @param bool  $all     Whether the returned sites array should contain all sites, including
-	 *                       those marked 'deleted', 'archived', or 'spam'. Default false.
+	 * @param object[] $sites   An array of site objects belonging to the user.
+	 * @param int      $user_id User ID.
+	 * @param bool     $all     Whether the returned sites array should contain all sites, including
+	 *                          those marked 'deleted', 'archived', or 'spam'. Default false.
 	 */
 	return apply_filters( 'get_blogs_of_user', $sites, $user_id, $all );
 }
@@ -1526,7 +1526,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
  *
  * @since 3.0.0
  *
- * @param WP_User $user User object to be cached
+ * @param object|WP_User $user User object or database row to be cached
  * @return bool|null Returns false on failure.
  */
 function update_user_caches( $user ) {
@@ -1979,7 +1979,7 @@ function wp_insert_user( $userdata ) {
 	/**
 	 * Filters user data before the record is created or updated.
 	 *
-	 * It only includes data in the wp_users table wp_user, not any user metadata.
+	 * It only includes data in the users table, not any user metadata.
 	 *
 	 * @since 4.9.0
 	 *
@@ -3773,7 +3773,7 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 		return new WP_Error( 'invalid_email', __( 'Invalid email address.' ) );
 	}
 
-	if ( ! $action_name ) {
+	if ( ! in_array( $action_name, _wp_privacy_action_request_types(), true ) ) {
 		return new WP_Error( 'invalid_action', __( 'Invalid action name.' ) );
 	}
 

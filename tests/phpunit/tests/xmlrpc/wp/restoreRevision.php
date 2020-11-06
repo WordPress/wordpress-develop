@@ -4,8 +4,8 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_restoreRevision extends WP_XMLRPC_UnitTestCase {
-	var $post_id;
-	var $revision_id;
+	public $post_id;
+	public $revision_id;
 
 	function setUp() {
 		parent::setUp();

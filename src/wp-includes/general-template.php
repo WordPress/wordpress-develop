@@ -281,6 +281,9 @@ function get_search_form( $args = array() ) {
 	 */
 	$args = apply_filters( 'search_form_args', $args );
 
+	// Ensure that the filtered arguments contain all required default values.
+	$args = array_merge( $defaults, $args );
+
 	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
 
 	/**
@@ -303,7 +306,7 @@ function get_search_form( $args = array() ) {
 		$form = ob_get_clean();
 	} else {
 		// Build a string containing an aria-label to use for the search form.
-		if ( isset( $args['aria_label'] ) && $args['aria_label'] ) {
+		if ( $args['aria_label'] ) {
 			$aria_label = 'aria-label="' . esc_attr( $args['aria_label'] ) . '" ';
 		} else {
 			/*
@@ -4345,12 +4348,12 @@ function paginate_links( $args = '' ) {
 
 		case 'list':
 			$r .= "<ul class='page-numbers'>\n\t<li>";
-			$r .= join( "</li>\n\t<li>", $page_links );
+			$r .= implode( "</li>\n\t<li>", $page_links );
 			$r .= "</li>\n</ul>\n";
 			break;
 
 		default:
-			$r = join( "\n", $page_links );
+			$r = implode( "\n", $page_links );
 			break;
 	}
 

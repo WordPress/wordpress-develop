@@ -432,7 +432,7 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  */
 function comment_class( $class = '', $comment = null, $post_id = null, $echo = true ) {
 	// Separates classes with a single space, collates classes for comment DIV.
-	$class = 'class="' . join( ' ', get_comment_class( $class, $comment, $post_id ) ) . '"';
+	$class = 'class="' . implode( ' ', get_comment_class( $class, $comment, $post_id ) ) . '"';
 
 	if ( $echo ) {
 		echo $class;
@@ -1434,6 +1434,24 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 				$top_level_args['include_unapproved'] = $comment_args['include_unapproved'];
 			}
 
+			/**
+			 * Filters the arguments used in the top level comments query.
+			 *
+			 * @since 5.6.0
+			 *
+			 * @see WP_Comment_Query::__construct()
+			 *
+			 * @param array $top_level_args {
+			 *     The top level query arguments for the comments template.
+			 *
+			 *     @type bool         $count   Whether to return a comment count.
+			 *     @type string|array $orderby The field(s) to order by.
+			 *     @type int          $post_id The post ID.
+			 *     @type string|array $status  The comment status to limit results by.
+			 * }
+			 */
+			$top_level_args = apply_filters( 'comments_template_top_level_query_args', $top_level_args );
+
 			$top_level_count = $top_level_query->query( $top_level_args );
 
 			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
@@ -1463,7 +1481,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	 *     @type int          $number                    Number of comments to fetch.
 	 * }
 	 */
-	$comment_args  = apply_filters( 'comments_template_query_args', $comment_args );
+	$comment_args = apply_filters( 'comments_template_query_args', $comment_args );
+
 	$comment_query = new WP_Comment_Query( $comment_args );
 	$_comments     = $comment_query->comments;
 
@@ -2480,7 +2499,7 @@ function comment_form( $args = array(), $post_id = null ) {
 	 */
 	$args = wp_parse_args( $args, apply_filters( 'comment_form_defaults', $defaults ) );
 
-	// Ensure that the filtered args contain all required default values.
+	// Ensure that the filtered arguments contain all required default values.
 	$args = array_merge( $defaults, $args );
 
 	// Remove `aria-describedby` from the email field if there's no associated description.

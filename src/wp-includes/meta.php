@@ -1055,7 +1055,7 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	}
 
 	// Get meta info.
-	$id_list   = join( ',', $non_cached_ids );
+	$id_list   = implode( ',', $non_cached_ids );
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
 	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
@@ -1159,7 +1159,8 @@ function _get_meta_table( $type ) {
  * @return bool Whether the meta key is considered protected.
  */
 function is_protected_meta( $meta_key, $meta_type = '' ) {
-	$protected = ( '_' === $meta_key[0] );
+	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
+	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
 
 	/**
 	 * Filters whether a meta key is considered protected.

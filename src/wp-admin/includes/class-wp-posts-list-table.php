@@ -1219,7 +1219,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 				$term_links = apply_filters( 'post_column_taxonomy_links', $term_links, $taxonomy, $terms );
 
 				/* translators: Used between list items, there is a space after the comma. */
-				echo join( __( ', ' ), $term_links );
+				echo implode( __( ', ' ), $term_links );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . $taxonomy_object->labels->no_terms . '</span>';
 			}
@@ -1321,9 +1321,9 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $post        Post being acted upon.
-	 * @param string $column_name Current column name.
-	 * @param string $primary     Primary column name.
+	 * @param WP_Post $post        Post being acted upon.
+	 * @param string  $column_name Current column name.
+	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for posts, or an empty string
 	 *                if the current column is not the primary column.
 	 */
@@ -1587,6 +1587,18 @@ class WP_Posts_List_Table extends WP_List_Table {
 							$users_opt['show_option_none'] = __( '&mdash; No Change &mdash;' );
 						}
 
+						/**
+						 * Filters the arguments used to generate the Quick Edit authors drop-down.
+						 *
+						 * @since 5.6.0
+						 *
+						 * @see wp_dropdown_users()
+						 *
+						 * @param array $users_opt An array of arguments passed to wp_dropdown_users().
+						 * @param bool  $bulk      A flag to denote if it's a bulk action.
+						 */
+						$users_opt = apply_filters( 'quick_edit_dropdown_authors_args', $users_opt, $bulk );
+
 						$authors = wp_dropdown_users( $users_opt );
 						if ( $authors ) :
 							$authors_dropdown  = '<label class="inline-edit-author">';
@@ -1682,12 +1694,14 @@ class WP_Posts_List_Table extends WP_List_Table {
 							 * Filters the arguments used to generate the Quick Edit page-parent drop-down.
 							 *
 							 * @since 2.7.0
+							 * @since 5.6.0 The `$bulk` parameter was added.
 							 *
 							 * @see wp_dropdown_pages()
 							 *
-							 * @param array $dropdown_args An array of arguments.
+							 * @param array $dropdown_args An array of arguments passed to wp_dropdown_pages().
+							 * @param bool  $bulk          A flag to denote if it's a bulk action.
 							 */
-							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args );
+							$dropdown_args = apply_filters( 'quick_edit_dropdown_pages_args', $dropdown_args, $bulk );
 
 							wp_dropdown_pages( $dropdown_args );
 							?>

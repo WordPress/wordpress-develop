@@ -301,6 +301,99 @@ function core_upgrade_preamble() {
 }
 
 /**
+ * Display WordPress auto-updates settings.
+ *
+ * @since 5.6.0
+ */
+function core_auto_updates_settings() {
+	$upgrade_major_value = '';
+	if ( isset( $_POST['core-auto-updates-settings'] ) && wp_verify_nonce( $_POST['set_core_auto_updates_settings'], 'core-auto-updates-nonce' ) ) {
+		if ( isset( $_POST['core-auto-updates-major'] ) && 1 === (int) $_POST['core-auto-updates-major'] ) {
+			update_site_option( 'auto_update_core_major', 1 );
+		} else {
+			update_site_option( 'auto_update_core_major', 0 );
+		}
+		echo '<div class="notice notice-success is-dismissible"><p>';
+		_e( 'WordPress auto-update settings updated.' );
+		echo '</p></div>';
+	}
+
+	$upgrade_dev   = get_site_option( 'auto_update_core_dev', true );
+	$upgrade_minor = get_site_option( 'auto_update_core_minor', true );
+	$upgrade_major = get_site_option( 'auto_update_core_major', false );
+
+	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
+	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
+		if ( false === WP_AUTO_UPDATE_CORE ) {
+			// Defaults to turned off, unless a filter allows it.
+			$upgrade_dev   = false;
+			$upgrade_minor = false;
+			$upgrade_major = false;
+		} elseif ( true === WP_AUTO_UPDATE_CORE
+			|| 'beta' === WP_AUTO_UPDATE_CORE
+			|| 'rc' === WP_AUTO_UPDATE_CORE
+		) {
+			// ALL updates for core.
+			$upgrade_dev   = true;
+			$upgrade_minor = true;
+			$upgrade_major = true;
+		} elseif ( 'minor' === WP_AUTO_UPDATE_CORE ) {
+			// Only minor updates for core.
+			$upgrade_dev   = false;
+			$upgrade_minor = true;
+			$upgrade_major = false;
+		}
+	}
+
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
+	$upgrade_dev = apply_filters( 'allow_dev_auto_core_updates', $upgrade_dev );
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
+	$upgrade_minor = apply_filters( 'allow_minor_auto_core_updates', $upgrade_minor );
+	/** This filter is documented in wp-admin/includes/class-core-upgrader.php */
+	$upgrade_major = apply_filters( 'allow_major_auto_core_updates', $upgrade_major );
+
+	$auto_update_settings = array(
+		'dev'   => $upgrade_dev,
+		'minor' => $upgrade_minor,
+		'major' => $upgrade_major,
+	);
+	?>
+	<form method="post" action="<?php echo esc_url( $_SERVER['REQUEST_URI'] ); ?>" name="core-auto-updates" class="form-core-auto-updates">
+		<?php wp_nonce_field( 'core-auto-updates-nonce', 'set_core_auto_updates_settings' ); ?>
+		<h2><?php _e( 'Auto-update settings' ); ?></h2>
+		<p>
+			<?php
+			if ( $auto_update_settings['major'] ) {
+				$wp_version = get_bloginfo( 'version' );
+				$updates    = get_core_updates();
+				if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
+					echo wp_get_auto_update_message();
+				}
+			}
+			?>
+		</p>
+		<p>
+			<input type="checkbox" name="core-auto-updates-major" id="core-auto-updates-major" value="1" <?php checked( $auto_update_settings['major'], 1 ); ?> />
+			<label for="core-auto-updates-major">
+				<?php _e( 'Automatically keep this site up-to-date with regular feature updates.' ); ?>
+			</label>
+		</p>
+		<?php
+		/**
+		 * Fires after the major core auto-update checkbox.
+		 *
+		 * @since 5.6.0
+		 */
+		do_action( 'after_core_auto_updates_settings_fields', $auto_update_settings );
+		?>
+		<p>
+			<input id="core-auto-updates-settings" class="button" type="submit" value="<?php esc_attr_e( 'Save' ); ?>" name="core-auto-updates-settings" />
+		</p>
+	</form>
+	<?php
+}
+
+/**
  * Display the upgrade plugins form.
  *
  * @since 2.9.0
@@ -834,7 +927,7 @@ get_current_screen()->add_help_tab(
 $help_sidebar_autoupdates = '';
 
 if ( ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) || ( current_user_can( 'update_plugins' ) && wp_is_auto_update_enabled_for_type( 'plugin' ) ) ) {
-	$help_tab_autoupdates  = '<p>' . __( 'Auto-updates can be enabled or disabled for each individual theme or plugin. Themes or plugins with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>';
+	$help_tab_autoupdates  = '<p>' . __( 'Auto-updates can be enabled or disabled for WordPress major versions and for each individual theme or plugin. Themes or plugins with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>';
 	$help_tab_autoupdates .= '<p>' . __( 'Please note: Third-party themes and plugins, or custom code, may override WordPress scheduling.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
@@ -885,11 +978,12 @@ if ( 'upgrade-core' === $action ) {
 	echo '<p>';
 	/* translators: 1: Date, 2: Time. */
 	printf( __( 'Last checked on %1$s at %2$s.' ), date_i18n( __( 'F j, Y' ), $last_update_check ), date_i18n( __( 'g:i a' ), $last_update_check ) );
-	echo ' <a href="' . esc_url( self_admin_url( 'update-core.php?force-check=1' ) ) . '">' . __( 'Check Again' ) . '</a>';
+	echo ' <a href="' . esc_url( self_admin_url( 'update-core.php?force-check=1' ) ) . '">' . __( 'Check again.' ) . '</a>';
 	echo '</p>';
 
 	if ( current_user_can( 'update_core' ) ) {
 		core_upgrade_preamble();
+		core_auto_updates_settings();
 	}
 	if ( current_user_can( 'update_plugins' ) ) {
 		list_plugin_updates();
@@ -978,10 +1072,12 @@ if ( 'upgrade-core' === $action ) {
 	$title = __( 'Update Plugins' );
 
 	require_once ABSPATH . 'wp-admin/admin-header.php';
-	echo '<div class="wrap">';
-	echo '<h1>' . __( 'Update Plugins' ) . '</h1>';
-	echo '<iframe src="', $url, '" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="' . esc_attr__( 'Update progress' ) . '"></iframe>';
-	echo '</div>';
+	?>
+	<div class="wrap">
+		<h1><?php _e( 'Update Plugins' ); ?></h1>
+		<iframe src="<?php echo $url; ?>" style="width: 100%; height: 100%; min-height: 750px;" frameborder="0" title="<?php esc_attr_e( 'Update progress' ); ?>"></iframe>
+	</div>
+	<?php
 
 	wp_localize_script(
 		'updates',

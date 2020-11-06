@@ -214,7 +214,10 @@ class WP_Block {
 
 		if ( $is_dynamic ) {
 			$global_post   = $post;
+			$parent = WP_Block_Supports::$block_to_render;
+			WP_Block_Supports::$block_to_render = $this->parsed_block;
 			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
+			WP_Block_Supports::$block_to_render = $parent;
 			$post          = $global_post;
 		}
 

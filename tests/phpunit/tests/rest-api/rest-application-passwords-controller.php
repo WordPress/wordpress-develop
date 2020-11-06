@@ -308,8 +308,14 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	public function test_create_item() {
 		wp_set_current_user( self::$admin );
 
+		$app_id  = wp_generate_uuid4();
 		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
-		$request->set_body_params( array( 'name' => 'App' ) );
+		$request->set_body_params(
+			array(
+				'name'   => 'App',
+				'app_id' => $app_id,
+			)
+		);
 		$response = rest_do_request( $request );
 
 		$this->assertEquals( 201, $response->get_status() );
@@ -318,6 +324,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$this->assertCount( 1, $passwords );
 		$this->check_response( $response->get_data(), $passwords[0], true );
 		$this->assertEquals( 'App', $response->get_data()['name'] );
+		$this->assertEquals( $app_id, $response->get_data()['app_id'] );
 		$this->assertNull( $response->get_data()['last_used'] );
 		$this->assertNull( $response->get_data()['last_ip'] );
 	}
@@ -511,6 +518,36 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request->set_body_params( array( 'name' => 'New App' ) );
 		$response = rest_do_request( $request );
 		$this->assertErrorResponse( 'rest_application_password_not_found', $response, 404 );
+	}
+
+	/**
+	 * @ticket 51583
+	 */
+	public function test_update_item_cannot_overwrite_app_id() {
+		wp_set_current_user( self::$admin );
+		list( , $item ) = WP_Application_Passwords::create_new_application_password( self::$admin, array( 'name' => 'App' ) );
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $uuid );
+		$request->set_body_params( array( 'app_id' => wp_generate_uuid4() ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( '', $response->get_data()['app_id'] );
+
+		$app_id = wp_generate_uuid4();
+
+		list( , $item ) = WP_Application_Passwords::create_new_application_password(
+			self::$admin,
+			array(
+				'name'   => 'App',
+				'app_id' => $app_id,
+			)
+		);
+
+		$uuid    = $item['uuid'];
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $uuid );
+		$request->set_body_params( array( 'app_id' => wp_generate_uuid4() ) );
+		$response = rest_do_request( $request );
+		$this->assertEquals( $app_id, $response->get_data()['app_id'] );
 	}
 
 	/**
@@ -775,12 +812,14 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 */
 	protected function check_response( $response, $item, $password = false ) {
 		$this->assertArrayHasKey( 'uuid', $response );
+		$this->assertArrayHasKey( 'app_id', $response );
 		$this->assertArrayHasKey( 'name', $response );
 		$this->assertArrayHasKey( 'created', $response );
 		$this->assertArrayHasKey( 'last_used', $response );
 		$this->assertArrayHasKey( 'last_ip', $response );
 
 		$this->assertEquals( $item['uuid'], $response['uuid'] );
+		$this->assertEquals( $item['app_id'], $response['app_id'] );
 		$this->assertEquals( $item['name'], $response['name'] );
 		$this->assertEquals( gmdate( 'Y-m-d\TH:i:s', $item['created'] ), $response['created'] );
 
@@ -812,12 +851,13 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertCount( 6, $properties );
 		$this->assertArrayHasKey( 'uuid', $properties );
+		$this->assertArrayHasKey( 'app_id', $properties );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'password', $properties );
 		$this->assertArrayHasKey( 'created', $properties );
 		$this->assertArrayHasKey( 'last_used', $properties );
 		$this->assertArrayHasKey( 'last_ip', $properties );
+		$this->assertCount( 7, $properties );
 	}
 }

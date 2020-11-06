@@ -743,8 +743,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares taxonomy data for return in an XML-RPC object.
 	 *
-	 * @param object $taxonomy The unprepared taxonomy data.
-	 * @param array  $fields   The subset of taxonomy fields to return.
+	 * @param WP_Taxonomy $taxonomy The unprepared taxonomy data.
+	 * @param array       $fields   The subset of taxonomy fields to return.
 	 * @return array The prepared taxonomy data.
 	 */
 	protected function _prepare_taxonomy( $taxonomy, $fields ) {
@@ -1003,8 +1003,8 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares media item data for return in an XML-RPC object.
 	 *
-	 * @param object $media_item     The unprepared media item data.
-	 * @param string $thumbnail_size The image size to use for the thumbnail URL.
+	 * @param WP_Post $media_item     The unprepared media item data.
+	 * @param string  $thumbnail_size The image size to use for the thumbnail URL.
 	 * @return array The prepared media item data.
 	 */
 	protected function _prepare_media_item( $media_item, $thumbnail_size = 'thumbnail' ) {
@@ -1032,9 +1032,9 @@ class wp_xmlrpc_server extends IXR_Server {
 		 *
 		 * @since 3.4.0
 		 *
-		 * @param array  $_media_item    An array of media item data.
-		 * @param object $media_item     Media item object.
-		 * @param string $thumbnail_size Image size.
+		 * @param array   $_media_item    An array of media item data.
+		 * @param WP_Post $media_item     Media item object.
+		 * @param string  $thumbnail_size Image size.
 		 */
 		return apply_filters( 'xmlrpc_prepare_media_item', $_media_item, $media_item, $thumbnail_size );
 	}
@@ -1042,7 +1042,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares page data for return in an XML-RPC object.
 	 *
-	 * @param object $page The unprepared page data.
+	 * @param WP_Post $page The unprepared page data.
 	 * @return array The prepared page data.
 	 */
 	protected function _prepare_page( $page ) {
@@ -1122,7 +1122,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	/**
 	 * Prepares comment data for return in an XML-RPC object.
 	 *
-	 * @param object $comment The unprepared comment data.
+	 * @param WP_Comment $comment The unprepared comment data.
 	 * @return array The prepared comment data.
 	 */
 	protected function _prepare_comment( $comment ) {
@@ -3876,13 +3876,24 @@ class wp_xmlrpc_server extends IXR_Server {
 			return new IXR_Error( 403, __( 'Sorry, comments are closed for this item.' ) );
 		}
 
-		if ( empty( $content_struct['content'] ) ) {
-			return new IXR_Error( 403, __( 'Comment is required.' ) );
+		if (
+			'publish' === get_post_status( $post_id ) &&
+			! current_user_can( 'edit_post', $post_id ) &&
+			post_password_required( $post_id )
+		) {
+			return new IXR_Error( 403, __( 'Sorry, you are not allowed to comment on this post.' ) );
+		}
+
+		if (
+			'private' === get_post_status( $post_id ) &&
+			! current_user_can( 'read_post', $post_id )
+		) {
+			return new IXR_Error( 403, __( 'Sorry, you are not allowed to comment on this post.' ) );
 		}
 
 		$comment = array(
 			'comment_post_ID' => $post_id,
-			'comment_content' => $content_struct['content'],
+			'comment_content' => trim( $content_struct['content'] ),
 		);
 
 		if ( $logged_in ) {
@@ -3913,7 +3924,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$comment['user_ID'] = 0;
 
 			if ( get_option( 'require_name_email' ) ) {
-				if ( strlen( $comment['comment_author_email'] < 6 ) || '' === $comment['comment_author'] ) {
+				if ( strlen( $comment['comment_author_email'] ) < 6 || '' === $comment['comment_author'] ) {
 					return new IXR_Error( 403, __( 'Comment author name and email are required.' ) );
 				} elseif ( ! is_email( $comment['comment_author_email'] ) ) {
 					return new IXR_Error( 403, __( 'A valid email address is required.' ) );
@@ -3922,6 +3933,13 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		$comment['comment_parent'] = isset( $content_struct['comment_parent'] ) ? absint( $content_struct['comment_parent'] ) : 0;
+
+		/** This filter is documented in wp-includes/comment.php */
+		$allow_empty = apply_filters( 'allow_empty_comment', false, $comment );
+
+		if ( ! $allow_empty && '' === $comment['comment_content'] ) {
+			return new IXR_Error( 403, __( 'Comment is required.' ) );
+		}
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
 		do_action( 'xmlrpc_call', 'wp.newComment' );
@@ -4293,7 +4311,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		do_action( 'xmlrpc_call', 'wp.getMediaItem' );
 
 		$attachment = get_post( $attachment_id );
-		if ( ! $attachment ) {
+		if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
 			return new IXR_Error( 404, __( 'Invalid attachment ID.' ) );
 		}
 

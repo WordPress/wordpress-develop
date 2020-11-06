@@ -992,7 +992,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 }
 
 /**
- * Get an HTML img element representing an image attachment
+ * Get an HTML img element representing an image attachment.
  *
  * While `$size` will accept an array, it is better to register a size with
  * add_image_size() so that a cropped version is generated. It's much more
@@ -1035,7 +1035,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$size_class = $size;
 
 		if ( is_array( $size_class ) ) {
-			$size_class = join( 'x', $size_class );
+			$size_class = implode( 'x', $size_class );
 		}
 
 		$default_attr = array(
@@ -1099,7 +1099,20 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		$html .= ' />';
 	}
 
-	return $html;
+	/**
+	 * HTML img element representing an image attachment.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string       $html          HTML img element or empty string on failure.
+	 * @param int          $attachment_id Image attachment ID.
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
+	 * @param bool         $icon          Whether the image should be treated as an icon.
+	 * @param array        $attr          Array of attribute values for the image markup, keyed by attribute name.
+	 *                                    See wp_get_attachment_image().
+	 */
+	return apply_filters( 'wp_get_attachment_image', $html, $attachment_id, $size, $icon, $attr );
 }
 
 /**
@@ -2950,7 +2963,7 @@ function wp_audio_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<audio %s controls="controls">', join( ' ', $attr_strings ) );
+	$html .= sprintf( '<audio %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
@@ -3218,7 +3231,7 @@ function wp_video_shortcode( $attr, $content = '' ) {
 		$html .= "<!--[if lt IE 9]><script>document.createElement('video');</script><![endif]-->\n";
 	}
 
-	$html .= sprintf( '<video %s controls="controls">', join( ' ', $attr_strings ) );
+	$html .= sprintf( '<video %s controls="controls">', implode( ' ', $attr_strings ) );
 
 	$fileurl = '';
 	$source  = '<source type="%s" src="%s" />';
@@ -3754,7 +3767,47 @@ function wp_plupload_default_settings() {
  * @since 3.5.0
  *
  * @param int|WP_Post $attachment Attachment ID or object.
- * @return array|void Array of attachment details.
+ * @return array|void {
+ *     Array of attachment details, or void if the parameter does not correspond to an attachment.
+ *
+ *     @type string $alt                   Alt text of the attachment.
+ *     @type string $author                ID of the attachment author, as a string.
+ *     @type string $authorName            Name of the attachment author.
+ *     @type string $caption               Caption for the attachment.
+ *     @type array  $compat                Containing item and meta.
+ *     @type string $context               Context, whether it's used as the site icon for example.
+ *     @type int    $date                  Uploaded date, timestamp in milliseconds.
+ *     @type string $dateFormatted         Formatted date (e.g. June 29, 2018).
+ *     @type string $description           Description of the attachment.
+ *     @type string $editLink              URL to the edit page for the attachment.
+ *     @type string $filename              File name of the attachment.
+ *     @type string $filesizeHumanReadable Filesize of the attachment in human readable format (e.g. 1 MB).
+ *     @type int    $filesizeInBytes       Filesize of the attachment in bytes.
+ *     @type int    $height                If the attachment is an image, represents the height of the image in pixels.
+ *     @type string $icon                  Icon URL of the attachment (e.g. /wp-includes/images/media/archive.png).
+ *     @type int    $id                    ID of the attachment.
+ *     @type string $link                  URL to the attachment.
+ *     @type int    $menuOrder             Menu order of the attachment post.
+ *     @type array  $meta                  Meta data for the attachment.
+ *     @type string $mime                  Mime type of the attachment (e.g. image/jpeg or application/zip).
+ *     @type int    $modified              Last modified, timestamp in milliseconds.
+ *     @type string $name                  Name, same as title of the attachment.
+ *     @type array  $nonces                Nonces for update, delete and edit.
+ *     @type string $orientation           If the attachment is an image, represents the image orientation
+ *                                         (landscape or portrait).
+ *     @type array  $sizes                 If the attachment is an image, contains an array of arrays
+ *                                         for the images sizes: thumbnail, medium, large, and full.
+ *     @type string $status                Post status of the attachment (usually 'inherit').
+ *     @type string $subtype               Mime subtype of the attachment (usually the last part, e.g. jpeg or zip).
+ *     @type string $title                 Title of the attachment (usually slugified file name without the extension).
+ *     @type string $type                  Type of the attachment (usually first part of the mime type, e.g. image).
+ *     @type int    $uploadedTo            Parent post to which the attachment was uploaded.
+ *     @type string $uploadedToLink        URL to the edit page of the parent post of the attachment.
+ *     @type string $uploadedToTitle       Post title of the parent of the attachment.
+ *     @type string $url                   Direct URL to the attachment file (from wp-content).
+ *     @type int    $width                 If the attachment is an image, represents the width of the image in pixels.
+ * }
+ *
  */
 function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
@@ -3809,26 +3862,18 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	$author = new WP_User( $attachment->post_author );
 	if ( $author->exists() ) {
-		$response['authorName'] = html_entity_decode( $author->display_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
+		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
+		$response['authorLink'] = get_edit_user_link( $author->ID );
 	} else {
 		$response['authorName'] = __( '(no author)' );
 	}
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
-	} else {
-		$post_parent = false;
-	}
-
-	if ( $post_parent ) {
-		$parent_type = get_post_type_object( $post_parent->post_type );
-
-		if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $attachment->post_parent ) ) {
-			$response['uploadedToLink'] = get_edit_post_link( $attachment->post_parent, 'raw' );
-		}
-
-		if ( $parent_type && current_user_can( 'read_post', $attachment->post_parent ) ) {
+		if ( $post_parent ) {
 			$response['uploadedToTitle'] = $post_parent->post_title ? $post_parent->post_title : __( '(no title)' );
+			$response['uploadedToLink']  = get_edit_post_link( $attachment->post_parent, 'raw' );
 		}
 	}
 
@@ -3984,12 +4029,17 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		$response['compat'] = get_compat_media_markup( $attachment->ID, array( 'in_modal' => true ) );
 	}
 
+	$media_states = get_media_states( $attachment );
+	if ( ! empty( $media_states ) ) {
+		$response['mediaStates'] = implode( ', ', $media_states );
+	}
+
 	/**
 	 * Filters the attachment data prepared for JavaScript.
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array       $response   Array of prepared attachment data.
+	 * @param array       $response   Array of prepared attachment data. @see wp_prepare_attachment_for_js().
 	 * @param WP_Post     $attachment Attachment object.
 	 * @param array|false $meta       Array of attachment meta data, or false if there is none.
 	 */
