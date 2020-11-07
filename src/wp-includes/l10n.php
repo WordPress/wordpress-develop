@@ -1685,11 +1685,11 @@ function is_locale_switched() {
 
 /**
  * Parses the mo file path & name and returns the locale part.
- * 
+ *
  * I.e. Extracts 'locale' from '/path/to/mo/file/domain-name-locale.mo'.
  *
  * @since 5.6.0
- * 
+ *
  * @param string $mofile Path to the .mo file.
  * @return string Locale, if found in the mo file path.
  */
