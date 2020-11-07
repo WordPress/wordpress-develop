@@ -498,7 +498,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			// Strip off trailing /index.php/.
 			$redirect['path'] = preg_replace( '|/' . preg_quote( $wp_rewrite->index, '|' ) . '/?$|', '/', $redirect['path'] );
-			$redirect['path'] = ( $redirect['path'] === '/' ) ? $redirect['path'] : user_trailingslashit( $redirect['path'] );
+			$redirect['path'] = ( '/' === $redirect['path'] ) ? $redirect['path'] : user_trailingslashit( $redirect['path'] );
 
 			if ( ! empty( $addl_path )
 				&& $wp_rewrite->using_index_permalinks()
