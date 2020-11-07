@@ -48,7 +48,7 @@ function user_trailingslashit( $string, $type_of_url = '' ) {
 	global $wp_rewrite;
 	if ( $wp_rewrite->use_trailing_slashes ) {
 		$string = trailingslashit( $string );
-	} else {
+	} else if ( $string !== '/' ) {
 		$string = untrailingslashit( $string );
 	}
 
