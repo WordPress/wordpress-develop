@@ -1230,6 +1230,7 @@ function load_script_translations( $file, $handle, $domain ) {
  * @return bool True when the textdomain is successfully loaded, false otherwise.
  */
 function _load_textdomain_just_in_time( $domain ) {
+	static $mo_files = array();
 	global $l10n_unloaded, $wp_textdomain_registry;
 
 	$l10n_unloaded = (array) $l10n_unloaded;
@@ -1245,18 +1246,33 @@ function _load_textdomain_just_in_time( $domain ) {
 		return false;
 	}
 
-	$locale = determine_locale();
+	$locale      = determine_locale();
+	$mo_file_key = "{$domain}:{$locale}";
+	$mo_file     = isset( $mo_files[ $mo_file_key ] ) ? $mo_files[ $mo_file_key ] : null;
+
+	// Check if the text domain has been loaded before.
+	if ( false === $mo_file ) {
+		return false;
+	}
+	if ( is_string( $mo_file ) ) {
+		return load_textdomain( $domain, $mo_file );
+	}
 
 	// Themes with their language directory outside of WP_LANG_DIR have a different file name.
 	$template_directory   = trailingslashit( get_template_directory() );
 	$stylesheet_directory = trailingslashit( get_stylesheet_directory() );
 	if ( 0 === strpos( $path, $template_directory ) || 0 === strpos( $path, $stylesheet_directory ) ) {
-		$mofile = "{$path}{$locale}.mo";
+		$mo_file = "{$path}{$locale}.mo";
 	} else {
-		$mofile = "{$path}{$domain}-{$locale}.mo";
+		$mo_file = "{$path}{$domain}-{$locale}.mo";
 	}
 
-	return load_textdomain( $domain, $mofile );
+	$loaded = load_textdomain( $domain, $mo_file );
+
+	// Store status for follow-up calls.
+	$mo_files[ $mo_file_key ] = $loaded ? $mo_file : false;
+
+	return $loaded;
 }
 
 /**
