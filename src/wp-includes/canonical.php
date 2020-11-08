@@ -757,7 +757,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	if (
 		$redirect_obj &&
 		is_a( $redirect_obj, 'WP_Post' ) &&
-		get_post_status_object( $redirect_obj->post_status )->public === false &&
+		get_post_status_object( get_post_status( $redirect_obj ) )->public === false &&
 		! current_user_can( 'read_post', $redirect_obj->ID )
 	) {
 		$redirect_obj = false;
