@@ -15,32 +15,11 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public static $users;
 
 	/**
-	 * Private post.
+	 * Post Objects.
 	 *
-	 * @var WP_Post
+	 * @var array
 	 */
-	public static $post;
-
-	/**
-	 * Private page.
-	 *
-	 * @var WP_Post
-	 */
-	public static $page;
-
-	/**
-	 * Private CPT.
-	 *
-	 * @var WP_Post
-	 */
-	public static $trac_5272_cpt;
-
-	/**
-	 * Private post status.
-	 *
-	 * @var WP_Post
-	 */
-	public static $trac_5272_status;
+	public static $posts;
 
 	public static function wpSetupBeforeClass( $factory ) {
 		parent::wpSetupBeforeClass( $factory );
@@ -54,7 +33,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 			'administrator'  => $factory->user->create( array( 'role' => 'administrator' ) ),
 		);
 
-		self::$post = $factory->post->create_and_get(
+		self::$posts['post'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'post',
 				'post_title'   => 'Author private post',
@@ -65,7 +44,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		self::$page = $factory->post->create_and_get(
+		self::$posts['page'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'page',
 				'post_title'   => 'Author private page',
@@ -76,9 +55,22 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 			)
 		);
 
+		// This has everything but the file attachment as it's not needed.
+		self::$posts['attachment'] = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'attachment',
+				'post_title'   => 'Author attachment on private post',
+				'post_name'    => 'attachment-post-slug',
+				'post_status'  => 'inherit',
+				'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
+				'post_author'  => self::$users['content_author'],
+				'post_parent'  => self::$posts['post']->ID,
+			)
+		);
+
 		self::setup_custom_types();
 
-		self::$trac_5272_cpt = $factory->post->create_and_get(
+		self::$posts['cpt'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'trac_5272_cpt',
 				'post_title'   => 'Author private trac_5272_cpt',
@@ -89,7 +81,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 			)
 		);
 
-		self::$trac_5272_status = $factory->post->create_and_get(
+		self::$posts['cps'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'post',
 				'post_title'   => 'Author private post status',
@@ -142,10 +134,10 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_private_post_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$post->ID );
+		clean_post_cache( self::$posts['post']->ID );
 
-		$ugly_id_request   = '/?p=' . self::$post->ID;
-		$ugly_name_request = '/?name=' . self::$post->post_name;
+		$ugly_id_request   = '/?p=' . self::$posts['post']->ID;
+		$ugly_name_request = '/?name=' . self::$posts['post']->post_name;
 		$pretty_request    = '/private-post-slug/';
 		$pretty_expected   = '/private-post-slug/';
 
@@ -163,6 +155,35 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Test canonical redirect does not reveal inherited attachment slugs.
+	 *
+	 * @ticket 5272
+	 * @dataProvider data_trac_5272_redirect
+	 */
+	public function test_canonical_private_attachment_redirect( $user_role, $can_redirect ) {
+		wp_set_current_user( self::$users[ $user_role ] );
+		$this->set_permalink_structure( '/%postname%/' );
+		clean_post_cache( self::$posts['attachment']->ID );
+
+		$ugly_id_request   = '/?attachment_id=' . self::$posts['attachment']->ID;
+		$ugly_type_request = '/?post_type=attachment&p=' . self::$posts['attachment']->ID;
+		$pretty_request    = '/private-post-slug/attachment-post-slug/';
+		$pretty_expected   = '/private-post-slug/attachment-post-slug/';
+
+		if ( $can_redirect ) {
+			$ugly_id_expected   = $pretty_expected;
+			$ugly_type_expected = $pretty_expected;
+		} else {
+			$ugly_id_expected   = $ugly_id_request;
+			$ugly_type_expected = $ugly_type_request;
+		}
+
+		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
+		$this->assertCanonical( $ugly_type_request, $ugly_type_expected );
+		$this->assertCanonical( $pretty_request, $pretty_expected );
+	}
+
+	/**
 	 * Test canonical redirect does not reveal paged private post slugs.
 	 *
 	 * @ticket 5272
@@ -171,10 +192,10 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_private_post_paged_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$post->ID );
+		clean_post_cache( self::$posts['post']->ID );
 
-		$ugly_id_request   = '/?page=2&p=' . self::$post->ID;
-		$ugly_name_request = '/?page=2&name=' . self::$post->post_name;
+		$ugly_id_request   = '/?page=2&p=' . self::$posts['post']->ID;
+		$ugly_name_request = '/?page=2&name=' . self::$posts['post']->post_name;
 		$pretty_request    = '/private-post-slug/2/';
 		$pretty_expected   = '/private-post-slug/2/';
 
@@ -200,9 +221,9 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_private_post_feed_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$post->ID );
+		clean_post_cache( self::$posts['post']->ID );
 
-		$ugly_id_request = '/?feed=rss2&p=' . self::$post->ID;
+		$ugly_id_request = '/?feed=rss2&p=' . self::$posts['post']->ID;
 		$pretty_request  = '/private-post-slug/feed/';
 		$pretty_expected = '/private-post-slug/feed/';
 
@@ -225,9 +246,9 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_private_page_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$page->ID );
+		clean_post_cache( self::$posts['page']->ID );
 
-		$ugly_id_request = '/?page_id=' . self::$page->ID;
+		$ugly_id_request = '/?page_id=' . self::$posts['page']->ID;
 		$pretty_request  = '/private-page-slug/';
 		$pretty_expected = '/private-page-slug/';
 
@@ -250,9 +271,9 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_cpt_with_private_custom_status_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$trac_5272_cpt->ID );
+		clean_post_cache( self::$posts['cpt']->ID );
 
-		$ugly_id_request = '/?p=' . self::$trac_5272_cpt->ID;
+		$ugly_id_request = '/?p=' . self::$posts['cpt']->ID;
 		$pretty_request  = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
 		$pretty_expected = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
 
@@ -275,10 +296,10 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public function test_canonical_post_with_private_custom_status_redirect( $user_role, $can_redirect ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$trac_5272_status->ID );
+		clean_post_cache( self::$posts['cps']->ID );
 
-		$ugly_id_request   = '/?p=' . self::$trac_5272_status->ID;
-		$ugly_name_request = '/?name=' . self::$trac_5272_status->post_name;
+		$ugly_id_request   = '/?p=' . self::$posts['cps']->ID;
+		$ugly_name_request = '/?name=' . self::$posts['cps']->post_name;
 		$pretty_request    = '/private-post-status-slug/';
 		$pretty_expected   = '/private-post-status-slug/';
 
