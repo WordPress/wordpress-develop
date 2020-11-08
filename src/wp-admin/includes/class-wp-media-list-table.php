@@ -614,7 +614,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					);
 				}
 				/* translators: Used between list items, there is a space after the comma. */
-				echo join( __( ', ' ), $out );
+				echo implode( __( ', ' ), $out );
 			} else {
 				echo '<span aria-hidden="true">&#8212;</span><span class="screen-reader-text">' . get_taxonomy( $taxonomy )->labels->no_terms . '</span>';
 			}
@@ -802,9 +802,9 @@ class WP_Media_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $post        Attachment being acted upon.
-	 * @param string $column_name Current column name.
-	 * @param string $primary     Primary column name.
+	 * @param WP_Post $post        Attachment being acted upon.
+	 * @param string  $column_name Current column name.
+	 * @param string  $primary     Primary column name.
 	 * @return string Row actions output for media attachments, or an empty string
 	 *                if the current column is not the primary column.
 	 */

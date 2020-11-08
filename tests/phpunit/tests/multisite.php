@@ -32,7 +32,7 @@ if ( is_multisite() ) :
 
 			// Currently there is no wrapper function for the registration_log.
 			$reg_blog = $wpdb->get_col( $wpdb->prepare( "SELECT email FROM {$wpdb->registration_log} WHERE {$wpdb->registration_log}.blog_id = 1 AND IP LIKE %s", $ip ) );
-			$this->assertEquals( $user->user_email, $reg_blog[ count( $reg_blog ) - 1 ] );
+			$this->assertSame( $user->user_email, $reg_blog[ count( $reg_blog ) - 1 ] );
 		}
 
 		/**
@@ -88,7 +88,7 @@ if ( is_multisite() ) :
 			$expected['all']    += 1;
 			$expected['public'] += 1;
 
-			$this->assertEquals( $expected, $counts );
+			$this->assertSame( $expected, $counts );
 		}
 	}
 

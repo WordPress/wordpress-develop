@@ -63,7 +63,7 @@ class WP_Query {
 	 * Holds the contents of a post, page, category, attachment.
 	 *
 	 * @since 1.5.0
-	 * @var object|array
+	 * @var WP_Term|WP_Post_Type|WP_Post|WP_User|null
 	 */
 	public $queried_object;
 
@@ -759,11 +759,11 @@ class WP_Query {
 			$this->is_favicon = true;
 		}
 
-		if ( ! is_scalar( $qv['p'] ) || $qv['p'] < 0 ) {
+		if ( ! is_scalar( $qv['p'] ) || (int) $qv['p'] < 0 ) {
 			$qv['p']     = 0;
 			$qv['error'] = '404';
 		} else {
-			$qv['p'] = intval( $qv['p'] );
+			$qv['p'] = (int) $qv['p'];
 		}
 
 		$qv['page_id']  = absint( $qv['page_id'] );
@@ -791,7 +791,7 @@ class WP_Query {
 			$qv['menu_order'] = absint( $qv['menu_order'] );
 		}
 
-		// Fairly insane upper bound for search string lengths.
+		// Fairly large, potentially too large, upper bound for search string lengths.
 		if ( ! is_scalar( $qv['s'] ) || ( ! empty( $qv['s'] ) && strlen( $qv['s'] ) > 1600 ) ) {
 			$qv['s'] = '';
 		}
@@ -942,7 +942,7 @@ class WP_Query {
 			$this->is_trackback = true;
 		}
 
-		if ( '' != $qv['paged'] && ( intval( $qv['paged'] ) > 1 ) ) {
+		if ( '' != $qv['paged'] && ( (int) $qv['paged'] > 1 ) ) {
 			$this->is_paged = true;
 		}
 
@@ -1604,7 +1604,7 @@ class WP_Query {
 		// If RAND() contains a seed value, sanitize and add to allowed keys.
 		$rand_with_seed = false;
 		if ( preg_match( '/RAND\(([0-9]+)\)/i', $orderby, $matches ) ) {
-			$orderby        = sprintf( 'RAND(%s)', intval( $matches[1] ) );
+			$orderby        = sprintf( 'RAND(%s)', (int) $matches[1] );
 			$allowed_keys[] = $orderby;
 			$rand_with_seed = true;
 		}
@@ -1721,7 +1721,7 @@ class WP_Query {
 	}
 
 	/**
-	 * Retrieve query variable.
+	 * Retrieves the value of a query variable.
 	 *
 	 * @since 1.5.0
 	 * @since 3.9.0 The `$default` argument was introduced.
@@ -1739,7 +1739,7 @@ class WP_Query {
 	}
 
 	/**
-	 * Set query variable.
+	 * Sets the value of a query variable.
 	 *
 	 * @since 1.5.0
 	 *
@@ -2263,7 +2263,7 @@ class WP_Query {
 			// Numeric comment count is converted to array format.
 			if ( is_numeric( $q['comment_count'] ) ) {
 				$q['comment_count'] = array(
-					'value' => intval( $q['comment_count'] ),
+					'value' => (int) $q['comment_count'],
 				);
 			}
 
@@ -2420,10 +2420,10 @@ class WP_Query {
 			if ( empty( $in_search_post_types ) ) {
 				$where .= ' AND 1=0 ';
 			} else {
-				$where .= " AND {$wpdb->posts}.post_type IN ('" . join( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
+				$where .= " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", array_map( 'esc_sql', $in_search_post_types ) ) . "')";
 			}
 		} elseif ( ! empty( $post_type ) && is_array( $post_type ) ) {
-			$where .= " AND {$wpdb->posts}.post_type IN ('" . join( "', '", esc_sql( $post_type ) ) . "')";
+			$where .= " AND {$wpdb->posts}.post_type IN ('" . implode( "', '", esc_sql( $post_type ) ) . "')";
 		} elseif ( ! empty( $post_type ) ) {
 			$where           .= $wpdb->prepare( " AND {$wpdb->posts}.post_type = %s", $post_type );
 			$post_type_object = get_post_type_object( $post_type );
@@ -2485,20 +2485,20 @@ class WP_Query {
 			}
 
 			if ( ! empty( $e_status ) ) {
-				$statuswheres[] = '(' . join( ' AND ', $e_status ) . ')';
+				$statuswheres[] = '(' . implode( ' AND ', $e_status ) . ')';
 			}
 			if ( ! empty( $r_status ) ) {
 				if ( ! empty( $q['perm'] ) && 'editable' === $q['perm'] && ! current_user_can( $edit_others_cap ) ) {
-					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . join( ' OR ', $r_status ) . '))';
+					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $r_status ) . '))';
 				} else {
-					$statuswheres[] = '(' . join( ' OR ', $r_status ) . ')';
+					$statuswheres[] = '(' . implode( ' OR ', $r_status ) . ')';
 				}
 			}
 			if ( ! empty( $p_status ) ) {
 				if ( ! empty( $q['perm'] ) && 'readable' === $q['perm'] && ! current_user_can( $read_private_cap ) ) {
-					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . join( ' OR ', $p_status ) . '))';
+					$statuswheres[] = "({$wpdb->posts}.post_author = $user_id " . 'AND (' . implode( ' OR ', $p_status ) . '))';
 				} else {
-					$statuswheres[] = '(' . join( ' OR ', $p_status ) . ')';
+					$statuswheres[] = '(' . implode( ' OR ', $p_status ) . ')';
 				}
 			}
 			if ( $post_status_join ) {
@@ -2558,7 +2558,7 @@ class WP_Query {
 			 * @since 1.5.0
 			 *
 			 * @param string   $where The WHERE clause of the query.
-			 * @param WP_Query $this The WP_Query instance (passed by reference).
+			 * @param WP_Query $this  The WP_Query instance (passed by reference).
 			 */
 			$where = apply_filters_ref_array( 'posts_where', array( $where, &$this ) );
 
@@ -2567,7 +2567,7 @@ class WP_Query {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param string   $join  The JOIN clause of the query.
+			 * @param string   $join The JOIN clause of the query.
 			 * @param WP_Query $this The WP_Query instance (passed by reference).
 			 */
 			$join = apply_filters_ref_array( 'posts_join', array( $join, &$this ) );
@@ -2609,7 +2609,7 @@ class WP_Query {
 				 * @since 2.2.0
 				 *
 				 * @param string   $cjoin The JOIN clause of the query.
-				 * @param WP_Query $this The WP_Query instance (passed by reference).
+				 * @param WP_Query $this  The WP_Query instance (passed by reference).
 				 */
 				$cjoin = apply_filters_ref_array( 'comment_feed_join', array( $cjoin, &$this ) );
 
@@ -2669,7 +2669,7 @@ class WP_Query {
 				$post_ids[] = (int) $comment->comment_post_ID;
 			}
 
-			$post_ids = join( ',', $post_ids );
+			$post_ids = implode( ',', $post_ids );
 			$join     = '';
 			if ( $post_ids ) {
 				$where = "AND {$wpdb->posts}.ID IN ($post_ids) ";
@@ -2693,7 +2693,7 @@ class WP_Query {
 			 * @since 1.5.0
 			 *
 			 * @param string   $where The WHERE clause of the query.
-			 * @param WP_Query $this The WP_Query instance (passed by reference).
+			 * @param WP_Query $this  The WP_Query instance (passed by reference).
 			 */
 			$where = apply_filters_ref_array( 'posts_where_paged', array( $where, &$this ) );
 
@@ -2714,7 +2714,7 @@ class WP_Query {
 			 *
 			 * @since 1.5.0
 			 *
-			 * @param string   $join  The JOIN clause of the query.
+			 * @param string   $join The JOIN clause of the query.
 			 * @param WP_Query $this The WP_Query instance (passed by reference).
 			 */
 			$join = apply_filters_ref_array( 'posts_join_paged', array( $join, &$this ) );
@@ -2805,7 +2805,7 @@ class WP_Query {
 			 * @since 2.5.0
 			 *
 			 * @param string   $where The WHERE clause of the query.
-			 * @param WP_Query $this The WP_Query instance (passed by reference).
+			 * @param WP_Query $this  The WP_Query instance (passed by reference).
 			 */
 			$where = apply_filters_ref_array( 'posts_where_request', array( $where, &$this ) );
 
@@ -2828,7 +2828,7 @@ class WP_Query {
 			 *
 			 * @since 2.5.0
 			 *
-			 * @param string   $join  The JOIN clause of the query.
+			 * @param string   $join The JOIN clause of the query.
 			 * @param WP_Query $this The WP_Query instance (passed by reference).
 			 */
 			$join = apply_filters_ref_array( 'posts_join_request', array( $join, &$this ) );
@@ -2935,7 +2935,7 @@ class WP_Query {
 		/**
 		 * Filters the posts array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default post queries.
+		 * Return a non-null value to bypass WordPress' default post queries.
 		 *
 		 * Filtering functions that require pagination information are encouraged to set
 		 * the `found_posts` and `max_num_pages` properties of the WP_Query object,
@@ -3185,7 +3185,7 @@ class WP_Query {
 			 * @since 1.5.0
 			 *
 			 * @param WP_Post[] $posts Array of post objects.
-			 * @param WP_Query  $this The WP_Query instance (passed by reference).
+			 * @param WP_Query  $this  The WP_Query instance (passed by reference).
 			 */
 			$this->posts = apply_filters_ref_array( 'the_posts', array( $this->posts, &$this ) );
 		}
@@ -3449,7 +3449,7 @@ class WP_Query {
 	}
 
 	/**
-	 * Retrieve queried object.
+	 * Retrieves the currently queried object.
 	 *
 	 * If queried object is not set, then the queried object will be set from
 	 * the category, tag, taxonomy, posts page, single post, page, or author
@@ -3457,7 +3457,7 @@ class WP_Query {
 	 *
 	 * @since 1.5.0
 	 *
-	 * @return object
+	 * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
 	 */
 	public function get_queried_object() {
 		if ( isset( $this->queried_object ) ) {
@@ -3527,7 +3527,7 @@ class WP_Query {
 	}
 
 	/**
-	 * Retrieve ID of the current queried object.
+	 * Retrieves the ID of the currently queried object.
 	 *
 	 * @since 1.5.0
 	 *
@@ -3607,9 +3607,17 @@ class WP_Query {
 	/**
 	 * Is the query for an existing archive page?
 	 *
-	 * Month, Year, Category, Author, Post Type archive...
+	 * Archive pages include category, tag, author, date, custom post type,
+	 * and custom taxonomy based archives.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @see WP_Query::is_category()
+	 * @see WP_Query::is_tag()
+	 * @see WP_Query::is_author()
+	 * @see WP_Query::is_date()
+	 * @see WP_Query::is_post_type_archive()
+	 * @see WP_Query::is_tax()
 	 *
 	 * @return bool Whether the query is for an existing archive page.
 	 */
@@ -3944,9 +3952,9 @@ class WP_Query {
 	 * If you set a static page for the front page of your site, this function will return
 	 * true only on the page you set as the "Posts page".
 	 *
-	 * @see WP_Query::is_front_page()
-	 *
 	 * @since 3.1.0
+	 *
+	 * @see WP_Query::is_front_page()
 	 *
 	 * @return bool Whether the query is for the blog homepage.
 	 */
@@ -3994,10 +4002,10 @@ class WP_Query {
 	 * If the $page parameter is specified, this function will additionally
 	 * check if the query is for one of the pages specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_single()
 	 * @see WP_Query::is_singular()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param int|string|int[]|string[] $page Optional. Page ID, title, slug, path, or array of such
 	 *                                        to check against. Default empty.
@@ -4101,10 +4109,10 @@ class WP_Query {
 	 * If the $post parameter is specified, this function will additionally
 	 * check if the query is for one of the Posts specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_page()
 	 * @see WP_Query::is_singular()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param int|string|int[]|string[] $post Optional. Post ID, title, slug, path, or array of such
 	 *                                        to check against. Default empty.
@@ -4151,10 +4159,10 @@ class WP_Query {
 	 * If the $post_types parameter is specified, this function will additionally
 	 * check if the query is for one of the Posts Types specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_page()
 	 * @see WP_Query::is_single()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param string|string[] $post_types Optional. Post type or array of post types
 	 *                                    to check against. Default empty.

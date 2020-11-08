@@ -52,6 +52,6 @@ class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 
 		$url_list = $user_provider->get_url_list( 1 );
 
-		$this->assertEqualSets( $expected, $url_list );
+		$this->assertSameSets( $expected, $url_list );
 	}
 }

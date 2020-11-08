@@ -543,7 +543,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 
 	// Has someone already signed up for this username?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_login = %s", $user_name ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$registered_at = mysql2date( 'U', $signup->registered );
 		$now           = time();
 		$diff          = $now - $registered_at;
@@ -556,7 +556,7 @@ function wpmu_validate_user_signup( $user_name, $user_email ) {
 	}
 
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE user_email = %s", $user_email ) );
-	if ( null != $signup ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -708,7 +708,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 		$mydomain = $blogname . '.' . preg_replace( '|^www\.|', '', $domain );
 		$path     = $base;
 	} else {
-		$mydomain = "$domain";
+		$mydomain = $domain;
 		$path     = $base . $blogname . '/';
 	}
 	if ( domain_exists( $mydomain, $path, $current_network->id ) ) {
@@ -724,7 +724,7 @@ function wpmu_validate_blog_signup( $blogname, $blog_title, $user = '' ) {
 	// Has someone already signed up for this domain?
 	// TODO: Check email too?
 	$signup = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->signups WHERE domain = %s AND path = %s", $mydomain, $path ) );
-	if ( ! empty( $signup ) ) {
+	if ( $signup instanceof stdClass ) {
 		$diff = time() - mysql2date( 'U', $signup->registered );
 		// If registered more than two days ago, cancel registration and let this signup go through.
 		if ( $diff > 2 * DAY_IN_SECONDS ) {
@@ -1575,7 +1575,7 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
 }
 
 /**
- * Notify a user that their blog activation has been successful.
+ * Notifies the site administrator that their site activation was successful.
  *
  * Filter {@see 'wpmu_welcome_notification'} to disable or bypass.
  *
@@ -1584,26 +1584,26 @@ function domain_exists( $domain, $path, $network_id = 1 ) {
  *
  * @since MU (3.0.0)
  *
- * @param int    $blog_id  Blog ID.
+ * @param int    $blog_id  Site ID.
  * @param int    $user_id  User ID.
- * @param string $password User password.
+ * @param string $password User password, or "N/A" if the user account is not new.
  * @param string $title    Site title.
  * @param array  $meta     Optional. Signup meta data. By default, contains the requested privacy setting and lang_id.
- * @return bool
+ * @return bool Whether the email notification was sent.
  */
 function wpmu_welcome_notification( $blog_id, $user_id, $password, $title, $meta = array() ) {
 	$current_network = get_network();
 
 	/**
-	 * Filters whether to bypass the welcome email after site activation.
+	 * Filters whether to bypass the welcome email sent to the site administrator after site activation.
 	 *
 	 * Returning false disables the welcome email.
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param int|bool $blog_id  Blog ID.
-	 * @param int      $user_id  User ID.
-	 * @param string   $password User password.
+	 * @param int|bool $blog_id  Site ID.
+	 * @param int      $user_id  User ID of the site administrator.
+	 * @param string   $password User password, or "N/A" if the user account is not new.
 	 * @param string   $title    Site title.
 	 * @param array    $meta     Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1645,16 +1645,16 @@ We hope you enjoy your new site. Thanks!
 	$welcome_email = str_replace( 'PASSWORD', $password, $welcome_email );
 
 	/**
-	 * Filters the content of the welcome email after site activation.
+	 * Filters the content of the welcome email sent to the site administrator after site activation.
 	 *
 	 * Content should be formatted for transmission via wp_mail().
 	 *
 	 * @since MU (3.0.0)
 	 *
 	 * @param string $welcome_email Message body of the email.
-	 * @param int    $blog_id       Blog ID.
-	 * @param int    $user_id       User ID.
-	 * @param string $password      User password.
+	 * @param int    $blog_id       Site ID.
+	 * @param int    $user_id       User ID of the site administrator.
+	 * @param string $password      User password, or "N/A" if the user account is not new.
 	 * @param string $title         Site title.
 	 * @param array  $meta          Signup meta data. By default, contains the requested privacy setting and lang_id.
 	 */
@@ -1678,7 +1678,7 @@ We hope you enjoy your new site. Thanks!
 	$subject = __( 'New %1$s Site: %2$s' );
 
 	/**
-	 * Filters the subject of the welcome email after site activation.
+	 * Filters the subject of the welcome email sent to the site administrator after site activation.
 	 *
 	 * @since MU (3.0.0)
 	 *
@@ -1687,6 +1687,120 @@ We hope you enjoy your new site. Thanks!
 	$subject = apply_filters( 'update_welcome_subject', sprintf( $subject, $current_network->site_name, wp_unslash( $title ) ) );
 
 	wp_mail( $user->user_email, wp_specialchars_decode( $subject ), $message, $message_headers );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
+
+	return true;
+}
+
+/**
+ * Notifies the Multisite network administrator that a new site was created.
+ *
+ * Filter {@see 'send_new_site_email'} to disable or bypass.
+ *
+ * Filter {@see 'new_site_email'} to filter the contents.
+ *
+ * @since 5.6.0
+ *
+ * @param int $site_id Site ID of the new site.
+ * @param int $user_id User ID of the administrator of the new site.
+ * @return bool Whether the email notification was sent.
+ */
+function wpmu_new_site_admin_notification( $site_id, $user_id ) {
+	$site  = get_site( $site_id );
+	$user  = get_userdata( $user_id );
+	$email = get_site_option( 'admin_email' );
+
+	if ( ! $site || ! $user || ! $email ) {
+		return false;
+	}
+
+	/**
+	 * Filters whether to send an email to the Multisite network administrator when a new site is created.
+	 *
+	 * Return false to disable sending the email.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $send Whether to send the email.
+	 * @param WP_Site $site Site object of the new site.
+	 * @param WP_User $user User object of the administrator of the new site.
+	 */
+	if ( ! apply_filters( 'send_new_site_email', true, $site, $user ) ) {
+		return false;
+	}
+
+	$switched_locale = false;
+	$network_admin   = get_user_by( 'email', $email );
+
+	if ( $network_admin ) {
+		// If the network admin email address corresponds to a user, switch to their locale.
+		$switched_locale = switch_to_locale( get_user_locale( $network_admin ) );
+	} else {
+		// Otherwise switch to the locale of the current site.
+		$switched_locale = switch_to_locale( get_locale() );
+	}
+
+	$subject = sprintf(
+		/* translators: New site notification email subject. %s: Network title. */
+		__( '[%s] New Site Created' ),
+		get_network()->site_name
+	);
+
+	$message = sprintf(
+		/* translators: New site notification email. 1: User login, 2: Site URL, 3: Site title. */
+		__(
+			'New site created by %1$s
+
+Address: %2$s
+Name: %3$s'
+		),
+		$user->user_login,
+		get_site_url( $site->id ),
+		get_blog_option( $site->id, 'blogname' )
+	);
+
+	$header = sprintf(
+		'From: "%1$s" <%2$s>',
+		_x( 'Site Admin', 'email "From" field' ),
+		$email
+	);
+
+	$new_site_email = array(
+		'to'      => $email,
+		'subject' => $subject,
+		'message' => $message,
+		'headers' => $header,
+	);
+
+	/**
+	 * Filters the content of the email sent to the Multisite network administrator when a new site is created.
+	 *
+	 * Content should be formatted for transmission via wp_mail().
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $new_site_email {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The email address of the recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *     @type string $headers Headers.
+	 * }
+	 * @param WP_Site $site         Site object of the new site.
+	 * @param WP_User $user         User object of the administrator of the new site.
+	 */
+	$new_site_email = apply_filters( 'new_site_email', $new_site_email, $site, $user );
+
+	wp_mail(
+		$new_site_email['to'],
+		wp_specialchars_decode( $new_site_email['subject'] ),
+		$new_site_email['message'],
+		$new_site_email['headers']
+	);
 
 	if ( $switched_locale ) {
 		restore_previous_locale();
@@ -1970,7 +2084,7 @@ function global_terms( $term_id, $deprecated = '' ) {
 		return $term_id;
 	}
 
-	$term_id = intval( $term_id );
+	$term_id = (int) $term_id;
 	$c       = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms WHERE term_id = %d", $term_id ) );
 
 	$global_id = $wpdb->get_var( $wpdb->prepare( "SELECT cat_ID FROM $wpdb->sitecategories WHERE category_nicename = %s", $c->slug ) );
@@ -2835,18 +2949,18 @@ All at ###SITENAME###
 	 * @since 4.9.0
 	 *
 	 * @param array $email_change_email {
-	 *            Used to build wp_mail().
+	 *     Used to build wp_mail().
 	 *
-	 *            @type string $to      The intended recipient.
-	 *            @type string $subject The subject of the email.
-	 *            @type string $message The content of the email.
-	 *                The following strings have a special meaning and will get replaced dynamically:
-	 *                - ###OLD_EMAIL### The old network admin email address.
-	 *                - ###NEW_EMAIL### The new network admin email address.
-	 *                - ###SITENAME###  The name of the network.
-	 *                - ###SITEURL###   The URL to the site.
-	 *            @type string $headers Headers.
-	 *        }
+	 *     @type string $to      The intended recipient.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *         The following strings have a special meaning and will get replaced dynamically:
+	 *         - ###OLD_EMAIL### The old network admin email address.
+	 *         - ###NEW_EMAIL### The new network admin email address.
+	 *         - ###SITENAME###  The name of the network.
+	 *         - ###SITEURL###   The URL to the site.
+	 *     @type string $headers Headers.
+	 * }
 	 * @param string $old_email  The old network admin email address.
 	 * @param string $new_email  The new network admin email address.
 	 * @param int    $network_id ID of the network.

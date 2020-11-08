@@ -87,7 +87,7 @@ final class WP_Privacy_Policy_Content {
 
 		// Remove the extra values added to the meta.
 		foreach ( $old as $key => $data ) {
-			if ( ! empty( $data['removed'] ) ) {
+			if ( ! is_array( $data ) || ! empty( $data['removed'] ) ) {
 				unset( $old[ $key ] );
 				continue;
 			}
@@ -583,6 +583,9 @@ final class WP_Privacy_Policy_Content {
 			/* translators: Privacy policy tutorial. */
 			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'By default WordPress does not share any personal data with anyone.' ) . '</p>';
 		}
+
+		/* translators: Default privacy policy text. */
+		$strings[] = '<p>' . $suggested_text . __( 'If you request a password reset, your IP address will be included in the reset email.' ) . '</p>';
 
 		/* translators: Default privacy policy heading. */
 		$strings[] = '<h2>' . __( 'How long we retain your data' ) . '</h2>';

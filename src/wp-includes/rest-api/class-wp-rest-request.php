@@ -324,6 +324,19 @@ class WP_REST_Request implements ArrayAccess {
 	}
 
 	/**
+	 * Checks if the request has specified a JSON content-type.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return bool True if the content-type header is JSON.
+	 */
+	public function is_json_content_type() {
+		$content_type = $this->get_content_type();
+
+		return isset( $content_type['value'] ) && wp_is_json_media_type( $content_type['value'] );
+	}
+
+	/**
 	 * Retrieves the parameter priority order.
 	 *
 	 * Used when checking parameters in get_param().
@@ -335,8 +348,7 @@ class WP_REST_Request implements ArrayAccess {
 	protected function get_parameter_order() {
 		$order = array();
 
-		$content_type = $this->get_content_type();
-		if ( isset( $content_type['value'] ) && 'application/json' === $content_type['value'] ) {
+		if ( $this->is_json_content_type() ) {
 			$order[] = 'JSON';
 		}
 
@@ -658,9 +670,7 @@ class WP_REST_Request implements ArrayAccess {
 		$this->parsed_json = true;
 
 		// Check that we actually got JSON.
-		$content_type = $this->get_content_type();
-
-		if ( empty( $content_type ) || 'application/json' !== $content_type['value'] ) {
+		if ( ! $this->is_json_content_type() ) {
 			return true;
 		}
 
@@ -858,13 +868,9 @@ class WP_REST_Request implements ArrayAccess {
 		$attributes = $this->get_attributes();
 		$required   = array();
 
-		// No arguments set, skip validation.
-		if ( empty( $attributes['args'] ) ) {
-			return true;
-		}
+		$args = empty( $attributes['args'] ) ? array() : $attributes['args'];
 
-		foreach ( $attributes['args'] as $key => $arg ) {
-
+		foreach ( $args as $key => $arg ) {
 			$param = $this->get_param( $key );
 			if ( isset( $arg['required'] ) && true === $arg['required'] && null === $param ) {
 				$required[] = $key;
@@ -890,7 +896,7 @@ class WP_REST_Request implements ArrayAccess {
 		 */
 		$invalid_params = array();
 
-		foreach ( $attributes['args'] as $key => $arg ) {
+		foreach ( $args as $key => $arg ) {
 
 			$param = $this->get_param( $key );
 
@@ -919,8 +925,20 @@ class WP_REST_Request implements ArrayAccess {
 			);
 		}
 
-		return true;
+		if ( isset( $attributes['validate_callback'] ) ) {
+			$valid_check = call_user_func( $attributes['validate_callback'], $this );
 
+			if ( is_wp_error( $valid_check ) ) {
+				return $valid_check;
+			}
+
+			if ( false === $valid_check ) {
+				// A WP_Error instance is preferred, but false is supported for parity with the per-arg validate_callback.
+				return new WP_Error( 'rest_invalid_params', __( 'Invalid parameters.' ), array( 'status' => 400 ) );
+			}
+		}
+
+		return true;
 	}
 
 	/**

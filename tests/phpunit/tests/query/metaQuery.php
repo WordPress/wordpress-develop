@@ -28,7 +28,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_no_value() {
@@ -54,7 +54,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2, $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_default() {
@@ -78,7 +78,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_equals() {
@@ -103,7 +103,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_not_equals() {
@@ -130,7 +130,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_arithmetic_comparisons() {
@@ -159,7 +159,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		// <=
 		$query = new WP_Query(
@@ -178,7 +178,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		// >=
 		$query = new WP_Query(
@@ -197,7 +197,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2, $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		// >
 		$query = new WP_Query(
@@ -216,7 +216,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_like() {
@@ -241,7 +241,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_not_like() {
@@ -268,7 +268,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_between_not_between() {
@@ -297,7 +297,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -316,7 +316,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_regexp_rlike() {
@@ -342,7 +342,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		// RLIKE is a synonym for REGEXP.
 		$query = new WP_Query(
@@ -361,7 +361,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p2 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_single_query_compare_not_regexp() {
@@ -387,7 +387,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_relation_default() {
@@ -419,7 +419,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1 );
-		$this->assertEquals( $expected, $query->posts );
+		$this->assertSame( $expected, $query->posts );
 	}
 
 	public function test_meta_query_relation_or() {
@@ -467,7 +467,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $post_id, $post_id2, $post_id3, $post_id4 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_query_relation_and() {
@@ -523,7 +523,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $post_id7 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -543,7 +543,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $post_id2, $post_id6, $post_id7 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -566,7 +566,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $query->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $query->posts );
 	}
 
 	/**
@@ -590,7 +590,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[2] ), $query->posts );
+		$this->assertSameSets( array( $posts[2] ), $query->posts );
 	}
 
 	/**
@@ -614,7 +614,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[1] ), $query->posts );
+		$this->assertSameSets( array( $posts[1] ), $query->posts );
 	}
 
 	/**
@@ -651,7 +651,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $post_id2, $post_id3, $post_id4 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -672,7 +672,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $post_id4 );
-		$this->assertEquals( $expected, $query->posts );
+		$this->assertSame( $expected, $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -696,7 +696,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 0, count( $query->posts ) );
+		$this->assertSame( 0, count( $query->posts ) );
 	}
 
 	/**
@@ -734,7 +734,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[1], $posts[2], $posts[3] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -769,7 +769,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[1], $posts[2] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -804,7 +804,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[0], $posts[1] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -839,7 +839,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[0], $posts[1] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -874,7 +874,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[1], $posts[2] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -910,7 +910,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[0], $posts[2] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -947,7 +947,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[3] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -984,7 +984,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[1] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1020,7 +1020,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[3] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1063,7 +1063,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[2] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1099,7 +1099,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[3] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1135,7 +1135,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $posts[3] );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1167,7 +1167,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_3 ), $query->posts );
+		$this->assertSameSets( array( $post_3 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1184,7 +1184,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_4 ), $query->posts );
+		$this->assertSameSets( array( $post_4 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1201,7 +1201,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_3, $post_4 ), $query->posts );
+		$this->assertSameSets( array( $post_3, $post_4 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1218,7 +1218,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_1 ), $query->posts, 'ID' );
+		$this->assertSameSets( array( $post_1 ), $query->posts, 'ID' );
 
 		$query = new WP_Query(
 			array(
@@ -1235,7 +1235,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_1, $post_2, $post_3 ), $query->posts );
+		$this->assertSameSets( array( $post_1, $post_2, $post_3 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1252,7 +1252,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_3 ), $query->posts );
+		$this->assertSameSets( array( $post_3 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1269,7 +1269,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_1, $post_2, $post_4 ), $query->posts );
+		$this->assertSameSets( array( $post_1, $post_2, $post_4 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1286,7 +1286,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_1, $post_3 ), $query->posts );
+		$this->assertSameSets( array( $post_1, $post_3 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1303,7 +1303,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_2, $post_4 ), $query->posts );
+		$this->assertSameSets( array( $post_2, $post_4 ), $query->posts );
 
 		$query = new WP_Query(
 			array(
@@ -1316,7 +1316,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'fields'                 => 'ids',
 			)
 		);
-		$this->assertEqualSets( array( $post_4, $post_3, $post_2, $post_1 ), $query->posts );
+		$this->assertSameSets( array( $post_4, $post_3, $post_2, $post_1 ), $query->posts );
 	}
 
 	public function test_meta_vars_should_be_converted_to_meta_query() {
@@ -1373,7 +1373,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[2], $posts[0], $posts[1] ), $query->posts );
+		$this->assertSame( array( $posts[2], $posts[0], $posts[1] ), $query->posts );
 	}
 
 	/**
@@ -1418,7 +1418,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[2], $posts[0], $posts[1] ), $query->posts );
+		$this->assertSame( array( $posts[2], $posts[0], $posts[1] ), $query->posts );
 	}
 
 	/**
@@ -1461,7 +1461,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	/**
@@ -1511,7 +1511,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$expected = array( $p1, $p3 );
-		$this->assertEqualSets( $expected, $query->posts );
+		$this->assertSameSets( $expected, $query->posts );
 	}
 
 	public function test_meta_between_not_between() {
@@ -1534,13 +1534,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( 2, count( $query->posts ) );
+		$this->assertSame( 2, count( $query->posts ) );
 		foreach ( $query->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $query->posts, 'ID' );
-		$this->assertEqualSets( array( $post_id2, $post_id3 ), $posts );
+		$this->assertSameSets( array( $post_id2, $post_id3 ), $posts );
 
 		$args = array(
 			'meta_key'     => 'time',
@@ -1550,13 +1550,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$query = new WP_Query( $args );
-		$this->assertEquals( 3, count( $query->posts ) );
+		$this->assertSame( 3, count( $query->posts ) );
 		foreach ( $query->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $query->posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id4, $post_id5 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id4, $post_id5 ), $posts );
 	}
 
 	/**
@@ -1582,9 +1582,9 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, count( $posts ) );
+		$this->assertSame( 2, count( $posts ) );
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id3 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id3 ), $posts );
 
 		$posts = get_posts(
 			array(
@@ -1594,13 +1594,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, count( $posts ) );
+		$this->assertSame( 2, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id3 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id3 ), $posts );
 	}
 
 	/**
@@ -1625,13 +1625,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		);
 
 		$posts = get_posts( $args );
-		$this->assertEquals( 2, count( $posts ) );
+		$this->assertSame( 2, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id2 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id2 ), $posts );
 	}
 
 	/**
@@ -1659,12 +1659,12 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => '0',
 			)
 		);
-		$this->assertEquals( 1, count( $q->posts ) );
+		$this->assertSame( 1, count( $q->posts ) );
 		foreach ( $q->posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
-		$this->assertEquals( $post_id, $q->posts[0]->ID );
+		$this->assertSame( $post_id, $q->posts[0]->ID );
 
 		$posts = get_posts(
 			array(
@@ -1672,13 +1672,13 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => '0',
 			)
 		);
-		$this->assertEquals( 2, count( $posts ) );
+		$this->assertSame( 2, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id5 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id5 ), $posts );
 
 		$posts = get_posts(
 			array(
@@ -1686,31 +1686,31 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_value' => 0,
 			)
 		);
-		$this->assertEquals( 2, count( $posts ) );
+		$this->assertSame( 2, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id5 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id5 ), $posts );
 
 		$posts = get_posts( array( 'meta_value' => 0 ) );
-		$this->assertEquals( 5, count( $posts ) );
+		$this->assertSame( 5, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
 
 		$posts = get_posts( array( 'meta_value' => '0' ) );
-		$this->assertEquals( 5, count( $posts ) );
+		$this->assertSame( 5, count( $posts ) );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 		}
 		$posts = wp_list_pluck( $posts, 'ID' );
-		$this->assertEqualSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
+		$this->assertSameSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
 	}
 
 	/**
@@ -1736,7 +1736,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[1], $posts[2], $posts[0] ), $q->posts );
+		$this->assertSame( array( $posts[1], $posts[2], $posts[0] ), $q->posts );
 	}
 
 	/**
@@ -1779,7 +1779,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p3, $p1, $p2 ), $q->posts );
+		$this->assertSame( array( $p3, $p1, $p2 ), $q->posts );
 	}
 
 	/**
@@ -1815,7 +1815,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $posts[2], $posts[0], $posts[1] ), $q->posts );
+		$this->assertSame( array( $posts[2], $posts[0], $posts[1] ), $q->posts );
 	}
 
 	/**
@@ -1846,7 +1846,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( 'foo_key', 'foo_key-1', 'foo_key-2' ), array_keys( $q->meta_query->get_clauses() ) );
+		$this->assertSameSets( array( 'foo_key', 'foo_key-1', 'foo_key-2' ), array_keys( $q->meta_query->get_clauses() ) );
 	}
 
 	/**
@@ -1871,7 +1871,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 	}
 
 	/**
@@ -1892,7 +1892,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 	}
 
 	/**
@@ -1919,7 +1919,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+		$this->assertSameSets( array( $posts[0] ), $q->posts );
 
 	}
 
@@ -1947,7 +1947,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[1] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[1] ), $q->posts );
 	}
 
 	/**
@@ -1974,7 +1974,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 	}
 
 	/**
@@ -1999,7 +1999,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[1], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[1], $posts[2] ), $q->posts );
 	}
 
 	/**
@@ -2026,7 +2026,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[1] ), $q->posts );
+		$this->assertSameSets( array( $posts[1] ), $q->posts );
 	}
 
 	/**
@@ -2053,7 +2053,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[1] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[1] ), $q->posts );
 	}
 
 	/**
@@ -2080,7 +2080,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[2] ), $q->posts );
 	}
 
 	/**
@@ -2106,7 +2106,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[0], $posts[2] ), $q->posts );
 
 		$q = new WP_Query(
 			array(
@@ -2121,7 +2121,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[0] ), $q->posts );
+		$this->assertSameSets( array( $posts[0] ), $q->posts );
 	}
 
 	/**
@@ -2148,7 +2148,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[1] ), $q->posts );
+		$this->assertSameSets( array( $posts[1] ), $q->posts );
 
 		$q = new WP_Query(
 			array(
@@ -2163,6 +2163,6 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $posts[1], $posts[2] ), $q->posts );
+		$this->assertSameSets( array( $posts[1], $posts[2] ), $q->posts );
 	}
 }

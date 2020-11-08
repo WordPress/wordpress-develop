@@ -152,6 +152,7 @@ if ( SHORTINIT ) {
 
 // Load the L10n library.
 require_once ABSPATH . WPINC . '/l10n.php';
+require_once ABSPATH . WPINC . '/class-wp-textdomain-registry.php';
 require_once ABSPATH . WPINC . '/class-wp-locale.php';
 require_once ABSPATH . WPINC . '/class-wp-locale-switcher.php';
 
@@ -236,6 +237,7 @@ require ABSPATH . WPINC . '/class-wp-widget-factory.php';
 require ABSPATH . WPINC . '/nav-menu.php';
 require ABSPATH . WPINC . '/nav-menu-template.php';
 require ABSPATH . WPINC . '/admin-bar.php';
+require ABSPATH . WPINC . '/class-wp-application-passwords.php';
 require ABSPATH . WPINC . '/rest-api.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-server.php';
 require ABSPATH . WPINC . '/rest-api/class-wp-rest-response.php';
@@ -259,6 +261,8 @@ require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-settings-controller
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-themes-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-plugins-controller.php';
 require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-block-directory-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-application-passwords-controller.php';
+require ABSPATH . WPINC . '/rest-api/endpoints/class-wp-rest-site-health-controller.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-comment-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-post-meta-fields.php';
@@ -266,6 +270,8 @@ require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-term-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/fields/class-wp-rest-user-meta-fields.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-search-handler.php';
 require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-search-handler.php';
+require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-term-search-handler.php';
+require ABSPATH . WPINC . '/rest-api/search/class-wp-rest-post-format-search-handler.php';
 require ABSPATH . WPINC . '/sitemaps.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps.php';
 require ABSPATH . WPINC . '/sitemaps/class-wp-sitemaps-index.php';
@@ -287,8 +293,25 @@ require ABSPATH . WPINC . '/class-wp-block-parser.php';
 require ABSPATH . WPINC . '/blocks.php';
 require ABSPATH . WPINC . '/blocks/index.php';
 require ABSPATH . WPINC . '/block-patterns.php';
+require ABSPATH . WPINC . '/class-wp-block-supports.php';
+require ABSPATH . WPINC . '/block-supports/align.php';
+require ABSPATH . WPINC . '/block-supports/colors.php';
+require ABSPATH . WPINC . '/block-supports/custom-classname.php';
+require ABSPATH . WPINC . '/block-supports/generated-classname.php';
+require ABSPATH . WPINC . '/block-supports/typography.php';
 
 $GLOBALS['wp_embed'] = new WP_Embed();
+
+/**
+ * WordPress Textdomain Registry object.
+ *
+ * Used to support just-in-time translations for manually loaded textdomains.
+ *
+ * @since 5.6.0
+ *
+ * @global WP_Locale_Switcher $wp_locale_switcher WordPress Textdomain Registry.
+ */
+$GLOBALS['wp_textdomain_registry'] = new WP_Textdomain_Registry();
 
 // Load multisite-specific files.
 if ( is_multisite() ) {

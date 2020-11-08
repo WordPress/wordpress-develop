@@ -196,15 +196,18 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * Save the output for analysis, stop execution by throwing an exception.
 	 *
-	 * Error conditions (no output, just die) will throw <code>WPAjaxDieStopException( $message )</code>
+	 * Error conditions (no output, just die) will throw <code>WPAjaxDieStopException( $message )</code>.
 	 * You can test for this with:
 	 * <code>
-	 * $this->setExpectedException( 'WPAjaxDieStopException', 'something contained in $message' );
+	 * $this->expectException( 'WPAjaxDieStopException' );
+	 * $this->expectExceptionMessage( 'something contained in $message' );
 	 * </code>
-	 * Normal program termination (wp_die called at then end of output) will throw <code>WPAjaxDieContinueException( $message )</code>
+	 *
+	 * Normal program termination (wp_die called at the end of output) will throw <code>WPAjaxDieContinueException( $message )</code>.
 	 * You can test for this with:
 	 * <code>
-	 * $this->setExpectedException( 'WPAjaxDieContinueException', 'something contained in $message' );
+	 * $this->expectException( 'WPAjaxDieContinueException' );
+	 * $this->expectExceptionMessage( 'something contained in $message' );
 	 * </code>
 	 *
 	 * @param string $message The message to set.

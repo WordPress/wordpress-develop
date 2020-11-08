@@ -252,7 +252,7 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 			}
 		);
 		$this->go_to( '/child-page-1' );
-		$this->assertEquals( 'wp', redirect_guess_404_permalink() );
+		$this->assertSame( 'wp', redirect_guess_404_permalink() );
 	}
 
 	/**
@@ -268,11 +268,31 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 		$this->go_to( 'strict-redirect' );
 
 		// Test default 'non-strict' redirect guess.
-		$this->assertEquals( get_permalink( $post ), redirect_guess_404_permalink() );
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
 
 		// Test 'strict' redirect guess.
 		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
 		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Ensure multiple post types do not throw a notice.
+	 *
+	 * @ticket 43056
+	 */
+	public function test_redirect_guess_404_permalink_post_types() {
+		/*
+		 * Sample-page is intentionally missspelt as sample-pag to ensure
+		 * the 404 post permalink guessing runs.
+		 *
+		 * Please do not correct the apparent typo.
+		 */
+
+		// String format post type.
+		$this->assertCanonical( '/?name=sample-pag&post_type=page', '/sample-page/' );
+		// Array formatted post type or types.
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page', '/sample-page/' );
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page&post_type[]=post', '/sample-page/' );
 	}
 
 	/**

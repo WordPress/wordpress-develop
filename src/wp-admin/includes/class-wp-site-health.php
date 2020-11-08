@@ -106,8 +106,8 @@ class WP_Site_Health {
 		if ( 'site-health' === $screen->id && ! isset( $_GET['tab'] ) ) {
 			$tests = WP_Site_Health::get_tests();
 
-			// Don't run https test on localhost.
-			if ( 'localhost' === preg_replace( '|https?://|', '', get_site_url() ) ) {
+			// Don't run https test on development environments.
+			if ( $this->is_development_environment() ) {
 				unset( $tests['direct']['https_status'] );
 			}
 
@@ -133,7 +133,9 @@ class WP_Site_Health {
 				if ( is_string( $test['test'] ) ) {
 					$health_check_js_variables['site_status']['async'][] = array(
 						'test'      => $test['test'],
+						'has_rest'  => ( isset( $test['has_rest'] ) ? $test['has_rest'] : false ),
 						'completed' => false,
+						'headers'   => isset( $test['headers'] ) ? $test['headers'] : array(),
 					);
 				}
 			}
@@ -729,7 +731,7 @@ class WP_Site_Health {
 				)
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				esc_url( wp_get_update_php_url() ),
 				__( 'Learn more about updating PHP' ),
 				/* translators: Accessibility text. */
@@ -841,7 +843,7 @@ class WP_Site_Health {
 					__( 'The WordPress Hosting Team maintains a list of those modules, both recommended and required, in <a href="%1$s" %2$s>the team handbook%3$s</a>.' ),
 					/* translators: Localized team handbook, if one exists. */
 					esc_url( __( 'https://make.wordpress.org/hosting/handbook/handbook/server-environment/#php-extensions' ) ),
-					'target="_blank" rel="noopener noreferrer"',
+					'target="_blank" rel="noopener"',
 					sprintf(
 						' <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span>',
 						/* translators: Accessibility text. */
@@ -1158,7 +1160,7 @@ class WP_Site_Health {
 				__( 'The SQL server is a required piece of software for the database WordPress uses to store all your site&#8217;s content and settings.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized version of WordPress requirements if one exists. */
 				esc_url( __( 'https://wordpress.org/about/requirements/' ) ),
 				__( 'Learn more about what WordPress requires to run.' ),
@@ -1395,7 +1397,7 @@ class WP_Site_Health {
 			);
 
 			$result['actions'] = sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Localized Support reference. */
 				esc_url( __( 'https://wordpress.org/support' ) ),
 				__( 'Get help resolving this issue.' ),
@@ -1433,7 +1435,7 @@ class WP_Site_Health {
 				__( 'Debug mode is often enabled to gather more details about an error or site failure, but may contain sensitive information which should not be available on a publicly available website.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining debugging in WordPress. */
 				esc_url( __( 'https://wordpress.org/support/article/debugging-in-wordpress/' ) ),
 				__( 'Learn more about debugging in WordPress.' ),
@@ -1463,6 +1465,11 @@ class WP_Site_Health {
 				$result['label'] = __( 'Your site is set to display errors to site visitors' );
 
 				$result['status'] = 'critical';
+
+				// On development environments, set the status to recommended.
+				if ( $this->is_development_environment() ) {
+					$result['status'] = 'recommended';
+				}
 
 				$result['description'] .= sprintf(
 					'<p>%s</p>',
@@ -1502,7 +1509,7 @@ class WP_Site_Health {
 				__( 'An HTTPS connection is a more secure way of browsing the web. Many services now have HTTPS as a requirement. HTTPS allows you to take advantage of new features that can increase site speed, improve search rankings, and gain the trust of your visitors by helping to protect their online privacy.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener noreferrer">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
 				/* translators: Documentation explaining HTTPS and why it should be used. */
 				esc_url( __( 'https://wordpress.org/support/article/why-should-i-use-https/' ) ),
 				__( 'Learn more about why you should use HTTPS' ),
@@ -1854,7 +1861,7 @@ class WP_Site_Health {
 			$hosts = explode( ',', WP_ACCESSIBLE_HOSTS );
 		}
 
-		if ( $blocked && 0 === sizeof( $hosts ) ) {
+		if ( $blocked && 0 === count( $hosts ) ) {
 			$result['status'] = 'critical';
 
 			$result['label'] = __( 'HTTP requests are blocked' );
@@ -1869,7 +1876,7 @@ class WP_Site_Health {
 			);
 		}
 
-		if ( $blocked && 0 < sizeof( $hosts ) ) {
+		if ( $blocked && 0 < count( $hosts ) ) {
 			$result['status'] = 'recommended';
 
 			$result['label'] = __( 'HTTP requests are partially blocked' );
@@ -2046,13 +2053,13 @@ class WP_Site_Health {
 			return $result;
 		}
 
-		$post_max_size   = ini_get( 'post_max_size' );
-		$upload_max_size = ini_get( 'upload_max_filesize' );
+		$post_max_size       = ini_get( 'post_max_size' );
+		$upload_max_filesize = ini_get( 'upload_max_filesize' );
 
-		if ( wp_convert_hr_to_bytes( $post_max_size ) !== wp_convert_hr_to_bytes( $upload_max_size ) ) {
+		if ( wp_convert_hr_to_bytes( $post_max_size ) < wp_convert_hr_to_bytes( $upload_max_filesize ) ) {
 			$result['label'] = sprintf(
 				/* translators: 1: post_max_size, 2: upload_max_filesize */
-				__( 'Mismatched "%1$s" and "%2$s" values.' ),
+				__( 'The "%1$s" value is smaller than "%2$s".' ),
 				'post_max_size',
 				'upload_max_filesize'
 			);
@@ -2061,12 +2068,68 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: 1: post_max_size, 2: upload_max_filesize */
-					__( 'The settings for %1$s and %2$s are not the same, this could cause some problems when trying to upload files.' ),
+					__( 'The setting for %1$s is smaller than %2$s, this could cause some problems when trying to upload files.' ),
 					'<code>post_max_size</code>',
 					'<code>upload_max_filesize</code>'
 				)
 			);
 			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the Authorization header has the expected values.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return array
+	 */
+	public function get_test_authorization_header() {
+		$result = array(
+			'label'       => __( 'The Authorization header is working as expected.' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
+			),
+			'actions'     => '',
+			'test'        => 'authorization_header',
+		);
+
+		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
+			$result['label'] = __( 'The authorization header is missing.' );
+		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
+			$result['label'] = __( 'The authorization header is invalid.' );
+		} else {
+			return $result;
+		}
+
+		$result['status'] = 'recommended';
+
+		if ( ! function_exists( 'got_mod_rewrite' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/misc.php';
+		}
+
+		if ( got_mod_rewrite() ) {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-permalink.php' ) ),
+				__( 'Flush permalinks' )
+			);
+		} else {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working',
+				__( 'Learn how to configure the Authorization header.' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			);
 		}
 
 		return $result;
@@ -2080,6 +2143,7 @@ class WP_Site_Health {
 	 * experiences.
 	 *
 	 * @since 5.2.0
+	 * @since 5.6.0 Added support for `has_rest` and `permissions`.
 	 *
 	 * @return array The list of tests to run.
 	 */
@@ -2153,16 +2217,29 @@ class WP_Site_Health {
 			),
 			'async'  => array(
 				'dotorg_communication' => array(
-					'label' => __( 'Communication with WordPress.org' ),
-					'test'  => 'dotorg_communication',
+					'label'             => __( 'Communication with WordPress.org' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/dotorg-communication' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_dotorg_communication' ),
 				),
 				'background_updates'   => array(
-					'label' => __( 'Background updates' ),
-					'test'  => 'background_updates',
+					'label'             => __( 'Background updates' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/background-updates' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_background_updates' ),
 				),
 				'loopback_requests'    => array(
-					'label' => __( 'Loopback request' ),
-					'test'  => 'loopback_requests',
+					'label'             => __( 'Loopback request' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/loopback-requests' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_loopback_requests' ),
+				),
+				'authorization_header' => array(
+					'label'     => __( 'Authorization header' ),
+					'test'      => rest_url( 'wp-site-health/v1/tests/authorization-header' ),
+					'has_rest'  => true,
+					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
+					'skip_cron' => true,
 				),
 			),
 		);
@@ -2189,6 +2266,8 @@ class WP_Site_Health {
 		 * to complete should run asynchronously, to avoid extended loading periods within wp-admin.
 		 *
 		 * @since 5.2.0
+		 * @since 5.6.0 Added the `async_direct_test` array key.
+		 *              Added the `skip_cron` array key.
 		 *
 		 * @param array $test_type {
 		 *     An associative array, where the `$test_type` is either `direct` or
@@ -2199,13 +2278,27 @@ class WP_Site_Health {
 		 *         Plugins and themes are encouraged to prefix test identifiers with their slug
 		 *         to avoid any collisions between tests.
 		 *
-		 *         @type string $label A friendly label for your test to identify it by.
-		 *         @type mixed  $test  A callable to perform a direct test, or a string Ajax action to be called
-		 *                             to perform an async test.
+		 *         @type string   $label             A friendly label for your test to identify it by.
+		 *         @type mixed    $test              A callable to perform a direct test, or a string AJAX action
+		 *                                           to be called to perform an async test.
+		 *         @type boolean  $has_rest          Optional. Denote if `$test` has a REST API endpoint.
+		 *         @type boolean  $skip_cron         Whether to skip this test when running as cron.
+		 *         @type callable $async_direct_test A manner of directly calling the test marked as asynchronous,
+		 *                                           as the scheduled event can not authenticate, and endpoints
+		 *                                           may require authentication.
 		 *     }
 		 * }
 		 */
 		$tests = apply_filters( 'site_status_tests', $tests );
+
+		// Ensure that the filtered tests contain the required array keys.
+		$tests = array_merge(
+			array(
+				'direct' => array(),
+				'async'  => array(),
+			),
+			$tests
+		);
 
 		return $tests;
 	}
@@ -2372,13 +2465,8 @@ class WP_Site_Health {
 			'requires_php' => '5.6.20',
 		);
 
-		$type = 'plugin';
-		/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-		$test_plugins_enabled = apply_filters( "auto_update_{$type}", true, $mock_plugin );
-
-		$type = 'theme';
-		/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-		$test_themes_enabled = apply_filters( "auto_update_{$type}", true, $mock_theme );
+		$test_plugins_enabled = wp_is_auto_update_forced_for_item( 'plugin', true, $mock_plugin );
+		$test_themes_enabled  = wp_is_auto_update_forced_for_item( 'theme', true, $mock_theme );
 
 		$ui_enabled_for_plugins = wp_is_auto_update_enabled_for_type( 'plugin' );
 		$ui_enabled_for_themes  = wp_is_auto_update_enabled_for_type( 'theme' );
@@ -2510,8 +2598,8 @@ class WP_Site_Health {
 			'critical'    => 0,
 		);
 
-		// Don't run https test on localhost.
-		if ( 'localhost' === preg_replace( '|https?://|', '', get_site_url() ) ) {
+		// Don't run https test on development environments.
+		if ( $this->is_development_environment() ) {
 			unset( $tests['direct']['https_status'] );
 		}
 
@@ -2535,10 +2623,22 @@ class WP_Site_Health {
 		}
 
 		foreach ( $tests['async'] as $test ) {
+			if ( ! empty( $test['skip_cron'] ) ) {
+				continue;
+			}
+
+			// Local endpoints may require authentication, so asynchronous tests can pass a direct test runner as well.
+			if ( ! empty( $test['async_direct_test'] ) && is_callable( $test['async_direct_test'] ) ) {
+				// This test is callable, do so and continue to the next asynchronous check.
+				$results[] = $this->perform_test( $test['async_direct_test'] );
+				continue;
+			}
+
 			if ( is_string( $test['test'] ) ) {
+				// Check if this test has a REST API endpoint.
 				if ( isset( $test['has_rest'] ) && $test['has_rest'] ) {
-					$result_fetch = wp_remote_post(
-						rest_url( $test['test'] ),
+					$result_fetch = wp_remote_get(
+						$test['test'],
 						array(
 							'body' => array(
 								'_wpnonce' => wp_create_nonce( 'wp_rest' ),
@@ -2557,7 +2657,7 @@ class WP_Site_Health {
 					);
 				}
 
-				if ( ! is_wp_error( $result_fetch ) ) {
+				if ( ! is_wp_error( $result_fetch ) && 200 === wp_remote_retrieve_response_code( $result_fetch ) ) {
 					$result = json_decode( wp_remote_retrieve_body( $result_fetch ), true );
 				} else {
 					$result = false;
@@ -2586,4 +2686,16 @@ class WP_Site_Health {
 
 		set_transient( 'health-check-site-status-result', wp_json_encode( $site_status ) );
 	}
+
+	/**
+	 * Checks if the current environment type is set to 'development' or 'local'.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return bool True if it is a development environment, false if not.
+	 */
+	public function is_development_environment() {
+		return in_array( wp_get_environment_type(), array( 'development', 'local' ), true );
+	}
+
 }

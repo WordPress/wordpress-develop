@@ -212,11 +212,11 @@ function post_submit_meta_box( $post, $args = array() ) {
 		</div>
 
 		<?php
-		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+		/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 		$date_string = __( '%1$s at %2$s' );
-		/* translators: Publish box date format, see https://www.php.net/date */
+		/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 		$date_format = _x( 'M j, Y', 'publish box date format' );
-		/* translators: Publish box time format, see https://www.php.net/date */
+		/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 		$time_format = _x( 'H:i', 'publish box time format' );
 
 		if ( 0 !== $post_id ) {
@@ -385,7 +385,7 @@ function post_submit_meta_box( $post, $args = array() ) {
  *
  * @since 3.5.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function attachment_submit_meta_box( $post ) {
 	?>
@@ -404,11 +404,11 @@ function attachment_submit_meta_box( $post ) {
 		<span id="timestamp">
 			<?php
 			$uploaded_on = sprintf(
-				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/date */
+				/* translators: Publish box date string. 1: Date, 2: Time. See https://www.php.net/manual/datetime.format.php */
 				__( '%1$s at %2$s' ),
-				/* translators: Publish box date format, see https://www.php.net/date */
+				/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $post->post_date ) ),
-				/* translators: Publish box time format, see https://www.php.net/date */
+				/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
 				date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $post->post_date ) )
 			);
 			/* translators: Attachment information. %s: Date the attachment was uploaded. */
@@ -695,7 +695,7 @@ function post_categories_meta_box( $post, $box ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_excerpt_meta_box( $post ) {
 	?>
@@ -717,7 +717,7 @@ function post_excerpt_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_trackback_meta_box( $post ) {
 	$form_trackback = '<input type="text" name="trackback_url" id="trackback_url" class="code" value="' .
@@ -758,7 +758,7 @@ function post_trackback_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_custom_meta_box( $post ) {
 	?>
@@ -792,7 +792,7 @@ function post_custom_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_status_meta_box( $post ) {
 	?>
@@ -840,7 +840,7 @@ function post_comment_meta_box_thead( $result ) {
  *
  * @since 2.8.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_comment_meta_box( $post ) {
 	wp_nonce_field( 'get-comments', 'add_comment_nonce', false );
@@ -881,7 +881,7 @@ function post_comment_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_slug_meta_box( $post ) {
 	/** This filter is documented in wp-admin/edit-tag-form.php */
@@ -898,7 +898,7 @@ function post_slug_meta_box( $post ) {
  *
  * @global int $user_ID
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_author_meta_box( $post ) {
 	global $user_ID;
@@ -921,7 +921,7 @@ function post_author_meta_box( $post ) {
  *
  * @since 2.6.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function post_revisions_meta_box( $post ) {
 	wp_list_post_revisions( $post );
@@ -936,7 +936,7 @@ function post_revisions_meta_box( $post ) {
  *
  * @since 2.7.0
  *
- * @param object $post
+ * @param WP_Post $post
  */
 function page_attributes_meta_box( $post ) {
 	if ( is_post_type_hierarchical( $post->post_type ) ) :

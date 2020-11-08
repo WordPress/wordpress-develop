@@ -123,6 +123,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'code',
 		'column',
 		'columns',
+		'embed',
 		'file',
 		'gallery',
 		'group',

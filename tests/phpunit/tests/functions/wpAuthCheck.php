@@ -4,6 +4,8 @@
  * Tests for the behavior of `wp_auth_check()`
  *
  * @group functions.php
+ * @covers ::is_user_logged_in
+ * @covers ::wp_auth_check
  */
 class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 

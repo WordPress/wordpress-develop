@@ -319,7 +319,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	/**
 	 * @ticket 40188
 	 */
-	public function test_filter_comment_status_dropdown_should_be_shown_if_there_are_comments() {
+	public function test_filter_comment_type_dropdown_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
 		$comment_id = self::factory()->comment->create(
 			array(
@@ -350,6 +350,42 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$output = ob_get_clean();
 
 		$this->assertNotContains( 'id="delete_all"', $output );
+	}
+
+	/**
+	 * @ticket 19278
+	 */
+	public function test_bulk_action_menu_supports_options_and_optgroups() {
+		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
+
+		add_filter(
+			'bulk_actions-edit-comments',
+			function() {
+				return array(
+					'delete'       => 'Delete',
+					'Change State' => array(
+						'feature' => 'Featured',
+						'sale'    => 'On Sale',
+					),
+				);
+			}
+		);
+
+		ob_start();
+		$table->bulk_actions();
+		$output = ob_get_clean();
+
+		$this->assertContains(
+			<<<'OPTIONS'
+<option value="delete">Delete</option>
+	<optgroup label="Change State">
+		<option value="feature">Featured</option>
+		<option value="sale">On Sale</option>
+	</optgroup>
+OPTIONS
+			,
+			$output
+		);
 	}
 
 	/**

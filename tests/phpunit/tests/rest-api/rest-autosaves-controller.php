@@ -140,15 +140,15 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'view', 'edit', 'embed' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_registered_query_params() {
@@ -157,7 +157,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$data     = $response->get_data();
 		$keys     = array_keys( $data['endpoints'][0]['args'] );
 		sort( $keys );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'context',
 				'parent',
@@ -171,10 +171,10 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertCount( 1, $data );
 
-		$this->assertEquals( self::$autosave_post_id, $data[0]['id'] );
+		$this->assertSame( self::$autosave_post_id, $data[0]['id'] );
 
 		$this->check_get_autosave_response( $data[0], $this->post_autosave );
 	}
@@ -207,7 +207,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
 		$this->check_get_autosave_response( $response, $this->post_autosave );
@@ -225,7 +225,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'excerpt',
 			'content',
 		);
-		$this->assertEqualSets( $fields, array_keys( $data ) );
+		$this->assertSameSets( $fields, array_keys( $data ) );
 		$this->assertSame( self::$editor_id, $data['author'] );
 	}
 
@@ -244,7 +244,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 			'excerpt',
 		);
 		$data     = $response->get_data();
-		$this->assertEqualSets( $fields, array_keys( $data ) );
+		$this->assertSameSets( $fields, array_keys( $data ) );
 	}
 
 	public function test_get_item_no_permission() {
@@ -277,7 +277,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		wp_set_current_user( self::$editor_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/posts/' . self::$post_id . '/autosaves/' . self::$autosave_post_id );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->check_get_autosave_response( $response, $this->post_autosave );
 	}
 
@@ -286,7 +286,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 13, count( $properties ) );
+		$this->assertSame( 13, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
 		$this->assertArrayHasKey( 'date', $properties );
@@ -377,17 +377,17 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$new_data = $response->get_data();
 
-		$this->assertEquals( $current_post->ID, $new_data['parent'] );
-		$this->assertEquals( $current_post->post_title, $new_data['title']['raw'] );
-		$this->assertEquals( $current_post->post_excerpt, $new_data['excerpt']['raw'] );
+		$this->assertSame( $current_post->ID, $new_data['parent'] );
+		$this->assertSame( $current_post->post_title, $new_data['title']['raw'] );
+		$this->assertSame( $current_post->post_excerpt, $new_data['excerpt']['raw'] );
 
 		// Updated post_content.
 		$this->assertNotEquals( $current_post->post_content, $new_data['content']['raw'] );
 
 		$autosave_post = wp_get_post_autosave( self::$post_id );
-		$this->assertEquals( $autosave_data['title'], $autosave_post->post_title );
-		$this->assertEquals( $autosave_data['content'], $autosave_post->post_content );
-		$this->assertEquals( $autosave_data['excerpt'], $autosave_post->post_excerpt );
+		$this->assertSame( $autosave_data['title'], $autosave_post->post_title );
+		$this->assertSame( $autosave_data['content'], $autosave_post->post_content );
+		$this->assertSame( $autosave_data['excerpt'], $autosave_post->post_excerpt );
 	}
 
 	public function test_rest_autosave_draft_post_same_author() {
@@ -414,15 +414,15 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$new_data = $response->get_data();
 		$post     = get_post( $post_id );
 
-		$this->assertEquals( $post_id, $new_data['id'] );
+		$this->assertSame( $post_id, $new_data['id'] );
 		// The draft post should be updated.
-		$this->assertEquals( $autosave_data['content'], $new_data['content']['raw'] );
-		$this->assertEquals( $autosave_data['title'], $new_data['title']['raw'] );
-		$this->assertEquals( $autosave_data['content'], $post->post_content );
-		$this->assertEquals( $autosave_data['title'], $post->post_title );
+		$this->assertSame( $autosave_data['content'], $new_data['content']['raw'] );
+		$this->assertSame( $autosave_data['title'], $new_data['title']['raw'] );
+		$this->assertSame( $autosave_data['content'], $post->post_content );
+		$this->assertSame( $autosave_data['title'], $post->post_title );
 
 		// Not updated.
-		$this->assertEquals( $post_data['post_excerpt'], $post->post_excerpt );
+		$this->assertSame( $post_data['post_excerpt'], $post->post_excerpt );
 
 		wp_delete_post( $post_id );
 	}
@@ -453,21 +453,21 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$new_data     = $response->get_data();
 		$current_post = get_post( $post_id );
 
-		$this->assertEquals( $current_post->ID, $new_data['parent'] );
+		$this->assertSame( $current_post->ID, $new_data['parent'] );
 
 		// The draft post shouldn't change.
-		$this->assertEquals( $current_post->post_title, $post_data['post_title'] );
-		$this->assertEquals( $current_post->post_content, $post_data['post_content'] );
-		$this->assertEquals( $current_post->post_excerpt, $post_data['post_excerpt'] );
+		$this->assertSame( $current_post->post_title, $post_data['post_title'] );
+		$this->assertSame( $current_post->post_content, $post_data['post_content'] );
+		$this->assertSame( $current_post->post_excerpt, $post_data['post_excerpt'] );
 
 		$autosave_post = wp_get_post_autosave( $post_id );
 
 		// No changes.
-		$this->assertEquals( $current_post->post_title, $autosave_post->post_title );
-		$this->assertEquals( $current_post->post_excerpt, $autosave_post->post_excerpt );
+		$this->assertSame( $current_post->post_title, $autosave_post->post_title );
+		$this->assertSame( $current_post->post_excerpt, $autosave_post->post_excerpt );
 
 		// Has changes.
-		$this->assertEquals( $autosave_data['content'], $autosave_post->post_content );
+		$this->assertSame( $autosave_data['content'], $autosave_post->post_content );
 
 		wp_delete_post( $post_id );
 	}
@@ -496,7 +496,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		wp_set_current_user( 1 );
 
@@ -529,27 +529,27 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertEquals( $autosave->post_author, $response['author'] );
 
 		$rendered_content = apply_filters( 'the_content', $autosave->post_content );
-		$this->assertEquals( $rendered_content, $response['content']['rendered'] );
+		$this->assertSame( $rendered_content, $response['content']['rendered'] );
 
-		$this->assertEquals( mysql_to_rfc3339( $autosave->post_date ), $response['date'] ); //@codingStandardsIgnoreLine
-		$this->assertEquals( mysql_to_rfc3339( $autosave->post_date_gmt ), $response['date_gmt'] ); //@codingStandardsIgnoreLine
+		$this->assertSame( mysql_to_rfc3339( $autosave->post_date ), $response['date'] ); //@codingStandardsIgnoreLine
+		$this->assertSame( mysql_to_rfc3339( $autosave->post_date_gmt ), $response['date_gmt'] ); //@codingStandardsIgnoreLine
 
 		$rendered_guid = apply_filters( 'get_the_guid', $autosave->guid, $autosave->ID );
-		$this->assertEquals( $rendered_guid, $response['guid']['rendered'] );
+		$this->assertSame( $rendered_guid, $response['guid']['rendered'] );
 
-		$this->assertEquals( $autosave->ID, $response['id'] );
-		$this->assertEquals( mysql_to_rfc3339( $autosave->post_modified ), $response['modified'] ); //@codingStandardsIgnoreLine
-		$this->assertEquals( mysql_to_rfc3339( $autosave->post_modified_gmt ), $response['modified_gmt'] ); //@codingStandardsIgnoreLine
-		$this->assertEquals( $autosave->post_name, $response['slug'] );
+		$this->assertSame( $autosave->ID, $response['id'] );
+		$this->assertSame( mysql_to_rfc3339( $autosave->post_modified ), $response['modified'] ); //@codingStandardsIgnoreLine
+		$this->assertSame( mysql_to_rfc3339( $autosave->post_modified_gmt ), $response['modified_gmt'] ); //@codingStandardsIgnoreLine
+		$this->assertSame( $autosave->post_name, $response['slug'] );
 
 		$rendered_title = get_the_title( $autosave->ID );
-		$this->assertEquals( $rendered_title, $response['title']['rendered'] );
+		$this->assertSame( $rendered_title, $response['title']['rendered'] );
 
 		$parent            = get_post( $autosave->post_parent );
 		$parent_controller = new WP_REST_Posts_Controller( $parent->post_type );
 		$parent_object     = get_post_type_object( $parent->post_type );
 		$parent_base       = ! empty( $parent_object->rest_base ) ? $parent_object->rest_base : $parent_object->name;
-		$this->assertEquals( rest_url( '/wp/v2/' . $parent_base . '/' . $autosave->post_parent ), $links['parent'][0]['href'] );
+		$this->assertSame( rest_url( '/wp/v2/' . $parent_base . '/' . $autosave->post_parent ), $links['parent'][0]['href'] );
 	}
 
 	public function test_get_item_sets_up_postdata() {
@@ -560,8 +560,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$post           = get_post();
 		$parent_post_id = wp_is_post_revision( $post->ID );
 
-		$this->assertEquals( $post->ID, self::$autosave_post_id );
-		$this->assertEquals( $parent_post_id, self::$post_id );
+		$this->assertSame( $post->ID, self::$autosave_post_id );
+		$this->assertSame( $parent_post_id, self::$post_id );
 	}
 
 	public function test_update_item_draft_page_with_parent() {
@@ -580,8 +580,8 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( self::$child_draft_page_id, $data['id'] );
-		$this->assertEquals( self::$parent_page_id, $data['parent'] );
+		$this->assertSame( self::$child_draft_page_id, $data['id'] );
+		$this->assertSame( self::$parent_page_id, $data['parent'] );
 	}
 
 	public function test_schema_validation_is_applied() {
