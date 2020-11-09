@@ -246,7 +246,7 @@ function get_plugin_files( $plugin ) {
 		$exclusions = (array) apply_filters( 'plugin_files_exclusions', array( 'CVS', 'node_modules', 'vendor', 'bower_components' ) );
 
 		$list_files = list_files( $dir, 100, $exclusions );
-		$list_files = array_map( 'plugin_basename', $list_files );
+		$list_files = array_map( 'plugin_basename', is_array( $list_files ) ? $list_files : array() );
 
 		$plugin_files = array_merge( $plugin_files, $list_files );
 		$plugin_files = array_values( array_unique( $plugin_files ) );
