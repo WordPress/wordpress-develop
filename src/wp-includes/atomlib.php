@@ -167,6 +167,10 @@ class AtomParser {
         $ret = true;
 
         $fp = fopen($this->FILE, "r");
+	    if (!$fp) {
+		    return false;
+	    }
+
         while ($data = fread($fp, 4096)) {
             if($this->debug) $this->content .= $data;
 
