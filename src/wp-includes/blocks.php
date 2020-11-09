@@ -661,6 +661,20 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 function render_block( $parsed_block ) {
 	global $post, $wp_query;
 
+	/**
+	 * Allows render_block() or WP_Block::render() to be short-circuited, by
+	 * returning a non-null value.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string|null $pre_render   The pre-rendered content. Default null.
+	 * @param array       $parsed_block The block being rendered.
+	 */
+	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block );
+	if ( ! is_null( $pre_render ) ) {
+		return $pre_render;
+	}
+
 	$context = array();
 
 	if ( $post instanceof WP_Post ) {

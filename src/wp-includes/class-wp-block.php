@@ -218,15 +218,7 @@ class WP_Block {
 	public function render( $options = array() ) {
 		global $post;
 
-		/**
-		 * Allows render_block() or WP_Block::render() to be short-circuited, by
-		 * returning a non-null value.
-		 *
-		 * @since 5.1.0
-		 *
-		 * @param string|null $pre_render   The pre-rendered content. Default null.
-		 * @param array       $parsed_block The block being rendered.
-		 */
+		/** This filter is documented in src/wp-includes/blocks.php. */
 		$pre_render = apply_filters( 'pre_render_block', null, $this->parsed_block );
 		if ( ! is_null( $pre_render ) ) {
 			return $pre_render;
