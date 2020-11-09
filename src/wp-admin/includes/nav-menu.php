@@ -814,7 +814,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		<div id="tabs-panel-<?php echo $taxonomy_name; ?>-pop" class="tabs-panel <?php echo ( 'most-used' === $current_tab ? 'tabs-panel-active' : 'tabs-panel-inactive' ); ?>" role="region" aria-label="<?php echo $taxonomy->labels->most_used; ?>" tabindex="0">
 			<ul id="<?php echo $taxonomy_name; ?>checklist-pop" class="categorychecklist form-no-clear" >
 				<?php
-				$popular_terms  = get_terms(
+				$popular_terms = get_terms(
 					array(
 						'taxonomy'     => $taxonomy_name,
 						'orderby'      => 'count',
@@ -823,9 +823,13 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 						'hierarchical' => false,
 					)
 				);
-				$args['walker'] = $walker;
-				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $popular_terms ), 0, (object) $args );
-				?>
+				if ( is_array( $popular_terms ) ) :
+					$args['walker'] = $walker;
+					echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $popular_terms ), 0, (object) $args );
+				elseif ( is_wp_error( $popular_terms ) ) :
+					?>
+					<li><?php echo $popular_terms->get_error_message(); ?></li>
+				<?php endif; ?>
 			</ul>
 		</div><!-- /.tabs-panel -->
 
@@ -837,9 +841,13 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			<?php endif; ?>
 			<ul id="<?php echo $taxonomy_name; ?>checklist" data-wp-lists="list:<?php echo $taxonomy_name; ?>" class="categorychecklist form-no-clear">
 				<?php
-				$args['walker'] = $walker;
-				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $terms ), 0, (object) $args );
-				?>
+				if ( is_array( $terms ) ) :
+					$args['walker'] = $walker;
+					echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $terms ), 0, (object) $args );
+				elseif ( is_wp_error( $terms ) ) :
+					?>
+					<li><?php echo $terms->get_error_message(); ?></li>
+				<?php endif; ?>
 			</ul>
 			<?php if ( ! empty( $page_links ) ) : ?>
 				<div class="add-menu-item-pagelinks">
@@ -875,7 +883,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 			</p>
 
 			<ul id="<?php echo $taxonomy_name; ?>-search-checklist" data-wp-lists="list:<?php echo $taxonomy_name; ?>" class="categorychecklist form-no-clear">
-			<?php if ( ! empty( $search_results ) && ! is_wp_error( $search_results ) ) : ?>
+			<?php if ( ! empty( $search_results ) && is_array( $search_results ) ) : ?>
 				<?php
 				$args['walker'] = $walker;
 				echo walk_nav_menu_tree( array_map( 'wp_setup_nav_menu_item', $search_results ), 0, (object) $args );
