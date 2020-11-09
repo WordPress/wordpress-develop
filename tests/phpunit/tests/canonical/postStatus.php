@@ -5,7 +5,7 @@
  * @group rewrite
  * @group query
  */
-class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
+class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * User IDs.
@@ -22,7 +22,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public static $posts;
 
 	public static function wpSetupBeforeClass( $factory ) {
-		parent::wpSetupBeforeClass( $factory );
+		self::setup_custom_types();
 		self::$users = array(
 			'anon'           => 0,
 			'subscriber'     => $factory->user->create( array( 'role' => 'subscriber' ) ),
@@ -33,64 +33,108 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 			'administrator'  => $factory->user->create( array( 'role' => 'administrator' ) ),
 		);
 
-		self::$posts['post'] = $factory->post->create_and_get(
+		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'trac-5272-status' );
+		foreach ( $post_statuses as $post_status ) {
+			self::$posts[ $post_status ] = $factory->post->create_and_get(
+				array(
+					'post_type'    => 'post',
+					'post_title'   => "$post_status post",
+					'post_name'    => "{$post_status}-post",
+					'post_status'  => $post_status,
+					'post_content' => "Prevent canonical redirect exposing post slugs.\n\n<!--nextpage-->Page 2",
+					'post_author'  => self::$users['content_author'],
+					'post_date'    => 'future' === $post_status ? strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) ) : current_time( 'mysql' ),
+				)
+			);
+
+			// Add fake attachment to the post (file upload not needed).
+			self::$posts[ "{$post_status}-attachment" ] = $factory->post->create_and_get(
+				array(
+					'post_type'    => 'attachment',
+					'post_title'   => "$post_status inherited attachment",
+					'post_name'    => "{$post_status}-inherited-attachment",
+					'post_status'  => 'inherit',
+					'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
+					'post_author'  => self::$users['content_author'],
+					'post_parent'  => self::$posts[ $post_status ]->ID,
+					'post_date'    => 'future' === $post_status ? strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) ) : current_time( 'mysql' ),
+				)
+			);
+
+			// Set up a page with same.
+			self::$posts[ "page-$post_status" ] = $factory->post->create_and_get(
+				array(
+					'post_type'    => 'page',
+					'post_title'   => "$post_status page",
+					'post_name'    => "{$post_status}-page",
+					'post_status'  => $post_status,
+					'post_content' => "Prevent canonical redirect exposing page slugs.\n\n<!--nextpage-->Page 2",
+					'post_author'  => self::$users['content_author'],
+				)
+			);
+		}
+
+		self::$posts['trac-5272-cpt'] = $factory->post->create_and_get(
 			array(
-				'post_type'    => 'post',
-				'post_title'   => 'Author private post',
-				'post_name'    => 'private-post-slug',
+				'post_type'    => 'trac-5272-cpt',
+				'post_title'   => 'trac-5272-cpt post',
+				'post_name'    => 'trac-5272-cpt-post',
 				'post_status'  => 'private',
-				'post_content' => "Prevent canonical redirect exposing post titles.\n\n<!--nextpage-->Page 2",
+				'post_content' => 'Prevent canonical redirect exposing trac-5272-cpt titles.',
 				'post_author'  => self::$users['content_author'],
 			)
 		);
 
-		self::$posts['page'] = $factory->post->create_and_get(
-			array(
-				'post_type'    => 'page',
-				'post_title'   => 'Author private page',
-				'post_name'    => 'private-page-slug',
-				'post_status'  => 'private',
-				'post_content' => 'Prevent canonical redirect exposing page titles.',
-				'post_author'  => self::$users['content_author'],
-			)
-		);
-
-		// This has everything but the file attachment as it's not needed.
-		self::$posts['attachment'] = $factory->post->create_and_get(
+		// Add fake attachment to the cpt (file upload not needed).
+		self::$posts['trac-5272-cpt-attachment'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
-				'post_title'   => 'Author attachment on private post',
-				'post_name'    => 'attachment-post-slug',
+				'post_title'   => 'trac-5272-cpt post inherited attachment',
+				'post_name'    => 'trac-5272-cpt-post-inherited-attachment',
 				'post_status'  => 'inherit',
 				'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
 				'post_author'  => self::$users['content_author'],
-				'post_parent'  => self::$posts['post']->ID,
+				'post_parent'  => self::$posts['trac-5272-cpt']->ID,
 			)
 		);
 
-		self::setup_custom_types();
-
-		self::$posts['cpt'] = $factory->post->create_and_get(
-			array(
-				'post_type'    => 'trac_5272_cpt',
-				'post_title'   => 'Author private trac_5272_cpt',
-				'post_name'    => 'private-trac-5272-cpt-slug',
-				'post_status'  => 'private',
-				'post_content' => 'Prevent canonical redirect exposing trac_5272_cpt titles.',
-				'post_author'  => self::$users['content_author'],
-			)
-		);
-
-		self::$posts['cps'] = $factory->post->create_and_get(
+		// Post for trashing.
+		self::$posts['trash'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'post',
-				'post_title'   => 'Author private post status',
-				'post_name'    => 'private-post-status-slug',
-				'post_status'  => 'trac_5272_status',
-				'post_content' => 'Prevent canonical redirect exposing post titles.',
+				'post_title'   => 'trash post',
+				'post_name'    => 'trash-post',
+				'post_status'  => 'publish',
+				'post_content' => "Prevent canonical redirect exposing post slugs.\n\n<!--nextpage-->Page 2",
 				'post_author'  => self::$users['content_author'],
 			)
 		);
+
+		self::$posts['trash-attachment'] = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'attachment',
+				'post_title'   => 'trash post inherited attachment',
+				'post_name'    => 'trash-post-inherited-attachment',
+				'post_status'  => 'inherit',
+				'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
+				'post_author'  => self::$users['content_author'],
+				'post_parent'  => self::$posts['trash']->ID,
+			)
+		);
+
+		// Page for trashing.
+		self::$posts['page-trash'] = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'page',
+				'post_title'   => 'trash page',
+				'post_name'    => 'trash-page',
+				'post_status'  => 'publish',
+				'post_content' => "Prevent canonical redirect exposing page slugs.\n\n<!--nextpage-->Page 2",
+				'post_author'  => self::$users['content_author'],
+			)
+		);
+		wp_trash_post( self::$posts['trash']->ID );
+		wp_trash_post( self::$posts['page-trash']->ID );
 	}
 
 	function setUp() {
@@ -107,7 +151,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 	public static function setup_custom_types() {
 		// Register custom post type.
 		register_post_type(
-			'trac_5272_cpt',
+			'trac-5272-cpt',
 			array(
 				'public'  => true,
 				'rewrite' => array(
@@ -118,7 +162,7 @@ class Tests_Canonical_Post_Public extends WP_Canonical_UnitTestCase {
 
 		// Register custom private post status.
 		register_post_status(
-			'trac_5272_status',
+			'trac-5272-status',
 			array(
 				'private' => true,
 			)
