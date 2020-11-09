@@ -419,7 +419,7 @@ switch ( $action ) {
 			}
 
 			// Update menu items.
-			if ( ! is_wp_error( $_menu_object ) ) {
+			if ( ! is_wp_error( $_menu_object ) && ! is_wp_error( $_nav_menu_selected_id ) ) {
 				$messages = array_merge( $messages, wp_nav_menu_update_menu_items( $_nav_menu_selected_id, $nav_menu_selected_title ) );
 
 				// If the menu ID changed, redirect to the new URL.
