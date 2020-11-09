@@ -72,10 +72,6 @@ jobs:
 
 before_install:
 - |
-  if [[ "$WP_TRAVISCI" == "test:php" ]]; then
-      travis_retry svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
-  fi
-- |
   sudo rm /usr/local/bin/docker-compose
   curl -L https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m` > docker-compose
   chmod +x docker-compose

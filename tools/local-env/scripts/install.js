@@ -30,6 +30,8 @@ const testConfig = readFileSync( 'wp-tests-config-sample.php', 'utf8' )
 
 writeFileSync( 'wp-tests-config.php', testConfig );
 
+install_wp_importer();
+
 // Once the site is available, install WordPress!
 wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
 	.then( () => {
@@ -44,4 +46,17 @@ wait_on( { resources: [ `tcp:localhost:${process.env.LOCAL_PORT}`] } )
  */
 function wp_cli( cmd ) {
 	execSync( `docker-compose run --rm cli ${cmd}`, { stdio: 'inherit' } );
+}
+
+/**
+ * Downloads the WordPress Importer plugin for use in tests.
+ */
+function install_wp_importer() {
+	const test_plugin_directory = 'tests/phpunit/data/plugins/wordpress-importer';
+
+	execSync( `docker-compose exec php rm -rf wordpress-importer && git clone https://github.com/WordPress/wordpress-importer.git wordpress-importer`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec php git -C wordpress-importer checkout b34644d`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec php rm ${test_plugin_directory} -rf`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec php cp wordpress-importer/src ${test_plugin_directory} -R`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec php rm wordpress-importer -rf`, { stdio: 'inherit' } );
 }
