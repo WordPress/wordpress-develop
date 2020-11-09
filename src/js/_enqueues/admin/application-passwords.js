@@ -141,6 +141,7 @@
 	$appPassSection.on( 'click', '.notice-dismiss', function( e ) {
 		e.preventDefault();
 		var $el = $( this ).parent();
+		$el.removeAttr( 'role' );
 		$el.fadeTo( 100, 0, function () {
 			$el.slideUp( 100, function () {
 				$el.remove();
