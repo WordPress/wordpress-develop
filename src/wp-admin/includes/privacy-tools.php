@@ -352,6 +352,9 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 
 	// And now, all the Groups.
 	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
+	if ( ! is_array( $groups ) ) {
+		$groups = array();
+	}
 
 	// First, build an "About" group on the fly for this report.
 	$about_group = array(
@@ -388,6 +391,10 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
+
+	if ( false === $groups_json ) {
+		wp_send_json_error( __( 'Unable to encode the export file (JSON report).' ) );
+	}
 
 	/*
 	 * Handle the JSON export.
@@ -769,7 +776,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	} else {
 		$accumulated_data = get_post_meta( $request_id, '_export_data_raw', true );
 
-		if ( $accumulated_data ) {
+		if ( $accumulated_data && is_array( $accumulated_data ) ) {
 			$export_data = $accumulated_data;
 		}
 	}
