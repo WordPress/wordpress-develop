@@ -377,12 +377,13 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			'list_files_test_plugin/list_files_test_plugin.php',
 			'list_files_test_plugin/subdir/subfile.php',
 		);
-		$this->assertSame( $expected, $plugin_files );
 
 		unlink( $sub_dir . '/subfile.php' );
 		unlink( $plugin[1] );
 		rmdir( $sub_dir );
 		rmdir( $plugin_dir );
+
+		$this->assertSame( $expected, $plugin_files );
 	}
 
 	/**
@@ -391,15 +392,18 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	public function test_get_mu_plugins_when_mu_plugins_exists_but_is_empty() {
 		mkdir( WPMU_PLUGIN_DIR );
 
-		$this->assertSame( array(), get_mu_plugins() );
+		$mu_plugins = get_mu_plugins();
 
 		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_directory_does_not_exist() {
+		$this->assertFileNotExists( WPMU_PLUGIN_DIR );
 		$this->assertSame( array(), get_mu_plugins() );
 	}
 
@@ -410,11 +414,13 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Silence is golden.', 'index.php', WPMU_PLUGIN_DIR );
-		$this->assertSame( array(), get_mu_plugins() );
 
-		// Clean up.
+		$mu_plugins = get_mu_plugins();
+
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
 		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
@@ -425,11 +431,12 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 		$this->_create_plugin( '<?php\n//Silence is not golden.', 'index.php', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
 		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 	}
 
 	/**
@@ -441,11 +448,12 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$this->_create_plugin( '<?php\n//Test', 'foo.php', WPMU_PLUGIN_DIR );
 		$this->_create_plugin( '<?php\n//Test 2', 'bar.txt', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/foo.php' );
 		unlink( WPMU_PLUGIN_DIR . '/bar.txt' );
+
+		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 	}
 
 	/**
