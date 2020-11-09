@@ -189,11 +189,12 @@ class WP_Locale_Switcher {
 	 * @param string $locale The locale to load translations for.
 	 */
 	private function load_translations( $locale ) {
-		global $l10n;
+		global $l10n, $wp_textdomain_registry;
 
 		$domains = $l10n ? array_keys( $l10n ) : array();
 
 		load_default_textdomain( $locale );
+		$wp_textdomain_registry->reset();
 
 		foreach ( $domains as $domain ) {
 			// The default text domain is handled by `load_default_textdomain()`.

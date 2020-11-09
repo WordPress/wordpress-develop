@@ -740,6 +740,7 @@ function load_textdomain( $domain, $mofile ) {
 	$mofile = apply_filters( 'load_textdomain_mofile', $mofile, $domain );
 
 	if ( ! is_readable( $mofile ) ) {
+		$wp_textdomain_registry->set( $domain, false );
 		return false;
 	}
 
