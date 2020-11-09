@@ -651,34 +651,16 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Move existing mu-plugins to wp-content/mu-plugin/backup.
+	 * Move existing mu-plugins to wp-content/mu-plugin-backup.
 	 *
 	 * @since 4.2.0
 	 *
 	 * @access private
 	 */
-	private function _back_up_mu_plugins() {
+	private static function _back_up_mu_plugins() {
 		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
 			$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
-			if ( ! is_dir( $mu_bu_dir ) ) {
-				mkdir( $mu_bu_dir );
-			}
-
-			$files_to_move = array();
-			$mu_plugins    = opendir( WPMU_PLUGIN_DIR );
-			if ( $mu_plugins ) {
-				while ( false !== $plugin = readdir( $mu_plugins ) ) {
-					if ( 0 !== strpos( $plugin, '.' ) ) {
-						$files_to_move[] = $plugin;
-					}
-				}
-			}
-
-			closedir( $mu_plugins );
-
-			foreach ( $files_to_move as $file_to_move ) {
-				$f = rename( WPMU_PLUGIN_DIR . '/' . $file_to_move, $mu_bu_dir . '/' . $file_to_move );
-			}
+			rename( WPMU_PLUGIN_DIR, $mu_bu_dir );
 		}
 	}
 
@@ -689,26 +671,15 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @access private
 	 */
-	private function _restore_mu_plugins() {
-		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
-		$files_to_move = array();
-		$mu_plugins    = @opendir( $mu_bu_dir );
-		if ( $mu_plugins ) {
-			while ( false !== $plugin = readdir( $mu_plugins ) ) {
-				if ( 0 !== strpos( $plugin, '.' ) ) {
-					$files_to_move[] = $plugin;
-				}
-			}
-		}
+	private static function _restore_mu_plugins() {
+		$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
 
-		closedir( $mu_plugins );
-
-		foreach ( $files_to_move as $file_to_move ) {
-			rename( $mu_bu_dir . '/' . $file_to_move, WPMU_PLUGIN_DIR . '/' . $file_to_move );
+		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+			rmdir( WPMU_PLUGIN_DIR );
 		}
 
 		if ( is_dir( $mu_bu_dir ) ) {
-			rmdir( $mu_bu_dir );
+			rename( $mu_bu_dir, WPMU_PLUGIN_DIR );
 		}
 	}
 
