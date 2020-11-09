@@ -336,7 +336,7 @@ switch ( $action ) {
 					$nav_menu_selected_title = $_menu_object->name;
 
 					if ( isset( $_REQUEST['menu-item'] ) ) {
-						wp_save_nav_menu_items( $nav_menu_selected_id, absint( $_REQUEST['menu-item'] ) );
+						wp_save_nav_menu_items( $nav_menu_selected_id, $_REQUEST['menu-item'] );
 					}
 
 					// Set the menu_location value correctly for the newly created menu.
