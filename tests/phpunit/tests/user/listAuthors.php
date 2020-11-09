@@ -4,10 +4,10 @@
  * @group user
  */
 class Tests_User_ListAuthors extends WP_UnitTestCase {
-	static $user_ids = array();
-	static $fred_id;
-	static $posts     = array();
-	static $user_urls = array();
+	public static $user_ids = array();
+	public static $fred_id;
+	public static $posts     = array();
+	public static $user_urls = array();
 		/* Defaults
 		'orderby'       => 'name',
 		'order'         => 'ASC',

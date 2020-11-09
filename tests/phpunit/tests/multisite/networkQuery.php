@@ -545,7 +545,7 @@ if ( is_multisite() ) :
 			// We manually inserted a non-existing site and overrode the results with it.
 			$this->assertSame( array( 555 ), $results );
 
-			// Make sure manually setting total_users doesn't get overwritten.
+			// Make sure manually setting found_networks doesn't get overwritten.
 			$this->assertSame( 1, $q->found_networks );
 		}
 
@@ -553,6 +553,28 @@ if ( is_multisite() ) :
 			$query->found_networks = 1;
 
 			return array( 555 );
+		}
+
+		/**
+		 * @ticket 51333
+		 */
+		public function test_networks_pre_query_filter_should_set_networks_property() {
+			add_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query_and_set_networks' ), 10, 2 );
+
+			$q       = new WP_Network_Query();
+			$results = $q->query( array() );
+
+			remove_filter( 'networks_pre_query', array( __CLASS__, 'filter_networks_pre_query_and_set_networks' ), 10 );
+
+			// Make sure the networks property is the same as the results.
+			$this->assertSame( $results, $q->networks );
+
+			// Make sure the network domain is `wordpress.org`.
+			$this->assertSame( 'wordpress.org', $q->networks[0]->domain );
+		}
+
+		public static function filter_networks_pre_query_and_set_networks( $networks, $query ) {
+			return array( get_network( self::$network_ids['wordpress.org/'] ) );
 		}
 	}
 

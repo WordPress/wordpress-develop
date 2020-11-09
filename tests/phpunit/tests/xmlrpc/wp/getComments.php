@@ -4,7 +4,7 @@
  * @group xmlrpc
  */
 class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
-	var $post_id;
+	public $post_id;
 
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getComments( array( 1, 'username', 'password', array() ) );

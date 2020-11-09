@@ -483,7 +483,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertTrue( in_array( $id1, $ids, true ) );
 		$this->assertFalse( in_array( $id2, $ids, true ) );
 
-		$request->set_param( 'exclude', "$id2" );
+		$request->set_param( 'exclude', (string) $id2 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
@@ -3696,12 +3696,12 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 						'rendered' => '<a href="#">link</a>',
 					),
 					'content' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 					'excerpt' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 				),
 			),

@@ -90,7 +90,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -110,7 +111,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -130,7 +132,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = 'b0rk';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -148,7 +151,8 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$no_comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 }

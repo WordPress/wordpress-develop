@@ -64,6 +64,30 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 				array( 'span' ),
 				'MY CONTENT <div> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </div> <span src="ABC" target="_top">END TEXT</span>',
 			),
+			array(
+				'MY CONTENT <aside> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </aside> END TEXT',
+				null,
+				null,
+				'MY CONTENT <aside> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC" target="_blank">LINK</a> HERE </aside> END TEXT',
+			),
+			array(
+				'MY CONTENT <aside class="_blank"> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC">LINK</a> HERE </aside> END TEXT',
+				null,
+				null,
+				'MY CONTENT <aside class="_blank"> SOME ADDITIONAL TEXT <a href="XYZ" src="ABC" target="_blank">LINK</a> HERE </aside> END TEXT',
+			),
+			array(
+				'MY CONTENT <blockquote>SOME</blockquote> ADDITIONAL TEXT <b>LINK</b> HERE END TEXT',
+				'_blank',
+				array( 'b' ),
+				'MY CONTENT <blockquote>SOME</blockquote> ADDITIONAL TEXT <b target="_blank">LINK</b> HERE END TEXT',
+			),
+			array(
+				'MY CONTENT <blockquote target="_self">SOME</blockquote> ADDITIONAL TEXT <b>LINK</b> HERE END TEXT',
+				'_blank',
+				array( 'b' ),
+				'MY CONTENT <blockquote target="_self">SOME</blockquote> ADDITIONAL TEXT <b target="_blank">LINK</b> HERE END TEXT',
+			),
 		);
 	}
 

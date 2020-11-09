@@ -113,7 +113,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -142,7 +143,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$comment_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -162,7 +164,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = 123456789;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -182,7 +185,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		$_POST['comment_post_ID']             = self::$draft_post->ID;
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'Error: You can&#8217;t reply to a comment on a draft post.' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( 'Error: You can&#8217;t reply to a comment on a draft post.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -252,7 +256,8 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 		add_filter( 'pre_comment_approved', array( $this, '_pre_comment_approved_filter' ), 10, 2 );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'pre_comment_approved filter fails for new comment' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( 'pre_comment_approved filter fails for new comment.' );
 		$this->_handleAjax( 'replyto-comment' );
 	}
 
@@ -260,6 +265,6 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 	 * Blocks comments from being saved on 'pre_comment_approved', by returning WP_Error.
 	 */
 	function _pre_comment_approved_filter( $approved, $commentdata ) {
-		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment', 403 );
+		return new WP_Error( 'comment_wrong', 'pre_comment_approved filter fails for new comment.', 403 );
 	}
 }

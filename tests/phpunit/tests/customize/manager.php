@@ -1171,6 +1171,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'save_post_customize_changeset' => 2,
 			'save_post'                     => 2,
 			'wp_insert_post'                => 2,
+			'wp_after_insert_post'          => 2,
 			'trashed_post'                  => 1,
 		);
 		$action_counts    = array();
@@ -2718,7 +2719,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		foreach ( $error->errors as $code => $messages ) {
 			$this->assertArrayHasKey( $code, $validity );
 			$this->assertInternalType( 'array', $validity[ $code ] );
-			$this->assertSame( join( ' ', $messages ), $validity[ $code ]['message'] );
+			$this->assertSame( implode( ' ', $messages ), $validity[ $code ]['message'] );
 			$this->assertArrayHasKey( 'data', $validity[ $code ] );
 			$this->assertSame( $validity[ $code ]['data'], $error->get_error_data( $code ) );
 		}
@@ -2767,7 +2768,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return int Value.
 	 */
 	function sanitize_foo_for_test_set_post_value( $value ) {
-		return intval( $value );
+		return (int) $value;
 	}
 
 	/**
@@ -3613,7 +3614,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	function test_sanitize_external_header_video_trim() {
 		$this->manager->register_controls();
 		$setting   = $this->manager->get_setting( 'external_header_video' );
-		$video_url = 'https://www.youtube.com/watch?v=KiS8rZBeIO0';
+		$video_url = 'https://www.youtube.com/watch?v=72xdCU__XCk';
 
 		$whitespaces = array(
 			' ',  // Space.

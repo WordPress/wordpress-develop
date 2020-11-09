@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_WpGetPostParentId extends WP_UnitTestCase {
+class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
 	/**
 	 * Parent post ID.
 	 *

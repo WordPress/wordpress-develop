@@ -337,12 +337,12 @@ Paragraph two.';
 			$content[] = "<$block>foo</$block>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( "\n\n", $content ); // Whitespace difference.
+		$expected = implode( "\n", $content );
+		$input    = implode( "\n\n", $content ); // Whitespace difference.
 
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
-		$input = join( '', $content ); // Whitespace difference.
+		$input = implode( '', $content ); // Whitespace difference.
 
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
@@ -353,8 +353,8 @@ Paragraph two.';
 			$content[] = "<$block/>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( '', $content );
+		$expected = implode( "\n", $content );
+		$input    = implode( '', $content );
 
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
@@ -365,8 +365,8 @@ Paragraph two.';
 			$content[] = "<$block attr='value'>foo</$block>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( '', $content );
+		$expected = implode( "\n", $content );
+		$input    = implode( '', $content );
 
 		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 	}
@@ -426,8 +426,8 @@ Paragraph two.';
 			$expected[] = "<p><$inline>foo</$inline></p>";
 		}
 
-		$content  = join( "\n\n", $content );
-		$expected = join( "\n", $expected );
+		$content  = implode( "\n\n", $content );
+		$expected = implode( "\n", $expected );
 
 		$this->assertSame( $expected, trim( wpautop( $content ) ) );
 	}

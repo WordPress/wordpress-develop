@@ -583,6 +583,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertSame( 'image/jpeg', $data['mime_type'] );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_get_item_sizes() {
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -604,12 +607,16 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$original_image_src = wp_get_attachment_image_src( $attachment_id, 'full' );
 		remove_image_size( 'rest-api-test' );
 
+		$this->assertInternalType( 'array', $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
 		$this->assertSame( $image_src[0], $data['media_details']['sizes']['rest-api-test']['source_url'] );
 		$this->assertSame( 'image/jpeg', $data['media_details']['sizes']['rest-api-test']['mime_type'] );
 		$this->assertSame( $original_image_src[0], $data['media_details']['sizes']['full']['source_url'] );
 		$this->assertSame( 'image/jpeg', $data['media_details']['sizes']['full']['mime_type'] );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	public function test_get_item_sizes_with_no_url() {
 		$attachment_id = $this->factory->attachment->create_object(
 			$this->test_file,
@@ -632,6 +639,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		remove_filter( 'wp_get_attachment_image_src', '__return_false' );
 		remove_image_size( 'rest-api-test' );
 
+		$this->assertInternalType( 'array', $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
 		$this->assertFalse( isset( $data['media_details']['sizes']['rest-api-test']['source_url'] ) );
 	}
 
@@ -999,6 +1007,53 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	/**
+	 * @ticket 40399
+	 */
+	public function test_update_item_with_existing_inherit_status() {
+		wp_set_current_user( self::$editor_id );
+		$parent_id     = self::factory()->post->create( array() );
+		$attachment_id = self::factory()->attachment->create_object(
+			$this->test_file,
+			$parent_id,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+				'post_author'    => self::$editor_id,
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'status', 'inherit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertNotWPError( $response->as_error() );
+		$this->assertSame( 'inherit', $response->get_data()['status'] );
+	}
+
+	/**
+	 * @ticket 40399
+	 */
+	public function test_update_item_with_new_inherit_status() {
+		wp_set_current_user( self::$editor_id );
+		$attachment_id = self::factory()->attachment->create_object(
+			$this->test_file,
+			0,
+			array(
+				'post_mime_type' => 'image/jpeg',
+				'post_excerpt'   => 'A sample caption',
+				'post_author'    => self::$editor_id,
+				'post_status'    => 'private',
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media/' . $attachment_id );
+		$request->set_param( 'status', 'inherit' );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function verify_attachment_roundtrip( $input = array(), $expected_output = array() ) {
 		// Create the post.
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
@@ -1154,12 +1209,12 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 						'rendered' => '<a href="#">link</a>',
 					),
 					'description' => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 					'caption'     => array(
-						'raw'      => '<a href="#" target="_blank" rel="noopener noreferrer">link</a>',
-						'rendered' => '<p><a href="#" target="_blank" rel="noopener noreferrer">link</a></p>',
+						'raw'      => '<a href="#" target="_blank" rel="noopener">link</a>',
+						'rendered' => '<p><a href="#" target="_blank" rel="noopener">link</a></p>',
 					),
 				),
 			),
@@ -1942,6 +1997,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 
 	/**
 	 * @ticket 44405
+	 * @requires function imagejpeg
 	 */
 	public function test_edit_image() {
 		wp_set_current_user( self::$superadmin_id );

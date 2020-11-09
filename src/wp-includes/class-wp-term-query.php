@@ -100,7 +100,7 @@ class WP_Term_Query {
 	 *                                                - term fields ('name', 'slug', 'term_group', 'term_id', 'id',
 	 *                                                  'description', 'parent', 'term_order'). Unless `$object_ids`
 	 *                                                  is not empty, 'term_order' is treated the same as 'term_id'.
-	 *                                                - 'count' for term taxonomy count.
+	 *                                                - 'count' to use the number of objects associated with the term.
 	 *                                                - 'include' to match the 'order' of the $include param.
 	 *                                                - 'slug__in' to match the 'order' of the $slug param.
 	 *                                                - 'meta_value', 'meta_value_num'.
@@ -258,7 +258,7 @@ class WP_Term_Query {
 		$query['offset'] = absint( $query['offset'] );
 
 		// 'parent' overrides 'child_of'.
-		if ( 0 < intval( $query['parent'] ) ) {
+		if ( 0 < (int) $query['parent'] ) {
 			$query['child_of'] = false;
 		}
 
@@ -346,7 +346,7 @@ class WP_Term_Query {
 		}
 
 		// 'parent' overrides 'child_of'.
-		if ( 0 < intval( $args['parent'] ) ) {
+		if ( 0 < (int) $args['parent'] ) {
 			$args['child_of'] = false;
 		}
 
@@ -443,7 +443,7 @@ class WP_Term_Query {
 					(array) get_terms(
 						array(
 							'taxonomy'   => reset( $taxonomies ),
-							'child_of'   => intval( $extrunk ),
+							'child_of'   => (int) $extrunk,
 							'fields'     => 'ids',
 							'hide_empty' => 0,
 						)
@@ -690,7 +690,7 @@ class WP_Term_Query {
 		/**
 		 * Filters the terms array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default term queries.
+		 * Return a non-null value to bypass WordPress' default term queries.
 		 *
 		 * @since 5.3.0
 		 *

@@ -163,7 +163,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
 
-		$this->assertEmpty( $post_list, 'Private taxonomy term links are visible.' );
+		$this->assertEmpty( $post_list, 'Non-publicly queryable taxonomy term links are visible.' );
 	}
 
 	/**

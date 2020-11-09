@@ -74,7 +74,8 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		// No output, so we get a stop exception.
-		$this->setExpectedException( 'WPAjaxDieStopException', '' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -114,7 +115,8 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -131,7 +133,8 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '0' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '0' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -148,7 +151,8 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
