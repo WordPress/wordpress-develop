@@ -974,7 +974,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 								<?php
 								$hide_style = '';
 
-								if ( isset( $menu_items ) && 0 === count( $menu_items ) ) {
+								if ( isset( $menu_items ) && is_array( $menu_items ) && 0 === count( $menu_items ) ) {
 									$hide_style = 'style="display: none;"';
 								}
 
