@@ -807,7 +807,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</table>
 			<p class="button-controls wp-clearfix"><?php submit_button( __( 'Save Changes' ), 'primary left', 'nav-menu-locations', false ); ?></p>
 			<?php wp_nonce_field( 'save-menu-locations' ); ?>
-			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 		</form>
 	</div><!-- #menu-locations-wrap -->
 		<?php
@@ -853,7 +853,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<option value="0" selected="selected"><?php _e( '&mdash; Select &mdash;' ); ?></option>
 				<?php endif; ?>
 				<?php foreach ( (array) $nav_menus as $_nav_menu ) : ?>
-					<option value="<?php echo esc_attr( $_nav_menu->term_id ); ?>" <?php selected( $_nav_menu->term_id, $nav_menu_selected_id ); ?>>
+					<option value="<?php echo (int) $_nav_menu->term_id; ?>" <?php selected( $_nav_menu->term_id, $nav_menu_selected_id ); ?>>
 						<?php
 						echo esc_html( $_nav_menu->truncated_name );
 
@@ -926,7 +926,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="clear"></div>
 
 		<form id="nav-menu-meta" class="nav-menu-meta" method="post" enctype="multipart/form-data">
-			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+			<input type="hidden" name="menu" id="nav-menu-meta-object-id" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 			<input type="hidden" name="action" value="add-menu-item" />
 			<?php wp_nonce_field( 'add-menu_item', 'menu-settings-column-nonce' ); ?>
 			<h2><?php _e( 'Add menu items' ); ?></h2>
@@ -957,7 +957,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					}
 					?>
 					<input type="hidden" name="action" value="update" />
-					<input type="hidden" name="menu" id="menu" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+					<input type="hidden" name="menu" id="menu" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 					<div id="nav-menu-header">
 						<div class="major-publishing-actions wp-clearfix">
 							<label class="menu-name-label" for="menu-name"><?php _e( 'Menu Name' ); ?></label>
@@ -1045,7 +1045,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 											$checked = isset( $menu_locations[ $location ] ) && $menu_locations[ $location ] === $nav_menu_selected_id;
 											?>
 											<div class="menu-settings-input checkbox-input">
-												<input type="checkbox"<?php checked( $checked ); ?> name="menu-locations[<?php echo esc_attr( $location ); ?>]" id="locations-<?php echo esc_attr( $location ); ?>" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />
+												<input type="checkbox"<?php checked( $checked ); ?> name="menu-locations[<?php echo esc_attr( $location ); ?>]" id="locations-<?php echo esc_attr( $location ); ?>" value="<?php echo (int) $nav_menu_selected_id; ?>" />
 												<label for="locations-<?php echo esc_attr( $location ); ?>"><?php echo $description; ?></label>
 												<?php if ( ! empty( $menu_locations[ $location ] ) && $menu_locations[ $location ] !== $nav_menu_selected_id ) : ?>
 													<span class="theme-location-set">
