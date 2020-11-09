@@ -23,6 +23,15 @@ class WP_Block {
 	public $parsed_block;
 
 	/**
+	 * An un-modified copy of $parsed_block, as it was before the
+	 * render_block_data filter was applied.
+	 *
+	 * @since 5.6.0
+	 * @var array
+	 */
+	protected $source_block;
+
+	/**
 	 * Name of block.
 	 *
 	 * @example "core/paragraph"
@@ -108,7 +117,7 @@ class WP_Block {
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
 	 */
 	public function __construct( $parsed_block, $available_context = array(), $registry = null ) {
-		$source_block = $parsed_block;
+		$this->source_block = $parsed_block;
 
 		/**
 		 * Filters a block which is to be rendered by render_block() or
@@ -119,7 +128,7 @@ class WP_Block {
 		 * @param array $parsed_block The block being rendered.
 		 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
 		 */
-		$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+		$parsed_block = apply_filters( 'render_block_data', $parsed_block, $this->source_block );
 
 		/**
 		 * Filters the default context of a block which is to be rendered by
@@ -219,7 +228,7 @@ class WP_Block {
 		global $post;
 
 		/** This filter is documented in src/wp-includes/blocks.php. */
-		$pre_render = apply_filters( 'pre_render_block', null, $this->parsed_block );
+		$pre_render = apply_filters( 'pre_render_block', null, $this->source_block );
 		if ( ! is_null( $pre_render ) ) {
 			return $pre_render;
 		}
