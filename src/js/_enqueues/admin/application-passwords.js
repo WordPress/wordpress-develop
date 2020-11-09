@@ -145,6 +145,7 @@
 		$el.fadeTo( 100, 0, function () {
 			$el.slideUp( 100, function () {
 				$el.remove();
+				$newAppPassField.focus();
 			} );
 		} );
 	} );
