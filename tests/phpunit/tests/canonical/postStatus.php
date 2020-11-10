@@ -229,7 +229,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		// All post/page keys
 		$all_user_post_keys    = array( 'publish' );
 		$select_user_post_keys = array( 'private', 'trac-5272-status' );
-		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft', 'trash' );
+		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
 
 		foreach ( $all_user_post_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
@@ -339,6 +339,52 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?attachment_id=%ID-A%',
 					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( array( 'trash' ) as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/trash-post-inherited-attachment/',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/trash-post/trash-post-inherited-attachment/',
+					'/trash-post-inherited-attachment/',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/trash-post__trashed/trash-post-inherited-attachment/',
+					'/trash-post-inherited-attachment/',
 				);
 
 				$data[] = array(
