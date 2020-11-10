@@ -71,7 +71,12 @@ function extract_from_markers( $filename, $marker ) {
 		return $result;
 	}
 
-	$markerdata = explode( "\n", implode( '', file( $filename ) ) );
+	$file_content = file( $filename );
+	if ( false === $file_content ) {
+		return $result;
+	}
+
+	$markerdata = explode( "\n", implode( '', $file_content ) );
 
 	$state = false;
 	foreach ( $markerdata as $markerline ) {
