@@ -160,20 +160,23 @@ if ( ! empty( $posted_content ) ) {
 	$content = $posted_content;
 } elseif ( $file_size > 0 ) {
 	$f       = fopen( $file, 'r' );
-	$content = fread( $f, $file_size );
+	$content = is_resource( $f ) ? fread( $f, $file_size ) : false;
+	if ( false === $content ) {
+		$error = true;
+	} else {
+		if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
+			$functions = wp_doc_link_parse( $content );
 
-	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
-		$functions = wp_doc_link_parse( $content );
-
-		$docs_select  = '<select name="docs-list" id="docs-list">';
-		$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
-		foreach ( $functions as $function ) {
-			$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+			$docs_select  = '<select name="docs-list" id="docs-list">';
+			$docs_select .= '<option value="">' . esc_attr__( 'Function Name&hellip;' ) . '</option>';
+			foreach ( $functions as $function ) {
+				$docs_select .= '<option value="' . esc_attr( urlencode( $function ) ) . '">' . htmlspecialchars( $function ) . '()</option>';
+			}
+			$docs_select .= '</select>';
 		}
-		$docs_select .= '</select>';
-	}
 
-	$content = esc_textarea( $content );
+		$content = esc_textarea( $content );
+	}
 }
 
 $file_description = get_file_description( $relative_file );
