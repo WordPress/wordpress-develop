@@ -153,12 +153,14 @@ if ( ! is_file( $file ) ) {
 	$error = true;
 }
 
-$content = '';
+$content   = '';
+$file_size = ! $error ? (int) filesize( $file ) : 0;
+
 if ( ! empty( $posted_content ) ) {
 	$content = $posted_content;
-} elseif ( ! $error && filesize( $file ) > 0 ) {
+} elseif ( $file_size > 0 ) {
 	$f       = fopen( $file, 'r' );
-	$content = fread( $f, filesize( $file ) );
+	$content = fread( $f, $file_size );
 
 	if ( '.php' === substr( $file, strrpos( $file, '.' ) ) ) {
 		$functions = wp_doc_link_parse( $content );
