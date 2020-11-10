@@ -35,6 +35,11 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'trac-5272-status' );
 		foreach ( $post_statuses as $post_status ) {
+			$post_date = '';
+			if ( 'future' === $post_status ) {
+				$post_date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+			}
+
 			self::$posts[ $post_status ] = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'post',
@@ -43,7 +48,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_status'  => $post_status,
 					'post_content' => "Prevent canonical redirect exposing post slugs.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
-					'post_date'    => 'future' === $post_status ? strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) ) : current_time( 'mysql' ),
+					'post_date'    => $post_date,
 				)
 			);
 
@@ -57,7 +62,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
 					'post_parent'  => self::$posts[ $post_status ]->ID,
-					'post_date'    => 'future' === $post_status ? strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) ) : current_time( 'mysql' ),
+					'post_date'    => $post_date,
 				)
 			);
 
@@ -70,6 +75,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'post_status'  => $post_status,
 					'post_content' => "Prevent canonical redirect exposing page slugs.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
+					'post_date'    => $post_date,
 				)
 			);
 		}
@@ -170,234 +176,187 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Test canonical redirect does not reveal private post slugs.
+	 * Test canonical redirect does not reveal private slugs.
 	 *
 	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
+	 * @dataProvider data_canonical_redirects_to_pretty_permalinks
+	 *
+	 * @param string $post_key  Post key used for creating fixtures.
+	 * @param string $user_role User role.
+	 * @param string $requested Requested URL.
+	 * @param string $expected  Expected URL.
 	 */
-	public function test_canonical_private_post_redirect( $user_role, $can_redirect ) {
+	public function test_canonical_redirects_to_pretty_permalinks( $post_key, $user_role, $requested, $expected ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['post']->ID );
+		$post = self::$posts[ $post_key ];
+		clean_post_cache( $post->ID );
+		if ( isset( self::$posts[ "{$post_key}-attachment" ] ) ) {
+			$attachment = self::$posts[ "{$post_key}-attachment" ];
+			clean_post_cache( $attachment->ID );
 
-		$ugly_id_request   = '/?p=' . self::$posts['post']->ID;
-		$ugly_name_request = '/?name=' . self::$posts['post']->post_name;
-		$pretty_request    = '/private-post-slug/';
-		$pretty_expected   = '/private-post-slug/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected   = $pretty_expected;
-			$ugly_name_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected   = $ugly_id_request;
-			$ugly_name_expected = $ugly_name_request;
+			/*
+			* The dataProvider runs before the fixures are set up, therefore the
+			* post and attachment IDs are placeholders that needs to be replaced.
+			*/
+			$requested = str_replace( '%ID-A%', $attachment->ID, $requested );
+			$expected  = str_replace( '%ID-A%', $attachment->ID, $expected );
 		}
 
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $ugly_name_request, $ugly_name_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
+		$requested = str_replace( '%ID%', $post->ID, $requested );
+		$expected  = str_replace( '%ID%', $post->ID, $expected );
+
+		// echo "\n$requested : $expected";
+
+		$this->assertCanonical( $requested, $expected );
 	}
 
 	/**
-	 * Test canonical redirect does not reveal inherited attachment slugs.
+	 * Data provider for test_canonical_redirects_to_pretty_permalinks.
 	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_private_attachment_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['attachment']->ID );
-
-		$ugly_id_request   = '/?attachment_id=' . self::$posts['attachment']->ID;
-		$ugly_type_request = '/?post_type=attachment&p=' . self::$posts['attachment']->ID;
-		$pretty_request    = '/private-post-slug/attachment-post-slug/';
-		$pretty_expected   = '/private-post-slug/attachment-post-slug/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected   = $pretty_expected;
-			$ugly_type_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected   = $ugly_id_request;
-			$ugly_type_expected = $ugly_type_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $ugly_type_request, $ugly_type_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Test canonical redirect does not reveal paged private post slugs.
-	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_private_post_paged_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['post']->ID );
-
-		$ugly_id_request   = '/?page=2&p=' . self::$posts['post']->ID;
-		$ugly_name_request = '/?page=2&name=' . self::$posts['post']->post_name;
-		$pretty_request    = '/private-post-slug/2/';
-		$pretty_expected   = '/private-post-slug/2/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected   = $pretty_expected;
-			$ugly_name_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected   = $ugly_id_request;
-			$ugly_name_expected = $ugly_name_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $ugly_name_request, $ugly_name_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Test canonical redirect does not reveal private post slugs.
-	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_private_post_feed_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['post']->ID );
-
-		$ugly_id_request = '/?feed=rss2&p=' . self::$posts['post']->ID;
-		$pretty_request  = '/private-post-slug/feed/';
-		$pretty_expected = '/private-post-slug/feed/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected = $ugly_id_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Test canonical redirect does not reveal private page slugs.
-	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_private_page_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['page']->ID );
-
-		$ugly_id_request = '/?page_id=' . self::$posts['page']->ID;
-		$pretty_request  = '/private-page-slug/';
-		$pretty_expected = '/private-page-slug/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected = $ugly_id_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Test canonical redirect does not reveal private CPS slugs using the p query variable.
-	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_cpt_with_private_custom_status_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['cpt']->ID );
-
-		$ugly_id_request = '/?p=' . self::$posts['cpt']->ID;
-		$pretty_request  = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
-		$pretty_expected = '/trac-5272-cpt/private-trac-5272-cpt-slug/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected = $ugly_id_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Test canonical redirect does not reveal private post slugs.
-	 *
-	 * @ticket 5272
-	 * @dataProvider data_trac_5272_redirect
-	 */
-	public function test_canonical_post_with_private_custom_status_redirect( $user_role, $can_redirect ) {
-		wp_set_current_user( self::$users[ $user_role ] );
-		$this->set_permalink_structure( '/%postname%/' );
-		clean_post_cache( self::$posts['cps']->ID );
-
-		$ugly_id_request   = '/?p=' . self::$posts['cps']->ID;
-		$ugly_name_request = '/?name=' . self::$posts['cps']->post_name;
-		$pretty_request    = '/private-post-status-slug/';
-		$pretty_expected   = '/private-post-status-slug/';
-
-		if ( $can_redirect ) {
-			$ugly_id_expected   = $pretty_expected;
-			$ugly_name_expected = $pretty_expected;
-		} else {
-			$ugly_id_expected   = $ugly_id_request;
-			$ugly_name_expected = $ugly_name_request;
-		}
-
-		$this->assertCanonical( $ugly_id_request, $ugly_id_expected );
-		$this->assertCanonical( $ugly_name_request, $ugly_name_expected );
-		$this->assertCanonical( $pretty_request, $pretty_expected );
-	}
-
-	/**
-	 * Data provider for testing users and expected outcomes of canonical redirects.
-	 *
-	 * return array[] {
-	 *        $user         string The user to test against.
-	 *        $can_redirect bool   Whether the user should be redirected to the post.
+	 * @return array[] Array of arguments for tests {
+	 *     @type string $post_key  Post key used for creating fixtures.
+	 *     @type string $user_role User role.
+	 *     @type string $requested Requested URL.
+	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	public function data_trac_5272_redirect() {
-		return array(
-			array(
-				'anon',
-				false,
-			),
-			array(
-				'subscriber',
-				false,
-			),
-			array(
-				'author',
-				false,
-			),
-			array(
-				'content_author',
-				true,
-			),
-			array(
-				'contributor',
-				false,
-			),
-			array(
-				'editor',
-				true,
-			),
-			array(
-				'administrator',
-				true,
-			),
-		);
+	function data_canonical_redirects_to_pretty_permalinks() {
+		$data = array();
+		$all_user_list     = array( 'anon', 'subscriber', 'author', 'content_author', 'contributor', 'editor', 'administrator' );
+		$select_allow_list = array( 'content_author', 'editor', 'administrator' );
+		$select_block_list = array( 'anon', 'subscriber', 'author', 'contributor' );
+		// All post/page keys
+		$all_user_post_keys    = array( 'publish' );
+		$select_user_post_keys = array( 'private', 'trac-5272-status' );
+		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft', 'trash' );
+
+		foreach ( $all_user_post_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key-post/",
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					"/$post_key-post/{$post_key}-inherited-attachment/",
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					"/$post_key-page/",
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					"/$post_key-page/",
+				);
+			}
+		}
+
+		foreach ( $select_user_post_keys as $post_key ) {
+			foreach ( $select_allow_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key-post/",
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					"/$post_key-post/{$post_key}-inherited-attachment/",
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					"/$post_key-page/",
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					"/$post_key-page/",
+				);
+			}
+
+			foreach ( $select_block_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( $no_user_post_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+			}
+		}
+
+		return $data;
 	}
 }
