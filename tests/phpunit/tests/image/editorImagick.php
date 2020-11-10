@@ -597,4 +597,27 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		}
 		unlink( $temp_file );
 	}
+
+	/**
+	 * @ticket 51665
+	 */
+	public function test_directory_creation() {
+		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';
+		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
+		$editor    = new WP_Image_Editor_Imagick( $file );
+
+		$this->assertFileNotExists( $directory );
+
+		$loaded = $editor->load();
+		$this->assertNotWPError( $loaded );
+
+		$resized = $editor->resize( 100, 100, true );
+		$this->assertNotWPError( $resized );
+
+		$saved = $editor->save( $directory . '/a2-small-cropped.jpg' );
+		$this->assertNotWPError( $saved );
+
+		unlink( $directory . '/a2-small-cropped.jpg' );
+		rmdir( $directory );
+	}
 }

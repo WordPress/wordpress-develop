@@ -123,8 +123,8 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$class_list   = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list   = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertEquals( $expected_classes, $class_list );
-		$this->assertEquals( $expected_styles, $style_list );
+		$this->assertSame( $expected_classes, $class_list );
+		$this->assertSame( $expected_styles, $style_list );
 	}
 
 	/**
@@ -138,18 +138,18 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$styled_block = $this->render_example_block( $block );
 
 		// Ensure blocks to not add extra whitespace.
-		$this->assertEquals( $styled_block, trim( $styled_block ) );
+		$this->assertSame( $styled_block, trim( $styled_block ) );
 
 		$content    = $this->get_content_from_block( $styled_block );
 		$class_list = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertEquals( self::BLOCK_CONTENT, $content );
-		$this->assertEqualSets(
+		$this->assertSame( self::BLOCK_CONTENT, $content );
+		$this->assertSameSets(
 			explode( ' ', $expected_classes ),
 			explode( ' ', $class_list )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array_map( 'trim', explode( ';', $expected_styles ) ),
 			array_map( 'trim', explode( ';', $style_list ) )
 		);

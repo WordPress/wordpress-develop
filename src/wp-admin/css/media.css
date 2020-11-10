@@ -201,6 +201,10 @@
 	display: block;
 }
 
+#html-upload-ui #async-upload {
+	font-size: 1em;
+}
+
 .media-upload-form .media-item.error,
 .media-upload-form .media-item .error {
 	width: auto;
@@ -1181,6 +1185,10 @@ audio, video {
 
 .wp-core-ui .mejs-container * {
 	box-sizing: border-box;
+}
+
+.wp-core-ui .mejs-time {
+	box-sizing: content-box;
 }
 
 /* =Media Queries
