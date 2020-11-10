@@ -493,7 +493,7 @@ class WP_User_Search {
 
 		$this->search_term = wp_unslash( $search_term );
 		$this->raw_page = ( '' == $page ) ? false : (int) $page;
-		$this->page = (int) ( '' == $page ) ? 1 : $page;
+		$this->page = ( '' == $page ) ? 1 : (int) $page;
 		$this->role = $role;
 
 		$this->prepare_query();
@@ -1333,6 +1333,9 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 			continue;
 
 		$items = $feed->get_items(0, 5);
+		if ( null === $items ) {
+			continue;
+		}
 
 		// Pick a random, non-installed plugin.
 		while ( true ) {
