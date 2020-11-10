@@ -850,6 +850,10 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	// If configuration file does not exist then we create one.
 	if ( ! file_exists( $filename ) ) {
 		$fp = fopen( $filename, 'w' );
+		if ( ! is_resource( $fp ) ) {
+			return false;
+		}
+
 		fwrite( $fp, '<configuration/>' );
 		fclose( $fp );
 	}
@@ -926,9 +930,20 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
  */
 function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid
 	$config = $doc->saveXML();
-	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
+	if ( false === $config ) {
+		return;
+	}
+
 	$fp     = fopen( $filename, 'w' );
-	fwrite( $fp, $config );
+	if ( ! is_resource( $fp ) ) {
+		return;
+	}
+
+	$config = preg_replace( "/([^\r])\n/", "$1\r\n", $config );
+	if ( null !== $config ) {
+		fwrite( $fp, $config );
+	}
+
 	fclose( $fp );
 }
 
