@@ -401,9 +401,9 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 			}
 			?>
 			<li role="treeitem" aria-expanded="true" tabindex="-1"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_theme_file_tree( $theme_file, $level + 1, $index, $size ); ?></ul>
 			</li>
@@ -422,9 +422,9 @@ function wp_print_theme_file_tree( $tree, $level = 2, $size = 1, $index = 1 ) {
 		<li role="none" class="<?php echo esc_attr( $relative_file === $filename ? 'current-file' : '' ); ?>">
 			<a role="treeitem" tabindex="<?php echo esc_attr( $relative_file === $filename ? '0' : '-1' ); ?>"
 				href="<?php echo esc_url( $url ); ?>"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<?php
 				$file_description = esc_html( get_file_description( $filename ) );
 				if ( $file_description !== $filename && wp_basename( $filename ) !== $file_description ) {
@@ -490,9 +490,9 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 			}
 			?>
 			<li role="treeitem" aria-expanded="true" tabindex="-1"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<span class="folder-label"><?php echo esc_html( $label ); ?> <span class="screen-reader-text"><?php _e( 'folder' ); ?></span><span aria-hidden="true" class="icon"></span></span>
 				<ul role="group" class="tree-folder"><?php wp_print_plugin_file_tree( $plugin_file, '', $level + 1, $index, $size ); ?></ul>
 			</li>
@@ -510,9 +510,9 @@ function wp_print_plugin_file_tree( $tree, $label = '', $level = 2, $size = 1, $
 		<li role="none" class="<?php echo esc_attr( $file === $tree ? 'current-file' : '' ); ?>">
 			<a role="treeitem" tabindex="<?php echo esc_attr( $file === $tree ? '0' : '-1' ); ?>"
 				href="<?php echo esc_url( $url ); ?>"
-				aria-level="<?php echo esc_attr( $level ); ?>"
-				aria-setsize="<?php echo esc_attr( $size ); ?>"
-				aria-posinset="<?php echo esc_attr( $index ); ?>">
+				aria-level="<?php echo (int) $level; ?>"
+				aria-setsize="<?php echo (int) $size; ?>"
+				aria-posinset="<?php echo (int) $index; ?>">
 				<?php
 				if ( $file === $tree ) {
 					echo '<span class="notice notice-info">' . esc_html( $label ) . '</span>';
