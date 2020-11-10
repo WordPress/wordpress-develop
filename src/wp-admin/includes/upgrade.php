@@ -3131,7 +3131,7 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 		$lines = explode( "\n", implode( '', $newfile_content ) );
 		if ( $lines ) {
 			$f = fopen( "$site_dir/$newfile", 'w' );
-			if ( ! is_resource( $f ) ) {
+			if ( false === $f ) {
 				return false;
 			}
 
@@ -3158,7 +3158,7 @@ function make_site_theme_from_oldschool( $theme_name, $template ) {
 	$stylelines = file_get_contents( "$site_dir/style.css" );
 	if ( $stylelines ) {
 		$f = fopen( "$site_dir/style.css", 'w' );
-		if ( ! is_resource( $f ) ) {
+		if ( false === $f ) {
 			return false;
 		}
 
@@ -3212,7 +3212,7 @@ function make_site_theme_from_default( $theme_name, $template ) {
 	$stylelines = explode( "\n", implode( '', $theme_content ) );
 	if ( $stylelines ) {
 		$f = fopen( "$site_dir/style.css", 'w' );
-		if ( ! is_resource( $f ) ) {
+		if ( false === $f ) {
 			return false;
 		}
 
