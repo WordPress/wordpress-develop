@@ -56,7 +56,7 @@ if ( file_exists( WP_CONTENT_DIR . '/db.php' ) && empty( $wpdb->is_mysql ) ) {
 header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 ?>
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" <?php language_attributes(); ?>>
+<html <?php language_attributes(); ?>>
 <head>
 	<meta name="viewport" content="width=device-width" />
 	<meta http-equiv="Content-Type" content="<?php bloginfo( 'html_type' ); ?>; charset=<?php echo get_option( 'blog_charset' ); ?>" />
@@ -82,9 +82,13 @@ elseif ( ! $php_compat || ! $mysql_compat ) :
 	);
 
 	/* translators: %s: URL to Update PHP page. */
-	$php_update_message = '</p><p>' . sprintf( __( '<a href="%s">Learn more about updating PHP</a>.' ), esc_url( wp_get_update_php_url() ) );
+	$php_update_message = '</p><p>' . sprintf(
+		__( '<a href="%s">Learn more about updating PHP</a>.' ),
+		esc_url( wp_get_update_php_url() )
+	);
 
 	$annotation = wp_get_update_php_annotation();
+
 	if ( $annotation ) {
 		$php_update_message .= '</p><p><em>' . $annotation . '</em>';
 	}

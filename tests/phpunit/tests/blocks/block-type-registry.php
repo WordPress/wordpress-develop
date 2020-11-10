@@ -106,9 +106,9 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 		);
 
 		$block_type = $this->registry->register( $name, $settings );
-		$this->assertEquals( $name, $block_type->name );
-		$this->assertEquals( $settings['icon'], $block_type->icon );
-		$this->assertEquals( $block_type, $this->registry->get_registered( $name ) );
+		$this->assertSame( $name, $block_type->name );
+		$this->assertSame( $settings['icon'], $block_type->icon );
+		$this->assertSame( $block_type, $this->registry->get_registered( $name ) );
 	}
 
 	/**
@@ -167,8 +167,8 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 
 		$this->registry->register( $name, $settings );
 		$block_type = $this->registry->unregister( $name );
-		$this->assertEquals( $name, $block_type->name );
-		$this->assertEquals( $settings['icon'], $block_type->icon );
+		$this->assertSame( $name, $block_type->name );
+		$this->assertSame( $settings['icon'], $block_type->icon );
 		$this->assertFalse( $this->registry->is_registered( $name ) );
 	}
 
@@ -186,6 +186,6 @@ class WP_Test_Block_Type_Registry extends WP_UnitTestCase {
 		}
 
 		$registered = $this->registry->get_all_registered();
-		$this->assertEqualSets( $names, array_keys( $registered ) );
+		$this->assertSameSets( $names, array_keys( $registered ) );
 	}
 }

@@ -83,7 +83,7 @@ class WP {
 	public $did_permalink = false;
 
 	/**
-	 * Add name to list of public query variables.
+	 * Adds a query variable to the list of public query variables.
 	 *
 	 * @since 2.1.0
 	 *
@@ -107,19 +107,19 @@ class WP {
 	}
 
 	/**
-	 * Set the value of a query variable.
+	 * Sets the value of a query variable.
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param string $key Query variable name.
-	 * @param mixed $value Query variable value.
+	 * @param string $key   Query variable name.
+	 * @param mixed  $value Query variable value.
 	 */
 	public function set_query_var( $key, $value ) {
 		$this->query_vars[ $key ] = $value;
 	}
 
 	/**
-	 * Parse request to find correct WordPress query.
+	 * Parses the request to find the correct WordPress query.
 	 *
 	 * Sets up the query variables based on the request. There are also many
 	 * filters and actions that can be used to further manipulate the result.
@@ -275,7 +275,7 @@ class WP {
 		}
 
 		/**
-		 * Filters the query variables whitelist before processing.
+		 * Filters the query variables allowed before processing.
 		 *
 		 * Allows (publicly allowed) query vars to be added, removed, or changed prior
 		 * to executing the query. Needed to allow custom rewrite rules using your own arguments
@@ -283,7 +283,7 @@ class WP {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param string[] $public_query_vars The array of whitelisted query variable names.
+		 * @param string[] $public_query_vars The array of allowed query variable names.
 		 */
 		$this->public_query_vars = apply_filters( 'query_vars', $this->public_query_vars );
 

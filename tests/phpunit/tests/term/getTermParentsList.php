@@ -34,7 +34,7 @@ class Tests_Terms_GetTermsParentsList extends WP_UnitTestCase {
 	}
 
 	public function test_should_return_empty_for_invalid_id() {
-		$this->assertEquals( '', get_term_parents_list( 99999999, 'wptests_tax' ) );
+		$this->assertSame( '', get_term_parents_list( 99999999, 'wptests_tax' ) );
 	}
 
 	public function test_should_return_wp_error_for_invalid_taxonomy() {

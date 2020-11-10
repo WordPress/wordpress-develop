@@ -40,18 +40,18 @@ if ( is_multisite() ) :
 			$user_id  = self::factory()->user->create( array( 'role' => 'administrator' ) );
 			$blog_id2 = self::factory()->blog->create( array( 'user_id' => $user_id ) );
 			$info     = wp_upload_dir();
-			$this->assertEquals( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
-			$this->assertEquals( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
-			$this->assertEquals( gmstrftime( '/%Y/%m' ), $info['subdir'] );
-			$this->assertEquals( '', $info['error'] );
+			$this->assertSame( 'http://' . $site->domain . '/wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/uploads/' . gmstrftime( '%Y/%m' ), $info['path'] );
+			$this->assertSame( gmstrftime( '/%Y/%m' ), $info['subdir'] );
+			$this->assertFalse( $info['error'] );
 
 			switch_to_blog( $blog_id2 );
 			$info2 = wp_upload_dir();
 			$this->assertNotEquals( $info, $info2 );
-			$this->assertEquals( get_option( 'siteurl' ) . '/wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . gmstrftime( '%Y/%m' ), $info2['url'] );
-			$this->assertEquals( ABSPATH . 'wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . gmstrftime( '%Y/%m' ), $info2['path'] );
-			$this->assertEquals( gmstrftime( '/%Y/%m' ), $info2['subdir'] );
-			$this->assertEquals( '', $info2['error'] );
+			$this->assertSame( get_option( 'siteurl' ) . '/wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . gmstrftime( '%Y/%m' ), $info2['url'] );
+			$this->assertSame( ABSPATH . 'wp-content/blogs.dir/' . get_current_blog_id() . '/files/' . gmstrftime( '%Y/%m' ), $info2['path'] );
+			$this->assertSame( gmstrftime( '/%Y/%m' ), $info2['subdir'] );
+			$this->assertFalse( $info2['error'] );
 			restore_current_blog();
 		}
 

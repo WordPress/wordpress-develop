@@ -168,6 +168,7 @@ function twentythirteen_setup() {
 			'caption',
 			'script',
 			'style',
+			'navigation-widgets',
 		)
 	);
 
@@ -515,7 +516,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param boolean $echo (optional) Whether to echo the date. Default true.
+	 * @param bool $echo (optional) Whether to echo the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
 	function twentythirteen_entry_date( $echo = true ) {
@@ -551,7 +552,7 @@ if ( ! function_exists( 'twentythirteen_the_attached_image' ) ) :
 	 */
 	function twentythirteen_the_attached_image() {
 		/**
-		 * Filter the image attachment size to use.
+		 * Filters the image attachment size to use.
 		 *
 		 * @since Twenty thirteen 1.0
 		 *
@@ -734,6 +735,7 @@ add_action( 'customize_register', 'twentythirteen_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void
@@ -746,6 +748,7 @@ function twentythirteen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void

@@ -1,0 +1,24 @@
+{
+	"apiVersion": 2,
+	"name": "core/missing",
+	"category": "text",
+	"attributes": {
+		"originalName": {
+			"type": "string"
+		},
+		"originalUndelimitedContent": {
+			"type": "string"
+		},
+		"originalContent": {
+			"type": "string",
+			"source": "html"
+		}
+	},
+	"supports": {
+		"className": false,
+		"customClassName": false,
+		"inserter": false,
+		"html": false,
+		"reusable": false
+	}
+}

@@ -96,8 +96,8 @@ class WP_Tax_Query {
 	 *
 	 *     @type string $relation Optional. The MySQL keyword used to join
 	 *                            the clauses of the query. Accepts 'AND', or 'OR'. Default 'AND'.
-	 *     @type array {
-	 *         Optional. An array of first-order clause parameters, or another fully-formed tax query.
+	 *     @type array  ...$0 {
+	 *         An array of first-order clause parameters, or another fully-formed tax query.
 	 *
 	 *         @type string           $taxonomy         Taxonomy being queried. Optional when field=term_taxonomy_id.
 	 *         @type string|int|array $terms            Term or terms to filter by.
@@ -497,8 +497,8 @@ class WP_Tax_Query {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @param array       $clause       Query clause.
-	 * @param array       $parent_query Parent query of $clause.
+	 * @param array $clause       Query clause.
+	 * @param array $parent_query Parent query of $clause.
 	 * @return string|false Table alias if found, otherwise false.
 	 */
 	protected function find_compatible_table_alias( $clause, $parent_query ) {

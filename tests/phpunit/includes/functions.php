@@ -314,5 +314,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

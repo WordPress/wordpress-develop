@@ -89,7 +89,7 @@ if ( $action ) {
 			echo '<div class="wrap">';
 			echo '<h1>' . esc_html( $title ) . '</h1>';
 
-			$url = self_admin_url( 'update.php?action=update-selected-themes&amp;themes=' . urlencode( join( ',', $themes ) ) );
+			$url = self_admin_url( 'update.php?action=update-selected-themes&amp;themes=' . urlencode( implode( ',', $themes ) ) );
 			$url = wp_nonce_url( $url, 'bulk-update-themes' );
 
 			echo "<iframe src='$url' style='width: 100%; height:100%; min-height:850px;'></iframe>";
@@ -302,9 +302,26 @@ get_current_screen()->add_help_tab(
 	)
 );
 
+$help_sidebar_autoupdates = '';
+
+if ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) {
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'plugins-themes-auto-updates',
+			'title'   => __( 'Auto-updates' ),
+			'content' =>
+				'<p>' . __( 'Auto-updates can be enabled or disabled for each individual theme. Themes with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>' .
+				'<p>' . __( 'Please note: Third-party themes and plugins, or custom code, may override WordPress scheduling.' ) . '</p>',
+		)
+	);
+
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+}
+
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
 	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Themes_Screen">Documentation on Network Themes</a>' ) . '</p>' .
+	$help_sidebar_autoupdates .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -335,8 +352,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $s ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $s ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

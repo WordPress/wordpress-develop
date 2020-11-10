@@ -13,7 +13,7 @@
  *
  * @since 2.6.0
  *
- * @param bool $update Are we updating a pre-existing post?
+ * @param bool  $update    Are we updating a pre-existing post?
  * @param array $post_data Array of post data. Defaults to the contents of $_POST.
  * @return array|WP_Error Array of post data on success, WP_Error on failure.
  */
@@ -224,11 +224,16 @@ function _wp_get_allowed_postdata( $post_data = null ) {
 /**
  * Update an existing post with values provided in $_POST.
  *
+ * If post data is passed as an argument, it is treated as an array of data
+ * keyed appropriately for turning into a post object.
+ *
+ * If post data is not passed, the $_POST global variable is used instead.
+ *
  * @since 1.5.0
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array $post_data Optional.
+ * @param array $post_data Optional. Defaults to the $_POST global.
  * @return int Post ID.
  */
 function edit_post( $post_data = null ) {
@@ -675,17 +680,31 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	}
 
 	if ( $create_in_db ) {
+		if ( post_type_supports( $post_type, 'title' ) ) {
+			$default_title = __( 'Auto Draft' );
+		} else {
+			$default_title = __( '(no title supported)' );
+		}
+
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => __( 'Auto Draft' ),
+				'post_title'  => $default_title,
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
-			)
+			),
+			false,
+			true
 		);
 		$post    = get_post( $post_id );
-		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
+
+		if ( current_theme_supports( 'post-formats' )
+			&& post_type_supports( $post->post_type, 'post-formats' )
+			&& get_option( 'default_post_format' )
+		) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
+
+		wp_after_insert_post( $post, false );
 
 		// Schedule auto-draft cleanup.
 		if ( ! wp_next_scheduled( 'wp_scheduled_auto_draft_delete' ) ) {
@@ -1327,9 +1346,9 @@ function postbox_classes( $box_id, $screen_id ) {
  *
  * @since 2.5.0
  *
- * @param int    $id    Post ID or post object.
- * @param string $title Optional. Title to override the post's current title when generating the post name. Default null.
- * @param string $name  Optional. Name to override the post name. Default null.
+ * @param int|WP_Post $id    Post ID or post object.
+ * @param string      $title Optional. Title to override the post's current title when generating the post name. Default null.
+ * @param string      $name  Optional. Name to override the post name. Default null.
  * @return array {
  *     Array containing the sample permalink with placeholder for the post name, and the post name.
  *
@@ -1500,13 +1519,13 @@ function get_sample_permalink_html( $id, $new_title = null, $new_slug = null ) {
 }
 
 /**
- * Output HTML for the post thumbnail meta-box.
+ * Returns HTML for the post thumbnail meta box.
  *
  * @since 2.9.0
  *
- * @param int $thumbnail_id ID of the attachment used for thumbnail
- * @param int|WP_Post $post Optional. The post ID or object associated with the thumbnail, defaults to global $post.
- * @return string html
+ * @param int         $thumbnail_id ID of the attachment used for thumbnail
+ * @param int|WP_Post $post         Optional. The post ID or object associated with the thumbnail, defaults to global $post.
+ * @return string The post thumbnail HTML.
  */
 function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 	$_wp_additional_image_sizes = wp_get_additional_image_sizes();
@@ -1531,15 +1550,12 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		 *
 		 * Note: When a theme adds 'post-thumbnail' support, a special 'post-thumbnail'
 		 * image size is registered, which differs from the 'thumbnail' image size
-		 * managed via the Settings > Media screen. See the `$size` parameter description
-		 * for more information on default values.
+		 * managed via the Settings > Media screen.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string|array $size         Post thumbnail image size to display in the meta box. Accepts any valid
-		 *                                   image size, or an array of width and height values in pixels (in that order).
-		 *                                   If the 'post-thumbnail' size is set, default is 'post-thumbnail'. Otherwise,
-		 *                                   default is an array with 266 as both the height and width values.
+		 * @param string|int[] $size         Requested image size. Can be any registered image size name, or
+		 *                                   an array of width and height values in pixels (in that order).
 		 * @param int          $thumbnail_id Post thumbnail attachment ID.
 		 * @param WP_Post      $post         The post object associated with the thumbnail.
 		 */
@@ -1580,7 +1596,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
  *
  * @since 2.5.0
  *
- * @param int $post_id ID of the post to check for editing.
+ * @param int|WP_Post $post_id ID or object of the post to check for editing.
  * @return int|false ID of the user with lock. False if the post does not exist, post is not locked,
  *                   the user with lock does not exist, or the post is locked by current user.
  */
@@ -1618,7 +1634,7 @@ function wp_check_post_lock( $post_id ) {
  *
  * @since 2.5.0
  *
- * @param int $post_id ID of the post being edited.
+ * @param int|WP_Post $post_id ID or object of the post being edited.
  * @return array|false Array of the lock time and user ID. False if the post does not exist, or
  *                     there is no current user.
  */
@@ -1736,10 +1752,10 @@ function _admin_notice_post_locked() {
 		<?php
 		if ( $override ) {
 			/* translators: %s: User's display name. */
-			printf( __( '%s is already editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
+			printf( __( '%s is currently editing this post. Do you want to take over?' ), esc_html( $user->display_name ) );
 		} else {
 			/* translators: %s: User's display name. */
-			printf( __( '%s is already editing this post.' ), esc_html( $user->display_name ) );
+			printf( __( '%s is currently editing this post.' ), esc_html( $user->display_name ) );
 		}
 		?>
 		</p>
@@ -1921,7 +1937,7 @@ function post_preview() {
 		}
 
 		if ( isset( $_POST['_thumbnail_id'] ) ) {
-			$query_args['_thumbnail_id'] = ( intval( $_POST['_thumbnail_id'] ) <= 0 ) ? '-1' : intval( $_POST['_thumbnail_id'] );
+			$query_args['_thumbnail_id'] = ( (int) $_POST['_thumbnail_id'] <= 0 ) ? '-1' : (int) $_POST['_thumbnail_id'];
 		}
 	}
 
@@ -2083,7 +2099,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 		);
 
 		if ( ! empty( $_term ) ) {
-			$clean_terms[] = intval( $_term[0] );
+			$clean_terms[] = (int) $_term[0];
 		} else {
 			// No existing term was found, so pass the string. A new term will be created.
 			$clean_terms[] = $term;
@@ -2122,7 +2138,7 @@ function use_block_editor_for_post( $post ) {
 	$use_block_editor = use_block_editor_for_post_type( $post->post_type );
 
 	/**
-	 * Filter whether a post is able to be edited in the block editor.
+	 * Filters whether a post is able to be edited in the block editor.
 	 *
 	 * @since 5.0.0
 	 *
@@ -2158,7 +2174,7 @@ function use_block_editor_for_post_type( $post_type ) {
 	}
 
 	/**
-	 * Filter whether a post is able to be edited in the block editor.
+	 * Filters whether a post is able to be edited in the block editor.
 	 *
 	 * @since 5.0.0
 	 *
@@ -2179,39 +2195,39 @@ function use_block_editor_for_post_type( $post_type ) {
 function get_block_categories( $post ) {
 	$default_categories = array(
 		array(
-			'slug'  => 'common',
-			'title' => __( 'Common Blocks' ),
+			'slug'  => 'text',
+			'title' => _x( 'Text', 'block category' ),
 			'icon'  => null,
 		),
 		array(
-			'slug'  => 'formatting',
-			'title' => __( 'Formatting' ),
+			'slug'  => 'media',
+			'title' => _x( 'Media', 'block category' ),
 			'icon'  => null,
 		),
 		array(
-			'slug'  => 'layout',
-			'title' => __( 'Layout Elements' ),
+			'slug'  => 'design',
+			'title' => _x( 'Design', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'widgets',
-			'title' => __( 'Widgets' ),
+			'title' => _x( 'Widgets', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'embed',
-			'title' => __( 'Embeds' ),
+			'title' => _x( 'Embeds', 'block category' ),
 			'icon'  => null,
 		),
 		array(
 			'slug'  => 'reusable',
-			'title' => __( 'Reusable Blocks' ),
+			'title' => _x( 'Reusable Blocks', 'block category' ),
 			'icon'  => null,
 		),
 	);
 
 	/**
-	 * Filter the default array of block categories.
+	 * Filters the default array of block categories.
 	 *
 	 * @since 5.0.0
 	 *
@@ -2234,11 +2250,25 @@ function get_block_categories( $post ) {
 function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	$blocks         = array();
-	$keys_to_pick   = array( 'title', 'description', 'icon', 'category', 'keywords', 'parent', 'supports', 'attributes', 'styles', 'textdomain', 'example' );
+	$fields_to_pick = array(
+		'title'            => 'title',
+		'description'      => 'description',
+		'icon'             => 'icon',
+		'category'         => 'category',
+		'keywords'         => 'keywords',
+		'parent'           => 'parent',
+		'supports'         => 'supports',
+		'attributes'       => 'attributes',
+		'provides_context' => 'providesContext',
+		'uses_context'     => 'usesContext',
+		'styles'           => 'styles',
+		'textdomain'       => 'textdomain',
+		'example'          => 'example',
+	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
-		foreach ( $keys_to_pick as $key ) {
-			if ( ! isset( $block_type->{ $key } ) ) {
+		foreach ( $fields_to_pick as $field => $key ) {
+			if ( ! isset( $block_type->{ $field } ) ) {
 				continue;
 			}
 
@@ -2246,7 +2276,7 @@ function get_block_editor_server_block_settings() {
 				$blocks[ $block_name ] = array();
 			}
 
-			$blocks[ $block_name ][ $key ] = $block_type->{ $key };
+			$blocks[ $block_name ][ $key ] = $block_type->{ $field };
 		}
 	}
 

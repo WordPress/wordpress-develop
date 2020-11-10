@@ -36,6 +36,20 @@ if ( isset( $_GET['dt'] ) ) {
 	}
 }
 
+if ( isset( $_REQUEST['c'] ) ) {
+	$comment_id = absint( $_REQUEST['c'] );
+	$comment    = get_comment( $comment_id );
+
+	// Prevent actions on a comment associated with a trashed post.
+	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+		wp_die(
+			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
+		);
+	}
+} else {
+	$comment = null;
+}
+
 switch ( $action ) {
 
 	case 'editcomment':
@@ -60,9 +74,6 @@ switch ( $action ) {
 		wp_enqueue_script( 'comment' );
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
-		$comment_id = absint( $_GET['c'] );
-
-		$comment = get_comment( $comment_id );
 		if ( ! $comment ) {
 			comment_footer_die( __( 'Invalid comment ID.' ) . sprintf( ' <a href="%s">' . __( 'Go back' ) . '</a>.', 'javascript:history.go(-1)' ) );
 		}
@@ -87,9 +98,6 @@ switch ( $action ) {
 	case 'spam':
 		$title = __( 'Moderate Comment' );
 
-		$comment_id = absint( $_GET['c'] );
-
-		$comment = get_comment( $comment_id );
 		if ( ! $comment ) {
 			wp_redirect( admin_url( 'edit-comments.php?error=1' ) );
 			die();
@@ -121,7 +129,7 @@ switch ( $action ) {
 		switch ( $action ) {
 			case 'spam':
 				$caution_msg = __( 'You are about to mark the following comment as spam:' );
-				$button      = _x( 'Mark as Spam', 'comment' );
+				$button      = _x( 'Mark as spam', 'comment' );
 				break;
 			case 'trash':
 				$caution_msg = __( 'You are about to move the following comment to the Trash:' );
@@ -129,11 +137,11 @@ switch ( $action ) {
 				break;
 			case 'delete':
 				$caution_msg = __( 'You are about to delete the following comment:' );
-				$button      = __( 'Permanently Delete Comment' );
+				$button      = __( 'Permanently delete comment' );
 				break;
 			default:
 				$caution_msg = __( 'You are about to approve the following comment:' );
-				$button      = __( 'Approve Comment' );
+				$button      = __( 'Approve comment' );
 				break;
 		}
 
@@ -175,7 +183,7 @@ switch ( $action ) {
 </tr>
 <?php } ?>
 <tr>
-	<th scope="row"><?php /* translators: Column name or table row header. */ _e( 'In Response To' ); ?></th>
+	<th scope="row"><?php /* translators: Column name or table row header. */ _e( 'In response to' ); ?></th>
 	<td>
 		<?php
 		$post_id = $comment->comment_post_ID;
@@ -207,9 +215,9 @@ switch ( $action ) {
 		$submitted = sprintf(
 			/* translators: 1: Comment date, 2: Comment time. */
 			__( '%1$s at %2$s' ),
-			/* translators: Comment date format. See https://www.php.net/date */
+			/* translators: Comment date format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'Y/m/d' ), $comment ),
-			/* translators: Comment time format. See https://www.php.net/date */
+			/* translators: Comment time format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
 		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {
@@ -335,7 +343,10 @@ switch ( $action ) {
 
 		check_admin_referer( 'update-comment_' . $comment_id );
 
-		edit_comment();
+		$updated = edit_comment();
+		if ( is_wp_error( $updated ) ) {
+			wp_die( $updated->get_error_message() );
+		}
 
 		$location = ( empty( $_POST['referredby'] ) ? "edit-comments.php?p=$comment_post_id" : $_POST['referredby'] ) . '#comment-' . $comment_id;
 

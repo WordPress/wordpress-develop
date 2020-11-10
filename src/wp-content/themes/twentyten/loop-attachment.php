@@ -24,7 +24,7 @@ if ( have_posts() ) {
 				<?php
 				if ( ! empty( $post->post_parent ) ) :
 					/* translators: %s: Post title. */
-					$post_tile = sprintf( __( 'Return to %s', 'twentyten' ), strip_tags( get_the_title( $post->post_parent ) ) );
+					$post_tile = sprintf( __( 'Go to %s', 'twentyten' ), strip_tags( get_the_title( $post->post_parent ) ) );
 					?>
 					<p class="page-title"><a href="<?php echo esc_url( get_permalink( $post->post_parent ) ); ?>" title="<?php echo esc_attr( $post_title ); ?>" rel="gallery">
 						<?php
@@ -123,7 +123,7 @@ if ( have_posts() ) {
 						<p class="attachment"><a href="<?php echo esc_url( $next_attachment_url ); ?>" title="<?php the_title_attribute(); ?>" rel="attachment">
 							<?php
 							/**
-							 * Filter the Twenty Ten default attachment width.
+							 * Filters the Twenty Ten default attachment width.
 							 *
 							 * @since Twenty Ten 1.0
 							 *
@@ -131,7 +131,7 @@ if ( have_posts() ) {
 							 */
 							$attachment_width = apply_filters( 'twentyten_attachment_size', 900 );
 							/**
-							 * Filter the Twenty Ten default attachment height.
+							 * Filters the Twenty Ten default attachment height.
 							 *
 							 * @since Twenty Ten 1.0
 							 *

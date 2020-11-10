@@ -44,7 +44,7 @@ if ( is_multisite() ) :
 
 			delete_transient( 'dirsize_cache' );
 
-			$this->assertEquals( $size, get_space_used() );
+			$this->assertSame( $size, get_space_used() );
 			$upload_dir = wp_upload_dir();
 			$this->remove_added_uploads();
 			$this->delete_folders( $upload_dir['basedir'] );
@@ -79,7 +79,7 @@ if ( is_multisite() ) :
 
 			delete_transient( 'dirsize_cache' );
 
-			$this->assertEquals( $space_used, get_space_used() );
+			$this->assertSame( $space_used, get_space_used() );
 
 			// Switch back to the new site to remove the uploaded file.
 			switch_to_blog( $blog_id );
@@ -92,7 +92,7 @@ if ( is_multisite() ) :
 		function test_get_space_used_pre_get_spaced_used_filter() {
 			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
 
-			$this->assertEquals( 300, get_space_used() );
+			$this->assertSame( 300, get_space_used() );
 
 			remove_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
 		}

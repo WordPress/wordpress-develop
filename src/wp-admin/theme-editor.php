@@ -200,7 +200,7 @@ if ( $file_description !== $file_show ) {
 		<p><strong><?php _e( 'Did you know?' ); ?></strong></p>
 		<p>
 			<?php
-			echo sprintf(
+			printf(
 				/* translators: %s: Link to Custom CSS section in the Customizer. */
 				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
 				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
@@ -301,7 +301,7 @@ else :
 				<?php if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) : ?>
 					<div class="notice notice-warning inline">
 						<p>
-							<?php if ( is_writeable( $file ) ) : ?>
+							<?php if ( is_writable( $file ) ) : ?>
 								<strong><?php _e( 'Caution:' ); ?></strong>
 							<?php endif; ?>
 							<?php _e( 'This is a file in your current parent theme.' ); ?>
@@ -309,7 +309,7 @@ else :
 					</div>
 				<?php endif; ?>
 			</div>
-			<?php if ( is_writeable( $file ) ) : ?>
+			<?php if ( is_writable( $file ) ) : ?>
 				<p class="submit">
 					<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>
 					<span class="spinner"></span>
@@ -362,7 +362,7 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 						<?php
 						if ( ! $theme->parent() ) {
 							echo '<p>';
-							echo sprintf(
+							printf(
 								/* translators: %s: Link to documentation on child themes. */
 								__( 'If you need to tweak more than your theme&#8217;s CSS, you might want to try <a href="%s">making a child theme</a>.' ),
 								esc_url( __( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' ) )

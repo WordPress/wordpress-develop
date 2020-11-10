@@ -53,7 +53,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( isset( $_GET['action'] ) ) {
 	/** This action is documented in wp-admin/network/edit.php */
@@ -117,7 +117,7 @@ if ( isset( $_GET['action'] ) ) {
 					<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
 					<input type="hidden" name="_wp_http_referer" value="<?php echo esc_attr( wp_get_referer() ); ?>" />
 					<?php wp_nonce_field( $site_action . '_' . $id, '_wpnonce', false ); ?>
-					<p><?php echo sprintf( $manage_actions[ $site_action ], $site_address ); ?></p>
+					<p><?php printf( $manage_actions[ $site_action ], $site_address ); ?></p>
 					<?php submit_button( __( 'Confirm' ), 'primary' ); ?>
 				</form>
 			</div>
@@ -371,8 +371,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $s ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $s ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

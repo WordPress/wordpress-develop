@@ -58,7 +58,7 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
-		$this->assertEquals( $expected, $response['data'] );
+		$this->assertSame( $expected, $response['data'] );
 	}
 
 	/**
@@ -113,6 +113,6 @@ class Tests_Ajax_Attachments extends WP_Ajax_UnitTestCase {
 
 		// Ensure everything is correct.
 		$this->assertTrue( $response['success'] );
-		$this->assertEquals( $expected, $response['data'] );
+		$this->assertSame( $expected, $response['data'] );
 	}
 }

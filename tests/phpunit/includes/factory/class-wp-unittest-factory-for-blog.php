@@ -40,12 +40,12 @@ class WP_UnitTest_Factory_For_Blog extends WP_UnitTest_Factory_For_Thing {
 		}
 
 		if ( isset( $args['meta'] ) ) {
-			// The `$site_data_whitelist` matches the one used in `wpmu_create_blog()`.
-			$site_data_whitelist = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
+			// The `$allowed_data_fields` matches the one used in `wpmu_create_blog()`.
+			$allowed_data_fields = array( 'public', 'archived', 'mature', 'spam', 'deleted', 'lang_id' );
 
 			foreach ( $args['meta'] as $key => $value ) {
-				// Promote whitelisted keys to top-level arguments, add others to the options array.
-				if ( in_array( $key, $site_data_whitelist, true ) ) {
+				// Promote allowed keys to top-level arguments, add others to the options array.
+				if ( in_array( $key, $allowed_data_fields, true ) ) {
 					$args[ $key ] = $value;
 				} else {
 					$args['options'][ $key ] = $value;

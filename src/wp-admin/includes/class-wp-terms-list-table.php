@@ -129,7 +129,12 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 		$this->set_pagination_args(
 			array(
-				'total_items' => wp_count_terms( $this->screen->taxonomy, compact( 'search' ) ),
+				'total_items' => wp_count_terms(
+					array(
+						'taxonomy' => $this->screen->taxonomy,
+						'search'   => $search,
+					)
+				),
 				'per_page'    => $tags_per_page,
 			)
 		);
@@ -269,13 +274,13 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 	/**
 	 * @param string $taxonomy
-	 * @param array $terms
-	 * @param array $children
-	 * @param int   $start
-	 * @param int   $per_page
-	 * @param int   $count
-	 * @param int   $parent
-	 * @param int   $level
+	 * @param array  $terms
+	 * @param array  $children
+	 * @param int    $start
+	 * @param int    $per_page
+	 * @param int    $count
+	 * @param int    $parent
+	 * @param int    $level
 	 */
 	private function _rows( $taxonomy, $terms, &$children, $start, $per_page, &$count, $parent = 0, $level = 0 ) {
 
@@ -332,8 +337,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 
 	/**
 	 * @global string $taxonomy
-	 * @param WP_Term $tag Term object.
-	 * @param int $level
+	 * @param WP_Term $tag   Term object.
+	 * @param int     $level
 	 */
 	public function single_row( $tag, $level = 0 ) {
 		global $taxonomy;
@@ -600,8 +605,8 @@ class WP_Terms_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * @param WP_Term $tag Term object.
-	 * @param string $column_name
+	 * @param WP_Term $tag         Term object.
+	 * @param string  $column_name Name of the column.
 	 * @return string
 	 */
 	public function column_default( $tag, $column_name ) {

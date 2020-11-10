@@ -65,13 +65,6 @@ ul.add-menu-item-tabs li {
 	position: relative;
 }
 
-.blank-slate .menu-settings {
-	border: none;
-	margin-top: 0;
-	padding-top: 0;
-	overflow: hidden;
-}
-
 .is-submenu {
 	color: #555d66; /* #fafafa background */
 	font-style: italic;
@@ -189,7 +182,6 @@ ul.add-menu-item-tabs li {
 	display: inline-block;
 	vertical-align: middle;
 	margin-right: 7px;
-	font-style: italic;
 }
 
 .nav-menus-php #post-body div.updated,
@@ -453,7 +445,7 @@ ul.add-menu-item-tabs li {
 	padding: 10px 15px;
 	height: auto;
 	min-height: 20px;
-	width: 382px;
+	max-width: 382px;
 	line-height: 2.30769230;
 	overflow: hidden;
 	word-wrap: break-word;
@@ -647,8 +639,8 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 
 .menu-item-settings {
 	display: block;
-	width: 402px;
-	padding: 10px 0 10px 10px;
+	max-width: 392px;
+	padding: 10px;
 	position: relative;
 	z-index: 10; /* Keep .item-title's shadow from appearing on top of .menu-item-settings */
 	border: 1px solid #ccd0d4;
@@ -664,13 +656,11 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 .field-move-visual-label {
 	float: left;
 	margin-right: 4px;
-	font-style: italic;
 }
 
 .menu-item-settings .field-move .button-link {
 	display: none;
 	margin: 0 2px;
-	font-style: italic;
 }
 
 .menu-item-edit-active .menu-item-settings {
@@ -702,7 +692,6 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	border: 1px solid #ddd;
 	color: #72777c;
 	font-size: 12px;
-	font-style: italic;
 }
 
 .link-to-original a {
@@ -721,11 +710,15 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 }
 
 .description-thin {
-	width: 190px;
+	width: calc(50% - 5px);
+}
+
+.menu-item-settings .description-thin + .description-thin {
+	margin-right: 0;
 }
 
 .description-wide {
-	width: 390px;
+	width: 100%;
 }
 
 .menu-item-actions {
@@ -749,10 +742,6 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 	float: right;
 }
 
-.nav-menus-php .blank-slate .menu-settings {
-	display: none;
-}
-
 /* Same as the Publish Meta Box #delete-action */
 .nav-menus-php .delete-action {
 	float: left;
@@ -774,21 +763,17 @@ body.menu-max-depth-11 { min-width: 1280px !important; }
 /* =Media Queries
 -------------------------------------------------------------- */
 
-@media only screen and (min-width: 769px) and (max-width: 1000px){
+@media only screen and (min-width: 769px) and (max-width: 1000px) {
 	body.menu-max-depth-0 {
 		min-width: 0 !important;
 	}
 
-	#menu-management-liquid{
+	#menu-management-liquid {
 		width: 100%;
 	}
 
-	.nav-menus-php #post-body-content{
+	.nav-menus-php #post-body-content {
 		min-width: 0;
-	}
-
-	.menu-item-bar .menu-item-handle{
-		width: 90%;
 	}
 }
 

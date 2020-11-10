@@ -37,17 +37,62 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
-if ( version_compare( tests_get_phpunit_version(), '5.4', '<' ) || version_compare( tests_get_phpunit_version(), '8.0', '>=' ) ) {
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
+	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+	exit( 1 );
+}
+
+$phpunit_version = tests_get_phpunit_version();
+
+if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
 	printf(
 		"Error: Looks like you're using PHPUnit %s. WordPress requires at least PHPUnit 5.4 and is currently only compatible with PHPUnit up to 7.x.\n",
-		tests_get_phpunit_version()
+		$phpunit_version
 	);
 	echo "Please use the latest PHPUnit version from the 7.x branch.\n";
 	exit( 1 );
 }
 
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+$required_extensions = array(
+	'gd',
+);
+$missing_extensions  = array();
+
+foreach ( $required_extensions as $extension ) {
+	if ( ! extension_loaded( $extension ) ) {
+		$missing_extensions[] = $extension;
+	}
+}
+
+if ( $missing_extensions ) {
+	printf(
+		"Error: The following required PHP extensions are missing from the testing environment: %s.\n",
+		implode( ', ', $missing_extensions )
+	);
+	echo "Please make sure they are installed and enabled.\n",
+	exit( 1 );
+}
+
+$required_constants = array(
+	'WP_TESTS_DOMAIN',
+	'WP_TESTS_EMAIL',
+	'WP_TESTS_TITLE',
+	'WP_PHP_BINARY',
+);
+$missing_constants  = array();
+
+foreach ( $required_constants as $constant ) {
+	if ( ! defined( $constant ) ) {
+		$missing_constants[] = $constant;
+	}
+}
+
+if ( $missing_constants ) {
+	printf(
+		"Error: The following required constants are not defined: %s.\n",
+		implode( ', ', $missing_constants )
+	);
+	echo "Please check out `wp-tests-config-sample.php` for an example.\n",
 	exit( 1 );
 }
 
@@ -57,7 +102,11 @@ define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
-define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
+define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
+
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
+}
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );
@@ -121,6 +170,10 @@ $GLOBALS['_wp_die_disabled'] = false;
 tests_add_filter( 'wp_die_handler', '_wp_die_handler_filter' );
 // Use the Spy REST Server instead of default.
 tests_add_filter( 'wp_rest_server_class', '_wp_rest_server_class_filter' );
+// Prevent updating translations asynchronously.
+tests_add_filter( 'async_update_translation', '__return_false' );
+// Disable background updates.
+tests_add_filter( 'automatic_updater_disabled', '__return_true' );
 
 // Preset WordPress options defined in bootstrap file.
 // Used to activate themes, plugins, as well as other settings.
@@ -152,13 +205,18 @@ require __DIR__ . '/testcase-rest-controller.php';
 require __DIR__ . '/testcase-rest-post-type-controller.php';
 require __DIR__ . '/testcase-xmlrpc.php';
 require __DIR__ . '/testcase-ajax.php';
+require __DIR__ . '/testcase-block-supports.php';
 require __DIR__ . '/testcase-canonical.php';
+require __DIR__ . '/testcase-xml.php';
 require __DIR__ . '/exceptions.php';
 require __DIR__ . '/utils.php';
 require __DIR__ . '/spy-rest-server.php';
 require __DIR__ . '/class-wp-rest-test-search-handler.php';
 require __DIR__ . '/class-wp-rest-test-configurable-controller.php';
 require __DIR__ . '/class-wp-fake-block-type.php';
+require __DIR__ . '/class-wp-sitemaps-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-empty-test-provider.php';
+require __DIR__ . '/class-wp-sitemaps-large-test-provider.php';
 
 /**
  * A class to handle additional command line arguments passed to the script.

@@ -122,8 +122,8 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 					'section' => 'colors',
 					'label'   => __( 'Primary Color', 'twentytwenty' ),
 					'choices' => array(
-						'default' => __( 'Default', 'twentytwenty' ),
-						'custom'  => __( 'Custom', 'twentytwenty' ),
+						'default' => _x( 'Default', 'color', 'twentytwenty' ),
+						'custom'  => _x( 'Custom', 'color', 'twentytwenty' ),
 					),
 				)
 			);
@@ -416,7 +416,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		 * @access public
 		 * @since Twenty Twenty 1.0
 		 * @param array $value The value we want to sanitize.
-		 * @return array       Returns sanitized value. Each item in the array gets sanitized separately.
+		 * @return array Returns sanitized value. Each item in the array gets sanitized separately.
 		 */
 		public static function sanitize_accent_accessible_colors( $value ) {
 
@@ -438,8 +438,7 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		 *
 		 * @param string $input The input from the setting.
 		 * @param object $setting The selected setting.
-		 *
-		 * @return string $input|$setting->default The input from the setting or the default setting.
+		 * @return string The input from the setting or the default setting.
 		 */
 		public static function sanitize_select( $input, $setting ) {
 			$input   = sanitize_key( $input );
@@ -451,7 +450,6 @@ if ( ! class_exists( 'TwentyTwenty_Customize' ) ) {
 		 * Sanitize boolean for checkbox.
 		 *
 		 * @param bool $checked Whether or not a box is checked.
-		 *
 		 * @return bool
 		 */
 		public static function sanitize_checkbox( $checked ) {
@@ -505,7 +503,7 @@ if ( ! function_exists( 'twentytwenty_customize_partial_site_logo' ) ) {
  */
 function twentytwenty_customize_opacity_range() {
 	/**
-	 * Filter the input attributes for opacity
+	 * Filters the input attributes for opacity
 	 *
 	 * @param array $attrs {
 	 *     The attributes

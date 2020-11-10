@@ -52,13 +52,15 @@ function allow_subdomain_install() {
  */
 function allow_subdirectory_install() {
 	global $wpdb;
-		/**
-		 * Filters whether to enable the subdirectory installation feature in Multisite.
-		 *
-		 * @since 3.0.0
-		 *
-		 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite. Default is false.
-		 */
+
+	/**
+	 * Filters whether to enable the subdirectory installation feature in Multisite.
+	 *
+	 * @since 3.0.0
+	 *
+	 * @param bool $allow Whether to enable the subdirectory installation feature in Multisite.
+	 *                    Default false.
+	 */
 	if ( apply_filters( 'allow_subdirectory_install', false ) ) {
 		return true;
 	}
@@ -97,8 +99,9 @@ function get_clean_basedomain() {
 /**
  * Prints step 1 for Network installation process.
  *
- * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such. Navigating to Tools > Network
- *  should not be a sudden "Welcome to a new install process! Fill this out and click here." See also contextual help todo.
+ * @todo Realistically, step 1 should be a welcome screen explaining what a Network is and such.
+ *       Navigating to Tools > Network should not be a sudden "Welcome to a new install process!
+ *       Fill this out and click here." See also contextual help todo.
  *
  * @since 3.0.0
  *
@@ -142,7 +145,7 @@ function network_step1( $errors = false ) {
 			__( 'You cannot use port numbers such as %s.' ),
 			'<code>' . $has_ports . '</code>'
 		) . '</p>';
-		echo '<a href="' . esc_url( admin_url() ) . '">' . __( 'Return to Dashboard' ) . '</a>';
+		echo '<a href="' . esc_url( admin_url() ) . '">' . __( 'Go to Dashboard' ) . '</a>';
 		echo '</div>';
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 		die();

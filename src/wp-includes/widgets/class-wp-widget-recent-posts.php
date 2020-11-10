@@ -45,7 +45,8 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 			$args['widget_id'] = $this->id;
 		}
 
-		$title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : __( 'Recent Posts' );
+		$default_title = __( 'Recent Posts' );
+		$title         = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $default_title;
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
@@ -84,12 +85,27 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 			return;
 		}
 		?>
+
 		<?php echo $args['before_widget']; ?>
+
 		<?php
 		if ( $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
+
+		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+
+		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
+		$format = apply_filters( 'navigation_widgets_format', $format );
+
+		if ( 'html5' === $format ) {
+			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+			$title      = trim( strip_tags( $title ) );
+			$aria_label = $title ? $title : $default_title;
+			echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+		}
 		?>
+
 		<ul>
 			<?php foreach ( $r->posts as $recent_post ) : ?>
 				<?php
@@ -109,7 +125,12 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 				</li>
 			<?php endforeach; ?>
 		</ul>
+
 		<?php
+		if ( 'html5' === $format ) {
+			echo '</nav>';
+		}
+
 		echo $args['after_widget'];
 	}
 

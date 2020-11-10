@@ -35,7 +35,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, $q->get( 'category__in' ) );
 
 		$this->assertNotEmpty( $posts );
-		$this->assertEquals( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
 
 		$posts2 = $q->query( array( 'category__and' => array( $term_id, $term_id2 ) ) );
 		$this->assertNotEmpty( $q->get( 'category__and' ) );
@@ -96,8 +96,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		);
 
 		// Fourth post added in filter.
-		$this->assertEquals( 4, count( $query->posts ) );
-		$this->assertEquals( 4, $query->post_count );
+		$this->assertSame( 4, count( $query->posts ) );
+		$this->assertSame( 4, $query->post_count );
 
 		foreach ( $query->posts as $post ) {
 
@@ -105,10 +105,10 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			$this->assertTrue( is_a( $post, 'WP_Post' ) );
 
 			// Filters are raw.
-			$this->assertEquals( 'raw', $post->filter );
+			$this->assertSame( 'raw', $post->filter );
 
 			// Custom data added in the_posts filter is preserved.
-			$this->assertEquals( array( $post->ID, 'custom data' ), $post->custom_data );
+			$this->assertSame( array( $post->ID, 'custom data' ), $post->custom_data );
 		}
 
 		remove_filter( 'the_posts', array( $this, 'the_posts_filter' ) );
@@ -519,7 +519,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 		$actual_posts = $q->get_posts();
-		$this->assertEqualSets( $requested, $actual_posts );
+		$this->assertSameSets( $requested, $actual_posts );
 
 		$requested = array( $post_ids[1], $post_ids[2] );
 		$q->query(
@@ -529,7 +529,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 		$actual_posts = $q->get_posts();
-		$this->assertEqualSets( $requested, $actual_posts );
+		$this->assertSameSets( $requested, $actual_posts );
 	}
 
 	/**
@@ -613,7 +613,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -636,7 +636,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -652,15 +652,17 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		}
 
 		add_filter( 'split_the_query', '__return_true' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_true' );
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -677,15 +679,17 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		// ! $split_the_query
 		add_filter( 'split_the_query', '__return_false' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_false' );
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -718,7 +722,40 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$methd->setAccessible( true );
 		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
 
-		$this->assertEquals( $expected, $q->found_posts );
+		$this->assertSame( $expected, $q->found_posts );
 	}
 
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_not_string() {
+		$this->post_id = self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
+
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
+		$this->post_id = self::factory()->post->create();
+
+		add_filter( 'found_posts', '__return_empty_string' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		remove_filter( 'found_posts', '__return_empty_string' );
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
 }

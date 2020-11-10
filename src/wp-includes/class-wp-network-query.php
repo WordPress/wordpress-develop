@@ -169,7 +169,7 @@ class WP_Network_Query {
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
@@ -182,7 +182,7 @@ class WP_Network_Query {
 	 *
 	 * @since 4.6.0
 	 *
-	 * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+	 * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
 	 *                   or the number of networks when 'count' is passed as a query var.
 	 */
 	public function get_networks() {
@@ -200,18 +200,31 @@ class WP_Network_Query {
 		$network_data = null;
 
 		/**
-		 * Filter the network data before the query takes place.
+		 * Filters the network data before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default network queries.
+		 * Return a non-null value to bypass WordPress' default network queries.
 		 *
-		 * The expected return type from this filter depends on the value passed in the request query_vars.
-		 * When `$this->query_vars['count']` is set, the filter should return the network count as an int.
-		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of network ids.
-		 * Otherwise the filter should return an array of WP_Network objects.
+		 * The expected return type from this filter depends on the value passed
+		 * in the request query vars:
+		 * - When `$this->query_vars['count']` is set, the filter should return
+		 *   the network count as an integer.
+		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
+		 *   an array of network IDs.
+		 * - Otherwise the filter should return an array of WP_Network objects.
+		 *
+		 * Note that if the filter returns an array of network data, it will be assigned
+		 * to the `networks` property of the current WP_Network_Query instance.
+		 *
+		 * Filtering functions that require pagination information are encouraged to set
+		 * the `found_networks` and `max_num_pages` properties of the WP_Network_Query object,
+		 * passed to the filter by reference. If WP_Network_Query does not perform a database
+		 * query, it will not have enough information to generate these values itself.
 		 *
 		 * @since 5.2.0
+		 * @since 5.6.0 The returned array of network data is assigned to the `networks` property
+		 *              of the current WP_Network_Query instance.
 		 *
-		 * @param array|null       $network_data Return an array of network data to short-circuit WP's network query,
+		 * @param array|int|null   $network_data Return an array of network data to short-circuit WP's network query,
 		 *                                       the network count as an integer if `$this->query_vars['count']` is set,
 		 *                                       or null to allow WP to run its normal queries.
 		 * @param WP_Network_Query $this         The WP_Network_Query instance, passed by reference.
@@ -219,6 +232,10 @@ class WP_Network_Query {
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
 		if ( null !== $network_data ) {
+			if ( is_array( $network_data ) && ! $this->query_vars['count'] ) {
+				$this->networks = $network_data;
+			}
+
 			return $network_data;
 		}
 
@@ -257,7 +274,7 @@ class WP_Network_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $network_ids is actually a count in this case.
-			return intval( $network_ids );
+			return (int) $network_ids;
 		}
 
 		$network_ids = array_map( 'intval', $network_ids );
@@ -466,7 +483,7 @@ class WP_Network_Query {
 		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['groupby']} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
-			return intval( $wpdb->get_var( $this->request ) );
+			return (int) $wpdb->get_var( $this->request );
 		}
 
 		$network_ids = $wpdb->get_col( $this->request );
@@ -509,7 +526,6 @@ class WP_Network_Query {
 	 *
 	 * @param string   $string  Search string.
 	 * @param string[] $columns Array of columns to search.
-	 *
 	 * @return string Search SQL.
 	 */
 	protected function get_search_sql( $string, $columns ) {

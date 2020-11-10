@@ -343,7 +343,7 @@ class Custom_Image_Header {
 		?>
 <script type="text/javascript">
 (function($){
-	var default_color = '<?php echo $default_color; ?>',
+	var default_color = '<?php echo esc_js( $default_color ); ?>',
 		header_text_fields;
 
 	function pickColor(color) {
@@ -1490,7 +1490,7 @@ endif;
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param  array $object A crop attachment object.
+	 * @param array $object A crop attachment object.
 	 * @return int|false An attachment ID if one exists. False if none.
 	 */
 	public function get_previous_crop( $object ) {

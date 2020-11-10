@@ -86,6 +86,47 @@ function wp_fix_server_vars() {
 		$_SERVER['PHP_SELF'] = preg_replace( '/(\?.*)?$/', '', $_SERVER['REQUEST_URI'] );
 		$PHP_SELF            = $_SERVER['PHP_SELF'];
 	}
+
+	wp_populate_basic_auth_from_authorization_header();
+}
+
+/**
+ * Populates the Basic Auth server details from the Authorization header.
+ *
+ * Some servers running in CGI or FastCGI mode don't pass the Authorization
+ * header on to WordPress.  If it's been rewritten to the `HTTP_AUTHORIZATION` header,
+ * fill in the proper $_SERVER variables instead.
+ *
+ * @since 5.6.0
+ */
+function wp_populate_basic_auth_from_authorization_header() {
+	// If we don't have anything to pull from, return early.
+	if ( ! isset( $_SERVER['HTTP_AUTHORIZATION'] ) && ! isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
+		return;
+	}
+
+	// If either PHP_AUTH key is already set, do nothing.
+	if ( isset( $_SERVER['PHP_AUTH_USER'] ) || isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+		return;
+	}
+
+	// From our prior conditional, one of these must be set.
+	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+	// Test to make sure the pattern matches expected.
+	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
+		return;
+	}
+
+	// Removing `Basic ` the token would start six characters in.
+	$token    = substr( $header, 6 );
+	$userpass = base64_decode( $token );
+
+	list( $user, $pass ) = explode( ':', $userpass );
+
+	// Now shove them in the proper keys where we're expecting later on.
+	$_SERVER['PHP_AUTH_USER'] = $user;
+	$_SERVER['PHP_AUTH_PW']   = $pass;
 }
 
 /**
@@ -112,7 +153,11 @@ function wp_check_php_mysql_versions() {
 		exit( 1 );
 	}
 
-	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
+	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' )
+		// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
+		&& ( defined( 'WP_CONTENT_DIR' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' )
+			|| ! file_exists( ABSPATH . 'wp-content/db.php' ) )
+	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 		$args = array(
@@ -126,6 +171,72 @@ function wp_check_php_mysql_versions() {
 		);
 		exit( 1 );
 	}
+}
+
+/**
+ * Retrieves the current environment type.
+ *
+ * The type can be set via the `WP_ENVIRONMENT_TYPE` global system variable,
+ * or a constant of the same name.
+ *
+ * Possible values are 'local', 'development', 'staging', and 'production'.
+ * If not set, the type defaults to 'production'.
+ *
+ * @since 5.5.0
+ * @since 5.5.1 Added the 'local' type.
+ * @since 5.5.1 Removed the ability to alter the list of types.
+ *
+ * @return string The current environment type.
+ */
+function wp_get_environment_type() {
+	static $current_env = '';
+
+	if ( $current_env ) {
+		return $current_env;
+	}
+
+	$wp_environments = array(
+		'local',
+		'development',
+		'staging',
+		'production',
+	);
+
+	// Add a note about the deprecated WP_ENVIRONMENT_TYPES constant.
+	if ( defined( 'WP_ENVIRONMENT_TYPES' ) && function_exists( '_deprecated_argument' ) ) {
+		if ( function_exists( '__' ) ) {
+			/* translators: %s: WP_ENVIRONMENT_TYPES */
+			$message = sprintf( __( 'The %s constant is no longer supported.' ), 'WP_ENVIRONMENT_TYPES' );
+		} else {
+			$message = sprintf( 'The %s constant is no longer supported.', 'WP_ENVIRONMENT_TYPES' );
+		}
+
+		_deprecated_argument(
+			'define()',
+			'5.5.1',
+			$message
+		);
+	}
+
+	// Check if the environment variable has been set, if `getenv` is available on the system.
+	if ( function_exists( 'getenv' ) ) {
+		$has_env = getenv( 'WP_ENVIRONMENT_TYPE' );
+		if ( false !== $has_env ) {
+			$current_env = $has_env;
+		}
+	}
+
+	// Fetch the environment from a constant, this overrides the global system variable.
+	if ( defined( 'WP_ENVIRONMENT_TYPE' ) ) {
+		$current_env = WP_ENVIRONMENT_TYPE;
+	}
+
+	// Make sure the environment is an allowed one, and not accidentally set to an invalid value.
+	if ( ! in_array( $current_env, $wp_environments, true ) ) {
+		$current_env = 'production';
+	}
+
+	return $current_env;
 }
 
 /**
@@ -198,7 +309,7 @@ function wp_is_maintenance_mode() {
 
 	require ABSPATH . '.maintenance';
 	// If the $upgrading timestamp is older than 10 minutes, consider maintenance over.
-	if ( ( time() - $upgrading ) >= 600 ) {
+	if ( ( time() - $upgrading ) >= 10 * MINUTE_IN_SECONDS ) {
 		return false;
 	}
 
@@ -559,6 +670,8 @@ function wp_start_object_cache() {
 		require_once ABSPATH . WPINC . '/cache.php';
 	}
 
+	require_once ABSPATH . WPINC . '/cache-compat.php';
+
 	/*
 	 * If cache supports reset, reset instead of init if already
 	 * initialized. Reset signals to the cache that global IDs
@@ -650,7 +763,7 @@ function wp_get_mu_plugins() {
  * @since 3.0.0
  * @access private
  *
- * @return string[] $plugin_file Array of paths to plugin files relative to the plugins directory.
+ * @return string[] Array of paths to plugin files relative to the plugins directory.
  */
 function wp_get_active_and_valid_plugins() {
 	$plugins        = array();
@@ -820,7 +933,7 @@ function is_protected_endpoint() {
 		return true;
 	}
 
-	// Protect AJAX actions that could help resolve a fatal error should be available.
+	// Protect Ajax actions that could help resolve a fatal error should be available.
 	if ( is_protected_ajax_action() ) {
 		return true;
 	}
@@ -830,21 +943,22 @@ function is_protected_endpoint() {
 	 *
 	 * This filter is only fired when an endpoint is requested which is not already protected by
 	 * WordPress core. As such, it exclusively allows providing further protected endpoints in
-	 * addition to the admin backend, login pages and protected AJAX actions.
+	 * addition to the admin backend, login pages and protected Ajax actions.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected. Default false.
+	 * @param bool $is_protected_endpoint Whether the currently requested endpoint is protected.
+	 *                                    Default false.
 	 */
 	return (bool) apply_filters( 'is_protected_endpoint', false );
 }
 
 /**
- * Determines whether we are currently handling an AJAX action that should be protected against WSODs.
+ * Determines whether we are currently handling an Ajax action that should be protected against WSODs.
  *
  * @since 5.2.0
  *
- * @return bool True if the current AJAX action should be protected.
+ * @return bool True if the current Ajax action should be protected.
  */
 function is_protected_ajax_action() {
 	if ( ! wp_doing_ajax() ) {
@@ -867,13 +981,13 @@ function is_protected_ajax_action() {
 	);
 
 	/**
-	 * Filters the array of protected AJAX actions.
+	 * Filters the array of protected Ajax actions.
 	 *
-	 * This filter is only fired when doing AJAX and the AJAX request has an 'action' property.
+	 * This filter is only fired when doing Ajax and the Ajax request has an 'action' property.
 	 *
 	 * @since 5.2.0
 	 *
-	 * @param string[] $actions_to_protect Array of strings with AJAX actions to protect.
+	 * @param string[] $actions_to_protect Array of strings with Ajax actions to protect.
 	 */
 	$actions_to_protect = (array) apply_filters( 'wp_protected_ajax_actions', $actions_to_protect );
 
@@ -918,18 +1032,6 @@ function wp_magic_quotes() {
 	$_POST   = add_magic_quotes( $_POST );
 	$_COOKIE = add_magic_quotes( $_COOKIE );
 	$_SERVER = add_magic_quotes( $_SERVER );
-
-	/*
-	 * Revert the type change to string for two indexes which should retain their proper type.
-	 * Among other things, this preserves compatibility of WP with PHPUnit Code Coverage generation.
-	 */
-	if ( isset( $_SERVER['REQUEST_TIME'] ) ) {
-		$_SERVER['REQUEST_TIME'] = (int) $_SERVER['REQUEST_TIME'];
-	}
-
-	if ( isset( $_SERVER['REQUEST_TIME_FLOAT'] ) ) {
-		$_SERVER['REQUEST_TIME_FLOAT'] = (float) $_SERVER['REQUEST_TIME_FLOAT'];
-	}
 
 	// Force REQUEST to be GET + POST.
 	$_REQUEST = array_merge( $_GET, $_POST );
@@ -1135,8 +1237,6 @@ function get_current_network_id() {
  * @access private
  *
  * @global WP_Locale $wp_locale WordPress date and time locale object.
- *
- * @staticvar bool $loaded
  */
 function wp_load_translations_early() {
 	global $wp_locale;
@@ -1229,8 +1329,6 @@ function wp_load_translations_early() {
  *
  * @since 4.4.0
  *
- * @staticvar bool $installing
- *
  * @param bool $is_installing Optional. True to set WP into Installing mode, false to turn Installing mode off.
  *                            Omit this parameter if you only want to fetch the current status.
  * @return bool True if WP is installing, otherwise false. When a `$is_installing` is passed, the function will
@@ -1308,8 +1406,6 @@ function wp_convert_hr_to_bytes( $value ) {
  * Determines whether a PHP ini value is changeable at runtime.
  *
  * @since 4.6.0
- *
- * @staticvar array $ini_all
  *
  * @link https://www.php.net/manual/en/function.ini-get-all.php
  *
@@ -1395,17 +1491,30 @@ function wp_doing_cron() {
 }
 
 /**
- * Check whether variable is a WordPress Error.
+ * Checks whether the given variable is a WordPress Error.
  *
- * Returns true if $thing is an object of the WP_Error class.
+ * Returns whether `$thing` is an instance of the `WP_Error` class.
  *
  * @since 2.1.0
  *
- * @param mixed $thing Check if unknown variable is a WP_Error object.
- * @return bool True, if WP_Error. False, if not WP_Error.
+ * @param mixed $thing The variable to check.
+ * @return bool Whether the variable is an instance of WP_Error.
  */
 function is_wp_error( $thing ) {
-	return ( $thing instanceof WP_Error );
+	$is_wp_error = ( $thing instanceof WP_Error );
+
+	if ( $is_wp_error ) {
+		/**
+		 * Fires when `is_wp_error()` is called and it's an instance of `WP_Error`.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
+		 */
+		do_action( 'wp_error_checked', $thing );
+	}
+
+	return $is_wp_error;
 }
 
 /**
@@ -1486,11 +1595,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false !== strpos( $_SERVER['HTTP_ACCEPT'], 'application/json' ) ) {
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_media_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && wp_is_json_media_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 
@@ -1524,6 +1633,24 @@ function wp_is_jsonp_request() {
 
 	return $jsonp_enabled;
 
+}
+
+/**
+ * Checks whether a string is a valid JSON Media Type.
+ *
+ * @since 5.6.0
+ *
+ * @param string $media_type A Media Type string to check.
+ * @return bool True if string is a valid JSON Media Type.
+ */
+function wp_is_json_media_type( $media_type ) {
+	static $cache = array();
+
+	if ( ! isset( $cache[ $media_type ] ) ) {
+		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+	}
+
+	return $cache[ $media_type ];
 }
 
 /**
