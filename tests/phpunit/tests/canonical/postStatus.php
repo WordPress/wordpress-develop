@@ -228,6 +228,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		foreach ( $all_user_post_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
+				/*
+				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
+				 * to a canonical ugly version, these expected values can be changed.
+				 */
 				$data[] = array(
 					"page-$post_key",
 					$user,
@@ -260,6 +264,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		foreach ( $select_user_post_keys as $post_key ) {
 			foreach ( $select_allow_list as $user ) {
+				/*
+				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
+				 * to a canonical ugly version, these expected values can be changed.
+				 */
 				$data[] = array(
 					"page-$post_key",
 					$user,
@@ -290,6 +298,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 
 			foreach ( $select_block_list as $user ) {
+				/*
+				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
+				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 */
 				$data[] = array(
 					"page-$post_key",
 					$user,
@@ -322,6 +334,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		foreach ( $no_user_post_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
+				/*
+				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
+				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 */
 				$data[] = array(
 					"page-$post_key",
 					$user,
@@ -354,6 +370,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		foreach ( array( 'trash' ) as $post_key ) {
 			foreach ( $all_user_list as $user ) {
+				/*
+				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
+				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 */
 				$data[] = array(
 					"page-$post_key",
 					$user,
