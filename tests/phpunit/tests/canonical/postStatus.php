@@ -176,6 +176,326 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * Test canonical redirect does not reveal private posts presence.
+	 *
+	 * @ticket 5272
+	 * @dataProvider data_canonical_redirects_to_ugly_permalinks
+	 *
+	 * @param string $post_key  Post key used for creating fixtures.
+	 * @param string $user_role User role.
+	 * @param string $requested Requested URL.
+	 * @param string $expected  Expected URL.
+	 */
+	public function test_canonical_redirects_to_ugly_permalinks( $post_key, $user_role, $requested, $expected ) {
+		wp_set_current_user( self::$users[ $user_role ] );
+		$this->set_permalink_structure( '' );
+		$post = self::$posts[ $post_key ];
+		clean_post_cache( $post->ID );
+		if ( isset( self::$posts[ "{$post_key}-attachment" ] ) ) {
+			$attachment = self::$posts[ "{$post_key}-attachment" ];
+			clean_post_cache( $attachment->ID );
+
+			/*
+			* The dataProvider runs before the fixures are set up, therefore the
+			* post and attachment IDs are placeholders that needs to be replaced.
+			*/
+			$requested = str_replace( '%ID-A%', $attachment->ID, $requested );
+			$expected  = str_replace( '%ID-A%', $attachment->ID, $expected );
+		}
+
+		$requested = str_replace( '%ID%', $post->ID, $requested );
+		$expected  = str_replace( '%ID%', $post->ID, $expected );
+
+		$this->assertCanonical( $requested, $expected );
+	}
+
+	/**
+	 * Data provider for test_canonical_redirects_to_ugly_permalinks.
+	 *
+	 * @return array[] Array of arguments for tests {
+	 *     @type string $post_key  Post key used for creating fixtures.
+	 *     @type string $user_role User role.
+	 *     @type string $requested Requested URL.
+	 *     @type string $expected  Expected URL.
+	 * }
+	 */
+	function data_canonical_redirects_to_ugly_permalinks() {
+		$data = array();
+		$all_user_list     = array( 'anon', 'subscriber', 'author', 'content_author', 'contributor', 'editor', 'administrator' );
+		$select_allow_list = array( 'content_author', 'editor', 'administrator' );
+		$select_block_list = array( 'anon', 'subscriber', 'author', 'contributor' );
+		// All post/page keys
+		$all_user_post_keys    = array( 'publish' );
+		$select_user_post_keys = array( 'private', 'trac-5272-status' );
+		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
+
+		foreach ( $all_user_post_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss2&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss2&page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( $select_user_post_keys as $post_key ) {
+			foreach ( $select_allow_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss2&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss2&page_id=%ID%',
+				);
+			}
+
+			foreach ( $select_block_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( $no_user_post_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( array( 'trash' ) as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key",
+					$user,
+					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID-A%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?page_id=%ID%',
+					'/?page_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?feed=rss&page_id=%ID%',
+					'/?feed=rss&page_id=%ID%',
+				);
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Test canonical redirect does not reveal private slugs.
 	 *
 	 * @ticket 5272
