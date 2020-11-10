@@ -992,7 +992,7 @@ function admin_color_scheme_picker( $user_id ) {
 			<div class="color-option <?php echo ( $color == $current_color ) ? 'selected' : ''; ?>">
 				<input name="admin_color" id="admin_color_<?php echo esc_attr( $color ); ?>" type="radio" value="<?php echo esc_attr( $color ); ?>" class="tog" <?php checked( $color, $current_color ); ?> />
 				<input type="hidden" class="css_url" value="<?php echo esc_url( $color_info->url ); ?>" />
-				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
+				<input type="hidden" class="icon_colors" value="<?php echo esc_attr( (string) wp_json_encode( array( 'icons' => $color_info->icon_colors ) ) ); ?>" />
 				<label for="admin_color_<?php echo esc_attr( $color ); ?>"><?php echo esc_html( $color_info->name ); ?></label>
 				<table class="color-palette">
 					<tr>
@@ -1105,7 +1105,7 @@ function wp_check_locked_posts( $response, $data, $screen_id ) {
 
 			$user_id = wp_check_post_lock( $post_id );
 			if ( $user_id ) {
-				$user = get_userdata( $user_id );
+				$user = get_userdata( (int) $user_id );
 				if ( $user && current_user_can( 'edit_post', $post_id ) ) {
 					$send = array(
 						/* translators: %s: User's display name. */
@@ -1481,7 +1481,7 @@ function _wp_privacy_settings_filter_draft_page_titles( $title, $page ) {
  * @return array|false Array of PHP version data. False on failure.
  */
 function wp_check_php_version() {
-	$version = phpversion();
+	$version = (string) phpversion();
 	$key     = md5( $version );
 
 	$response = get_site_transient( 'php_check_' . $key );
