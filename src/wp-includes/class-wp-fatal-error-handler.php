@@ -52,17 +52,7 @@ class WP_Fatal_Error_Handler {
 				$handled = wp_recovery_mode()->handle_error( $error );
 			}
 
-			/**
-			 * Handle REST API fatal error.
-			 *
-			 * @since 5.7.0
-			 */
-			if ( wp_is_json_request() ) {
-				$this->send_rest_api_error_response( $error, $handled );
-				return;
-			}
-
-			// Display the PHP error template, or JSON error, if headers not sent or is JSON request.
+			// Display the PHP error template if headers not sent.
 			if ( is_admin() || ! headers_sent() ) {
 				$this->display_error_template( $error, $handled );
 			}
@@ -178,10 +168,25 @@ class WP_Fatal_Error_Handler {
 	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
 	 */
 	protected function display_default_error_template( $error, $handled ) {
+		if ( ! function_exists( '__' ) ) {
+			wp_load_translations_early();
+		}
 
-		$this->maybe_load_error_dependencies();
+		if ( ! function_exists( 'wp_die' ) ) {
+			require_once ABSPATH . WPINC . '/functions.php';
+		}
 
-		$message = $this->get_error_message( $handled );
+		if ( ! class_exists( 'WP_Error' ) ) {
+			require_once ABSPATH . WPINC . '/class-wp-error.php';
+		}
+
+		if ( true === $handled && wp_is_recovery_mode() ) {
+			$message = __( 'There has been a critical error on this website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.' );
+		} elseif ( is_protected_endpoint() ) {
+			$message = __( 'There has been a critical error on this website. Please check your site admin email inbox for instructions.' );
+		} else {
+			$message = __( 'There has been a critical error on this website.' );
+		}
 
 		$message = sprintf(
 			'<p>%s</p><p><a href="%s">%s</a></p>',
@@ -226,108 +231,5 @@ class WP_Fatal_Error_Handler {
 		);
 
 		wp_die( $wp_error, '', $args );
-	}
-
-	/**
-	 * Sends default error response to fatal error that occurred during REST API request.
-	 *
-	 * It calls {@see wp_die()} with a message indicating that the site is experiencing technical difficulties.
-	 *
-	 * The {@see 'wp_rest_error_message'} and {@see 'wp_rest_error_args'} filters can
-	 * be used to modify these parameters.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array         $error   Error information retrieved from `error_get_last()`.
-	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
-	 */
-	protected function send_rest_api_error_response( $error, $handled ) {
-
-		$this->maybe_load_error_dependencies();
-
-		$message = $this->get_error_message( $handled );
-
-		$args = array(
-			'response' => 500,
-			'exit'     => true,
-		);
-
-		/**
-		 * Filters the message that the default REST API fatal error handler displays.
-		 *
-		 * @since 5.7.0
-		 *
-		 * @param string $message Error message to display.
-		 * @param array  $error   Error information retrieved from `error_get_last()`.
-		 */
-		$message = apply_filters( 'wp_rest_api_error_message', $message, $error );
-
-		/**
-		 * Filters the arguments passed to {@see wp_die()} for the default REST API fatal error handler.
-		 *
-		 * @since 5.7.0
-		 *
-		 * @param array $args  Associative array of arguments passed to `wp_die()`. By default these contain a
-		 *                     'response' and 'exit' keys.
-		 * @param array $error Error information retrieved from `error_get_last()`.
-		 */
-		$args = apply_filters( 'wp_rest_api_error_args', $args, $error );
-
-		/**
-		 * Return entire error in the REST API response if WP_DEBUG is set to true.
-		 */
-		if ( WP_DEBUG ) {
-			$args['error_details'] = $error;
-		}
-
-		$wp_error = new WP_Error(
-			'internal_server_error',
-			$message,
-			array(
-				'error' => $error,
-			)
-		);
-
-		wp_die( $wp_error, '', $args );
-	}
-
-	/**
-	 * Ensure that fatal error messaging dependencies are properly loaded.
-	 *
-	 * @since 5.7.0
-	 */
-	protected function maybe_load_error_dependencies() {
-		if ( ! function_exists( '__' ) ) {
-			wp_load_translations_early();
-		}
-
-		if ( ! function_exists( 'wp_die' ) ) {
-			require_once ABSPATH . WPINC . '/functions.php';
-		}
-
-		if ( ! class_exists( 'WP_Error' ) ) {
-			require_once ABSPATH . WPINC . '/class-wp-error.php';
-		}
-	}
-
-	/**
-	 * Get error message used for handling fatal errors either for classic or REST API request.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param true|WP_Error $handled Whether Recovery Mode handled the fatal error.
-	 *
-	 * @return string
-	 */
-	protected function get_error_message( $handled ) {
-		if ( true === $handled && wp_is_recovery_mode() ) {
-			$message = __( 'There has been a critical error on this website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.' );
-		} elseif ( is_protected_endpoint() ) {
-			$message = __( 'There has been a critical error on this website. Please check your site admin email inbox for instructions.' );
-		} else {
-			$message = __( 'There has been a critical error on this website.' );
-		}
-
-		return $message;
 	}
 }
