@@ -180,7 +180,20 @@ Any changes to the directives between these markers will be overwritten.'
 
 	$lines = array();
 	while ( ! feof( $fp ) ) {
-		$lines[] = rtrim( fgets( $fp ), "\r\n" );
+		$line = fgets( $fp );
+		if ( false === $line ) {
+			// don't consider as failure if we reach the EOF.
+			if ( feof( $fp ) ) {
+				continue;
+			}
+
+			// Bail if we are unable to read a given line.
+			flock( $fp, LOCK_UN );
+			fclose( $fp );
+			return false;
+		}
+
+		$lines[] = rtrim( $line, "\r\n" );
 	}
 
 	// Split out the existing file into the preceding lines, and those that appear after the marker.
