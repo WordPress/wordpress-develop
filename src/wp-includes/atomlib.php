@@ -167,7 +167,7 @@ class AtomParser {
         $ret = true;
 
         $fp = fopen($this->FILE, "r");
-	    if (!$fp) {
+	    if (false === $fp) {
 		    return false;
 	    }
 
