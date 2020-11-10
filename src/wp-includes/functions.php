@@ -3695,15 +3695,6 @@ function _json_wp_die_handler( $message, $title = '', $args = array() ) {
 		nocache_headers();
 	}
 
-	/**
-	 * Attach optional error info to the response. This field contains trace details and is intended to be used only in WP_DEBUG mode.
-	 *
-	 * @since 5.7.0
-	 */
-	if ( WP_DEBUG && isset( $args['error_details'] ) ) {
-		$data['error_details'] = $args['error_details'];
-	}
-
 	echo wp_json_encode( $data );
 	if ( $parsed_args['exit'] ) {
 		die();
