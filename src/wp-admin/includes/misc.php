@@ -67,7 +67,7 @@ function got_url_rewrite() {
 function extract_from_markers( $filename, $marker ) {
 	$result = array();
 
-	if ( ! file_exists( $filename ) ) {
+	if ( ! is_readable( $filename ) ) {
 		return $result;
 	}
 
