@@ -160,7 +160,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = $posted_content;
 } elseif ( $file_size > 0 ) {
 	$f       = fopen( $file, 'r' );
-	$content = is_resource( $f ) ? fread( $f, $file_size ) : false;
+	$content = false !== $f ? fread( $f, $file_size ) : false;
 	if ( false === $content ) {
 		$error = true;
 	} else {
