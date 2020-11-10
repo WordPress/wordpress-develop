@@ -206,8 +206,6 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$requested = str_replace( '%ID%', $post->ID, $requested );
 		$expected  = str_replace( '%ID%', $post->ID, $expected );
 
-		// echo "\n$requested : $expected";
-
 		$this->assertCanonical( $requested, $expected );
 	}
 
