@@ -171,7 +171,7 @@ Any changes to the directives between these markers will be overwritten.'
 	$end_marker   = "# END {$marker}";
 
 	$fp = fopen( $filename, 'r+' );
-	if ( ! $fp ) {
+	if ( ! is_resource( $fp ) ) {
 		return false;
 	}
 
