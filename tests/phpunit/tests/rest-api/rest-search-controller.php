@@ -54,7 +54,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetUpBeforeClass( $factory ) {
-		add_theme_support( 'post-formats' );
+		add_theme_support( 'post-formats', array( 'aside' ) );
 
 		self::$my_title_post_ids = $factory->post->create_many(
 			4,
@@ -569,8 +569,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'type'     => 'term',
 			)
 		);
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
 			array(
 				0 => 1, // That is the default category.
 				self::$my_category_id,
@@ -594,8 +594,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
 			array(
 				0 => 1, // That is the default category.
 				self::$my_category_id,
@@ -634,8 +634,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'subtype'  => 'category,post_tag',
 			)
 		);
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
 			array(
 				0 => 1, // This is the default category.
 				self::$my_category_id,
@@ -659,8 +659,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
 			array(
 				self::$my_category_id,
 			),
@@ -682,8 +682,8 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
-		$this->assertEqualSets(
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSameSets(
 			array(
 				self::$my_tag_id,
 			),
@@ -705,7 +705,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEmpty( $response->get_data() );
 	}
 
@@ -721,7 +721,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 				'type'     => 'post-format',
 			)
 		);
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertContains(
 			'Aside',
 			wp_list_pluck( $response->get_data(), 'title' )
@@ -742,7 +742,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertContains(
 			'Aside',
 			wp_list_pluck( $response->get_data(), 'title' )
@@ -764,7 +764,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 			)
 		);
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertEmpty( $response->get_data() );
 	}
 

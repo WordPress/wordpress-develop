@@ -451,8 +451,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
 		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
 
-		$this->assertEquals(
-			0,
+		$this->assertSame(
+			null,
 			wp_validate_application_password( null ),
 			'Regular user account password should not be allowed for API authentication'
 		);
@@ -460,7 +460,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		// Not try with an App password instead.
 		$_SERVER['PHP_AUTH_PW'] = $user_app_password;
 
-		$this->assertEquals(
+		$this->assertSame(
 			$user_id,
 			wp_validate_application_password( null ),
 			'Application passwords should be allowed for API authentication'
@@ -491,7 +491,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, 'idonotexist', 'password' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_username', $error->get_error_code() );
+		$this->assertSame( 'invalid_username', $error->get_error_code() );
 	}
 
 	/**
@@ -502,7 +502,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, 'idonotexist@example.org', 'password' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'invalid_email', $error->get_error_code() );
+		$this->assertSame( 'invalid_email', $error->get_error_code() );
 	}
 
 	/**
@@ -514,7 +514,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'application_passwords_disabled', $error->get_error_code() );
+		$this->assertSame( 'application_passwords_disabled', $error->get_error_code() );
 	}
 
 	/**
@@ -527,7 +527,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'application_passwords_disabled', $error->get_error_code() );
+		$this->assertSame( 'application_passwords_disabled', $error->get_error_code() );
 	}
 
 	/**
@@ -539,7 +539,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'incorrect_password', $error->get_error_code() );
+		$this->assertSame( 'incorrect_password', $error->get_error_code() );
 	}
 
 	/**
@@ -560,7 +560,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, $password );
 		$this->assertWPError( $error );
-		$this->assertEquals( 'my_code', $error->get_error_code() );
+		$this->assertSame( 'my_code', $error->get_error_code() );
 	}
 
 	/**
@@ -574,7 +574,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_login, $password );
 		$this->assertInstanceOf( WP_User::class, $user );
-		$this->assertEquals( self::$user_id, $user->ID );
+		$this->assertSame( self::$user_id, $user->ID );
 	}
 
 	/**
@@ -588,7 +588,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_email, $password );
 		$this->assertInstanceOf( WP_User::class, $user );
-		$this->assertEquals( self::$user_id, $user->ID );
+		$this->assertSame( self::$user_id, $user->ID );
 	}
 
 	/**
@@ -602,6 +602,6 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$user = wp_authenticate_application_password( null, self::$_user->user_email, WP_Application_Passwords::chunk_password( $password ) );
 		$this->assertInstanceOf( WP_User::class, $user );
-		$this->assertEquals( self::$user_id, $user->ID );
+		$this->assertSame( self::$user_id, $user->ID );
 	}
 }

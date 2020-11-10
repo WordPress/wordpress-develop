@@ -2164,6 +2164,7 @@ function sanitize_key( $key ) {
  * @param string $title          The string to be sanitized.
  * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
  * @param string $context        Optional. The operation for which the string is sanitized.
+ *                               When set to 'save', the string runs through remove_accents().
  *                               Default 'save'.
  * @return string The sanitized string.
  */
@@ -2217,7 +2218,8 @@ function sanitize_title_for_query( $title ) {
  * @param string $title     The title to be sanitized.
  * @param string $raw_title Optional. Not used. Default empty.
  * @param string $context   Optional. The operation for which the string is sanitized.
- *                          Default 'display'.
+ *                          When set to 'save', additional entities are converted to hyphens
+ *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
@@ -4299,6 +4301,8 @@ function esc_sql( $data ) {
  *                            Defaults to return value of wp_allowed_protocols().
  * @param string   $_context  Private. Use esc_url_raw() for database usage.
  * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
+ *                An empty string is returned if `$url` specifies a protocol other than
+ *                those in `$protocols`, or if `$url` contains an empty string.
  */
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
@@ -4403,10 +4407,12 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  *
  * @since 2.8.0
  *
+ * @see esc_url()
+ *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
  *                            Defaults to return value of wp_allowed_protocols().
- * @return string The cleaned URL.
+ * @return string The cleaned URL after esc_url() is run with the 'db' context.
  */
 function esc_url_raw( $url, $protocols = null ) {
 	return esc_url( $url, $protocols, 'db' );

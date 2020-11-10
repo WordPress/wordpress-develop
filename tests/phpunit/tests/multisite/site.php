@@ -488,6 +488,36 @@ if ( is_multisite() ) :
 			remove_action( 'make_ham_blog', array( $this, '_action_counter_cb' ), 10 );
 		}
 
+		function test_content_from_spam_blog_is_not_available() {
+			$spam_blog_id = self::factory()->blog->create();
+			switch_to_blog( $spam_blog_id );
+			$post_data      = array(
+				'post_title'   => 'Hello World!',
+				'post_content' => 'Hello world content',
+			);
+			$post_id        = self::factory()->post->create( $post_data );
+			$post           = get_post( $post_id );
+			$spam_permalink = site_url() . '/?p=' . $post->ID;
+			$spam_embed_url = get_post_embed_url( $post_id );
+
+			restore_current_blog();
+			$this->assertNotEmpty( $spam_permalink );
+			$this->assertSame( $post_data['post_title'], $post->post_title );
+
+			update_blog_status( $spam_blog_id, 'spam', 1 );
+
+			$post_id = self::factory()->post->create(
+				array(
+					'post_content' => "\n $spam_permalink \n",
+				)
+			);
+			$post    = get_post( $post_id );
+			$content = apply_filters( 'the_content', $post->post_content );
+
+			$this->assertNotContains( $post_data['post_title'], $content );
+			$this->assertNotContains( "src=\"{$spam_embed_url}#?", $content );
+		}
+
 		function test_update_blog_status_make_spam_blog_action() {
 			global $test_action_counter;
 			$test_action_counter = 0;

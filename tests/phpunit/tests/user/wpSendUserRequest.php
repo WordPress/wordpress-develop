@@ -374,7 +374,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		update_user_meta( self::$admin_user->ID, 'locale', 'es_ES' );
 		wp_set_current_user( self::$admin_user->ID );
 
-		$request_id = wp_create_user_request( 'erase-user-not-registered@example.com', 'erase_personal_data' );
+		$request_id = wp_create_user_request( 'erase-user-not-registered@example.com', 'remove_personal_data' );
 
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -396,7 +396,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		update_user_meta( self::$admin_user->ID, 'locale', 'de_DE' );
 		wp_set_current_user( self::$admin_user->ID );
 
-		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'erase_personal_data' );
+		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'remove_personal_data' );
 
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();

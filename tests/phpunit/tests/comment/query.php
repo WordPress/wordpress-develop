@@ -4926,7 +4926,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$q       = new WP_Comment_Query();
 		$results = $q->query( array() );
 
-		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10, 2 );
+		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10 );
 
 		// Make sure the comments property is the same as the results.
 		$this->assertSame( $results, $q->comments );

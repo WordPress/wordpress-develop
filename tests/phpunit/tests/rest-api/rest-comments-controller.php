@@ -1440,7 +1440,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertEquals( '0', $response->get_data()['content']['raw'] );
+		$this->assertSame( '0', $response->get_data()['content']['raw'] );
 	}
 
 	/**
@@ -1465,7 +1465,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 201, $response->get_status() );
-		$this->assertEquals( '', $response->get_data()['content']['raw'] );
+		$this->assertSame( '', $response->get_data()['content']['raw'] );
 	}
 
 	public function test_create_item_invalid_date() {
@@ -3325,7 +3325,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 
 		if ( $comment->comment_post_ID ) {
-			$this->assertEquals( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
+			$this->assertSame( rest_url( '/wp/v2/posts/' . $comment->comment_post_ID ), $links['up'][0]['href'] );
 		}
 
 		if ( 'edit' === $context ) {
