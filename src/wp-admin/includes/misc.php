@@ -171,7 +171,7 @@ Any changes to the directives between these markers will be overwritten.'
 	$end_marker   = "# END {$marker}";
 
 	$fp = fopen( $filename, 'r+' );
-	if ( ! is_resource( $fp ) ) {
+	if ( false === $fp ) {
 		return false;
 	}
 
@@ -850,7 +850,7 @@ function iis7_add_rewrite_rule( $filename, $rewrite_rule ) {
 	// If configuration file does not exist then we create one.
 	if ( ! file_exists( $filename ) ) {
 		$fp = fopen( $filename, 'w' );
-		if ( ! is_resource( $fp ) ) {
+		if ( false === $fp ) {
 			return false;
 		}
 
@@ -935,7 +935,7 @@ function saveDomDocument( $doc, $filename ) { // phpcs:ignore WordPress.NamingCo
 	}
 
 	$fp     = fopen( $filename, 'w' );
-	if ( ! is_resource( $fp ) ) {
+	if ( false === $fp ) {
 		return;
 	}
 
