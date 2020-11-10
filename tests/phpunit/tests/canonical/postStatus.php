@@ -229,6 +229,20 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $all_user_post_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
 					$post_key,
 					$user,
 					'/?feed=rss&p=%ID%',
@@ -247,6 +261,20 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $select_user_post_keys as $post_key ) {
 			foreach ( $select_allow_list as $user ) {
 				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
 					$post_key,
 					$user,
 					'/?feed=rss&p=%ID%',
@@ -262,6 +290,20 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 
 			foreach ( $select_block_list as $user ) {
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
 				$data[] = array(
 					$post_key,
 					$user,
@@ -281,6 +323,20 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $no_user_post_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
+				$data[] = array(
 					$post_key,
 					$user,
 					'/?feed=rss&p=%ID%',
@@ -298,6 +354,20 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		foreach ( array( 'trash' ) as $post_key ) {
 			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					"page-$post_key",
+					$user,
+					'/?post_type=page&p=%ID%',
+					'/?post_type=page&p=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key-post",
+					"/?name=$post_key-post",
+				);
+
 				$data[] = array(
 					$post_key,
 					$user,
