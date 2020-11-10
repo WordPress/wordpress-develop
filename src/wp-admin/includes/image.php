@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = @getimagesize( $image_file );
+		$imagesize  = false !== $image_file ? @getimagesize( $image_file ) : array();
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -544,10 +544,12 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				$image_attachment = apply_filters( 'attachment_thumbnail_args', $image_attachment, $metadata, $uploaded );
 
 				$sub_attachment_id = wp_insert_attachment( $image_attachment, $uploaded['file'] );
-				add_post_meta( $sub_attachment_id, '_cover_hash', $hash );
-				$attach_data = wp_generate_attachment_metadata( $sub_attachment_id, $uploaded['file'] );
-				wp_update_attachment_metadata( $sub_attachment_id, $attach_data );
-				update_post_meta( $attachment_id, '_thumbnail_id', $sub_attachment_id );
+				if ( ! is_wp_error( $sub_attachment_id ) ) {
+					add_post_meta( $sub_attachment_id, '_cover_hash', $hash );
+					$attach_data = wp_generate_attachment_metadata( $sub_attachment_id, $uploaded['file'] );
+					wp_update_attachment_metadata( $sub_attachment_id, $attach_data );
+					update_post_meta( $attachment_id, '_thumbnail_id', $sub_attachment_id );
+				}
 			}
 		}
 	} elseif ( 'application/pdf' === $mime_type ) {
@@ -1052,7 +1054,7 @@ function _copy_image_file( $attachment_id ) {
 		$src_file = _load_image_to_edit_path( $attachment_id );
 	}
 
-	if ( $src_file ) {
+	if ( $src_file && $dst_file ) {
 		$dst_file = str_replace( wp_basename( $dst_file ), 'copy-' . wp_basename( $dst_file ), $dst_file );
 		$dst_file = dirname( $dst_file ) . '/' . wp_unique_filename( dirname( $dst_file ), wp_basename( $dst_file ) );
 
