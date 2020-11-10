@@ -37,8 +37,7 @@
 
 	/* Accent colors: used in header, on special classes. */
 	--accent-1: var(--global--color-green); /* Accent background */
-	--accent-2: var(--global--color-yellow);
-	--accent-3: var(--global--color-red);
+	--accent-2: var(--text); /* Link color */
 
 	/* Navigation colors. */
 	--nav-background: #fff;
@@ -117,7 +116,6 @@
 .about__container .has-accent-background-color {
 	background-color: #ebcd3d;
 	background-color: var(--accent-1);
-	border: 3px solid currentColor;
 }
 
 .about__container .has-transparent-background-color {
@@ -126,13 +124,23 @@
 
 .about__container .has-accent-color {
 	color: #b04329;
-	color: var(--accent-3);
+	color: var(--text);
+	font-weight: bold;
+}
+
+.about__container .has-border {
+	border: 3px solid currentColor;
 }
 
 .about__container .has-subtle-background-color {
 	background-color: #f2edd4;
 	background-color: var(--subtle-background);
-	border: 3px solid currentColor;
+}
+
+.about__container .has-background-image {
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
 }
 
 /* 1.1 - Layout */
@@ -149,7 +157,8 @@
 	padding-top: 0;
 }
 
-.about__section .column[class*="background-color"] {
+.about__section .column[class*="background-color"],
+.about__section .column[class*="has-border"] {
 	padding-top: 32px;
 }
 
@@ -407,6 +416,7 @@
 
 .about__container {
 	line-height: 1.4;
+	color: var(--text);
 }
 
 .about__container h1 {
@@ -417,16 +427,19 @@
 }
 
 .about__container h1,
-.about__container h2 {
+.about__container h2,
+.about__container h3.is-larger-heading {
 	margin-top: 0;
-	font-size: 1.4em;
+	margin-bottom: 0.5em;
+	font-size: 2.9em;
 	line-height: 1.4;
+	font-weight: 400;
 }
 
 .about__container h3,
 .about__container h2.is-smaller-heading {
 	margin-top: 0;
-	font-size: 1em;
+	font-size: 1.5em;
 }
 
 .about__container p {
@@ -435,12 +448,14 @@
 }
 
 .about__section a {
+	color: var(--accent-2);
 	text-decoration: underline;
 }
 
 .about__section a:hover,
 .about__section a:active,
 .about__section a:focus {
+	color: var(--accent-2);
 	text-decoration: none;
 }
 
@@ -497,7 +512,7 @@
 .about__container hr.is-large {
 	height: 64px;
 	width: 2px;
-	margin: 0 auto;
+	margin: 16px auto;
 	background: currentColor;
 }
 
