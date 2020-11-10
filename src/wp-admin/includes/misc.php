@@ -243,7 +243,8 @@ Any changes to the directives between these markers will be overwritten.'
 	fseek( $fp, 0 );
 	$bytes = fwrite( $fp, $new_file_data );
 	if ( $bytes ) {
-		ftruncate( $fp, ftell( $fp ) );
+		$size = ftell( $fp );
+		ftruncate( $fp, false !== $size ? $size : $bytes );
 	}
 	fflush( $fp );
 	flock( $fp, LOCK_UN );
