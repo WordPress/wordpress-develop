@@ -26,11 +26,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		self::$users = array(
 			'anon'           => 0,
 			'subscriber'     => $factory->user->create( array( 'role' => 'subscriber' ) ),
-			'author'         => $factory->user->create( array( 'role' => 'author' ) ),
 			'content_author' => $factory->user->create( array( 'role' => 'author' ) ),
-			'contributor'    => $factory->user->create( array( 'role' => 'contributor' ) ),
 			'editor'         => $factory->user->create( array( 'role' => 'editor' ) ),
-			'administrator'  => $factory->user->create( array( 'role' => 'administrator' ) ),
 		);
 
 		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'trac-5272-status' );
@@ -221,9 +218,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 */
 	function data_canonical_redirects_to_ugly_permalinks() {
 		$data = array();
-		$all_user_list     = array( 'anon', 'subscriber', 'author', 'content_author', 'contributor', 'editor', 'administrator' );
-		$select_allow_list = array( 'content_author', 'editor', 'administrator' );
-		$select_block_list = array( 'anon', 'subscriber', 'author', 'contributor' );
+		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
+		$select_allow_list = array( 'content_author', 'editor' );
+		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
 		$all_user_post_keys    = array( 'publish' );
 		$select_user_post_keys = array( 'private', 'trac-5272-status' );
@@ -541,9 +538,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 */
 	function data_canonical_redirects_to_pretty_permalinks() {
 		$data = array();
-		$all_user_list     = array( 'anon', 'subscriber', 'author', 'content_author', 'contributor', 'editor', 'administrator' );
-		$select_allow_list = array( 'content_author', 'editor', 'administrator' );
-		$select_block_list = array( 'anon', 'subscriber', 'author', 'contributor' );
+		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
+		$select_allow_list = array( 'content_author', 'editor' );
+		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
 		$all_user_post_keys    = array( 'publish' );
 		$select_user_post_keys = array( 'private', 'trac-5272-status' );
