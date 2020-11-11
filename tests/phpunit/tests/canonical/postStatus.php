@@ -428,9 +428,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			clean_post_cache( $attachment->ID );
 
 			/*
-			* The dataProvider runs before the fixures are set up, therefore the
-			* post and attachment IDs are placeholders that needs to be replaced.
-			*/
+			 * The dataProvider runs before the fixures are set up, therefore the
+			 * post and attachment IDs are placeholders that needs to be replaced.
+			 */
 			$requested = str_replace( '%ID-A%', $attachment->ID, $requested );
 			$expected  = str_replace( '%ID-A%', $attachment->ID, $expected );
 		}
