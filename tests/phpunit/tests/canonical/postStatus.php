@@ -64,7 +64,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 
 			// Set up a page with same.
-			self::$posts[ "page-$post_status" ] = $factory->post->create_and_get(
+			self::$posts[ "$post_status-page" ] = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'page',
 					'post_title'   => "$post_status page",
@@ -126,7 +126,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		);
 
 		// Page for trashing.
-		self::$posts['page-trash'] = $factory->post->create_and_get(
+		self::$posts['trash-page'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'page',
 				'post_title'   => 'trash page',
@@ -137,7 +137,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			)
 		);
 		wp_trash_post( self::$posts['trash']->ID );
-		wp_trash_post( self::$posts['page-trash']->ID );
+		wp_trash_post( self::$posts['trash-page']->ID );
 	}
 
 	function setUp() {
@@ -233,7 +233,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				 * to a canonical ugly version, these expected values can be changed.
 				 */
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
@@ -254,7 +254,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss2&page_id=%ID%',
@@ -269,7 +269,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				 * to a canonical ugly version, these expected values can be changed.
 				 */
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
@@ -290,7 +290,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss2&page_id=%ID%',
@@ -303,7 +303,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				 * to a canonical ugly version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
@@ -324,7 +324,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
@@ -339,7 +339,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				 * to a canonical ugly version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
@@ -360,7 +360,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
@@ -375,7 +375,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				 * to a canonical ugly version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
@@ -396,7 +396,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
@@ -478,14 +478,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					"/$post_key-page/",
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?page_id=%ID%',
 					"/$post_key-page/",
@@ -506,7 +506,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					"/$post_key-page/feed/",
@@ -531,14 +531,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					"/$post_key-page/",
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?page_id=%ID%',
 					"/$post_key-page/",
@@ -559,7 +559,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					"/$post_key-page/feed/",
@@ -582,14 +582,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
@@ -610,7 +610,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
@@ -635,14 +635,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
@@ -663,7 +663,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
@@ -702,14 +702,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?post_type=page&p=%ID%',
 					'/?post_type=page&p=%ID%',
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?page_id=%ID%',
 					'/?page_id=%ID%',
@@ -730,7 +730,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"page-$post_key",
+					"$post_key-page",
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
