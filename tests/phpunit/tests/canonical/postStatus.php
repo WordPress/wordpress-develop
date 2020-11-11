@@ -255,6 +255,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$all_user_post_status_keys    = array( 'publish' );
 		$select_user_post_status_keys = array( 'private', 'a-private-status' );
 		$no_user_post_status_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
+		$select_user_post_type_keys   = array( 'a-public-cpt' );
+		$no_user_post_type_keys       = array( 'a-private-cpt' );
 
 		foreach ( $all_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
@@ -440,6 +442,102 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					$user,
 					'/?feed=rss&page_id=%ID%',
 					'/?feed=rss&page_id=%ID%',
+				);
+			}
+		}
+
+		foreach ( $select_user_post_type_keys as $post_key ) {
+			foreach ( $select_allow_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?a-public-cpt=a-public-cpt',
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+				);
+
+				// Ensure rss is replaced by rss2.
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?a-public-cpt=a-public-cpt&feed=rss2',
+				);
+			}
+
+			foreach ( $select_block_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+				);
+
+				// Ensure rss is not replaced with rss2.
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+			}
+		}
+
+		foreach ( $no_user_post_type_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
 				);
 			}
 		}
