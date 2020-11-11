@@ -706,6 +706,16 @@ class Tests_Query extends WP_UnitTestCase {
 				's'                      => 'hola',
 			)
 		);
-		$this->assertEquals( $posts_per_page, $query->get( 'posts_per_page' ) );
+		$this->assertSame( $posts_per_page, $query->get( 'posts_per_page' ) );
+	}
+
+	public function test_query_vars_should_set_default_comments_per_page_on_empty_string() {
+		$default_comments_per_page = get_option( 'comments_per_page' );
+		$query                     = new WP_Query(
+			array(
+				'comments_per_page' => '',
+			)
+		);
+		$this->assertSame( $default_comments_per_page, $query->get( 'comments_per_page' ) );
 	}
 }
