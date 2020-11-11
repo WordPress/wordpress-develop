@@ -30,7 +30,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			'editor'         => $factory->user->create( array( 'role' => 'editor' ) ),
 		);
 
-		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'trac-5272-status' );
+		$post_statuses = array( 'publish', 'future', 'draft', 'pending', 'private', 'auto-draft', 'a-private-status' );
 		foreach ( $post_statuses as $post_status ) {
 			$post_date = '';
 			if ( 'future' === $post_status ) {
@@ -202,7 +202,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 		// Register custom private post status.
 		register_post_status(
-			'trac-5272-status',
+			'a-private-status',
 			array(
 				'private' => true,
 			)
@@ -253,7 +253,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
 		$all_user_post_status_keys    = array( 'publish' );
-		$select_user_post_status_keys = array( 'private', 'trac-5272-status' );
+		$select_user_post_status_keys = array( 'private', 'a-private-status' );
 		$no_user_post_status_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
 
 		foreach ( $all_user_post_status_keys as $post_key ) {
@@ -491,7 +491,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
 		$all_user_post_status_keys    = array( 'publish' );
-		$select_user_post_status_keys = array( 'private', 'trac-5272-status' );
+		$select_user_post_status_keys = array( 'private', 'a-private-status' );
 		$no_user_post_status_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
 		$select_user_post_type_keys   = array( 'a-public-cpt' );
 		$no_user_post_type_keys       = array( 'a-private-cpt' );
