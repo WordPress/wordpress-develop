@@ -696,4 +696,16 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	public function test_query_vars_should_not_set_posts_per_page_on_empty_string() {
+		$posts_per_page = 2;
+		$query          = new WP_Query(
+			array(
+				'posts_per_page'         => $posts_per_page,
+				'posts_per_archive_page' => '',
+				's'                      => 'hola',
+			)
+		);
+		$this->assertEquals( $posts_per_page, $query->get( 'posts_per_page' ) );
+	}
 }
