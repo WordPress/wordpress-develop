@@ -1891,11 +1891,11 @@ class WP_Query {
 		$q['posts_per_page'] = (int) $q['posts_per_page'];
 		if ( $q['posts_per_page'] < -1 ) {
 			$q['posts_per_page'] = abs( $q['posts_per_page'] );
-		} elseif ( 0 == $q['posts_per_page'] ) {
+		} elseif ( 0 === $q['posts_per_page'] ) {
 			$q['posts_per_page'] = 1;
 		}
 
-		if ( ! isset( $q['comments_per_page'] ) || 0 == $q['comments_per_page'] ) {
+		if ( ! isset( $q['comments_per_page'] ) || 0 === (int) $q['comments_per_page'] ) {
 			$q['comments_per_page'] = get_option( 'comments_per_page' );
 		}
 
