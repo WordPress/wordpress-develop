@@ -45,6 +45,20 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 			array( $comment_child, $comment_parent )
 		);
 	}
+
+	public function test_do_not_output_avatar_size_on_empty_string() {
+		$comment_id = self::factory()->comment->create( array( 'comment_post_ID' => $this->post_id ) );
+		$comment = get_comment( $comment_id );
+		$output = wp_list_comments(
+			array(
+				'walker' => new Walker_Comment(),
+				'echo' => false,
+				'avatar_size' => '',
+			),
+			array( $comment )
+		);
+		$this->assertNotContains( 'gravatar.com/avatar', $output );
+	}
 }
 
 class Comment_Callback_Test {
