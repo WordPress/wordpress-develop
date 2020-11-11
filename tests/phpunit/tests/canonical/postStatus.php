@@ -246,6 +246,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"/?name=$post_key-post",
 				);
 
+				// Ensure rss redirects to rss2.
 				$data[] = array(
 					$post_key,
 					$user,
@@ -253,6 +254,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'/?feed=rss2&p=%ID%',
 				);
 
+				// Ensure rss redirects to rss2.
 				$data[] = array(
 					"$post_key-page",
 					$user,
@@ -282,6 +284,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"/?name=$post_key-post",
 				);
 
+				// Ensure rss redirects to rss2.
 				$data[] = array(
 					$post_key,
 					$user,
@@ -289,6 +292,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'/?feed=rss2&p=%ID%',
 				);
 
+				// Ensure rss redirects to rss2.
 				$data[] = array(
 					"$post_key-page",
 					$user,
@@ -316,6 +320,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"/?name=$post_key-post",
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					$post_key,
 					$user,
@@ -323,6 +328,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'/?feed=rss&p=%ID%',
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					"$post_key-page",
 					$user,
@@ -352,6 +358,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"/?name=$post_key-post",
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					$post_key,
 					$user,
@@ -359,6 +366,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'/?feed=rss&p=%ID%',
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					"$post_key-page",
 					$user,
@@ -388,6 +396,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"/?name=$post_key-post",
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					$post_key,
 					$user,
@@ -395,6 +404,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					'/?feed=rss&p=%ID%',
 				);
 
+				// Ensure post's existence is not demonstrated by changing rss to rss2.
 				$data[] = array(
 					"$post_key-page",
 					$user,
