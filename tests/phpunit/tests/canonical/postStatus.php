@@ -41,7 +41,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				array(
 					'post_type'    => 'post',
 					'post_title'   => "$post_status post",
-					'post_name'    => "{$post_status}-post",
+					'post_name'    => "$post_status-post",
 					'post_status'  => $post_status,
 					'post_content' => "Prevent canonical redirect exposing post slugs.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
@@ -50,11 +50,11 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 
 			// Add fake attachment to the post (file upload not needed).
-			self::$posts[ "{$post_status}-attachment" ] = $factory->post->create_and_get(
+			self::$posts[ "$post_status-attachment" ] = $factory->post->create_and_get(
 				array(
 					'post_type'    => 'attachment',
 					'post_title'   => "$post_status inherited attachment",
-					'post_name'    => "{$post_status}-inherited-attachment",
+					'post_name'    => "$post_status-inherited-attachment",
 					'post_status'  => 'inherit',
 					'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
@@ -68,7 +68,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				array(
 					'post_type'    => 'page',
 					'post_title'   => "$post_status page",
-					'post_name'    => "{$post_status}-page",
+					'post_name'    => "$post_status-page",
 					'post_status'  => $post_status,
 					'post_content' => "Prevent canonical redirect exposing page slugs.\n\n<!--nextpage-->Page 2",
 					'post_author'  => self::$users['content_author'],
@@ -77,27 +77,53 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			);
 		}
 
-		self::$posts['trac-5272-cpt'] = $factory->post->create_and_get(
+		// Create a public CPT using a private status.
+		self::$posts['a-public-cpt'] = $factory->post->create_and_get(
 			array(
-				'post_type'    => 'trac-5272-cpt',
-				'post_title'   => 'trac-5272-cpt post',
-				'post_name'    => 'trac-5272-cpt-post',
+				'post_type'    => 'a-public-cpt',
+				'post_title'   => 'a-public-cpt',
+				'post_name'    => 'a-public-cpt',
 				'post_status'  => 'private',
-				'post_content' => 'Prevent canonical redirect exposing trac-5272-cpt titles.',
+				'post_content' => 'Prevent canonical redirect exposing a-public-cpt titles.',
 				'post_author'  => self::$users['content_author'],
 			)
 		);
 
-		// Add fake attachment to the cpt (file upload not needed).
-		self::$posts['trac-5272-cpt-attachment'] = $factory->post->create_and_get(
+		// Add fake attachment to the public cpt (file upload not needed).
+		self::$posts['a-public-cpt-attachment'] = $factory->post->create_and_get(
 			array(
 				'post_type'    => 'attachment',
-				'post_title'   => 'trac-5272-cpt post inherited attachment',
-				'post_name'    => 'trac-5272-cpt-post-inherited-attachment',
+				'post_title'   => 'a-public-cpt post inherited attachment',
+				'post_name'    => 'a-public-cpt-inherited-attachment',
 				'post_status'  => 'inherit',
 				'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
 				'post_author'  => self::$users['content_author'],
-				'post_parent'  => self::$posts['trac-5272-cpt']->ID,
+				'post_parent'  => self::$posts['a-public-cpt']->ID,
+			)
+		);
+
+		// Create a private CPT with a public status.
+		self::$posts['a-private-cpt'] = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'a-private-cpt',
+				'post_title'   => 'a-private-cpt',
+				'post_name'    => 'a-private-cpt',
+				'post_status'  => 'publish',
+				'post_content' => 'Prevent canonical redirect exposing a-private-cpt titles.',
+				'post_author'  => self::$users['content_author'],
+			)
+		);
+
+		// Add fake attachment to the private cpt (file upload not needed).
+		self::$posts['a-private-cpt-attachment'] = $factory->post->create_and_get(
+			array(
+				'post_type'    => 'attachment',
+				'post_title'   => 'a-private-cpt post inherited attachment',
+				'post_name'    => 'a-private-cpt-inherited-attachment',
+				'post_status'  => 'inherit',
+				'post_content' => "Prevent canonical redirect exposing post via attachments.\n\n<!--nextpage-->Page 2",
+				'post_author'  => self::$users['content_author'],
+				'post_parent'  => self::$posts['a-private-cpt']->ID,
 			)
 		);
 
@@ -152,13 +178,24 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 * test setup.
 	 */
 	public static function setup_custom_types() {
-		// Register custom post type.
+		// Register public custom post type.
 		register_post_type(
-			'trac-5272-cpt',
+			'a-public-cpt',
 			array(
 				'public'  => true,
 				'rewrite' => array(
-					'slug' => 'trac-5272-cpt',
+					'slug' => 'a-public-cpt',
+				),
+			)
+		);
+
+		// Register private custom post type.
+		register_post_type(
+			'a-private-cpt',
+			array(
+				'public'  => false,
+				'rewrite' => array(
+					'slug' => 'a-private-cpt',
 				),
 			)
 		);
@@ -215,11 +252,11 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$select_allow_list = array( 'content_author', 'editor' );
 		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
-		$all_user_post_keys    = array( 'publish' );
-		$select_user_post_keys = array( 'private', 'trac-5272-status' );
-		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
+		$all_user_post_status_keys    = array( 'publish' );
+		$select_user_post_status_keys = array( 'private', 'trac-5272-status' );
+		$no_user_post_status_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
 
-		foreach ( $all_user_post_keys as $post_key ) {
+		foreach ( $all_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				/*
 				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
@@ -257,7 +294,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 		}
 
-		foreach ( $select_user_post_keys as $post_key ) {
+		foreach ( $select_user_post_status_keys as $post_key ) {
 			foreach ( $select_allow_list as $user ) {
 				/*
 				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
@@ -331,7 +368,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 		}
 
-		foreach ( $no_user_post_keys as $post_key ) {
+		foreach ( $no_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				/*
 				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
@@ -453,11 +490,13 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$select_allow_list = array( 'content_author', 'editor' );
 		$select_block_list = array( 'anon', 'subscriber' );
 		// All post/page keys
-		$all_user_post_keys    = array( 'publish' );
-		$select_user_post_keys = array( 'private', 'trac-5272-status' );
-		$no_user_post_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
+		$all_user_post_status_keys    = array( 'publish' );
+		$select_user_post_status_keys = array( 'private', 'trac-5272-status' );
+		$no_user_post_status_keys     = array( 'future', 'draft', 'pending', 'auto-draft' ); // Excludes trash for attachment rules.
+		$select_user_post_type_keys   = array( 'a-public-cpt' );
+		$no_user_post_type_keys       = array( 'a-private-cpt' );
 
-		foreach ( $all_user_post_keys as $post_key ) {
+		foreach ( $all_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				$data[] = array(
 					$post_key,
@@ -470,7 +509,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"$post_key-attachment",
 					$user,
 					'/?attachment_id=%ID%',
-					"/$post_key-post/{$post_key}-inherited-attachment/",
+					"/$post_key-post/$post_key-inherited-attachment/",
 				);
 
 				$data[] = array(
@@ -510,7 +549,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 		}
 
-		foreach ( $select_user_post_keys as $post_key ) {
+		foreach ( $select_user_post_status_keys as $post_key ) {
 			foreach ( $select_allow_list as $user ) {
 				$data[] = array(
 					$post_key,
@@ -523,7 +562,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"$post_key-attachment",
 					$user,
 					'/?attachment_id=%ID%',
-					"/$post_key-post/{$post_key}-inherited-attachment/",
+					"/$post_key-post/$post_key-inherited-attachment/",
 				);
 
 				$data[] = array(
@@ -614,7 +653,101 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 			}
 		}
 
-		foreach ( $no_user_post_keys as $post_key ) {
+		foreach ( $select_user_post_type_keys as $post_key ) {
+			foreach ( $select_allow_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					"/$post_key/$post_key/",
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					"/$post_key/$post_key/$post_key-inherited-attachment/",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/$post_key/$post_key/?post_type=$post_key",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					"/$post_key/$post_key/feed/",
+				);
+			}
+
+			foreach ( $select_block_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+			}
+		}
+
+		foreach ( $no_user_post_type_keys as $post_key ) {
+			foreach ( $all_user_list as $user ) {
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?p=%ID%',
+					'/?p=%ID%',
+				);
+
+				$data[] = array(
+					"$post_key-attachment",
+					$user,
+					'/?attachment_id=%ID%',
+					"/$post_key-inherited-attachment/",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					"/?name=$post_key&post_type=$post_key",
+					"/?name=$post_key&post_type=$post_key",
+				);
+
+				$data[] = array(
+					$post_key,
+					$user,
+					'/?feed=rss&p=%ID%',
+					'/?feed=rss&p=%ID%',
+				);
+			}
+		}
+
+		foreach ( $no_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				$data[] = array(
 					$post_key,
