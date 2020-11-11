@@ -188,18 +188,11 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '' );
 		$post = self::$posts[ $post_key ];
 		clean_post_cache( $post->ID );
-		if ( isset( self::$posts[ "{$post_key}-attachment" ] ) ) {
-			$attachment = self::$posts[ "{$post_key}-attachment" ];
-			clean_post_cache( $attachment->ID );
 
-			/*
-			* The dataProvider runs before the fixures are set up, therefore the
-			* post and attachment IDs are placeholders that needs to be replaced.
-			*/
-			$requested = str_replace( '%ID-A%', $attachment->ID, $requested );
-			$expected  = str_replace( '%ID-A%', $attachment->ID, $expected );
-		}
-
+		/*
+		 * The dataProvider runs before the fixures are set up, therefore the
+		 * post object IDs are placeholders that needs to be replaced.
+		 */
 		$requested = str_replace( '%ID%', $post->ID, $requested );
 		$expected  = str_replace( '%ID%', $post->ID, $expected );
 
@@ -433,18 +426,11 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		$this->set_permalink_structure( '/%postname%/' );
 		$post = self::$posts[ $post_key ];
 		clean_post_cache( $post->ID );
-		if ( isset( self::$posts[ "{$post_key}-attachment" ] ) ) {
-			$attachment = self::$posts[ "{$post_key}-attachment" ];
-			clean_post_cache( $attachment->ID );
 
-			/*
-			 * The dataProvider runs before the fixures are set up, therefore the
-			 * post and attachment IDs are placeholders that needs to be replaced.
-			 */
-			$requested = str_replace( '%ID-A%', $attachment->ID, $requested );
-			$expected  = str_replace( '%ID-A%', $attachment->ID, $expected );
-		}
-
+		/*
+		 * The dataProvider runs before the fixures are set up, therefore the
+		 * post object IDs are placeholders that needs to be replaced.
+		 */
 		$requested = str_replace( '%ID%', $post->ID, $requested );
 		$expected  = str_replace( '%ID%', $post->ID, $expected );
 
@@ -481,9 +467,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
-					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID%',
 					"/$post_key-post/{$post_key}-inherited-attachment/",
 				);
 
@@ -534,9 +520,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
-					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID%',
 					"/$post_key-post/{$post_key}-inherited-attachment/",
 				);
 
@@ -585,10 +571,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
-					'/?attachment_id=%ID-A%',
-					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
 				);
 
 				$data[] = array(
@@ -638,10 +624,10 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
-					'/?attachment_id=%ID-A%',
-					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID%',
+					'/?attachment_id=%ID%',
 				);
 
 				$data[] = array(
@@ -691,9 +677,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
-					'/?attachment_id=%ID-A%',
+					'/?attachment_id=%ID%',
 					'/trash-post-inherited-attachment/',
 				);
 
