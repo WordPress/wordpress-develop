@@ -93,7 +93,9 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 		$this->assertSame(
 			_wp_array_get(
 				array(
-					'a', 'b', 'c'
+					'a',
+					'b',
+					'c',
 				),
 				array( 1 )
 			),
@@ -228,7 +230,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				array(
 					'key' => array(
 						null => 4,
-					)
+					),
 				),
 				array( 'key', null ),
 				true
