@@ -37,6 +37,11 @@ if ( ! is_readable( $config_file_path ) ) {
 require_once $config_file_path;
 require_once __DIR__ . '/functions.php';
 
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
+	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+	exit( 1 );
+}
+
 $phpunit_version = tests_get_phpunit_version();
 
 if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpunit_version, '8.0', '>=' ) ) {
@@ -48,8 +53,23 @@ if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpuni
 	exit( 1 );
 }
 
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS && ! is_dir( ABSPATH ) ) {
-	echo "Error: The /build/ directory is missing! Please run `npm run build` prior to running PHPUnit.\n";
+$required_extensions = array(
+	'gd',
+);
+$missing_extensions  = array();
+
+foreach ( $required_extensions as $extension ) {
+	if ( ! extension_loaded( $extension ) ) {
+		$missing_extensions[] = $extension;
+	}
+}
+
+if ( $missing_extensions ) {
+	printf(
+		"Error: The following required PHP extensions are missing from the testing environment: %s.\n",
+		implode( ', ', $missing_extensions )
+	);
+	echo "Please make sure they are installed and enabled.\n",
 	exit( 1 );
 }
 
@@ -59,15 +79,21 @@ $required_constants = array(
 	'WP_TESTS_TITLE',
 	'WP_PHP_BINARY',
 );
+$missing_constants  = array();
 
 foreach ( $required_constants as $constant ) {
 	if ( ! defined( $constant ) ) {
-		printf(
-			"Error: The required %s constant is not defined. Check out `wp-tests-config-sample.php` for an example.\n",
-			$constant
-		);
-		exit( 1 );
+		$missing_constants[] = $constant;
 	}
+}
+
+if ( $missing_constants ) {
+	printf(
+		"Error: The following required constants are not defined: %s.\n",
+		implode( ', ', $missing_constants )
+	);
+	echo "Please check out `wp-tests-config-sample.php` for an example.\n",
+	exit( 1 );
 }
 
 tests_reset__SERVER();
