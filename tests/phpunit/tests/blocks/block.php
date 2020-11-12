@@ -493,7 +493,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 */
 	function test_applies_render_block_context_filter() {
 		$this->registry->register(
-			'core/outer',
+			'core/provider',
 			array(
 				'attributes'       => array(
 					'recordId' => array(
@@ -507,26 +507,31 @@ class WP_Block_Test extends WP_UnitTestCase {
 			)
 		);
 		$this->registry->register(
-			'core/inner',
+			'core/consumer',
 			array(
-				'uses_context' => array( 'core/recordId' ),
+				'uses_context'    => array( 'core/recordId' ),
+				'render_callback' => function( $block_attributes, $content, $block ) {
+					return sprintf( 'Record ID: %d ', $block->context['core/recordId'] );
+				},
 			)
 		);
 
 		add_filter( 'render_block_context', array( $this, 'filter_render_block_context' ), 10, 2 );
 
-		$parsed_blocks = parse_blocks( '<!-- wp:outer {"recordId":20} --><!-- wp:inner /--><!-- /wp:outer -->' );
-		$parsed_block  = $parsed_blocks[0];
+		$parsed_blocks = parse_blocks( '<!-- wp:consumer /--><!-- wp:provider {"recordId":20} --><!-- wp:consumer /--><!-- /wp:provider -->' );
 		$context       = array( 'core/recordId' => 10 );
-		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$outer_context = $block->context;
-		$inner_context = $block->inner_blocks[0]->context;
+		$rendered_content = '';
+
+		foreach ( $parsed_blocks as $parsed_block ) {
+			$block = new WP_Block( $parsed_block, $context, $this->registry );
+
+			$rendered_content .= $block->render();
+		}
 
 		remove_filter( 'render_block_context', array( $this, 'filter_render_block_context' ) );
 
-		$this->assertSame( array( 'core/recordId' => 11 ), $outer_context );
-		$this->assertSame( array( 'core/recordId' => 21 ), $inner_context );
+		$this->assertSame( 'Record ID: 11 Record ID: 21 ', $rendered_content );
 	}
 
 }
