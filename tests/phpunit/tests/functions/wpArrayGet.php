@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Tests wp_array_slice_assoc function
+ * Tests the _wp_array_get() function
  *
  * @since 5.6.0
  *
