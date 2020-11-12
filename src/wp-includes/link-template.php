@@ -420,11 +420,14 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$parent = false;
 	}
 
-	if (
-		$parent &&
-		! is_post_viewable( $post->post_parent )
-	) {
-		$parent = false;
+	if ( $parent ) {
+		$parent_status_obj = get_post_status_object( get_post_status( $post->post_parent ) );
+		if (
+			$parent_status_obj->internal === true ||
+			$parent_status_obj->protected === true
+		) {
+			$parent = false;
+		}
 	}
 
 	if ( $wp_rewrite->using_permalinks() && $parent ) {
