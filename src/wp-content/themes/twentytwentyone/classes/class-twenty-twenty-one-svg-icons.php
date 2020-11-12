@@ -187,7 +187,6 @@ class Twenty_Twenty_One_SVG_Icons {
 			$svg = preg_replace( '/^<svg /', $repl, trim( $arr[ $icon ] ) ); // Add extra attributes to SVG code.
 		}
 
-		// @phpstan-ignore-next-line.
 		return $svg;
 	}
 

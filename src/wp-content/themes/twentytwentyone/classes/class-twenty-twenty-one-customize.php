@@ -40,8 +40,8 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		public function register( $wp_customize ) {
 
 			// Change site-title & description to postMessage.
-			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
-			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
+			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage';
+			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
 
 			// Add partial for blogname.
 			$wp_customize->selective_refresh->add_partial(
@@ -77,7 +77,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'type'    => 'checkbox',
 					'section' => 'title_tagline',
-					'label'   => esc_html__( 'Display Site Title & Tagline', 'twentytwentyone' ),
+					'label'   => esc_html__( 'Display site title & tagline', 'twentytwentyone' ),
 				)
 			);
 
@@ -87,7 +87,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 			$wp_customize->add_section(
 				'excerpt_settings',
 				array(
-					'title'    => esc_html__( 'Excerpt Settings', 'twentytwentyone' ),
+					'title'    => esc_html__( 'Excerpt settings', 'twentytwentyone' ),
 					'priority' => 120,
 				)
 			);
@@ -140,7 +140,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 					$wp_customize,
 					'background_color',
 					array(
-						'label'   => esc_html__( 'Background Control', 'twentytwentyone' ),
+						'label'   => esc_html_x( 'Background Color', 'Customizer control', 'twentytwentyone' ),
 						'section' => 'colors',
 						'palette' => $colors,
 					)
