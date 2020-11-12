@@ -51,7 +51,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-columns"><!-- wp:column -->
             <div class="wp-block-column">
 			<!-- wp:image {"className":"size-large"} -->
-			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure>
+			<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Branding', 'twentyseventeen' ) . '</h2>
@@ -68,7 +68,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div style="height:254px" aria-hidden="true" class="wp-block-spacer"></div>
             <!-- /wp:spacer -->
 			<!-- wp:image {"className":"size-large"} -->
-			<figure class="wp-block-image size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure>
+			<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure>
 			<!-- /wp:image -->
             <!-- wp:heading {"textColor":"black","style":{"typography":{"fontSize":45}}} -->
             <h2 class="has-black-color has-text-color" style="font-size:45px">' . __( 'Web Design', 'twentyseventeen' ) . '</h2>
@@ -97,7 +97,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/stripes.jpg" alt="' . __( 'Black Stripes', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Branding', 'twentyseventeen' ) . '</h2>
@@ -111,7 +111,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/white-border.jpg" alt="' . __( 'White border', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Design', 'twentyseventeen' ) . '</h2>
@@ -125,7 +125,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
             <div class="wp-block-column"><!-- wp:group -->
             <div class="wp-block-group"><div class="wp-block-group__inner-container">
 			<!-- wp:image {"align":"center","sizeSlug":"large","className":"is-style-default"} -->
-			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . get_template_directory_uri() . '/assets/images/direct-light.jpg" alt="' . __( 'Direct Light', 'twentyseventeen' ) . '"/></figure></div>
+			<div class="wp-block-image is-style-default"><figure class="aligncenter size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/images/direct-light.jpg" alt="' . __( 'Direct Light', 'twentyseventeen' ) . '"/></figure></div>
 			<!-- /wp:image -->
             <!-- wp:heading {"align":"left","textColor":"black","style":{"typography":{"fontSize":30}}} -->
             <h2 class="has-text-align-left has-black-color has-text-color" style="font-size:30px">' . __( 'Strategy', 'twentyseventeen' ) . '</h2>
