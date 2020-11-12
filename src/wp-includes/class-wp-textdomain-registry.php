@@ -37,14 +37,15 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 *
 	 * @param string $domain Text domain.
+	 * @param string $locale Locale.
 	 * @return string|false MO file path or false if there is none available.
 	 */
-	public function get( $domain ) {
-		if ( isset( $this->domains[ $domain ] ) ) {
-			return $this->domains[ $domain ];
+	public function get( $domain, $locale ) {
+		if ( isset( $this->domains[ $domain ][ $locale ] ) ) {
+			return $this->domains[ $domain ][ $locale ];
 		}
 
-		return $this->get_path_from_lang_dir( $domain );
+		return $this->get_path_from_lang_dir( $domain, $locale );
 	}
 
 	/**
@@ -53,10 +54,11 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 *
 	 * @param string $domain Text domain.
+	 * @param string $locale Locale.
 	 * @param string|false $path Language directory path or false if there is none available.
 	 */
-	public function set( $domain, $path ) {
-		$this->domains[ $domain ] = $path ? trailingslashit( $path ) : false;
+	public function set( $domain, $locale, $path ) {
+		$this->domains[ $domain ][ $locale ] = $path ? trailingslashit( $path ) : false;
 	}
 
 	/**
@@ -75,22 +77,22 @@ class WP_Textdomain_Registry {
 	 * @since 5.6.0
 	 *
 	 * @param string $domain Text domain.
+	 * @param string $locale Locale.
 	 * @return string|false MO file path or false if there is none available.
 	 */
-	private function get_path_from_lang_dir( $domain ) {
+	private function get_path_from_lang_dir( $domain, $locale ) {
 		if ( null === $this->cached_mo_files ) {
 			$this->cached_mo_files = array();
 
 			$this->set_cached_mo_files();
 		}
 
-		$locale = determine_locale();
 		$mofile = "{$domain}-{$locale}.mo";
 
 		$path = WP_LANG_DIR . '/plugins/' . $mofile;
 		if ( in_array( $path, $this->cached_mo_files, true ) ) {
 			$path = WP_LANG_DIR . '/plugins/';
-			$this->set( $domain, $path );
+			$this->set( $domain, $locale, $path );
 
 			return $path;
 		}
@@ -98,12 +100,12 @@ class WP_Textdomain_Registry {
 		$path = WP_LANG_DIR . '/themes/' . $mofile;
 		if ( in_array( $path, $this->cached_mo_files, true ) ) {
 			$path = WP_LANG_DIR . '/themes/';
-			$this->set( $domain, $path );
+			$this->set( $domain, $locale, $path );
 
 			return $path;
 		}
 
-		$this->set( $domain, false );
+		$this->set( $domain, $locale, false );
 
 		return false;
 	}
