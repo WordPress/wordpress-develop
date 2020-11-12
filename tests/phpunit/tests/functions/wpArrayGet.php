@@ -14,10 +14,41 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	 * Test _wp_array_get() with invalid parameters.
 	 */
 	public function test_wp_array_get_invalid_parameters() {
-		$this->assertSame( _wp_array_get( null, array( 'a' ) ), null );
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), null ), null );
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), array() ), null );
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), array(), true ), true );
+		$this->assertSame(
+			_wp_array_get(
+				null,
+				array( 'a' )
+			),
+			null
+		);
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				null
+			),
+			null
+		);
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				array()
+			),
+			null
+		);
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				array(),
+				true
+			),
+			true
+		);
 	}
 
 	/**
@@ -25,16 +56,49 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	 */
 	public function test_wp_array_get_simple_non_subtree() {
 		// Simple non sub tree test.
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), array( 'key' ) ), 4 );
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				array( 'key' ),
+			),
+			4
+		);
 
 		// Simple non sub tree not found.
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), array( 'invalid' ) ), null );
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				array( 'invalid' ),
+			),
+			null
+		);
 
 		// Simple non sub tree not found with a default.
-		$this->assertSame( _wp_array_get( array( 'key' => 4 ), array( 'invalid' ), 1 ), 1 );
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'key' => 4,
+				),
+				array( 'invalid' ),
+				1
+			),
+			1
+		);
 
 		// Simple non sub tree integer path.
-		$this->assertSame( _wp_array_get( array( 'a', 'b', 'c' ), array( 1 ) ), 'b' );
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'a', 'b', 'c'
+				),
+				array( 1 )
+			),
+			'b'
+		);
 	}
 
 	/**
@@ -91,17 +155,44 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	 */
 	public function test_wp_array_get_subtree() {
 		$this->assertSame(
-			_wp_array_get( array( 'a' => array( 'b' => array( 'c' => 1 ) ) ), array( 'a', 'b' ) ),
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b' )
+			),
 			array( 'c' => 1 )
 		);
 
 		$this->assertSame(
-			_wp_array_get( array( 'a' => array( 'b' => array( 'c' => 1 ) ) ), array( 'a', 'b', 'c' ) ),
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b', 'c' )
+			),
 			1
 		);
 
 		$this->assertSame(
-			_wp_array_get( array( 'a' => array( 'b' => array( 'c' => 1 ) ) ), array( 'a', 'b', 'c', 'd' ) ),
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b', 'c', 'd' )
+			),
 			null
 		);
 	}
@@ -111,17 +202,37 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	 */
 	public function test_wp_array_get_null() {
 		$this->assertSame(
-			_wp_array_get( array( 'key' => null ), array( 'key' ), true ),
+			_wp_array_get(
+				array(
+					'key' => null,
+				),
+				array( 'key' ),
+				true
+			),
 			null
 		);
 
 		$this->assertSame(
-			_wp_array_get( array( 'key' => null ), array( 'key', 'subkey' ), true ),
+			_wp_array_get(
+				array(
+					'key' => null,
+				),
+				array( 'key', 'subkey' ),
+				true
+			),
 			true
 		);
 
 		$this->assertSame(
-			_wp_array_get( array( 'key' => array( null => 4 ) ), array( 'key', null ), true ),
+			_wp_array_get(
+				array(
+					'key' => array(
+						null => 4,
+					)
+				),
+				array( 'key', null ),
+				true
+			),
 			4
 		);
 	}
@@ -131,12 +242,26 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	 */
 	public function test_wp_array_get_empty_paths() {
 		$this->assertSame(
-			_wp_array_get( array( 'a' => 4 ), array() ),
+			_wp_array_get(
+				array(
+					'a' => 4,
+				),
+				array()
+			),
 			null
 		);
 
 		$this->assertSame(
-			_wp_array_get( array( 'a' => array( 'b' => array( 'c' => 1 ) ) ), array( 'a', 'b', array() ) ),
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b', array() )
+			),
 			null
 		);
 	}
