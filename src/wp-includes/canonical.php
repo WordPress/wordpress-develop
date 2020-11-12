@@ -760,6 +760,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
 		if (
+			// Unviewable post types are never redirected.
+			! is_post_type_viewable( $redirect_obj->post_type ) ||
 			// Internal or protected posts never redirect.
 			$post_status_obj->internal ||
 			$post_status_obj->protected ||
