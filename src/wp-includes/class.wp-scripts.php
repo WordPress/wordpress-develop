@@ -465,13 +465,23 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
-	 * Localizes a script, only if the script has already been added.
+	 * Localizes a script, but only if the script has already been added.
 	 *
+	 * This serves as a method to pass data from the PHP environment to the
+	 * front-end to be accessible from javascript scripts.
 	 * @since 2.1.0
 	 *
-	 * @param string $handle      Name of the script to attach data to.
-	 * @param string $object_name Name of the variable that will contain the data.
-	 * @param array  $l10n        Array of data to localize.
+	 * @param  string       $handle      Unique script handle.
+	 *                                   The localized variables will be loaded
+	 *                                   before this script (as long as the
+	 *                                   script has beeen enqueued/registered).
+	 *
+	 * @param  string       $object_name The javascript varibale name.
+	 *
+	 * @param  array|scalar $l10n        An array or scalar value which should
+	 *                                   be encoded as the value to the
+	 *                                   variable name.
+	 *
 	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
@@ -484,12 +494,12 @@ class WP_Scripts extends WP_Dependencies {
 			unset( $l10n['l10n_print_after'] );
 		}
 
-		foreach ( (array) $l10n as $key => $value ) {
-			if ( ! is_scalar( $value ) ) {
-				continue;
-			}
 
-			$l10n[ $key ] = html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' );
+		if ( is_scalar( $l10n ) ) {
+			// If the value is scalar, simply decode it
+			$l10n = html_entity_decode( (string) $l10n, ENT_QUOTES, 'UTF-8' );
+		} else {
+			$l10n = $this->entity_decode_array_values( $l10n );
 		}
 
 		$script = "var $object_name = " . wp_json_encode( $l10n ) . ';';
@@ -505,6 +515,34 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		return $this->add_data( $handle, 'data', $script );
+	}
+
+	/**
+	 * Handles recursively html entity decodeing multi-dimensional array values.
+	 *
+	 * @param  array $l10n_array Array of localizable data which should be decoded.
+	 *
+	 * @return array Array with decoded values.
+	 */
+	public function entity_decode_array_values( $l10n_array ) {
+		// begin a new array so that non-decoded values do not get added.
+		$l10n = array();
+
+		//$l10n_array = ( array ) $l10n_array;
+		foreach ( ( array ) $l10n_array as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$l10n[ $key ] = $this->entity_decode_array_values( $value );
+			}
+
+			// non-array, non-scalar values should not be added
+			if ( ! is_scalar( $value ) ) {
+				continue;
+			}
+
+			$l10n[ $key ] = html_entity_decode( (string) $value, ENT_QUOTES, 'UTF-8' );
+		}
+
+		return $l10n;
 	}
 
 	/**

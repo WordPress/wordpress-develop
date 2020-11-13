@@ -215,6 +215,47 @@ JS;
 		// No scripts left to print.
 		$this->assertSame( '', get_echo( 'wp_print_scripts' ) );
 	}
+	/**
+	 * Testing `wp_localize_script` with scalar and array values.
+	 * @ticket 29722
+	 */
+	function test_wp_localize_script_with_non_array() {
+		// Enqueue & localize variables
+		wp_enqueue_script( 'test-l10n-data', 'example.com', array(), null );
+		wp_localize_script( 'test-l10n-data', 'data', true );
+
+		$test_array = array( 'var' => 'string' );
+		wp_localize_script( 'test-l10n-data', 'dataArray', $test_array );
+
+		$test_multidimensional = array(
+			'first-level' => array(
+					'second-level' => array(
+							'index' => "I'll \"walk\" the <b>dog</b> now",
+					),
+		        ),
+		);
+		wp_localize_script( 'test-l10n-data', 'dataMultiDimensionalArray', $test_multidimensional );
+
+		// Boolean output.
+		$expected = "var data = \"1\";\n";
+
+		// One-dimensional array output.
+		$expected .= "var dataArray = {\"var\":\"string\"};\n";
+
+		// Multi-dimensional array output with odd characters.
+		$string = '\"walk\"';
+		$expected .= "var dataMultiDimensionalArray = {\"first-level\":{\"second-level\":{\"index\":\"I'll " . $string . " the <b>dog<\/b> now\"}}};\n";
+
+		// var script wrapper output
+		$expected = "<script type='text/javascript'>\n/* <![CDATA[ */\n$expected/* ]]> */\n</script>\n";
+		// script link output
+		$expected .= "<script type='text/javascript' src='http://example.com'></script>\n";
+
+		$this->assertEquals( $expected, get_echo( 'wp_print_scripts' ) );
+
+		// No scripts left to print
+		$this->assertEquals( '', get_echo( 'wp_print_scripts' ) );
+	}
 
 	/**
 	 * Testing 'wp_register_script' return boolean success/failure value.
