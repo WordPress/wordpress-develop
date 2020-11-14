@@ -29,7 +29,7 @@ $credits = wp_credits();
 		</div>
 
 		<div class="about__header-text">
-			<?php printf( 'Introducing the new default Twenty Twenty-One theme in WordPress 5.6.' ); ?>
+			<?php _e( 'Sharing your stories has never been easier' ); ?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
