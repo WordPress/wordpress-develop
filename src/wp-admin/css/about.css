@@ -332,15 +332,15 @@
 .about__section.has-overlap-style .column:nth-of-type(2n+1) {
 	-ms-grid-column: 2;
 	grid-column-start: 2;
-	-ms-grid-column-span: 4; /* IE uses span, not end index */
-	grid-column-end: 5;
+	-ms-grid-column-span: 3;
+	grid-column-end: span 3;
 }
 
 .about__section.has-overlap-style .column:nth-of-type(2n) {
 	-ms-grid-column: 4;
 	grid-column-start: 4;
-	-ms-grid-column-span: 4; /* IE uses span, not end index */
-	grid-column-end: 7;
+	-ms-grid-column-span: 3;
+	grid-column-end: span 3;
 }
 
 .about__section.has-overlap-style .column.is-top-layer {
