@@ -320,8 +320,8 @@
 }
 
 .about__section.has-overlap-style {
-	-ms-grid-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
-	grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+	-ms-grid-columns: (1fr)[7];
+	grid-template-columns: repeat(7, 1fr);
 }
 
 .about__section.has-overlap-style .column {
@@ -379,6 +379,23 @@
 	.about__section.has-4-columns .column:nth-of-type(4n) {
 		-ms-grid-row: 2;
 		grid-row-start: 2;
+	}
+
+	.about__section.has-overlap-style {
+		-ms-grid-columns: 1fr;
+		grid-template-columns: 1fr;
+	}
+
+	/* At this size, the two columns fully overlap */
+	.about__section.has-overlap-style .column.column {
+		-ms-grid-column: 1;
+		grid-column-start: 1;
+		-ms-grid-column-span: 1;
+		grid-column-end: 2;
+		-ms-grid-row: 1;
+		grid-row-start: 1;
+		-ms-grid-row-span: 1;
+		grid-row-end: 2;
 	}
 }
 
@@ -537,6 +554,12 @@
 		font-size: 1.4em;
 		font-weight: 500;
 	}
+
+	.about__container h1,
+	.about__container h2,
+	.about__container h3.is-larger-heading {
+		font-size: 2em;
+	}
 }
 
 /* 1.3 - Header */
@@ -553,8 +576,7 @@
 .about__header-title {
 	display: inline-block;
 	padding: 1em 0;
-	margin-left: 32px;
-	margin-bottom: 4em;
+	margin: 0 32px 4em;
 	text-align: center;
 	border-width: 3px 0;
 	border-style: solid;
@@ -570,8 +592,7 @@
 }
 
 .about__header-text {
-	margin-left: 32px;
-	margin-bottom: 3em;
+	margin: 0 32px 3em;
 	max-width: 13em;
 	font-size: 1.5em;
 	line-height: 1.4;
@@ -635,10 +656,10 @@
 		font-size: 1.4em;
 	}
 
-	.about__header-title {
-		min-height: 0;
-		max-height: none;
-		height: auto;
+	.about__header-title,
+	.about__header-text {
+		margin-left: 16px;
+		margin-right: 16px;
 	}
 
 	.about__header-navigation .nav-tab {

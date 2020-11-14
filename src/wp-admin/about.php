@@ -101,7 +101,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<hr />
 
 		<div class="about__section has-overlap-style">
-			<div class="column is-top-layer">
+			<div class="column is-vertically-aligned-center is-top-layer">
 				<p>
 					<?php
 					printf(
@@ -112,8 +112,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image is-edge-to-edge">
-				<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 440 291'%3E%3Ccircle cx='294.5' cy='145.5' r='145.5' fill='%23E5D1D1'/%3E%3Ccircle cx='106.5' cy='106.5' r='106.5' fill='%23EEEADD'/%3E%3C/svg%3E%0A" alt="" />
+			<div class="column about__image aligncenter is-edge-to-edge">
+				<img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 440 291'%3E%3Ccircle cx='294.5' cy='145.5' r='145.5' fill='%23E5D1D1'/%3E%3Ccircle cx='106.5' cy='106.5' r='106.5' fill='%23EEEADD'/%3E%3C/svg%3E%0A" style="max-width:25em" alt="" />
 			</div>
 		</div>
 
