@@ -40,7 +40,7 @@
 	--accent-2: var(--text); /* Link color */
 
 	/* Navigation colors. */
-	--nav-background: #fff;
+	--nav-background: var(--background);
 	--nav-border: #767676;
 	--nav-color: #767676;
 	--nav-current: #000;
@@ -114,7 +114,7 @@
 }
 
 .about__container .has-accent-background-color {
-	background-color: #ebcd3d;
+	background-color: #d1e4dd;
 	background-color: var(--accent-1);
 }
 
@@ -123,7 +123,7 @@
 }
 
 .about__container .has-accent-color {
-	color: #b04329;
+	color: #000;
 	color: var(--text);
 	font-weight: bold;
 }
@@ -133,7 +133,7 @@
 }
 
 .about__container .has-subtle-background-color {
-	background-color: #f2edd4;
+	background-color: #eeeadd;
 	background-color: var(--subtle-background);
 }
 
@@ -433,6 +433,7 @@
 
 .about__container {
 	line-height: 1.4;
+	color: #000;
 	color: var(--text);
 }
 
@@ -465,6 +466,7 @@
 }
 
 .about__section a {
+	color: #000;
 	color: var(--accent-2);
 	text-decoration: underline;
 }
@@ -472,6 +474,7 @@
 .about__section a:hover,
 .about__section a:active,
 .about__section a:focus {
+	color: #000;
 	color: var(--accent-2);
 	text-decoration: none;
 }
@@ -567,9 +570,9 @@
 .about__header {
 	margin-bottom: 32px;
 	padding-top: 8em;
-	background-color: #ebcd3d;
+	background-color: #d1e4dd;
 	background-color: var(--accent-1);
-	color: #322d2b;
+	color: #000;
 	color: var(--text);
 }
 
@@ -605,11 +608,11 @@
 .about__header-navigation {
 	clear: both;
 	padding-top: 0;
-	background: #f2edd4;
+	background: #fff;
 	background: var(--nav-background);
-	color: #b04329;
+	color: #767676;
 	color: var(--nav-color);
-	border-bottom: 3px solid #ebcd3d;
+	border-bottom: 3px solid #767676;
 	border-bottom: 3px solid var(--nav-border);
 }
 
@@ -627,27 +630,28 @@
 
 .about__header-navigation .nav-tab:hover,
 .about__header-navigation .nav-tab:active {
-	background-color: #322d2b;
+	background-color: #000;
 	background-color: var(--text);
-	color: #f2edd4;
+	color: #fff;
 	color: var(--text-light);
 }
 
 .about__header-navigation .nav-tab-active {
 	margin-bottom: -3px;
+	color: #000;
 	color: var(--nav-current);
 	border-width: 0 0 6px;
-	border-color: #b04329;
+	border-color: #000;
 	border-color: var(--nav-current);
 }
 
 .about__header-navigation .nav-tab-active:hover,
 .about__header-navigation .nav-tab-active:active {
-	background-color: #322d2b;
+	background-color: #000;
 	background-color: var(--text);
-	color: #f2edd4;
+	color: #fff;
 	color: var(--text-light);
-	border-color: #b04329;
+	border-color: #000;
 	border-color: var(--nav-current);
 }
 
@@ -733,7 +737,7 @@
 	font-size: 1.4em;
 	font-weight: 600;
 	text-decoration: none;
-	color: #322d2b;
+	color: #000;
 	color: var(--text);
 }
 
