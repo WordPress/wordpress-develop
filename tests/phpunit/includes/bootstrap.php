@@ -53,24 +53,27 @@ if ( version_compare( $phpunit_version, '5.4', '<' ) || version_compare( $phpuni
 	exit( 1 );
 }
 
-$required_extensions = array(
-	'gd',
-);
-$missing_extensions  = array();
-
-foreach ( $required_extensions as $extension ) {
-	if ( ! extension_loaded( $extension ) ) {
-		$missing_extensions[] = $extension;
-	}
-}
-
-if ( $missing_extensions ) {
-	printf(
-		"Error: The following required PHP extensions are missing from the testing environment: %s.\n",
-		implode( ', ', $missing_extensions )
+// If running core tests, check if all the required PHP extensions are loaded before running the test suite.
+if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
+	$required_extensions = array(
+		'gd',
 	);
-	echo "Please make sure they are installed and enabled.\n",
-	exit( 1 );
+	$missing_extensions  = array();
+
+	foreach ( $required_extensions as $extension ) {
+		if ( ! extension_loaded( $extension ) ) {
+			$missing_extensions[] = $extension;
+		}
+	}
+
+	if ( $missing_extensions ) {
+		printf(
+			"Error: The following required PHP extensions are missing from the testing environment: %s.\n",
+			implode( ', ', $missing_extensions )
+		);
+		echo "Please make sure they are installed and enabled.\n",
+		exit( 1 );
+	}
 }
 
 $required_constants = array(
@@ -102,11 +105,7 @@ define( 'WP_TESTS_TABLE_PREFIX', $table_prefix );
 define( 'DIR_TESTDATA', __DIR__ . '/../data' );
 define( 'DIR_TESTROOT', realpath( dirname( __DIR__ ) ) );
 
-define( 'WP_LANG_DIR', realpath( DIR_TESTDATA . '/languages' ) );
-
-if ( defined( 'WP_RUN_CORE_TESTS' ) && WP_RUN_CORE_TESTS ) {
-	define( 'WP_PLUGIN_DIR', realpath( DIR_TESTDATA . '/plugins' ) );
-}
+define( 'WP_LANG_DIR', DIR_TESTDATA . '/languages' );
 
 if ( ! defined( 'WP_TESTS_FORCE_KNOWN_BUGS' ) ) {
 	define( 'WP_TESTS_FORCE_KNOWN_BUGS', false );

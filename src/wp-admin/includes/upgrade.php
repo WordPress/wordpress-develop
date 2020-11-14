@@ -874,6 +874,10 @@ function upgrade_all() {
 		upgrade_550();
 	}
 
+	if ( $wp_current_db_version < 49572 ) {
+		upgrade_560();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2234,6 +2238,28 @@ function upgrade_550() {
 		update_option( 'finished_updating_comment_type', 0 );
 		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
 	}
+}
+
+/**
+ * Executes changes made in WordPress 5.6.0.
+ *
+ * @ignore
+ * @since 5.6.0
+ */
+function upgrade_560() {
+	global $wpdb;
+
+	// Clean up the `post_category` column removed from schema in version 2.8.0.
+	// Its presence may conflict with WP_Post::__get().
+	$post_category_exists = $wpdb->get_var( "SHOW COLUMNS FROM $wpdb->posts LIKE 'post_category'" );
+	if ( ! is_null( $post_category_exists ) ) {
+		$wpdb->query( "ALTER TABLE $wpdb->posts DROP COLUMN `post_category`" );
+	}
+
+	// When upgrading from WP < 5.6.0 set the core major auto-updates option to `unset` by default.
+	// This overrides the same option from populate_options() that is intended for new installs.
+	// See https://core.trac.wordpress.org/ticket/51742.
+	update_option( 'auto_update_core_major', 'unset' );
 }
 
 /**

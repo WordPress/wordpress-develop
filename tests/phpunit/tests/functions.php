@@ -276,15 +276,10 @@ class Tests_Functions extends WP_UnitTestCase {
 		$serialized = maybe_serialize( $value );
 		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
 			$new_value = unserialize( $serialized );
-			if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
-				$property = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
-				$property->setAccessible( true );
-				$callback_value = $property->getValue( $new_value );
-				$this->assertSame( null, $callback_value );
-			} else {
-				$current_item = @$new_value->current(); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-				$this->assertSame( null, $current_item );
-			}
+			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
+			$property->setAccessible( true );
+			$callback_value = $property->getValue( $new_value );
+			$this->assertSame( null, $callback_value );
 		} else {
 			$this->assertEquals( $value->count(), unserialize( $serialized )->count() );
 		}
