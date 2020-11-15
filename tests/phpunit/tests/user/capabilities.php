@@ -324,6 +324,22 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		);
 	}
 
+	public function dataAllCapsAndRoles() {
+		$data = array();
+		$caps = $this->getAllCapsAndRoles();
+
+		foreach ( self::$users as $role => $null ) {
+			foreach ( $caps as $cap => $roles ) {
+				$data[] = array(
+					$role,
+					$cap,
+				);
+			}
+		}
+
+		return $data;
+	}
+
 	protected function getAllCapsAndRoles() {
 		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
 	}
@@ -520,28 +536,33 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the default roles and caps.
+	 * Test the default capabilities of all user roles.
+	 *
+	 * @dataProvider dataAllCapsAndRoles
 	 */
-	function test_all_roles_and_caps() {
-		$caps = $this->getAllCapsAndRoles();
+	function test_default_caps_for_all_roles( $role, $cap ) {
+		$user         = self::$users[ $role ];
+		$roles_by_cap = $this->getAllCapsAndRoles();
 
+		if ( in_array( $role, $roles_by_cap[ $cap ], true ) ) {
+			$this->assertTrue( $user->has_cap( $cap ), "User with the {$role} role should have the {$cap} capability" );
+			$this->assertTrue( user_can( $user, $cap ), "User with the {$role} role should have the {$cap} capability" );
+		} else {
+			$this->assertFalse( $user->has_cap( $cap ), "User with the {$role} role should not have the {$cap} capability" );
+			$this->assertFalse( user_can( $user, $cap ), "User with the {$role} role should not have the {$cap} capability" );
+		}
+	}
+
+	/**
+	 * Test miscellaneous capabilities of all user roles.
+	 */
+	function test_other_caps_for_all_roles() {
 		foreach ( self::$users as $role => $user ) {
-
 			// Make sure the user is valid.
 			$this->assertTrue( $user->exists(), "User with {$role} role does not exist" );
 
 			// Make sure the role name is correct.
 			$this->assertSame( array( $role ), $user->roles, "User should only have the {$role} role" );
-
-			foreach ( $caps as $cap => $roles ) {
-				if ( in_array( $role, $roles, true ) ) {
-					$this->assertTrue( $user->has_cap( $cap ), "User with the {$role} role should have the {$cap} capability" );
-					$this->assertTrue( user_can( $user, $cap ), "User with the {$role} role should have the {$cap} capability" );
-				} else {
-					$this->assertFalse( $user->has_cap( $cap ), "User with the {$role} role should not have the {$cap} capability" );
-					$this->assertFalse( user_can( $user, $cap ), "User with the {$role} role should not have the {$cap} capability" );
-				}
-			}
 
 			$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
 			$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
