@@ -8,15 +8,25 @@
  */
 class Tests_User_Capabilities extends WP_UnitTestCase {
 
-	protected static $users       = array(
+	/**
+	 * @var WP_User[] $users
+	 */
+	protected static $users = array(
 		'administrator' => null,
 		'editor'        => null,
 		'author'        => null,
 		'contributor'   => null,
 		'subscriber'    => null,
 	);
+
+	/**
+	 * @var WP_User $super_admin
+	 */
 	protected static $super_admin = null;
 
+	/**
+	 * @var int $block_id
+	 */
 	protected static $block_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
@@ -532,16 +542,16 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 					$this->assertFalse( user_can( $user, $cap ), "User with the {$role} role should not have the {$cap} capability" );
 				}
 			}
+
+			$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
+			$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
+
+			$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
+			$this->assertFalse( user_can( $user, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
+
+			$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability" );
+			$this->assertTrue( user_can( $user, 'exist' ), "User with the {$role} role should have the exist capability" );
 		}
-
-		$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
-		$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
-
-		$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
-		$this->assertFalse( user_can( $user, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
-
-		$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability" );
-		$this->assertTrue( user_can( $user, 'exist' ), "User with the {$role} role should have the exist capability" );
 	}
 
 	/**
