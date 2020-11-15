@@ -47,7 +47,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 		$this->assertArrayHasKey( 'title', $data );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 		self::$page_id = $factory->post->create( array( 'post_type' => 'page' ) );
 

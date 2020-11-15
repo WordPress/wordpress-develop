@@ -19,7 +19,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	protected $nonce_failure_hook = 'wp_verify_nonce_failed';
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_user = $factory->user->create_and_get(
 			array(
 				'user_login' => 'password-tests',

@@ -21,7 +21,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 */
 	public static $posts;
 
-	public static function wpSetupBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::setup_custom_types();
 		self::$users = array(
 			'anon'           => 0,

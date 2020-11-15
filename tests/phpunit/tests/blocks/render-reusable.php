@@ -43,7 +43,7 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that creates fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
 				'role' => 'editor',

@@ -19,7 +19,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	protected static $block_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
 			'administrator' => $factory->user->create_and_get( array( 'role' => 'administrator' ) ),
 			'editor'        => $factory->user->create_and_get( array( 'role' => 'editor' ) ),

@@ -7,7 +7,7 @@ class Tests_Comment_WpAllowComment extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $comment_id;
 
-	public static function wpSetupBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id    = $factory->post->create();
 		self::$comment_id = $factory->comment->create(
 			array(
