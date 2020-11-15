@@ -234,15 +234,17 @@ function register_sidebars( $number = 1, $args = array() ) {
  *                                  Default empty string.
  *     @type string $class          Extra CSS class to assign to the sidebar in the Widgets interface.
  *                                  Default empty.
- *     @type string $before_widget  HTML content to prepend to each widget's HTML output when
- *                                  assigned to this sidebar. Default is an opening list item element.
- *     @type string $after_widget   HTML content to append to each widget's HTML output when
- *                                  assigned to this sidebar. Default is a closing list item element.
+ *     @type string $before_widget  HTML content to prepend to each widget's HTML output when assigned
+ *                                  to this sidebar. Receives the widget's ID attribute as `%1$s`
+ *                                  and class name as `%2$s`. Default is an opening list item element.
+ *     @type string $after_widget   HTML content to append to each widget's HTML output when assigned
+ *                                  to this sidebar. Default is a closing list item element.
  *     @type string $before_title   HTML content to prepend to the sidebar title when displayed.
  *                                  Default is an opening h2 element.
  *     @type string $after_title    HTML content to append to the sidebar title when displayed.
  *                                  Default is a closing h2 element.
  *     @type string $before_sidebar HTML content to prepend to the sidebar when displayed.
+ *                                  Receives the `$id` argument as `%1$s` and `$class` as `%2$s`.
  *                                  Outputs after the {@see 'dynamic_sidebar_before'} action.
  *                                  Default empty string.
  *     @type string $after_sidebar  HTML content to append to the sidebar when displayed.
@@ -718,7 +720,7 @@ function dynamic_sidebar( $index = 1 ) {
 	 */
 	do_action( 'dynamic_sidebar_before', $index, true );
 
-	if ( ! empty( $sidebar['before_sidebar'] ) ) {
+	if ( ! is_admin() && ! empty( $sidebar['before_sidebar'] ) ) {
 		echo $sidebar['before_sidebar'];
 	}
 
@@ -823,7 +825,7 @@ function dynamic_sidebar( $index = 1 ) {
 		}
 	}
 
-	if ( ! empty( $sidebar['after_sidebar'] ) ) {
+	if ( ! is_admin() && ! empty( $sidebar['after_sidebar'] ) ) {
 		echo $sidebar['after_sidebar'];
 	}
 
