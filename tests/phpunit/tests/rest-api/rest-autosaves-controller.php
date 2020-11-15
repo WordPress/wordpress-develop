@@ -38,7 +38,7 @@ class WP_Test_REST_Autosaves_Controller extends WP_Test_REST_Post_Type_Controlle
 	}
 
 	protected function check_create_autosave_response( $response ) {
-		$this->assertNotInstanceOf( 'WP_Error', $response );
+		$this->assertNotWPError( $response );
 		$response = rest_ensure_response( $response );
 		$data     = $response->get_data();
 
