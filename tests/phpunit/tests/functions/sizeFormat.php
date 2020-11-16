@@ -3,13 +3,10 @@
 /**
  * Tests for size_format()
  *
- * @ticket 36635
- *
  * @group functions.php
- * @covers ::size_format
+ * @ticket 36635
  */
 class Tests_Functions_SizeFormat extends WP_UnitTestCase {
-
 	public function _data_size_format() {
 		return array(
 			array( array(), 0, false ),

@@ -1,9 +1,8 @@
 {
-	"apiVersion": 2,
 	"name": "core/heading",
 	"category": "text",
 	"attributes": {
-		"textAlign": {
+		"align": {
 			"type": "string"
 		},
 		"content": {
@@ -21,14 +20,14 @@
 		}
 	},
 	"supports": {
-		"align": [ "wide", "full" ],
 		"anchor": true,
 		"className": false,
-		"color": {
-			"link": true
+		"lightBlockWrapper": true,
+		"__experimentalColor": {
+			"linkColor": true
 		},
-		"fontSize": true,
-		"lineHeight": true,
+		"__experimentalFontSize": true,
+		"__experimentalLineHeight": true,
 		"__experimentalSelector": {
 			"core/heading/h1": "h1",
 			"core/heading/h2": "h2",

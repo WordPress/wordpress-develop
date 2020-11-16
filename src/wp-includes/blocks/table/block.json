@@ -1,5 +1,4 @@
 {
-	"apiVersion": 2,
 	"name": "core/table",
 	"category": "text",
 	"attributes": {
@@ -124,7 +123,6 @@
 	},
 	"supports": {
 		"anchor": true,
-		"align": true,
-		"__experimentalSelector": ".wp-block-button > table"
+		"align": true
 	}
 }

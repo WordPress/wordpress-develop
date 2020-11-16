@@ -1,13 +1,11 @@
 <?php
 
-/**
+/*
  * Validate that badly named charsets always return the correct format for UTF-8 and ISO-8859-1.
  *
- * @since 4.8.0
- *
- * @group functions.php
- * @covers ::_canonical_charset
+ *  @since 4.8.0
  */
+
 class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
 	public function test_utf_8_lower() {
@@ -52,8 +50,6 @@ class Tests_Functions_CanonicalCharset extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23688
-	 *
-	 * @covers ::get_option
 	 */
 	function test_update_option_blog_charset() {
 		$orig_blog_charset = get_option( 'blog_charset' );

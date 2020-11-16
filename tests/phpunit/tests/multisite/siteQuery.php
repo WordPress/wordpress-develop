@@ -26,7 +26,7 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
-		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		public static function wpSetUpBeforeClass( $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'      => array(
 					'domain' => 'wordpress.org',
@@ -883,7 +883,7 @@ if ( is_multisite() ) :
 		 */
 		public function test_wp_site_query_meta_query( $query, $expected, $strict ) {
 			if ( ! is_site_meta_supported() ) {
-				$this->markTestSkipped( 'Test only runs with the blogmeta database table installed.' );
+				$this->markTestSkipped( 'Tests only runs with the blogmeta database table installed' );
 			}
 
 			add_site_meta( self::$site_ids['wordpress.org/'], 'foo', 'foo' );
@@ -907,6 +907,39 @@ if ( is_multisite() ) :
 			} else {
 				$this->assertSameSets( $expected, $found );
 			}
+		}
+
+
+		/**
+		 * @ticket 45749
+		 * @ticket 47599
+		 */
+		public function test_sites_pre_query_filter_should_bypass_database_query() {
+			global $wpdb;
+
+			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
+
+			$num_queries = $wpdb->num_queries;
+
+			$q       = new WP_Site_Query();
+			$results = $q->query( array() );
+
+			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
+
+			// Make sure no queries were executed.
+			$this->assertSame( $num_queries, $wpdb->num_queries );
+
+			// We manually inserted a non-existing site and overrode the results with it.
+			$this->assertSame( array( 555 ), $results );
+
+			// Make sure manually setting total_users doesn't get overwritten.
+			$this->assertSame( 1, $q->found_sites );
+		}
+
+		public static function filter_sites_pre_query( $sites, $query ) {
+			$query->found_sites = 1;
+
+			return array( 555 );
 		}
 
 		public function data_wp_site_query_meta_query() {
@@ -1062,60 +1095,6 @@ if ( is_multisite() ) :
 					true,
 				),
 			);
-		}
-
-		/**
-		 * @ticket 45749
-		 * @ticket 47599
-		 */
-		public function test_sites_pre_query_filter_should_bypass_database_query() {
-			global $wpdb;
-
-			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
-
-			$num_queries = $wpdb->num_queries;
-
-			$q       = new WP_Site_Query();
-			$results = $q->query( array() );
-
-			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query' ), 10, 2 );
-
-			// Make sure no queries were executed.
-			$this->assertSame( $num_queries, $wpdb->num_queries );
-
-			// We manually inserted a non-existing site and overrode the results with it.
-			$this->assertSame( array( 555 ), $results );
-
-			// Make sure manually setting found_sites doesn't get overwritten.
-			$this->assertSame( 1, $q->found_sites );
-		}
-
-		public static function filter_sites_pre_query( $sites, $query ) {
-			$query->found_sites = 1;
-
-			return array( 555 );
-		}
-
-		/**
-		 * @ticket 51333
-		 */
-		public function test_sites_pre_query_filter_should_set_sites_property() {
-			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query_and_set_sites' ), 10, 2 );
-
-			$q       = new WP_Site_Query();
-			$results = $q->query( array() );
-
-			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query_and_set_sites' ), 10 );
-
-			// Make sure the sites property is the same as the results.
-			$this->assertSame( $results, $q->sites );
-
-			// Make sure the site domain is `wordpress.org`.
-			$this->assertSame( 'wordpress.org', $q->sites[0]->domain );
-		}
-
-		public static function filter_sites_pre_query_and_set_sites( $sites, $query ) {
-			return array( get_site( self::$site_ids['wordpress.org/'] ) );
 		}
 	}
 

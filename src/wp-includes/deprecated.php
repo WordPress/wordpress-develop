@@ -1303,7 +1303,7 @@ function get_category_children( $id, $before = '/', $after = '', $visited = arra
  *
  * @link https://developer.wordpress.org/reference/functions/get_all_category_ids/
  *
- * @return int[] List of all of the category IDs.
+ * @return object List of all of the category IDs.
  */
 function get_all_category_ids() {
 	_deprecated_function( __FUNCTION__, '4.0.0', 'get_terms()' );
@@ -1911,7 +1911,6 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
-		/** This filter is documented in wp-includes/post.php */
 		$icon_dir = apply_filters( 'icon_dir', get_template_directory() . '/images' );
 		$src_file = $icon_dir . '/' . wp_basename($src);
 	}
@@ -4101,37 +4100,4 @@ function remove_option_whitelist( $del_options, $options = '' ) {
 	_deprecated_function( __FUNCTION__, '5.5.0', 'remove_allowed_options()' );
 
 	return remove_allowed_options( $del_options, $options );
-}
-
-/**
- * Adds slashes to only string values in an array of values.
- *
- * This should be used when preparing data for core APIs that expect slashed data.
- * This should not be used to escape data going directly into an SQL query.
- *
- * @since 5.3.0
- * @deprecated 5.6.0 Use wp_slash()
- *
- * @see wp_slash()
- *
- * @param mixed $value Scalar or array of scalars.
- * @return mixed Slashes $value
- */
-function wp_slash_strings_only( $value ) {
-	return map_deep( $value, 'addslashes_strings_only' );
-}
-
-/**
- * Adds slashes only if the provided value is a string.
- *
- * @since 5.3.0
- * @deprecated 5.6.0
- *
- * @see wp_slash()
- *
- * @param mixed $value
- * @return mixed
- */
-function addslashes_strings_only( $value ) {
-	return is_string( $value ) ? addslashes( $value ) : $value;
 }

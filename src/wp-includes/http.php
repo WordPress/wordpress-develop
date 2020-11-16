@@ -668,7 +668,7 @@ function ms_allowed_http_request_hosts( $is_external, $host ) {
  */
 function wp_parse_url( $url, $component = -1 ) {
 	$to_unset = array();
-	$url      = (string) $url;
+	$url      = strval( $url );
 
 	if ( '//' === substr( $url, 0, 2 ) ) {
 		$to_unset[] = 'scheme';

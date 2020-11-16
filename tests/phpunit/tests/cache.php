@@ -4,7 +4,7 @@
  * @group cache
  */
 class Tests_Cache extends WP_UnitTestCase {
-	public $cache = null;
+	var $cache = null;
 
 	function setUp() {
 		parent::setUp();

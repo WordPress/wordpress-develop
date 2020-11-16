@@ -20,7 +20,7 @@ class WP_Upgrader_Skin {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @var WP_Upgrader
+	 * @var object
 	 */
 	public $upgrader;
 

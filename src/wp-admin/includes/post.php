@@ -680,31 +680,17 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 	}
 
 	if ( $create_in_db ) {
-		if ( post_type_supports( $post_type, 'title' ) ) {
-			$default_title = __( 'Auto Draft' );
-		} else {
-			$default_title = __( '(no title supported)' );
-		}
-
 		$post_id = wp_insert_post(
 			array(
-				'post_title'  => $default_title,
+				'post_title'  => __( 'Auto Draft' ),
 				'post_type'   => $post_type,
 				'post_status' => 'auto-draft',
-			),
-			false,
-			true
+			)
 		);
 		$post    = get_post( $post_id );
-
-		if ( current_theme_supports( 'post-formats' )
-			&& post_type_supports( $post->post_type, 'post-formats' )
-			&& get_option( 'default_post_format' )
-		) {
+		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
-
-		wp_after_insert_post( $post, false );
 
 		// Schedule auto-draft cleanup.
 		if ( ! wp_next_scheduled( 'wp_scheduled_auto_draft_delete' ) ) {
@@ -1346,9 +1332,9 @@ function postbox_classes( $box_id, $screen_id ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $id    Post ID or post object.
- * @param string      $title Optional. Title to override the post's current title when generating the post name. Default null.
- * @param string      $name  Optional. Name to override the post name. Default null.
+ * @param int    $id    Post ID or post object.
+ * @param string $title Optional. Title to override the post's current title when generating the post name. Default null.
+ * @param string $name  Optional. Name to override the post name. Default null.
  * @return array {
  *     Array containing the sample permalink with placeholder for the post name, and the post name.
  *
@@ -1550,12 +1536,15 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
 		 *
 		 * Note: When a theme adds 'post-thumbnail' support, a special 'post-thumbnail'
 		 * image size is registered, which differs from the 'thumbnail' image size
-		 * managed via the Settings > Media screen.
+		 * managed via the Settings > Media screen. See the `$size` parameter description
+		 * for more information on default values.
 		 *
 		 * @since 4.4.0
 		 *
-		 * @param string|int[] $size         Requested image size. Can be any registered image size name, or
-		 *                                   an array of width and height values in pixels (in that order).
+		 * @param string|array $size         Post thumbnail image size to display in the meta box. Accepts any valid
+		 *                                   image size, or an array of width and height values in pixels (in that order).
+		 *                                   If the 'post-thumbnail' size is set, default is 'post-thumbnail'. Otherwise,
+		 *                                   default is an array with 266 as both the height and width values.
 		 * @param int          $thumbnail_id Post thumbnail attachment ID.
 		 * @param WP_Post      $post         The post object associated with the thumbnail.
 		 */
@@ -1596,7 +1585,7 @@ function _wp_post_thumbnail_html( $thumbnail_id = null, $post = null ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post_id ID or object of the post to check for editing.
+ * @param int $post_id ID of the post to check for editing.
  * @return int|false ID of the user with lock. False if the post does not exist, post is not locked,
  *                   the user with lock does not exist, or the post is locked by current user.
  */
@@ -1634,7 +1623,7 @@ function wp_check_post_lock( $post_id ) {
  *
  * @since 2.5.0
  *
- * @param int|WP_Post $post_id ID or object of the post being edited.
+ * @param int $post_id ID of the post being edited.
  * @return array|false Array of the lock time and user ID. False if the post does not exist, or
  *                     there is no current user.
  */
@@ -1937,7 +1926,7 @@ function post_preview() {
 		}
 
 		if ( isset( $_POST['_thumbnail_id'] ) ) {
-			$query_args['_thumbnail_id'] = ( (int) $_POST['_thumbnail_id'] <= 0 ) ? '-1' : (int) $_POST['_thumbnail_id'];
+			$query_args['_thumbnail_id'] = ( intval( $_POST['_thumbnail_id'] ) <= 0 ) ? '-1' : intval( $_POST['_thumbnail_id'] );
 		}
 	}
 
@@ -2099,7 +2088,7 @@ function taxonomy_meta_box_sanitize_cb_input( $taxonomy, $terms ) {
 		);
 
 		if ( ! empty( $_term ) ) {
-			$clean_terms[] = (int) $_term[0];
+			$clean_terms[] = intval( $_term[0] );
 		} else {
 			// No existing term was found, so pass the string. A new term will be created.
 			$clean_terms[] = $term;

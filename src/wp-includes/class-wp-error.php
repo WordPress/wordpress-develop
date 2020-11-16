@@ -2,6 +2,8 @@
 /**
  * WordPress Error API.
  *
+ * Contains the WP_Error class and the is_wp_error() function.
+ *
  * @package WordPress
  */
 
@@ -25,7 +27,7 @@ class WP_Error {
 	public $errors = array();
 
 	/**
-	 * Stores the most recently added data for each error code.
+	 * Stores the list of data for error codes.
 	 *
 	 * @since 2.1.0
 	 * @var array
@@ -33,15 +35,7 @@ class WP_Error {
 	public $error_data = array();
 
 	/**
-	 * Stores previously added data added for error codes, oldest-to-newest by code.
-	 *
-	 * @since 5.6.0
-	 * @var array[]
-	 */
-	protected $additional_data = array();
-
-	/**
-	 * Initializes the error.
+	 * Initialize the error.
 	 *
 	 * If `$code` is empty, the other parameters will be ignored.
 	 * When `$code` is not empty, `$message` will be used even if
@@ -62,11 +56,15 @@ class WP_Error {
 			return;
 		}
 
-		$this->add( $code, $message, $data );
+		$this->errors[ $code ][] = $message;
+
+		if ( ! empty( $data ) ) {
+			$this->error_data[ $code ] = $data;
+		}
 	}
 
 	/**
-	 * Retrieves all error codes.
+	 * Retrieve all error codes.
 	 *
 	 * @since 2.1.0
 	 *
@@ -81,7 +79,7 @@ class WP_Error {
 	}
 
 	/**
-	 * Retrieves the first error code available.
+	 * Retrieve first error code available.
 	 *
 	 * @since 2.1.0
 	 *
@@ -98,12 +96,12 @@ class WP_Error {
 	}
 
 	/**
-	 * Retrieves all error messages, or the error messages for the given error code.
+	 * Retrieve all error messages or error messages matching code.
 	 *
 	 * @since 2.1.0
 	 *
 	 * @param string|int $code Optional. Retrieve messages matching code, if exists.
-	 * @return array Error strings on success, or empty array if there are none.
+	 * @return array Error strings on success, or empty array on failure (if using code parameter).
 	 */
 	public function get_error_messages( $code = '' ) {
 		// Return all messages if no code specified.
@@ -124,7 +122,7 @@ class WP_Error {
 	}
 
 	/**
-	 * Gets a single error message.
+	 * Get single error message.
 	 *
 	 * This will get the first message available for the code. If no code is
 	 * given then the first code available will be used.
@@ -132,7 +130,7 @@ class WP_Error {
 	 * @since 2.1.0
 	 *
 	 * @param string|int $code Optional. Error code to retrieve message.
-	 * @return string The error message.
+	 * @return string
 	 */
 	public function get_error_message( $code = '' ) {
 		if ( empty( $code ) ) {
@@ -146,7 +144,7 @@ class WP_Error {
 	}
 
 	/**
-	 * Retrieves the most recently added error data for an error code.
+	 * Retrieve error data for error code.
 	 *
 	 * @since 2.1.0
 	 *
@@ -164,11 +162,11 @@ class WP_Error {
 	}
 
 	/**
-	 * Verifies if the instance contains errors.
+	 * Verify if the instance contains errors.
 	 *
 	 * @since 5.1.0
 	 *
-	 * @return bool If the instance contains errors.
+	 * @return bool
 	 */
 	public function has_errors() {
 		if ( ! empty( $this->errors ) ) {
@@ -178,7 +176,7 @@ class WP_Error {
 	}
 
 	/**
-	 * Adds an error or appends an additional message to an existing error.
+	 * Add an error or append additional message to an existing error.
 	 *
 	 * @since 2.1.0
 	 *
@@ -188,29 +186,17 @@ class WP_Error {
 	 */
 	public function add( $code, $message, $data = '' ) {
 		$this->errors[ $code ][] = $message;
-
 		if ( ! empty( $data ) ) {
-			$this->add_data( $data, $code );
+			$this->error_data[ $code ] = $data;
 		}
-
-		/**
-		 * Fires when an error is added to a WP_Error object.
-		 *
-		 * @since 5.6.0
-		 *
-		 * @param string|int $code     Error code.
-		 * @param string     $message  Error message.
-		 * @param mixed      $data     Error data. Might be empty.
-		 * @param WP_Error   $wp_error The WP_Error object.
-		 */
-		do_action( 'wp_error_added', $code, $message, $data, $this );
 	}
 
 	/**
-	 * Adds data to an error with the given code.
+	 * Add data for error code.
+	 *
+	 * The error code can only contain one error data.
 	 *
 	 * @since 2.1.0
-	 * @since 5.6.0 Errors can now contain more than one item of error data. {@see WP_Error::$additional_data}.
 	 *
 	 * @param mixed      $data Error data.
 	 * @param string|int $code Error code.
@@ -220,37 +206,7 @@ class WP_Error {
 			$code = $this->get_error_code();
 		}
 
-		if ( isset( $this->error_data[ $code ] ) ) {
-			$this->additional_data[ $code ][] = $this->error_data[ $code ];
-		}
-
 		$this->error_data[ $code ] = $data;
-	}
-
-	/**
-	 * Retrieves all error data for an error code in the order in which the data was added.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param string|int $code Error code.
-	 * @return mixed[] Array of error data, if it exists.
-	 */
-	public function get_all_error_data( $code = '' ) {
-		if ( empty( $code ) ) {
-			$code = $this->get_error_code();
-		}
-
-		$data = array();
-
-		if ( isset( $this->additional_data[ $code ] ) ) {
-			$data = $this->additional_data[ $code ];
-		}
-
-		if ( isset( $this->error_data[ $code ] ) ) {
-			$data[] = $this->error_data[ $code ];
-		}
-
-		return $data;
 	}
 
 	/**
@@ -266,48 +222,5 @@ class WP_Error {
 	public function remove( $code ) {
 		unset( $this->errors[ $code ] );
 		unset( $this->error_data[ $code ] );
-		unset( $this->additional_data[ $code ] );
-	}
-
-	/**
-	 * Merges the errors in the given error object into this one.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param WP_Error $error Error object to merge.
-	 */
-	public function merge_from( WP_Error $error ) {
-		static::copy_errors( $error, $this );
-	}
-
-	/**
-	 * Exports the errors in this object into the given one.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param WP_Error $error Error object to export into.
-	 */
-	public function export_to( WP_Error $error ) {
-		static::copy_errors( $this, $error );
-	}
-
-	/**
-	 * Copies errors from one WP_Error instance to another.
-	 *
-	 * @since 5.6.0
-	 *
-	 * @param WP_Error $from The WP_Error to copy from.
-	 * @param WP_Error $to   The WP_Error to copy to.
-	 */
-	protected static function copy_errors( WP_Error $from, WP_Error $to ) {
-		foreach ( $from->get_error_codes() as $code ) {
-			foreach ( $from->get_error_messages( $code ) as $error_message ) {
-				$to->add( $code, $error_message );
-			}
-
-			foreach ( $from->get_all_error_data( $code ) as $data ) {
-				$to->add_data( $data, $code );
-			}
-		}
 	}
 }

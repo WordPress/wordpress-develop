@@ -22,7 +22,7 @@ class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	protected static function make_user_by_role( $role ) {
+	protected function make_user_by_role( $role ) {
 		return self::factory()->user->create(
 			array(
 				'user_login' => $role,

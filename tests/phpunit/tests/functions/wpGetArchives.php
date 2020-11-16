@@ -1,9 +1,12 @@
 <?php
-
-/**
- * @group functions.php
- * @covers ::wp_get_archives
- */
+/*
+$defaults = array(
+	'type' => 'monthly', 'limit' => '',
+	'format' => 'html', 'before' => '',
+	'after' => '', 'show_post_count' => false,
+	'echo' => 1, 'order' => 'DESC',
+);
+*/
 class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 	protected static $post_ids;
 	protected $month_url;
@@ -16,7 +19,7 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 		$this->year_url  = get_year_link( gmdate( 'Y' ) );
 	}
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_ids = $factory->post->create_many(
 			8,
 			array(

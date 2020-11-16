@@ -240,7 +240,7 @@ function plugins_api( $action, $args = array() ) {
  * @since 2.7.0
  *
  * @param array $args
- * @return array|WP_Error
+ * @return array
  */
 function install_popular_tags( $args = array() ) {
 	$key  = md5( serialize( $args ) );

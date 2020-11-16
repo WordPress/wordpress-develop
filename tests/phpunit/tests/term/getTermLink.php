@@ -25,7 +25,7 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 			)
 		);
 
-		$term = (int) $t1;
+		$term = intval( $t1 );
 
 		$actual = get_term_link( $term, 'wptests_tax' );
 		$this->assertContains( 'wptests_tax=foo', $actual );

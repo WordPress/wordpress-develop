@@ -333,21 +333,15 @@ class Walker_Comment extends Walker {
 		<br />
 		<?php endif; ?>
 
-		<div class="comment-meta commentmetadata">
+		<div class="comment-meta commentmetadata"><a href="<?php echo esc_url( get_comment_link( $comment, $args ) ); ?>">
 			<?php
-			printf(
-				'<a href="%s">%s</a>',
-				esc_url( get_comment_link( $comment, $args ) ),
-				sprintf(
-					/* translators: 1: Comment date, 2: Comment time. */
-					__( '%1$s at %2$s' ),
-					get_comment_date( '', $comment ),
-					get_comment_time()
-				)
-			);
-
-			edit_comment_link( __( '(Edit)' ), ' &nbsp;&nbsp;', '' );
+				/* translators: 1: Comment date, 2: Comment time. */
+				printf( __( '%1$s at %2$s' ), get_comment_date( '', $comment ), get_comment_time() );
 			?>
+				</a>
+				<?php
+				edit_comment_link( __( '(Edit)' ), '&nbsp;&nbsp;', '' );
+				?>
 		</div>
 
 		<?php
@@ -433,21 +427,15 @@ class Walker_Comment extends Walker {
 					</div><!-- .comment-author -->
 
 					<div class="comment-metadata">
-						<?php
-						printf(
-							'<a href="%s"><time datetime="%s">%s</time></a>',
-							esc_url( get_comment_link( $comment, $args ) ),
-							get_comment_time( 'c' ),
-							sprintf(
-								/* translators: 1: Comment date, 2: Comment time. */
-								__( '%1$s at %2$s' ),
-								get_comment_date( '', $comment ),
-								get_comment_time()
-							)
-						);
-
-						edit_comment_link( __( 'Edit' ), ' <span class="edit-link">', '</span>' );
-						?>
+						<a href="<?php echo esc_url( get_comment_link( $comment, $args ) ); ?>">
+							<time datetime="<?php comment_time( 'c' ); ?>">
+								<?php
+									/* translators: 1: Comment date, 2: Comment time. */
+									printf( __( '%1$s at %2$s' ), get_comment_date( '', $comment ), get_comment_time() );
+								?>
+							</time>
+						</a>
+						<?php edit_comment_link( __( 'Edit' ), '<span class="edit-link">', '</span>' ); ?>
 					</div><!-- .comment-metadata -->
 
 					<?php if ( '0' == $comment->comment_approved ) : ?>

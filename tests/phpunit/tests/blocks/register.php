@@ -29,7 +29,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
 				'post_content' => file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-original.html' ),
@@ -285,7 +285,6 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
-		$this->assertSame( 2, $result->api_version );
 		$this->assertSame( 'my-plugin/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );

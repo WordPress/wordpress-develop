@@ -1,5 +1,5 @@
 /* global wp */
-jQuery( 'body' ).on( 'load', function() {
+jQuery( window ).load( function() {
 
 	var api = wp.customize, $ = jQuery;
 

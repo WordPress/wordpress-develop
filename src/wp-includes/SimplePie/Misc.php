@@ -364,12 +364,11 @@ class SimplePie_Misc
 		}
 
 		// Check that the encoding is supported
-		if (!in_array($input, mb_list_encodings()))
+		if (@mb_convert_encoding("\x80", 'UTF-16BE', $input) === "\x00\x80")
 		{
 			return false;
 		}
-
-		if (@mb_convert_encoding("\x80", 'UTF-16BE', $input) === "\x00\x80")
+		if (!in_array($input, mb_list_encodings()))
 		{
 			return false;
 		}

@@ -201,10 +201,6 @@
 	display: block;
 }
 
-#html-upload-ui #async-upload {
-	font-size: 1em;
-}
-
 .media-upload-form .media-item.error,
 .media-upload-form .media-item .error {
 	width: auto;
@@ -325,7 +321,7 @@
 #find-posts-close:before {
 	font: normal 20px/36px dashicons;
 	vertical-align: top;
-	speak: never;
+	speak: none;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	content: "\f158";
@@ -808,12 +804,7 @@ border color while dragging a file over the uploader drop area */
 	clear: both;
 }
 
-.copy-to-clipboard-container .copy-attachment-url {
-	white-space: normal;
-}
-
 .copy-to-clipboard-container .success {
-	color: #40860a;
 	margin-left: 8px;
 }
 
@@ -962,7 +953,7 @@ border color while dragging a file over the uploader drop area */
 .imgedit-menu .button:before {
 	font: normal 16px/1 dashicons;
 	margin-right: 8px;
-	speak: never;
+	speak: none;
 	vertical-align: middle;
 	position: relative;
 	top: -2px;
@@ -1178,17 +1169,13 @@ audio, video {
 	max-width: 100%;
 }
 
-.wp-core-ui .mejs-container {
+.mejs-container {
 	width: 100%;
 	max-width: 100%;
 }
 
-.wp-core-ui .mejs-container * {
+.mejs-container .mejs-controls {
 	box-sizing: border-box;
-}
-
-.wp-core-ui .mejs-time {
-	box-sizing: content-box;
 }
 
 /* =Media Queries

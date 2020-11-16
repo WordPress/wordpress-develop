@@ -124,7 +124,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$request_email          = 'requester@example.com';
 		self::$request_id             = wp_create_user_request( self::$request_email, 'export_personal_data' );
 		self::$action                 = 'wp-privacy-export-personal-data';
@@ -292,8 +292,7 @@ class Tests_Ajax_PrivacyExportPersonalData extends WP_Ajax_UnitTestCase {
 	 * @since 5.2.0
 	 */
 	public function test_failure_with_invalid_nonce() {
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 
 		$this->_make_ajax_call(
 			array(

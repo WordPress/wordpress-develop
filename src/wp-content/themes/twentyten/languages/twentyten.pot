@@ -263,7 +263,7 @@ msgid "Skip to content"
 msgstr ""
 
 #: loop-attachment.php:25
-msgid "Go to %s"
+msgid "Return to %s"
 msgstr ""
 
 #. translators: %s - title of parent post

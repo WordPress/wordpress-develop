@@ -65,7 +65,6 @@
 
 .wp-customizer .menu-item-bar .menu-item-handle {
 	width: 100%;
-	max-width: 100%;
 	background: #fff;
 }
 
@@ -323,7 +322,7 @@
 	content: "\f140";
 	display: block;
 	padding: 1px 2px 1px 0px;
-	speak: never;
+	speak: none;
 	border-radius: 50%;
 	color: #72777c;
 	font: normal 20px/1 dashicons;

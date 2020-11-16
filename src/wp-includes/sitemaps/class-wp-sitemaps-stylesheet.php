@@ -265,13 +265,7 @@ XSL;
 						color: #444;
 					}
 
-					#sitemap {
-						max-width: 980px;
-						margin: 0 auto;
-					}
-
 					#sitemap__table {
-						width: 100%;
 						border: solid 1px #ccc;
 						border-collapse: collapse;
 					}

@@ -20,9 +20,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
 		// Ensure no legacy / failed tests detritus.
-		$folder = get_temp_dir() . 'wordpress-gsoc-flyer*.*';
+		$folder = get_temp_dir() . 'wordpress-gsoc-flyer*.{jpg,pdf}';
 
-		foreach ( glob( $folder ) as $file ) {
+		foreach ( glob( $folder, GLOB_BRACE ) as $file ) {
 			unlink( $file );
 		}
 	}
@@ -149,20 +149,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test save image file and mime_types
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 */
 	public function test_wp_save_image_file() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -175,7 +165,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		// Test each image editor engine.
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
+
+			// If the image editor isn't available, skip it.
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				continue;
+			}
+
 			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
@@ -205,24 +202,21 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test that a passed mime type overrides the extension in the filename
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 */
 	public function test_mime_overrides_filename() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
 		}
 
 		// Test each image editor engine.
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
+
+			// If the image editor isn't available, skip it.
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				continue;
+			}
+
 			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
@@ -247,20 +241,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test that mime types are correctly inferred from file extensions
 	 *
 	 * @ticket 6821
-	 * @requires extension fileinfo
 	 */
 	public function test_inferred_mime_types() {
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
+		if ( ! extension_loaded( 'fileinfo' ) ) {
+			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
 		}
 
 		// Mime types.
@@ -274,7 +258,14 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		// Test each image editor engine.
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
+
+			// If the image editor isn't available, skip it.
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				continue;
+			}
+
 			$img    = new $class( DIR_TESTDATA . '/images/canola.jpg' );
 			$loaded = $img->load();
 
@@ -311,26 +302,19 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// First, test with deprecated wp_load_image function.
 		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertInternalType( 'string', $editor1 );
+		$this->assertNotInternalType( 'resource', $editor1 );
 
 		$editor2 = wp_get_image_editor( DIR_TESTDATA );
-		$this->assertInstanceOf( 'WP_Error', $editor2 );
-
-		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
-
-		foreach ( $classes as $key => $class ) {
-			if ( ! call_user_func( array( $class, 'test' ) ) ) {
-				// If the image editor isn't available, skip it.
-				unset( $classes[ $key ] );
-			}
-		}
-
-		if ( ! $classes ) {
-			$this->markTestSkipped( sprintf( 'The image editor engine %s is not supported on this system.', 'WP_Image_Editor_GD' ) );
-		}
+		$this->assertNotInternalType( 'resource', $editor2 );
 
 		// Then, test with editors.
+		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 		foreach ( $classes as $class ) {
+			// If the image editor isn't available, skip it.
+			if ( ! call_user_func( array( $class, 'test' ) ) ) {
+				continue;
+			}
+
 			$editor = new $class( DIR_TESTDATA );
 			$loaded = $editor->load();
 
@@ -339,10 +323,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * @requires function imagejpeg
-	 */
 	public function test_wp_crop_image_file() {
+		if ( ! function_exists( 'imagejpeg' ) ) {
+			$this->fail( 'jpeg support unavailable' );
+		}
+
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canola.jpg',
 			0,
@@ -362,11 +347,15 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 	}
 
-	/**
-	 * @requires function imagejpeg
-	 * @requires extension openssl
-	 */
 	public function test_wp_crop_image_url() {
+		if ( ! function_exists( 'imagejpeg' ) ) {
+			$this->fail( 'jpeg support unavailable' );
+		}
+
+		if ( ! extension_loaded( 'openssl' ) ) {
+			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url() requires openssl.' );
+		}
+
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canola.jpg',
 			0,
@@ -406,10 +395,11 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $file );
 	}
 
-	/**
-	 * @requires extension openssl
-	 */
 	public function test_wp_crop_image_url_not_exist() {
+		if ( ! extension_loaded( 'openssl' ) ) {
+			$this->markTestSkipped( 'Tests_Image_Functions::test_wp_crop_image_url_not_exist() requires openssl.' );
+		}
+
 		$file = wp_crop_image(
 			'https://asdftestblog1.files.wordpress.com/2008/04/canoladoesnotexist.jpg',
 			0,
@@ -520,6 +510,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @ticket 43226
 	 */
 	public function test_crop_setting_for_pdf() {
+
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
 			$this->markTestSkipped( 'Rendering PDFs is not supported on this system.' );
 		}

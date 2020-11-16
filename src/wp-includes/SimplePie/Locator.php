@@ -94,7 +94,7 @@ class SimplePie_Locator
 		$this->registry = $registry;
 	}
 
-	public function find($type = SIMPLEPIE_LOCATOR_ALL, &$working = null)
+	public function find($type = SIMPLEPIE_LOCATOR_ALL, &$working)
 	{
 		if ($this->is_feed($this->file))
 		{

@@ -1,5 +1,4 @@
 {
-	"apiVersion": 2,
 	"name": "core/column",
 	"category": "text",
 	"parent": [
@@ -10,15 +9,15 @@
 			"type": "string"
 		},
 		"width": {
-			"type": "string"
-		},
-		"templateLock": {
-			"type": "string"
+			"type": "number",
+			"min": 0,
+			"max": 100
 		}
 	},
 	"supports": {
 		"anchor": true,
 		"reusable": false,
-		"html": false
+		"html": false,
+		"lightBlockWrapper": true
 	}
 }

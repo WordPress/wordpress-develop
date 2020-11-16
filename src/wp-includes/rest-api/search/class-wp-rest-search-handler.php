@@ -78,10 +78,9 @@ abstract class WP_REST_Search_Handler {
 	 * Prepares the search result for a given ID.
 	 *
 	 * @since 5.0.0
-	 * @since 5.6.0 The `$id` parameter can accept a string.
 	 *
-	 * @param int|string $id     Item ID.
-	 * @param array      $fields Fields to include for the item.
+	 * @param int   $id     Item ID.
+	 * @param array $fields Fields to include for the item.
 	 * @return array Associative array containing all fields for the item.
 	 */
 	abstract public function prepare_item( $id, array $fields );
@@ -90,9 +89,8 @@ abstract class WP_REST_Search_Handler {
 	 * Prepares links for the search result of a given ID.
 	 *
 	 * @since 5.0.0
-	 * @since 5.6.0 The `$id` parameter can accept a string.
 	 *
-	 * @param int|string $id Item ID.
+	 * @param int $id Item ID.
 	 * @return array Links for the given item.
 	 */
 	abstract public function prepare_item_links( $id );

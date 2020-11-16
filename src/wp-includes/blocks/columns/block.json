@@ -1,5 +1,4 @@
 {
-	"apiVersion": 2,
 	"name": "core/columns",
 	"category": "design",
 	"attributes": {
@@ -14,9 +13,10 @@
 			"full"
 		],
 		"html": false,
-		"color": {
+		"lightBlockWrapper": true,
+		"__experimentalColor": {
 			"gradients": true,
-			"link": true
+			"linkColor": true
 		}
 	}
 }

@@ -1,14 +1,10 @@
 {
-	"apiVersion": 2,
 	"name": "core/group",
 	"category": "design",
 	"attributes": {
 		"tagName": {
 			"type": "string",
 			"default": "div"
-		},
-		"templateLock": {
-			"type": "string"
 		}
 	},
 	"supports": {
@@ -18,12 +14,10 @@
 		],
 		"anchor": true,
 		"html": false,
-		"color": {
+		"lightBlockWrapper": true,
+		"__experimentalColor": {
 			"gradients": true,
-			"link": true
-		},
-		"spacing": {
-			"padding": true
+			"linkColor": true
 		}
 	}
 }

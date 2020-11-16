@@ -5,7 +5,7 @@
  */
 class Tests_Upload extends WP_UnitTestCase {
 
-	public $siteurl;
+	var $siteurl;
 
 	function setUp() {
 		$this->_reset_options();

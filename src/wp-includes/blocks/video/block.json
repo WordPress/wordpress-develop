@@ -1,5 +1,4 @@
 {
-	"apiVersion": 2,
 	"name": "core/video",
 	"category": "media",
 	"attributes": {
@@ -60,17 +59,11 @@
 			"source": "attribute",
 			"selector": "video",
 			"attribute": "playsinline"
-		},
-		"tracks": {
-			"type": "array",
-			"items": {
-				"type": "object"
-			},
-			"default": []
 		}
 	},
 	"supports": {
 		"anchor": true,
-		"align": true
+		"align": true,
+		"lightBlockWrapper": true
 	}
 }

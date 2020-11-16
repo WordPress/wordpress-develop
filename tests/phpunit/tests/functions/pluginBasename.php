@@ -5,7 +5,6 @@
  *
  * @group functions.php
  * @group plugins
- * @covers ::plugin_basename
  */
 class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 

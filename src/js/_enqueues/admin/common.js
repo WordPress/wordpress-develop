@@ -55,15 +55,13 @@ function deprecatedProperty( propName, version, replacement ) {
  * Deprecate all properties on an object.
  *
  * @since 5.5.1
- * @since 5.6.0 Added the `version` parameter.
  *
  * @param {string} name       The name of the object, i.e. commonL10n.
  * @param {object} l10nObject The object to deprecate the properties on.
- * @param {string} version    The version of WordPress that deprecated the property.
  *
  * @return {object} The object with all its properties deprecated.
  */
-function deprecateL10nObject( name, l10nObject, version ) {
+function deprecateL10nObject( name, l10nObject ) {
 	var deprecatedObject = {};
 
 	Object.keys( l10nObject ).forEach( function( key ) {
@@ -72,12 +70,12 @@ function deprecateL10nObject( name, l10nObject, version ) {
 
 		if ( 'object' === typeof prop ) {
 			Object.defineProperty( deprecatedObject, key, { get: function() {
-				deprecatedProperty( propName, version, prop.alternative );
+				deprecatedProperty( propName, '5.5.0', prop.alternative );
 				return prop.func();
 			} } );
 		} else {
 			Object.defineProperty( deprecatedObject, key, { get: function() {
-				deprecatedProperty( propName, version, 'wp.i18n' );
+				deprecatedProperty( propName, '5.5.0', 'wp.i18n' );
 				return prop;
 			} } );
 		}
@@ -101,7 +99,7 @@ window.commonL10n = window.commonL10n || {
 	expandMenu: ''
 };
 
-window.commonL10n = deprecateL10nObject( 'commonL10n', window.commonL10n, '5.5.0' );
+window.commonL10n = deprecateL10nObject( 'commonL10n', window.commonL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -113,7 +111,7 @@ window.wpPointerL10n = window.wpPointerL10n || {
 	dismiss: ''
 };
 
-window.wpPointerL10n = deprecateL10nObject( 'wpPointerL10n', window.wpPointerL10n, '5.5.0' );
+window.wpPointerL10n = deprecateL10nObject( 'wpPointerL10n', window.wpPointerL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -131,7 +129,7 @@ window.userProfileL10n = window.userProfileL10n || {
 	ariaHide: ''
 };
 
-window.userProfileL10n = deprecateL10nObject( 'userProfileL10n', window.userProfileL10n, '5.5.0' );
+window.userProfileL10n = deprecateL10nObject( 'userProfileL10n', window.userProfileL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -150,7 +148,7 @@ window.privacyToolsL10n = window.privacyToolsL10n || {
 	exportError: ''
 };
 
-window.privacyToolsL10n = deprecateL10nObject( 'privacyToolsL10n', window.privacyToolsL10n, '5.5.0' );
+window.privacyToolsL10n = deprecateL10nObject( 'privacyToolsL10n', window.privacyToolsL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -162,7 +160,7 @@ window.authcheckL10n = {
 	beforeunload: ''
 };
 
-window.authcheckL10n = window.authcheckL10n || deprecateL10nObject( 'authcheckL10n', window.authcheckL10n, '5.5.0' );
+window.authcheckL10n = window.authcheckL10n || deprecateL10nObject( 'authcheckL10n', window.authcheckL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -175,7 +173,7 @@ window.tagsl10n = {
 	broken: ''
 };
 
-window.tagsl10n = window.tagsl10n || deprecateL10nObject( 'tagsl10n', window.tagsl10n, '5.5.0' );
+window.tagsl10n = window.tagsl10n || deprecateL10nObject( 'tagsl10n', window.tagsl10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -200,7 +198,7 @@ window.adminCommentsL10n = window.adminCommentsL10n || {
 	docTitleCommentsCount: ''
 };
 
-window.adminCommentsL10n = deprecateL10nObject( 'adminCommentsL10n', window.adminCommentsL10n, '5.5.0' );
+window.adminCommentsL10n = deprecateL10nObject( 'adminCommentsL10n', window.adminCommentsL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -216,7 +214,7 @@ window.tagsSuggestL10n = window.tagsSuggestL10n || {
 	termRemoved: ''
 };
 
-window.tagsSuggestL10n = deprecateL10nObject( 'tagsSuggestL10n', window.tagsSuggestL10n, '5.5.0' );
+window.tagsSuggestL10n = deprecateL10nObject( 'tagsSuggestL10n', window.tagsSuggestL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -233,7 +231,7 @@ window.wpColorPickerL10n = window.wpColorPickerL10n || {
 	defaultLabel: ''
 };
 
-window.wpColorPickerL10n = deprecateL10nObject( 'wpColorPickerL10n', window.wpColorPickerL10n, '5.5.0' );
+window.wpColorPickerL10n = deprecateL10nObject( 'wpColorPickerL10n', window.wpColorPickerL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -245,7 +243,7 @@ window.attachMediaBoxL10n = window.attachMediaBoxL10n || {
 	error: ''
 };
 
-window.attachMediaBoxL10n = deprecateL10nObject( 'attachMediaBoxL10n', window.attachMediaBoxL10n, '5.5.0' );
+window.attachMediaBoxL10n = deprecateL10nObject( 'attachMediaBoxL10n', window.attachMediaBoxL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -278,7 +276,7 @@ window.postL10n = window.postL10n || {
 	permalinkSaved: ''
 };
 
-window.postL10n = deprecateL10nObject( 'postL10n', window.postL10n, '5.5.0' );
+window.postL10n = deprecateL10nObject( 'postL10n', window.postL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -294,7 +292,7 @@ window.inlineEditL10n = window.inlineEditL10n || {
 	saved: ''
 };
 
-window.inlineEditL10n = deprecateL10nObject( 'inlineEditL10n', window.inlineEditL10n, '5.5.0' );
+window.inlineEditL10n = deprecateL10nObject( 'inlineEditL10n', window.inlineEditL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -308,7 +306,7 @@ window.plugininstallL10n = window.plugininstallL10n || {
 	ays: ''
 };
 
-window.plugininstallL10n = deprecateL10nObject( 'plugininstallL10n', window.plugininstallL10n, '5.5.0' );
+window.plugininstallL10n = deprecateL10nObject( 'plugininstallL10n', window.plugininstallL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -323,7 +321,7 @@ window.navMenuL10n = window.navMenuL10n || {
 	untitled: ''
 };
 
-window.navMenuL10n = deprecateL10nObject( 'navMenuL10n', window.navMenuL10n, '5.5.0' );
+window.navMenuL10n = deprecateL10nObject( 'navMenuL10n', window.navMenuL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -336,7 +334,7 @@ window.commentL10n = window.commentL10n || {
 	dateFormat: ''
 };
 
-window.commentL10n = deprecateL10nObject( 'commentL10n', window.commentL10n, '5.5.0' );
+window.commentL10n = deprecateL10nObject( 'commentL10n', window.commentL10n );
 
 /**
  * Removed in 5.5.0, needed for back-compatibility.
@@ -351,7 +349,7 @@ window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
 	done: ''
 };
 
-window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
+window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n );
 
 /**
  * Removed in 3.3.0, needed for back-compatibility.
@@ -1235,7 +1233,7 @@ $document.ready( function() {
 				focusedRowActions.removeClass( 'visible' );
 			}, 30 );
 		}
-	}, '.table-view-list .has-row-actions' );
+	}, '.has-row-actions' );
 
 	// Toggle list table rows on small screens.
 	$( 'tbody' ).on( 'click', '.toggle-row', function() {

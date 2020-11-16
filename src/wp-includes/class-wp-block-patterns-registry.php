@@ -16,7 +16,6 @@ final class WP_Block_Patterns_Registry {
 	/**
 	 * Registered patterns array.
 	 *
-	 * @since 5.5.0
 	 * @var array
 	 */
 	private $registered_patterns = array();
@@ -24,7 +23,6 @@ final class WP_Block_Patterns_Registry {
 	/**
 	 * Container for the main instance of the class.
 	 *
-	 * @since 5.5.0
 	 * @var WP_Block_Patterns_Registry|null
 	 */
 	private static $instance = null;

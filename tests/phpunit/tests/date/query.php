@@ -9,9 +9,6 @@
  * @group date
  */
 class Tests_WP_Date_Query extends WP_UnitTestCase {
-	/**
-	 * @var WP_Date_Query $q
-	 */
 	public $q;
 
 	public function setUp() {

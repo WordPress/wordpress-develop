@@ -94,8 +94,15 @@ function twentynineteen_hsl_hex( $h, $s, $l, $to_hex = true ) {
 	$g = $l;
 	$b = $l;
 	$v = ( $l <= 0.5 ) ? ( $l * ( 1.0 + $s ) ) : ( $l + $s - $l * $s );
-
 	if ( $v > 0 ) {
+		$m;
+		$sv;
+		$sextant;
+		$fract;
+		$vsf;
+		$mid1;
+		$mid2;
+
 		$m       = $l + $l - $v;
 		$sv      = ( $v - $m ) / $v;
 		$h      *= 6.0;
@@ -138,7 +145,6 @@ function twentynineteen_hsl_hex( $h, $s, $l, $to_hex = true ) {
 				break;
 		}
 	}
-
 	$r = round( $r * 255, 0 );
 	$g = round( $g * 255, 0 );
 	$b = round( $b * 255, 0 );

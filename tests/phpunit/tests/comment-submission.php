@@ -11,7 +11,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	protected $preprocess_comment_data = array();
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post = $factory->post->create_and_get();
 
 		self::$author_id = $factory->user->create(
@@ -250,7 +250,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 		$this->assertSame( $user->display_name, $comment->comment_author );
 		$this->assertSame( $user->user_email, $comment->comment_author_email );
 		$this->assertSame( $user->user_url, $comment->comment_author_url );
-		$this->assertSame( $user->ID, (int) $comment->user_id );
+		$this->assertSame( $user->ID, intval( $comment->user_id ) );
 
 	}
 

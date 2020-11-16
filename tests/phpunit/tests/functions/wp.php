@@ -3,7 +3,6 @@
 /**
  * @group functions.php
  * @group query
- * @covers ::wp
  */
 class Tests_Functions_WP extends WP_UnitTestCase {
 

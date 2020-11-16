@@ -31,7 +31,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	private static $term_ids = array();
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass() {
 		foreach ( self::$terms as $t ) {
 			self::$term_ids[] = wp_insert_term( $t, 'post_tag' );
 		}
@@ -74,8 +74,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 		// Make the request.
 		// No output, so we get a stop exception.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -115,8 +114,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -133,8 +131,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '0' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '0' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 
@@ -151,8 +148,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 		$_GET['q']   = 'chat';
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'ajax-tag-search' );
 	}
 

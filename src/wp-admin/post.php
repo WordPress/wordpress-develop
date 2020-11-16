@@ -291,14 +291,7 @@ switch ( $action ) {
 			wp_die( __( 'Error in restoring the item from Trash.' ) );
 		}
 
-		$sendback = add_query_arg(
-			array(
-				'untrashed' => 1,
-				'ids'       => $post_id,
-			),
-			$sendback
-		);
-		wp_redirect( $sendback );
+		wp_redirect( add_query_arg( 'untrashed', 1, $sendback ) );
 		exit;
 
 	case 'delete':

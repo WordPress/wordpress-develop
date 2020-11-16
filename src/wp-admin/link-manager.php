@@ -104,13 +104,8 @@ echo esc_html( $title );
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	echo '<span class="subtitle">';
-	printf(
-		/* translators: %s: Search query. */
-		__( 'Search results for: %s' ),
-		'<strong>' . esc_html( wp_unslash( $_REQUEST['s'] ) ) . '</strong>'
-	);
-	echo '</span>';
+	/* translators: %s: Search query. */
+	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( wp_unslash( $_REQUEST['s'] ) ) );
 }
 ?>
 

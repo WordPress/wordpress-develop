@@ -140,7 +140,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$ids = $result[ WP_REST_Search_Handler::RESULT_IDS ];
+		$ids = array_map( 'absint', $result[ WP_REST_Search_Handler::RESULT_IDS ] );
 
 		$results = array();
 
@@ -185,9 +185,8 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 	 * Prepares a single search result for response.
 	 *
 	 * @since 5.0.0
-	 * @since 5.6.0 The `$id` parameter can accept a string.
 	 *
-	 * @param int|string      $id      ID of the item to prepare.
+	 * @param int             $id      ID of the item to prepare.
 	 * @param WP_REST_Request $request Request object.
 	 * @return WP_REST_Response Response object.
 	 */
@@ -246,7 +245,7 @@ class WP_REST_Search_Controller extends WP_REST_Controller {
 			'properties' => array(
 				self::PROP_ID      => array(
 					'description' => __( 'Unique identifier for the object.' ),
-					'type'        => array( 'integer', 'string' ),
+					'type'        => 'integer',
 					'context'     => array( 'view', 'embed' ),
 					'readonly'    => true,
 				),

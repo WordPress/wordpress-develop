@@ -7,7 +7,7 @@ class Tests_Post_Template extends WP_UnitTestCase {
 
 	function test_wp_link_pages() {
 		$contents = array( 'One', 'Two', 'Three' );
-		$content  = implode( '<!--nextpage-->', $contents );
+		$content  = join( '<!--nextpage-->', $contents );
 		$post_id  = self::factory()->post->create( array( 'post_content' => $content ) );
 
 		$this->go_to( '?p=' . $post_id );

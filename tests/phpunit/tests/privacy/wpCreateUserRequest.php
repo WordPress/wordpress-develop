@@ -59,7 +59,7 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$registered_user_email     = 'export@local.test';
 		self::$non_registered_user_email = 'non-registered-user@local.test';
 
@@ -93,25 +93,12 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure a WP_Error is returned when no action is passed.
-	 *
-	 * @ticket 46536
-	 */
-	public function test_missing_action() {
-		$actual = wp_create_user_request( self::$registered_user_email, false );
-
-		$this->assertWPError( $actual );
-		$this->assertSame( 'invalid_action', $actual->get_error_code() );
-	}
-
-	/**
 	 * Ensure a WP_Error is returned when an invalid action is passed.
 	 *
 	 * @ticket 44707
-	 * @ticket 46536
 	 */
 	public function test_invalid_action() {
-		$actual = wp_create_user_request( self::$registered_user_email, 'invalid_action_name' );
+		$actual = wp_create_user_request( self::$registered_user_email, false );
 
 		$this->assertWPError( $actual );
 		$this->assertSame( 'invalid_action', $actual->get_error_code() );
@@ -174,13 +161,13 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * @ticket 44707
 	 */
 	public function test_sanitized_action_name() {
-		$actual = wp_create_user_request( self::$non_registered_user_email, 'export[_person*al_\data' );
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'some[custom*action\name' );
 
 		$this->assertNotWPError( $actual );
 
 		$post = get_post( $actual );
 
-		$this->assertSame( 'export_personal_data', $post->post_name );
+		$this->assertSame( 'somecustomactionname', $post->post_name );
 		$this->assertSame( self::$non_registered_user_email, $post->post_title );
 	}
 

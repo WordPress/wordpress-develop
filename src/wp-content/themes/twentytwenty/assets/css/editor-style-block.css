@@ -246,8 +246,7 @@ Inter variable font. Usage:
 	font-weight: 700;
 	letter-spacing: -0.0415625em;
 	line-height: 1.25;
-	margin-top: 40px;
-	margin-bottom: 25px;
+	margin: 40px 0 25px;
 }
 
 .editor-post-title__block .editor-post-title__input,
@@ -1073,7 +1072,7 @@ hr.wp-block-separator.is-style-dots::before {
 	width: 100%;
 }
 
-/* Block: List ------------------------------- */
+/* Block: Paragraph -------------------------- */
 
 
 /*	X.	Media Queries

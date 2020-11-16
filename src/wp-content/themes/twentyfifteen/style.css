@@ -195,7 +195,7 @@ a img {
 	font-weight: normal;
 	font-variant: normal;
 	line-height: 1;
-	speak: never;
+	speak: none;
 	text-align: center;
 	text-decoration: inherit;
 	text-transform: none;
@@ -1398,8 +1398,7 @@ img.aligncenter {
 	text-transform: uppercase;
 }
 
-.widget > :last-child,
-.widget > nav > :last-child {
+.widget > :last-child {
 	margin-bottom: 0;
 }
 

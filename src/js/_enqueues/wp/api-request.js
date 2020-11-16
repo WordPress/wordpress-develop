@@ -9,7 +9,6 @@
  * - Allows specifying only an endpoint namespace/path instead of a full URL.
  *
  * @since 4.9.0
- * @since 5.6.0 Added overriding of the "PUT" and "DELETE" methods with "POST".
  * @output wp-includes/js/api-request.js
  */
 
@@ -24,7 +23,6 @@
 	apiRequest.buildAjaxOptions = function( options ) {
 		var url = options.url;
 		var path = options.path;
-		var method = options.method;
 		var namespaceTrimmed, endpointTrimmed, apiRoot;
 		var headers, addNonceHeader, headerName;
 
@@ -78,23 +76,10 @@
 			}, headers );
 		}
 
-		if ( typeof method === 'string' ) {
-			method = method.toUpperCase();
-
-			if ( 'PUT' === method || 'DELETE' === method ) {
-				headers = $.extend( {
-					'X-HTTP-Method-Override': method
-				}, headers );
-
-				method = 'POST';
-			}
-		}
-
 		// Do not mutate the original options object.
 		options = $.extend( {}, options, {
 			headers: headers,
-			url: url,
-			method: method
+			url: url
 		} );
 
 		delete options.path;

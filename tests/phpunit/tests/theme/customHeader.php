@@ -4,11 +4,11 @@
  */
 class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
-	public static $post;
+	static $post;
 
 	protected static $header_video_id;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$post = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',

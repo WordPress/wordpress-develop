@@ -99,14 +99,8 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 
 		if ( ! empty( $taxonomy_terms->terms ) ) {
 			foreach ( $taxonomy_terms->terms as $term ) {
-				$term_link = get_term_link( $term, $taxonomy );
-
-				if ( is_wp_error( $term_link ) ) {
-					continue;
-				}
-
 				$sitemap_entry = array(
-					'loc' => $term_link,
+					'loc' => get_term_link( $term ),
 				);
 
 				/**

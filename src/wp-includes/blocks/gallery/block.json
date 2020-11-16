@@ -68,7 +68,8 @@
 			"default": true
 		},
 		"linkTo": {
-			"type": "string"
+			"type": "string",
+			"default": "none"
 		},
 		"sizeSlug": {
 			"type": "string",

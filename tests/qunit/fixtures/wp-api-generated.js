@@ -14,8 +14,7 @@ mockedApiResponse.Schema = {
     "timezone_string": "",
     "namespaces": [
         "oembed/1.0",
-        "wp/v2",
-        "wp-site-health/v1"
+        "wp/v2"
     ],
     "authentication": [],
     "routes": {
@@ -31,87 +30,14 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "default": "view",
-                            "required": false
+                            "required": false,
+                            "default": "view"
                         }
                     }
                 }
             ],
             "_links": {
                 "self": "http://example.org/index.php?rest_route=/"
-            }
-        },
-        "/batch/v1": {
-            "namespace": "",
-            "methods": [
-                "POST"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "validation": {
-                            "type": "string",
-                            "enum": [
-                                "require-all-validate",
-                                "normal"
-                            ],
-                            "default": "normal",
-                            "required": false
-                        },
-                        "requests": {
-                            "type": "array",
-                            "maxItems": 25,
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "method": {
-                                        "type": "string",
-                                        "enum": [
-                                            "POST",
-                                            "PUT",
-                                            "PATCH",
-                                            "DELETE"
-                                        ],
-                                        "default": "POST"
-                                    },
-                                    "path": {
-                                        "type": "string",
-                                        "required": true
-                                    },
-                                    "body": {
-                                        "type": "object",
-                                        "properties": [],
-                                        "additionalProperties": true
-                                    },
-                                    "headers": {
-                                        "type": "object",
-                                        "properties": [],
-                                        "additionalProperties": {
-                                            "type": [
-                                                "string",
-                                                "array"
-                                            ],
-                                            "items": {
-                                                "type": "string"
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            "required": true
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/batch/v1"
-                    }
-                ]
             }
         },
         "/oembed/1.0": {
@@ -126,12 +52,12 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "namespace": {
-                            "default": "oembed/1.0",
-                            "required": false
+                            "required": false,
+                            "default": "oembed/1.0"
                         },
                         "context": {
-                            "default": "view",
-                            "required": false
+                            "required": false,
+                            "default": "view"
                         }
                     }
                 }
@@ -152,18 +78,17 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "url": {
+                            "required": true,
                             "description": "The URL of the resource for which to fetch oEmbed data.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
+                            "type": "string"
                         },
                         "format": {
-                            "default": "json",
-                            "required": false
+                            "required": false,
+                            "default": "json"
                         },
                         "maxwidth": {
-                            "default": 600,
-                            "required": false
+                            "required": false,
+                            "default": 600
                         }
                     }
                 }
@@ -184,37 +109,36 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "url": {
+                            "required": true,
                             "description": "The URL of the resource for which to fetch oEmbed data.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
+                            "type": "string"
                         },
                         "format": {
-                            "description": "The oEmbed format to use.",
-                            "type": "string",
+                            "required": false,
                             "default": "json",
                             "enum": [
                                 "json",
                                 "xml"
                             ],
-                            "required": false
+                            "description": "The oEmbed format to use.",
+                            "type": "string"
                         },
                         "maxwidth": {
-                            "description": "The maximum width of the embed frame in pixels.",
-                            "type": "integer",
+                            "required": false,
                             "default": 600,
-                            "required": false
+                            "description": "The maximum width of the embed frame in pixels.",
+                            "type": "integer"
                         },
                         "maxheight": {
+                            "required": false,
                             "description": "The maximum height of the embed frame in pixels.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "discover": {
-                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
-                            "type": "boolean",
+                            "required": false,
                             "default": true,
-                            "required": false
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
+                            "type": "boolean"
                         }
                     }
                 }
@@ -235,12 +159,12 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "namespace": {
-                            "default": "wp/v2",
-                            "required": false
+                            "required": false,
+                            "default": "wp/v2"
                         },
                         "context": {
-                            "default": "view",
-                            "required": false
+                            "required": false,
+                            "default": "view"
                         }
                     }
                 }
@@ -262,102 +186,96 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "after": {
+                            "required": false,
                             "description": "Limit response to posts published after a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "author": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "author_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "before": {
+                            "required": false,
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "author",
@@ -371,17 +289,19 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "status": {
+                            "required": false,
                             "default": "publish",
                             "description": "Limit result set to posts assigned one or more statuses.",
                             "type": "array",
@@ -402,58 +322,57 @@ mockedApiResponse.Schema = {
                                     "any"
                                 ],
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "tax_relation": {
-                            "description": "Limit result set based on relationship between multiple taxonomies.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "AND",
                                 "OR"
                             ],
-                            "required": false
+                            "description": "Limit result set based on relationship between multiple taxonomies.",
+                            "type": "string"
                         },
                         "categories": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items that have the specified term assigned in the categories taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "categories_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items except those that have the specified term assigned in the categories taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "tags": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items that have the specified term assigned in the tags taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "tags_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items except those that have the specified term assigned in the tags taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "sticky": {
+                            "required": false,
                             "description": "Limit result set to items that are sticky.",
-                            "type": "boolean",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 },
@@ -463,31 +382,28 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -495,143 +411,59 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "format": {
-                            "description": "The format for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "standard",
                                 "aside",
@@ -644,39 +476,39 @@ mockedApiResponse.Schema = {
                                 "video",
                                 "audio"
                             ],
-                            "required": false
+                            "description": "The format for the object.",
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "sticky": {
+                            "required": false,
                             "description": "Whether or not the object should be treated as sticky.",
-                            "type": "boolean",
-                            "required": false
+                            "type": "boolean"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "categories": {
+                            "required": false,
                             "description": "The terms assigned to the object in the category taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "tags": {
+                            "required": false,
                             "description": "The terms assigned to the object in the post_tag taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 }
@@ -701,25 +533,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the post if it is password protected.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -731,36 +563,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -768,143 +597,59 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "format": {
-                            "description": "The format for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "standard",
                                 "aside",
@@ -917,39 +662,39 @@ mockedApiResponse.Schema = {
                                 "video",
                                 "audio"
                             ],
-                            "required": false
+                            "description": "The format for the object.",
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "sticky": {
+                            "required": false,
                             "description": "Whether or not the object should be treated as sticky.",
-                            "type": "boolean",
-                            "required": false
+                            "type": "boolean"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "categories": {
+                            "required": false,
                             "description": "The terms assigned to the object in the category taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "tags": {
+                            "required": false,
                             "description": "The terms assigned to the object in the post_tag taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -959,15 +704,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -985,76 +730,72 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
+                            "required": false,
                             "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "date",
@@ -1065,7 +806,8 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         }
                     }
                 }
@@ -1084,25 +826,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -1112,20 +854,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as revisions do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -1144,20 +886,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -1167,36 +909,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -1204,143 +943,59 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "format": {
-                            "description": "The format for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "standard",
                                 "aside",
@@ -1353,39 +1008,39 @@ mockedApiResponse.Schema = {
                                 "video",
                                 "audio"
                             ],
-                            "required": false
+                            "description": "The format for the object.",
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "sticky": {
+                            "required": false,
                             "description": "Whether or not the object should be treated as sticky.",
-                            "type": "boolean",
-                            "required": false
+                            "type": "boolean"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "categories": {
+                            "required": false,
                             "description": "The terms assigned to the object in the category taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "tags": {
+                            "required": false,
                             "description": "The terms assigned to the object in the post_tag taxonomy.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 }
@@ -1403,25 +1058,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "The ID for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -1440,107 +1095,101 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "after": {
+                            "required": false,
                             "description": "Limit response to posts published after a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "author": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "author_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "before": {
+                            "required": false,
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "menu_order": {
+                            "required": false,
                             "description": "Limit result set to posts with a specific menu_order value.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "author",
@@ -1555,35 +1204,37 @@ mockedApiResponse.Schema = {
                                 "title",
                                 "menu_order"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to items with particular parent IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "parent_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items except those of a particular parent ID.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "status": {
+                            "required": false,
                             "default": "publish",
                             "description": "Limit result set to posts assigned one or more statuses.",
                             "type": "array",
@@ -1604,8 +1255,7 @@ mockedApiResponse.Schema = {
                                     "any"
                                 ],
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -1615,31 +1265,28 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -1647,160 +1294,76 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "menu_order": {
+                            "required": false,
                             "description": "The order of the object in relation to other object of its type.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -1825,25 +1388,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the post if it is password protected.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -1855,36 +1418,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -1892,160 +1452,76 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "menu_order": {
+                            "required": false,
                             "description": "The order of the object in relation to other object of its type.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -2055,15 +1531,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -2081,76 +1557,72 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
+                            "required": false,
                             "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "date",
@@ -2161,7 +1633,8 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         }
                     }
                 }
@@ -2180,25 +1653,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -2208,20 +1681,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as revisions do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -2240,20 +1713,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -2263,36 +1736,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -2300,155 +1770,71 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "excerpt": {
+                            "required": false,
                             "description": "The excerpt for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Excerpt for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML excerpt for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the excerpt is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "featured_media": {
+                            "required": false,
                             "description": "The ID of the featured media for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "menu_order": {
+                            "required": false,
                             "description": "The order of the object in relation to other object of its type.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -2466,25 +1852,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "The ID for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -2503,102 +1889,96 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "after": {
+                            "required": false,
                             "description": "Limit response to posts published after a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "author": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "author_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes posts assigned to specific authors.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "before": {
+                            "required": false,
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "author",
@@ -2612,35 +1992,37 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to items with particular parent IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "parent_exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to all items except those of a particular parent ID.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "status": {
+                            "required": false,
                             "default": "inherit",
                             "description": "Limit result set to posts assigned one or more statuses.",
                             "type": "array",
@@ -2651,13 +2033,10 @@ mockedApiResponse.Schema = {
                                     "trash"
                                 ],
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "media_type": {
-                            "default": null,
-                            "description": "Limit result set to attachments of a particular media type.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "image",
                                 "video",
@@ -2665,13 +2044,13 @@ mockedApiResponse.Schema = {
                                 "application",
                                 "audio"
                             ],
-                            "required": false
+                            "description": "Limit result set to attachments of a particular media type.",
+                            "type": "string"
                         },
                         "mime_type": {
-                            "default": null,
+                            "required": false,
                             "description": "Limit result set to attachments of a particular MIME type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -2681,31 +2060,28 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -2713,122 +2089,66 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "alt_text": {
+                            "required": false,
                             "description": "Alternative text to display when attachment is not displayed.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "caption": {
+                            "required": false,
                             "description": "The attachment caption.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Caption for the attachment, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML caption for the attachment, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "description": {
+                            "required": false,
                             "description": "The attachment description.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Description for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML description for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "post": {
+                            "required": false,
                             "description": "The ID for the associated post of the attachment.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         }
                     }
                 }
@@ -2853,20 +2173,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -2878,36 +2198,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -2915,122 +2232,66 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML title for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID for the author of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "comment_status": {
-                            "description": "Whether or not comments are open on the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not comments are open on the object.",
+                            "type": "string"
                         },
                         "ping_status": {
-                            "description": "Whether or not the object can be pinged.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Whether or not the object can be pinged.",
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "alt_text": {
+                            "required": false,
                             "description": "Alternative text to display when attachment is not displayed.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "caption": {
+                            "required": false,
                             "description": "The attachment caption.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Caption for the attachment, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML caption for the attachment, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "description": {
+                            "required": false,
                             "description": "The attachment description.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Description for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML description for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "post": {
+                            "required": false,
                             "description": "The ID for the associated post of the attachment.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         }
                     }
                 },
@@ -3040,15 +2301,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -3066,16 +2327,16 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "action": {
-                            "type": "string",
+                            "required": true,
                             "enum": [
                                 "create-image-subsizes"
                             ],
-                            "required": true
+                            "type": "string"
                         }
                     }
                 }
@@ -3093,47 +2354,34 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "rotation": {
+                            "required": false,
                             "description": "The amount to rotate the image clockwise in degrees.",
-                            "type": "integer",
-                            "minimum": 0,
-                            "exclusiveMinimum": true,
-                            "maximum": 360,
-                            "exclusiveMaximum": true,
-                            "required": false
+                            "type": "integer"
                         },
                         "x": {
+                            "required": false,
                             "description": "As a percentage of the image, the x position to start the crop from.",
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 100,
-                            "required": false
+                            "type": "number"
                         },
                         "y": {
+                            "required": false,
                             "description": "As a percentage of the image, the y position to start the crop from.",
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 100,
-                            "required": false
+                            "type": "number"
                         },
                         "width": {
+                            "required": false,
                             "description": "As a percentage of the image, the width to crop the image to.",
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 100,
-                            "required": false
+                            "type": "number"
                         },
                         "height": {
+                            "required": false,
                             "description": "As a percentage of the image, the height to crop the image to.",
-                            "type": "number",
-                            "minimum": 0,
-                            "maximum": 100,
-                            "required": false
+                            "type": "number"
                         },
                         "src": {
+                            "required": true,
                             "description": "URL to the edited image file.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
+                            "type": "string"
                         }
                     }
                 }
@@ -3152,84 +2400,78 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "after": {
+                            "required": false,
                             "description": "Limit response to posts published after a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "before": {
+                            "required": false,
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date",
                             "enum": [
                                 "author",
@@ -3243,17 +2485,19 @@ mockedApiResponse.Schema = {
                                 "include_slugs",
                                 "title"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to posts with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "status": {
+                            "required": false,
                             "default": "publish",
                             "description": "Limit result set to posts assigned one or more statuses.",
                             "type": "array",
@@ -3274,8 +2518,7 @@ mockedApiResponse.Schema = {
                                     "any"
                                 ],
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -3285,31 +2528,28 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -3317,65 +2557,28 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -3400,25 +2603,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the post if it is password protected.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -3430,36 +2633,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -3467,65 +2667,28 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -3535,15 +2698,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -3562,20 +2725,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -3585,36 +2748,33 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
                             "type": [
                                 "string",
                                 "null"
-                            ],
-                            "format": "date-time",
-                            "required": false
+                            ]
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the object unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
-                            "description": "A named status for the object.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "publish",
                                 "future",
@@ -3622,65 +2782,28 @@ mockedApiResponse.Schema = {
                                 "pending",
                                 "private"
                             ],
-                            "required": false
+                            "description": "A named status for the object.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "A password to protect access to the content and excerpt.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "title": {
+                            "required": false,
                             "description": "The title for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Title for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit"
-                                    ]
-                                },
-                                "block_version": {
-                                    "description": "Version of the content block format used by the object.",
-                                    "type": "integer",
-                                    "context": [
-                                        "edit"
-                                    ],
-                                    "readonly": true
-                                },
-                                "protected": {
-                                    "description": "Whether the content is protected with a password.",
-                                    "type": "boolean",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "template": {
+                            "required": false,
                             "description": "The theme file to use to display the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -3698,25 +2821,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "id": {
+                            "required": false,
                             "description": "The ID for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3734,15 +2857,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3763,20 +2886,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "type": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the post type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3794,15 +2917,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3823,20 +2946,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "status": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the status.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3854,20 +2977,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "type": {
+                            "required": false,
                             "description": "Limit results to taxonomies associated with a specific post type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -3888,20 +3011,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "taxonomy": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the taxonomy.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -3920,67 +3043,63 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "asc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by term attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "name",
                             "enum": [
                                 "id",
@@ -3992,32 +3111,32 @@ mockedApiResponse.Schema = {
                                 "description",
                                 "count"
                             ],
-                            "required": false
+                            "description": "Sort collection by term attribute.",
+                            "type": "string"
                         },
                         "hide_empty": {
-                            "description": "Whether to hide terms not assigned to any posts.",
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
-                            "required": false
+                            "description": "Whether to hide terms not assigned to any posts.",
+                            "type": "boolean"
                         },
                         "parent": {
+                            "required": false,
                             "description": "Limit result set to terms assigned to a specific parent.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "post": {
+                            "required": false,
                             "description": "Limit result set to terms assigned to a specific post.",
-                            "type": "integer",
-                            "default": null,
-                            "required": false
+                            "type": "integer"
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to terms with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -4027,30 +3146,29 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "description": {
+                            "required": false,
                             "description": "HTML description of the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": true,
                             "description": "HTML title for the term.",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the term unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "description": "The parent term ID.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 }
@@ -4075,20 +3193,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -4100,35 +3218,34 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "description": {
+                            "required": false,
                             "description": "HTML description of the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": false,
                             "description": "HTML title for the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the term unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "description": "The parent term ID.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 },
@@ -4138,15 +3255,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as terms do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -4165,72 +3282,68 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "asc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by term attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "name",
                             "enum": [
                                 "id",
@@ -4242,27 +3355,27 @@ mockedApiResponse.Schema = {
                                 "description",
                                 "count"
                             ],
-                            "required": false
+                            "description": "Sort collection by term attribute.",
+                            "type": "string"
                         },
                         "hide_empty": {
-                            "description": "Whether to hide terms not assigned to any posts.",
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
-                            "required": false
+                            "description": "Whether to hide terms not assigned to any posts.",
+                            "type": "boolean"
                         },
                         "post": {
+                            "required": false,
                             "description": "Limit result set to terms assigned to a specific post.",
-                            "type": "integer",
-                            "default": null,
-                            "required": false
+                            "type": "integer"
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to terms with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -4272,25 +3385,24 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "description": {
+                            "required": false,
                             "description": "HTML description of the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": true,
                             "description": "HTML title for the term.",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the term unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 }
@@ -4315,20 +3427,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -4340,30 +3452,29 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "description": {
+                            "required": false,
                             "description": "HTML description of the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": false,
                             "description": "HTML title for the term.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the term unique to its type.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 },
@@ -4373,15 +3484,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the term.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as terms do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         }
                     }
                 }
@@ -4400,72 +3511,69 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
+                            "required": false,
                             "default": "asc",
-                            "description": "Order sort attribute ascending or descending.",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "type": "string",
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
+                            "required": false,
                             "default": "name",
-                            "description": "Sort collection by object attribute.",
                             "enum": [
                                 "id",
                                 "include",
@@ -4476,32 +3584,32 @@ mockedApiResponse.Schema = {
                                 "email",
                                 "url"
                             ],
-                            "type": "string",
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "Limit result set to users with one or more specific slugs.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "roles": {
+                            "required": false,
                             "description": "Limit result set to users matching at least one specific role provided. Accepts csv list or single role.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "who": {
-                            "description": "Limit result set to users who are considered authors.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "authors"
                             ],
-                            "required": false
+                            "description": "Limit result set to users who are considered authors.",
+                            "type": "string"
                         }
                     }
                 },
@@ -4511,45 +3619,42 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "username": {
+                            "required": true,
                             "description": "Login name for the user.",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         "name": {
+                            "required": false,
                             "description": "Display name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "first_name": {
+                            "required": false,
                             "description": "First name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "last_name": {
+                            "required": false,
                             "description": "Last name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "email": {
+                            "required": true,
                             "description": "The email address for the user.",
-                            "type": "string",
-                            "format": "email",
-                            "required": true
+                            "type": "string"
                         },
                         "url": {
+                            "required": false,
                             "description": "URL of the user.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "description": {
+                            "required": false,
                             "description": "Description of the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "locale": {
-                            "description": "Locale for the user.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "",
                                 "en_US",
@@ -4558,36 +3663,36 @@ mockedApiResponse.Schema = {
                                 "es_ES",
                                 "ja_JP"
                             ],
-                            "required": false
+                            "description": "Locale for the user.",
+                            "type": "string"
                         },
                         "nickname": {
+                            "required": false,
                             "description": "The nickname for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "roles": {
+                            "required": false,
                             "description": "Roles assigned to the user.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "password": {
+                            "required": true,
                             "description": "Password for the user (never included).",
-                            "type": "string",
-                            "required": true
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 }
@@ -4612,20 +3717,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the user.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -4637,50 +3742,47 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the user.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "username": {
+                            "required": false,
                             "description": "Login name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": false,
                             "description": "Display name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "first_name": {
+                            "required": false,
                             "description": "First name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "last_name": {
+                            "required": false,
                             "description": "Last name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "email": {
+                            "required": false,
                             "description": "The email address for the user.",
-                            "type": "string",
-                            "format": "email",
-                            "required": false
+                            "type": "string"
                         },
                         "url": {
+                            "required": false,
                             "description": "URL of the user.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "description": {
+                            "required": false,
                             "description": "Description of the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "locale": {
-                            "description": "Locale for the user.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "",
                                 "en_US",
@@ -4689,36 +3791,36 @@ mockedApiResponse.Schema = {
                                 "es_ES",
                                 "ja_JP"
                             ],
-                            "required": false
+                            "description": "Locale for the user.",
+                            "type": "string"
                         },
                         "nickname": {
+                            "required": false,
                             "description": "The nickname for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "roles": {
+                            "required": false,
                             "description": "Roles assigned to the user.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "password": {
+                            "required": false,
                             "description": "Password for the user (never included).",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 },
@@ -4728,20 +3830,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the user.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as users do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         },
                         "reassign": {
-                            "type": "integer",
+                            "required": true,
                             "description": "Reassign the deleted user's posts and links to this user ID.",
-                            "required": true
+                            "type": "integer"
                         }
                     }
                 }
@@ -4763,15 +3865,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 },
@@ -4783,45 +3885,42 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "username": {
+                            "required": false,
                             "description": "Login name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "name": {
+                            "required": false,
                             "description": "Display name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "first_name": {
+                            "required": false,
                             "description": "First name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "last_name": {
+                            "required": false,
                             "description": "Last name for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "email": {
+                            "required": false,
                             "description": "The email address for the user.",
-                            "type": "string",
-                            "format": "email",
-                            "required": false
+                            "type": "string"
                         },
                         "url": {
+                            "required": false,
                             "description": "URL of the user.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "description": {
+                            "required": false,
                             "description": "Description of the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "locale": {
-                            "description": "Locale for the user.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "",
                                 "en_US",
@@ -4830,36 +3929,36 @@ mockedApiResponse.Schema = {
                                 "es_ES",
                                 "ja_JP"
                             ],
-                            "required": false
+                            "description": "Locale for the user.",
+                            "type": "string"
                         },
                         "nickname": {
+                            "required": false,
                             "description": "The nickname for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "slug": {
+                            "required": false,
                             "description": "An alphanumeric identifier for the user.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "roles": {
+                            "required": false,
                             "description": "Roles assigned to the user.",
                             "type": "array",
                             "items": {
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         },
                         "password": {
+                            "required": false,
                             "description": "Password for the user (never included).",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 },
@@ -4869,15 +3968,15 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Required to be true, as users do not support trashing.",
-                            "required": false
+                            "type": "boolean"
                         },
                         "reassign": {
-                            "type": "integer",
+                            "required": true,
                             "description": "Reassign the deleted user's posts and links to this user ID.",
-                            "required": true
+                            "type": "integer"
                         }
                     }
                 }
@@ -4885,114 +3984,6 @@ mockedApiResponse.Schema = {
             "_links": {
                 "self": "http://example.org/index.php?rest_route=/wp/v2/users/me"
             }
-        },
-        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET",
-                "POST",
-                "DELETE"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "POST"
-                    ],
-                    "args": {
-                        "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
-                            "type": "string",
-                            "format": "uuid",
-                            "required": false
-                        },
-                        "name": {
-                            "description": "The name of the application password.",
-                            "type": "string",
-                            "required": true
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "DELETE"
-                    ],
-                    "args": []
-                }
-            ]
-        },
-        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)": {
-            "namespace": "wp/v2",
-            "methods": [
-                "GET",
-                "POST",
-                "PUT",
-                "PATCH",
-                "DELETE"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "enum": [
-                                "view",
-                                "embed",
-                                "edit"
-                            ],
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "POST",
-                        "PUT",
-                        "PATCH"
-                    ],
-                    "args": {
-                        "app_id": {
-                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
-                            "type": "string",
-                            "format": "uuid",
-                            "required": false
-                        },
-                        "name": {
-                            "description": "The name of the application password.",
-                            "type": "string",
-                            "required": false
-                        }
-                    }
-                },
-                {
-                    "methods": [
-                        "DELETE"
-                    ],
-                    "args": []
-                }
-            ]
         },
         "/wp/v2/comments": {
             "namespace": "wp/v2",
@@ -5007,107 +3998,99 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "after": {
+                            "required": false,
                             "description": "Limit response to comments published after a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "author": {
+                            "required": false,
                             "description": "Limit result set to comments assigned to specific user IDs. Requires authorization.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "author_exclude": {
+                            "required": false,
                             "description": "Ensure result set excludes comments assigned to specific user IDs. Requires authorization.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "author_email": {
-                            "default": null,
+                            "required": false,
                             "description": "Limit result set to that from a specific author email. Requires authorization.",
-                            "format": "email",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "before": {
+                            "required": false,
                             "description": "Limit response to comments published before a given ISO8601 compliant date.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "exclude": {
+                            "required": false,
+                            "default": [],
                             "description": "Ensure result set excludes specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "include": {
+                            "required": false,
+                            "default": [],
                             "description": "Limit result set to specific IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "default": [],
-                            "required": false
+                            }
                         },
                         "offset": {
+                            "required": false,
                             "description": "Offset the result set by a specific number of items.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "order": {
-                            "description": "Order sort attribute ascending or descending.",
-                            "type": "string",
+                            "required": false,
                             "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "required": false
+                            "description": "Order sort attribute ascending or descending.",
+                            "type": "string"
                         },
                         "orderby": {
-                            "description": "Sort collection by object attribute.",
-                            "type": "string",
+                            "required": false,
                             "default": "date_gmt",
                             "enum": [
                                 "date",
@@ -5118,51 +4101,52 @@ mockedApiResponse.Schema = {
                                 "parent",
                                 "type"
                             ],
-                            "required": false
+                            "description": "Sort collection by object attribute.",
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "default": [],
                             "description": "Limit result set to comments of specific parent IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "parent_exclude": {
+                            "required": false,
                             "default": [],
                             "description": "Ensure result set excludes specific parent IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "post": {
+                            "required": false,
                             "default": [],
                             "description": "Limit result set to comments assigned to specific post IDs.",
                             "type": "array",
                             "items": {
                                 "type": "integer"
-                            },
-                            "required": false
+                            }
                         },
                         "status": {
+                            "required": false,
                             "default": "approve",
                             "description": "Limit result set to comments assigned a specific status. Requires authorization.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "type": {
+                            "required": false,
                             "default": "comment",
                             "description": "Limit result set to comments assigned a specific type. Requires authorization.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the post if it is password protected.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -5172,96 +4156,71 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "author": {
+                            "required": false,
                             "description": "The ID of the user object, if author was a user.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "author_email": {
+                            "required": false,
                             "description": "Email address for the object author.",
-                            "type": "string",
-                            "format": "email",
-                            "required": false
+                            "type": "string"
                         },
                         "author_ip": {
+                            "required": false,
                             "description": "IP address for the object author.",
-                            "type": "string",
-                            "format": "ip",
-                            "required": false
+                            "type": "string"
                         },
                         "author_name": {
+                            "required": false,
                             "description": "Display name for the object author.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "author_url": {
+                            "required": false,
                             "description": "URL for the object author.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "author_user_agent": {
+                            "required": false,
                             "description": "User agent for the object author.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "default": 0,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "post": {
+                            "required": false,
                             "default": 0,
                             "description": "The ID of the associated post object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "status": {
+                            "required": false,
                             "description": "State of the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 }
@@ -5286,25 +4245,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the parent post of the comment (if the post is password protected).",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 },
@@ -5316,99 +4275,74 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "author": {
+                            "required": false,
                             "description": "The ID of the user object, if author was a user.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "author_email": {
+                            "required": false,
                             "description": "Email address for the object author.",
-                            "type": "string",
-                            "format": "email",
-                            "required": false
+                            "type": "string"
                         },
                         "author_ip": {
+                            "required": false,
                             "description": "IP address for the object author.",
-                            "type": "string",
-                            "format": "ip",
-                            "required": false
+                            "type": "string"
                         },
                         "author_name": {
+                            "required": false,
                             "description": "Display name for the object author.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "author_url": {
+                            "required": false,
                             "description": "URL for the object author.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "author_user_agent": {
+                            "required": false,
                             "description": "User agent for the object author.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "content": {
+                            "required": false,
                             "description": "The content for the object.",
-                            "type": "object",
-                            "properties": {
-                                "raw": {
-                                    "description": "Content for the object, as it exists in the database.",
-                                    "type": "string",
-                                    "context": [
-                                        "edit"
-                                    ]
-                                },
-                                "rendered": {
-                                    "description": "HTML content for the object, transformed for display.",
-                                    "type": "string",
-                                    "context": [
-                                        "view",
-                                        "edit",
-                                        "embed"
-                                    ],
-                                    "readonly": true
-                                }
-                            },
-                            "required": false
+                            "type": "object"
                         },
                         "date": {
+                            "required": false,
                             "description": "The date the object was published, in the site's timezone.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "date_gmt": {
+                            "required": false,
                             "description": "The date the object was published, as GMT.",
-                            "type": "string",
-                            "format": "date-time",
-                            "required": false
+                            "type": "string"
                         },
                         "parent": {
+                            "required": false,
                             "description": "The ID for the parent of the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "post": {
+                            "required": false,
                             "description": "The ID of the associated post object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "status": {
+                            "required": false,
                             "description": "State of the object.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "meta": {
+                            "required": false,
                             "description": "Meta fields.",
-                            "type": "object",
-                            "properties": [],
-                            "required": false
+                            "type": "object"
                         }
                     }
                 },
@@ -5418,20 +4352,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "id": {
+                            "required": false,
                             "description": "Unique identifier for the object.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "force": {
-                            "type": "boolean",
+                            "required": false,
                             "default": false,
                             "description": "Whether to bypass Trash and force deletion.",
-                            "required": false
+                            "type": "boolean"
                         },
                         "password": {
+                            "required": false,
                             "description": "The password for the parent post of the comment (if the post is password protected).",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -5449,47 +4383,43 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "type": {
+                            "required": false,
                             "default": "post",
-                            "description": "Limit results to items of an object type.",
-                            "type": "string",
                             "enum": [
-                                "post",
-                                "term",
-                                "post-format"
+                                "post"
                             ],
-                            "required": false
+                            "description": "Limit results to items of an object type.",
+                            "type": "string"
                         },
                         "subtype": {
+                            "required": false,
                             "default": "any",
                             "description": "Limit results to items of one or more object subtypes.",
                             "type": "array",
@@ -5497,13 +4427,10 @@ mockedApiResponse.Schema = {
                                 "enum": [
                                     "post",
                                     "page",
-                                    "category",
-                                    "post_tag",
                                     "any"
                                 ],
                                 "type": "string"
-                            },
-                            "required": false
+                            }
                         }
                     }
                 }
@@ -5526,29 +4453,29 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "name": {
+                            "required": false,
                             "description": "Unique registered name for the block.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "attributes": {
-                            "description": "Attributes for the block.",
-                            "type": "object",
+                            "required": false,
                             "default": [],
-                            "required": false
+                            "description": "Attributes for the block",
+                            "type": "object"
                         },
                         "post_id": {
+                            "required": false,
                             "description": "ID of the post context.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         }
                     }
                 }
@@ -5566,20 +4493,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "namespace": {
+                            "required": false,
                             "description": "Block namespace.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -5604,20 +4531,20 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "namespace": {
+                            "required": false,
                             "description": "Block namespace.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         }
                     }
                 }
@@ -5635,25 +4562,25 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "name": {
-                            "description": "Block name.",
-                            "type": "string",
-                            "required": false
+                            "required": false,
+                            "description": "Block name",
+                            "type": "string"
                         },
                         "namespace": {
-                            "description": "Block namespace.",
-                            "type": "string",
-                            "required": false
+                            "required": false,
+                            "description": "Block namespace",
+                            "type": "string"
                         },
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         }
                     }
                 }
@@ -5682,89 +4609,87 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "title": {
+                            "required": false,
                             "description": "Site title.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "description": {
+                            "required": false,
                             "description": "Site tagline.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "url": {
+                            "required": false,
                             "description": "Site URL.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": false
+                            "type": "string"
                         },
                         "email": {
+                            "required": false,
                             "description": "This address is used for admin purposes, like new user notification.",
-                            "type": "string",
-                            "format": "email",
-                            "required": false
+                            "type": "string"
                         },
                         "timezone": {
+                            "required": false,
                             "description": "A city in the same timezone as you.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "date_format": {
+                            "required": false,
                             "description": "A date format for all date strings.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "time_format": {
+                            "required": false,
                             "description": "A time format for all time strings.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "start_of_week": {
+                            "required": false,
                             "description": "A day number of the week that the week should start on.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "language": {
+                            "required": false,
                             "description": "WordPress locale code.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "use_smilies": {
+                            "required": false,
                             "description": "Convert emoticons like :-) and :-P to graphics on display.",
-                            "type": "boolean",
-                            "required": false
+                            "type": "boolean"
                         },
                         "default_category": {
+                            "required": false,
                             "description": "Default post category.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "default_post_format": {
+                            "required": false,
                             "description": "Default post format.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "posts_per_page": {
+                            "required": false,
                             "description": "Blog pages show at most.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "default_ping_status": {
-                            "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Allow link notifications from other blogs (pingbacks and trackbacks) on new articles.",
+                            "type": "string"
                         },
                         "default_comment_status": {
-                            "description": "Allow people to submit comments on new posts.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "open",
                                 "closed"
                             ],
-                            "required": false
+                            "description": "Allow people to submit comments on new posts.",
+                            "type": "string"
                         }
                     }
                 }
@@ -5785,31 +4710,29 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
+                            "required": false,
                             "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
+                            "required": true,
                             "description": "Limit result set to themes assigned one or more statuses.",
                             "type": "array",
                             "items": {
@@ -5817,8 +4740,7 @@ mockedApiResponse.Schema = {
                                     "active"
                                 ],
                                 "type": "string"
-                            },
-                            "required": true
+                            }
                         }
                     }
                 }
@@ -5840,22 +4762,23 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "search": {
+                            "required": false,
                             "description": "Limit results to those matching a string.",
-                            "type": "string",
-                            "required": false
+                            "type": "string"
                         },
                         "status": {
+                            "required": false,
                             "description": "Limits results to plugins with the given status.",
                             "type": "array",
                             "items": {
@@ -5864,8 +4787,7 @@ mockedApiResponse.Schema = {
                                     "inactive",
                                     "active"
                                 ]
-                            },
-                            "required": false
+                            }
                         }
                     }
                 },
@@ -5875,20 +4797,19 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "slug": {
-                            "type": "string",
+                            "required": true,
                             "description": "WordPress.org plugin directory slug.",
-                            "pattern": "[\\w\\-]+",
-                            "required": true
+                            "type": "string"
                         },
                         "status": {
-                            "description": "The plugin activation status.",
-                            "type": "string",
+                            "required": false,
+                            "default": "inactive",
                             "enum": [
                                 "inactive",
                                 "active"
                             ],
-                            "default": "inactive",
-                            "required": false
+                            "description": "The plugin activation status.",
+                            "type": "string"
                         }
                     }
                 }
@@ -5917,20 +4838,19 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "plugin": {
-                            "type": "string",
-                            "pattern": "[^.\\/]+(?:\\/[^.\\/]+)?",
-                            "required": false
+                            "required": false,
+                            "type": "string"
                         }
                     }
                 },
@@ -5942,29 +4862,28 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "plugin": {
-                            "type": "string",
-                            "pattern": "[^.\\/]+(?:\\/[^.\\/]+)?",
-                            "required": false
+                            "required": false,
+                            "type": "string"
                         },
                         "status": {
-                            "description": "The plugin activation status.",
-                            "type": "string",
+                            "required": false,
                             "enum": [
                                 "inactive",
                                 "active"
                             ],
-                            "required": false
+                            "description": "The plugin activation status.",
+                            "type": "string"
                         }
                     }
                 },
@@ -5974,20 +4893,19 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view",
                                 "embed",
                                 "edit"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "plugin": {
-                            "type": "string",
-                            "pattern": "[^.\\/]+(?:\\/[^.\\/]+)?",
-                            "required": false
+                            "required": false,
+                            "type": "string"
                         }
                     }
                 }
@@ -6005,34 +4923,30 @@ mockedApiResponse.Schema = {
                     ],
                     "args": {
                         "context": {
-                            "description": "Scope under which the request is made; determines fields present in response.",
-                            "type": "string",
+                            "required": false,
+                            "default": "view",
                             "enum": [
                                 "view"
                             ],
-                            "default": "view",
-                            "required": false
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string"
                         },
                         "page": {
-                            "description": "Current page of the collection.",
-                            "type": "integer",
+                            "required": false,
                             "default": 1,
-                            "minimum": 1,
-                            "required": false
+                            "description": "Current page of the collection.",
+                            "type": "integer"
                         },
                         "per_page": {
-                            "description": "Maximum number of items to be returned in result set.",
-                            "type": "integer",
+                            "required": false,
                             "default": 10,
-                            "minimum": 1,
-                            "maximum": 100,
-                            "required": false
+                            "description": "Maximum number of items to be returned in result set.",
+                            "type": "integer"
                         },
                         "term": {
+                            "required": true,
                             "description": "Limit result set to blocks matching the search term.",
-                            "type": "string",
-                            "minLength": 1,
-                            "required": true
+                            "type": "string"
                         }
                     }
                 }
@@ -6041,141 +4955,6 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp/v2/block-directory/search"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": {
-                        "namespace": {
-                            "default": "wp-site-health/v1",
-                            "required": false
-                        },
-                        "context": {
-                            "default": "view",
-                            "required": false
-                        }
-                    }
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1/tests/background-updates": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": []
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/background-updates"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1/tests/loopback-requests": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": []
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/loopback-requests"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1/tests/dotorg-communication": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": []
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/dotorg-communication"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1/tests/authorization-header": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": []
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/authorization-header"
-                    }
-                ]
-            }
-        },
-        "/wp-site-health/v1/directory-sizes": {
-            "namespace": "wp-site-health/v1",
-            "methods": [
-                "GET"
-            ],
-            "endpoints": [
-                {
-                    "methods": [
-                        "GET"
-                    ],
-                    "args": []
-                }
-            ],
-            "_links": {
-                "self": [
-                    {
-                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/directory-sizes"
                     }
                 ]
             }
@@ -6198,12 +4977,12 @@ mockedApiResponse.oembed = {
                     ],
                     "args": {
                         "namespace": {
-                            "default": "oembed/1.0",
-                            "required": false
+                            "required": false,
+                            "default": "oembed/1.0"
                         },
                         "context": {
-                            "default": "view",
-                            "required": false
+                            "required": false,
+                            "default": "view"
                         }
                     }
                 }
@@ -6224,18 +5003,17 @@ mockedApiResponse.oembed = {
                     ],
                     "args": {
                         "url": {
+                            "required": true,
                             "description": "The URL of the resource for which to fetch oEmbed data.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
+                            "type": "string"
                         },
                         "format": {
-                            "default": "json",
-                            "required": false
+                            "required": false,
+                            "default": "json"
                         },
                         "maxwidth": {
-                            "default": 600,
-                            "required": false
+                            "required": false,
+                            "default": 600
                         }
                     }
                 }
@@ -6256,37 +5034,36 @@ mockedApiResponse.oembed = {
                     ],
                     "args": {
                         "url": {
+                            "required": true,
                             "description": "The URL of the resource for which to fetch oEmbed data.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
+                            "type": "string"
                         },
                         "format": {
-                            "description": "The oEmbed format to use.",
-                            "type": "string",
+                            "required": false,
                             "default": "json",
                             "enum": [
                                 "json",
                                 "xml"
                             ],
-                            "required": false
+                            "description": "The oEmbed format to use.",
+                            "type": "string"
                         },
                         "maxwidth": {
-                            "description": "The maximum width of the embed frame in pixels.",
-                            "type": "integer",
+                            "required": false,
                             "default": 600,
-                            "required": false
+                            "description": "The maximum width of the embed frame in pixels.",
+                            "type": "integer"
                         },
                         "maxheight": {
+                            "required": false,
                             "description": "The maximum height of the embed frame in pixels.",
-                            "type": "integer",
-                            "required": false
+                            "type": "integer"
                         },
                         "discover": {
-                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
-                            "type": "boolean",
+                            "required": false,
                             "default": true,
-                            "required": false
+                            "description": "Whether to perform an oEmbed discovery request for unsanctioned providers.",
+                            "type": "boolean"
                         }
                     }
                 }

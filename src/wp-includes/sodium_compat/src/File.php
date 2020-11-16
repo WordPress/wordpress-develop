@@ -141,9 +141,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             ParagonIE_Sodium_Compat::memzero($nonce);
             ParagonIE_Sodium_Compat::memzero($ephKeypair);
         } catch (SodiumException $ex) {
-            if (isset($ephKeypair)) {
-                unset($ephKeypair);
-            }
+            unset($ephKeypair);
         }
         return $res;
     }
@@ -330,9 +328,7 @@ class ParagonIE_Sodium_File extends ParagonIE_Sodium_Core_Util
             ParagonIE_Sodium_Compat::memzero($nonce);
             ParagonIE_Sodium_Compat::memzero($ephKeypair);
         } catch (SodiumException $ex) {
-            if (isset($ephKeypair)) {
-                unset($ephKeypair);
-            }
+            unset($ephKeypair);
         }
         return $res;
     }

@@ -1,13 +1,13 @@
 <?php
 
 class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
-	public static $old_current_user;
-	public static $author_id;
-	public static $post_ids    = array();
-	public static $comment_ids = array();
-	public static $term_ids    = array();
-	public static $terms       = array();
-	public static $old_options = array();
+	static $old_current_user;
+	static $author_id;
+	static $post_ids    = array();
+	static $comment_ids = array();
+	static $term_ids    = array();
+	static $terms       = array();
+	static $old_options = array();
 
 	/**
 	 * This can be defined in a subclass of this class which contains its own data() method.
@@ -15,7 +15,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public $structure = '/%year%/%monthnum%/%day%/%postname%/';
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::generate_shared_fixtures( $factory );
 	}
 
@@ -41,7 +41,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @since 4.1.0
 	 */
-	public static function generate_shared_fixtures( WP_UnitTest_Factory $factory ) {
+	public static function generate_shared_fixtures( $factory ) {
 		self::$old_current_user = get_current_user_id();
 		self::$author_id        = $factory->user->create( array( 'user_login' => 'canonical-author' ) );
 
@@ -52,7 +52,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		wp_set_current_user( self::$author_id );
 
 		// Already created by install defaults:
-		// $factory->term->create( array( 'taxonomy' => 'category', 'name' => 'uncategorized' ) );
+		// self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'uncategorized' ) );
 
 		self::$post_ids[] = $factory->post->create(
 			array(

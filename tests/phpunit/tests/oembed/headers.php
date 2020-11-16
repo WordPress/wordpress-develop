@@ -8,11 +8,11 @@
  * @group xdebug
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
-
-	/**
-	 * @requires function xdebug_get_headers
-	 */
 	function test_rest_pre_serve_request_headers() {
+		if ( ! function_exists( 'xdebug_get_headers' ) ) {
+			$this->markTestSkipped( 'xdebug is required for this test' );
+		}
+
 		$post = $this->factory()->post->create_and_get(
 			array(
 				'post_title' => 'Hello World',

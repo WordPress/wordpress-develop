@@ -5,8 +5,8 @@
  *
  * @since 5.3.0
  *
- * @group functions.php
  * @covers ::wp_array_slice_assoc
+ * @group functions.php
  */
 class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 

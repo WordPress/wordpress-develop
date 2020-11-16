@@ -1,5 +1,4 @@
 {
-	"apiVersion": 2,
 	"name": "core/paragraph",
 	"category": "text",
 	"attributes": {
@@ -30,11 +29,17 @@
 	"supports": {
 		"anchor": true,
 		"className": false,
-		"color": {
-			"link": true
+		"lightBlockWrapper": true,
+		"__experimentalColor": {
+			"linkColor": true
 		},
-		"fontSize": true,
-		"lineHeight": true,
+		"__experimentalFontSize": true,
+		"__experimentalLineHeight": true,
+		"__experimentalFeatures": {
+			"typography": {
+				"dropCap": true
+			}
+		},
 		"__experimentalSelector": "p",
 		"__unstablePasteTextInline": true
 	}

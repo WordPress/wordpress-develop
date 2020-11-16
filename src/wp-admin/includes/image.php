@@ -917,10 +917,9 @@ function file_is_displayable_image( $path ) {
  *
  * @since 2.9.0
  *
- * @param int          $attachment_id Attachment ID.
- * @param string       $mime_type     Image mime type.
- * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
- *                                    of width and height values in pixels (in that order). Default 'full'.
+ * @param string $attachment_id Attachment ID.
+ * @param string $mime_type     Image mime type.
+ * @param string $size          Optional. Image size. Default 'full'.
  * @return resource|GdImage|false The resulting image resource or GdImage instance on success,
  *                                false on failure.
  */
@@ -952,9 +951,8 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 		 * @since 2.9.0
 		 *
 		 * @param resource|GdImage $image         Current image.
-		 * @param int              $attachment_id Attachment ID.
-		 * @param string|int[]     $size          Requested image size. Can be any registered image size name, or
-		 *                                        an array of width and height values in pixels (in that order).
+		 * @param string           $attachment_id Attachment ID.
+		 * @param string           $size          Image size.
 		 */
 		$image = apply_filters( 'load_image_to_edit', $image, $attachment_id, $size );
 
@@ -968,18 +966,17 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 }
 
 /**
- * Retrieve the path or URL of an attachment's attached file.
+ * Retrieve the path or url of an attachment's attached file.
  *
  * If the attached file is not present on the local filesystem (usually due to replication plugins),
- * then the URL of the file is returned if `allow_url_fopen` is supported.
+ * then the url of the file is returned if url fopen is supported.
  *
  * @since 3.4.0
  * @access private
  *
- * @param int          $attachment_id Attachment ID.
- * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
- *                                    of width and height values in pixels (in that order). Default 'full'.
- * @return string|false File path or URL on success, false on failure.
+ * @param string $attachment_id Attachment ID.
+ * @param string $size          Optional. Image size. Default 'full'.
+ * @return string|false File path or url on success, false on failure.
  */
 function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	$filepath = get_attached_file( $attachment_id );
@@ -992,32 +989,30 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 				$filepath = path_join( dirname( $filepath ), $data['file'] );
 
 				/**
-				 * Filters the path to an attachment's file when editing the image.
+				 * Filters the path to the current image.
 				 *
 				 * The filter is evaluated for all image sizes except 'full'.
 				 *
 				 * @since 3.1.0
 				 *
-				 * @param string       $path          Path to the current image.
-				 * @param int          $attachment_id Attachment ID.
-				 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
-				 *                                    an array of width and height values in pixels (in that order).
+				 * @param string $path          Path to the current image.
+				 * @param string $attachment_id Attachment ID.
+				 * @param string $size          Size of the image.
 				 */
 				$filepath = apply_filters( 'load_image_to_edit_filesystempath', $filepath, $attachment_id, $size );
 			}
 		}
 	} elseif ( function_exists( 'fopen' ) && ini_get( 'allow_url_fopen' ) ) {
 		/**
-		 * Filters the path to an attachment's URL when editing the image.
+		 * Filters the image URL if not in the local filesystem.
 		 *
-		 * The filter is only evaluated if the file isn't stored locally and `allow_url_fopen` is enabled on the server.
+		 * The filter is only evaluated if fopen is enabled on the server.
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string       $image_url     Current image URL.
-		 * @param int          $attachment_id Attachment ID.
-		 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
-		 *                                    an array of width and height values in pixels (in that order).
+		 * @param string $image_url     Current image URL.
+		 * @param string $attachment_id Attachment ID.
+		 * @param string $size          Size of the image.
 		 */
 		$filepath = apply_filters( 'load_image_to_edit_attachmenturl', wp_get_attachment_url( $attachment_id ), $attachment_id, $size );
 	}
@@ -1027,10 +1022,9 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string|bool  $filepath      File path or URL to current image, or false.
-	 * @param int          $attachment_id Attachment ID.
-	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
-	 *                                    an array of width and height values in pixels (in that order).
+	 * @param string|bool $filepath      File path or URL to current image, or false.
+	 * @param string      $attachment_id Attachment ID.
+	 * @param string      $size          Size of the image.
 	 */
 	return apply_filters( 'load_image_to_edit_path', $filepath, $attachment_id, $size );
 }
@@ -1041,7 +1035,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
  * @since 3.4.0
  * @access private
  *
- * @param int $attachment_id Attachment ID.
+ * @param string $attachment_id Attachment ID.
  * @return string|false New file path on success, false on failure.
  */
 function _copy_image_file( $attachment_id ) {

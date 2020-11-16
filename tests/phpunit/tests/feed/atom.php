@@ -9,14 +9,14 @@
  * @group feed
  */
 class Tests_Feeds_Atom extends WP_UnitTestCase {
-	public static $user_id;
-	public static $posts;
-	public static $category;
+	static $user_id;
+	static $posts;
+	static $category;
 
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		// Create a user.
 		self::$user_id = $factory->user->create(
 			array(

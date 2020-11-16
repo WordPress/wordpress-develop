@@ -76,7 +76,6 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
-				'navigation-widgets',
 			)
 		);
 
@@ -175,9 +174,6 @@ if ( ! function_exists( 'twentynineteen_setup' ) ) :
 
 		// Add support for responsive embedded content.
 		add_theme_support( 'responsive-embeds' );
-
-		// Add support for custom line height.
-		add_theme_support( 'custom-line-height' );
 	}
 endif;
 add_action( 'after_setup_theme', 'twentynineteen_setup' );
@@ -332,8 +328,3 @@ require get_template_directory() . '/inc/template-tags.php';
  * Customizer additions.
  */
 require get_template_directory() . '/inc/customizer.php';
-
-/**
- * Block Patterns.
- */
-require get_template_directory() . '/inc/block-patterns.php';

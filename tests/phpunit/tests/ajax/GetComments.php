@@ -31,7 +31,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 
 	protected static $comment_ids = array();
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+	public static function wpSetUpBeforeClass( $factory ) {
 		self::$comment_post    = $factory->post->create_and_get();
 		self::$comment_ids     = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
 		self::$no_comment_post = $factory->post->create_and_get();
@@ -90,8 +90,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -111,8 +110,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$comment_post->ID;
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -132,8 +130,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = 'b0rk';
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '-1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -151,8 +148,7 @@ class Tests_Ajax_GetComments extends WP_Ajax_UnitTestCase {
 		$_POST['p']           = self::$no_comment_post->ID;
 
 		// Make the request.
-		$this->expectException( 'WPAjaxDieStopException' );
-		$this->expectExceptionMessage( '1' );
+		$this->setExpectedException( 'WPAjaxDieStopException', '1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 }

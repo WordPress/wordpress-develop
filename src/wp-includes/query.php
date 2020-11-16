@@ -12,7 +12,7 @@
  */
 
 /**
- * Retrieves the value of a query variable in the WP_Query class.
+ * Retrieve variable in the WP_Query class.
  *
  * @since 1.5.0
  * @since 3.9.0 The `$default` argument was introduced.
@@ -29,7 +29,7 @@ function get_query_var( $var, $default = '' ) {
 }
 
 /**
- * Retrieves the currently queried object.
+ * Retrieve the currently-queried object.
  *
  * Wrapper for WP_Query::get_queried_object().
  *
@@ -37,7 +37,7 @@ function get_query_var( $var, $default = '' ) {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return WP_Term|WP_Post_Type|WP_Post|WP_User|null The queried object.
+ * @return object Queried object.
  */
 function get_queried_object() {
 	global $wp_query;
@@ -45,7 +45,7 @@ function get_queried_object() {
 }
 
 /**
- * Retrieves the ID of the currently queried object.
+ * Retrieve ID of the current queried object.
  *
  * Wrapper for WP_Query::get_queried_object_id().
  *
@@ -61,7 +61,7 @@ function get_queried_object_id() {
 }
 
 /**
- * Sets the value of a query variable in the WP_Query class.
+ * Set query variable.
  *
  * @since 2.2.0
  *
@@ -138,8 +138,7 @@ function wp_reset_postdata() {
 /**
  * Determines whether the query is for an existing archive page.
  *
- * Archive pages include category, tag, author, date, custom post type,
- * and custom taxonomy based archives.
+ * Month, Year, Category, Author, Post Type archive...
  *
  * For more information on this and similar theme functions, check out
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
@@ -147,12 +146,6 @@ function wp_reset_postdata() {
  *
  * @since 1.5.0
  *
- * @see is_category()
- * @see is_tag()
- * @see is_author()
- * @see is_date()
- * @see is_post_type_archive()
- * @see is_tax()
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @return bool Whether the query is for an existing archive page.
@@ -570,10 +563,11 @@ function is_month() {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @since 1.5.0
- *
  * @see is_single()
  * @see is_singular()
+ *
+ * @since 1.5.0
+ *
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param int|string|int[]|string[] $page Optional. Page ID, title, slug, or array of such
@@ -715,10 +709,11 @@ function is_search() {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @since 1.5.0
- *
  * @see is_page()
  * @see is_singular()
+ *
+ * @since 1.5.0
+ *
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param int|string|int[]|string[] $post Optional. Post ID, title, slug, or array of such
@@ -747,10 +742,11 @@ function is_single( $post = '' ) {
  * the {@link https://developer.wordpress.org/themes/basics/conditional-tags/
  * Conditional Tags} article in the Theme Developer Handbook.
  *
- * @since 1.5.0
- *
  * @see is_page()
  * @see is_single()
+ *
+ * @since 1.5.0
+ *
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param string|string[] $post_types Optional. Post type or array of post types
@@ -1000,7 +996,7 @@ function have_comments() {
  *
  * @global WP_Query $wp_query WordPress Query object.
  *
- * @return null
+ * @return object
  */
 function the_comment() {
 	global $wp_query;
@@ -1087,10 +1083,11 @@ function wp_old_slug_redirect() {
 /**
  * Find the post ID for redirecting an old slug.
  *
+ * @see wp_old_slug_redirect()
+ *
  * @since 4.9.3
  * @access private
  *
- * @see wp_old_slug_redirect()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.
@@ -1121,10 +1118,11 @@ function _find_post_by_old_slug( $post_type ) {
 /**
  * Find the post ID for redirecting an old date.
  *
+ * @see wp_old_slug_redirect()
+ *
  * @since 4.9.3
  * @access private
  *
- * @see wp_old_slug_redirect()
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $post_type The current post type based on the query vars.

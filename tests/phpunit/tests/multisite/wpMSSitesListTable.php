@@ -12,14 +12,14 @@ if ( is_multisite() ) :
 		/**
 		 * @var WP_MS_Sites_List_Table
 		 */
-		public $table = false;
+		var $table = false;
 
 		function setUp() {
 			parent::setUp();
 			$this->table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
 		}
 
-		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		public static function wpSetUpBeforeClass( $factory ) {
 			self::$site_ids = array(
 				'wordpress.org/'          => array(
 					'domain' => 'wordpress.org',

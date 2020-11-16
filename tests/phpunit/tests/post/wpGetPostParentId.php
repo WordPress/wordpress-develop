@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
+class Tests_Post_WpGetPostParentId extends WP_UnitTestCase {
 	/**
 	 * Parent post ID.
 	 *
@@ -18,9 +18,9 @@ class Tests_Post_wpGetPostParentId extends WP_UnitTestCase {
 	 */
 	public static $post_id;
 
-	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$parent_post_id = $factory->post->create();
-		self::$post_id        = $factory->post->create( array( 'post_parent' => self::$parent_post_id ) );
+	public static function wpSetUpBeforeClass() {
+		self::$parent_post_id = self::factory()->post->create();
+		self::$post_id        = self::factory()->post->create( array( 'post_parent' => self::$parent_post_id ) );
 	}
 
 	public function test_wp_get_post_parent_id_with_post_object() {

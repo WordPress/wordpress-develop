@@ -10,9 +10,9 @@ if ( is_multisite() ) :
 	 * @group multisite
 	 */
 	class Tests_Multisite_getActiveBlogForUser extends WP_UnitTestCase {
-		public static $user_id = false;
+		static $user_id = false;
 
-		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		public static function wpSetUpBeforeClass( $factory ) {
 			self::$user_id = $factory->user->create();
 		}
 

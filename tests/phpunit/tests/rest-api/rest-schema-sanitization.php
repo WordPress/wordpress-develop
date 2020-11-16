@@ -237,102 +237,6 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @ticket 51024
-	 *
-	 * @dataProvider data_type_object_pattern_properties
-	 *
-	 * @param array $pattern_properties
-	 * @param array $value
-	 * @param array $expected
-	 */
-	public function test_type_object_pattern_properties( $pattern_properties, $value, $expected ) {
-		$schema = array(
-			'type'                 => 'object',
-			'properties'           => array(
-				'propA' => array( 'type' => 'string' ),
-			),
-			'patternProperties'    => $pattern_properties,
-			'additionalProperties' => false,
-		);
-
-		$this->assertSame( $expected, rest_sanitize_value_from_schema( $value, $schema ) );
-	}
-
-	/**
-	 * @return array
-	 */
-	public function data_type_object_pattern_properties() {
-		return array(
-			array( array(), array(), array() ),
-			array( array(), array( 'propA' => 'a' ), array( 'propA' => 'a' ) ),
-			array(
-				array(),
-				array(
-					'propA' => 'a',
-					'propB' => 'b',
-				),
-				array( 'propA' => 'a' ),
-			),
-			array(
-				array(
-					'propB' => array( 'type' => 'string' ),
-				),
-				array( 'propA' => 'a' ),
-				array( 'propA' => 'a' ),
-			),
-			array(
-				array(
-					'propB' => array( 'type' => 'string' ),
-				),
-				array(
-					'propA' => 'a',
-					'propB' => 'b',
-				),
-				array(
-					'propA' => 'a',
-					'propB' => 'b',
-				),
-			),
-			array(
-				array(
-					'.*C' => array( 'type' => 'string' ),
-				),
-				array(
-					'propA' => 'a',
-					'propC' => 'c',
-				),
-				array(
-					'propA' => 'a',
-					'propC' => 'c',
-				),
-			),
-			array(
-				array(
-					'[0-9]' => array( 'type' => 'integer' ),
-				),
-				array(
-					'propA' => 'a',
-					'prop0' => '0',
-				),
-				array(
-					'propA' => 'a',
-					'prop0' => 0,
-				),
-			),
-			array(
-				array(
-					'.+' => array( 'type' => 'string' ),
-				),
-				array(
-					''      => '',
-					'propA' => 'a',
-				),
-				array( 'propA' => 'a' ),
-			),
-		);
-	}
-
 	public function test_type_object_nested() {
 		$schema = array(
 			'type'       => 'object',
@@ -456,12 +360,7 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 	 * @ticket 50189
 	 */
 	public function test_format_validation_is_applied_if_missing_type() {
-		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( 'PHPUnit_Framework_Error_Warning' ); // For the undefined index.
-		} else {
-			$this->expectException( 'PHPUnit_Framework_Error_Notice' );
-		}
-
+		$this->expectException( 'PHPUnit_Framework_Error_Notice' ); // For the undefined index.
 		$this->setExpectedIncorrectUsage( 'rest_sanitize_value_from_schema' );
 
 		$schema = array( 'format' => 'hex-color' );
@@ -586,52 +485,5 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 
 		$this->assertTrue( rest_validate_value_from_schema( $data, $schema ) );
 		$this->assertWPError( rest_sanitize_value_from_schema( $data, $schema ) );
-	}
-
-	/**
-	 * @ticket 51025
-	 */
-	public function test_any_of() {
-		$schema = array(
-			'anyOf' => array(
-				array(
-					'type'       => 'integer',
-					'multipleOf' => 2,
-				),
-				array(
-					'type'      => 'string',
-					'maxLength' => 1,
-				),
-			),
-		);
-
-		$this->assertSame( 4, rest_sanitize_value_from_schema( '4', $schema ) );
-		$this->assertSame( '5', rest_sanitize_value_from_schema( '5', $schema ) );
-		$this->assertWPError( rest_sanitize_value_from_schema( true, $schema ) );
-		$this->assertWPError( rest_sanitize_value_from_schema( '11', $schema ) );
-	}
-
-	/**
-	 * @ticket 51025
-	 */
-	public function test_one_of() {
-		$schema = array(
-			'oneOf' => array(
-				array(
-					'type'       => 'integer',
-					'multipleOf' => 2,
-				),
-				array(
-					'type'      => 'string',
-					'maxLength' => 1,
-				),
-			),
-		);
-
-		$this->assertSame( 10, rest_sanitize_value_from_schema( '10', $schema ) );
-		$this->assertSame( '5', rest_sanitize_value_from_schema( '5', $schema ) );
-		$this->assertWPError( rest_sanitize_value_from_schema( true, $schema ) );
-		$this->assertWPError( rest_sanitize_value_from_schema( '11', $schema ) );
-		$this->assertWPError( rest_sanitize_value_from_schema( '4', $schema ) );
 	}
 }

@@ -46,7 +46,6 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 				),
 				'someinteger'    => array(
 					'type'             => 'integer',
-					'multipleOf'       => 10,
 					'minimum'          => 100,
 					'maximum'          => 200,
 					'exclusiveMinimum' => true,
@@ -119,49 +118,6 @@ class WP_REST_Test_Controller extends WP_REST_Controller {
 					'properties'           => array(
 						'object_id' => array(
 							'type' => 'integer',
-						),
-					),
-					'patternProperties'    => array(
-						'[0-9]' => array(
-							'type' => 'string',
-						),
-					),
-					'minProperties'        => 1,
-					'maxProperties'        => 10,
-					'anyOf'                => array(
-						array(
-							'properties' => array(
-								'object_id' => array(
-									'type'    => 'integer',
-									'minimum' => 100,
-								),
-							),
-						),
-						array(
-							'properties' => array(
-								'object_id' => array(
-									'type'    => 'integer',
-									'maximum' => 100,
-								),
-							),
-						),
-					),
-					'oneOf'                => array(
-						array(
-							'properties' => array(
-								'object_id' => array(
-									'type'    => 'integer',
-									'minimum' => 100,
-								),
-							),
-						),
-						array(
-							'properties' => array(
-								'object_id' => array(
-									'type'    => 'integer',
-									'maximum' => 100,
-								),
-							),
 						),
 					),
 					'ignored_prop'         => 'ignored_prop',

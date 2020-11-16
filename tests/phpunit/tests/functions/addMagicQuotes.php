@@ -3,7 +3,6 @@
 /**
  * @group formatting
  * @group functions.php
- * @covers ::add_magic_quotes
  */
 class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 

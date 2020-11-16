@@ -293,27 +293,14 @@ class WP_Site_Query {
 		/**
 		 * Filters the site data before the get_sites query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress' default site queries.
+		 * Return a non-null value to bypass WordPress's default site queries.
 		 *
-		 * The expected return type from this filter depends on the value passed
-		 * in the request query vars:
-		 * - When `$this->query_vars['count']` is set, the filter should return
-		 *   the site count as an integer.
-		 * - When `'ids' === $this->query_vars['fields']`, the filter should return
-		 *   an array of site IDs.
-		 * - Otherwise the filter should return an array of WP_Site objects.
-		 *
-		 * Note that if the filter returns an array of site data, it will be assigned
-		 * to the `sites` property of the current WP_Site_Query instance.
-		 *
-		 * Filtering functions that require pagination information are encouraged to set
-		 * the `found_sites` and `max_num_pages` properties of the WP_Site_Query object,
-		 * passed to the filter by reference. If WP_Site_Query does not perform a database
-		 * query, it will not have enough information to generate these values itself.
+		 * The expected return type from this filter depends on the value passed in the request query_vars:
+		 * When `$this->query_vars['count']` is set, the filter should return the site count as an int.
+		 * When `'ids' === $this->query_vars['fields']`, the filter should return an array of site IDs.
+		 * Otherwise the filter should return an array of WP_Site objects.
 		 *
 		 * @since 5.2.0
-		 * @since 5.6.0 The returned array of site data is assigned to the `sites` property
-		 *              of the current WP_Site_Query instance.
 		 *
 		 * @param array|int|null $site_data Return an array of site data to short-circuit WP's site query,
 		 *                                  the site count as an integer if `$this->query_vars['count']` is set,
@@ -323,10 +310,6 @@ class WP_Site_Query {
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
 		if ( null !== $site_data ) {
-			if ( is_array( $site_data ) && ! $this->query_vars['count'] ) {
-				$this->sites = $site_data;
-			}
-
 			return $site_data;
 		}
 
@@ -365,7 +348,7 @@ class WP_Site_Query {
 		// If querying for a count only, there's nothing more to do.
 		if ( $this->query_vars['count'] ) {
 			// $site_ids is actually a count in this case.
-			return (int) $site_ids;
+			return intval( $site_ids );
 		}
 
 		$site_ids = array_map( 'intval', $site_ids );
@@ -674,7 +657,7 @@ class WP_Site_Query {
 		$this->request = "{$this->sql_clauses['select']} {$this->sql_clauses['from']} {$where} {$this->sql_clauses['groupby']} {$this->sql_clauses['orderby']} {$this->sql_clauses['limits']}";
 
 		if ( $this->query_vars['count'] ) {
-			return (int) $wpdb->get_var( $this->request );
+			return intval( $wpdb->get_var( $this->request ) );
 		}
 
 		$site_ids = $wpdb->get_col( $this->request );

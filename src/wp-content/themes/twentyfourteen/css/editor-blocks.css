@@ -97,7 +97,11 @@ Description: Used to style blocks in the editor.
 .block-library-list ul,
 .edit-post-visual-editor ol,
 .editor-block-list__block ol,
-.block-library-list ol,
+.block-library-list ol {
+	margin: 0 0 1.6em 1.3333em;
+	padding: 0;
+}
+
 .block-library-list .editor-rich-text__tinymce {
 	padding: 0;
 }
@@ -128,22 +132,14 @@ Description: Used to style blocks in the editor.
 	margin-bottom: 0;
 }
 
-.rtl .editor-styles-wrapper ul ul,
-.rtl .editor-styles-wrapper ol ol,
-.rtl .editor-styles-wrapper ul ol,
-.rtl .editor-styles-wrapper ol ul {
+.rtl .edit-post-visual-editor ul:not(.wp-block-gallery),
+.rtl .editor-block-list__block ul:not(.wp-block-gallery),
+.rtl .block-library-list ul,
+.rtl .edit-post-visual-editor ol,
+.rtl .editor-block-list__block ol,
+.rtl .block-library-list ol {
 	margin-left: 0;
-	margin-right: 20px;
-}
-
-.wp-block-freeform.block-library-rich-text__tinymce ul,
-.wp-block-freeform.block-library-rich-text__tinymce ol {
-	padding-left: 20px;
-}
-
-.rtl .wp-block-freeform.block-library-rich-text__tinymce ul,
-.rtl .wp-block-freeform.block-library-rich-text__tinymce ol {
-	padding: 0;
+	margin-right: 1.3333em;
 }
 
 /* Code */
