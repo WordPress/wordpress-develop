@@ -16,8 +16,40 @@
  *
  * If the option was serialized then it will be unserialized when it is returned.
  *
- * Any scalar values will be returned as strings. You may coerce the return type of
- * a given option by registering an {@see 'option_$option'} filter callback.
+ * Any scalar values will be returned as strings!
+ *
+ * Exception: It does return scalar values for a value that doesn't originate from the database storage.
+ * for example $default is scalar and the option name does not exist or the return value from any of its filters is scalar
+ * (pre_option_{$option}, default_option_{$option}, and option_{$option}),
+ * the return value of $default will still be scalar and not converted to a string!
+ *
+ * Examples:
+ *
+ * Storing database options like this:
+ *
+ * add_option( 'option_name__false', false );
+ * add_option( 'option_name__true', true );
+ * add_option( 'option_name__0', 0 );
+ * add_option( 'option_name__1', 1 );
+ * add_option( 'option_name__str_0', '0' );
+ * add_option( 'option_name__str_1', '1' );
+ *
+ * will return with using get_option('option_name__[]'):
+ *
+ * string(0) ""
+ * string(1) "1"
+ * string(1) "0"
+ * string(1) "1"
+ * string(1) "0"
+ * string(1) "1"
+ *
+ * Example of returning scalar value if option does not exist:
+ *
+ * get_option('option_name_not_exist', 1);
+ *
+ * Will return:
+ *
+ * (int) 1
  *
  * @since 1.5.0
  *
@@ -25,7 +57,9 @@
  *
  * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default Optional. Default value to return if the option does not exist.
- * @return mixed Value set for the option.
+ * @return mixed Value set for the option. A value of any type may be returned, including
+ *         array, boolean, float, integer, null, object, and string. Any scalar values will be
+ *         returned as string as long as they do originate from a database stored option value.
  */
 function get_option( $option, $default = false ) {
 	global $wpdb;
