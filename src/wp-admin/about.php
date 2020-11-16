@@ -157,15 +157,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-3-columns has-gutters">
-			<div class="column has-border" style="background-color:var(--global--color-yellow)">
+			<div class="column has-border" style="background-color:#eeeadd;background-color:var(--global--color-yellow)">
 				<h3><?php _e( 'Expanding auto-updates' ); ?></h3>
 				<p><?php _e( 'For years, only developers have been able to update WordPress automatically. But now, you have that option, right in your dashboard. If this is your first site, you have auto-updates ready to go, right now! Upgrading an existing site? No problem! Everything is the same as it was before.' ); ?></p>
 			</div>
-			<div class="column has-border" style="background-color:var(--global--color-red)">
+			<div class="column has-border" style="background-color:#e4d1d1;background-color:var(--global--color-red)">
 				<h3><?php _e( 'Accessibility statement template' ); ?></h3>
 				<p><?php _e( 'Even if you’re not an expert, you can start letting folks know about your site’s commitment to accessibility at the click of a button! The new <a href="%s">feature plugin</a> includes template copy for you to update and publish, and it’s written to support different contexts and jurisdictions.', '#' ); ?></p>
 			</div>
-			<div class="column has-border" style="background-color:var(--global--color-purple)">
+			<div class="column has-border" style="background-color:#d1d1e4;background-color:var(--global--color-purple)">
 				<h3><?php _e( 'Built-in Patterns' ); ?></h3>
 				<p><?php _e( 'If you’ve not had the chance to play with block patterns yet, all default themes now feature a range of block patterns that let you master complex layouts with minimal effort. Customize the patterns to your liking with the copy, images and colors that fit your story or brand.' ); ?></p>
 			</div>
