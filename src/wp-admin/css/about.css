@@ -381,6 +381,11 @@
 		grid-row-start: 2;
 	}
 
+	.about__section.has-4-columns .is-section-header {
+		-ms-grid-column-span: 2;
+		grid-column-end: span 2;
+	}
+
 	.about__section.has-4-columns .is-section-header ~ .column:nth-of-type(4n+3),
 	.about__section.has-4-columns .is-section-header ~ .column:nth-of-type(4n) {
 		-ms-grid-row: 3;
