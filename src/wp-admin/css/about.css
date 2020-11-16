@@ -158,7 +158,7 @@
 }
 
 .about__section .column[class*="background-color"],
-.about__section .column[class*="has-border"] {
+.about__section .column.has-border {
 	padding-top: 32px;
 }
 
