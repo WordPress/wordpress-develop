@@ -21,7 +21,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 	 */
 	public static $user_ids;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids                     = array(
 			'administrator' => self::make_user_by_role( 'administrator' ),
 			'contributor'   => self::make_user_by_role( 'contributor' ),

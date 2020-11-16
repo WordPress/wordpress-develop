@@ -31,7 +31,7 @@ class Tests_Ajax_TagSearch extends WP_Ajax_UnitTestCase {
 
 	private static $term_ids = array();
 
-	public static function wpSetUpBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		foreach ( self::$terms as $t ) {
 			self::$term_ids[] = wp_insert_term( $t, 'post_tag' );
 		}

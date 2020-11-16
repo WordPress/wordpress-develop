@@ -9,7 +9,7 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $_sizes;
 	protected static $large_filename = 'test-image-large.jpg';
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 

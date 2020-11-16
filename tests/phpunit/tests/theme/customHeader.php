@@ -8,7 +8,7 @@ class Tests_Theme_Custom_Header extends WP_UnitTestCase {
 
 	protected static $header_video_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = self::factory()->post->create(
 			array(
 				'post_status' => 'publish',

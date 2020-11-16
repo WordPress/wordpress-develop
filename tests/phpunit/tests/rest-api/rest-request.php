@@ -205,7 +205,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_attributes( array( 'accept_json' => true ) );
 
 		// Check that JSON takes precedence.
-		$this->assertEquals( $source, $this->request->get_param( 'source' ) );
+		$this->assertSame( $source, $this->request->get_param( 'source' ) );
 		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
 	}
 
@@ -233,7 +233,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->request->set_header( 'Content-Type', $content_type );
 
 		// Check for JSON content-type.
-		$this->assertEquals( $is_json, $this->request->is_json_content_type() );
+		$this->assertSame( $is_json, $this->request->is_json_content_type() );
 	}
 
 	/**
@@ -926,6 +926,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$valid = $request->has_valid_params();
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 }

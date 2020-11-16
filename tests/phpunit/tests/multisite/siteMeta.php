@@ -13,7 +13,7 @@ if ( is_multisite() ) :
 		protected static $site_id2;
 		protected static $flag_was_set;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_id  = $factory->blog->create(
 				array(
 					'domain' => 'wordpress.org',

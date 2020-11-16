@@ -29,7 +29,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private $test_file2;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
 				'role'       => 'administrator',
@@ -1028,7 +1028,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 
 		$this->assertNotWPError( $response->as_error() );
-		$this->assertEquals( 'inherit', $response->get_data()['status'] );
+		$this->assertSame( 'inherit', $response->get_data()['status'] );
 	}
 
 	/**
