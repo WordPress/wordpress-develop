@@ -352,7 +352,7 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'sites' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		update_site_cache( $fresh_sites, $update_meta_cache );
 	}
@@ -860,8 +860,8 @@ function wp_uninitialize_site( $site_id ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $uploads['basedir'] Uploads path without subdirectory. @see wp_upload_dir()
-	 * @param int    $site_id            The site ID.
+	 * @param string $basedir Uploads path without subdirectory. @see wp_upload_dir()
+	 * @param int    $site_id The site ID.
 	 */
 	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
 	$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );

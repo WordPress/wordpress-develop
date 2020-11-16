@@ -204,7 +204,7 @@ function wp_maybe_load_embeds() {
 	 *
 	 * @param callable $handler Audio embed handler callback function.
 	 */
-	wp_embed_register_handler( 'audio', '#^https?://.+?\.(' . join( '|', wp_get_audio_extensions() ) . ')$#i', apply_filters( 'wp_audio_embed_handler', 'wp_embed_handler_audio' ), 9999 );
+	wp_embed_register_handler( 'audio', '#^https?://.+?\.(' . implode( '|', wp_get_audio_extensions() ) . ')$#i', apply_filters( 'wp_audio_embed_handler', 'wp_embed_handler_audio' ), 9999 );
 
 	/**
 	 * Filters the video embed handler callback.
@@ -213,7 +213,7 @@ function wp_maybe_load_embeds() {
 	 *
 	 * @param callable $handler Video embed handler callback function.
 	 */
-	wp_embed_register_handler( 'video', '#^https?://.+?\.(' . join( '|', wp_get_video_extensions() ) . ')$#i', apply_filters( 'wp_video_embed_handler', 'wp_embed_handler_video' ), 9999 );
+	wp_embed_register_handler( 'video', '#^https?://.+?\.(' . implode( '|', wp_get_video_extensions() ) . ')$#i', apply_filters( 'wp_video_embed_handler', 'wp_embed_handler_video' ), 9999 );
 }
 
 /**
@@ -610,6 +610,11 @@ function get_oembed_response_data_for_url( $url, $args ) {
 		$sites = get_sites( $qv );
 		$site  = reset( $sites );
 
+		// Do not allow embeds for deleted/archived/spam sites.
+		if ( ! empty( $site->deleted ) || ! empty( $site->spam ) || ! empty( $site->archived ) ) {
+			return false;
+		}
+
 		if ( $site && get_current_blog_id() !== (int) $site->blog_id ) {
 			switch_to_blog( $site->blog_id );
 			$switched_blog = true;
@@ -841,7 +846,7 @@ function wp_filter_oembed_iframe_title_attribute( $result, $data, $url ) {
 
 	if ( isset( $attrs['title'] ) ) {
 		unset( $attrs['title'] );
-		$attr_string = join( ' ', wp_list_pluck( $attrs, 'whole' ) );
+		$attr_string = implode( ' ', wp_list_pluck( $attrs, 'whole' ) );
 		$result      = str_replace( $matches[0], '<iframe ' . trim( $attr_string ) . '>', $result );
 	}
 	return str_ireplace( '<iframe ', sprintf( '<iframe title="%s" ', esc_attr( $title ) ), $result );

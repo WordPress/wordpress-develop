@@ -286,8 +286,8 @@ class Tests_Walker extends WP_UnitTestCase {
 
 class Walker_Test extends Walker {
 
-	var $tree_type = 'test';
-	var $db_fields = array(
+	public $tree_type = 'test';
+	public $db_fields = array(
 		'parent' => 'parent',
 		'id'     => 'id',
 	);

@@ -15,7 +15,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 			)
 		);
 
-		$found = term_exists( intval( $t ), 'post_tag' );
+		$found = term_exists( (int) $t, 'post_tag' );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 
@@ -30,7 +30,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertNull( term_exists( intval( $t ), 'foo' ) );
+		$this->assertNull( term_exists( (int) $t, 'foo' ) );
 	}
 
 	public function test_term_exists_term_int_taxonomy_empty_term_exists() {
@@ -40,7 +40,7 @@ class Tests_TermExists extends WP_UnitTestCase {
 			)
 		);
 
-		$found = term_exists( intval( $t ), 'post_tag' );
+		$found = term_exists( (int) $t, 'post_tag' );
 		$this->assertEquals( $t, $found['term_id'] );
 	}
 

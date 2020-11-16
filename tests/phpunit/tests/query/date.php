@@ -10,9 +10,9 @@ class Tests_Query_Date extends WP_UnitTestCase {
 
 	public $q;
 
-	static $post_ids = array();
+	public static $post_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Be careful modifying this. Tests are coded to expect this exact sample data.
 		$post_dates = array(
 			'1972-05-24 14:53:45',

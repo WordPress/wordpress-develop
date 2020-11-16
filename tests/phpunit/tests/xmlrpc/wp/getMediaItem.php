@@ -6,8 +6,8 @@
 class Tests_XMLRPC_wp_getMediaItem extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;
 
-	var $attachment_data;
-	var $attachment_id;
+	public $attachment_data;
+	public $attachment_id;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
