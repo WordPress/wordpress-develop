@@ -45,6 +45,23 @@ class WP_Block_Test extends WP_UnitTestCase {
 		return 'Original: "' . $content . '", from block "' . $parsed_block['blockName'] . '"';
 	}
 
+	function filter_pre_render_block( $pre_render, $parsed_block ) {
+		if ( 'core/skip' === $parsed_block['blockName'] ) {
+			return 'Hello world!';
+		}
+		return null;
+	}
+
+	function filter_render_block_data( $parsed_block, $source_block ) {
+		$parsed_block['attrs']['tag'] = $parsed_block['attrs']['tag'] . '-filtered';
+		return $parsed_block;
+	}
+
+	function filter_render_block_context( $available_context, $parsed_block ) {
+		$available_context['core/recordId'] += 1;
+		return $available_context;
+	}
+
 	/**
 	 * @ticket 49927
 	 */
@@ -392,6 +409,129 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( 'abc', $block->render() );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	function test_applies_pre_render_block_filter() {
+		$this->registry->register( 'core/skip', array() );
+
+		add_filter( 'pre_render_block', array( $this, 'filter_pre_render_block' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:skip /-->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$rendered_content = $block->render();
+
+		remove_filter( 'pre_render_block', array( $this, 'filter_pre_render_block' ) );
+
+		$this->assertSame( 'Hello world!', $rendered_content );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	function test_applies_pre_render_block_filter_to_inner_blocks() {
+		$this->registry->register( 'core/outer', array() );
+		$this->registry->register( 'core/skip', array() );
+
+		add_filter( 'pre_render_block', array( $this, 'filter_pre_render_block' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:outer --><!-- wp:skip /--> How are you?<!-- /wp:outer -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$rendered_content = $block->render();
+
+		remove_filter( 'pre_render_block', array( $this, 'filter_pre_render_block' ) );
+
+		$this->assertSame( 'Hello world! How are you?', $rendered_content );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	function test_applies_render_block_data_filter() {
+		$this->registry->register(
+			'core/wrapper',
+			array(
+				'attributes'      => array(
+					'tag' => array(
+						'type' => 'string',
+					),
+				),
+				'render_callback' => function( $block_attributes, $content ) {
+					return sprintf(
+						'<%1$s>%2$s</%1$s>',
+						$block_attributes['tag'],
+						$content
+					);
+				},
+			)
+		);
+
+		add_filter( 'render_block_data', array( $this, 'filter_render_block_data' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:wrapper {"tag":"outer"} --><!-- wp:wrapper {"tag":"inner"} -->Hello!<!-- /wp:wrapper --><!-- /wp:wrapper -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$rendered_content = $block->render();
+
+		remove_filter( 'render_block_data', array( $this, 'filter_render_block_data' ) );
+
+		$this->assertSame( '<outer-filtered><inner-filtered>Hello!</inner-filtered></outer-filtered>', $rendered_content );
+	}
+
+	/**
+	 * @ticket 51612
+	 */
+	function test_applies_render_block_context_filter() {
+		$this->registry->register(
+			'core/provider',
+			array(
+				'attributes'       => array(
+					'recordId' => array(
+						'type' => 'number',
+					),
+				),
+				'uses_context'     => array( 'core/recordId' ),
+				'provides_context' => array(
+					'core/recordId' => 'recordId',
+				),
+			)
+		);
+		$this->registry->register(
+			'core/consumer',
+			array(
+				'uses_context'    => array( 'core/recordId' ),
+				'render_callback' => function( $block_attributes, $content, $block ) {
+					return sprintf( 'Record ID: %d ', $block->context['core/recordId'] );
+				},
+			)
+		);
+
+		add_filter( 'render_block_context', array( $this, 'filter_render_block_context' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:consumer /--><!-- wp:provider {"recordId":20} --><!-- wp:consumer /--><!-- /wp:provider -->' );
+		$context       = array( 'core/recordId' => 10 );
+
+		$rendered_content = '';
+
+		foreach ( $parsed_blocks as $parsed_block ) {
+			$block = new WP_Block( $parsed_block, $context, $this->registry );
+
+			$rendered_content .= $block->render();
+		}
+
+		remove_filter( 'render_block_context', array( $this, 'filter_render_block_context' ) );
+
+		$this->assertSame( 'Record ID: 11 Record ID: 21 ', $rendered_content );
 	}
 
 }
