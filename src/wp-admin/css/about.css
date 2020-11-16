@@ -407,19 +407,13 @@
 
 @media screen and (max-width: 600px) {
 	.about__section.has-2-columns {
-		display: flex; /* This is flex, not block, so we can use order below. */
-		flex-wrap: wrap;
-		align-content: stretch;
+		display: block;
 		padding-bottom: 16px;
 	}
 
 	.about__section.has-2-columns .column:nth-of-type(n) {
 		padding-top: 16px;
 		padding-bottom: 16px;
-	}
-
-	.about__section.has-2-columns .is-edge-to-edge {
-		order: -1;
 	}
 }
 
