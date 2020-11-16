@@ -156,7 +156,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</header>
 		</div>
 
-		<div class="about__section has-3-columns">
+		<div class="about__section has-3-columns has-gutters">
 			<div class="column has-border" style="background-color:var(--global--color-yellow)">
 				<h3><?php _e( 'Expanding auto-updates' ); ?></h3>
 				<p><?php _e( 'For years, only developers have been able to update WordPress automatically. But now, you have that option, right in your dashboard. If this is your first site, you have auto-updates ready to go, right now! Upgrading an existing site? No problem! Everything is the same as it was before.' ); ?></p>
