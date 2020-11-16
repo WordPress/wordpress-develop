@@ -71,7 +71,7 @@ if ( is_multisite() ) :
 		 * Test whether the invalidation of the dirsize_cache works
 		 * Given a file path as input
 		 */
-		function test_invalidate_dirsize_cache_file_input_mock() {
+		function test_clean_dirsize_cache_file_input_mock() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -85,7 +85,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = normalize_dirsize_cache_path( $upload_dir['basedir'] );
+			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
 
 			// Clear the dirsize_cache
 			delete_transient( 'dirsize_cache' );
@@ -99,7 +99,7 @@ if ( is_multisite() ) :
 
 			// Invalidation should also respect the directory tree up
 			// Should work fine with path to folder OR file
-			invalidate_dirsize_cache( $upload_dir['basedir'] . '/2/1/file.dummy' );
+			clean_dirsize_cache( $upload_dir['basedir'] . '/2/1/file.dummy' );
 
 			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
@@ -116,7 +116,7 @@ if ( is_multisite() ) :
 		 * Test whether the invalidation of the dirsize_cache works
 		 * Given a folder path as input
 		 */
-		function test_invalidate_dirsize_cache_folder_input_mock() {
+		function test_clean_dirsize_cache_folder_input_mock() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -130,7 +130,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = normalize_dirsize_cache_path( $upload_dir['basedir'] );
+			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
 
 			// Clear the dirsize_cache
 			delete_transient( 'dirsize_cache' );
@@ -144,7 +144,7 @@ if ( is_multisite() ) :
 
 			// Invalidation should also respect the directory tree up
 			// Should work fine with path to folder OR file
-			invalidate_dirsize_cache( $upload_dir['basedir'] . '/2/1' );
+			clean_dirsize_cache( $upload_dir['basedir'] . '/2/1' );
 
 			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2/1', get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( false, array_key_exists( $cache_key_prefix . '/2', get_transient( 'dirsize_cache' ) ) );
@@ -190,7 +190,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $size, $calc_size );
 
 			// dirsize_cache should now be filled after upload and recurse_dirsize call
-			$cache_path = normalize_dirsize_cache_path( $upload_dir['path'] );
+			$cache_path = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['path'] ) );
 			$this->assertSame( true, is_array( get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
