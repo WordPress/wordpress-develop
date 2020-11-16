@@ -9,19 +9,19 @@
 class Tests_Query_Results extends WP_UnitTestCase {
 	protected $q;
 
-	static $cat_ids  = array();
-	static $tag_ids  = array();
-	static $post_ids = array();
+	public static $cat_ids  = array();
+	public static $tag_ids  = array();
+	public static $post_ids = array();
 
-	static $parent_one;
-	static $parent_two;
-	static $parent_three;
-	static $child_one;
-	static $child_two;
-	static $child_three;
-	static $child_four;
+	public static $parent_one;
+	public static $parent_two;
+	public static $parent_three;
+	public static $child_one;
+	public static $child_two;
+	public static $child_three;
+	public static $child_four;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$cat_a           = $factory->term->create(
 			array(
 				'taxonomy' => 'category',

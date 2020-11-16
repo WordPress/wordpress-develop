@@ -15,7 +15,7 @@
  *
  * @global array $wp_registered_widgets
  * @global array $wp_registered_widget_controls
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  */
 function wp_dashboard_setup() {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_dashboard_control_callbacks;
@@ -157,8 +157,9 @@ function wp_dashboard_setup() {
  * Adds a new dashboard widget.
  *
  * @since 2.7.0
+ * @since 5.6.0 The `$context` and `$priority` parameters were added.
  *
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  *
  * @param string   $widget_id        Widget ID  (used in the 'id' attribute for the widget).
  * @param string   $widget_name      Title of the widget.
@@ -167,8 +168,12 @@ function wp_dashboard_setup() {
  * @param callable $control_callback Optional. Function that outputs controls for the widget. Default null.
  * @param array    $callback_args    Optional. Data that should be set as the $args property of the widget array
  *                                   (which is the second parameter passed to your callback). Default null.
+ * @param string   $context          Optional. The context within the screen where the box should display.
+ *                                   Accepts 'normal', 'side', 'column3', or 'column4'. Default 'normal'.
+ * @param string   $priority         Optional. The priority within the context where the box should show.
+ *                                   Accepts 'high', 'core', 'default', or 'low'. Default 'core'.
  */
-function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null ) {
+function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null, $context = 'normal', $priority = 'core' ) {
 	$screen = get_current_screen();
 	global $wp_dashboard_control_callbacks;
 
@@ -194,19 +199,24 @@ function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_
 
 	$side_widgets = array( 'dashboard_quick_press', 'dashboard_primary' );
 
-	$location = 'normal';
 	if ( in_array( $widget_id, $side_widgets, true ) ) {
-		$location = 'side';
+		$context = 'side';
 	}
 
 	$high_priority_widgets = array( 'dashboard_browser_nag', 'dashboard_php_nag' );
 
-	$priority = 'core';
 	if ( in_array( $widget_id, $high_priority_widgets, true ) ) {
 		$priority = 'high';
 	}
 
-	add_meta_box( $widget_id, $widget_name, $callback, $screen, $location, $priority, $callback_args );
+	if ( empty( $context ) ) {
+		$context = 'normal';
+	}
+	if ( empty( $priority ) ) {
+		$priority = 'core';
+	}
+
+	add_meta_box( $widget_id, $widget_name, $callback, $screen, $context, $priority, $callback_args );
 }
 
 /**
@@ -606,7 +616,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 	echo '<h2 class="hide-if-no-js">' . __( 'Your Recent Drafts' ) . "</h2>\n<ul>";
 
 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
-	$draft_length = intval( _x( '10', 'draft_length' ) );
+	$draft_length = (int) _x( '10', 'draft_length' );
 
 	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {
@@ -928,7 +938,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'post_status'    => $args['status'],
 		'orderby'        => 'date',
 		'order'          => $args['order'],
-		'posts_per_page' => intval( $args['max'] ),
+		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
 		'cache_results'  => false,
 		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
@@ -965,10 +975,10 @@ function wp_dashboard_recent_posts( $args ) {
 			} elseif ( gmdate( 'Y-m-d', $time ) == $tomorrow ) {
 				$relative = __( 'Tomorrow' );
 			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} else {
-				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS' ), $time );
 			}
 
@@ -1139,7 +1149,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
  *
  * @since 2.5.0
  *
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  *
  * @param int $widget_control_id Registered Widget ID.
  */
@@ -1379,9 +1389,11 @@ function wp_print_community_events_templates() {
 				</div>
 
 				<div class="event-date-time">
-					<span class="event-date">{{ event.formatted_date }}</span>
+					<span class="event-date">{{ event.user_formatted_date }}</span>
 					<# if ( 'meetup' === event.type ) { #>
-						<span class="event-time">{{ event.formatted_time }}</span>
+						<span class="event-time">
+							{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}
+						</span>
 					<# } #>
 				</div>
 			</li>
@@ -1450,7 +1462,7 @@ function wp_dashboard_primary() {
 			 * @param string $title Title attribute for the widget's primary link.
 			 */
 			'title'        => apply_filters( 'dashboard_primary_title', __( 'WordPress Blog' ) ),
-			'items'        => 1,
+			'items'        => 2,
 			'show_summary' => 0,
 			'show_author'  => 0,
 			'show_date'    => 0,
@@ -1749,7 +1761,7 @@ function wp_dashboard_php_nag() {
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Accessibility text. */

@@ -1,7 +1,7 @@
 <?php
 
 class WP_UnitTest_Generator_Sequence {
-	static $incr = -1;
+	public static $incr = -1;
 	public $next;
 	public $template_string;
 

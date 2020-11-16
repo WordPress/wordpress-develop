@@ -516,6 +516,8 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 			'ftps://example.com/',
 			'news://news.server.example/example.group.this',
 			'irc://irc.freenode.net/wordpress',
+			'irc6://irc.freenode.net/wordpress',
+			'ircs://irc.freenode.net/wordpress',
 			'gopher://example.com',
 			'nntp://news.server.example/example.group.this',
 			'feed://example.com/',

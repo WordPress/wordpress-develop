@@ -63,7 +63,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		$this->is_site_themes = ( 'site-themes-network' === $this->screen->id ) ? true : false;
 
 		if ( $this->is_site_themes ) {
-			$this->site_id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+			$this->site_id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 		}
 
 		$this->show_autoupdates = wp_is_auto_update_enabled_for_type( 'theme' ) &&
@@ -179,11 +179,9 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				'requires_php' => '',
 			);
 
-			$filter_payload = array_merge( $filter_payload, array_intersect_key( $theme_data, $filter_payload ) );
+			$filter_payload = (object) array_merge( $filter_payload, array_intersect_key( $theme_data, $filter_payload ) );
 
-			$type = 'theme';
-			/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-			$auto_update_forced = apply_filters( "auto_update_{$type}", null, (object) $filter_payload );
+			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $filter_payload );
 
 			if ( ! is_null( $auto_update_forced ) ) {
 				$theme->auto_update_forced = $auto_update_forced;
@@ -208,9 +206,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			$themes['search'] = array_filter( array_merge( $themes['all'], $themes['broken'] ), array( $this, '_search_callback' ) );
 		}
 
-		$totals = array();
+		$totals    = array();
+		$js_themes = array();
 		foreach ( $themes as $type => $list ) {
-			$totals[ $type ] = count( $list );
+			$totals[ $type ]    = count( $list );
+			$js_themes[ $type ] = array_keys( $list );
 		}
 
 		if ( empty( $themes[ $status ] ) && ! in_array( $status, array( 'all', 'search' ), true ) ) {
@@ -227,7 +227,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 			'updates',
 			'_wpUpdatesItemCounts',
 			array(
-				'themes' => $totals,
+				'themes' => $js_themes,
 				'totals' => wp_get_update_data(),
 			)
 		);
@@ -301,7 +301,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		$a = $theme_a[ $orderby ];
 		$b = $theme_b[ $orderby ];
 
-		if ( $a == $b ) {
+		if ( $a === $b ) {
 			return 0;
 		}
 

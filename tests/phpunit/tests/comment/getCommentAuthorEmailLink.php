@@ -22,7 +22,7 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 		add_filter( 'comment_email', 'antispambot' );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$comment = $factory->comment->create_and_get(
 			array(
 				'comment_author_email' => 'foo@example.org',

@@ -120,7 +120,7 @@ if ( is_multisite() ) :
 			$this->assertTrue( add_blog_option( $blog_id, $key, $value ) );
 			// Assert all values of $blog_id that means the current or main blog (the same here).
 			$this->assertSame( $value, get_blog_option( $blog_id, $key ) );
-			$this->assertSame( $value, get_blog_option( "$blog_id", $key ) );
+			$this->assertSame( $value, get_blog_option( (string) $blog_id, $key ) );
 			// $this->assertSame( $value, get_option( $key ) );                // Check get_option().
 
 			$this->assertFalse( add_blog_option( $blog_id, $key, $value ) );     // Already exists.

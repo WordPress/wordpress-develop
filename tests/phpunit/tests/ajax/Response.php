@@ -70,12 +70,9 @@ class Tests_Ajax_Response extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 * @group xdebug
+	 * @requires function xdebug_get_headers
 	 */
 	public function test_response_charset_in_header() {
-
-		if ( ! function_exists( 'xdebug_get_headers' ) ) {
-			$this->markTestSkipped( 'xdebug is required for this test' );
-		}
 
 		// Generate an Ajax response.
 		ob_start();

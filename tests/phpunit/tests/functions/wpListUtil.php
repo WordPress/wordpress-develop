@@ -155,6 +155,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_wp_list_pluck
 	 *
+	 * @covers ::wp_list_pluck
+	 *
 	 * @param array      $list      List of objects or arrays.
 	 * @param int|string $field     Field from the object to place instead of the entire object
 	 * @param int|string $index_key Field from the object to use as keys for the new array.
@@ -358,6 +360,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_test_wp_list_filter
+	 *
+	 * @covers ::wp_list_filter
 	 *
 	 * @param array  $list     An array of objects to filter.
 	 * @param array  $args     An array of key => value arguments to match
@@ -686,6 +690,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_wp_list_sort
 	 *
+	 * @covers ::wp_list_sort
+	 *
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as $orderby => $order.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
@@ -1011,6 +1017,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_test_wp_list_sort_preserve_keys
 	 *
+	 * @covers ::wp_list_sort
+	 *
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as $orderby => $order.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
@@ -1019,6 +1027,9 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order, true ) );
 	}
 
+	/**
+	 * @covers WP_List_Util::get_input
+	 */
 	public function test_wp_list_util_get_input() {
 		$input = array( 'foo', 'bar' );
 		$util  = new WP_List_Util( $input );
@@ -1026,6 +1037,9 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 		$this->assertSameSets( $input, $util->get_input() );
 	}
 
+	/**
+	 * @covers WP_List_Util::get_output
+	 */
 	public function test_wp_list_util_get_output_immediately() {
 		$input = array( 'foo', 'bar' );
 		$util  = new WP_List_Util( $input );
@@ -1033,6 +1047,9 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 		$this->assertSameSets( $input, $util->get_output() );
 	}
 
+	/**
+	 * @covers WP_List_Util::get_output
+	 */
 	public function test_wp_list_util_get_output() {
 		$expected = array(
 			(object) array(

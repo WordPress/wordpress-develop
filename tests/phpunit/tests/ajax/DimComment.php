@@ -130,7 +130,8 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'dim-comment' );
 	}
 
@@ -158,7 +159,8 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$_POST['_url']        = admin_url( 'edit-comments.php' );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'dim-comment' );
 	}
 

@@ -58,18 +58,18 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the priority parameter.
+	 * Tests the position parameter.
 	 *
 	 * @ticket 39776
 	 *
 	 * @covers ::add_submenu_page
 	 *
-	 * @param int $priority          The position of the new item.
+	 * @param int $position          The position passed for the new item.
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
-	 * @dataProvider data_submenu_priority
+	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_priority( $priority, $expected_position ) {
+	function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 		$current_user = get_current_user_id();
@@ -84,7 +84,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		}
 
 		// Insert the new page.
-		add_submenu_page( $parent, 'New Page', 'New Page', 'manage_options', 'custom-position', 'custom_pos', $priority );
+		add_submenu_page( $parent, 'New Page', 'New Page', 'manage_options', 'custom-position', 'custom_pos', $position );
 		wp_set_current_user( $current_user );
 
 		// Clean up the temporary user.
@@ -95,7 +95,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tests the priority parameter for menu helper functions.
+	 * Tests the position parameter for menu helper functions.
 	 *
 	 * @ticket 39776
 	 * @group ms-excluded
@@ -112,12 +112,12 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @covers ::add_pages_page
 	 * @covers ::add_comments_page
 	 *
-	 * @param int $priority          The position of the new item.
+	 * @param int $position          The position passed for the new item.
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
-	 * @dataProvider data_submenu_priority
+	 * @dataProvider data_submenu_position
 	 */
-	function test_submenu_helpers_priority( $priority, $expected_position ) {
+	function test_submenu_helpers_position( $position, $expected_position ) {
 		global $submenu;
 		global $menu;
 
@@ -189,8 +189,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 
 			$test = 'test_' . $helper_function['callback'];
 
-			// Call the helper function, passing the desired priority.
-			call_user_func_array( $helper_function['callback'], array( $test, $test, 'manage_options', 'custom-position', '', $priority ) );
+			// Call the helper function, passing the desired position.
+			call_user_func_array( $helper_function['callback'], array( $test, $test, 'manage_options', 'custom-position', '', $position ) );
 
 			$actual_positions[ $test ] = $submenu[ $helper_function['menu_root'] ][ $expected_position ][2];
 		}
@@ -221,27 +221,27 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 */
 	function submenus_to_add() {
 		return array(
-			array( 'Submenu Priority', 'Submenu Priority', 'manage_options', 'sub-page', '' ),
-			array( 'Submenu Priority 2', 'Submenu Priority 2', 'manage_options', 'sub-page2', '' ),
-			array( 'Submenu Priority 3', 'Submenu Priority 3', 'manage_options', 'sub-page3', '' ),
-			array( 'Submenu Priority 4', 'Submenu Priority 4', 'manage_options', 'sub-page4', '' ),
-			array( 'Submenu Priority 5', 'Submenu Priority 5', 'manage_options', 'sub-page5', '' ),
+			array( 'Submenu Position', 'Submenu Position', 'manage_options', 'sub-page', '' ),
+			array( 'Submenu Position 2', 'Submenu Position 2', 'manage_options', 'sub-page2', '' ),
+			array( 'Submenu Position 3', 'Submenu Position 3', 'manage_options', 'sub-page3', '' ),
+			array( 'Submenu Position 4', 'Submenu Position 4', 'manage_options', 'sub-page4', '' ),
+			array( 'Submenu Position 5', 'Submenu Position 5', 'manage_options', 'sub-page5', '' ),
 		);
 	}
 
 	/**
-	 * Data provider for test_submenu_helpers_priority().
+	 * Data provider for test_submenu_helpers_position().
 	 *
 	 * @since 5.3.0
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @type int|null Priority.
+	 *         @type int|null Passed position.
 	 *         @type int      Expected position.
 	 *     }
 	 * }
 	 */
-	function data_submenu_priority() {
+	function data_submenu_position() {
 		$menu_count = count( $this->submenus_to_add() );
 		return array(
 			array( null, $menu_count ),        // Insert at the end of the menu if null is passed. Default behavior.
@@ -256,11 +256,11 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the priority.
+	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the position.
 	 *
 	 * @ticket 48599
 	 */
-	function test_priority_when_parent_slug_child_slug_are_the_same() {
+	function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
 
 		// Reset menus.
@@ -288,11 +288,11 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Passing a string as priority will fail.
+	 * Passing a string as position will fail.
 	 *
 	 * @ticket 48599
 	 */
-	function test_passing_string_as_priority_fires_doing_it_wrong() {
+	function test_passing_string_as_position_fires_doing_it_wrong() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
 		global $submenu, $menu;
 

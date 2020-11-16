@@ -13,7 +13,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 
 	protected $user_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author_ids = $factory->user->create_many(
 			4,
 			array(

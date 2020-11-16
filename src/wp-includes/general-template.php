@@ -281,6 +281,9 @@ function get_search_form( $args = array() ) {
 	 */
 	$args = apply_filters( 'search_form_args', $args );
 
+	// Ensure that the filtered arguments contain all required default values.
+	$args = array_merge( $defaults, $args );
+
 	$format = current_theme_supports( 'html5', 'search-form' ) ? 'html5' : 'xhtml';
 
 	/**
@@ -303,7 +306,7 @@ function get_search_form( $args = array() ) {
 		$form = ob_get_clean();
 	} else {
 		// Build a string containing an aria-label to use for the search form.
-		if ( isset( $args['aria_label'] ) && $args['aria_label'] ) {
+		if ( $args['aria_label'] ) {
 			$aria_label = 'aria-label="' . esc_attr( $args['aria_label'] ) . '" ';
 		} else {
 			/*
@@ -1339,7 +1342,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	if ( is_archive() && ! empty( $m ) ) {
 		$my_year  = substr( $m, 0, 4 );
 		$my_month = $wp_locale->get_month( substr( $m, 4, 2 ) );
-		$my_day   = intval( substr( $m, 6, 2 ) );
+		$my_day   = (int) substr( $m, 6, 2 );
 		$title    = $my_year . ( $my_month ? $t_sep . $my_month : '' ) . ( $my_day ? $t_sep . $my_day : '' );
 	}
 
@@ -2223,7 +2226,7 @@ function get_calendar( $initial = true, $echo = true ) {
 
 	// Let's figure out when we are.
 	if ( ! empty( $monthnum ) && ! empty( $year ) ) {
-		$thismonth = zeroise( intval( $monthnum ), 2 );
+		$thismonth = zeroise( (int) $monthnum, 2 );
 		$thisyear  = (int) $year;
 	} elseif ( ! empty( $w ) ) {
 		// We need to get the month from MySQL.
@@ -2408,7 +2411,7 @@ function get_calendar( $initial = true, $echo = true ) {
 /**
  * Purge the cached results of get_calendar.
  *
- * @see get_calendar
+ * @see get_calendar()
  * @since 2.1.0
  */
 function delete_get_calendar_cache() {
@@ -2582,7 +2585,7 @@ function the_modified_date( $format = '', $before = '', $after = '', $echo = tru
  *
  * @param string      $format Optional. PHP date format. Defaults to the 'date_format' option.
  * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
- * @return string|false Date the current post was modified. False on failure.
+ * @return string|int|false Date the current post was modified. False on failure.
  */
 function get_the_modified_date( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -2602,9 +2605,9 @@ function get_the_modified_date( $format = '', $post = null ) {
 	 * @since 2.1.0
 	 * @since 4.6.0 Added the `$post` parameter.
 	 *
-	 * @param string|false $the_time The formatted date or false if no post is found.
-	 * @param string       $format   PHP date format.
-	 * @param WP_Post|null $post     WP_Post object or null if no post is found.
+	 * @param string|int|false $the_time The formatted date or false if no post is found.
+	 * @param string           $format   PHP date format.
+	 * @param WP_Post|null     $post     WP_Post object or null if no post is found.
 	 */
 	return apply_filters( 'get_the_modified_date', $the_time, $format, $post );
 }
@@ -2828,7 +2831,7 @@ function the_modified_time( $format = '' ) {
  *                            was modified. Accepts 'G', 'U', or PHP date format.
  *                            Defaults to the 'time_format' option.
  * @param int|WP_Post $post   Optional. Post ID or WP_Post object. Default current post.
- * @return string|false Formatted date string or Unix timestamp. False on failure.
+ * @return string|int|false Formatted date string or Unix timestamp. False on failure.
  */
 function get_the_modified_time( $format = '', $post = null ) {
 	$post = get_post( $post );
@@ -2848,10 +2851,10 @@ function get_the_modified_time( $format = '', $post = null ) {
 	 * @since 2.0.0
 	 * @since 4.6.0 Added the `$post` parameter.
 	 *
-	 * @param string|false $the_time The formatted time or false if no post is found.
-	 * @param string       $format   Format to use for retrieving the time the post
-	 *                               was modified. Accepts 'G', 'U', or PHP date format.
-	 * @param WP_Post|null $post     WP_Post object or null if no post is found.
+	 * @param string|int|false $the_time The formatted time or false if no post is found.
+	 * @param string           $format   Format to use for retrieving the time the post
+	 *                                   was modified. Accepts 'G', 'U', or PHP date format.
+	 * @param WP_Post|null     $post     WP_Post object or null if no post is found.
 	 */
 	return apply_filters( 'get_the_modified_time', $the_time, $format, $post );
 }
@@ -2905,10 +2908,10 @@ function get_post_modified_time( $format = 'U', $gmt = false, $post = null, $tra
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string $time   The formatted time.
-	 * @param string $format Format to use for retrieving the time the post was modified.
-	 *                       Accepts 'G', 'U', or PHP date format. Default 'U'.
-	 * @param bool   $gmt    Whether to retrieve the GMT time. Default false.
+	 * @param string|int $time   Formatted date string or Unix timestamp if `$format` is 'U' or 'G'.
+	 * @param string     $format Format to use for retrieving the time the post was modified.
+	 *                           Accepts 'G', 'U', or PHP date format. Default 'U'.
+	 * @param bool       $gmt    Whether to retrieve the GMT time. Default false.
 	 */
 	return apply_filters( 'get_post_modified_time', $time, $format, $gmt );
 }
@@ -3149,7 +3152,7 @@ function feed_links_extra( $args = array() ) {
 			$href  = get_term_feed_link( $term->term_id, $term->taxonomy );
 		}
 	} elseif ( is_author() ) {
-		$author_id = intval( get_query_var( 'author' ) );
+		$author_id = (int) get_query_var( 'author' );
 
 		$title = sprintf( $args['authortitle'], get_bloginfo( 'name' ), $args['separator'], get_the_author_meta( 'display_name', $author_id ) );
 		$href  = get_author_feed_link( $author_id );
@@ -3194,7 +3197,7 @@ function wlwmanifest_link() {
  *
  *     add_action( 'wp_head', 'noindex' );
  *
- * @see wp_no_robots
+ * @see wp_no_robots()
  *
  * @since 2.1.0
  */
@@ -3459,7 +3462,7 @@ function user_can_richedit() {
 
 		if ( 'true' === get_user_option( 'rich_editing' ) || ! is_user_logged_in() ) { // Default to 'true' for logged out users.
 			if ( $is_safari ) {
-				$wp_rich_edit = ! wp_is_mobile() || ( preg_match( '!AppleWebKit/(\d+)!', $_SERVER['HTTP_USER_AGENT'], $match ) && intval( $match[1] ) >= 534 );
+				$wp_rich_edit = ! wp_is_mobile() || ( preg_match( '!AppleWebKit/(\d+)!', $_SERVER['HTTP_USER_AGENT'], $match ) && (int) $match[1] >= 534 );
 			} elseif ( $is_IE ) {
 				$wp_rich_edit = ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Trident/7.0;' ) !== false );
 			} elseif ( $is_gecko || $is_chrome || $is_edge || ( $is_opera && ! wp_is_mobile() ) ) {
@@ -4195,7 +4198,7 @@ function paginate_links( $args = '' ) {
 
 	// Get max pages and current page out of the current query, if available.
 	$total   = isset( $wp_query->max_num_pages ) ? $wp_query->max_num_pages : 1;
-	$current = get_query_var( 'paged' ) ? intval( get_query_var( 'paged' ) ) : 1;
+	$current = get_query_var( 'paged' ) ? (int) get_query_var( 'paged' ) : 1;
 
 	// Append the format placeholder to the base URL.
 	$pagenum_link = trailingslashit( $url_parts[0] ) . '%_%';
@@ -4345,12 +4348,12 @@ function paginate_links( $args = '' ) {
 
 		case 'list':
 			$r .= "<ul class='page-numbers'>\n\t<li>";
-			$r .= join( "</li>\n\t<li>", $page_links );
+			$r .= implode( "</li>\n\t<li>", $page_links );
 			$r .= "</li>\n</ul>\n";
 			break;
 
 		default:
-			$r = join( "\n", $page_links );
+			$r = implode( "\n", $page_links );
 			break;
 	}
 

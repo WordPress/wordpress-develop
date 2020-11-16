@@ -2,9 +2,11 @@
 <html>
 	<head>
 		<title>WordPress QUnit Test Suite</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 
 		<!-- Dependencies -->
 		<script src="../../build/wp-includes/js/jquery/jquery.js"></script>
+		<script src="../../build/wp-includes/js/jquery/jquery-migrate.js"></script>
 		<script src="../../build/wp-includes/js/jquery/ui/core.min.js"></script>
 		<script src="../../build/wp-includes/js/underscore.min.js"></script>
 		<script src="../../build/wp-includes/js/backbone.min.js"></script>
@@ -80,10 +82,16 @@
 			<script src="fixtures/wp-api-generated.js"></script>
 			<script src="fixtures/js-widgets-endpoint.js"></script>
 			<script src="fixtures/wp-api.js"></script>
+			<script src="fixtures/common.js"></script>
 		</div>
 
 		<!-- Tested files -->
+		<script src="../../build/wp-admin/js/dashboard.js"></script>
 		<script src="../../build/wp-admin/js/password-strength-meter.js"></script>
+		<script src="../../build/wp-admin/js/postbox.js"></script>
+		<script src="../../build/wp-includes/js/dist/vendor/moment.js"></script>
+		<script src="../../build/wp-includes/js/dist/date.js"></script>
+		<script src="../../build/wp-includes/js/dist/i18n.js"></script>
 		<script src="../../build/wp-includes/js/customize-base.js"></script>
 		<script src="../../build/wp-includes/js/customize-models.js"></script>
 		<script src="../../build/wp-includes/js/shortcode.js"></script>
@@ -93,7 +101,6 @@
 		<script src="../../build/wp-includes/js/wp-api.js"></script>
 
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/core.min.js'></script>
-		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/widget.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/mouse.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/sortable.min.js'></script>
 		<script type='text/javascript' src='../../build/wp-includes/js/jquery/ui/draggable.min.js'></script>
@@ -141,6 +148,7 @@
 		<script src="wp-admin/js/password-strength-meter.js"></script>
 		<script src="wp-admin/js/customize-base.js"></script>
 		<script src="wp-admin/js/customize-header.js"></script>
+		<script src="wp-admin/js/dashboard.js"></script>
 		<script src="wp-includes/js/shortcode.js"></script>
 		<script src="wp-includes/js/api-request.js"></script>
 		<script src="wp-includes/js/wp-api.js"></script>
@@ -1165,7 +1173,7 @@
 						<span class="name">Alternative Text</span>
 						<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
 					</label>
-					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 				<# } #>
 								<label class="setting" data-setting="title">
 					<span class="name">Title</span>
@@ -1330,7 +1338,7 @@
 				<span class="name">Alt Text</span>
 				<input type="text" value="{{ data.alt }}" aria-describedby="alt-text-description" {{ maybeReadOnly }} />
 			</label>
-			<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+			<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 		<# } #>
 				<label class="setting" data-setting="title">
 			<span class="name">Title</span>
@@ -1622,7 +1630,7 @@
 			<span>Alternative Text</span>
 			<input type="text" data-setting="alt" aria-describedby="alt-text-description" />
 		</label>
-		<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+		<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 
 					<label class="setting caption">
 				<span>Caption</span>
@@ -1677,7 +1685,7 @@
 						<span>Alternative Text</span>
 						<input type="text" data-setting="alt" value="{{ data.model.alt }}" aria-describedby="alt-text-description" />
 					</label>
-					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener noreferrer">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
+					<p class="description" id="alt-text-description"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree" target="_blank" rel="noopener">Describe the purpose of the image<span class="screen-reader-text"> (opens in a new tab)</span></a>. Leave empty if the image is purely decorative.</p>
 
 											<label class="setting caption">
 							<span>Caption</span>
@@ -2272,6 +2280,7 @@
 			<div <# if ( data.id ) { #>id="{{ data.id }}"<# } #> class="notice {{ data.className }}"><p>{{{ data.message }}}</p></div>
 		</script>
 		<div hidden>
+			<ul>
 			<li id="wp-admin-bar-updates">
 				<a class="ab-item" href="wp-admin/update-core.php" title="2 Plugin Updates">
 					<span class="ab-icon"></span>
@@ -2302,6 +2311,7 @@
 				</li>
 				</ul>
 			</li>
+			</ul>
 		</div>
 	</body>
 </html>

@@ -134,6 +134,7 @@
 	<exclude-pattern>/src/wp-includes/sodium_compat/*</exclude-pattern>
 	<exclude-pattern>/src/wp-includes/Text/*</exclude-pattern>
 
+	<exclude-pattern>/tests/phpunit/includes/phpunit7/MockObject/*</exclude-pattern>
 	<exclude-pattern>/tests/phpunit/includes/speed-trap-listener\.php</exclude-pattern>
 
 	<!-- Test data and fixtures. -->
