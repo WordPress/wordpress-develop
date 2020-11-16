@@ -164,7 +164,10 @@ function get_permalink( $post = 0, $leavename = false ) {
 	 */
 	$permalink = apply_filters( 'pre_post_link', $permalink, $post, $leavename );
 
-	if ( $permalink && ! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future' ), true ) ) {
+	if (
+		$permalink &&
+		! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future', 'trash' ), true )
+	) {
 
 		$category = '';
 		if ( strpos( $permalink, '%category%' ) !== false ) {
