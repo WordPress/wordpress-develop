@@ -34,8 +34,8 @@ if ( is_multisite() ) :
 
 			/*
 			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
-			 * or if the `src` directory already contains a content directory with site content, then
-			 * the initial expectation will be polluted. We create sites until an empty one is available.
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
 			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
@@ -83,8 +83,8 @@ if ( is_multisite() ) :
 
 			/*
 			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
-			 * or if the `src` directory already contains a content directory with site content, then
-			 * the initial expectation will be polluted. We create sites until an empty one is available.
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
 			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
@@ -131,8 +131,8 @@ if ( is_multisite() ) :
 
 			/*
 			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
-			 * or if the `src` directory already contains a content directory with site content, then
-			 * the initial expectation will be polluted. We create sites until an empty one is available.
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
 			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
@@ -179,8 +179,8 @@ if ( is_multisite() ) :
 
 			/*
 			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
-			 * or if the `src` directory already contains a content directory with site content, then
-			 * the initial expectation will be polluted. We create sites until an empty one is available.
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
 			 */
 			while ( 0 !== get_space_used() ) {
 				restore_current_blog();
