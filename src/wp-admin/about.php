@@ -75,7 +75,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="about__section has-2-columns is-wider-left has-transparent-background-color">
 				<div class="column">
 					<h2><?php _e( 'Greater layout flexibility' ); ?></h2>
-					<p><?php _e( 'Bring your stories to life with more tools that let you edit your layout with or without code. Single column blocks, designs using mixed widths and columns, full-width headers, and videos in your cover block—make small change or big statements with equal ease!' ); ?></p>
+					<p><?php _e( 'Bring your stories to life with more tools that let you edit your layout with or without code. Single column blocks, designs using mixed widths and columns, full-width headers, and videos in your cover block—make small changes or big statements with equal ease!' ); ?></p>
 				</div>
 			</div>
 			<div class="about__section has-2-columns is-wider-right has-transparent-background-color">
@@ -166,7 +166,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p><?php _e( 'Even if you’re not an expert, you can start letting folks know about your site’s commitment to accessibility at the click of a button! The new <a href="%s">feature plugin</a> includes template copy for you to update and publish, and it’s written to support different contexts and jurisdictions.', '#' ); ?></p>
 			</div>
 			<div class="column has-border" style="background-color:#d1d1e4;background-color:var(--global--color-purple)">
-				<h3><?php _e( 'Built-in Patterns' ); ?></h3>
+				<h3><?php _e( 'Built-in patterns' ); ?></h3>
 				<p><?php _e( 'If you’ve not had the chance to play with block patterns yet, all default themes now feature a range of block patterns that let you master complex layouts with minimal effort. Customize the patterns to your liking with the copy, images and colors that fit your story or brand.' ); ?></p>
 			</div>
 		</div>
@@ -191,7 +191,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: jQuery update test plugin link. */
-						__( 'Updates to jQuery in WordPress take place across three releases 5.5, 5.6 and 5.7. As we reach the mid-point of this process, run the <a href="%s">update test plugin</a> to check your sites for errors ahead of time.' ),
+						__( 'Updates to jQuery in WordPress take place across three releases: 5.5, 5.6, and 5.7. As we reach the mid-point of this process, run the <a href="%s">update test plugin</a> to check your sites for errors ahead of time.' ),
 						'https://wordpress.org/plugins/wp-jquery-update-test/'
 					);
 					?>
