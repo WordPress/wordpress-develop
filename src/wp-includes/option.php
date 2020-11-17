@@ -15,7 +15,7 @@
  * whether upgrading is required.
  *
  * If the option was serialized then it will be unserialized when it is returned.
- * For example, storing `array( true, false, 0, 1 )` will return the exact same array.
+ * For example, storing `array( true, false, 0, 1 )` will return the same array.
  *
  * Non-string scalar values will be converted and returned as string equivalents when the options are retrieved from the database.
  *
