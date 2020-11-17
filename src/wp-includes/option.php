@@ -15,15 +15,15 @@
  * whether upgrading is required.
  *
  * If the option was serialized then it will be unserialized when it is returned.
+ * For example, storing `array( true, false, 0, 1 )` will return the exact same array.
  *
- * Non-string scalar values will be returned as string equivalents when the options are retrieved from the database.
+ * Non-string scalar values will be converted and returned as string equivalents when the options are retrieved from the database.
  *
  * Exceptions:
  * 1. When the option has not been saved in the database, the default value from {@see get_option} is returned if provided. If not, boolean `false` is returned.
  * 2. When one of the Options API filters is used:
  * {@see pre_option_{$option}}, {@see default_option_{$option}}, and {@see option_{$option}},
  * the returned value may not match the expected type.
- * 3. When non-scalar option values are serialized before saving, they remain unchanged. For example, adding array( true, false, 0, 1 ) will return the exact same array.
  *
  * Examples:
  *
@@ -35,6 +35,8 @@
  * add_option( 'option_name__1', 1 );
  * add_option( 'option_name__str_0', '0' );
  * add_option( 'option_name__str_1', '1' );
+ * add_option( 'option_name__array', array(true) );
+ *
  *
  * get_option( 'option_name__[]' ) will return the following:
  *
@@ -44,6 +46,7 @@
  * string(1) "1"
  * string(1) "0"
  * string(1) "1"
+ * array(1) { 0=> boolean(true) }
  *
  *
  * @since 1.5.0
@@ -53,8 +56,9 @@
  * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default Optional. Default value to return if the option does not exist.
  * @return mixed Value set for the option. A value of any type may be returned, including
- *         array, boolean, float, integer, null, object, and string. Any non-serialized scalar values will be
- *         returned as string as long as they do originate from a database stored option value.
+ *         array, boolean, float, integer, null, object, and string. Any non-serialized scalar value will be
+ *         returned as string as long as it originates from a database stored option value.
+ *         If there is no option in the database, boolean `false` is returned.
  */
 function get_option( $option, $default = false ) {
 	global $wpdb;
