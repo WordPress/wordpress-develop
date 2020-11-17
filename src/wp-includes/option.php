@@ -18,10 +18,11 @@
  *
  * Non-string scalar values will be returned as string equivalents when the options are retrieved from the database.
  *
- * Exception: It does return scalar values for a value that doesn't originate from the database storage.
- * for example $default is scalar and the option name does not exist or the return value from any of its filters is scalar
- * (pre_option_{$option}, default_option_{$option}, and option_{$option}),
- * the return value of $default will still be scalar and not converted to a string!
+ * Exceptions: 
+ * 1. When the option has not been saved in the database the default value from {@see get_option} is returned if provided. If not, boolean `false` is returned.
+ * 2. When one of the Options API filters is used:
+ * {@see pre_option_{$option}}, {@see default_option_{$option}}, and {@see option_{$option}},
+ * the returned value may not match the expected type.
  *
  * Examples:
  *
