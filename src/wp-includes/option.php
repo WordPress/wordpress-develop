@@ -16,7 +16,7 @@
  *
  * If the option was serialized then it will be unserialized when it is returned.
  *
- * Any scalar values will be returned as strings!
+ * Non-string scalar values will be returned as string equivalents when the options are retrieved from the database.
  *
  * Exception: It does return scalar values for a value that doesn't originate from the database storage.
  * for example $default is scalar and the option name does not exist or the return value from any of its filters is scalar
