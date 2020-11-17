@@ -23,6 +23,7 @@
  * 2. When one of the Options API filters is used:
  * {@see pre_option_{$option}}, {@see default_option_{$option}}, and {@see option_{$option}},
  * the returned value may not match the expected type.
+ * 3. When non-scalar option values are serialized before saving, they remain unchanged. For example, adding array( true, false, 0, 1 ) will return the exact same array.
  *
  * Examples:
  *
