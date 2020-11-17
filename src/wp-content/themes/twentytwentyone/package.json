@@ -14,6 +14,7 @@
 	"homepage": "https://github.com/wordpress/twentytwentyone",
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^2.2.2",
+		"@wordpress/env": "^2.1.0",
 		"@wordpress/eslint-plugin": "^7.3.0",
 		"autoprefixer": "^9.5.1",
 		"chokidar-cli": "^2.1.0",
@@ -62,6 +63,9 @@
 		"build": "run-s \"build:*\"",
 		"watch": "chokidar \"**/*.scss\" -c \"npm run build\" --initial",
 		"lint:scss": "stylelint **/*.scss",
-		"lint-fix:scss": "stylelint **/*.scss --fix"
+		"lint:js": "eslint assets/js",
+		"lint-fix:scss": "stylelint **/*.scss --fix",
+		"lint-fix:js": "eslint assets/js --fix",
+		"wp-env": "wp-env"
 	}
 }
