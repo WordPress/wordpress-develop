@@ -219,16 +219,16 @@ if ( is_multisite() ) :
 		 *
 		 * @ticket 19879
 		 */
-		function test_recurse_dirsize_calculate_current_dirsize_filter() {
-			add_filter( 'calculate_current_dirsize', array( $this, '_filter_calculate_current_dirsize' ) );
+		function test_pre_recurse_dirsize_filter() {
+			add_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
 
 			$upload_dir = wp_upload_dir();
 			$this->assertSame( 1042, recurse_dirsize( $upload_dir['path'] ) );
 
-			remove_filter( 'calculate_current_dirsize', array( $this, '_filter_calculate_current_dirsize' ) );
+			remove_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
 		}
 
-		function _filter_calculate_current_dirsize() {
+		function _filter_pre_recurse_dirsize() {
 			return 1042;
 		}
 
