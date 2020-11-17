@@ -104,9 +104,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</p>
 		</div>
 
+		<hr />
+
 		<div class="about__section">
 			<div class="column about__image is-edge-to-edge">
-				<img src="data:image/svg+xml,%3Csvg width='1000' height='1000' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='100%25' height='100%25' fill='%23ddd' /%3E%3Ctext text-anchor='middle' font-family='sans-serif' font-size='24' y='50%25' x='50%25'%3ETheme Screenshot (1000x1000)%3C/text%3E%3C/svg%3E" alt="">
+				<img src="https://make.wordpress.org/core/files/2020/11/TT1-Screenshots-Compressed.jpg" alt="" />
 			</div>
 		</div>
 
@@ -143,7 +145,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column about__image is-edge-to-edge">
-				<img src="data:image/svg+xml,%3Csvg width='1000' height='366' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='0' y='0' width='100%25' height='100%25' fill='%23ddd' /%3E%3Ctext text-anchor='middle' font-family='sans-serif' font-size='24' y='50%25' x='50%25'%3EAll Palettes Screenshots (1000 wide)%3C/text%3E%3C/svg%3E" alt="">
+				<img src="https://make.wordpress.org/core/files/2020/11/Rainbow-Compressed.png" alt="" />
 			</div>
 		</div>
 
