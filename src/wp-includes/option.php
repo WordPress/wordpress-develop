@@ -26,7 +26,7 @@
  *
  * Examples:
  *
- * Storing database options like this:
+ * When adding options like this:
  *
  * add_option( 'option_name__false', false );
  * add_option( 'option_name__true', true );
