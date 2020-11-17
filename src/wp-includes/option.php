@@ -18,8 +18,8 @@
  *
  * Non-string scalar values will be returned as string equivalents when the options are retrieved from the database.
  *
- * Exceptions: 
- * 1. When the option has not been saved in the database the default value from {@see get_option} is returned if provided. If not, boolean `false` is returned.
+ * Exceptions:
+ * 1. When the option has not been saved in the database, the default value from {@see get_option} is returned if provided. If not, boolean `false` is returned.
  * 2. When one of the Options API filters is used:
  * {@see pre_option_{$option}}, {@see default_option_{$option}}, and {@see option_{$option}},
  * the returned value may not match the expected type.
@@ -35,7 +35,7 @@
  * add_option( 'option_name__str_0', '0' );
  * add_option( 'option_name__str_1', '1' );
  *
- * will return with using get_option('option_name__[]'):
+ * get_option( 'option_name__[]' ) will return the following:
  *
  * string(0) ""
  * string(1) "1"
@@ -44,13 +44,6 @@
  * string(1) "0"
  * string(1) "1"
  *
- * Example of returning scalar value if option does not exist:
- *
- * get_option('option_name_not_exist', 1);
- *
- * Will return:
- *
- * (int) 1
  *
  * @since 1.5.0
  *
