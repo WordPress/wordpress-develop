@@ -57,7 +57,7 @@
  * @param mixed  $default Optional. Default value to return if the option does not exist.
  * @return mixed Value set for the option. A value of any type may be returned, including
  *         array, boolean, float, integer, null, object, and string. Any non-serialized scalar value will be
- *         returned as string as long as it originates from a database stored option value.
+ *         returned as string as long as it originates from a database stored option value -
  *         If there is no option in the database, boolean `false` is returned.
  */
 function get_option( $option, $default = false ) {
