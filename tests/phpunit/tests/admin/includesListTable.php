@@ -19,7 +19,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Note that our top/children/grandchildren arrays are 1-indexed.
 
 		// Create top-level pages.

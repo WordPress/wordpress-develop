@@ -19,7 +19,7 @@ class Tests_Auth extends WP_UnitTestCase {
 	 */
 	protected $nonce_failure_hook = 'wp_verify_nonce_failed';
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_user = $factory->user->create_and_get(
 			array(
 				'user_login' => 'password-tests',
@@ -527,7 +527,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$error = wp_authenticate_application_password( null, self::$_user->user_login, 'password' );
 		$this->assertWPError( $error );
-		$this->assertSame( 'application_passwords_disabled', $error->get_error_code() );
+		$this->assertSame( 'application_passwords_disabled_for_user', $error->get_error_code() );
 	}
 
 	/**

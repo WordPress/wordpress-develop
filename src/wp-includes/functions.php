@@ -1186,6 +1186,7 @@ function wp_removable_query_args() {
 		'activated',
 		'admin_email_remind_later',
 		'approved',
+		'core-major-auto-updates-saved',
 		'deactivate',
 		'delete_count',
 		'deleted',
@@ -2747,7 +2748,7 @@ function wp_upload_bits( $name, $deprecated, $bits, $time = null ) {
 	$url = $upload['url'] . "/$filename";
 
 	if ( is_multisite() ) {
-		invalidate_dirsize_cache( $new_file );
+		clean_dirsize_cache( $new_file );
 	}
 
 	/** This filter is documented in wp-admin/includes/file.php */
@@ -7607,13 +7608,12 @@ function get_dirsize( $directory, $max_execution_time = null ) {
 /**
  * Get the size of a directory recursively.
  *
- * Used by get_dirsize() to get a directory's size when it contains
- * other directories.
+ * Used by get_dirsize() to get a directory size when it contains other directories.
  *
  * @since MU (3.0.0)
- * @since 4.3.0 $exclude parameter added.
- * @since 5.2.0 $max_execution_time parameter added.
- * @since 5.6.0 $directory_cache parameter added.
+ * @since 4.3.0 The `$exclude` parameter was added.
+ * @since 5.2.0 The `$max_execution_time` parameter was added.
+ * @since 5.6.0 The `$directory_cache` parameter was added.
  *
  * @param string       $directory          Full path of a directory.
  * @param string|array $exclude            Optional. Full path of a subdirectory to exclude from the total,
@@ -7625,10 +7625,9 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  * @return int|false|null Size in bytes if a valid directory. False if not. Null if timeout.
  */
 function recurse_dirsize( $directory, $exclude = null, $max_execution_time = null, &$directory_cache = null ) {
-	$size = 0;
-
 	$directory  = untrailingslashit( $directory );
-	$cache_path = normalize_dirsize_cache_path( $directory );
+	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $directory ) );
+
 	$save_cache = false;
 
 	if ( ! isset( $directory_cache ) ) {
@@ -7667,17 +7666,20 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 	}
 
 	/**
-	* Filters the amount of storage space used by one directory and all it's children, in megabytes.
-	* Return the actual used space to shortcircuit the recursive PHP file size calculation and use something else
-	* like a CDN API or native operating system tools for better performance
-	*
-	* @since 5.6.0
-	*
-	* @param int|false $space_used The amount of used space, in bytes. Default 0.
-	*/
-	$size = apply_filters( 'calculate_current_dirsize', $size, $directory, $exclude, $max_execution_time, $directory_cache );
+	 * Filters the amount of storage space used by one directory and all its children, in megabytes.
+	 *
+	 * Return the actual used space to short-circuit the recursive PHP file size calculation
+	 * and use something else, like a CDN API or native operating system tools for better performance.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param int|false $space_used The amount of used space, in bytes. Default false.
+	 */
+	$size = apply_filters( 'pre_recurse_dirsize', false, $directory, $exclude, $max_execution_time, $directory_cache );
 
-	if ( 0 === $size ) {
+	if ( false === $size ) {
+		$size = 0;
+
 		$handle = opendir( $directory );
 		if ( $handle ) {
 			while ( ( $file = readdir( $handle ) ) !== false ) {
@@ -7702,9 +7704,10 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 			closedir( $handle );
 		}
 	}
+
 	$directory_cache[ $cache_path ] = $size;
 
-	// Only write the transient on the top level call and not on recursive calls
+	// Only write the transient on the top level call and not on recursive calls.
 	if ( $save_cache ) {
 		set_transient( 'dirsize_cache', $directory_cache );
 	}
@@ -7713,23 +7716,22 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 }
 
 /**
- * Invalidates entries within the dirsize_cache
+ * Cleans directory size cache used by recurse_dirsize().
  *
- * Remove the current directory and all parent directories
- * from the dirsize_cache transient.
+ * Removes the current directory and all parent directories from the `dirsize_cache` transient.
  *
  * @since 5.6.0
  *
  * @param string $path Full path of a directory or file.
  */
-function invalidate_dirsize_cache( $path ) {
+function clean_dirsize_cache( $path ) {
 	$directory_cache = get_transient( 'dirsize_cache' );
 
 	if ( empty( $directory_cache ) ) {
 		return;
 	}
 
-	$cache_path = normalize_dirsize_cache_path( $path );
+	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $path ) );
 	unset( $directory_cache[ $cache_path ] );
 
 	while ( DIRECTORY_SEPARATOR !== $cache_path && '.' !== $cache_path && '..' !== $cache_path ) {
@@ -7738,22 +7740,6 @@ function invalidate_dirsize_cache( $path ) {
 	}
 
 	set_transient( 'dirsize_cache', $directory_cache );
-}
-
-/**
- * Normalize dirsize cache path.
- *
- * Ensures array keys within the dirsize_cache transient follow the same format.
- *
- * @since 5.6.0
- *
- * @param string $path
- * @return string
- */
-function normalize_dirsize_cache_path( $path ) {
-	$path = str_replace( ABSPATH, '', $path );
-
-	return untrailingslashit( $path );
 }
 
 /**

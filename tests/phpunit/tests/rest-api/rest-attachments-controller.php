@@ -29,7 +29,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	 */
 	private $test_file2;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$superadmin_id  = $factory->user->create(
 			array(
 				'role'       => 'administrator',

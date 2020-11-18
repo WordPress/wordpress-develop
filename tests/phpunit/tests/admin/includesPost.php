@@ -12,7 +12,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids   = $factory->user->create_many( 2, array( 'role' => 'author' ) );
 		self::$author_ids = self::$user_ids;
 

@@ -36,7 +36,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber_id = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -112,7 +112,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		add_filter( 'wp_is_application_passwords_available', '__return_false' );
 
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords' );
-		$this->assertErrorResponse( 'application_passwords_disabled', $response, 500 );
+		$this->assertErrorResponse( 'application_passwords_disabled', $response, 501 );
 	}
 
 	/**
@@ -123,7 +123,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		add_filter( 'wp_is_application_passwords_available_for_user', '__return_false' );
 
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords' );
-		$this->assertErrorResponse( 'application_passwords_disabled_for_user', $response, 500 );
+		$this->assertErrorResponse( 'application_passwords_disabled_for_user', $response, 501 );
 	}
 
 	/**
