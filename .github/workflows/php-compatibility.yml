@@ -26,7 +26,7 @@ jobs:
   # - todo: Configure Slack notifications for failing scans.
   php-comatibility:
     name: Check PHP compatibility
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout repository

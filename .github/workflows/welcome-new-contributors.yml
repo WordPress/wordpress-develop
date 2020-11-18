@@ -7,7 +7,7 @@ on:
 jobs:
   # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: bubkoo/welcome-action@v1

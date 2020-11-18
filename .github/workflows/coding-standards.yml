@@ -26,7 +26,7 @@ jobs:
   # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: PHP coding standards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -84,7 +84,7 @@ jobs:
   # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
     steps:
