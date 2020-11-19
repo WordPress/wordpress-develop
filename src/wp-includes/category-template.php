@@ -248,7 +248,7 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
  * @since 1.2.0
  * @since 2.7.0 The `$post` parameter was added.
  *
- * @param int|string|array $category Category ID, name or slug, or array of said.
+ * @param int|string|array $category Category ID, name or slug, or array of IDs.
  * @param int|object       $post     Optional. Post to check instead of the current post.
  * @return bool True if the current post is in any of the given categories.
  */
