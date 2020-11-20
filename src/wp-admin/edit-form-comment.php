@@ -87,7 +87,7 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 
 <div id="postbox-container-1" class="postbox-container">
 <div id="submitdiv" class="stuffbox" >
-<h2 ><?php _e( 'Save' ); ?></h2>
+<h2><?php _e( 'Save' ); ?></h2>
 <div class="inside">
 <div class="submitbox" id="submitcomment">
 <div id="minor-publishing">
