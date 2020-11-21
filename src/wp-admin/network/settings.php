@@ -256,8 +256,8 @@ if ( isset( $_GET['updated'] ) ) {
 					$limited_email_domains = get_site_option( 'limited_email_domains' );
 					$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
 
-					if ( ! is_scalar( $limited_email_domains ) ) {
-						$limited_email_domains = implode( "\n", (array) $limited_email_domains );
+					if ( is_array( $limited_email_domains ) ) {
+						$limited_email_domains = implode( "\n", $limited_email_domains );
 					}
 					?>
 					<textarea name="limited_email_domains" id="limited_email_domains" aria-describedby="limited-email-domains-desc" cols="45" rows="5">
