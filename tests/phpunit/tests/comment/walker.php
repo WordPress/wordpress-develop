@@ -4,8 +4,9 @@
  * @group comment
  */
 class Tests_Comment_Walker extends WP_UnitTestCase {
+	private $post_id;
 
-	function setUp() {
+	public function setUp() {
 		parent::setUp();
 
 		$this->post_id = self::factory()->post->create();
@@ -14,7 +15,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 	/**
 	 * @ticket 14041
 	 */
-	function test_has_children() {
+	public function test_has_children() {
 		$comment_parent = self::factory()->comment->create( array( 'comment_post_ID' => $this->post_id ) );
 		$comment_child  = self::factory()->comment->create(
 			array(
