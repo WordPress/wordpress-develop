@@ -69,8 +69,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 		$walker = new Walker_Comment();
 
 		return array(
-			// HTML5 format.
-			'should_not_contain_avatar_when_size_false'              => array(
+			'should_not_contain_avatar_when_size_false'  => array(
 				'has_avatar' => false,
 				'args'       => array(
 					'walker'      => $walker,
@@ -79,7 +78,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'html5',
 				),
 			),
-			'should_not_contain_avatar_when_size_empty_string'       => array(
+			'should_not_contain_avatar_when_size_empty_string' => array(
 				'has_avatar' => false,
 				'args'       => array(
 					'walker'      => $walker,
@@ -88,7 +87,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'html5',
 				),
 			),
-			'should_not_contain_avatar_when_size_0'                  => array(
+			'should_not_contain_avatar_when_size_0'      => array(
 				'has_avatar' => false,
 				'args'       => array(
 					'walker'      => $walker,
@@ -97,7 +96,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'html5',
 				),
 			),
-			'should_contain_avatar_when_no_size'                     => array(
+			'should_contain_avatar_when_no_size'         => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker' => $walker,
@@ -105,7 +104,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format' => 'html5',
 				),
 			),
-			'should_contain_avatar_when_size_100'                    => array(
+			'should_contain_avatar_when_size_100'        => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker'      => $walker,
@@ -114,7 +113,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'html5',
 				),
 			),
-			'should_contain_avatar_when_size_string_200'             => array(
+			'should_contain_avatar_when_size_string_200' => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker'      => $walker,
@@ -123,9 +122,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'html5',
 				),
 			),
-
-			// xhtml format.
-			'should_not_contain_avatar_when_xhtml_size_false'        => array(
+			'should_not_contain_avatar_when_xhtml_size_false' => array(
 				'has_avatar' => false,
 				'args'       => array(
 					'walker'      => $walker,
@@ -143,7 +140,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'xhtml',
 				),
 			),
-			'should_not_contain_avatar_xhtml_when_size_int_0'        => array(
+			'should_not_contain_avatar_xhtml_when_size_int_0' => array(
 				'has_avatar' => false,
 				'args'       => array(
 					'walker'      => $walker,
@@ -152,7 +149,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'xhtml',
 				),
 			),
-			'should_contain_avatar_when_xhtml_no_size'               => array(
+			'should_contain_avatar_when_xhtml_no_size'   => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker' => $walker,
@@ -160,7 +157,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format' => 'xhtml',
 				),
 			),
-			'should_contain_avatar_when_xhtml_size_int_100'          => array(
+			'should_contain_avatar_when_xhtml_size_int_100' => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker'      => $walker,
@@ -169,7 +166,7 @@ class Tests_Comment_Walker extends WP_UnitTestCase {
 					'format'      => 'xhtml',
 				),
 			),
-			'should_contain_avatar_when_xhtml_size_string_200'       => array(
+			'should_contain_avatar_when_xhtml_size_string_200' => array(
 				'has_avatar' => true,
 				'args'       => array(
 					'walker'      => $walker,
