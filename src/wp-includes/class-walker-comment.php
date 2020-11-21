@@ -310,7 +310,8 @@ class Walker_Comment extends Walker {
 		<?php endif; ?>
 		<div class="comment-author vcard">
 			<?php
-			if ( 0 !== (int) $args['avatar_size'] ) {
+			$args['avatar_size'] = (int) $args['avatar_size'];
+			if ( 0 !== $args['avatar_size'] ) {
 				echo get_avatar( $comment, $args['avatar_size'] );
 			}
 			?>
@@ -413,7 +414,8 @@ class Walker_Comment extends Walker {
 				<footer class="comment-meta">
 					<div class="comment-author vcard">
 						<?php
-						if ( 0 !== (int) $args['avatar_size'] ) {
+						$args['avatar_size'] = (int) $args['avatar_size'];
+						if ( 0 !== $args['avatar_size'] ) {
 							echo get_avatar( $comment, $args['avatar_size'] );
 						}
 						?>
