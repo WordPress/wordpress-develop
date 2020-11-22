@@ -167,23 +167,22 @@ class AtomParser {
         $ret = true;
 
         $fp = fopen($this->FILE, "r");
-	    if (false === $fp) {
-		    return false;
-	    }
+        if (false === $fp) {
 
-        while ($data = fread($fp, 4096)) {
-            if($this->debug) $this->content .= $data;
+	        while ($data = fread($fp, 4096)) {
+	            if($this->debug) $this->content .= $data;
 
-            if(!xml_parse($parser, $data, feof($fp))) {
-                /* translators: 1: Error message, 2: Line number. */
-                trigger_error(sprintf(__('XML Error: %1$s at line %2$s')."\n",
-                    xml_error_string(xml_get_error_code($parser)),
-                    xml_get_current_line_number($parser)));
-                $ret = false;
-                break;
-            }
+	            if(!xml_parse($parser, $data, feof($fp))) {
+	                /* translators: 1: Error message, 2: Line number. */
+	                trigger_error(sprintf(__('XML Error: %1$s at line %2$s')."\n",
+	                    xml_error_string(xml_get_error_code($parser)),
+	                    xml_get_current_line_number($parser)));
+	                $ret = false;
+	                break;
+	            }
+	        }
+	        fclose($fp);
         }
-        fclose($fp);
 
         xml_parser_free($parser);
         unset($parser);
