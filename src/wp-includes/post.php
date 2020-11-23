@@ -2003,6 +2003,70 @@ function is_post_type_viewable( $post_type ) {
 }
 
 /**
+ * Determines whether a post status is considered "viewable".
+ *
+ * Note: posts with the status `inherit` will not be considered viewable, to
+ * test if such posts are considered viewable pass the parent post's status
+ * to this function.
+ *
+ * @param string|stdClass $post_status Post status name or object.
+ * @return boolean Whether the post status should be considered viewable.
+ */
+function is_post_status_viewable( $post_status ) {
+	if ( is_scalar( $post_status ) ) {
+		$post_status = get_post_status_object( $post_status );
+		if ( ! $post_status ) {
+			return false;
+		}
+	}
+
+	if (
+		$post_status->internal ||
+		$post_status->private ||
+		$post_status->protected
+	) {
+		/*
+		 * Check for blockers to the post status been viewable.
+		 *
+		 * It's possible for a developer to register a post status as both `private`
+		 * and `public` so this ensures `private` takes precedence.
+		 */
+		return false;
+	}
+
+	if (
+		$post_status->public &&
+		$post_status->publicly_queryable
+	) {
+		return true;
+	}
+
+	// Default false.
+	return false;
+}
+
+/**
+ * Determine if a post is viewable publicly.
+ *
+ * Determines whether or not a post can be viewed by logged out or low
+ * privileged users.
+ *
+ * @param int|WP_Post $post The post object or ID.
+ * @return bool Whether the post is publicly viewable.
+ */
+function is_post_publicly_viewable( $post ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return false;
+	}
+
+	$post_type   = get_post_type( $post );
+	$post_status = get_post_status( $post );
+
+	return is_post_type_viewable( $post_type ) && is_post_status_viewable( $post_status );
+}
+
+/**
  * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
  * The defaults are as follows:
