@@ -61,7 +61,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var bool
 	 */
-	var $show_errors = false;
+	public $show_errors = false;
 
 	/**
 	 * Whether to suppress errors during the DB bootstrapping. Default false.
@@ -69,7 +69,7 @@ class wpdb {
 	 * @since 2.5.0
 	 * @var bool
 	 */
-	var $suppress_errors = false;
+	public $suppress_errors = false;
 
 	/**
 	 * The error encountered during the last query.
@@ -101,7 +101,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var int
 	 */
-	var $rows_affected = 0;
+	public $rows_affected = 0;
 
 	/**
 	 * The ID generated for an AUTO_INCREMENT column by the last query (usually INSERT).
@@ -117,7 +117,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var string
 	 */
-	var $last_query;
+	public $last_query;
 
 	/**
 	 * Results of the last query.
@@ -125,7 +125,7 @@ class wpdb {
 	 * @since 0.71
 	 * @var array|null
 	 */
-	var $last_result;
+	public $last_result;
 
 	/**
 	 * MySQL result, which is either a resource or boolean.
@@ -198,7 +198,7 @@ class wpdb {
 	 *     }
 	 * }
 	 */
-	var $queries;
+	public $queries;
 
 	/**
 	 * The number of times to retry reconnecting before dying. Default 5.
@@ -234,7 +234,7 @@ class wpdb {
 	 * @since 2.3.2
 	 * @var bool
 	 */
-	var $ready = false;
+	public $ready = false;
 
 	/**
 	 * Blog ID.
@@ -259,7 +259,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $tables = array(
+	public $tables = array(
 		'posts',
 		'comments',
 		'links',
@@ -281,7 +281,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $old_tables = array( 'categories', 'post2cat', 'link2cat' );
+	public $old_tables = array( 'categories', 'post2cat', 'link2cat' );
 
 	/**
 	 * List of WordPress global tables.
@@ -290,7 +290,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $global_tables = array( 'users', 'usermeta' );
+	public $global_tables = array( 'users', 'usermeta' );
 
 	/**
 	 * List of Multisite global tables.
@@ -299,7 +299,7 @@ class wpdb {
 	 * @see wpdb::tables()
 	 * @var array
 	 */
-	var $ms_global_tables = array(
+	public $ms_global_tables = array(
 		'blogs',
 		'blogmeta',
 		'signups',
@@ -1159,6 +1159,10 @@ class wpdb {
 	 * @return string Escaped string.
 	 */
 	function _real_escape( $string ) {
+		if ( ! is_scalar( $string ) && ! is_null( $string ) ) {
+			return '';
+		}
+
 		if ( $this->dbh ) {
 			if ( $this->use_mysqli ) {
 				$escaped = mysqli_real_escape_string( $this->dbh, $string );
@@ -1365,7 +1369,9 @@ class wpdb {
 		// Count the number of valid placeholders in the query.
 		$placeholders = preg_match_all( "/(^|[^%]|(%%)+)%($allowed_format)?[sdF]/", $query, $matches );
 
-		if ( count( $args ) !== $placeholders ) {
+		$args_count = count( $args );
+
+		if ( $args_count !== $placeholders ) {
 			if ( 1 === $placeholders && $passed_as_array ) {
 				// If the passed query only expected one argument, but the wrong number of arguments were sent as an array, bail.
 				wp_load_translations_early();
@@ -1388,10 +1394,22 @@ class wpdb {
 						/* translators: 1: Number of placeholders, 2: Number of arguments passed. */
 						__( 'The query does not contain the correct number of placeholders (%1$d) for the number of arguments passed (%2$d).' ),
 						$placeholders,
-						count( $args )
+						$args_count
 					),
 					'4.8.3'
 				);
+
+				/*
+				 * If we don't have enough arguments to match the placeholders,
+				 * return an empty string to avoid a fatal error on PHP 8.
+				 */
+				if ( $args_count < $placeholders ) {
+					$max_numbered_placeholder = ! empty( $matches[3] ) ? max( array_map( 'intval', $matches[3] ) ) : 0;
+
+					if ( ! $max_numbered_placeholder || $args_count < $max_numbered_placeholder ) {
+						return '';
+					}
+				}
 			}
 		}
 
@@ -1896,6 +1914,11 @@ class wpdb {
 		 * @param string $query Database query.
 		 */
 		$query = apply_filters( 'query', $query );
+
+		if ( ! $query ) {
+			$this->insert_id = 0;
+			return false;
+		}
 
 		$this->flush();
 

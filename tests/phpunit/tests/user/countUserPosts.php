@@ -5,10 +5,10 @@
  * @group post
  */
 class Tests_User_CountUserPosts extends WP_UnitTestCase {
-	static $user_id;
-	static $post_ids = array();
+	public static $user_id;
+	public static $post_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
 				'role'       => 'author',

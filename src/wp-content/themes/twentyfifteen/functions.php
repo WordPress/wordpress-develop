@@ -102,6 +102,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -147,7 +148,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 		add_theme_support(
 			'custom-background',
 			/**
-			 * Filter Twenty Fifteen custom-background support arguments.
+			 * Filters Twenty Fifteen custom-background support arguments.
 			 *
 			 * @since Twenty Fifteen 1.0
 			 *

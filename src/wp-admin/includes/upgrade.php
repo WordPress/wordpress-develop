@@ -586,17 +586,18 @@ function wp_install_maybe_enable_pretty_permalinks() {
 
 if ( ! function_exists( 'wp_new_blog_notification' ) ) :
 	/**
-	 * Notifies the site admin that the setup is complete.
+	 * Notifies the site admin that the installation of WordPress is complete.
 	 *
-	 * Sends an email with wp_mail to the new administrator that the site setup is complete,
+	 * Sends an email to the new administrator that the installation is complete
 	 * and provides them with a record of their login credentials.
 	 *
 	 * @since 2.1.0
 	 *
 	 * @param string $blog_title Site title.
-	 * @param string $blog_url   Site url.
-	 * @param int    $user_id    User ID.
-	 * @param string $password   User's Password.
+	 * @param string $blog_url   Site URL.
+	 * @param int    $user_id    Administrator's user ID.
+	 * @param string $password   Administrator's password. Note that a placeholder message is
+	 *                           usually passed instead of the actual password.
 	 */
 	function wp_new_blog_notification( $blog_title, $blog_url, $user_id, $password ) {
 		$user      = new WP_User( $user_id );
@@ -629,7 +630,40 @@ https://wordpress.org/
 			$login_url
 		);
 
-		wp_mail( $email, __( 'New WordPress Site' ), $message );
+		$installed_email = array(
+			'to'      => $email,
+			'subject' => __( 'New WordPress Site' ),
+			'message' => $message,
+			'headers' => '',
+		);
+
+		/**
+		 * Filters the contents of the email sent to the site administrator when WordPress is installed.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param array $installed_email {
+		 *     Used to build wp_mail().
+		 *
+		 *     @type string $to      The email address of the recipient.
+		 *     @type string $subject The subject of the email.
+		 *     @type string $message The content of the email.
+		 *     @type string $headers Headers.
+		 * }
+		 * @param WP_User $user          The site administrator user object.
+		 * @param string  $blog_title    The site title.
+		 * @param string  $blog_url      The site URL.
+		 * @param string  $password      The site administrator's password. Note that a placeholder message
+		 *                               is usually passed instead of the user's actual password.
+		 */
+		$installed_email = apply_filters( 'wp_installed_email', $installed_email, $user, $blog_title, $blog_url, $password );
+
+		wp_mail(
+			$installed_email['to'],
+			$installed_email['subject'],
+			$installed_email['message'],
+			$installed_email['headers']
+		);
 	}
 endif;
 
@@ -840,6 +874,10 @@ function upgrade_all() {
 		upgrade_550();
 	}
 
+	if ( $wp_current_db_version < 49632 ) {
+		upgrade_560();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -988,8 +1026,8 @@ function upgrade_110() {
 	if ( ! $got_gmt_fields ) {
 
 		// Add or subtract time to all dates, to get GMT dates.
-		$add_hours   = intval( $diff_gmt_weblogger );
-		$add_minutes = intval( 60 * ( $diff_gmt_weblogger - $add_hours ) );
+		$add_hours   = (int) $diff_gmt_weblogger;
+		$add_minutes = (int) ( 60 * ( $diff_gmt_weblogger - $add_hours ) );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_date_gmt = DATE_ADD(post_date, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE)" );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_modified = post_date" );
 		$wpdb->query( "UPDATE $wpdb->posts SET post_modified_gmt = DATE_ADD(post_modified, INTERVAL '$add_hours:$add_minutes' HOUR_MINUTE) WHERE post_modified != '0000-00-00 00:00:00'" );
@@ -1078,7 +1116,7 @@ function upgrade_130() {
 			$limit    = $option->dupes - 1;
 			$dupe_ids = $wpdb->get_col( $wpdb->prepare( "SELECT option_id FROM $wpdb->options WHERE option_name = %s LIMIT %d", $option->option_name, $limit ) );
 			if ( $dupe_ids ) {
-				$dupe_ids = join( ',', $dupe_ids );
+				$dupe_ids = implode( ',', $dupe_ids );
 				$wpdb->query( "DELETE FROM $wpdb->options WHERE option_id IN ($dupe_ids)" );
 			}
 		}
@@ -2014,7 +2052,7 @@ function upgrade_430_fix_comments() {
 		return;
 	}
 
-	$allowed_length = intval( $content_length['length'] ) - 10;
+	$allowed_length = (int) $content_length['length'] - 10;
 
 	$comments = $wpdb->get_results(
 		"SELECT `comment_ID` FROM `{$wpdb->comments}`
@@ -2174,9 +2212,6 @@ function upgrade_550() {
 	global $wp_current_db_version;
 
 	if ( $wp_current_db_version < 48121 ) {
-		update_option( 'finished_updating_comment_type', 0 );
-		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
-
 		$comment_previously_approved = get_option( 'comment_whitelist', '' );
 		update_option( 'comment_previously_approved', $comment_previously_approved );
 		delete_option( 'comment_whitelist' );
@@ -2197,6 +2232,47 @@ function upgrade_550() {
 		update_option( 'disallowed_keys', $disallowed_list );
 		delete_option( 'blacklist_keys' );
 		delete_option( 'blocklist_keys' );
+	}
+
+	if ( $wp_current_db_version < 48748 ) {
+		update_option( 'finished_updating_comment_type', 0 );
+		wp_schedule_single_event( time() + ( 1 * MINUTE_IN_SECONDS ), 'wp_update_comment_type_batch' );
+	}
+}
+
+/**
+ * Executes changes made in WordPress 5.6.0.
+ *
+ * @ignore
+ * @since 5.6.0
+ */
+function upgrade_560() {
+	global $wp_current_db_version, $wpdb;
+
+	if ( $wp_current_db_version < 49572 ) {
+		/*
+		 * Clean up the `post_category` column removed from schema in version 2.8.0.
+		 * Its presence may conflict with `WP_Post::__get()`.
+		 */
+		$post_category_exists = $wpdb->get_var( "SHOW COLUMNS FROM $wpdb->posts LIKE 'post_category'" );
+		if ( ! is_null( $post_category_exists ) ) {
+			$wpdb->query( "ALTER TABLE $wpdb->posts DROP COLUMN `post_category`" );
+		}
+
+		/*
+		 * When upgrading from WP < 5.6.0 set the core major auto-updates option to `unset` by default.
+		 * This overrides the same option from populate_options() that is intended for new installs.
+		 * See https://core.trac.wordpress.org/ticket/51742.
+		 */
+		update_option( 'auto_update_core_major', 'unset' );
+	}
+
+	if ( $wp_current_db_version < 49632 ) {
+		/*
+		 * Regenerate the .htaccess file to add the `HTTP_AUTHORIZATION` rewrite rule.
+		 * See https://core.trac.wordpress.org/ticket/51723.
+		 */
+		save_mod_rewrite_rules();
 	}
 }
 
@@ -2565,7 +2641,7 @@ function __get_option( $setting ) { // phpcs:ignore WordPress.NamingConventions.
 
 	$option = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM $wpdb->options WHERE option_name = %s", $setting ) );
 
-	if ( 'home' === $setting && '' === $option ) {
+	if ( 'home' === $setting && ! $option ) {
 		return __get_option( 'siteurl' );
 	}
 
@@ -3453,6 +3529,8 @@ function wp_should_upgrade_global_tables() {
 
 	/**
 	 * Filters if upgrade routines should be run on global tables.
+	 *
+	 * @since 4.3.0
 	 *
 	 * @param bool $should_upgrade Whether to run the upgrade routines on global tables.
 	 */

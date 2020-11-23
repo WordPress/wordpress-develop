@@ -207,6 +207,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'supports'        => 'supports',
 		'styles'          => 'styles',
 		'example'         => 'example',
+		'apiVersion'      => 'api_version',
 	);
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
@@ -397,12 +398,13 @@ function strip_core_block_namespace( $block_name = null ) {
  *
  * @since 5.3.1
  *
- * @param string $block_name       Block name.
- * @param array  $block_attributes Block attributes.
- * @param string $block_content    Block save content.
+ * @param string|null $block_name       Block name. Null if the block name is unknown,
+ *                                      e.g. Classic blocks have their name set to null.
+ * @param array       $block_attributes Block attributes.
+ * @param string      $block_content    Block save content.
  * @return string Comment-delimited block content.
  */
-function get_comment_delimited_block_content( $block_name = null, $block_attributes, $block_content ) {
+function get_comment_delimited_block_content( $block_name, $block_attributes, $block_content ) {
 	if ( is_null( $block_name ) ) {
 		return $block_content;
 	}
@@ -660,7 +662,8 @@ function render_block( $parsed_block ) {
 	global $post, $wp_query;
 
 	/**
-	 * Allows render_block() to be short-circuited, by returning a non-null value.
+	 * Allows render_block() or WP_Block::render() to be short-circuited, by
+	 * returning a non-null value.
 	 *
 	 * @since 5.1.0
 	 *
@@ -671,18 +674,6 @@ function render_block( $parsed_block ) {
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
-
-	$source_block = $parsed_block;
-
-	/**
-	 * Filters the block being rendered in render_block(), before it's processed.
-	 *
-	 * @since 5.1.0
-	 *
-	 * @param array $parsed_block The block being rendered.
-	 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
-	 */
-	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
 
 	$context = array();
 
@@ -704,16 +695,6 @@ function render_block( $parsed_block ) {
 			$context['query']['categoryIds'][] = 'slug' === $wp_query->tax_query->queried_terms['category']['field'] ? get_cat_ID( $category_slug_or_id ) : $category_slug_or_id;
 		}
 	}
-
-	/**
-	 * Filters the default context provided to a rendered block.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param array $context      Default context.
-	 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
-	 */
-	$context = apply_filters( 'render_block_context', $context, $parsed_block );
 
 	$block = new WP_Block( $parsed_block, $context );
 
@@ -811,7 +792,7 @@ function block_version( $content ) {
  * @param array  $style_properties Array containing the properties of the style name,
  *                                 label, style (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
- * @return boolean True if the block style was registered with success and false otherwise.
+ * @return bool True if the block style was registered with success and false otherwise.
  */
 function register_block_style( $block_name, $style_properties ) {
 	return WP_Block_Styles_Registry::get_instance()->register( $block_name, $style_properties );
@@ -824,7 +805,7 @@ function register_block_style( $block_name, $style_properties ) {
  *
  * @param string $block_name       Block type name including namespace.
  * @param array  $block_style_name Block style name.
- * @return boolean True if the block style was unregistered with success and false otherwise.
+ * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {
 	return WP_Block_Styles_Registry::get_instance()->unregister( $block_name, $block_style_name );

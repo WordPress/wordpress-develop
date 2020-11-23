@@ -96,7 +96,7 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHP-latest}
+    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
 
     networks:
       - wpdevnet
@@ -110,6 +110,8 @@ services:
       PHP_FPM_GID: ${PHP_FPM_GID-1000}
       TRAVIS_BRANCH: ${TRAVIS_BRANCH-false}
       TRAVIS_PULL_REQUEST: ${TRAVIS_PULL_REQUEST-false}
+      GITHUB_REF: ${GITHUB_REF-false}
+      GITHUB_EVENT_NAME: ${GITHUB_EVENT_NAME-false}
 
     volumes:
       - ./tools/local-env/phpunit-config.ini:/usr/local/etc/php/conf.d/phpunit-config.ini

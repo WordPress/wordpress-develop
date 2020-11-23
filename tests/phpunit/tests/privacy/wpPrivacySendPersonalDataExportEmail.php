@@ -11,7 +11,7 @@
  * Tests_Privacy_WpPrivacySendPersonalDataExportEmail class.
  *
  * @group privacy
- * @covers wp_privacy_send_personal_data_export_email
+ * @covers ::wp_privacy_send_personal_data_export_email
  *
  * @since 4.9.6
  */
@@ -80,7 +80,7 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$requester_email = 'requester@example.com';
 		self::$request_user    = $factory->user->create_and_get(
 			array(

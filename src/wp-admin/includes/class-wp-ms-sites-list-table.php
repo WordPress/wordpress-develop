@@ -103,8 +103,8 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		}
 
 		$args = array(
-			'number'     => intval( $per_page ),
-			'offset'     => intval( ( $pagenum - 1 ) * $per_page ),
+			'number'     => (int) $per_page,
+			'offset'     => (int) ( ( $pagenum - 1 ) * $per_page ),
 			'network_id' => get_current_network_id(),
 		);
 
@@ -332,7 +332,9 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			 * @param string $which The location of the extra table nav markup: 'top' or 'bottom'.
 			 */
 			do_action( 'restrict_manage_sites', $which );
+
 			$output = ob_get_clean();
+
 			if ( ! empty( $output ) ) {
 				echo $output;
 				submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'site-query-submit' ) );
@@ -618,13 +620,13 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 
 		$site_status = isset( $_REQUEST['status'] ) ? wp_unslash( trim( $_REQUEST['status'] ) ) : '';
 		foreach ( $this->status_list as $status => $col ) {
-			if ( ( 1 === intval( $_site->{$status} ) ) && ( $site_status !== $status ) ) {
+			if ( ( 1 === (int) $_site->{$status} ) && ( $site_status !== $status ) ) {
 				$site_states[ $col[0] ] = $col[1];
 			}
 		}
 
 		/**
-		 * Filter the default site display states for items in the Sites list table.
+		 * Filters the default site display states for items in the Sites list table.
 		 *
 		 * @since 5.3.0
 		 *
@@ -662,7 +664,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param object $blog        Site being acted upon.
+	 * @param array  $blog        Site being acted upon.
 	 * @param string $column_name Current column name.
 	 * @param string $primary     Primary column name.
 	 * @return string Row actions output for sites in Multisite, or an empty string

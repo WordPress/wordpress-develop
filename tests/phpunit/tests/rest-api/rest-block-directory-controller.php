@@ -27,7 +27,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -60,8 +60,8 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/block-directory/search' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEquals( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSame( array( 'view' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	/**
@@ -75,7 +75,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 
 		$result = rest_do_request( $request );
 		$this->assertNotWPError( $result->as_error() );
-		$this->assertEquals( 200, $result->status );
+		$this->assertSame( 200, $result->status );
 	}
 
 	/**
@@ -116,8 +116,8 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		// Should produce a 200 status with an empty array.
-		$this->assertEquals( 200, $response->status );
-		$this->assertEquals( array(), $data );
+		$this->assertSame( 200, $response->status );
+		$this->assertSame( array(), $data );
 	}
 
 	public function test_get_item() {
@@ -153,7 +153,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$expected = array(
 			'name'                => 'sortabrilliant/guidepost',
 			'title'               => 'Guidepost',
-			'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come. How does it work? Guideposts are magic, no they...',
+			'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come.',
 			'id'                  => 'guidepost',
 			'rating'              => 4.3,
 			'rating_count'        => 90,
@@ -166,7 +166,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 			'humanized_updated'   => sprintf( '%s ago', human_time_diff( strtotime( $plugin['last_updated'] ) ) ),
 		);
 
-		$this->assertEquals( $expected, $response->get_data() );
+		$this->assertSame( $expected, $response->get_data() );
 	}
 
 	/**
@@ -181,7 +181,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$data     = $response->get_data();
 
 		// Check endpoints
-		$this->assertEquals( array( 'GET' ), $data['endpoints'][0]['methods'] );
+		$this->assertSame( array( 'GET' ), $data['endpoints'][0]['methods'] );
 		$this->assertTrue( $data['endpoints'][0]['args']['term']['required'] );
 
 		$properties = $data['schema']['properties'];

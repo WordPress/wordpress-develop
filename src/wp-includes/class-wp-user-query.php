@@ -154,8 +154,8 @@ class WP_User_Query {
 	 *                                             '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN',
 	 *                                             'BETWEEN', 'NOT BETWEEN', 'EXISTS', 'NOT EXISTS', 'REGEXP',
 	 *                                             'NOT REGEXP', or 'RLIKE'. Default '='.
-	 *     @type array        $include             An array of user IDs to include. Default empty array.
-	 *     @type array        $exclude             An array of user IDs to exclude. Default empty array.
+	 *     @type int[]        $include             An array of user IDs to include. Default empty array.
+	 *     @type int[]        $exclude             An array of user IDs to exclude. Default empty array.
 	 *     @type string       $search              Search keyword. Searches for possible string matches on columns.
 	 *                                             When `$search_columns` is left empty, it tries to determine which
 	 *                                             column to search in based on search string. Default empty.
@@ -219,15 +219,14 @@ class WP_User_Query {
 		/**
 		 * Fires before the WP_User_Query has been parsed.
 		 *
-		 * The passed WP_User_Query object contains the query variables, not
-		 * yet passed into SQL.
+		 * The passed WP_User_Query object contains the query variables,
+		 * not yet passed into SQL.
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param WP_User_Query $this The current WP_User_Query instance,
-		 *                            passed by reference.
+		 * @param WP_User_Query $this Current instance of WP_User_Query (passed by reference).
 		 */
-		do_action( 'pre_get_users', $this );
+		do_action_ref_array( 'pre_get_users', array( &$this ) );
 
 		// Ensure that query vars are filled after 'pre_get_users'.
 		$qv =& $this->query_vars;
@@ -279,7 +278,7 @@ class WP_User_Query {
 			}
 
 			$posts_table        = $wpdb->get_blog_prefix( $blog_id ) . 'posts';
-			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . join( ', ', $post_types ) . ' ) )';
+			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . implode( ', ', $post_types ) . ' ) )';
 		}
 
 		// nicename
@@ -576,8 +575,7 @@ class WP_User_Query {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param WP_User_Query $this The current WP_User_Query instance,
-		 *                            passed by reference.
+		 * @param WP_User_Query $this Current instance of WP_User_Query (passed by reference).
 		 */
 		do_action_ref_array( 'pre_user_query', array( &$this ) );
 	}
@@ -597,7 +595,8 @@ class WP_User_Query {
 		/**
 		 * Filters the users array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default user queries.
+		 * Return a non-null value to bypass WordPress' default user queries.
+		 *
 		 * Filtering functions that require pagination information are encouraged to set
 		 * the `total_users` property of the WP_User_Query object, passed to the filter
 		 * by reference. If WP_User_Query does not perform a database query, it will not

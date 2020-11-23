@@ -543,6 +543,13 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 	 * (post, comment, term, user, or any other type with an associated meta table).
 	 * Returning a non-null value will effectively short-circuit the function.
 	 *
+	 * Possible filter names include:
+	 *
+	 *  - `get_post_metadata`
+	 *  - `get_comment_metadata`
+	 *  - `get_term_metadata`
+	 *  - `get_user_metadata`
+	 *
 	 * @since 3.1.0
 	 * @since 5.5.0 Added the `$meta_type` parameter.
 	 *
@@ -590,7 +597,7 @@ function get_metadata_raw( $meta_type, $object_id, $meta_key = '', $single = fal
 }
 
 /**
- * Retrieves default metadata value for the specified object.
+ * Retrieves default metadata value for the specified meta key and object.
  *
  * By default, an empty string is returned if `$single` is true, or an empty array
  * if it's false.
@@ -613,10 +620,17 @@ function get_metadata_default( $meta_type, $object_id, $meta_key, $single = fals
 	}
 
 	/**
-	 * Filter the default value for a specified object.
+	 * Filters the default metadata value for a specified meta key and object.
 	 *
 	 * The dynamic portion of the hook, `$meta_type`, refers to the meta object type
 	 * (post, comment, term, user, or any other type with an associated meta table).
+	 *
+	 * Possible filter names include:
+	 *
+	 *  - `default_post_metadata`
+	 *  - `default_comment_metadata`
+	 *  - `default_term_metadata`
+	 *  - `default_user_metadata`
 	 *
 	 * @since 5.5.0
 	 *
@@ -708,7 +722,7 @@ function get_metadata_by_mid( $meta_type, $meta_id ) {
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -772,7 +786,7 @@ function update_metadata_by_mid( $meta_type, $meta_id, $meta_value, $meta_key = 
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -887,7 +901,7 @@ function delete_metadata_by_mid( $meta_type, $meta_id ) {
 		return false;
 	}
 
-	$meta_id = intval( $meta_id );
+	$meta_id = (int) $meta_id;
 	if ( $meta_id <= 0 ) {
 		return false;
 	}
@@ -1041,14 +1055,14 @@ function update_meta_cache( $meta_type, $object_ids ) {
 	}
 
 	// Get meta info.
-	$id_list   = join( ',', $non_cached_ids );
+	$id_list   = implode( ',', $non_cached_ids );
 	$id_column = ( 'user' === $meta_type ) ? 'umeta_id' : 'meta_id';
 
 	$meta_list = $wpdb->get_results( "SELECT $column, meta_key, meta_value FROM $table WHERE $column IN ($id_list) ORDER BY $id_column ASC", ARRAY_A );
 
 	if ( ! empty( $meta_list ) ) {
 		foreach ( $meta_list as $metarow ) {
-			$mpid = intval( $metarow[ $column ] );
+			$mpid = (int) $metarow[ $column ];
 			$mkey = $metarow['meta_key'];
 			$mval = $metarow['meta_value'];
 
@@ -1145,7 +1159,8 @@ function _get_meta_table( $type ) {
  * @return bool Whether the meta key is considered protected.
  */
 function is_protected_meta( $meta_key, $meta_type = '' ) {
-	$protected = ( '_' === $meta_key[0] );
+	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
+	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
 
 	/**
 	 * Filters whether a meta key is considered protected.
@@ -1227,6 +1242,7 @@ function sanitize_meta( $meta_key, $meta_value, $object_type, $object_subtype = 
  *              `$sanitize_callback` and `$auth_callback` have been folded into this array.
  * @since 4.9.8 The `$object_subtype` argument was added to the arguments array.
  * @since 5.3.0 Valid meta types expanded to include "array" and "object".
+ * @since 5.5.0 The `$default` argument was added to the arguments array.
  *
  * @param string       $object_type Type of object metadata is for. Accepts 'post', 'comment', 'term', 'user',
  *                                  or any other object type with an associated meta table.

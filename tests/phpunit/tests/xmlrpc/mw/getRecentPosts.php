@@ -25,7 +25,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'username', 'password' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	/**
@@ -36,7 +36,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'subscriber', 'subscriber' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_no_editable_posts() {
@@ -44,7 +44,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( 0, count( $result ) );
+		$this->assertSame( 0, count( $result ) );
 	}
 
 	function test_valid_post() {
@@ -82,13 +82,13 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			// Check expected values.
 			$this->assertStringMatchesFormat( '%d', $result['userid'] );
 			$this->assertStringMatchesFormat( '%d', $result['postid'] );
-			$this->assertEquals( $post->post_title, $result['title'] );
-			$this->assertEquals( 'draft', $result['post_status'] );
+			$this->assertSame( $post->post_title, $result['title'] );
+			$this->assertSame( 'draft', $result['post_status'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_author_id'] );
-			$this->assertEquals( $post->post_excerpt, $result['mt_excerpt'] );
-			$this->assertEquals( url_to_postid( $result['link'] ), $post->ID );
+			$this->assertSame( $post->post_excerpt, $result['mt_excerpt'] );
+			$this->assertSame( url_to_postid( $result['link'] ), $post->ID );
 
-			$this->assertEquals( '', $result['wp_post_thumbnail'] );
+			$this->assertSame( '', $result['wp_post_thumbnail'] );
 		}
 
 		remove_theme_support( 'post-thumbnails' );
@@ -112,7 +112,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] === self::$post_id ) {
 				$attachment_id = get_post_meta( $result['postid'], '_thumbnail_id', true );
 
-				$this->assertEquals( $attachment_id, $result['wp_post_thumbnail'] );
+				$this->assertSame( $attachment_id, $result['wp_post_thumbnail'] );
 			}
 		}
 
@@ -135,10 +135,10 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$this->assertInstanceOf( 'IXR_Date', $result['date_modified'] );
 			$this->assertInstanceOf( 'IXR_Date', $result['date_modified_gmt'] );
 
-			$this->assertEquals( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
-			$this->assertEquals( $date_gmt, $result['date_created_gmt']->getTimestamp() );
-			$this->assertEquals( strtotime( $post->post_date ), $result['date_modified']->getTimestamp() );
-			$this->assertEquals( $date_modified_gmt, $result['date_modified_gmt']->getTimestamp() );
+			$this->assertSame( strtotime( $post->post_date ), $result['dateCreated']->getTimestamp() );
+			$this->assertSame( $date_gmt, $result['date_created_gmt']->getTimestamp() );
+			$this->assertSame( strtotime( $post->post_date ), $result['date_modified']->getTimestamp() );
+			$this->assertSame( $date_modified_gmt, $result['date_modified_gmt']->getTimestamp() );
 		}
 	}
 }

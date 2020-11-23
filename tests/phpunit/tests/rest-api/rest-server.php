@@ -49,15 +49,15 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		// The envelope should still be a response, but with defaults.
 		$this->assertInstanceOf( 'WP_REST_Response', $envelope_response );
-		$this->assertEquals( 200, $envelope_response->get_status() );
+		$this->assertSame( 200, $envelope_response->get_status() );
 		$this->assertEmpty( $envelope_response->get_headers() );
 		$this->assertEmpty( $envelope_response->get_links() );
 
 		$enveloped = $envelope_response->get_data();
 
-		$this->assertEquals( $data, $enveloped['body'] );
-		$this->assertEquals( $status, $enveloped['status'] );
-		$this->assertEquals( $headers, $enveloped['headers'] );
+		$this->assertSame( $data, $enveloped['body'] );
+		$this->assertSame( $status, $enveloped['status'] );
+		$this->assertSame( $headers, $enveloped['headers'] );
 	}
 
 	public function test_default_param() {
@@ -80,7 +80,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request  = new WP_REST_Request( 'GET', '/test-ns/test' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 'bar', $request['foo'] );
+		$this->assertSame( 'bar', $request['foo'] );
 	}
 
 	public function test_default_param_is_overridden() {
@@ -125,7 +125,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request->set_query_params( array() );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertArrayNotHasKey( 'foo', (array) $request );
 	}
 
@@ -146,7 +146,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$request = new WP_REST_Request( 'GET', '/no-zero/test' );
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( array( 'foo' => 'bar' ), $request->get_params() );
+		$this->assertSame( array( 'foo' => 'bar' ), $request->get_params() );
 	}
 
 	public function test_head_request_handled_by_get() {
@@ -161,7 +161,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$request  = new WP_REST_Request( 'HEAD', '/head-request/test' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -189,7 +189,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$request  = new WP_REST_Request( 'HEAD', '/head-request/test' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	public function test_url_params_no_numeric_keys() {
@@ -211,7 +211,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$request = new WP_REST_Request( 'GET', '/test/some-value' );
 		rest_get_server()->dispatch( $request );
-		$this->assertEquals( array( 'data' => 'some-value' ), $request->get_params() );
+		$this->assertSame( array( 'data' => 'some-value' ), $request->get_params() );
 	}
 
 	/**
@@ -233,7 +233,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request = new WP_REST_Request( 'GET', '/test-ns/test', array() );
 		$result  = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 403, $result->get_status() );
+		$this->assertSame( 403, $result->get_status() );
 	}
 
 	/**
@@ -260,7 +260,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $result->get_status() );
+		$this->assertSame( 200, $result->get_status() );
 	}
 
 	/**
@@ -288,7 +288,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertFalse( $result->get_status() !== 200 );
 
 		$sent_headers = $result->get_headers();
-		$this->assertEquals( $sent_headers['Allow'], 'GET' );
+		$this->assertSame( $sent_headers['Allow'], 'GET' );
 	}
 
 	/**
@@ -328,7 +328,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result = apply_filters( 'rest_post_dispatch', $result, rest_get_server(), $request );
 
 		$sent_headers = $result->get_headers();
-		$this->assertEquals( $sent_headers['Allow'], 'GET, POST' );
+		$this->assertSame( $sent_headers['Allow'], 'GET, POST' );
 	}
 
 	/**
@@ -364,10 +364,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result = rest_get_server()->dispatch( $request );
 		$result = apply_filters( 'rest_post_dispatch', $result, rest_get_server(), $request );
 
-		$this->assertEquals( $result->get_status(), 403 );
+		$this->assertSame( $result->get_status(), 403 );
 
 		$sent_headers = $result->get_headers();
-		$this->assertEquals( $sent_headers['Allow'], 'POST' );
+		$this->assertSame( $sent_headers['Allow'], 'POST' );
 	}
 
 	public function test_allow_header_sent_on_options_request() {
@@ -395,7 +395,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$headers = $result->get_headers();
 
-		$this->assertEquals( 'GET', $headers['Allow'] );
+		$this->assertSame( 'GET', $headers['Allow'] );
 	}
 
 	public function permission_denied() {
@@ -411,12 +411,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		// Make sure we default to a 500 error.
-		$this->assertEquals( 500, $response->get_status() );
+		$this->assertSame( 500, $response->get_status() );
 
 		$data = $response->get_data();
 
-		$this->assertEquals( $code, $data['code'] );
-		$this->assertEquals( $message, $data['message'] );
+		$this->assertSame( $code, $data['code'] );
+		$this->assertSame( $message, $data['message'] );
 	}
 
 	public function test_error_to_response_with_status() {
@@ -427,12 +427,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 
 		$data = $response->get_data();
 
-		$this->assertEquals( $code, $data['code'] );
-		$this->assertEquals( $message, $data['message'] );
+		$this->assertSame( $code, $data['code'] );
+		$this->assertSame( $message, $data['message'] );
 	}
 
 	public function test_error_to_response_to_error() {
@@ -446,14 +446,14 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$response = rest_get_server()->error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
-		$this->assertEquals( 400, $response->get_status() );
+		$this->assertSame( 400, $response->get_status() );
 
 		$error = $response->as_error();
 		$this->assertInstanceOf( 'WP_Error', $error );
-		$this->assertEquals( $code, $error->get_error_code() );
-		$this->assertEquals( $message, $error->get_error_message() );
-		$this->assertEquals( $message2, $error->errors[ $code2 ][0] );
-		$this->assertEquals( array( 'status' => 403 ), $error->error_data[ $code2 ] );
+		$this->assertSame( $code, $error->get_error_code() );
+		$this->assertSame( $message, $error->get_error_message() );
+		$this->assertSame( $message2, $error->errors[ $code2 ][0] );
+		$this->assertSame( array( 'status' => 403 ), $error->error_data[ $code2 ] );
 	}
 
 	public function test_rest_error() {
@@ -464,7 +464,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$expected = wp_json_encode( $data );
 		$response = rest_get_server()->json_error( 'wp-api-test-error', 'Message text' );
 
-		$this->assertEquals( $expected, $response );
+		$this->assertSame( $expected, $response );
 	}
 
 	public function test_json_error_with_status() {
@@ -484,7 +484,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$response = $stub->json_error( 'wp-api-test-error', 'Message text', 400 );
 
-		$this->assertEquals( $expected, $response );
+		$this->assertSame( $expected, $response );
 	}
 
 	public function test_response_to_data_links() {
@@ -498,13 +498,13 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$self = array(
 			'href' => 'http://example.com/',
 		);
-		$this->assertEquals( $self, $data['_links']['self'][0] );
+		$this->assertSame( $self, $data['_links']['self'][0] );
 
 		$alternate = array(
-			'href' => 'http://example.org/',
 			'type' => 'application/xml',
+			'href' => 'http://example.org/',
 		);
-		$this->assertEquals( $alternate, $data['_links']['alternate'][0] );
+		$this->assertSame( $alternate, $data['_links']['alternate'][0] );
 	}
 
 	public function test_link_embedding() {
@@ -537,7 +537,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertTrue( $alternate[1]['hello'] );
 
 		// Ensure the context is set to embed when requesting.
-		$this->assertEquals( 'embed', $alternate[1]['parameters']['context'] );
+		$this->assertSame( 'embed', $alternate[1]['parameters']['context'] );
 	}
 
 	public function test_link_curies() {
@@ -652,7 +652,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayHasKey( 'alternate', $data['_embedded'] );
 		$data = $data['_embedded']['alternate'][0];
 
-		$this->assertEquals( 'yes', $data['parameters']['parsed_params'] );
+		$this->assertSame( 'yes', $data['parameters']['parsed_params'] );
 	}
 
 	/**
@@ -684,9 +684,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 1, $up );
 
 		$up_data = $up[0];
-		$this->assertEquals( 'wp-api-test-error', $up_data['code'] );
-		$this->assertEquals( 'Test message', $up_data['message'] );
-		$this->assertEquals( 403, $up_data['data']['status'] );
+		$this->assertSame( 'wp-api-test-error', $up_data['code'] );
+		$this->assertSame( 'Test message', $up_data['message'] );
+		$this->assertSame( 403, $up_data['data']['status'] );
 	}
 
 	/**
@@ -712,7 +712,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data = rest_get_server()->response_to_data( $response, true );
 		$this->assertArrayHasKey( 'post', $data['_embedded'] );
 		$this->assertCount( 1, $data['_embedded']['post'] );
-		$this->assertEquals( 'My Awesome Title', $data['_embedded']['post'][0]['title']['rendered'] );
+		$this->assertSame( 'My Awesome Title', $data['_embedded']['post'][0]['title']['rendered'] );
 	}
 
 	/**
@@ -802,7 +802,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$this->assertArrayNotHasKey( '_links', $data );
 		$this->assertArrayNotHasKey( '_embedded', $data );
-		$this->assertEquals( 'data', $data['untouched'] );
+		$this->assertSame( 'data', $data['untouched'] );
 	}
 
 	public function embedded_response_callback( $request ) {
@@ -833,10 +833,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'self', $data['_links'] );
 
 		$alternate = array(
-			'href' => 'http://example.org/',
 			'type' => 'application/xml',
+			'href' => 'http://example.org/',
 		);
-		$this->assertEquals( $alternate, $data['_links']['alternate'][0] );
+		$this->assertSame( $alternate, $data['_links']['alternate'][0] );
 	}
 
 	public function test_removing_links_for_href() {
@@ -854,7 +854,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$self_not_filtered = array(
 			'href' => 'http://example.com/',
 		);
-		$this->assertEquals( $self_not_filtered, $data['_links']['self'][0] );
+		$this->assertSame( $self_not_filtered, $data['_links']['self'][0] );
 	}
 
 	/**
@@ -872,7 +872,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		if ( false === $expected ) {
 			$this->assertArrayNotHasKey( '_embedded', $data );
 		} else {
-			$this->assertEqualSets( $expected, array_keys( $data['_embedded'] ) );
+			$this->assertSameSets( $expected, array_keys( $data['_embedded'] ) );
 		}
 	}
 
@@ -954,7 +954,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		// Check the route.
 		$this->assertArrayHasKey( '/test/example/some-route', $data['routes'] );
 		$route = $data['routes']['/test/example/some-route'];
-		$this->assertEquals( 'test/example', $route['namespace'] );
+		$this->assertSame( 'test/example', $route['namespace'] );
 		$this->assertArrayHasKey( 'methods', $route );
 		$this->assertContains( 'GET', $route['methods'] );
 		$this->assertContains( 'DELETE', $route['methods'] );
@@ -994,7 +994,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$data  = $index->get_data();
 
 		// Check top-level.
-		$this->assertEquals( 'test/example', $data['namespace'] );
+		$this->assertSame( 'test/example', $data['namespace'] );
 		$this->assertArrayHasKey( 'routes', $data );
 
 		// Check we have the route we expect...
@@ -1052,7 +1052,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			)
 		);
 
-		$this->assertEquals( $expected, $actual['_links'] );
+		$this->assertSame( $expected, $actual['_links'] );
 	}
 
 	public function test_x_robot_tag_header_on_requests() {
@@ -1061,7 +1061,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertEquals( 'noindex', $headers['X-Robots-Tag'] );
+		$this->assertSame( 'noindex', $headers['X-Robots-Tag'] );
 	}
 
 	/**
@@ -1086,7 +1086,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result  = rest_get_server()->serve_request( '/' );
 		$headers = rest_get_server()->sent_headers;
 
-		$this->assertEquals( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
+		$this->assertSame( '<' . esc_url_raw( $api_root ) . '>; rel="https://api.w.org/"', $headers['Link'] );
 	}
 
 	public function test_nocache_headers_on_authenticated_requests() {
@@ -1103,7 +1103,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 			}
 
 			$this->assertTrue( isset( $headers[ $header ] ), sprintf( 'Header %s is not present in the response.', $header ) );
-			$this->assertEquals( $value, $headers[ $header ] );
+			$this->assertSame( $value, $headers[ $header ] );
 		}
 
 		// Last-Modified should be unset as per #WP23021.
@@ -1140,7 +1140,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result     = rest_get_server()->serve_request( '/test/data\\with\\slashes' );
 		$url_params = rest_get_server()->last_request->get_url_params();
-		$this->assertEquals( 'data\\with\\slashes', $url_params['data'] );
+		$this->assertSame( 'data\\with\\slashes', $url_params['data'] );
 	}
 
 	public function test_serve_request_query_params_are_unslashed() {
@@ -1168,7 +1168,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result       = rest_get_server()->serve_request( '/test' );
 		$query_params = rest_get_server()->last_request->get_query_params();
-		$this->assertEquals( 'data\\with\\slashes', $query_params['data'] );
+		$this->assertSame( 'data\\with\\slashes', $query_params['data'] );
 	}
 
 	public function test_serve_request_body_params_are_unslashed() {
@@ -1197,7 +1197,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result = rest_get_server()->serve_request( '/test/data' );
 
 		$body_params = rest_get_server()->last_request->get_body_params();
-		$this->assertEquals( 'data\\with\\slashes', $body_params['data'] );
+		$this->assertSame( 'data\\with\\slashes', $body_params['data'] );
 	}
 
 	public function test_serve_request_json_params_are_unslashed() {
@@ -1225,7 +1225,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result      = rest_get_server()->serve_request( '/test' );
 		$json_params = rest_get_server()->last_request->get_json_params();
-		$this->assertEquals( 'data\\with\\slashes', $json_params['data'] );
+		$this->assertSame( 'data\\with\\slashes', $json_params['data'] );
 	}
 
 	public function test_serve_request_file_params_are_unslashed() {
@@ -1253,7 +1253,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$result      = rest_get_server()->serve_request( '/test/data\\with\\slashes' );
 		$file_params = rest_get_server()->last_request->get_file_params();
-		$this->assertEquals( 'data\\with\\slashes', $file_params['data']['name'] );
+		$this->assertSame( 'data\\with\\slashes', $file_params['data']['name'] );
 	}
 
 	public function test_serve_request_headers_are_unslashed() {
@@ -1276,7 +1276,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$_SERVER['HTTP_X_MY_HEADER'] = wp_slash( 'data\\with\\slashes' );
 
 		$result = rest_get_server()->serve_request( '/test/data\\with\\slashes' );
-		$this->assertEquals( 'data\\with\\slashes', rest_get_server()->last_request->get_header( 'x_my_header' ) );
+		$this->assertSame( 'data\\with\\slashes', rest_get_server()->last_request->get_header( 'x_my_header' ) );
 	}
 
 	public function filter_wp_rest_server_class() {
@@ -1364,7 +1364,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		);
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 	}
 
 	/**
@@ -1386,7 +1386,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result = rest_get_server()->serve_request( '/test-ns/test' );
 
 		$this->assertNull( $result );
-		$this->assertEquals( '', rest_get_server()->sent_body );
+		$this->assertSame( '', rest_get_server()->sent_body );
 	}
 
 	/**
@@ -1408,7 +1408,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$result = rest_get_server()->serve_request( '/test-ns/test' );
 
 		$this->assertNull( $result );
-		$this->assertEquals( '', rest_get_server()->sent_body );
+		$this->assertSame( '', rest_get_server()->sent_body );
 	}
 
 	/**
@@ -1510,7 +1510,490 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$request  = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
 		$response = rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( 204, $response->get_status(), '/test-ns/v1/test' );
+		$this->assertSame( 204, $response->get_status(), '/test-ns/v1/test' );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_no_route() {
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$response = rest_do_request( '/test-ns/v1/test' );
+		$this->assertErrorResponse( 'rest_no_route', $response, 404 );
+
+		// Verify that the no route error was not filtered.
+		$this->assertCount( 0, $mock_hook->get_events() );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_invalid_handler() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => 'invalid_callback',
+				'permission_callback' => '__return_true',
+			)
+		);
+
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$response = rest_do_request( '/test-ns/v1/test' );
+		$this->assertErrorResponse( 'rest_invalid_handler', $response, 500 );
+
+		// Verify that the invalid handler error was filtered.
+		$events = $mock_hook->get_events();
+		$this->assertCount( 1, $events );
+		$this->assertWPError( $events[0]['args'][0] );
+		$this->assertSame( 'rest_invalid_handler', $events[0]['args'][0]->get_error_code() );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_callbacks_are_not_executed_if_request_validation_fails() {
+		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$callback->expects( self::never() )->method( '__invoke' );
+		$permission_callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );
+		$permission_callback->expects( self::never() )->method( '__invoke' );
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => $callback,
+				'permission_callback' => $permission_callback,
+				'args'                => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$request->set_query_params( array( 'test' => 'world' ) );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_filters_are_executed_if_request_validation_fails() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'callback'            => '__return_empty_array',
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'test' => array(
+						'validate_callback' => '__return_false',
+					),
+				),
+			)
+		);
+
+		$mock_hook = new MockAction();
+		add_filter( 'rest_request_after_callbacks', array( $mock_hook, 'filter' ) );
+
+		$request = new WP_REST_Request( 'GET', '/test-ns/v1/test' );
+		$request->set_query_params( array( 'test' => 'world' ) );
+		$response = rest_do_request( $request );
+
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+
+		// Verify that the invalid param error was filtered.
+		$events = $mock_hook->get_events();
+		$this->assertCount( 1, $events );
+		$this->assertWPError( $events[0]['args'][0] );
+		$this->assertSame( 'rest_invalid_param', $events[0]['args'][0]->get_error_code() );
+	}
+
+	/**
+	 * @ticket       50244
+	 * @dataProvider data_batch_v1_optin
+	 */
+	public function test_batch_v1_optin( $allow_batch, $allowed ) {
+		$args = array(
+			'methods'             => 'POST',
+			'callback'            => static function () {
+				return new WP_REST_Response( 'data' );
+			},
+			'permission_callback' => '__return_true',
+		);
+
+		if ( null !== $allow_batch ) {
+			$args['allow_batch'] = $allow_batch;
+		}
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			$args
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/test-ns/v1/test',
+					),
+				),
+			)
+		);
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 207, $response->get_status() );
+
+		if ( $allowed ) {
+			$this->assertSame( 'data', $response->get_data()['responses'][0]['body'] );
+		} else {
+			$this->assertSame( 'rest_batch_not_allowed', $response->get_data()['responses'][0]['body']['code'] );
+		}
+	}
+
+	public function data_batch_v1_optin() {
+		return array(
+			'missing'             => array( null, false ),
+			'invalid type'        => array( true, false ),
+			'invalid type string' => array( 'v1', false ),
+			'wrong version'       => array( array( 'version1' => true ), false ),
+			'false version'       => array( array( 'v1' => false ), false ),
+			'valid'               => array( array( 'v1' => true ), true ),
+		);
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_pre_validation() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					$project = $request['project'];
+					update_option( 'test_project', $project );
+
+					return new WP_REST_Response( $project );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'validation' => 'require-all-validate',
+				'requests'   => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'buddypress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertArrayHasKey( 'failed', $data );
+		$this->assertSame( 'validation', $data['failed'] );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertNull( $data['responses'][0] );
+		$this->assertSame( 400, $data['responses'][1]['status'] );
+		$this->assertFalse( get_option( 'test_project' ) );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_pre_validation_all_successful() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					return new WP_REST_Response( $request['project'] );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'validation' => 'require-all-validate',
+				'requests'   => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'WordPress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertArrayNotHasKey( 'failed', $data );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertSame( 'gutenberg', $data['responses'][0]['body'] );
+		$this->assertSame( 'WordPress', $data['responses'][1]['body'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test/(?P<id>[\d+])',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'callback'            => function ( WP_REST_Request $request ) {
+					$this->assertSame( 'DELETE', $request->get_method() );
+					$this->assertSame( '/test-ns/v1/test/5', $request->get_route() );
+					$this->assertSame( array( 'id' => '5' ), $request->get_url_params() );
+					$this->assertSame( array( 'query' => 'param' ), $request->get_query_params() );
+					$this->assertSame( array( 'project' => 'gutenberg' ), $request->get_body_params() );
+					$this->assertSame( array( 'my_header' => array( 'my-value' ) ), $request->get_headers() );
+
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method'  => 'DELETE',
+						'path'    => '/test-ns/v1/test/5?query=param',
+						'headers' => array(
+							'My-Header' => 'my-value',
+						),
+						'body'    => array(
+							'project' => 'gutenberg',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertSame( 'test', $response->get_data()['responses'][0]['body'] );
+	}
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_partial_error() {
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function ( $request ) {
+					$project = $request['project'];
+					update_option( 'test_project', $project );
+
+					return new WP_REST_Response( $project );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+				'args'                => array(
+					'project' => array(
+						'type' => 'string',
+						'enum' => array( 'gutenberg', 'WordPress' ),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'gutenberg',
+						),
+					),
+					array(
+						'path' => '/test-ns/v1/test',
+						'body' => array(
+							'project' => 'buddypress',
+						),
+					),
+				),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertSame( 207, $response->get_status() );
+		$this->assertArrayNotHasKey( 'failed', $data );
+		$this->assertCount( 2, $data['responses'] );
+		$this->assertSame( 'gutenberg', $data['responses'][0]['body'] );
+		$this->assertSame( 400, $data['responses'][1]['status'] );
+		$this->assertSame( 'gutenberg', get_option( 'test_project' ) );
+	}
+
+
+	/**
+	 * @ticket 50244
+	 */
+	public function test_batch_v1_max_requests() {
+		add_filter(
+			'rest_get_max_batch_size',
+			static function() {
+				return 5;
+			}
+		);
+
+		$GLOBALS['wp_rest_server'] = null;
+		add_filter( 'wp_rest_server_class', array( $this, 'filter_wp_rest_server_class' ) );
+		$GLOBALS['wp_rest_server'] = rest_get_server();
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test/(?P<id>[\d+])',
+			array(
+				'methods'             => array( 'POST', 'DELETE' ),
+				'callback'            => function ( WP_REST_Request $request ) {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'allow_batch'         => array( 'v1' => true ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array_fill( 0, 6, array( 'path' => '/test-ns/v1/test/5' ) ),
+			)
+		);
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 400, $response->get_status() );
+	}
+
+	/**
+	 * @ticket 51020
+	 */
+	public function test_get_data_for_route_includes_permitted_schema_keywords() {
+		$keywords = array(
+			'title'                => 'Hi',
+			'description'          => 'World',
+			'type'                 => 'string',
+			'default'              => 0,
+			'format'               => 'uri',
+			'enum'                 => array( 'https://example.org' ),
+			'items'                => array( 'type' => 'string' ),
+			'properties'           => array( 'a' => array( 'type' => 'string' ) ),
+			'additionalProperties' => false,
+			'patternProperties'    => array( '\d' => array( 'type' => 'string' ) ),
+			'minProperties'        => 1,
+			'maxProperties'        => 5,
+			'minimum'              => 1,
+			'maximum'              => 5,
+			'exclusiveMinimum'     => true,
+			'exclusiveMaximum'     => false,
+			'multipleOf'           => 2,
+			'minLength'            => 1,
+			'maxLength'            => 5,
+			'pattern'              => '\d',
+			'minItems'             => 1,
+			'maxItems'             => 5,
+			'uniqueItems'          => true,
+			'anyOf'                => array(
+				array( 'type' => 'string' ),
+				array( 'type' => 'integer' ),
+			),
+			'oneOf'                => array(
+				array( 'type' => 'string' ),
+				array( 'type' => 'integer' ),
+			),
+		);
+
+		$param            = $keywords;
+		$param['invalid'] = true;
+
+		$expected             = $keywords;
+		$expected['required'] = false;
+
+		register_rest_route(
+			'test-ns/v1',
+			'/test',
+			array(
+				'methods'             => 'POST',
+				'callback'            => static function () {
+					return new WP_REST_Response( 'test' );
+				},
+				'permission_callback' => '__return_true',
+				'args'                => array(
+					'param' => $param,
+				),
+			)
+		);
+
+		$response = rest_do_request( new WP_REST_Request( 'OPTIONS', '/test-ns/v1/test' ) );
+		$args     = $response->get_data()['endpoints'][0]['args'];
+
+		$this->assertSameSetsWithIndex( $expected, $args['param'] );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

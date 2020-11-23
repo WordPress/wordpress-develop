@@ -32,6 +32,11 @@ $current_screen->is_block_editor( true );
  */
 remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
 
+/*
+ * Block editor implements its own Options menu for toggling Document Panels.
+ */
+add_filter( 'screen_options_show_screen', '__return_false' );
+
 wp_enqueue_script( 'heartbeat' );
 wp_enqueue_script( 'wp-edit-post' );
 wp_enqueue_script( 'wp-format-library' );
@@ -69,7 +74,7 @@ $preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $p
  * Because API preloading can call the_content and other filters, plugins
  * can unexpectedly modify $post.
  */
-$backup_global_post = $post;
+$backup_global_post = clone $post;
 
 $preload_data = array_reduce(
 	$preload_paths,
@@ -125,7 +130,11 @@ $meta_box_url = add_query_arg(
 	),
 	$meta_box_url
 );
-wp_localize_script( 'wp-editor', '_wpMetaBoxUrl', $meta_box_url );
+wp_add_inline_script(
+	'wp-editor',
+	sprintf( 'var _wpMetaBoxUrl = %s;', wp_json_encode( $meta_box_url ) ),
+	'before'
+);
 
 
 /*

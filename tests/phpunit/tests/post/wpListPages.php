@@ -3,7 +3,7 @@
 /**
  * @group post
  */
-class Tests_List_Pages extends WP_UnitTestCase {
+class Tests_Post_wpListPages extends WP_UnitTestCase {
 	/**
 	 * Editor user ID.
 	 *
@@ -53,15 +53,15 @@ class Tests_List_Pages extends WP_UnitTestCase {
 	 */
 	public static $time;
 
-	public static function wpSetupBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$time = time();
 
 		$post_date = gmdate( 'Y-m-d H:i:s', self::$time );
 
-		self::$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
-		self::$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		self::$editor = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$author = $factory->user->create( array( 'role' => 'author' ) );
 
-		self::$parent_1 = self::factory()->post->create(
+		self::$parent_1 = $factory->post->create(
 			array(
 				'post_author' => self::$editor,
 				'post_type'   => 'page',
@@ -70,7 +70,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 			)
 		);
 
-		self::$parent_2 = self::factory()->post->create(
+		self::$parent_2 = $factory->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'Parent 2',
@@ -78,7 +78,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 			)
 		);
 
-		self::$parent_3 = self::factory()->post->create(
+		self::$parent_3 = $factory->post->create(
 			array(
 				'post_author' => self::$author,
 				'post_type'   => 'page',
@@ -88,7 +88,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 		);
 
 		foreach ( array( self::$parent_1, self::$parent_2, self::$parent_3 ) as $page ) {
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -96,7 +96,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -104,7 +104,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -143,7 +143,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_depth() {
@@ -157,7 +157,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_show_date() {
@@ -173,7 +173,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a> ' . $date . '</li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_date_format() {
@@ -207,7 +207,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_child_of() {
@@ -221,7 +221,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_exclude() {
@@ -249,7 +249,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$children[ self::$parent_2 ][2] . '"><a href="' . get_permalink( self::$children[ self::$parent_2 ][2] ) . '">Child 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_title_li() {
@@ -264,7 +264,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_3 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_echo() {
@@ -291,7 +291,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_number() {
@@ -304,7 +304,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 		$expected = '<li class="pagenav">Pages<ul><li class="page_item page-item-' . self::$parent_1 . '"><a href="' . get_permalink( self::$parent_1 ) . '">Parent 1</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_sort_column() {
@@ -320,7 +320,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_2 . ' page_item_has_children"><a href="' . get_permalink( self::$parent_2 ) . '">Parent 2</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_link_before() {
@@ -352,7 +352,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_link_after() {
@@ -384,7 +384,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 
@@ -398,7 +398,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 <li class="page_item page-item-' . self::$parent_3 . '"><a href="' . get_permalink( self::$parent_3 ) . '">Parent 3</a></li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_exclude_tree() {
@@ -416,7 +416,7 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </li>
 </ul></li>';
 
-		$this->assertEqualsIgnoreEOL( $expected, wp_list_pages( $args ) );
+		$this->assertSameIgnoreEOL( $expected, wp_list_pages( $args ) );
 	}
 
 	function test_wp_list_pages_discarded_whitespace() {
@@ -446,6 +446,6 @@ class Tests_List_Pages extends WP_UnitTestCase {
 </ul></li>';
 		$expected = str_replace( array( "\r\n", "\n", "\t" ), '', $expected );
 
-		$this->assertEquals( $expected, wp_list_pages( $args ) );
+		$this->assertSame( $expected, wp_list_pages( $args ) );
 	}
 }

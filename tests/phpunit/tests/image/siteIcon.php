@@ -36,7 +36,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 			$sizes[] = 'site_icon-' . $size;
 		}
 
-		$this->assertEquals( $sizes, $image_sizes );
+		$this->assertSame( $sizes, $image_sizes );
 	}
 
 	function test_intermediate_image_sizes_with_filter() {
@@ -52,7 +52,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertContains( 'site_icon-321', $image_sizes );
 
 		// All icon sizes should be part of the array, including sizes added through the filter.
-		$this->assertEquals( $sizes, $image_sizes );
+		$this->assertSame( $sizes, $image_sizes );
 
 		// Remove custom size.
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
@@ -72,7 +72,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 			);
 		}
 
-		$this->assertEquals( $sizes, $image_sizes );
+		$this->assertSame( $sizes, $image_sizes );
 	}
 
 	function test_additional_sizes_with_filter() {
@@ -92,7 +92,7 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'site_icon-321', $image_sizes );
 
 		// All icon sizes should be part of the array, including sizes added through the filter.
-		$this->assertEquals( $sizes, $image_sizes );
+		$this->assertSame( $sizes, $image_sizes );
 
 		// Remove custom size.
 		unset( $this->wp_site_icon->site_icon_sizes[ array_search( 321, $this->wp_site_icon->site_icon_sizes, true ) ] );
@@ -105,11 +105,11 @@ class Tests_WP_Site_Icon extends WP_UnitTestCase {
 
 		$object = $this->wp_site_icon->create_attachment_object( $cropped, $attachment_id );
 
-		$this->assertEquals( $object['post_title'], 'cropped-test-image.jpg' );
-		$this->assertEquals( $object['context'], 'site-icon' );
-		$this->assertEquals( $object['post_mime_type'], 'image/jpeg' );
-		$this->assertEquals( $object['post_content'], $cropped );
-		$this->assertEquals( $object['guid'], $cropped );
+		$this->assertSame( $object['post_title'], 'cropped-test-image.jpg' );
+		$this->assertSame( $object['context'], 'site-icon' );
+		$this->assertSame( $object['post_mime_type'], 'image/jpeg' );
+		$this->assertSame( $object['post_content'], $cropped );
+		$this->assertSame( $object['guid'], $cropped );
 	}
 
 	function test_insert_cropped_attachment() {

@@ -11,14 +11,14 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$empty  = new Translation_Entry();
 		$po     = new Translations();
 		$po->add_entry( $entry );
-		$this->assertEquals( array( $entry->key() => $entry ), $po->entries );
+		$this->assertSame( array( $entry->key() => $entry ), $po->entries );
 		// Add the same entry more than once.
 		// We do not need to test proper key generation here, see test_key().
 		$po->add_entry( $entry );
 		$po->add_entry( $entry );
-		$this->assertEquals( array( $entry->key() => $entry ), $po->entries );
+		$this->assertSame( array( $entry->key() => $entry ), $po->entries );
 		$po->add_entry( $entry2 );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				$entry->key()  => $entry,
 				$entry2->key() => $entry2,
@@ -26,8 +26,8 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 			$po->entries
 		);
 		// Add empty entry.
-		$this->assertEquals( false, $po->add_entry( $empty ) );
-		$this->assertEquals(
+		$this->assertFalse( $po->add_entry( $empty ) );
+		$this->assertSame(
 			array(
 				$entry->key()  => $entry,
 				$entry2->key() => $entry2,
@@ -39,7 +39,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$po = new Translations();
 		$po->add_entry( array( 'singular' => 'baba' ) );
 		$entries = array_values( $po->entries );
-		$this->assertEquals( $entry->key(), $entries[0]->key() );
+		$this->assertSame( $entry->key(), $entries[0]->key() );
 	}
 
 	function test_translate() {
@@ -59,10 +59,10 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain = new Translations();
 		$domain->add_entry( $entry1 );
 		$domain->add_entry( $entry2 );
-		$this->assertEquals( 'babax', $domain->translate( 'baba' ) );
-		$this->assertEquals( 'babay', $domain->translate( 'baba', 'x' ) );
-		$this->assertEquals( 'baba', $domain->translate( 'baba', 'y' ) );
-		$this->assertEquals( 'babaz', $domain->translate( 'babaz' ) );
+		$this->assertSame( 'babax', $domain->translate( 'baba' ) );
+		$this->assertSame( 'babay', $domain->translate( 'baba', 'x' ) );
+		$this->assertSame( 'baba', $domain->translate( 'baba', 'y' ) );
+		$this->assertSame( 'babaz', $domain->translate( 'babaz' ) );
 	}
 
 	function test_translate_plural() {
@@ -91,18 +91,18 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain->add_entry( $entry_incomplete );
 		$domain->add_entry( $entry_toomany );
 		$domain->add_entry( $entry_2 );
-		$this->assertEquals( 'other', $domain->translate_plural( 'other', 'others', 1 ) );
-		$this->assertEquals( 'others', $domain->translate_plural( 'other', 'others', 111 ) );
+		$this->assertSame( 'other', $domain->translate_plural( 'other', 'others', 1 ) );
+		$this->assertSame( 'others', $domain->translate_plural( 'other', 'others', 111 ) );
 		// Too few translations + cont logic.
-		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 2 ) );
-		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 0 ) );
-		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', -1 ) );
-		$this->assertEquals( 'babas', $domain->translate_plural( 'baba', 'babas', 999 ) );
+		$this->assertSame( 'babas', $domain->translate_plural( 'baba', 'babas', 2 ) );
+		$this->assertSame( 'babas', $domain->translate_plural( 'baba', 'babas', 0 ) );
+		$this->assertSame( 'babas', $domain->translate_plural( 'baba', 'babas', -1 ) );
+		$this->assertSame( 'babas', $domain->translate_plural( 'baba', 'babas', 999 ) );
 		// Proper.
-		$this->assertEquals( 'dyadox', $domain->translate_plural( 'dyado', 'dyados', 1 ) );
-		$this->assertEquals( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 0 ) );
-		$this->assertEquals( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 18881 ) );
-		$this->assertEquals( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', -18881 ) );
+		$this->assertSame( 'dyadox', $domain->translate_plural( 'dyado', 'dyados', 1 ) );
+		$this->assertSame( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 0 ) );
+		$this->assertSame( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', 18881 ) );
+		$this->assertSame( 'dyadoy', $domain->translate_plural( 'dyado', 'dyados', -18881 ) );
 	}
 
 	function test_digit_and_merge() {
@@ -122,9 +122,9 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 		$domain->add_entry( $entry_digit_1 );
 		$domain->add_entry( $entry_digit_2 );
 		$dummy_translation = new Translations;
-		$this->assertEquals( '1', $domain->translate( '1' ) );
+		$this->assertSame( '1', $domain->translate( '1' ) );
 		$domain->merge_with( $dummy_translation );
-		$this->assertEquals( '1', $domain->translate( '1' ) );
+		$this->assertSame( '1', $domain->translate( '1' ) );
 	}
 
 }

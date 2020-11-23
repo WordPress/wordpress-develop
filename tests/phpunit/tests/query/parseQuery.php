@@ -59,7 +59,7 @@ class Tests_Query_ParseQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( true, $q->query_vars['s'] );
+		$this->assertTrue( $q->query_vars['s'] );
 	}
 
 	/**

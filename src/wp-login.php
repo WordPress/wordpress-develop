@@ -285,7 +285,7 @@ function login_footer( $input_id = '' ) {
 		<?php
 
 		/* translators: %s: Site title. */
-		printf( _x( '&larr; Back to %s', 'site' ), get_bloginfo( 'title', 'display' ) );
+		printf( _x( '&larr; Go to %s', 'site' ), get_bloginfo( 'title', 'display' ) );
 
 		?>
 		</a></p>
@@ -323,7 +323,7 @@ function login_footer( $input_id = '' ) {
 }
 
 /**
- * Outputs the Javascript to handle the form shaking.
+ * Outputs the Javascript to handle the form shaking on the login page.
  *
  * @since 3.0.0
  */
@@ -336,7 +336,7 @@ function wp_shake_js() {
 }
 
 /**
- * Outputs the viewport meta tag.
+ * Outputs the viewport meta tag for the login page.
  *
  * @since 3.7.0
  */
@@ -347,11 +347,11 @@ function wp_login_viewport_meta() {
 }
 
 /**
- * Handles sending password retrieval email to user.
+ * Handles sending a password retrieval email to a user.
  *
  * @since 2.5.0
  *
- * @return bool|WP_Error True: when finish. WP_Error on error
+ * @return true|WP_Error True when finished, WP_Error object on error.
  */
 function retrieve_password() {
 	$errors    = new WP_Error();
@@ -422,7 +422,7 @@ function retrieve_password() {
 	} else {
 		/*
 		 * The blogname option is escaped with esc_html on the way into the database
-		 * in sanitize_option we want to reverse this for the plain text arena of emails.
+		 * in sanitize_option. We want to reverse this for the plain text arena of emails.
 		 */
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	}
@@ -432,9 +432,18 @@ function retrieve_password() {
 	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
 	/* translators: %s: User login. */
 	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
-	$message .= __( 'If this was a mistake, just ignore this email and nothing will happen.' ) . "\r\n\r\n";
+	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
-	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n";
+	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n\r\n";
+
+	$requester_ip = $_SERVER['REMOTE_ADDR'];
+	if ( $requester_ip ) {
+		$message .= sprintf(
+			/* translators: %s: IP address of password reset requester. */
+			__( 'This password reset request originated from the IP address %s.' ),
+			$requester_ip
+		) . "\r\n";
+	}
 
 	/* translators: Password reset notification email subject. %s: Site title. */
 	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
@@ -445,7 +454,7 @@ function retrieve_password() {
 	 * @since 2.8.0
 	 * @since 4.4.0 Added the `$user_login` and `$user_data` parameters.
 	 *
-	 * @param string  $title      Default email title.
+	 * @param string  $title      Email subject.
 	 * @param string  $user_login The username for the user.
 	 * @param WP_User $user_data  WP_User object.
 	 */
@@ -459,7 +468,7 @@ function retrieve_password() {
 	 * @since 2.8.0
 	 * @since 4.1.0 Added `$user_login` and `$user_data` parameters.
 	 *
-	 * @param string  $message    Default mail message.
+	 * @param string  $message    Email message.
 	 * @param string  $key        The activation key.
 	 * @param string  $user_login The username for the user.
 	 * @param WP_User $user_data  WP_User object.
@@ -685,11 +694,11 @@ switch ( $action ) {
 				/* translators: URL to the WordPress help section about admin email. */
 				$admin_email_help_url = __( 'https://wordpress.org/support/article/settings-general-screen/#email-address' );
 
-				/* translators: accessibility text */
+				/* translators: Accessibility text. */
 				$accessibility_text = sprintf( '<span class="screen-reader-text"> %s</span>', __( '(opens in a new tab)' ) );
 
 				printf(
-					'<a href="%s" rel="noopener noreferrer" target="_blank">%s%s</a>',
+					'<a href="%s" rel="noopener" target="_blank">%s%s</a>',
 					esc_url( $admin_email_help_url ),
 					__( 'Why is this important?' ),
 					$accessibility_text
@@ -1371,6 +1380,19 @@ switch ( $action ) {
 				$errors->add( 'updated', __( '<strong>You have successfully updated WordPress!</strong> Please log back in to see what&#8217;s new.' ), 'message' );
 			} elseif ( WP_Recovery_Mode_Link_Service::LOGIN_ACTION_ENTERED === $action ) {
 				$errors->add( 'enter_recovery_mode', __( 'Recovery Mode Initialized. Please log in to continue.' ), 'message' );
+			} elseif ( isset( $_GET['redirect_to'] ) && false !== strpos( $_GET['redirect_to'], 'wp-admin/authorize-application.php' ) ) {
+				$query_component = wp_parse_url( $_GET['redirect_to'], PHP_URL_QUERY );
+				parse_str( $query_component, $query );
+
+				if ( ! empty( $query['app_name'] ) ) {
+					/* translators: 1: Website name, 2: Application name. */
+					$message = sprintf( 'Please log in to %1$s to authorize %2$s to connect to your account.', get_bloginfo( 'name', 'display' ), '<strong>' . esc_html( $query['app_name'] ) . '</strong>' );
+				} else {
+					/* translators: %s: Website name. */
+					$message = sprintf( 'Please log in to %s to proceed with authorization.', get_bloginfo( 'name', 'display' ) );
+				}
+
+				$errors->add( 'authorize_application', $message, 'message' );
 			}
 		}
 
@@ -1527,7 +1549,7 @@ switch ( $action ) {
 					for ( i in links ) {
 						if ( links[i].href ) {
 							links[i].target = '_blank';
-							links[i].rel = 'noreferrer noopener';
+							links[i].rel = 'noopener';
 						}
 					}
 				} catch( er ) {}

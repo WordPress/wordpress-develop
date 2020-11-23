@@ -59,7 +59,7 @@ class Tests_Privacy_WpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$requester_email = 'erase-my-data@local.test';
 		self::$request_user    = $factory->user->create_and_get(
 			array(

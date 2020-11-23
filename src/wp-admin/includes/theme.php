@@ -647,11 +647,15 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		}
 	}
 
-	$updates = array();
-	if ( current_user_can( 'update_themes' ) ) {
+	$updates    = array();
+	$no_updates = array();
+	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		$updates_transient = get_site_transient( 'update_themes' );
 		if ( isset( $updates_transient->response ) ) {
 			$updates = $updates_transient->response;
+		}
+		if ( isset( $updates_transient->no_update ) ) {
+			$no_updates = $updates_transient->no_update;
 		}
 	}
 
@@ -690,6 +694,30 @@ function wp_prepare_themes_for_js( $themes = null ) {
 		$auto_update        = in_array( $slug, $auto_updates, true );
 		$auto_update_action = $auto_update ? 'disable-auto-update' : 'enable-auto-update';
 
+		if ( isset( $updates[ $slug ] ) ) {
+			$auto_update_supported      = true;
+			$auto_update_filter_payload = (object) $updates[ $slug ];
+		} elseif ( isset( $no_updates[ $slug ] ) ) {
+			$auto_update_supported      = true;
+			$auto_update_filter_payload = (object) $no_updates[ $slug ];
+		} else {
+			$auto_update_supported = false;
+			/*
+			 * Create the expected payload for the auto_update_theme filter, this is the same data
+			 * as contained within $updates or $no_updates but used when the Theme is not known.
+			 */
+			$auto_update_filter_payload = (object) array(
+				'theme'        => $slug,
+				'new_version'  => $theme->get( 'Version' ),
+				'url'          => '',
+				'package'      => '',
+				'requires'     => $theme->get( 'RequiresWP' ),
+				'requires_php' => $theme->get( 'RequiresPHP' ),
+			);
+		}
+
+		$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $auto_update_filter_payload );
+
 		$prepared_themes[ $slug ] = array(
 			'id'             => $slug,
 			'name'           => $theme->display( 'Name' ),
@@ -710,11 +738,15 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'hasUpdate'      => isset( $updates[ $slug ] ),
 			'hasPackage'     => isset( $updates[ $slug ] ) && ! empty( $updates[ $slug ]['package'] ),
 			'update'         => get_theme_update_available( $theme ),
-			'autoupdate'     => $auto_update,
+			'autoupdate'     => array(
+				'enabled'   => $auto_update || $auto_update_forced,
+				'supported' => $auto_update_supported,
+				'forced'    => $auto_update_forced,
+			),
 			'actions'        => array(
 				'activate'   => current_user_can( 'switch_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,
 				'customize'  => $customize_action,
-				'delete'     => current_user_can( 'delete_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
+				'delete'     => ( ! is_multisite() && current_user_can( 'delete_themes' ) ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
 				'autoupdate' => wp_is_auto_update_enabled_for_type( 'theme' ) && ! is_multisite() && current_user_can( 'update_themes' )
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,

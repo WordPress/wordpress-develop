@@ -410,8 +410,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 			$redirect['query'] = remove_query_arg( 'page', $redirect['query'] );
 		}
 
-		// Paging and feeds.
-		if ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
+		if ( get_query_var( 'sitemap' ) ) {
+			$redirect_url      = get_sitemap_url( get_query_var( 'sitemap' ), get_query_var( 'sitemap-subtype' ), get_query_var( 'paged' ) );
+			$redirect['query'] = remove_query_arg( array( 'sitemap', 'sitemap-subtype', 'paged' ), $redirect['query'] );
+		} elseif ( get_query_var( 'paged' ) || is_feed() || get_query_var( 'cpage' ) ) {
+			// Paging and feeds.
 			$paged = get_query_var( 'paged' );
 			$feed  = get_query_var( 'feed' );
 			$cpage = get_query_var( 'cpage' );
@@ -506,11 +509,6 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 			if ( ! empty( $addl_path ) ) {
 				$redirect['path'] = trailingslashit( $redirect['path'] ) . $addl_path;
-			}
-
-			// Remove trailing slash for sitemaps requests.
-			if ( ! empty( get_query_var( 'sitemap' ) ) ) {
-				$redirect['path'] = untrailingslashit( $redirect['path'] );
 			}
 
 			$redirect_url = $redirect['scheme'] . '://' . $redirect['host'] . $redirect['path'];
@@ -897,7 +895,12 @@ function redirect_guess_404_permalink() {
 
 		// If any of post_type, year, monthnum, or day are set, use them to refine the query.
 		if ( get_query_var( 'post_type' ) ) {
-			$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
+			if ( is_array( get_query_var( 'post_type' ) ) ) {
+				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+				$where .= " AND post_type IN ('" . join( "', '", esc_sql( get_query_var( 'post_type' ) ) ) . "')";
+			} else {
+				$where .= $wpdb->prepare( ' AND post_type = %s', get_query_var( 'post_type' ) );
+			}
 		} else {
 			$where .= " AND post_type IN ('" . implode( "', '", get_post_types( array( 'public' => true ) ) ) . "')";
 		}
