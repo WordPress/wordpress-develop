@@ -534,4 +534,32 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'Record ID: 11 Record ID: 21 ', $rendered_content );
 	}
 
+	/**
+	 * @ticket 51850
+	 */
+	function test_dynamic_attributes_are_set() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} /-->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$this->assertTrue( isset( $block->attributes ) );
+		$this->assertTrue( isset( $block->context ) );
+		$this->assertTrue( isset( $block->inner_blocks ) );
+		$this->assertTrue( isset( $block->inner_html ) );
+		$this->assertTrue( isset( $block->inner_content ) );
+
+		$this->assertFalse( isset( $block->missing ) );
+
+		$this->assertNotEmpty( $block->attributes );
+		$this->assertEmpty( $block->context );
+		$this->assertEmpty( $block->inner_blocks );
+		$this->assertEmpty( $block->inner_html );
+		$this->assertEmpty( $block->inner_content );
+
+		$this->assertEmpty( $block->missing );
+	}
+
 }

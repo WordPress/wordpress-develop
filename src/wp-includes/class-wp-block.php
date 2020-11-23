@@ -144,6 +144,25 @@ class WP_Block {
 	}
 
 	/**
+	 * Whether or not the block has a given property. Returns true for each of
+	 * the block's dynamic properties:
+	 *
+	 * - `$block->attributes`
+	 * - `$block->context`
+	 * - `$block->inner_blocks`
+	 * - `$block->inner_html`
+	 * - `$block->inner_content`
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $name Property name.
+	 * @return bool
+	 */
+	public function __isset( $name ) {
+		return method_exists( $this, "get_$name" );
+	}
+
+	/**
 	 * Block attributes.
 	 *
 	 * Use `$block->attributes` to access this.
