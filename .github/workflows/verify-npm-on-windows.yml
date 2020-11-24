@@ -9,6 +9,7 @@ on:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+  WP_GHA_FORK: ${{ secrets.WP_GHA_FORK }}
   WP_NPM_WINDOWS: ${{ secrets.WP_NPM_WINDOWS }}
   WP_NPM_WINDOWS_PR: ${{ secrets.WP_NPM_WINDOWS_PULL }}
 
@@ -26,7 +27,7 @@ jobs:
   test-npm:
     name: Tests NPM on Windows
     runs-on: windows-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_NPM_WINDOWS || ( github.event_name == 'pull_request' && env.WP_NPM_WINDOWS_PR ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_GHA_FORK || env.WP_NPM_WINDOWS || ( github.event_name == 'pull_request' && env.WP_NPM_WINDOWS_PR ) }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)

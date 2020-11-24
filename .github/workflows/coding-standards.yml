@@ -10,6 +10,7 @@ on:
   pull_request:
 
 env:
+  WP_GHA_FORK: ${{ secrets.WP_GHA_FORK }}
   WP_CODING_STANDARDS: ${{ secrets.WP_CODING_STANDARDS }}
   WP_CODING_STANDARDS_PR: ${{ secrets.WP_CODING_STANDARDS_PR }}
 
@@ -31,7 +32,7 @@ jobs:
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_GHA_FORK || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
 
     steps:
       - name: Checkout repository
@@ -91,7 +92,7 @@ jobs:
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_GHA_FORK || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
 

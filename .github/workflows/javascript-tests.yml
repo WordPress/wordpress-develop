@@ -8,6 +8,7 @@ on:
   pull_request:
 
 env:
+  WP_GHA_FORK: ${{ secrets.WP_GHA_FORK }}
   WP_JS_TESTS: ${{ secrets.WP_JS_TESTS }}
   WP_JS_TESTS_PR: ${{ secrets.WP_JS_TESTS_PR }}
 
@@ -27,7 +28,7 @@ jobs:
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || WP_JS_TESTS || ( github.event_name == 'pull_request' && env.WP_JS_TESTS_PR ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_GHA_FORK || WP_JS_TESTS || ( github.event_name == 'pull_request' && env.WP_JS_TESTS_PR ) }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)

@@ -11,6 +11,7 @@ on:
     - cron: '0 0 * * 0'
 
 env:
+  WP_GHA_FORK: ${{ secrets.WP_GHA_FORK }}
   WP_PHP_TESTS: ${{ secrets.WP_PHP_TESTS }}
   WP_PHP_TESTS_PR: ${{ secrets.WP_PHP_TESTS_PR }}
   LOCAL_DIR: build
@@ -37,7 +38,7 @@ jobs:
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_PHP_TESTS || ( github.event_name == 'pull_request' && env.WP_PHP_TESTS_PR ) }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_GHA_FORK || env.WP_PHP_TESTS || ( github.event_name == 'pull_request' && env.WP_PHP_TESTS_PR ) }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
