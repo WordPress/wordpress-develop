@@ -35,6 +35,7 @@ jobs:
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)

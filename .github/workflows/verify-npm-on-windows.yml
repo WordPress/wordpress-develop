@@ -24,6 +24,8 @@ jobs:
   test-npm:
     name: Tests NPM on Windows
     runs-on: windows-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
