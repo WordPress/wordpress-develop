@@ -9,6 +9,10 @@ on:
       - '[6-9].*'
   pull_request:
 
+env:
+  WP_PHP_COMPAT: ${{ secrets.WP_PHP_COMPAT }}
+  WP_PHP_COMPAT_PR: ${{ secrets.WP_PHP_COMPAT_PR }}
+
 jobs:
 
   # Runs PHP compatibility testing.
@@ -27,6 +31,7 @@ jobs:
   php-comatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_PHP_COMPAT || ( github.event_name == 'pull_request' && env.WP_PHP_COMPAT_PR ) }}
 
     steps:
       - name: Checkout repository

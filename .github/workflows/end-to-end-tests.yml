@@ -11,6 +11,8 @@ on:
 
 env:
   LOCAL_DIR: build
+  WP_E2E: ${{ secrets.WP_E2E }}
+  WP_E2E_PR: ${{ secrets.WP_E2E_PR }}
 
 jobs:
   # Runs the end-to-end test suite.
@@ -34,6 +36,8 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_E2E || ( github.event_name == 'pull_request' && env.WP_E2E_PR ) }}
+
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}

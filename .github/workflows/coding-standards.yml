@@ -9,6 +9,10 @@ on:
       - '[6-9].*'
   pull_request:
 
+env:
+  WP_CODING_STANDARDS: ${{ secrets.WP_CODING_STANDARDS }}
+  WP_CODING_STANDARDS_PR: ${{ secrets.WP_CODING_STANDARDS_PR }}
+
 jobs:
   # Runs PHP coding standards checks.
   #
@@ -27,6 +31,8 @@ jobs:
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -85,8 +91,10 @@ jobs:
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_CODING_STANDARDS || ( github.event_name == 'pull_request' && env.WP_CODING_STANDARDS_PR ) }}
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2

@@ -9,6 +9,8 @@ on:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+  WP_NPM_WINDOWS: ${{ secrets.WP_NPM_WINDOWS }}
+  WP_NPM_WINDOWS_PR: ${{ secrets.WP_NPM_WINDOWS_PULL }}
 
 jobs:
   # Verifies that installing NPM dependencies and building WordPress works on Windows.
@@ -24,6 +26,8 @@ jobs:
   test-npm:
     name: Tests NPM on Windows
     runs-on: windows-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || env.WP_NPM_WINDOWS || ( github.event_name == 'pull_request' && env.WP_NPM_WINDOWS_PR ) }}
+
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
