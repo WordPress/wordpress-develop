@@ -76,6 +76,16 @@ function delete_theme( $stylesheet, $redirect = '' ) {
 	$theme_dir  = trailingslashit( $themes_dir . $stylesheet );
 	$deleted    = $wp_filesystem->delete( $theme_dir, true );
 
+	/**
+	 * Fires immediately after a theme deletion attempt.
+	 *
+	 * @since 5.7
+	 *
+	 * @param string $stylesheet  Stylesheet of the theme to delete.
+	 * @param bool   $deleted     Whether the theme deletion was successful.
+	 */
+	do_action( 'deleted_theme', $stylesheet, $deleted );
+
 	if ( ! $deleted ) {
 		return new WP_Error(
 			'could_not_remove_theme',
