@@ -41,6 +41,15 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	protected $registry;
 
 	/**
+	 * Constructor options to use when creating nested WP_Block objects.
+	 *
+	 * @since 5.7.0
+	 * @var array
+	 * @access protected
+	 */
+	protected $options;
+
+	/**
 	 * Constructor.
 	 *
 	 * Populates object properties from the provided block instance argument.
@@ -50,15 +59,13 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 	 * @param array[]|WP_Block[]     $blocks            Array of parsed block data, or block instances.
 	 * @param array                  $available_context Optional array of ancestry context values.
 	 * @param WP_Block_Type_Registry $registry          Optional block type registry.
+	 * @param array                  $options           Optional block options to pass along to WP_Block.
 	 */
-	public function __construct( $blocks, $available_context = array(), $registry = null ) {
-		if ( ! $registry instanceof WP_Block_Type_Registry ) {
-			$registry = WP_Block_Type_Registry::get_instance();
-		}
-
+	public function __construct( $blocks, $available_context = array(), $registry = null, $options = null ) {
 		$this->blocks            = $blocks;
 		$this->available_context = $available_context;
-		$this->registry          = $registry;
+		$this->registry          = $registry ? $registry : WP_Block_Type_Registry::get_instance();
+		$this->options           = $options;
 	}
 
 	/**
@@ -90,7 +97,13 @@ class WP_Block_List implements Iterator, ArrayAccess, Countable {
 		$block = $this->blocks[ $index ];
 
 		if ( isset( $block ) && is_array( $block ) ) {
-			$block                  = new WP_Block( $block, $this->available_context, $this->registry );
+			$block = new WP_Block(
+				$block,
+				$this->available_context,
+				$this->registry,
+				$this->options
+			);
+
 			$this->blocks[ $index ] = $block;
 		}
 
