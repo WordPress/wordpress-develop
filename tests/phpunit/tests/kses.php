@@ -164,11 +164,28 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_abbr() {
+	function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for data_wp_filter_post_kses_abbr.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_abbr() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -176,11 +193,15 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			$string        = "<abbr $name='$value'>WP</abbr>";
 			$expect_string = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	function test_feed_links() {
