@@ -56,11 +56,28 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_a
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_a() {
+	function test_wp_filter_post_kses_a( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_a.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_a() {
 		$attributes = array(
 			'class'    => 'classname',
 			'id'       => 'id',
@@ -74,6 +91,8 @@ class Tests_Kses extends WP_UnitTestCase {
 			'download' => '',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
@@ -84,8 +103,10 @@ class Tests_Kses extends WP_UnitTestCase {
 			}
 			$string        = "<a $attr>I link this</a>";
 			$expect_string = "<a $expected_attr>I link this</a>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	/**
