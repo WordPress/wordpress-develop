@@ -128,9 +128,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		}
 
 		parent::setUpBeforeClass();
-
-		// Make some posts (needs to follow the parent call to account for DB transaction).
-		self::factory()->post->create_many( 5 );
 	}
 
 	/**
