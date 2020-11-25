@@ -606,18 +606,22 @@ class WP_List_Table {
 			$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
 		}
 
-		$months = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s
-			$extra_checks
-			ORDER BY post_date DESC
-		",
-				$post_type
-			)
-		);
+		$months = apply_filters( 'edit_months_dropdown', $post_type, $extra_checks );
+
+		if ( ! is_array( $months ) ) {
+			$months = $wpdb->get_results(
+				$wpdb->prepare(
+					"
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				$extra_checks
+				ORDER BY post_date DESC
+			",
+					$post_type
+				)
+			);
+		}
 
 		/**
 		 * Filters the 'Months' drop-down results.
