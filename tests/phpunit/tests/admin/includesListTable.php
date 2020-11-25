@@ -375,17 +375,16 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->bulk_actions();
 		$output = ob_get_clean();
 
-		$this->assertContains(
-			<<<'OPTIONS'
+		$expected = <<<'OPTIONS'
 <option value="delete">Delete</option>
 	<optgroup label="Change State">
 		<option value="feature">Featured</option>
 		<option value="sale">On Sale</option>
 	</optgroup>
-OPTIONS
-			,
-			$output
-		);
+OPTIONS;
+		$expected = str_replace( "\r\n", "\n", $expected );
+
+		$this->assertContains( $expected, $output );
 	}
 
 	/**
