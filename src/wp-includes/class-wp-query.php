@@ -1373,26 +1373,45 @@ class WP_Query {
 		 */
 		$exclusion_prefix = apply_filters( 'wp_query_search_exclusion_prefix', '-' );
 
-		foreach ( $q['search_terms'] as $term ) {
-			// If there is an $exclusion_prefix, terms prefixed with it should be excluded.
-			$exclude = $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix );
-			if ( $exclude ) {
-				$like_op  = 'NOT LIKE';
-				$andor_op = 'AND';
-				$term     = substr( $term, 1 );
-			} else {
-				$like_op  = 'LIKE';
-				$andor_op = 'OR';
-			}
+		if ( wp_fulltext_search_enabled() && empty( $q['exact'] ) ) {
+			$fulltext_terms = array();
+			$positive_terms = array();
 
-			if ( $n && ! $exclude ) {
-				$like                        = '%' . $wpdb->esc_like( $term ) . '%';
-				$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
+			foreach ( $q['search_terms'] as $term ) {
+				if ( $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix ) ) {
+					$term = "-" . substr( $term, 1 );
+				} else {
+					$positive_terms[] = $term;
+				}
+				$fulltext_terms[] = $term;
 			}
+			$fulltext_query              = implode( ' ', $fulltext_terms );
+			$q['search_orderby_title'][] = $wpdb->prepare( "MATCH({$wpdb->posts}.post_title) AGAINST (%s IN BOOLEAN MODE)",
+				implode( ' ', $positive_terms ) );
+			$search                      .= $wpdb->prepare( "{$searchand}(MATCH ({$wpdb->posts}.post_title, {$wpdb->posts}.post_excerpt, {$wpdb->posts}.post_content) AGAINST (%s IN BOOLEAN MODE))",
+				$fulltext_query );
+		} else {
+			foreach ( $q['search_terms'] as $term ) {
+				// If there is an $exclusion_prefix, terms prefixed with it should be excluded.
+				$exclude = $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix );
+				if ( $exclude ) {
+					$like_op  = 'NOT LIKE';
+					$andor_op = 'AND';
+					$term     = substr( $term, 1 );
+				} else {
+					$like_op  = 'LIKE';
+					$andor_op = 'OR';
+				}
 
-			$like      = $n . $wpdb->esc_like( $term ) . $n;
-			$search   .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
-			$searchand = ' AND ';
+				if ( $n && ! $exclude ) {
+					$like                        = '%' . $wpdb->esc_like( $term ) . '%';
+					$q['search_orderby_title'][] = $wpdb->prepare( "{$wpdb->posts}.post_title LIKE %s", $like );
+				}
+
+				$like      = $n . $wpdb->esc_like( $term ) . $n;
+				$search   .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
+				$searchand     = ' AND ';
+			}
 		}
 
 		if ( ! empty( $search ) ) {
@@ -1516,7 +1535,11 @@ class WP_Query {
 
 			// Sentence match in 'post_title'.
 			if ( $like ) {
-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
+				if ( wp_fulltext_search_enabled() ) {
+					$search_orderby .= $wpdb->prepare( "WHEN MATCH({$wpdb->posts}.post_title) AGAINST (%s IN BOOLEAN MODE) THEN 1 ", $q['s'] );
+				} else {
+					$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 ", $like );
+				}
 			}
 
 			// Sanity limit, sort as sentence when more than 6 terms
@@ -1532,8 +1555,13 @@ class WP_Query {
 
 			// Sentence match in 'post_content' and 'post_excerpt'.
 			if ( $like ) {
-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_excerpt LIKE %s THEN 4 ", $like );
-				$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_content LIKE %s THEN 5 ", $like );
+				if ( wp_fulltext_search_enabled() ) {
+					$search_orderby .= $wpdb->prepare( "WHEN MATCH({$wpdb->posts}.post_excerpt) AGAINST (%s IN BOOLEAN MODE) THEN 4 ", $q['s'] );
+					$search_orderby .= $wpdb->prepare( "WHEN MATCH({$wpdb->posts}.post_content) AGAINST (%s IN BOOLEAN MODE) THEN 5 ", $q['s'] );
+				} else {
+					$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_excerpt LIKE %s THEN 4 ", $like );
+					$search_orderby .= $wpdb->prepare( "WHEN {$wpdb->posts}.post_content LIKE %s THEN 5 ", $like );
+				}
 			}
 
 			if ( $search_orderby ) {

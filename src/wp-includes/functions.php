@@ -7781,3 +7781,29 @@ function is_php_version_compatible( $required ) {
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
 }
+
+/**
+ * Check if fulltext search is available.
+ *
+ * @since 5.7.0
+ *
+ * @return bool Whether fulltext search is available.
+ */
+function wp_fulltext_search_available() {
+	$is_available = get_option( 'fulltext_search_available' ) === "1";
+	return apply_filters( 'fulltext_search_available', $is_available );
+}
+
+/**
+ * Check if fulltext search is enabled.
+ *
+ * Returns false if it's enabled but not available.
+ *
+ * @since 5.7.0
+ *
+ * @return bool Whether fulltext search is enabled.
+ */
+function wp_fulltext_search_enabled() {
+	$is_enabled = get_option( 'fulltext_search_enabled' ) === "1";
+	return wp_fulltext_search_available() && apply_filters( 'fulltext_search_enabled', $is_enabled );
+}
