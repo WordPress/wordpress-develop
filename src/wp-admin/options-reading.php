@@ -208,12 +208,12 @@ else :
 </fieldset></td>
 </tr>
 
-<?php if ( wp_fulltext_search_available() ): ?>
+<?php if ( wp_fulltext_search_available() ) : ?>
 <tr class="option-site-visibility">
 <th scope="row"><?php _e( 'Full-text search' ); ?> </th>
 <td><fieldset><legend class="screen-reader-text"><span><?php _e( 'Full-text search' ); ?> </span></legend>
 <label for="fulltext_search_enabled"><input name="fulltext_search_enabled" type="checkbox" id="fulltext_search_enabled" value="1" <?php echo checked( '1', get_option( 'fulltext_search_enabled' ) ); ?> />
-<?php _e( 'Use full-text search on this site' ); ?></label>
+	<?php _e( 'Use full-text search on this site' ); ?></label>
 </fieldset></td>
 </tr>
 <?php endif ?>

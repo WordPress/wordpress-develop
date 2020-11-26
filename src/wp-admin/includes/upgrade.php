@@ -2292,20 +2292,20 @@ function upgrade_570() {
 		/*
 		 * Create fulltext indexes for `wp_posts`.
 		 */
-		$result = $wpdb->query("ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext` (`post_title` ASC, `post_excerpt` ASC, `post_content` ASC);");
+		$result = $wpdb->query( "ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext` (`post_title` ASC, `post_excerpt` ASC, `post_content` ASC);" );
 		// Return early if fulltext indexes are unsupported
 		if ( ! $result || is_wp_error( $result ) ) {
 			return;
 		}
-		$wpdb->query("ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_title` (`post_title` ASC);");
-		$wpdb->query("ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_excerpt` (`post_excerpt` ASC);");
-		$wpdb->query("ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_content` (`post_content` ASC);");
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_title` (`post_title` ASC);" );
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_excerpt` (`post_excerpt` ASC);" );
+		$wpdb->query( "ALTER TABLE $wpdb->posts ADD FULLTEXT INDEX `wp_posts_fulltext_content` (`post_content` ASC);" );
 
 		/*
 		 * When upgrading from WP < 5.7.0 enable fulltext search.
 		 */
-		update_option( "fulltext_search_available", '1' );
-		update_option( "fulltext_search_enabled", '1' );
+		update_option( 'fulltext_search_available', '1' );
+		update_option( 'fulltext_search_enabled', '1' );
 	}
 }
 

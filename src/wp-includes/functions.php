@@ -7790,7 +7790,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @return bool Whether fulltext search is available.
  */
 function wp_fulltext_search_available() {
-	$is_available = get_option( 'fulltext_search_available' ) === "1";
+	$is_available = get_option( 'fulltext_search_available' ) === '1';
 	return apply_filters( 'fulltext_search_available', $is_available );
 }
 
@@ -7804,6 +7804,6 @@ function wp_fulltext_search_available() {
  * @return bool Whether fulltext search is enabled.
  */
 function wp_fulltext_search_enabled() {
-	$is_enabled = get_option( 'fulltext_search_enabled' ) === "1";
+	$is_enabled = get_option( 'fulltext_search_enabled' ) === '1';
 	return wp_fulltext_search_available() && apply_filters( 'fulltext_search_enabled', $is_enabled );
 }

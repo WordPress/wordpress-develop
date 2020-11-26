@@ -1379,17 +1379,21 @@ class WP_Query {
 
 			foreach ( $q['search_terms'] as $term ) {
 				if ( $exclusion_prefix && ( substr( $term, 0, 1 ) === $exclusion_prefix ) ) {
-					$term = "-" . substr( $term, 1 );
+					$term = '-' . substr( $term, 1 );
 				} else {
 					$positive_terms[] = $term;
 				}
 				$fulltext_terms[] = $term;
 			}
 			$fulltext_query              = implode( ' ', $fulltext_terms );
-			$q['search_orderby_title'][] = $wpdb->prepare( "MATCH({$wpdb->posts}.post_title) AGAINST (%s IN BOOLEAN MODE)",
-				implode( ' ', $positive_terms ) );
-			$search                      .= $wpdb->prepare( "{$searchand}(MATCH ({$wpdb->posts}.post_title, {$wpdb->posts}.post_excerpt, {$wpdb->posts}.post_content) AGAINST (%s IN BOOLEAN MODE))",
-				$fulltext_query );
+			$q['search_orderby_title'][] = $wpdb->prepare(
+				"MATCH({$wpdb->posts}.post_title) AGAINST (%s IN BOOLEAN MODE)",
+				implode( ' ', $positive_terms )
+			);
+			$search                     .= $wpdb->prepare(
+				"{$searchand}(MATCH ({$wpdb->posts}.post_title, {$wpdb->posts}.post_excerpt, {$wpdb->posts}.post_content) AGAINST (%s IN BOOLEAN MODE))",
+				$fulltext_query
+			);
 		} else {
 			foreach ( $q['search_terms'] as $term ) {
 				// If there is an $exclusion_prefix, terms prefixed with it should be excluded.
@@ -1410,7 +1414,7 @@ class WP_Query {
 
 				$like      = $n . $wpdb->esc_like( $term ) . $n;
 				$search   .= $wpdb->prepare( "{$searchand}(({$wpdb->posts}.post_title $like_op %s) $andor_op ({$wpdb->posts}.post_excerpt $like_op %s) $andor_op ({$wpdb->posts}.post_content $like_op %s))", $like, $like, $like );
-				$searchand     = ' AND ';
+				$searchand = ' AND ';
 			}
 		}
 
