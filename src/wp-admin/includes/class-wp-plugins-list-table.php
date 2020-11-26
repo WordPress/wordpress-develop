@@ -775,7 +775,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			} else {
 				$is_active               = is_plugin_active( $plugin_file );
 				$restrict_network_active = ( is_multisite() && is_plugin_active_for_network( $plugin_file ) );
-				$restrict_network_only   = ( is_multisite() && is_network_only_plugin( $plugin_file ) && ! $is_active );
+				$restrict_network_only   = ( is_network_only_plugin( $plugin_file ) && ! $is_active );
 			}
 
 			if ( $screen->in_admin( 'network' ) ) {
