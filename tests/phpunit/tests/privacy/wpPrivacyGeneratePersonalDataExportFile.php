@@ -50,7 +50,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$export_request_id = wp_create_user_request( 'export-requester@example.com', 'export_personal_data' );
 		update_post_meta( self::$export_request_id, '_export_data_grouped', array() );
 		self::$exports_dir = wp_privacy_exports_dir();

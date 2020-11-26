@@ -350,10 +350,15 @@ function wp_authenticate_application_password( $input_user, $username, $password
 				__( 'Unknown username. Check again or try your email address.' )
 			);
 		}
-	} elseif ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+	} elseif ( ! wp_is_application_passwords_available() ) {
 		$error = new WP_Error(
 			'application_passwords_disabled',
-			__( 'Application passwords are disabled for the requested user.' )
+			__( 'Application passwords are not available.' )
+		);
+	} elseif ( ! wp_is_application_passwords_available_for_user( $user ) ) {
+		$error = new WP_Error(
+			'application_passwords_disabled_for_user',
+			__( 'Application passwords are not available for your account. Please contact the site administrator for assistance.' )
 		);
 	}
 
@@ -1249,9 +1254,9 @@ function setup_userdata( $for_user_id = 0 ) {
  *     @type string       $order                   Whether to order users in ascending or descending
  *                                                 order. Accepts 'ASC' (ascending) or 'DESC' (descending).
  *                                                 Default 'ASC'.
- *     @type array|string $include                 Array or comma-separated list of user IDs to include.
+ *     @type int[]|string $include                 Array or comma-separated list of user IDs to include.
  *                                                 Default empty.
- *     @type array|string $exclude                 Array or comma-separated list of user IDs to exclude.
+ *     @type int[]|string $exclude                 Array or comma-separated list of user IDs to exclude.
  *                                                 Default empty.
  *     @type bool|int     $multi                   Whether to skip the ID attribute on the 'select' element.
  *                                                 Accepts 1|true or 0|false. Default 0|false.
@@ -1274,9 +1279,9 @@ function setup_userdata( $for_user_id = 0 ) {
  *     @type string|array $role                    An array or a comma-separated list of role names that users must
  *                                                 match to be included in results. Note that this is an inclusive
  *                                                 list: users must match *each* role. Default empty.
- *     @type array        $role__in                An array of role names. Matched users must have at least one of
+ *     @type string[]     $role__in                An array of role names. Matched users must have at least one of
  *                                                 these roles. Default empty array.
- *     @type array        $role__not_in            An array of role names to exclude. Users matching one or more of
+ *     @type string[]     $role__not_in            An array of role names to exclude. Users matching one or more of
  *                                                 these roles will not be included in results. Default empty array.
  * }
  * @return string HTML dropdown list of users.
@@ -4131,7 +4136,7 @@ function wp_is_application_passwords_available() {
 }
 
 /**
- * Checks if Application Passwords is enabled for a specific user.
+ * Checks if Application Passwords is available for a specific user.
  *
  * By default all users can use Application Passwords. Use {@see 'wp_is_application_passwords_available_for_user'}
  * to restrict availability to certain users.

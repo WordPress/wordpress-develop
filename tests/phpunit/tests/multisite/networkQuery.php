@@ -26,7 +26,7 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'      => array(
 					'domain' => 'wordpress.org',

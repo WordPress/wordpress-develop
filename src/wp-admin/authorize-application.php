@@ -90,15 +90,16 @@ if ( is_wp_error( $is_valid ) ) {
 
 if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
 	if ( wp_is_application_passwords_available() ) {
-		$message = __( 'Application passwords are not enabled for your account. Please contact the site administrator for assistance.' );
+		$message = __( 'Application passwords are not available for your account. Please contact the site administrator for assistance.' );
 	} else {
-		$message = __( 'Application passwords are not enabled.' );
+		$message = __( 'Application passwords are not available.' );
 	}
 
 	wp_die(
 		$message,
 		__( 'Cannot Authorize Application' ),
 		array(
+			'response'  => 501,
 			'link_text' => __( 'Go Back' ),
 			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
 		)
@@ -174,7 +175,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<label for="new-application-password-value">
 						<?php
 						printf(
-							/* translators: %s: Application name */
+							/* translators: %s: Application name. */
 							esc_html__( 'Your new password for %s is:' ),
 							'<strong>' . esc_html( $app_name ) . '</strong>'
 						);

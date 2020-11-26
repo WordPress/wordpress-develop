@@ -28,11 +28,11 @@
 						array(
 							'theme_location' => 'footer',
 							'items_wrap'     => '%3$s',
-							'container'      => 'false',
+							'container'      => false,
 							'depth'          => 1,
 							'link_before'    => '<span>',
 							'link_after'     => '</span>',
-							'fallback_cb'    => 'false',
+							'fallback_cb'    => false,
 						)
 					);
 					?>

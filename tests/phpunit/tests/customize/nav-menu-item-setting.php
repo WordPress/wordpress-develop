@@ -906,7 +906,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 			'target'           => '',
 			'attr_title'       => '">att \o/ o\'o empted <b>baddie</b>',
 			'description'      => 'Attempted \o/ o\'o <b>markup</b>',
-			'classes'          => '',
+			'classes'          => 'class-1 class-2',
 			'xfn'              => '',
 			'status'           => 'publish',
 			'original_title'   => '',
@@ -940,6 +940,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$expected = apply_filters( 'nav_menu_attr_title', wp_unslash( apply_filters( 'excerpt_save_pre', wp_slash( $post_value['attr_title'] ) ) ) );
 		$this->assertSame( $expected, $nav_menu_item->attr_title );
 		$this->assertSame( 'Attempted \o/ o&#8217;o markup', $nav_menu_item->description );
+		$this->assertSame( array( 'class-1', 'class-2' ), $nav_menu_item->classes );
 	}
 
 	/**
