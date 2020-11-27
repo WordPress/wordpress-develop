@@ -329,6 +329,10 @@ window.wp = window.wp || {};
 				textarea = $('textarea.tax_input_' + taxname, editRow),
 				comma = wp.i18n._x( ',', 'tag delimiter' ).trim();
 
+			if ( 0 === textarea.length ) {
+				return;
+			}
+	
 			terms.find( 'img' ).replaceWith( function() { return this.alt; } );
 			terms = terms.text();
 
