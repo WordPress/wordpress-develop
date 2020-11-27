@@ -69,9 +69,14 @@
 
 			assert.notStrictEqual( settings, settingsOriginal );
 
+			var expected = {
+				Accept: 'application/json, */*;q=0.1'
+			};
+			expected[ headerName ] = nonceHeader[ headerName ];
+
 			assert.deepEqual( settings, {
 				url: 'aaaa',
-				headers: { Accept: 'application/json, */*;q=0.1', ...nonceHeader }
+				headers: expected
 			} );
 		} );
 	} );
@@ -105,7 +110,7 @@
 			headers: {
 				'Accept': 'text/xml'
 			}
-		}
+		};
 
 		var settings = wp.apiRequest.buildAjaxOptions( settingsOriginal );
 
