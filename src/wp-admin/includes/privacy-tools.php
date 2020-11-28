@@ -769,7 +769,7 @@ function wp_privacy_process_personal_data_export_page( $response, $exporter_inde
 	} else {
 		$accumulated_data = get_post_meta( $request_id, '_export_data_raw', true );
 
-		if ( $accumulated_data ) {
+		if ( $accumulated_data && is_array( $accumulated_data ) ) {
 			$export_data = $accumulated_data;
 		}
 	}
