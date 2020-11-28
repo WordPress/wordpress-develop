@@ -129,6 +129,8 @@ EOD;
         if ($message && !is_object($error)) {
             $error = new IXR_Error($error, $message);
         }
+
+        status_header( $error ); #48215
         $this->output($error->getXml());
     }
 
