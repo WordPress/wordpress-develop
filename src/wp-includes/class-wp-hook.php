@@ -320,7 +320,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 */
 	protected function get_invalid_callback_error_message( $callback ) {
 		return sprintf(
-		/* translators: %s: Invalid callback name or type. */
+			/* translators: %s: Invalid callback name or type. */
 			__( 'Requires <code>%s</code> to be a valid callback.' ),
 			$this->convert_callback_to_string( $callback )
 		);
