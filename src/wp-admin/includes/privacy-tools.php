@@ -350,12 +350,6 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		$email_address
 	);
 
-	// And now, all the Groups.
-	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
-	if ( ! is_array( $groups ) ) {
-		$groups = array();
-	}
-
 	// First, build an "About" group on the fly for this report.
 	$about_group = array(
 		/* translators: Header for the About section in a personal data export. */
@@ -384,10 +378,24 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 		),
 	);
 
-	// Merge in the special about group.
-	$groups = array_merge( array( 'about' => $about_group ), $groups );
+	// And now, all the Groups.
+	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
 
-	$groups_count = count( $groups );
+	// Merge in the special about group.
+	if ( is_array( $groups ) ) {
+		$groups       = array_merge( array( 'about' => $about_group ), $groups );
+		$groups_count = count( $groups );
+	} elseif ( '' === $groups || false === $groups ) {
+		$groups       = array( 'about' => $about_group );
+		$groups_count = 1;
+	} else {
+		wp_send_json_error(
+			sprintf(
+				'Warning: array_merge(): Expected parameter 2 to be an array, %1$s given.',
+				gettype( $groups )
+			)
+		);
+	}
 
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
