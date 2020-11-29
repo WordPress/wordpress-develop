@@ -1,11 +1,15 @@
 <?php
 
+use phpunit\tests\hooks\HooksTrait;
+
 /**
  * Test the do_action method of WP_Hook
  *
  * @group hooks
  */
 class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
+	use HooksTrait;
+
 	private $events        = array();
 	private $action_output = '';
 	private $hook;
@@ -172,5 +176,30 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 			'action' => __FUNCTION__,
 			'args'   => $args,
 		);
+	}
+
+	/**
+	 * @ticket 51894
+	 *
+	 * @dataProvider data_not_valid_callback
+	 *
+	 * @param mixed  $callback           Invalid callback to test.
+	 * @param string $callback_as_string Callback as a string for the error message.
+	 */
+	public function test_not_valid_callback( $callback, $callback_as_string ) {
+		remove_action( 'doing_it_wrong_trigger_error', '__return_false' );
+		$this->setExpectedIncorrectUsage( 'WP_Hook::do_action' );
+		$this->expectException( 'PHPUnit_Framework_Error_Notice' );
+		$this->expectExceptionMessage(
+			sprintf(
+				'WP_Hook::do_action was called <strong>incorrectly</strong>. Requires <code>%s</code> to be a valid callback. Please see <a href="https://wordpress.org/support/article/debugging-in-wordpress/">Debugging in WordPress</a> for more information. (This message was added in version 5.6.0.)',
+				$callback_as_string
+			)
+		);
+
+		$hook = $this->setup_hook( __FUNCTION__, $callback );
+		$arg  = __FUNCTION__ . '_arg';
+
+		$hook->do_action( array( $arg ) );
 	}
 }

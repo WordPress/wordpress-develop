@@ -255,6 +255,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 * Calls the callback functions that have been added to a filter hook.
 	 *
 	 * @since 4.7.0
+	 * @since 5.6.0 _doing_it_wrong() when callback is not callable.
 	 *
 	 * @param mixed $value The value to filter.
 	 * @param array $args  Additional parameters to pass to the callback functions.
@@ -280,6 +281,15 @@ final class WP_Hook implements Iterator, ArrayAccess {
 					$args[0] = $value;
 				}
 
+				if ( ! is_callable( $the_['function'] ) ) {
+					_doing_it_wrong(
+						$this->doing_action ? __CLASS__ . '::do_action' : __METHOD__,
+						$this->get_invalid_callback_error_message( $the_['function'] ),
+						'5.6.0'
+					);
+					continue;
+				}
+
 				// Avoid the array_slice() if possible.
 				if ( 0 == $the_['accepted_args'] ) {
 					$value = call_user_func( $the_['function'] );
@@ -297,6 +307,48 @@ final class WP_Hook implements Iterator, ArrayAccess {
 		$this->nesting_level--;
 
 		return $value;
+	}
+
+	/**
+	 * Gets the the invalid callback error message.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param mixed $callback Invalid callback.
+	 *
+	 * @return string error message.
+	 */
+	protected function get_invalid_callback_error_message( $callback ) {
+		return sprintf(
+		/* translators: %s: Invalid callback name or type. */
+			__( 'Requires <code>%s</code> to be a valid callback.' ),
+			$this->convert_callback_to_string( $callback )
+		);
+	}
+
+	/**
+	 * Converts the given callback into a string.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param mixed $callback Callback to convert into string.
+	 *
+	 * @return string callback as a string.
+	 */
+	protected function convert_callback_to_string( $callback ) {
+		if ( is_string( $callback ) ) {
+			return $callback;
+		}
+
+		if ( ! is_array( $callback ) ) {
+			return gettype( $callback );
+		}
+
+		if ( is_object( $callback[0] ) ) {
+			return get_class( $callback[0] ) . '::' . $callback[1];
+		}
+
+		return $callback[0] . '::' . $callback[1];
 	}
 
 	/**
