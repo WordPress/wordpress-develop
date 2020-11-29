@@ -324,18 +324,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function test_html_contents() {
 		$this->expectOutputString( '' );
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
 
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
+		$report_dir = $this->setup_export_contents_test();
 
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-
-		$zip->extractTo( $report_dir );
-		$zip->close();
 		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
@@ -353,18 +344,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function test_json_contents() {
 		$this->expectOutputString( '' );
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
 
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
-
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-
-		$zip->extractTo( $report_dir );
-		$zip->close();
+		$report_dir = $this->setup_export_contents_test();
 
 		$request = wp_get_user_request( self::$export_request_id );
 
@@ -383,18 +364,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function test_single_group_export_no_toc_or_return_to_top() {
 		$this->expectOutputString( '' );
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
 
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
+		$report_dir = $this->setup_export_contents_test();
 
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-
-		$zip->extractTo( $report_dir );
-		$zip->close();
 		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
@@ -452,24 +424,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 				),
 			),
 		);
-		update_post_meta( self::$export_request_id, '_export_data_grouped', $export_data_grouped );
 
-		// Generate Export File
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$report_dir = $this->setup_export_contents_test( $export_data_grouped );
 
-		// Cleam-up for subsequent tests
-		update_post_meta( self::$export_request_id, '_export_data_grouped', array() );
-
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
-
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-
-		$zip->extractTo( $report_dir );
-		$zip->close();
 		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
@@ -595,24 +552,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 				),
 			),
 		);
-		update_post_meta( self::$export_request_id, '_export_data_grouped', $export_data_grouped );
 
-		// Generate Export File
-		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-		$this->assertTrue( file_exists( $this->export_file_name ) );
+		$report_dir = $this->setup_export_contents_test( $export_data_grouped );
 
-		// Cleam-up for subsequent tests
-		update_post_meta( self::$export_request_id, '_export_data_grouped', array() );
-
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
-
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-
-		$zip->extractTo( $report_dir );
-		$zip->close();
 		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
 		$report_contents = file_get_contents( $report_dir . 'index.html' );
@@ -707,14 +649,29 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 				),
 			),
 		);
-		update_post_meta( self::$export_request_id, '_export_data_grouped', $export_data_grouped );
 
-		// Generate Export File
+		$report_dir = $this->setup_export_contents_test( $export_data_grouped );
+
+		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
+
+		$report_contents = file_get_contents( $report_dir . 'index.html' );
+		$request         = wp_get_user_request( self::$export_request_id );
+
+		$this->assertContains( '<div id="table_of_contents">', $report_contents );
+		$this->assertNotContains( '<span class="count">', $report_contents );
+		$this->assertContains( $request->email, $report_contents );
+	}
+
+	private function setup_export_contents_test( $export_data_grouped = null ) {
+		// Setup Export Data to contain multiple groups.
+		if ( null !== $export_data_grouped ) {
+			update_post_meta( self::$export_request_id, '_export_data_grouped', $export_data_grouped );
+		}
+
+		$this->expectOutputString( '' );
+
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 		$this->assertTrue( file_exists( $this->export_file_name ) );
-
-		// Cleam-up for subsequent tests
-		update_post_meta( self::$export_request_id, '_export_data_grouped', array() );
 
 		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
 		mkdir( $report_dir );
@@ -725,14 +682,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$zip->extractTo( $report_dir );
 		$zip->close();
-		$this->assertTrue( file_exists( $report_dir . 'index.html' ) );
 
-		$report_contents = file_get_contents( $report_dir . 'index.html' );
-		$request         = wp_get_user_request( self::$export_request_id );
-
-		$this->assertContains( '<div id="table_of_contents">', $report_contents );
-		$this->assertNotContains( '<span class="count">', $report_contents );
-		$this->assertContains( $request->email, $report_contents );
-
+		return $report_dir;
 	}
 }
