@@ -214,6 +214,87 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
+	 * @dataProvider data_invalid_export_data_grouped_type_error
+	 *
+	 * @ticket 51423
+	 *
+	 * @param mixed $groups '_export_data_grouped' post meta value.
+	 * @param string $type  Expected groups data type.
+	 */
+	public function test_invalid_export_data_grouped_type_error( $groups, $type ) {
+		update_post_meta( self::$export_request_id, '_export_data_grouped', $groups );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Warning: array_merge(): Expected parameter 2 to be an array, ' . $type . ' given."}' );
+
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+	}
+
+	public function data_invalid_export_data_grouped_type_error() {
+		return array(
+			array(
+				'groups' => 10,
+				'type'   => 'string',
+			),
+			array(
+				'groups' => '10',
+				'type'   => 'string',
+			),
+			array(
+				'groups' => true,
+				'type'   => 'string',
+			),
+			array(
+				'groups' => new stdClass(),
+				'type'   => 'object',
+			),
+			array(
+				'groups' => json_encode(
+					array(
+						'user' => array(
+							'group_label'       => 'User',
+							'group_description' => 'User&#8217;s profile data.',
+							'items'             => array(
+								'user-1' => array(
+									array(
+										'name'  => 'User ID',
+										'value' => 1,
+									),
+									array(
+										'name'  => 'User Login Name',
+										'value' => 'user_login',
+									),
+									array(
+										'name'  => 'User Nice Name',
+										'value' => 'User Name',
+									),
+									array(
+										'name'  => 'User Email',
+										'value' => 'export-requester@example.com',
+									),
+									array(
+										'name'  => 'User Registration Date',
+										'value' => '2020-01-31 19:29:29',
+									),
+									array(
+										'name'  => 'User Display Name',
+										'value' => 'User Name',
+									),
+									array(
+										'name'  => 'User Nickname',
+										'value' => 'User',
+									),
+								),
+							),
+						),
+					)
+				),
+				'type'   => 'string',
+			),
+		);
+	}
+
+	/**
 	 * Test that an index.html file can be added to the export directory.
 	 *
 	 * @ticket 44233
