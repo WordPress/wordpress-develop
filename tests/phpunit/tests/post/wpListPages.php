@@ -53,15 +53,15 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 	 */
 	public static $time;
 
-	public static function wpSetupBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$time = time();
 
 		$post_date = gmdate( 'Y-m-d H:i:s', self::$time );
 
-		self::$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
-		self::$author = self::factory()->user->create( array( 'role' => 'author' ) );
+		self::$editor = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$author = $factory->user->create( array( 'role' => 'author' ) );
 
-		self::$parent_1 = self::factory()->post->create(
+		self::$parent_1 = $factory->post->create(
 			array(
 				'post_author' => self::$editor,
 				'post_type'   => 'page',
@@ -70,7 +70,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			)
 		);
 
-		self::$parent_2 = self::factory()->post->create(
+		self::$parent_2 = $factory->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => 'Parent 2',
@@ -78,7 +78,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 			)
 		);
 
-		self::$parent_3 = self::factory()->post->create(
+		self::$parent_3 = $factory->post->create(
 			array(
 				'post_author' => self::$author,
 				'post_type'   => 'page',
@@ -88,7 +88,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 		);
 
 		foreach ( array( self::$parent_1, self::$parent_2, self::$parent_3 ) as $page ) {
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -96,7 +96,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',
@@ -104,7 +104,7 @@ class Tests_Post_wpListPages extends WP_UnitTestCase {
 					'post_date'   => $post_date,
 				)
 			);
-			self::$children[ $page ][] = self::factory()->post->create(
+			self::$children[ $page ][] = $factory->post->create(
 				array(
 					'post_parent' => $page,
 					'post_type'   => 'page',

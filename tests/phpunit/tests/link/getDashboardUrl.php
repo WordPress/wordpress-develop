@@ -6,7 +6,7 @@
 class Tests_Link_GetDashboardUrl extends WP_UnitTestCase {
 	public static $user_id = false;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
 

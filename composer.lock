@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fcf040d9233a22165eeffaeb98694436",
+    "content-hash": "463db2b4afb439fb63d93173c0852e27",
     "packages": [],
     "packages-dev": [
         {
@@ -130,20 +130,6 @@
             "keywords": [
                 "constructor",
                 "instantiate"
-            ],
-            "funding": [
-                {
-                    "url": "https://www.doctrine-project.org/sponsorship.html",
-                    "type": "custom"
-                },
-                {
-                    "url": "https://www.patreon.com/phpdoctrine",
-                    "type": "patreon"
-                },
-                {
-                    "url": "https://tidelift.com/funding/github/packagist/doctrine%2Finstantiator",
-                    "type": "tidelift"
-                }
             ],
             "time": "2020-05-29T17:27:14+00:00"
         },
@@ -1851,8 +1837,6 @@
     "platform": {
         "php": ">=5.6"
     },
-    "platform-dev": {
-        "ext-gd": "*"
-    },
+    "platform-dev": [],
     "plugin-api-version": "1.1.0"
 }

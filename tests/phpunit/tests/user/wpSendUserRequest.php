@@ -42,7 +42,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Test fixture factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_user = $factory->user->create_and_get(
 			array(
 				'user_email' => 'admin@local.dev',
