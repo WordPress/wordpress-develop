@@ -5,23 +5,17 @@ use phpunit\tests\hooks\HooksTrait;
 /**
  * Test the apply_filters method of WP_Hook
  *
- * @group hooks
- *
+ * @group  hooks
  * @covers WP_Hook::apply_filters
  */
 class Tests_WP_Hook_Apply_Filters extends WP_UnitTestCase {
 	use HooksTrait;
 
 	public function test_apply_filters_with_callback() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'filter' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
-		$arg           = __FUNCTION__ . '_arg';
-
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$a        = new MockAction();
+		$callback = array( $a, 'filter' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), rand( 1, 100 ) );
+		$arg      = __FUNCTION__ . '_arg';
 
 		$returned = $hook->apply_filters( $arg, array( $arg ) );
 
@@ -30,15 +24,10 @@ class Tests_WP_Hook_Apply_Filters extends WP_UnitTestCase {
 	}
 
 	public function test_apply_filters_with_multiple_calls() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'filter' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
-		$arg           = __FUNCTION__ . '_arg';
-
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
+		$a        = new MockAction();
+		$callback = array( $a, 'filter' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), rand( 1, 100 ) );
+		$arg      = __FUNCTION__ . '_arg';
 
 		$returned_one = $hook->apply_filters( $arg, array( $arg ) );
 		$returned_two = $hook->apply_filters( $returned_one, array( $returned_one ) );

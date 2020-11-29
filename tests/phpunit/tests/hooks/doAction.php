@@ -6,6 +6,7 @@ use phpunit\tests\hooks\HooksTrait;
  * Test the do_action method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::do_action
  */
 class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 	use HooksTrait;
@@ -20,30 +21,22 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 	}
 
 	public function test_do_action_with_callback() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'action' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
-		$arg           = __FUNCTION__ . '_arg';
+		$a        = new MockAction();
+		$callback = array( $a, 'action' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), rand( 1, 100 ) );
+		$arg      = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertSame( 1, $a->get_call_count() );
 	}
 
 	public function test_do_action_with_multiple_calls() {
-		$a             = new MockAction();
-		$callback      = array( $a, 'filter' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = rand( 1, 100 );
-		$arg           = __FUNCTION__ . '_arg';
+		$a        = new MockAction();
+		$callback = array( $a, 'filter' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), rand( 1, 100 ) );
+		$arg      = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 		$hook->do_action( array( $arg ) );
 
@@ -89,42 +82,30 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 	}
 
 	public function test_do_action_with_no_accepted_args() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = 0;
-		$arg           = __FUNCTION__ . '_arg';
+		$callback = array( $this, '_action_callback' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), 0 );
+		$arg      = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertEmpty( $this->events[0]['args'] );
 	}
 
 	public function test_do_action_with_one_accepted_arg() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = 1;
-		$arg           = __FUNCTION__ . '_arg';
+		$callback = array( $this, '_action_callback' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), 1 );
+		$arg      = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertCount( 1, $this->events[0]['args'] );
 	}
 
 	public function test_do_action_with_more_accepted_args() {
-		$callback      = array( $this, '_action_callback' );
-		$hook          = new WP_Hook();
-		$tag           = __FUNCTION__;
-		$priority      = rand( 1, 100 );
-		$accepted_args = 1000;
-		$arg           = __FUNCTION__ . '_arg';
+		$callback = array( $this, '_action_callback' );
+		$hook     = $this->setup_hook( __FUNCTION__, $callback, rand( 1, 100 ), 100 );
+		$arg      = __FUNCTION__ . '_arg';
 
-		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 		$hook->do_action( array( $arg ) );
 
 		$this->assertCount( 1, $this->events[0]['args'] );
@@ -145,8 +126,10 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 
 	public function _filter_do_action_doesnt_change_value1( $value ) {
 		$this->action_output .= $value . 1;
+
 		return 'x1';
 	}
+
 	public function _filter_do_action_doesnt_change_value2( $value ) {
 		$this->hook->remove_filter( 'do_action_doesnt_change_value', array( $this, '_filter_do_action_doesnt_change_value2' ), 10 );
 
@@ -163,6 +146,7 @@ class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
 
 	public function _filter_do_action_doesnt_change_value3( $value ) {
 		$this->action_output .= $value . 3;
+
 		return 'x3';
 	}
 
