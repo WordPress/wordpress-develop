@@ -341,20 +341,77 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * Test the export JSON file has all the expected parts.
 	 *
 	 * @ticket 49029
+	 * @ticket 51423
+	 *
+	 * @dataProvider data_json_contents
+	 *
+	 * @param mixed $groups '_export_data_grouped' post meta value.
 	 */
-	public function test_json_contents() {
+	public function test_json_contents( $groups ) {
+		$about_group = '{"Personal Data Export for export-requester@example.com":{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"export-requester@example.com"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"' . current_time( 'mysql' ) . '"}]}}';
+
 		$this->expectOutputString( '' );
 
-		$report_dir = $this->setup_export_contents_test();
-
-		$request = wp_get_user_request( self::$export_request_id );
+		$report_dir = $this->setup_export_contents_test( $groups );
 
 		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
 
 		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
 
-		$this->assertContains( '"Personal Data Export for ' . $request->email . '"', $report_contents_json );
-		$this->assertContains( '"about"', $report_contents_json );
+		if ( is_array( $groups ) ) {
+			$expected_user_group = substr( json_encode( $groups ), 1 );
+			$expected            = "{$about_group},{$expected_user_group}}";
+			$this->assertSame( $expected, $report_contents_json );
+		} else {
+			$this->assertSame( $about_group . '}}', $report_contents_json );
+		}
+	}
+
+	public function data_json_contents() {
+		return array(
+//			'_export_data_grouped does not exist' => array( null ),
+//			'_export_data_grouped empty array' => array( array() ),
+			'_export_data_grouped exists' => array(
+				array(
+					'user' => array(
+						'group_label'       => 'User',
+						'group_description' => 'User&#8217;s profile data.',
+						'items'             => array(
+							'user-1' => array(
+								array(
+									'name'  => 'User ID',
+									'value' => 1,
+								),
+								array(
+									'name'  => 'User Login Name',
+									'value' => 'user_login',
+								),
+								array(
+									'name'  => 'User Nice Name',
+									'value' => 'User Name',
+								),
+								array(
+									'name'  => 'User Email',
+									'value' => 'export-requester@example.com',
+								),
+								array(
+									'name'  => 'User Registration Date',
+									'value' => '2020-01-31 19:29:29',
+								),
+								array(
+									'name'  => 'User Display Name',
+									'value' => 'User Name',
+								),
+								array(
+									'name'  => 'User Nickname',
+									'value' => 'User',
+								),
+							),
+						),
+					),
+				)
+			),
+		);
 	}
 
 	/**
