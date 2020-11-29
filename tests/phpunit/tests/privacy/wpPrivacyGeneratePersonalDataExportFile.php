@@ -358,7 +358,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
 
-		if ( is_array( $groups ) ) {
+		if ( is_array( $groups ) && ! empty( $groups ) ) {
 			$expected_user_group = substr( json_encode( $groups ), 1 );
 			$expected            = "{$about_group},{$expected_user_group}}";
 			$this->assertSame( $expected, $report_contents_json );
@@ -369,9 +369,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 	public function data_json_contents() {
 		return array(
-//			'_export_data_grouped does not exist' => array( null ),
-//			'_export_data_grouped empty array' => array( array() ),
-			'_export_data_grouped exists' => array(
+			'no _export_data_grouped should contain about group'                                => array( null ),
+			'_export_data_grouped empty array should contain about group'                       => array( array() ),
+			'_export_data_grouped populated array should contain about and export data groups'  => array(
 				array(
 					'user' => array(
 						'group_label'       => 'User',
@@ -409,7 +409,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 							),
 						),
 					),
-				)
+				),
 			),
 		);
 	}
