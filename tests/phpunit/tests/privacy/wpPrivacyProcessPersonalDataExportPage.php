@@ -160,20 +160,7 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		self::$exporter_key_first   = 'custom-exporter-first';
 		self::$exporter_key_last    = 'custom-exporter-last';
 
-		$data = array(
-			array(
-				'group_id'          => 'custom-exporter-group-id',
-				'group_label'       => 'Custom Exporter Group Label',
-				'group_description' => 'Custom Exporter Group Description',
-				'item_id'           => 'custom-exporter-item-id',
-				'data'              => array(
-					array(
-						'name'  => 'Email',
-						'value' => self::$requester_email,
-					),
-				),
-			),
-		);
+		$data = self::get_response_data();
 
 		self::$response_first_page = array(
 			'done' => false,
@@ -183,6 +170,23 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 		self::$response_last_page = array(
 			'done' => true,
 			'data' => $data,
+		);
+	}
+
+	private static function get_response_data() {
+		return array(
+			array(
+				'group_id'          => 'custom-exporter-group-id',
+				'group_label'       => 'Custom Exporter Group Label',
+				'group_description' => 'Custom Exporter Group Description',
+				'item_id'           => 'custom-exporter-item-id',
+				'data'              => array(
+					array(
+						'name'  => 'Email',
+						'value' => 'requester@example.com',
+					),
+				),
+			),
 		);
 	}
 
@@ -413,6 +417,115 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	}
 
 	/**
+	 * The function should store export raw data.
+	 *
+	 * @ticket 51423
+	 *
+	 * @dataProvider data_stores_raw_export_data
+	 *
+	 * @param string $response       The response from the personal data exporter for the given page.
+	 * @param int    $exporter_index The index of the personal data exporter. Begins at 1.
+	 * @param int    $page           The page of personal data for this exporter. Begins at 1.
+	 * @param array  $expected       Expected '_export_data_raw' meta.
+	 */
+	public function test_should_stores_raw_export_data( $response, $exporter_index, $page, $expected, $export_data = null ) {
+		if ( null === $export_data ) {
+			$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
+		} else {
+			update_post_meta( self::$request_id, '_export_data_raw', $export_data );
+		}
+
+		// Set to bail out to avoid post meta from being deleted.
+		$response['done'] = false;
+		$expect_error     = ( null !== $export_data && ! is_array( $export_data ) );
+
+		if ( $expect_error ) {
+			$this->_setup_expected_failure( '{"success":false,"data":"Warning: array_merge(): Expected parameter 1 to be an array, ' . gettype( $export_data ) . ' given."}' );
+		} else {
+			$this->expectOutputString( '' );
+		}
+
+		wp_privacy_process_personal_data_export_page(
+			$response,
+			$exporter_index,
+			self::$requester_email,
+			$page,
+			self::$request_id,
+			true,
+			self::$exporter_key_first
+		);
+
+		$actual = get_post_meta( self::$request_id, '_export_data_raw', true );
+		$this->assertSame( $expected, $actual );
+	}
+
+	public function data_stores_raw_export_data() {
+		$data               = self::get_response_data();
+		$export_data        = array( 'test' => 'data' );
+		$merged_export_data = array_merge( $export_data, $data );
+
+		return array(
+			'1st exporter & page 1 with no export data stores response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 1,
+				'page'           => 1,
+				'expected'       => $data,
+			),
+			'1st exporter & page 1 with (array) export data stores response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 1,
+				'page'           => 1,
+				'expected'       => $data,
+				'export_data'    => $export_data,
+			),
+			'not 1st exporter with no export data stores response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 2,
+				'page'           => 1,
+				'expected'       => $data,
+			),
+			'not 1st exporter with (array) export data stores export data merged with response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 2,
+				'page'           => 1,
+				'expected'       => $merged_export_data,
+				'export_data'    => $export_data,
+			),
+			'1st exporter, page > 1, with (string) export data updates export data merged with response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 1,
+				'page'           => 2,
+				'expected'       => $data,
+				'export_data'    => 'not an array',
+			),
+			'not 1st exporter, page 1, no export data updates to response[data]' => array(
+				'response'       => array(
+					'done' => false,
+					'data' => $data,
+				),
+				'exporter_index' => 2,
+				'page'           => 1,
+				'expected'       => $data,
+			),
+		);
+	}
+
+	/**
 	 * The function should store export raw data until the export finishes. Then the meta key should be deleted.
 	 *
 	 * @ticket 44233
@@ -420,7 +533,6 @@ class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCa
 	 * @dataProvider data_send_as_email_options
 	 *
 	 * @param bool Whether the final results of the export should be emailed to the user.
-	 *
 	 */
 	public function test_raw_data_post_meta( $send_as_email ) {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_export_data_raw', true ) );
