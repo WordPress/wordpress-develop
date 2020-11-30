@@ -60,17 +60,19 @@
 		headers = options.headers || {};
 
 		for ( headerName in headers ) {
-			if ( headers.hasOwnProperty( headerName ) ) {
-				// If an 'X-WP-Nonce' header (or any case-insensitive variation
-				// thereof) was specified, no need to add a nonce header.
-				if ( headerName.toLowerCase() === 'x-wp-nonce' ) {
-					addNonceHeader = false;
-				}
+			if ( ! headers.hasOwnProperty( headerName ) ) {
+				continue;
+			}
 
-				// If an Accept header was specified, don't add one.
-				if ( headerName.toLowerCase() === 'accept' ) {
+			// If an 'X-WP-Nonce' or 'Accept' header (or any case-insensitive variation
+			// thereof) was specified, no need to add the header again.
+			switch( headerName.toLowerCase() ) {
+				case 'x-wp-nonce':
+					addNonceHeader = false;
+					break;
+				case 'accept':
 					addAcceptHeader = false;
-				}
+					break;
 			}
 		}
 
