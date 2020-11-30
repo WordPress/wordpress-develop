@@ -693,7 +693,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
-		wp_after_insert_post( $post, false );
+		wp_after_insert_post( $post, false, null );
 
 		// Schedule auto-draft cleanup.
 		if ( ! wp_next_scheduled( 'wp_scheduled_auto_draft_delete' ) ) {
