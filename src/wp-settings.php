@@ -536,7 +536,7 @@ do_action( 'after_setup_theme' );
 
 // Create an instance of WP_Site_Health so that Cron events may fire.
 if ( ! class_exists( 'WP_Site_Health' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-site-health.php';
+	require_once ABSPATH . 'wp-includes/class-wp-site-health.php';
 }
 WP_Site_Health::get_instance();
 
