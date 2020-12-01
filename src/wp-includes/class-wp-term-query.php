@@ -258,7 +258,7 @@ class WP_Term_Query {
 
 		$query['number'] = absint( $query['number'] );
 		$query['offset'] = absint( $query['offset'] );
-		$query['search'] = $query['search'] == '' && $query['s'] != '' ? $query['s'] : $query['search'];
+		$query['search'] = $query['search'] === '' && $query['s'] !== '' ? $query['s'] : $query['search'];
 
 		// 'parent' overrides 'child_of'.
 		if ( 0 < (int) $query['parent'] ) {
