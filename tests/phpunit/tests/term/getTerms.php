@@ -423,6 +423,45 @@ class Tests_Term_getTerms extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51811
+	 */
+	function test_get_terms_search_using_alias() {
+		$term_id1 = self::factory()->tag->create( array( 'slug' => 'burrito' ) );
+		$term_id2 = self::factory()->tag->create( array( 'name' => 'Wilbur' ) );
+		$term_id3 = self::factory()->tag->create( array( 'name' => 'Foo' ) );
+
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'hide_empty' => false,
+				's'          => 'bur',
+				'fields'     => 'ids',
+			)
+		);
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms );
+	}
+
+	/**
+	 * @ticket 51811
+	 */
+	function test_get_terms_search_using_both_alias_and_search() {
+		$term_id1 = self::factory()->tag->create( array( 'slug' => 'burrito' ) );
+		$term_id2 = self::factory()->tag->create( array( 'name' => 'Wilbur' ) );
+		$term_id3 = self::factory()->tag->create( array( 'name' => 'Foo' ) );
+
+		$terms = get_terms(
+			'post_tag',
+			array(
+				'hide_empty' => false,
+				'search'     => 'bur',
+				's'          => 'oo',
+				'fields'     => 'ids',
+			)
+		);
+		$this->assertSameSets( array( $term_id1, $term_id2 ), $terms );
+	}
+
+	/**
 	 * @ticket 8214
 	 */
 	function test_get_terms_like() {
