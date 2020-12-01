@@ -687,7 +687,7 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 				'post_status' => 'auto-draft',
 			),
 			false,
-			true
+			false
 		);
 		$post    = get_post( $post_id );
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
