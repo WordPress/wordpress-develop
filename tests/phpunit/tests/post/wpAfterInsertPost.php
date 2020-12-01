@@ -91,21 +91,30 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	function action_wp_after_insert_post( $post_id, $post, $update, $before_post ) {
+	/**
+	 * Helper function to obtain data running on the hook `wp_after_insert_post`.
+	 *
+	 * @param int          $post_id     Post ID.
+	 * @param WP_Post      $post        Post object.
+	 * @param bool         $update      Whether this is an existing post being updated.
+	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+	 *                                  to the update for updated posts.
+	 */
+	function action_wp_after_insert_post( $post_id, $post, $update, $post_before ) {
 		self::$passed_post_title  = $post->post_title;
 		self::$passed_post_status = $post->post_status;
 
-		if ( null === $before_post ) {
+		if ( null === $post_before ) {
 			self::$passed_post_before_title  = null;
 			self::$passed_post_before_status = null;
 			return;
 		}
 
-		self::$passed_post_before_title  = $before_post->post_title;
-		self::$passed_post_before_status = $before_post->post_status;
+		self::$passed_post_before_title  = $post_before->post_title;
+		self::$passed_post_before_status = $post_before->post_status;
 
 		// Prevent this firing when the revision is generated.
-		remove_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10, 4 );
+		remove_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10 );
 	}
 
 	/**
