@@ -80,7 +80,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 
 	public function setUp() {
 		parent::setUp();
-		add_action( 'wp_after_insert_post', array( $this, 'helper_before_title' ), 10, 4 );
+		add_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10, 4 );
 	}
 
 	public function tearDown() {
@@ -91,7 +91,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	function helper_before_title( $post_id, $post, $update, $before_post ) {
+	function action_wp_after_insert_post( $post_id, $post, $update, $before_post ) {
 		self::$passed_post_title  = $post->post_title;
 		self::$passed_post_status = $post->post_status;
 
@@ -105,7 +105,7 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 		self::$passed_post_before_status = $before_post->post_status;
 
 		// Prevent this firing when the revision is generated.
-		remove_action( 'wp_after_insert_post', array( $this, 'helper_before_title' ), 10, 4 );
+		remove_action( 'wp_after_insert_post', array( $this, 'action_wp_after_insert_post' ), 10, 4 );
 	}
 
 	/**
