@@ -35,6 +35,10 @@ trait HooksTrait {
 				'callback'           => 100,
 				'callback_as_string' => 'integer',
 			),
+			'an empty array' => array(
+				'callback'           => array(),
+				'callback_as_string' => 'integer',
+			),
 		);
 	}
 
