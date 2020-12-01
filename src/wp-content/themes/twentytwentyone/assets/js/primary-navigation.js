@@ -41,10 +41,19 @@ function twentytwentyoneCollapseMenuOnClickOutside( event ) {
  */
 function twentytwentyoneSubmenuPosition( li ) {
 	var subMenu = li.querySelector( 'ul.sub-menu' ),
-		rect = subMenu.getBoundingClientRect(),
-		right = Math.round( rect.right ),
-		left = Math.round( rect.left ),
-		windowWidth = Math.round( window.innerWidth );
+		rect,
+		right,
+		left,
+		windowWidth;
+
+	if ( ! subMenu ) {
+		return;
+	}
+
+	rect = subMenu.getBoundingClientRect();
+	right = Math.round( rect.right );
+	left = Math.round( rect.left );
+	windowWidth = Math.round( window.innerWidth );
 
 	if ( right > windowWidth ) {
 		subMenu.classList.add( 'submenu-reposition-right' );
@@ -58,7 +67,7 @@ function twentytwentyoneSubmenuPosition( li ) {
  *
  * @param {Element} el - The element.
  */
-function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
+function twentytwentyoneExpandSubMenu( el ) { // eslint-disable-line no-unused-vars
 	// Close other expanded items.
 	el.closest( 'nav' ).querySelectorAll( '.sub-menu-toggle' ).forEach( function( button ) {
 		if ( button !== el ) {
@@ -114,7 +123,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			tabKey = event.keyCode === 9;
 			shiftKey = event.shiftKey;
 			escKey = event.keyCode === 27;
-			activeEl = document.activeElement;
+			activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
 			lastEl = elements[ elements.length - 1 ];
 			firstEl = elements[0];
 
