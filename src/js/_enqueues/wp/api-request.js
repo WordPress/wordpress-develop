@@ -66,7 +66,7 @@
 
 			// If an 'X-WP-Nonce' or 'Accept' header (or any case-insensitive variation
 			// thereof) was specified, no need to add the header again.
-			switch( headerName.toLowerCase() ) {
+			switch ( headerName.toLowerCase() ) {
 				case 'x-wp-nonce':
 					addNonceHeader = false;
 					break;
