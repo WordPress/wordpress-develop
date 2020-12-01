@@ -4432,8 +4432,7 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
-	// Unable to use `get_post()` as it will return the original object.
-	$post_before = clone( $post );
+	$post_before = get_post( $post->ID );
 
 	// Ensure at least one term is applied for taxonomies with a default term.
 	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
