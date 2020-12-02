@@ -68,7 +68,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['created'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['created'] );
+			echo date_i18n( get_option( 'date_format', 'r' ), $item['created'] );
 		}
 	}
 
@@ -83,7 +83,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['last_used'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
+			echo date_i18n( get_option( 'date_format', 'r' ), $item['last_used'] );
 		}
 	}
 
