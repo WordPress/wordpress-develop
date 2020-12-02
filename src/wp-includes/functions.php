@@ -7626,7 +7626,7 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  */
 function recurse_dirsize( $directory, $exclude = null, $max_execution_time = null, &$directory_cache = null ) {
 	$directory  = untrailingslashit( $directory );
-	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $directory ) );
+	$cache_path = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $directory ) );
 
 	$save_cache = false;
 
@@ -7635,7 +7635,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		$save_cache      = true;
 	}
 
-	if ( isset( $directory_cache[ $cache_path ] ) ) {
+	if ( isset( $directory_cache[ $cache_path ] ) && is_int( $directory_cache[ $cache_path ] ) ) {
 		return $directory_cache[ $cache_path ];
 	}
 
