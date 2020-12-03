@@ -370,6 +370,16 @@ function retrieve_password() {
 	}
 
 	/**
+	 * Filters $user_data variable.
+	 *
+	 * Allow, for example, a custom validation using username or email address.
+	 *
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 * @param array $_POST Associative array returned by Lost Password form.
+	 */
+	$user_data = apply_filters( 'lostpassword_user_data', $user_data, $_POST );
+
+	/**
 	 * Fires before errors are returned from a password reset request.
 	 *
 	 * @since 2.1.0
