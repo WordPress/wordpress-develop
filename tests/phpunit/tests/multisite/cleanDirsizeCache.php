@@ -212,6 +212,11 @@ if ( is_multisite() ) :
 			// Cleanup.
 			$this->remove_added_uploads();
 			restore_current_blog();
+
+			// aside: why do they repeat the same factory logic?
+				// might help simplify if it's abstracted into a function, but could be rabbit hole.
+				// ideally phpunit would clean up after each test via wpSetUpBeforeClass(), but might not be possible in this case
+				// not important for rc3 unless getting in the way too much
 		}
 
 		/**
@@ -245,14 +250,6 @@ if ( is_multisite() ) :
 			);
 		}
 
-		function _get_mock_5_5_dirsize_cache() {
-			return array(
-				'/home/foo/custom-content/uploads' => array(
-					'size' => 84713,
-				)
-			);
-		}
-
 		/*
 		 * todo add desc, covers, etc
 		 *
@@ -261,6 +258,14 @@ if ( is_multisite() ) :
 		 */
 		function test_5_5_transient_structure_compat() {
 			$this->markTestIncomplete();
+		}
+
+		function _get_mock_5_5_dirsize_cache() {
+			return array(
+				'/home/foo/custom-content/uploads' => array(
+					'size' => 84713,
+				)
+			);
 		}
 	}
 
