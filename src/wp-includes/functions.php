@@ -7635,8 +7635,20 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		$save_cache      = true;
 	}
 
-	if ( isset( $directory_cache[ $cache_path ] ) && is_int( $directory_cache[ $cache_path ] ) ) {
-		return $directory_cache[ $cache_path ];
+	if ( isset( $directory_cache[ $cache_path ] ) ) {
+		if (
+			isset( $directory_cache[ $cache_path ]['size'] ) &&
+			is_int( $directory_cache[ $cache_path ]['size'] )
+		) {
+			$directory_cache[ $cache_path ] = $directory_cache[ $cache_path ]['size'];
+			if ( $save_cache ) {
+				set_transient( 'dirsize_cache', $directory_cache );
+			}
+		}
+
+		if ( is_int( $directory_cache[ $cache_path ] ) ) {
+			return $directory_cache[ $cache_path ];
+		}
 	}
 
 	if ( ! file_exists( $directory ) || ! is_dir( $directory ) || ! is_readable( $directory ) ) {
