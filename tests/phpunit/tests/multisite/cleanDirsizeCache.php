@@ -296,7 +296,9 @@ if ( is_multisite() ) :
 			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
 
 			// Ensure cache has updated to new format.
-			$year  = date( 'Y' );
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+			$year = date( 'Y' );
+			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
 			$month = date( 'm' );
 			$cache = get_transient( 'dirsize_cache' );
 			// Remove values added by the function calls above
