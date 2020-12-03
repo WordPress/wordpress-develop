@@ -248,9 +248,7 @@ if ( is_multisite() ) :
 		}
 
 		/*
-		 * todo add desc, covers, etc
-		 *
-		 * expect this to create the exact same transient as the new one, but the files have to actually exist in order for that to happen
+		 * Test that 5.6+ gracefully handles the old 5.5 transient structure.
 		 *
 		 * @ticket 51913
 		 */
@@ -283,9 +281,11 @@ if ( is_multisite() ) :
 			 * exist on disk, so the function should fail.
 			 */
 			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
-				// first run works, but 2nd fails b/c folder isn't cleaned up from last run
 
-			// Create the folder on disk.
+			/*
+			 * Now that it's confirmed that old cached values aren't being returned, create the
+			 * folder on disk, so that the the rest of the function can be tested.
+			 */
 			wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
 			$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';
 			file_put_contents( $filename, 'this file is 21 bytes' );
@@ -296,27 +296,20 @@ if ( is_multisite() ) :
 			// Set the dirsize cache to our mock.
 			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
 
-			// Now that the folder exists, the old cached value should be overwritten with the size, using the current format.
+
+			/*
+			 * Now that the folder exists, the old cached value should be overwritten
+			 * with the size, using the current format.
+			 */
 			$this->assertSame( 21, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
-
-			// Ensure cache has updated to new format.
 			$this->assertSame( 21, get_transient( 'dirsize_cache' )[ $upload_dir['basedir'] . '/2/1' ] );
-
-			// todo how do other tests handle the custom content dir, and wp in a subdir?
-
-			// No cache match, upload directory should be empty and return 0.
-			//$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
 
 			// No cache match on non existing directory should return false.
 			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
 
 			// Cleanup.
 			$this->remove_added_uploads();
-			// does ^ work w/ file_put_contents instead of upload_bits?
-			self::$ignore_files = array();
-			$this->rmdir( $upload_dir['basedir'] . '/2/1' );
-			// shouldn't be needed, but is
-			// doesn't work though
+			rmdir( $upload_dir['basedir'] . '/2/1' );
 
 			restore_current_blog();
 		}
