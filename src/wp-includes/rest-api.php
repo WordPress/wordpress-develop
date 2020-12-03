@@ -2519,12 +2519,10 @@ function rest_preload_api_request( $memo, $path ) {
 
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
-		$server = rest_get_server();
-		$data   = (array) $response->get_data();
-		$links  = $server::get_compact_response_links( $response );
-		if ( ! empty( $links ) ) {
-			$data['_links'] = $links;
-		}
+		$server            = rest_get_server();
+		$embed_param_value = $request->get_param( '_embed' );
+		$embed             = null !== $embed_param_value ? rest_parse_embed_param( $embed_param_value ) : false;
+		$data              = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$response = rest_send_allow_header( $response, $server, $request );
