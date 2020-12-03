@@ -303,7 +303,7 @@ if ( is_multisite() ) :
 			unset( $cache[ "/uploads/sites/$blog_id" ] );
 			unset( $cache[ "/uploads/sites/$blog_id/$year" ] );
 			unset( $cache[ "/uploads/sites/$blog_id/$year/$month" ] );
-			$this->assertSame( $this->_get_mock_dirsize_cache_for_site( $blog_id ), $cache );
+			$this->assertEqualSets( $this->_get_mock_dirsize_cache_for_site( $blog_id ), $cache );
 
 			// Cleanup.
 			$this->remove_added_uploads();
