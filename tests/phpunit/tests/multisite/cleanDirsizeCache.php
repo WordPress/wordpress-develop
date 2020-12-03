@@ -239,13 +239,13 @@ if ( is_multisite() ) :
 
 		function _get_mock_dirsize_cache_for_site( $site_id ) {
 			return array(
-				"/uploads/sites/$site_id/2/2" => 22,
-				"/uploads/sites/$site_id/2/1" => 21,
-				"/uploads/sites/$site_id/2"   => 2,
-				"/uploads/sites/$site_id/1/3" => 13,
-				"/uploads/sites/$site_id/1/2" => 12,
-				"/uploads/sites/$site_id/1/1" => 11,
-				"/uploads/sites/$site_id/1"   => 1,
+				"/uploads/sites/$site_id/2/2"              => 22,
+				"/uploads/sites/$site_id/2/1"              => 21,
+				"/uploads/sites/$site_id/2"                => 2,
+				"/uploads/sites/$site_id/1/3"              => 13,
+				"/uploads/sites/$site_id/1/2"              => 12,
+				"/uploads/sites/$site_id/1/1"              => 11,
+				"/uploads/sites/$site_id/1"                => 1,
 				"/uploads/sites/$site_id/custom_directory" => 42,
 			);
 		}
@@ -257,14 +257,69 @@ if ( is_multisite() ) :
 		 * @ticket 51913
 		 */
 		function test_5_5_transient_structure_compat() {
-			$this->markTestIncomplete();
+			$blog_id = self::factory()->blog->create();
+			switch_to_blog( $blog_id );
+
+			/*
+			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
+			 */
+			while ( 0 !== get_space_used() ) {
+				restore_current_blog();
+				$blog_id = self::factory()->blog->create();
+				switch_to_blog( $blog_id );
+			}
+
+			// Clear the dirsize cache.
+			delete_transient( 'dirsize_cache' );
+
+			// Set the dirsize cache to our mock.
+			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+
+			$upload_dir = wp_upload_dir();
+
+			// Check recurse_dirsize() against the mock. The cache should match.
+			$this->assertSame( 21, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+			$this->assertSame( 22, recurse_dirsize( $upload_dir['basedir'] . '/2/2' ) );
+			$this->assertSame( 2, recurse_dirsize( $upload_dir['basedir'] . '/2' ) );
+			$this->assertSame( 11, recurse_dirsize( $upload_dir['basedir'] . '/1/1' ) );
+			$this->assertSame( 12, recurse_dirsize( $upload_dir['basedir'] . '/1/2' ) );
+			$this->assertSame( 13, recurse_dirsize( $upload_dir['basedir'] . '/1/3' ) );
+			$this->assertSame( 1, recurse_dirsize( $upload_dir['basedir'] . '/1' ) );
+			$this->assertSame( 42, recurse_dirsize( $upload_dir['basedir'] . '/custom_directory' ) );
+
+			// No cache match, upload directory should be empty and return 0.
+			$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
+
+			// No cache match on non existing directory should return false.
+			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
+
+			// Ensure cache has updated to new format.
+			$year  = date( 'Y' );
+			$month = date( 'm' );
+			$cache = get_transient( 'dirsize_cache' );
+			// Remove values added by the function calls above
+			unset( $cache[ "/uploads/sites/$blog_id" ] );
+			unset( $cache[ "/uploads/sites/$blog_id/$year" ] );
+			unset( $cache[ "/uploads/sites/$blog_id/$year/$month" ] );
+			$this->assertSame( $this->_get_mock_dirsize_cache_for_site( $blog_id ), $cache );
+
+			// Cleanup.
+			$this->remove_added_uploads();
+			restore_current_blog();
 		}
 
-		function _get_mock_5_5_dirsize_cache() {
+		function _get_mock_5_5_dirsize_cache( $site_id ) {
 			return array(
-				'/home/foo/custom-content/uploads' => array(
-					'size' => 84713,
-				)
+				"/uploads/sites/$site_id/2/2"              => array( 'size' => 22 ),
+				"/uploads/sites/$site_id/2/1"              => array( 'size' => 21 ),
+				"/uploads/sites/$site_id/2"                => array( 'size' => 2 ),
+				"/uploads/sites/$site_id/1/3"              => array( 'size' => 13 ),
+				"/uploads/sites/$site_id/1/2"              => array( 'size' => 12 ),
+				"/uploads/sites/$site_id/1/1"              => array( 'size' => 11 ),
+				"/uploads/sites/$site_id/1"                => array( 'size' => 1 ),
+				"/uploads/sites/$site_id/custom_directory" => array( 'size' => 42 ),
 			);
 		}
 	}
