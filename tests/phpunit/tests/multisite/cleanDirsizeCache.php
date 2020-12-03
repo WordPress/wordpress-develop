@@ -311,15 +311,16 @@ if ( is_multisite() ) :
 		}
 
 		function _get_mock_5_5_dirsize_cache( $site_id ) {
+			$prefix = untrailingslashit( WP_CONTENT_DIR );
 			return array(
-				"/uploads/sites/$site_id/2/2"              => array( 'size' => 22 ),
-				"/uploads/sites/$site_id/2/1"              => array( 'size' => 21 ),
-				"/uploads/sites/$site_id/2"                => array( 'size' => 2 ),
-				"/uploads/sites/$site_id/1/3"              => array( 'size' => 13 ),
-				"/uploads/sites/$site_id/1/2"              => array( 'size' => 12 ),
-				"/uploads/sites/$site_id/1/1"              => array( 'size' => 11 ),
-				"/uploads/sites/$site_id/1"                => array( 'size' => 1 ),
-				"/uploads/sites/$site_id/custom_directory" => array( 'size' => 42 ),
+				"$prefix/uploads/sites/$site_id/2/2"              => array( 'size' => 22 ),
+				"$prefix/uploads/sites/$site_id/2/1"              => array( 'size' => 21 ),
+				"$prefix/uploads/sites/$site_id/2"                => array( 'size' => 2 ),
+				"$prefix/uploads/sites/$site_id/1/3"              => array( 'size' => 13 ),
+				"$prefix/uploads/sites/$site_id/1/2"              => array( 'size' => 12 ),
+				"$prefix/uploads/sites/$site_id/1/1"              => array( 'size' => 11 ),
+				"$prefix/uploads/sites/$site_id/1"                => array( 'size' => 1 ),
+				"$prefix/uploads/sites/$site_id/custom_directory" => array( 'size' => 42 ),
 			);
 		}
 	}
