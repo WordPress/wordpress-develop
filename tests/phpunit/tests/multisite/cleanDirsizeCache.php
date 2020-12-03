@@ -93,7 +93,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
+			$cache_key_prefix = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $upload_dir['basedir'] ) );
 
 			// Clear the dirsize cache.
 			delete_transient( 'dirsize_cache' );
@@ -126,6 +126,7 @@ if ( is_multisite() ) :
 		 * @ticket 19879
 		 */
 		function test_clean_dirsize_cache_folder_input_mock() {
+			$this->markTestIncomplete();
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -141,7 +142,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
+			$cache_key_prefix = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $upload_dir['basedir'] ) );
 
 			// Clear the dirsize cache.
 			delete_transient( 'dirsize_cache' );
@@ -174,6 +175,7 @@ if ( is_multisite() ) :
 		 * @ticket 19879
 		 */
 		function test_get_dirsize_cache_in_recurse_dirsize_upload() {
+			$this->markTestIncomplete();
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -205,7 +207,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $size, $calc_size );
 
 			// `dirsize_cache` should now be filled after upload and recurse_dirsize() call.
-			$cache_path = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['path'] ) );
+			$cache_path = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $upload_dir['path'] ) );
 			$this->assertSame( true, is_array( get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
@@ -234,15 +236,33 @@ if ( is_multisite() ) :
 
 		function _get_mock_dirsize_cache_for_site( $site_id ) {
 			return array(
-				"wp-content/uploads/sites/$site_id/2/2" => 22,
-				"wp-content/uploads/sites/$site_id/2/1" => 21,
-				"wp-content/uploads/sites/$site_id/2"   => 2,
-				"wp-content/uploads/sites/$site_id/1/3" => 13,
-				"wp-content/uploads/sites/$site_id/1/2" => 12,
-				"wp-content/uploads/sites/$site_id/1/1" => 11,
-				"wp-content/uploads/sites/$site_id/1"   => 1,
-				"wp-content/uploads/sites/$site_id/custom_directory" => 42,
+				"/uploads/sites/$site_id/2/2" => 22,
+				"/uploads/sites/$site_id/2/1" => 21,
+				"/uploads/sites/$site_id/2"   => 2,
+				"/uploads/sites/$site_id/1/3" => 13,
+				"/uploads/sites/$site_id/1/2" => 12,
+				"/uploads/sites/$site_id/1/1" => 11,
+				"/uploads/sites/$site_id/1"   => 1,
+				"/uploads/sites/$site_id/custom_directory" => 42,
 			);
+		}
+
+		function _get_mock_5_5_dirsize_cache() {
+			return array(
+				'/home/foo/custom-content/uploads' => array(
+					'size' => 84713,
+				)
+			);
+		}
+
+		/*
+		 * todo add desc, covers, etc
+		 *
+		 *
+		 * @ticket 51913
+		 */
+		function test_5_5_transient_structure_compat() {
+			$this->markTestIncomplete();
 		}
 	}
 
