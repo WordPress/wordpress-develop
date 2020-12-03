@@ -20,7 +20,7 @@ $wp_version = '5.6-RC2-49734-src';
  *
  * @global int $wp_db_version
  */
-$wp_db_version = 49632;
+$wp_db_version = 49735;
 
 /**
  * Holds the TinyMCE version.
