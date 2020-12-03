@@ -126,7 +126,6 @@ if ( is_multisite() ) :
 		 * @ticket 19879
 		 */
 		function test_clean_dirsize_cache_folder_input_mock() {
-			$this->markTestIncomplete();
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -175,7 +174,6 @@ if ( is_multisite() ) :
 		 * @ticket 19879
 		 */
 		function test_get_dirsize_cache_in_recurse_dirsize_upload() {
-			$this->markTestIncomplete();
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 

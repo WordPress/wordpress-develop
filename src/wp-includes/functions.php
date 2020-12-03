@@ -7731,7 +7731,7 @@ function clean_dirsize_cache( $path ) {
 		return;
 	}
 
-	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $path ) );
+	$cache_path = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $path ) );
 	unset( $directory_cache[ $cache_path ] );
 
 	while ( DIRECTORY_SEPARATOR !== $cache_path && '.' !== $cache_path && '..' !== $cache_path ) {
