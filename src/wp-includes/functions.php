@@ -7635,6 +7635,11 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		$save_cache      = true;
 	}
 
+	if ( isset( $directory_cache[ $directory ] ) ) {
+		$directory_cache[ $cache_path ] = $directory_cache[ $directory ];
+		unset( $directory_cache[ $directory ] );
+	}
+
 	if ( isset( $directory_cache[ $cache_path ] ) ) {
 		if (
 			isset( $directory_cache[ $cache_path ]['size'] ) &&
