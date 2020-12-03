@@ -205,7 +205,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $size, $calc_size );
 
 			// `dirsize_cache` should now be filled after upload and recurse_dirsize() call.
-			$cache_path = untrailingslashit( str_replace( WP_CONTENT_DIR, '', $upload_dir['path'] ) );
+			$cache_path = untrailingslashit( $upload_dir['path'] );
 			$this->assertSame( true, is_array( get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
@@ -233,28 +233,28 @@ if ( is_multisite() ) :
 		}
 
 		function _get_mock_dirsize_cache_for_site( $site_id ) {
-			$upload_dir = wp_upload_dir();
+			$prefix = wp_upload_dir()['basedir'];
 
 			return array(
-				$upload_dir['basedir'] . "/2/2"              => 22,
-				$upload_dir['basedir'] . "/2/1"              => 21,
-				$upload_dir['basedir'] . "/2"                => 2,
-				$upload_dir['basedir'] . "/1/3"              => 13,
-				$upload_dir['basedir'] . "/1/2"              => 12,
-				$upload_dir['basedir'] . "/1/1"              => 11,
-				$upload_dir['basedir'] . "/1"                => 1,
-				$upload_dir['basedir'] . "/custom_directory" => 42,
+				"$prefix/2/2"              => 22,
+				"$prefix/2/1"              => 21,
+				"$prefix/2"                => 2,
+				"$prefix/1/3"              => 13,
+				"$prefix/1/2"              => 12,
+				"$prefix/1/1"              => 11,
+				"$prefix/1"                => 1,
+				"$prefix/custom_directory" => 42,
 			);
 		}
 
 		/*
 		 * todo add desc, covers, etc
 		 *
+		 * expect this to create the exact same transient as the new one, but the files have to actually exist in order for that to happen
 		 *
 		 * @ticket 51913
 		 */
 		function test_5_5_transient_structure_compat() {
-			$this->markTestIncomplete();
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
 
@@ -277,49 +277,61 @@ if ( is_multisite() ) :
 
 			$upload_dir = wp_upload_dir();
 
-			// Check recurse_dirsize() against the mock. The cache should match.
-			$this->assertSame( 21, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
-			$this->assertSame( 22, recurse_dirsize( $upload_dir['basedir'] . '/2/2' ) );
-			$this->assertSame( 2, recurse_dirsize( $upload_dir['basedir'] . '/2' ) );
-			$this->assertSame( 11, recurse_dirsize( $upload_dir['basedir'] . '/1/1' ) );
-			$this->assertSame( 12, recurse_dirsize( $upload_dir['basedir'] . '/1/2' ) );
-			$this->assertSame( 13, recurse_dirsize( $upload_dir['basedir'] . '/1/3' ) );
-			$this->assertSame( 1, recurse_dirsize( $upload_dir['basedir'] . '/1' ) );
-			$this->assertSame( 42, recurse_dirsize( $upload_dir['basedir'] . '/custom_directory' ) );
+			/*
+			 * The cached size should be ignored, because it's in the old format. The function
+			 * will try to fetch a live value, but in this case the folder doesn't actually
+			 * exist on disk, so the function should fail.
+			 */
+			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+				// first run works, but 2nd fails b/c folder isn't cleaned up from last run
 
+			// Create the folder on disk.
+			wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
+			$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';
+			file_put_contents( $filename, "this file is 21 bytes" );
+
+			// Clear the dirsize cache.
+			delete_transient( 'dirsize_cache' );
+
+			// Set the dirsize cache to our mock.
+			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+
+			// Now that the folder exists, the old cached value should be overwritten with the size, using the current format.
+			$this->assertSame( 21, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+
+			// Ensure cache has updated to new format.
+			$this->assertSame( 21, get_transient( 'dirsize_cache' )[ $upload_dir['basedir'] . '/2/1' ] );
+
+
+
+//
 			// No cache match, upload directory should be empty and return 0.
-			$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
+//			$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
 
 			// No cache match on non existing directory should return false.
 			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
 
-			// Ensure cache has updated to new format.
-			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-			$year = date( 'Y' );
-			// phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-			$month = date( 'm' );
-			$cache = get_transient( 'dirsize_cache' );
-			// Remove values added by the function calls above
-			unset( $cache[ "/uploads/sites/$blog_id" ] );
-			unset( $cache[ "/uploads/sites/$blog_id/$year" ] );
-			unset( $cache[ "/uploads/sites/$blog_id/$year/$month" ] );
-			$this->assertEqualSets( $this->_get_mock_dirsize_cache_for_site( $blog_id ), $cache );
-
 			// Cleanup.
 			$this->remove_added_uploads();
+			// does ^ work w/ file_put_contents instead of upload_bits?
+			self::$ignore_files = array();
+			$this->rmdir( $upload_dir['basedir'] . '/2/1' );
+			// shouldn't be needed, but is
+			// doesn't work though
+
 			restore_current_blog();
 		}
 
 		function _get_mock_5_5_dirsize_cache( $site_id ) {
 			$prefix = untrailingslashit( wp_upload_dir()['basedir'] );
 			return array(
-				"$prefix/2/2" => array( 'size' => 22 ),
-				"$prefix/2/1" => array( 'size' => 21 ),
-				"$prefix/2"   => array( 'size' => 2 ),
-				"$prefix/1/3" => array( 'size' => 13 ),
-				"$prefix/1/2" => array( 'size' => 12 ),
-				"$prefix/1/1" => array( 'size' => 11 ),
-				"$prefix/1"   => array( 'size' => 1 ),
+				"$prefix/2/2"              => array( 'size' => 22 ),
+				"$prefix/2/1"              => array( 'size' => 21 ),
+				"$prefix/2"                => array( 'size' => 2 ),
+				"$prefix/1/3"              => array( 'size' => 13 ),
+				"$prefix/1/2"              => array( 'size' => 12 ),
+				"$prefix/1/1"              => array( 'size' => 11 ),
+				"$prefix/1"                => array( 'size' => 1 ),
 				"$prefix/custom_directory" => array( 'size' => 42 ),
 			);
 		}
