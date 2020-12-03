@@ -138,6 +138,7 @@ $allowed_options            = array(
 		'page_on_front',
 		'page_for_posts',
 		'blog_public',
+		'fulltext_search_enabled',
 	),
 	'writing'    => array(
 		'default_category',
