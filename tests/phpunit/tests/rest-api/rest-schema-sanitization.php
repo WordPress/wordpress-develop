@@ -62,6 +62,9 @@ class WP_Test_REST_Schema_Sanitization extends WP_UnitTestCase {
 			'format' => 'email',
 		);
 		$this->assertSame( 'email@example.com', rest_sanitize_value_from_schema( 'email@example.com', $schema ) );
+		$this->assertEquals( 'email@example.com', rest_sanitize_value_from_schema( 'email🙂@example.com', $schema ) );
+		$this->assertEquals( 'email@example.com', rest_sanitize_value_from_schema( '±email@example.com', $schema ) );
+		$this->assertEquals( 'email@example.com', rest_sanitize_value_from_schema( '(email@example.com)', $schema ) );
 		$this->assertSame( 'a@b.c', rest_sanitize_value_from_schema( 'a@b.c', $schema ) );
 		$this->assertSame( 'invalid', rest_sanitize_value_from_schema( 'invalid', $schema ) );
 	}

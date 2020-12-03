@@ -1204,6 +1204,26 @@ function rest_parse_hex_color( $color ) {
 }
 
 /**
+ * Sanitize email.
+ *
+ * @since 5.7.0
+ *
+ * @param string $email Email address
+ * @return string Valid email address.
+ */
+function rest_sanitize_email( $email ) {
+
+	if ( false !== is_email( $email ) ) {
+		return $email;
+	}
+
+	$email                      = sanitize_text_field( $email );
+	$allowed_characters_pattern = "/[^abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&'*+-=?\^_`{|}~@.\[\]]/";
+
+	return preg_replace( $allowed_characters_pattern, '', $email );
+}
+
+/**
  * Parses a date into both its local and UTC equivalent, in MySQL datetime format.
  *
  * @since 4.4.0
@@ -2455,7 +2475,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 			case 'email':
 				// sanitize_email() validates, which would be unexpected.
-				return sanitize_text_field( $value );
+				return rest_sanitize_email( $value );
 
 			case 'uri':
 				return esc_url_raw( $value );
