@@ -288,7 +288,7 @@ if ( is_multisite() ) :
 			// Create the folder on disk.
 			wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
 			$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';
-			file_put_contents( $filename, "this file is 21 bytes" );
+			file_put_contents( $filename, 'this file is 21 bytes' );
 
 			// Clear the dirsize cache.
 			delete_transient( 'dirsize_cache' );
@@ -302,11 +302,10 @@ if ( is_multisite() ) :
 			// Ensure cache has updated to new format.
 			$this->assertSame( 21, get_transient( 'dirsize_cache' )[ $upload_dir['basedir'] . '/2/1' ] );
 
+			// todo how do other tests handle the custom content dir, and wp in a subdir?
 
-
-//
 			// No cache match, upload directory should be empty and return 0.
-//			$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
+			//$this->assertSame( 0, recurse_dirsize( $upload_dir['basedir'] ) );
 
 			// No cache match on non existing directory should return false.
 			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
@@ -324,6 +323,7 @@ if ( is_multisite() ) :
 
 		function _get_mock_5_5_dirsize_cache( $site_id ) {
 			$prefix = untrailingslashit( wp_upload_dir()['basedir'] );
+
 			return array(
 				"$prefix/2/2"              => array( 'size' => 22 ),
 				"$prefix/2/1"              => array( 'size' => 21 ),
