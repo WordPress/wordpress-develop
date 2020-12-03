@@ -296,7 +296,6 @@ if ( is_multisite() ) :
 			// Set the dirsize cache to our mock.
 			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
 
-
 			/*
 			 * Now that the folder exists, the old cached value should be overwritten
 			 * with the size, using the current format.
