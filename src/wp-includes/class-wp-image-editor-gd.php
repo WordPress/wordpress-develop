@@ -323,7 +323,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$dst_h = $src_h;
 		}
 
-		foreach( array( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
+		foreach ( array( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
 			if ( ! is_numeric( $value ) || (int) $value <= 0 ) {
 				return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
 			}
