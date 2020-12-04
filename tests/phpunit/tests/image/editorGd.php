@@ -430,19 +430,19 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public function data_crop() {
 		return array(
-			array(
+			'src x,y = int 0; int w,h > 0'                 => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 50,
 				'src_h' => 50,
 			),
-			array(
+			'src x int, y string; string numeric w,h > 0'  => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => '50',
 				'src_h' => '50',
 			),
-			array(
+			'src x int, y string; src and dst w,h > 0 int' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 150,
@@ -474,25 +474,25 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public function data_crop_invalid_dimensions() {
 		return array(
-			array(
+			'int src_h = 0'                   => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 100,
 				'src_h' => 0,
 			),
-			array(
+			'int src_w = 0'                   => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 0,
 				'src_h' => 100,
 			),
-			array(
+			'src h = "NaN"'                   => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 100,
 				'src_h' => 'NaN',
 			),
-			array(
+			'string dst_w > 0; dst_h = "NaN"' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 100,
@@ -500,13 +500,21 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'dst_w' => '100',
 				'dst_h' => 'NaN',
 			),
-			array(
+			'all w,h = 0 int'                 => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 0,
 				'src_h' => 0,
 				'dst_w' => 0,
 				'dst_h' => 0,
+			),
+			'all w,h = 0 string'              => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => '0',
+				'src_h' => '0',
+				'dst_w' => '0',
+				'dst_h' => '0',
 			),
 		);
 	}
