@@ -323,7 +323,18 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$dst_h = $src_h;
 		}
 
-		$dst = wp_imagecreatetruecolor( $dst_w, $dst_h );
+		if ( ! is_numeric( $dst_w ) || ! is_numeric( $dst_h ) ) {
+			return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
+		}
+
+		$dst_w = (int) $dst_w;
+		$dst_h = (int) $dst_h;
+
+		if ( $dst_w > 0 && $dst_h > 0 ) {
+			$dst = wp_imagecreatetruecolor( $dst_w, $dst_h );
+		} else {
+			return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
+		}
 
 		if ( $src_abs ) {
 			$src_w -= $src_x;
