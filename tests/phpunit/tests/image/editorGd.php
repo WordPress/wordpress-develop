@@ -407,6 +407,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	/**
 	 * Test cropping an image.
 	 *
+	 * @ticket 51937
+	 *
 	 * @dataProvider data_crop
 	 */
 	public function test_crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
@@ -453,6 +455,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test should return WP_Error when dimensions are not integer or are <= 0.
+	 *
+	 * @ticket 51937
 	 *
 	 * @dataProvider data_crop_invalid_dimensions
 	 */
