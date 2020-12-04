@@ -11,18 +11,25 @@ jobs:
   # Runs the QUnit tests for WordPress.
   #
   # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
   # - Sets up caching for NPM.
   # - Logs updated debug information.
-  # _ Installs NPM dependencies.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress QUnit tests.
   # - todo: Configure Slack notifications for failing tests.
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
       - name: Checkout repository
         uses: actions/checkout@v2
 
@@ -55,7 +62,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npm ci
+        run: npx install-changed --install-command="npm ci"
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled

@@ -13,7 +13,7 @@
  * @access private
  *
  * @param int $request_id Request ID.
- * @return bool|WP_Error Returns true/false based on the success of sending the email, or a WP_Error object.
+ * @return bool|WP_Error Returns true if sending the email was successful, or a WP_Error object.
  */
 function _wp_privacy_resend_request( $request_id ) {
 	$request_id = absint( $request_id );
@@ -279,7 +279,7 @@ function wp_privacy_generate_personal_data_export_group_html( $group_data, $grou
 
 	if ( $groups_count > 1 ) {
 		$group_html .= '<div class="return-to-top">';
-		$group_html .= '<a href="#top"><span aria-hidden="true">&uarr; </span> ' . esc_html__( 'Return to top' ) . '</a>';
+		$group_html .= '<a href="#top"><span aria-hidden="true">&uarr; </span> ' . esc_html__( 'Go to top' ) . '</a>';
 		$group_html .= '</div>';
 	}
 

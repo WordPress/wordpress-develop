@@ -66,7 +66,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( 'abc', $this->request, 'someinteger' )
 		);
 	}
@@ -140,7 +140,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( '123', $this->request, 'someboolean' )
 		);
 	}
@@ -152,7 +152,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_invalid_type',
 			rest_validate_request_arg( array( 'foo' => 'bar' ), $this->request, 'somestring' )
 		);
 	}
@@ -248,7 +248,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
-		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
+		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
 		$this->assertFalse( isset( $args['someinteger']['description'] ) );
 	}
 
@@ -297,6 +297,8 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 			'additionalProperties',
 			'minProperties',
 			'maxProperties',
+			'anyOf',
+			'oneOf',
 		);
 		foreach ( $object_properties as $property ) {
 			$this->assertArrayHasKey( $property, $args['someobject'] );

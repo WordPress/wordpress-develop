@@ -40,8 +40,8 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 		public function register( $wp_customize ) {
 
 			// Change site-title & description to postMessage.
-			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage';
-			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage';
+			$wp_customize->get_setting( 'blogname' )->transport        = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
+			$wp_customize->get_setting( 'blogdescription' )->transport = 'postMessage'; // @phpstan-ignore-line. Assume that this setting exists.
 
 			// Add partial for blogname.
 			$wp_customize->selective_refresh->add_partial(
@@ -108,7 +108,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'type'    => 'radio',
 					'section' => 'excerpt_settings',
-					'label'   => esc_html__( 'On archive pages, posts show:', 'twentytwentyone' ),
+					'label'   => esc_html__( 'On Archive Pages, posts show:', 'twentytwentyone' ),
 					'choices' => array(
 						'excerpt' => esc_html__( 'Summary', 'twentytwentyone' ),
 						'full'    => esc_html__( 'Full text', 'twentytwentyone' ),
@@ -126,7 +126,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 			// Get the palette from theme-supports.
 			$palette = get_theme_support( 'editor-color-palette' );
 
-			// Build the colors array from our theme-support.
+			// Build the colors array from theme-support.
 			$colors = array();
 			if ( isset( $palette[0] ) && is_array( $palette[0] ) ) {
 				foreach ( $palette[0] as $palette_color ) {
@@ -140,7 +140,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 					$wp_customize,
 					'background_color',
 					array(
-						'label'   => esc_html__( 'Background Control', 'twentytwentyone' ),
+						'label'   => esc_html_x( 'Background color', 'Customizer control', 'twentytwentyone' ),
 						'section' => 'colors',
 						'palette' => $colors,
 					)

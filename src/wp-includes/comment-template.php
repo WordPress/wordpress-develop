@@ -422,12 +422,12 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  * @since 2.7.0
  * @since 4.4.0 Added the ability for `$comment` to also accept a WP_Comment object.
  *
- * @param string|array   $class    Optional. One or more classes to add to the class list.
- *                                 Default empty.
- * @param int|WP_Comment $comment  Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post    $post_id  Post ID or WP_Post object. Default current post.
- * @param bool           $echo     Optional. Whether to echo or return the output.
- *                                 Default true.
+ * @param string|string[] $class    Optional. One or more classes to add to the class list.
+ *                                  Default empty.
+ * @param int|WP_Comment  $comment  Comment ID or WP_Comment object. Default current comment.
+ * @param int|WP_Post     $post_id  Post ID or WP_Post object. Default current post.
+ * @param bool            $echo     Optional. Whether to echo or return the output.
+ *                                  Default true.
  * @return void|string Void if `$echo` argument is true, comment classes if `$echo` is false.
  */
 function comment_class( $class = '', $comment = null, $post_id = null, $echo = true ) {
@@ -451,9 +451,9 @@ function comment_class( $class = '', $comment = null, $post_id = null, $echo = t
  * @global int $comment_depth
  * @global int $comment_thread_alt
  *
- * @param string|array   $class      Optional. One or more classes to add to the class list. Default empty.
- * @param int|WP_Comment $comment_id Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post    $post_id    Post ID or WP_Post object. Default current post.
+ * @param string|string[] $class      Optional. One or more classes to add to the class list. Default empty.
+ * @param int|WP_Comment  $comment_id Comment ID or WP_Comment object. Default current comment.
+ * @param int|WP_Post     $post_id    Post ID or WP_Post object. Default current post.
  * @return string[] An array of classes.
  */
 function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
@@ -530,7 +530,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	 * @since 2.7.0
 	 *
 	 * @param string[]    $classes    An array of comment classes.
-	 * @param string      $class      A comma-separated list of additional classes added to the list.
+	 * @param string[]    $class      An array of additional classes added to the list.
 	 * @param int         $comment_id The comment ID.
 	 * @param WP_Comment  $comment    The comment object.
 	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
@@ -1033,7 +1033,7 @@ function comment_text( $comment_ID = 0, $args = array() ) {
  *
  * @since 1.5.0
  *
- * @param string $format    Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param string $format    Optional. PHP time format. Defaults to the 'time_format' option.
  * @param bool   $gmt       Optional. Whether to use the GMT date. Default false.
  * @param bool   $translate Optional. Whether to translate the time (for use in feeds).
  *                          Default true.
@@ -1067,7 +1067,7 @@ function get_comment_time( $format = '', $gmt = false, $translate = true ) {
  *
  * @since 0.71
  *
- * @param string $format Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param string $format Optional. PHP time format. Defaults to the 'time_format' option.
  */
 function comment_time( $format = '' ) {
 	echo get_comment_time( $format );
@@ -1434,6 +1434,24 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 				$top_level_args['include_unapproved'] = $comment_args['include_unapproved'];
 			}
 
+			/**
+			 * Filters the arguments used in the top level comments query.
+			 *
+			 * @since 5.6.0
+			 *
+			 * @see WP_Comment_Query::__construct()
+			 *
+			 * @param array $top_level_args {
+			 *     The top level query arguments for the comments template.
+			 *
+			 *     @type bool         $count   Whether to return a comment count.
+			 *     @type string|array $orderby The field(s) to order by.
+			 *     @type int          $post_id The post ID.
+			 *     @type string|array $status  The comment status to limit results by.
+			 * }
+			 */
+			$top_level_args = apply_filters( 'comments_template_top_level_query_args', $top_level_args );
+
 			$top_level_count = $top_level_query->query( $top_level_args );
 
 			$comment_args['offset'] = ( ceil( $top_level_count / $per_page ) - 1 ) * $per_page;
@@ -1463,7 +1481,8 @@ function comments_template( $file = '/comments.php', $separate_comments = false 
 	 *     @type int          $number                    Number of comments to fetch.
 	 * }
 	 */
-	$comment_args  = apply_filters( 'comments_template_query_args', $comment_args );
+	$comment_args = apply_filters( 'comments_template_query_args', $comment_args );
+
 	$comment_query = new WP_Comment_Query( $comment_args );
 	$_comments     = $comment_query->comments;
 
@@ -2480,7 +2499,7 @@ function comment_form( $args = array(), $post_id = null ) {
 	 */
 	$args = wp_parse_args( $args, apply_filters( 'comment_form_defaults', $defaults ) );
 
-	// Ensure that the filtered args contain all required default values.
+	// Ensure that the filtered arguments contain all required default values.
 	$args = array_merge( $defaults, $args );
 
 	// Remove `aria-describedby` from the email field if there's no associated description.

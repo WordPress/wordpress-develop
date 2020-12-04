@@ -89,8 +89,8 @@ class WP_Network_Query {
 	 * @param string|array $query {
 	 *     Optional. Array or query string of network query parameters. Default empty.
 	 *
-	 *     @type array        $network__in          Array of network IDs to include. Default empty.
-	 *     @type array        $network__not_in      Array of network IDs to exclude. Default empty.
+	 *     @type int[]        $network__in          Array of network IDs to include. Default empty.
+	 *     @type int[]        $network__not_in      Array of network IDs to exclude. Default empty.
 	 *     @type bool         $count                Whether to return a network count (true) or array of network objects.
 	 *                                              Default false.
 	 *     @type string       $fields               Network fields to return. Accepts 'ids' (returns an array of network IDs)
@@ -104,11 +104,11 @@ class WP_Network_Query {
 	 *                                              an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
 	 *     @type string       $order                How to order retrieved networks. Accepts 'ASC', 'DESC'. Default 'ASC'.
 	 *     @type string       $domain               Limit results to those affiliated with a given domain. Default empty.
-	 *     @type array        $domain__in           Array of domains to include affiliated networks for. Default empty.
-	 *     @type array        $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
+	 *     @type string[]     $domain__in           Array of domains to include affiliated networks for. Default empty.
+	 *     @type string[]     $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
 	 *     @type string       $path                 Limit results to those affiliated with a given path. Default empty.
-	 *     @type array        $path__in             Array of paths to include affiliated networks for. Default empty.
-	 *     @type array        $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
+	 *     @type string[]     $path__in             Array of paths to include affiliated networks for. Default empty.
+	 *     @type string[]     $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
 	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
 	 *     @type bool         $update_network_cache Whether to prime the cache for found networks. Default true.
 	 * }
@@ -212,7 +212,17 @@ class WP_Network_Query {
 		 *   an array of network IDs.
 		 * - Otherwise the filter should return an array of WP_Network objects.
 		 *
+		 * Note that if the filter returns an array of network data, it will be assigned
+		 * to the `networks` property of the current WP_Network_Query instance.
+		 *
+		 * Filtering functions that require pagination information are encouraged to set
+		 * the `found_networks` and `max_num_pages` properties of the WP_Network_Query object,
+		 * passed to the filter by reference. If WP_Network_Query does not perform a database
+		 * query, it will not have enough information to generate these values itself.
+		 *
 		 * @since 5.2.0
+		 * @since 5.6.0 The returned array of network data is assigned to the `networks` property
+		 *              of the current WP_Network_Query instance.
 		 *
 		 * @param array|int|null   $network_data Return an array of network data to short-circuit WP's network query,
 		 *                                       the network count as an integer if `$this->query_vars['count']` is set,
@@ -222,6 +232,10 @@ class WP_Network_Query {
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
 		if ( null !== $network_data ) {
+			if ( is_array( $network_data ) && ! $this->query_vars['count'] ) {
+				$this->networks = $network_data;
+			}
+
 			return $network_data;
 		}
 

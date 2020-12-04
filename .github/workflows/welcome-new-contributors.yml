@@ -5,6 +5,7 @@ on:
     types: [ opened ]
 
 jobs:
+  # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
     runs-on: ubuntu-latest
 
@@ -19,19 +20,19 @@ jobs:
             Thank you for your contribution to WordPress! 💖
 
 
-            It looks like this is your first pull request, so here are a few things to be aware of that may help you out.
+            It looks like this is your first pull request to `wordpress-develop`. Here are a few things to be aware of that may help you out!
 
 
             **No one monitors this repository for new pull requests.** Pull requests **must** be attached to a Trac ticket to be considered for inclusion in WordPress Core. To attach a pull request to a Trac ticket, please include the ticket's full URL in your pull request description.
 
 
-            **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this one mirrors. But please feel free to use pull requests to work on any contribution you are making.
+            **Pull requests are never merged on GitHub.** The WordPress codebase continues to be managed through the SVN repository that this GitHub repository mirrors. Please feel free to open pull requests to work on any contribution you are making.
 
 
             More information about how GitHub pull requests can be used to contribute to WordPress can be found in [this blog post](https://make.wordpress.org/core/2020/02/21/working-on-trac-tickets-using-github-pull-requests/).
 
 
-            Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
+            **Please include automated tests.** Including tests in your pull request is one way to help your patch be considered faster. To learn about WordPress' test suites, visit the [Automated Testing](https://make.wordpress.org/core/handbook/testing/automated-testing/) page in the handbook.
 
 
             If you have not had a chance, please review the [Contribute with Code page](https://make.wordpress.org/core/handbook/contribute/) in the [WordPress Core Handbook](https://make.wordpress.org/core/handbook/).
@@ -50,9 +51,6 @@ jobs:
             - [Accessibility Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/accessibility/)
 
             - [Inline Documentation Standards](https://developer.wordpress.org/coding-standards/inline-documentation-standards/)
-
-
-            Please remember that the WordPress project is largely maintained by volunteers
 
 
             Thank you,

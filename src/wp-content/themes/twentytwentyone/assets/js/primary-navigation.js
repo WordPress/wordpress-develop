@@ -14,6 +14,7 @@
 function twentytwentyoneToggleAriaExpanded( el, withListeners ) {
 	if ( 'true' !== el.getAttribute( 'aria-expanded' ) ) {
 		el.setAttribute( 'aria-expanded', 'true' );
+		twentytwentyoneSubmenuPosition( el.parentElement );
 		if ( withListeners ) {
 			document.addEventListener( 'click', twentytwentyoneCollapseMenuOnClickOutside );
 		}
@@ -34,18 +35,39 @@ function twentytwentyoneCollapseMenuOnClickOutside( event ) {
 }
 
 /**
+ * Changes the position of submenus so they always fit the screen horizontally.
+ *
+ * @param {Element} li - The li element.
+ */
+function twentytwentyoneSubmenuPosition( li ) {
+	var subMenu = li.querySelector( 'ul.sub-menu' ),
+		rect,
+		right,
+		left,
+		windowWidth;
+
+	if ( ! subMenu ) {
+		return;
+	}
+
+	rect = subMenu.getBoundingClientRect();
+	right = Math.round( rect.right );
+	left = Math.round( rect.left );
+	windowWidth = Math.round( window.innerWidth );
+
+	if ( right > windowWidth ) {
+		subMenu.classList.add( 'submenu-reposition-right' );
+	} else if ( document.body.classList.contains( 'rtl' ) && left < 0 ) {
+		subMenu.classList.add( 'submenu-reposition-left' );
+	}
+}
+
+/**
  * Handle clicks on submenu toggles.
  *
  * @param {Element} el - The element.
  */
 function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
-	// Close submenu that was opened from a hover action.
-	// We'll return early in this case to avoid changing the aria-expanded attribute.
-	if ( el.parentNode.classList.contains( 'hover' ) ) {
-		el.parentNode.classList.remove( 'hover' );
-		return;
-	}
-
 	// Close other expanded items.
 	el.closest( 'nav' ).querySelectorAll( '.sub-menu-toggle' ).forEach( function( button ) {
 		if ( button !== el ) {
@@ -101,7 +123,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			tabKey = event.keyCode === 9;
 			shiftKey = event.shiftKey;
 			escKey = event.keyCode === 27;
-			activeEl = document.activeElement;
+			activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
 			lastEl = elements[ elements.length - 1 ];
 			firstEl = elements[0];
 
@@ -130,12 +152,11 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 
 		document.getElementById( 'site-navigation' ).querySelectorAll( '.menu-wrapper > .menu-item-has-children' ).forEach( function( li ) {
 			li.addEventListener( 'mouseenter', function() {
-				if ( 'false' === this.querySelector( '.sub-menu-toggle' ).getAttribute( 'aria-expanded' ) ) {
-					this.classList.add( 'hover' );
-				}
+				this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'true' );
+				twentytwentyoneSubmenuPosition( li );
 			} );
 			li.addEventListener( 'mouseleave', function() {
-				this.classList.remove( 'hover' );
+				this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'false' );
 			} );
 		} );
 	};

@@ -18,17 +18,17 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		unset( $this->q );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
-		$post_id             = self::factory()->post->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		$post_id             = $factory->post->create(
 			array(
 				'post_content' => 1 . rand_str() . ' about',
 				'post_type'    => self::$post_type,
 			)
 		);
 		self::$post_ids[1][] = $post_id;
-		self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+		$factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 
-		$post_id             = self::factory()->post->create(
+		$post_id             = $factory->post->create(
 			array(
 				'post_content' => 1 . rand_str() . ' about',
 				'post_type'    => self::$post_type,
@@ -36,10 +36,10 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		);
 		self::$post_ids[4][] = $post_id;
 		for ( $i = 0; $i < 4; $i++ ) {
-			self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+			$factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 		}
 
-		$post_id             = self::factory()->post->create(
+		$post_id             = $factory->post->create(
 			array(
 				'post_content' => 1 . rand_str() . ' about',
 				'post_type'    => self::$post_type,
@@ -47,10 +47,10 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		);
 		self::$post_ids[5][] = $post_id;
 		for ( $i = 0; $i < 5; $i++ ) {
-			self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+			$factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 		}
 
-		$post_id             = self::factory()->post->create(
+		$post_id             = $factory->post->create(
 			array(
 				'post_content' => 1 . rand_str() . ' about',
 				'post_type'    => self::$post_type,
@@ -58,7 +58,7 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 		);
 		self::$post_ids[5][] = $post_id;
 		for ( $i = 0; $i < 5; $i++ ) {
-			self::factory()->comment->create( array( 'comment_post_ID' => $post_id ) );
+			$factory->comment->create( array( 'comment_post_ID' => $post_id ) );
 		}
 	}
 

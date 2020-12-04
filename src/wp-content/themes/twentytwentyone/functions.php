@@ -40,9 +40,8 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		/*
 		 * Let WordPress manage the document title.
-		 * By adding theme support, we declare that this theme does not use a
-		 * hard-coded <title> tag in the document head, and expect WordPress to
-		 * provide it for us.
+		 * This theme does not use a hard-coded <title> tag in the document head,
+		 * WordPress will provide it for us.
 		 */
 		add_theme_support( 'title-tag' );
 
@@ -74,8 +73,8 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		register_nav_menus(
 			array(
-				'primary' => esc_html__( 'Primary Navigation', 'twentytwentyone' ),
-				'footer'  => __( 'Footer Navigation', 'twentytwentyone' ),
+				'primary' => esc_html__( 'Primary menu', 'twentytwentyone' ),
+				'footer'  => __( 'Secondary menu', 'twentytwentyone' ),
 			)
 		);
 
@@ -126,6 +125,10 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		// Add support for editor styles.
 		add_theme_support( 'editor-styles' );
+		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
+		if ( 127 > Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( $background_color ) ) {
+			add_theme_support( 'dark-editor-style' );
+		}
 
 		$editor_stylesheet_path = './assets/css/style-editor.css';
 
@@ -145,43 +148,43 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 			array(
 				array(
 					'name'      => esc_html__( 'Extra small', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'XS', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'XS', 'Font size', 'twentytwentyone' ),
 					'size'      => 16,
 					'slug'      => 'extra-small',
 				),
 				array(
 					'name'      => esc_html__( 'Small', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'S', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'S', 'Font size', 'twentytwentyone' ),
 					'size'      => 18,
 					'slug'      => 'small',
 				),
 				array(
 					'name'      => esc_html__( 'Normal', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'M', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'M', 'Font size', 'twentytwentyone' ),
 					'size'      => 20,
 					'slug'      => 'normal',
 				),
 				array(
 					'name'      => esc_html__( 'Large', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'L', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'L', 'Font size', 'twentytwentyone' ),
 					'size'      => 24,
 					'slug'      => 'large',
 				),
 				array(
-					'name'      => esc_html__( 'Extra Large', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'XL', 'twentytwentyone' ),
+					'name'      => esc_html__( 'Extra large', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'XL', 'Font size', 'twentytwentyone' ),
 					'size'      => 40,
 					'slug'      => 'extra-large',
 				),
 				array(
 					'name'      => esc_html__( 'Huge', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'XXL', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'XXL', 'Font size', 'twentytwentyone' ),
 					'size'      => 96,
 					'slug'      => 'huge',
 				),
 				array(
 					'name'      => esc_html__( 'Gigantic', 'twentytwentyone' ),
-					'shortName' => esc_html__( 'XXXL', 'twentytwentyone' ),
+					'shortName' => esc_html_x( 'XXXL', 'Font size', 'twentytwentyone' ),
 					'size'      => 144,
 					'slug'      => 'gigantic',
 				),
@@ -217,7 +220,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 					'color' => $black,
 				),
 				array(
-					'name'  => esc_html__( 'Dark Gray', 'twentytwentyone' ),
+					'name'  => esc_html__( 'Dark gray', 'twentytwentyone' ),
 					'slug'  => 'dark-gray',
 					'color' => $dark_gray,
 				),
@@ -268,43 +271,43 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 			'editor-gradient-presets',
 			array(
 				array(
-					'name'     => esc_html__( 'Purple to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $purple . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Purple to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $purple . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'purple-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Purple', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $purple . ')',
+					'name'     => esc_html__( 'Yellow to purple', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $purple . ' 100%)',
 					'slug'     => 'yellow-to-purple',
 				),
 				array(
-					'name'     => esc_html__( 'Green to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $green . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Green to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $green . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'green-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Green', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $green . ')',
+					'name'     => esc_html__( 'Yellow to green', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $green . ' 100%)',
 					'slug'     => 'yellow-to-green',
 				),
 				array(
-					'name'     => esc_html__( 'Red to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $red . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Red to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $red . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'red-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Red', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $red . ')',
+					'name'     => esc_html__( 'Yellow to red', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $red . ' 100%)',
 					'slug'     => 'yellow-to-red',
 				),
 				array(
-					'name'     => esc_html__( 'Purple to Red', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $purple . ', ' . $red . ')',
+					'name'     => esc_html__( 'Purple to red', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $purple . ' 0%, ' . $red . ' 100%)',
 					'slug'     => 'purple-to-red',
 				),
 				array(
-					'name'     => esc_html__( 'Red to Purple', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $red . ', ' . $purple . ')',
+					'name'     => esc_html__( 'Red to purple', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $red . ' 0%, ' . $purple . ' 100%)',
 					'slug'     => 'red-to-purple',
 				),
 			)
@@ -330,9 +333,10 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		add_theme_support( 'experimental-link-color' );
 
 		// Add support for experimental cover block spacing.
-		add_theme_support( 'experimental-custom-spacing' );
+		add_theme_support( 'custom-spacing' );
 
 		// Add support for custom units.
+		// This was removed in WordPress 5.6 but is still required to properly support WP 5.5.
 		add_theme_support( 'custom-units' );
 	}
 }
@@ -412,15 +416,16 @@ function twenty_twenty_one_scripts() {
 		wp_enqueue_script( 'comment-reply' );
 	}
 
+	wp_register_script(
+		'twenty-twenty-one-ie11-polyfills',
+		get_template_directory_uri() . '/assets/js/polyfills.js',
+		array(),
+		wp_get_theme()->get( 'Version' ),
+		true
+	);
+
 	// Main navigation scripts.
 	if ( has_nav_menu( 'primary' ) ) {
-		wp_register_script(
-			'twenty-twenty-one-ie11-polyfills',
-			get_template_directory_uri() . '/assets/js/polyfills.js',
-			array(),
-			wp_get_theme()->get( 'Version' ),
-			true
-		);
 		wp_enqueue_script(
 			'twenty-twenty-one-primary-navigation-script',
 			get_template_directory_uri() . '/assets/js/primary-navigation.js',
@@ -429,6 +434,15 @@ function twenty_twenty_one_scripts() {
 			true
 		);
 	}
+
+	// Responsive embeds script.
+	wp_enqueue_script(
+		'twenty-twenty-one-responsive-embeds-script',
+		get_template_directory_uri() . '/assets/js/responsive-embeds.js',
+		array( 'twenty-twenty-one-ie11-polyfills' ),
+		wp_get_theme()->get( 'Version' ),
+		true
+	);
 }
 add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
 
@@ -441,7 +455,7 @@ add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
  */
 function twentytwentyone_block_editor_script() {
 
-	wp_enqueue_script( 'twentytwentyone-unregister-block-style', get_theme_file_uri( '/assets/js/unregister-block-style.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
+	wp_enqueue_script( 'twentytwentyone-editor', get_theme_file_uri( '/assets/js/editor.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }
 
 add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script' );
@@ -513,6 +527,10 @@ require get_template_directory() . '/inc/block-patterns.php';
 // Block Styles.
 require get_template_directory() . '/inc/block-styles.php';
 
+// Dark Mode.
+require_once get_template_directory() . '/classes/class-twenty-twenty-one-dark-mode.php';
+new Twenty_Twenty_One_Dark_Mode();
+
 /**
  * Enqueue scripts for the customizer preview.
  *
@@ -522,26 +540,71 @@ require get_template_directory() . '/inc/block-styles.php';
  */
 function twentytwentyone_customize_preview_init() {
 	wp_enqueue_script(
+		'twentytwentyone-customize-helpers',
+		get_theme_file_uri( '/assets/js/customize-helpers.js' ),
+		array(),
+		wp_get_theme()->get( 'Version' ),
+		true
+	);
+
+	wp_enqueue_script(
 		'twentytwentyone-customize-preview',
 		get_theme_file_uri( '/assets/js/customize-preview.js' ),
-		array( 'customize-preview', 'customize-selective-refresh', 'jquery' ),
-		get_theme_file_path( 'assets/js/customize-preview.js' ),
+		array( 'customize-preview', 'customize-selective-refresh', 'jquery', 'twentytwentyone-customize-helpers' ),
+		wp_get_theme()->get( 'Version' ),
 		true
 	);
 }
 add_action( 'customize_preview_init', 'twentytwentyone_customize_preview_init' );
 
 /**
- * Calculate any classes we may want to add to the main <html> element.
+ * Enqueue scripts for the customizer.
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function twentytwentyone_customize_controls_enqueue_scripts() {
+
+	wp_enqueue_script(
+		'twentytwentyone-customize-helpers',
+		get_theme_file_uri( '/assets/js/customize-helpers.js' ),
+		array(),
+		wp_get_theme()->get( 'Version' ),
+		true
+	);
+}
+add_action( 'customize_controls_enqueue_scripts', 'twentytwentyone_customize_controls_enqueue_scripts' );
+
+/**
+ * Calculate classes for the main <html> element.
  *
  * @since 1.0.0
  *
  * @return void
  */
 function twentytwentyone_the_html_classes() {
-	$background_color             = get_theme_mod( 'background_color', 'D1E4DD' );
-	$light_colors_default_palette = array( '#D1E4DD', '#D1DFE4', '#D1D1E4', '#E4D1D1', '#E4DAD1', '#EEEADD', '#FFFFFF' );
-	if ( in_array( strtoupper( '#' . ltrim( $background_color, '#' ) ), $light_colors_default_palette, true ) ) {
-		echo 'class="has-default-light-palette-background"';
+	$classes = apply_filters( 'twentytwentyone_html_classes', '' );
+	if ( ! $classes ) {
+		return;
 	}
+	echo 'class="' . esc_attr( $classes ) . '"';
 }
+
+/**
+ * Add "is-IE" class to body if the user is on Internet Explorer.
+ *
+ * @since 1.0.0
+ *
+ * @return void
+ */
+function twentytwentyone_add_ie_class() {
+	?>
+	<script>
+	if ( -1 !== navigator.userAgent.indexOf( 'MSIE' ) || -1 !== navigator.appVersion.indexOf( 'Trident/' ) ) {
+		document.body.classList.add( 'is-IE' );
+	}
+	</script>
+	<?php
+}
+add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );

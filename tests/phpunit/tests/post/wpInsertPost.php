@@ -3,14 +3,14 @@
 /**
  * @group post
  */
-class Tests_WPInsertPost extends WP_UnitTestCase {
+class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 
 	protected static $user_ids = array(
 		'administrator' => null,
 		'contributor'   => null,
 	);
 
-	static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids = array(
 			'administrator' => $factory->user->create(
 				array(

@@ -16,21 +16,29 @@
 		};
 
 	$approveBtn.click( function( e ) {
-		var name = $appNameField.val();
+		var name = $appNameField.val(),
+			appId = $( 'input[name="app_id"]', $form ).val();
 
 		e.preventDefault();
+
+		if ( $approveBtn.prop( 'aria-disabled' ) ) {
+			return;
+		}
 
 		if ( 0 === name.length ) {
 			$appNameField.focus();
 			return;
 		}
 
-		$appNameField.prop( 'disabled', true );
-		$approveBtn.prop( 'disabled', true );
+		$approveBtn.prop( 'aria-disabled', true ).addClass( 'disabled' );
 
 		var request = {
 			name: name
 		};
+
+		if ( appId.length > 0 ) {
+			request.app_id = appId;
+		}
 
 		/**
 		 * Filters the request data used to Authorize an Application Password request.
@@ -46,7 +54,7 @@
 		request = wp.hooks.applyFilters( 'wp_application_passwords_approve_app_request', request, context );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/me/application-passwords',
+			path: '/wp/v2/users/me/application-passwords?_locale=user',
 			method: 'POST',
 			data: request
 		} ).done( function( response, textStatus, jqXHR ) {
@@ -68,25 +76,27 @@
 
 			if ( raw ) {
 				url = raw + ( -1 === raw.indexOf( '?' ) ? '?' : '&' ) +
-					'user_login=' + encodeURIComponent( authApp.user_login ) +
+					'site_url=' + encodeURIComponent( authApp.site_url ) +
+					'&user_login=' + encodeURIComponent( authApp.user_login ) +
 					'&password=' + encodeURIComponent( response.password );
 
 				window.location = url;
 			} else {
 				message = wp.i18n.sprintf(
-					wp.i18n.__( 'Your new password for %1$s is: %2$s.' ),
-					'<strong></strong>',
-					'<kbd></kbd>'
-				);
+					/* translators: %s: Application name. */
+					'<label for="new-application-password-value">' + wp.i18n.__( 'Your new password for %s is:' ) + '</label>',
+					'<strong></strong>'
+				) + ' <input id="new-application-password-value" type="text" class="code" readonly="readonly" value="" />';
 				$notice = $( '<div></div>' )
 					.attr( 'role', 'alert' )
-					.attr( 'tabindex', 0 )
+					.attr( 'tabindex', -1 )
 					.addClass( 'notice notice-success notice-alt' )
-					.append( $( '<p></p>' ).html( message ) );
+					.append( $( '<p></p>' ).addClass( 'application-password-display' ).html( message ) )
+					.append( '<p>' + wp.i18n.__( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ) + '</p>' );
 
 				// We're using .text() to write the variables to avoid any chance of XSS.
 				$( 'strong', $notice ).text( name );
-				$( 'kbd', $notice ).text( response.password );
+				$( 'input', $notice ).val( response.password );
 
 				$form.replaceWith( $notice );
 				$notice.focus();
@@ -110,8 +120,7 @@
 
 			$( 'h1' ).after( $notice );
 
-			$appNameField.prop( 'disabled', false );
-			$approveBtn.prop( 'disabled', false );
+			$approveBtn.removeProp( 'aria-disabled', false ).removeClass( 'disabled' );
 
 			/**
 			 * Fires when an Authorize Application Password request encountered an error when trying to approve the request.

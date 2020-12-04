@@ -11,7 +11,7 @@ if ( is_multisite() ) :
 		protected static $network_ids;
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
 				WP_TESTS_DOMAIN . '/foo/'      => array(
 					'domain' => WP_TESTS_DOMAIN,

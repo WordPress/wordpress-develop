@@ -76,7 +76,7 @@ class WP_Query {
 	public $queried_object_id;
 
 	/**
-	 * Get post database query.
+	 * SQL for the database query.
 	 *
 	 * @since 2.0.1
 	 * @var string
@@ -84,10 +84,10 @@ class WP_Query {
 	public $request;
 
 	/**
-	 * List of posts.
+	 * Array of post objects or post IDs.
 	 *
 	 * @since 1.5.0
-	 * @var array
+	 * @var WP_Post[]|int[]
 	 */
 	public $posts;
 
@@ -118,8 +118,11 @@ class WP_Query {
 	/**
 	 * The current post.
 	 *
+	 * This property does not get populated when the `fields` argument is set to
+	 * `ids` or `id=>parent`.
+	 *
 	 * @since 1.5.0
-	 * @var WP_Post
+	 * @var WP_Post|null
 	 */
 	public $post;
 
@@ -127,7 +130,7 @@ class WP_Query {
 	 * The list of comments for current post.
 	 *
 	 * @since 2.2.0
-	 * @var array
+	 * @var WP_Comment[]
 	 */
 	public $comments;
 
@@ -148,10 +151,10 @@ class WP_Query {
 	public $current_comment = -1;
 
 	/**
-	 * Current comment ID.
+	 * Current comment object.
 	 *
 	 * @since 2.2.0
-	 * @var int
+	 * @var WP_Comment
 	 */
 	public $comment;
 
@@ -630,13 +633,13 @@ class WP_Query {
 	 *     @type int          $attachment_id           Attachment post ID. Used for 'attachment' post_type.
 	 *     @type int|string   $author                  Author ID, or comma-separated list of IDs.
 	 *     @type string       $author_name             User 'user_nicename'.
-	 *     @type array        $author__in              An array of author IDs to query from.
-	 *     @type array        $author__not_in          An array of author IDs not to query from.
+	 *     @type int[]        $author__in              An array of author IDs to query from.
+	 *     @type int[]        $author__not_in          An array of author IDs not to query from.
 	 *     @type bool         $cache_results           Whether to cache post information. Default true.
 	 *     @type int|string   $cat                     Category ID or comma-separated list of IDs (this or any children).
-	 *     @type array        $category__and           An array of category IDs (AND in).
-	 *     @type array        $category__in            An array of category IDs (OR in, no children).
-	 *     @type array        $category__not_in        An array of category IDs (NOT in).
+	 *     @type int[]        $category__and           An array of category IDs (AND in).
+	 *     @type int[]        $category__in            An array of category IDs (OR in, no children).
+	 *     @type int[]        $category__not_in        An array of category IDs (NOT in).
 	 *     @type string       $category_name           Use category slug (not name, this or any children).
 	 *     @type array|int    $comment_count           Filter results by comment count. Provide an integer to match
 	 *                                                 comment count exactly. Provide an array with integer 'value'
@@ -696,15 +699,15 @@ class WP_Query {
 	 *     @type string       $pagename                Page slug.
 	 *     @type string       $perm                    Show posts if user has the appropriate capability.
 	 *     @type string       $ping_status             Ping status.
-	 *     @type array        $post__in                An array of post IDs to retrieve, sticky posts will be included.
-	 *     @type array        $post__not_in            An array of post IDs not to retrieve. Note: a string of comma-
+	 *     @type int[]        $post__in                An array of post IDs to retrieve, sticky posts will be included.
+	 *     @type int[]        $post__not_in            An array of post IDs not to retrieve. Note: a string of comma-
 	 *                                                 separated IDs will NOT work.
 	 *     @type string       $post_mime_type          The mime type of the post. Used for 'attachment' post_type.
-	 *     @type array        $post_name__in           An array of post slugs that results must match.
+	 *     @type string[]     $post_name__in           An array of post slugs that results must match.
 	 *     @type int          $post_parent             Page ID to retrieve child pages for. Use 0 to only retrieve
 	 *                                                 top-level pages.
-	 *     @type array        $post_parent__in         An array containing parent page IDs to query child pages from.
-	 *     @type array        $post_parent__not_in     An array containing parent page IDs not to query child pages from.
+	 *     @type int[]        $post_parent__in         An array containing parent page IDs to query child pages from.
+	 *     @type int[]        $post_parent__not_in     An array containing parent page IDs not to query child pages from.
 	 *     @type string|array $post_type               A post type slug (string) or array of post type slugs.
 	 *                                                 Default 'any' if using 'tax_query'.
 	 *     @type string|array $post_status             A post status (string) or array of post statuses.
@@ -720,15 +723,15 @@ class WP_Query {
 	 *     @type bool         $sentence                Whether to search by phrase. Default false.
 	 *     @type bool         $suppress_filters        Whether to suppress filters. Default false.
 	 *     @type string       $tag                     Tag slug. Comma-separated (either), Plus-separated (all).
-	 *     @type array        $tag__and                An array of tag IDs (AND in).
-	 *     @type array        $tag__in                 An array of tag IDs (OR in).
-	 *     @type array        $tag__not_in             An array of tag IDs (NOT in).
+	 *     @type int[]        $tag__and                An array of tag IDs (AND in).
+	 *     @type int[]        $tag__in                 An array of tag IDs (OR in).
+	 *     @type int[]        $tag__not_in             An array of tag IDs (NOT in).
 	 *     @type int          $tag_id                  Tag id or comma-separated list of IDs.
-	 *     @type array        $tag_slug__and           An array of tag slugs (AND in).
-	 *     @type array        $tag_slug__in            An array of tag slugs (OR in). unless 'ignore_sticky_posts' is
+	 *     @type string[]     $tag_slug__and           An array of tag slugs (AND in).
+	 *     @type string[]     $tag_slug__in            An array of tag slugs (OR in). unless 'ignore_sticky_posts' is
 	 *                                                 true. Note: a string of comma-separated IDs will NOT work.
 	 *     @type array        $tax_query               An associative array of WP_Tax_Query arguments.
-	 *                                                 See WP_Tax_Query->queries.
+	 *                                                 See WP_Tax_Query->__construct().
 	 *     @type string       $title                   Post title.
 	 *     @type bool         $update_post_meta_cache  Whether to update the post meta cache. Default true.
 	 *     @type bool         $update_post_term_cache  Whether to update the post term cache. Default true.
@@ -791,7 +794,7 @@ class WP_Query {
 			$qv['menu_order'] = absint( $qv['menu_order'] );
 		}
 
-		// Fairly insane upper bound for search string lengths.
+		// Fairly large, potentially too large, upper bound for search string lengths.
 		if ( ! is_scalar( $qv['s'] ) || ( ! empty( $qv['s'] ) && strlen( $qv['s'] ) > 1600 ) ) {
 			$qv['s'] = '';
 		}
@@ -2660,6 +2663,7 @@ class WP_Query {
 
 			$comments = (array) $wpdb->get_results( "SELECT $distinct {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits" );
 			// Convert to WP_Comment.
+			/** @var WP_Comment[] */
 			$this->comments      = array_map( 'get_comment', $comments );
 			$this->comment_count = count( $this->comments );
 
@@ -2944,9 +2948,9 @@ class WP_Query {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param array|null $posts Return an array of post data to short-circuit WP's query,
-		 *                          or null to allow WP to run its normal queries.
-		 * @param WP_Query   $this  The WP_Query instance (passed by reference).
+		 * @param WP_Post[]|int[]|null $posts Return an array of post data to short-circuit WP's query,
+		 *                                    or null to allow WP to run its normal queries.
+		 * @param WP_Query             $this  The WP_Query instance (passed by reference).
 		 */
 		$this->posts = apply_filters_ref_array( 'posts_pre_query', array( null, &$this ) );
 
@@ -2955,6 +2959,7 @@ class WP_Query {
 				$this->posts = $wpdb->get_col( $this->request );
 			}
 
+			/** @var int[] */
 			$this->posts      = array_map( 'intval', $this->posts );
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $q, $limits );
@@ -2970,6 +2975,7 @@ class WP_Query {
 			$this->post_count = count( $this->posts );
 			$this->set_found_posts( $q, $limits );
 
+			/** @var int[] */
 			$r = array();
 			foreach ( $this->posts as $key => $post ) {
 				$this->posts[ $key ]->ID          = (int) $post->ID;
@@ -3030,6 +3036,7 @@ class WP_Query {
 
 		// Convert to WP_Post objects.
 		if ( $this->posts ) {
+			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 		}
 
@@ -3066,6 +3073,7 @@ class WP_Query {
 			$comments_request = "SELECT {$wpdb->comments}.* FROM {$wpdb->comments} $cjoin $cwhere $cgroupby $corderby $climits";
 			$comments         = $wpdb->get_results( $comments_request );
 			// Convert to WP_Comment.
+			/** @var WP_Comment[] */
 			$this->comments      = array_map( 'get_comment', $comments );
 			$this->comment_count = count( $this->comments );
 		}
@@ -3195,12 +3203,14 @@ class WP_Query {
 		if ( $this->posts ) {
 			$this->post_count = count( $this->posts );
 
+			/** @var WP_Post[] */
 			$this->posts = array_map( 'get_post', $this->posts );
 
 			if ( $q['cache_results'] ) {
 				update_post_caches( $this->posts, $post_type, $q['update_post_term_cache'], $q['update_post_meta_cache'] );
 			}
 
+			/** @var WP_Post */
 			$this->post = reset( $this->posts );
 		} else {
 			$this->post_count = 0;
@@ -3281,6 +3291,7 @@ class WP_Query {
 
 		$this->current_post++;
 
+		/** @var WP_Post */
 		$this->post = $this->posts[ $this->current_post ];
 		return $this->post;
 	}
@@ -3374,6 +3385,7 @@ class WP_Query {
 	public function next_comment() {
 		$this->current_comment++;
 
+		/** @var WP_Comment */
 		$this->comment = $this->comments[ $this->current_comment ];
 		return $this->comment;
 	}
@@ -3607,9 +3619,17 @@ class WP_Query {
 	/**
 	 * Is the query for an existing archive page?
 	 *
-	 * Month, Year, Category, Author, Post Type archive...
+	 * Archive pages include category, tag, author, date, custom post type,
+	 * and custom taxonomy based archives.
 	 *
 	 * @since 3.1.0
+	 *
+	 * @see WP_Query::is_category()
+	 * @see WP_Query::is_tag()
+	 * @see WP_Query::is_author()
+	 * @see WP_Query::is_date()
+	 * @see WP_Query::is_post_type_archive()
+	 * @see WP_Query::is_tax()
 	 *
 	 * @return bool Whether the query is for an existing archive page.
 	 */
@@ -3944,9 +3964,9 @@ class WP_Query {
 	 * If you set a static page for the front page of your site, this function will return
 	 * true only on the page you set as the "Posts page".
 	 *
-	 * @see WP_Query::is_front_page()
-	 *
 	 * @since 3.1.0
+	 *
+	 * @see WP_Query::is_front_page()
 	 *
 	 * @return bool Whether the query is for the blog homepage.
 	 */
@@ -3994,10 +4014,10 @@ class WP_Query {
 	 * If the $page parameter is specified, this function will additionally
 	 * check if the query is for one of the pages specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_single()
 	 * @see WP_Query::is_singular()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param int|string|int[]|string[] $page Optional. Page ID, title, slug, path, or array of such
 	 *                                        to check against. Default empty.
@@ -4101,10 +4121,10 @@ class WP_Query {
 	 * If the $post parameter is specified, this function will additionally
 	 * check if the query is for one of the Posts specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_page()
 	 * @see WP_Query::is_singular()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param int|string|int[]|string[] $post Optional. Post ID, title, slug, path, or array of such
 	 *                                        to check against. Default empty.
@@ -4151,10 +4171,10 @@ class WP_Query {
 	 * If the $post_types parameter is specified, this function will additionally
 	 * check if the query is for one of the Posts Types specified.
 	 *
+	 * @since 3.1.0
+	 *
 	 * @see WP_Query::is_page()
 	 * @see WP_Query::is_single()
-	 *
-	 * @since 3.1.0
 	 *
 	 * @param string|string[] $post_types Optional. Post type or array of post types
 	 *                                    to check against. Default empty.

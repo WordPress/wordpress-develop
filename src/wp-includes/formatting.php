@@ -2164,6 +2164,7 @@ function sanitize_key( $key ) {
  * @param string $title          The string to be sanitized.
  * @param string $fallback_title Optional. A title to use if $title is empty. Default empty.
  * @param string $context        Optional. The operation for which the string is sanitized.
+ *                               When set to 'save', the string runs through remove_accents().
  *                               Default 'save'.
  * @return string The sanitized string.
  */
@@ -2217,7 +2218,8 @@ function sanitize_title_for_query( $title ) {
  * @param string $title     The title to be sanitized.
  * @param string $raw_title Optional. Not used. Default empty.
  * @param string $context   Optional. The operation for which the string is sanitized.
- *                          Default 'display'.
+ *                          When set to 'save', additional entities are converted to hyphens
+ *                          or stripped entirely. Default 'display'.
  * @return string The sanitized title.
  */
 function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'display' ) {
@@ -4299,6 +4301,8 @@ function esc_sql( $data ) {
  *                            Defaults to return value of wp_allowed_protocols().
  * @param string   $_context  Private. Use esc_url_raw() for database usage.
  * @return string The cleaned URL after the {@see 'clean_url'} filter is applied.
+ *                An empty string is returned if `$url` specifies a protocol other than
+ *                those in `$protocols`, or if `$url` contains an empty string.
  */
 function esc_url( $url, $protocols = null, $_context = 'display' ) {
 	$original_url = $url;
@@ -4403,10 +4407,12 @@ function esc_url( $url, $protocols = null, $_context = 'display' ) {
  *
  * @since 2.8.0
  *
+ * @see esc_url()
+ *
  * @param string   $url       The URL to be cleaned.
  * @param string[] $protocols Optional. An array of acceptable protocols.
  *                            Defaults to return value of wp_allowed_protocols().
- * @return string The cleaned URL.
+ * @return string The cleaned URL after esc_url() is run with the 'db' context.
  */
 function esc_url_raw( $url, $protocols = null ) {
 	return esc_url( $url, $protocols, 'db' );
@@ -5665,7 +5671,7 @@ function _print_emoji_detection_script() {
 		 *
 		 * @param string $url The emoji base URL for png images.
 		 */
-		'baseUrl' => apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/13.0.0/72x72/' ),
+		'baseUrl' => apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/13.0.1/72x72/' ),
 
 		/**
 		 * Filters the extension of the emoji png files.
@@ -5683,7 +5689,7 @@ function _print_emoji_detection_script() {
 		 *
 		 * @param string $url The emoji base URL for svg images.
 		 */
-		'svgUrl'  => apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/13.0.0/svg/' ),
+		'svgUrl'  => apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/13.0.1/svg/' ),
 
 		/**
 		 * Filters the extension of the emoji SVG files.
@@ -5798,7 +5804,7 @@ function wp_staticize_emoji( $text ) {
 	}
 
 	/** This filter is documented in wp-includes/formatting.php */
-	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/13.0.0/72x72/' );
+	$cdn_url = apply_filters( 'emoji_url', 'https://s.w.org/images/core/emoji/13.0.1/72x72/' );
 
 	/** This filter is documented in wp-includes/formatting.php */
 	$ext = apply_filters( 'emoji_ext', '.png' );
