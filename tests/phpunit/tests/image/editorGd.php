@@ -430,19 +430,27 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public function data_crop() {
 		return array(
-			'src x,y = int 0; int w,h > 0'                 => array(
+			'src height and width must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 50,
 				'src_h' => 50,
 			),
-			'src x int, y string; string numeric w,h > 0'  => array(
+			'src height and width can be string but must be greater than 0' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => '50',
 				'src_h' => '50',
 			),
-			'src x int, y string; src and dst w,h > 0 int' => array(
+			'dst height and width must be greater than 0' => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => 150,
+				'src_h' => 150,
+				'dst_w' => 150,
+				'dst_h' => 150,
+			),
+			'dst height and width can be string but must be greater than 0' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 150,
@@ -474,25 +482,25 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	public function data_crop_invalid_dimensions() {
 		return array(
-			'int src_h = 0'                   => array(
+			'src height must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 100,
 				'src_h' => 0,
 			),
-			'int src_w = 0'                   => array(
+			'src width must be greater than 0'  => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 0,
 				'src_h' => 100,
 			),
-			'src h = "NaN"'                   => array(
+			'src height must be numeric and greater than 0' => array(
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 100,
 				'src_h' => 'NaN',
 			),
-			'string dst_w > 0; dst_h = "NaN"' => array(
+			'dst height must be numeric and greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 100,
@@ -500,7 +508,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'dst_w' => '100',
 				'dst_h' => 'NaN',
 			),
-			'all w,h = 0 int'                 => array(
+			'src and dst height and width must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => 0,
@@ -508,7 +516,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'dst_w' => 0,
 				'dst_h' => 0,
 			),
-			'all w,h = 0 string'              => array(
+			'src and dst height and width can be string but must be greater than 0' => array(
 				'src_x' => 0,
 				'src_y' => 0,
 				'src_w' => '0',
