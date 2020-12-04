@@ -490,7 +490,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'src_x' => 10,
 				'src_y' => '10',
 				'src_w' => 100,
-				'src_h' => NAN,
+				'src_h' => 'NaN',
 			),
 			array(
 				'src_x' => 0,
@@ -498,7 +498,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 				'src_w' => 100,
 				'src_h' => 50,
 				'dst_w' => '100',
-				'dst_h' => NAN,
+				'dst_h' => 'NaN',
 			),
 			array(
 				'src_x' => 0,
