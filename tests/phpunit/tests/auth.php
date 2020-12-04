@@ -605,4 +605,14 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertSame( self::$user_id, $user->ID );
 	}
+
+	/**
+	 * @ticket 51939
+	 */
+	public function test_authenticate_application_password_returns_null_if_not_in_use() {
+		delete_site_option( 'using_application_passwords' );
+
+		$authenticated = wp_authenticate_application_password( null, 'idonotexist', 'password' );
+		$this->assertNull( $authenticated );
+	}
 }
