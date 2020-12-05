@@ -113,7 +113,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Ensure multi_resize doesn't create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize_does_not_create() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -181,7 +181,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	/**
 	 * Test multi_resize with multiple sizes
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
