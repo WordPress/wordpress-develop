@@ -32,7 +32,7 @@ get_current_screen()->set_help_sidebar(
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
-if ( current_user_can( 'install_plugins' ) ) {
+if ( current_user_can( 'activate_plugins' ) ) {
 	// List of popular importer plugins from the WordPress.org API.
 	$popular_importers = wp_get_popular_importers();
 } else {
