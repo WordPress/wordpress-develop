@@ -829,6 +829,11 @@ function fetch_feed( $url ) {
 	$feed->init();
 	$feed->set_output_encoding( get_option( 'blog_charset' ) );
 
+	$link = $feed->data['headers']->offsetGet( 'link' );
+	if ( is_array( $link ) ) {
+		$feed->data['headers']->offsetSet( 'link', $link[ 0 ] );
+	}
+
 	if ( $feed->error() ) {
 		return new WP_Error( 'simplepie-error', $feed->error() );
 	}
