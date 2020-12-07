@@ -831,7 +831,12 @@ function fetch_feed( $url ) {
 
 	$link = $feed->data['headers']->offsetGet( 'link' );
 	if ( is_array( $link ) ) {
-		$feed->data['headers']->offsetSet( 'link', $link[ 0 ] );
+		$feed->data['headers']->offsetSet( 'link', $link[0] );
+
+		/* todo
+		 * is this back-compat?
+		 * what should be done w/ the 2nd link? just ignore it?
+		 */
 	}
 
 	if ( $feed->error() ) {
