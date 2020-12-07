@@ -62,6 +62,14 @@ class WP_SimplePie_File extends SimplePie_File {
 				$this->success = false;
 			} else {
 				$this->headers     = wp_remote_retrieve_headers( $res );
+				// Merge multiple headers of the same name to a single one, separated by comma.
+				foreach ( $this->headers as $name => $value ) {
+					if ( is_array( $value ) && $name === 'content-type' ) { // We should only use the last Content-Type header.
+						$this->headers[ $name ] = array_pop( $value );
+					} else if( is_array( $value ) ) {
+						$this->headers[ $name ] = join( ', ', $value );
+					}
+				}
 				$this->body        = wp_remote_retrieve_body( $res );
 				$this->status_code = wp_remote_retrieve_response_code( $res );
 			}
