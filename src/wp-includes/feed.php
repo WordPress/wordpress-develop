@@ -829,11 +829,15 @@ function fetch_feed( $url ) {
 	$feed->init();
 	$feed->set_output_encoding( get_option( 'blog_charset' ) );
 
+	// todo explain why it's doing this
 	$link = $feed->data['headers']->offsetGet( 'link' );
+
 	if ( is_array( $link ) ) {
 		$feed->data['headers']->offsetSet( 'link', $link[0] );
 
 		/* todo
+		 * is this the best solution?
+		 * should simplepie handle this scenario, or is core passing it invalid data?
 		 * is this back-compat?
 		 * what should be done w/ the 2nd link? just ignore it?
 		 */
