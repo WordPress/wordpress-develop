@@ -958,6 +958,7 @@ function rest_output_link_header() {
 	$resource = rest_get_queried_resource_route();
 
 	if ( $resource ) {
+		// todo why doesn't this get triggered for category feed on most sites, like it does on the reporter's site?
 		header( sprintf( 'Link: <%s>; rel="alternate"; type="application/json"', esc_url_raw( rest_url( $resource ) ) ), false );
 	}
 }

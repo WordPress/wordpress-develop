@@ -838,8 +838,17 @@ function fetch_feed( $url ) {
 		/* todo
 		 * is this the best solution?
 		 * should simplepie handle this scenario, or is core passing it invalid data?
+		 *      core it outputting 2 feeds, simplepie expects 1. is that a valid expectation for simplepie?
 		 * is this back-compat?
+		 *
+		 * props: NicolasKulka, Tonya Mork , mbabker, Toni Viemerö , sergey, jonathan, timothy, anyone else?
+		 *
 		 * what should be done w/ the 2nd link? just ignore it?
+		 *      should the wp/v2/categories/id link actually e the ones that's used? i guess so, since it's a category feed
+		 *      what's most reliable way to detect which link is the correct one? just hardcode a search for "category" etc, or just assume the 2nd/last one?
+		 *           neither seems reliable
+		 *
+		 * if #51056 is not a duplicate, then it should also be tested for php8 compat, and given the php8 keyword if it fatals
 		 */
 	}
 
