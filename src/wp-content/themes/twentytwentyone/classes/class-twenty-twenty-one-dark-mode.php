@@ -185,7 +185,7 @@ class Twenty_Twenty_One_Dark_Mode {
 		$description  = '<p>';
 		$description .= sprintf(
 			// translators: %s is the wordpress.org Twenty Twenty-One support article URL.
-			__( 'Dark Mode is a device setting. If a visitor to your site requests it, your site will be shown with a dark background and light text. <a href="%s">Learn more about Dark Mode.</a>', 'twentytwentyone' ),
+			__( 'Dark Mode is a device setting. If a visitor to your site requests it, your site will be shown with a dark background and light text. <a href="%s">Learn more about Dark Mode</a>.', 'twentytwentyone' ),
 			__( 'https://wordpress.org/support/article/twenty-twenty-one/', 'twentytwentyone' )
 		);
 		$description .= '</p>';
