@@ -842,6 +842,7 @@ function fetch_feed( $url ) {
 		 * is this back-compat?
 		 *
 		 * props: NicolasKulka, Tonya Mork , mbabker, Toni Viemerö , sergey, jonathan, timothy, anyone else?
+		 *      also add folks from 51056?
 		 *
 		 * what should be done w/ the 2nd link? just ignore it?
 		 *      should the wp/v2/categories/id link actually e the ones that's used? i guess so, since it's a category feed
@@ -849,6 +850,12 @@ function fetch_feed( $url ) {
 		 *           neither seems reliable
 		 *
 		 * if #51056 is not a duplicate, then it should also be tested for php8 compat, and given the php8 keyword if it fatals
+		 *      todo: er, wait, maybe it is? https://core.trac.wordpress.org/ticket/51956#comment:17
+		 *      if so, then need to determine if the patch there is better solution than this
+		 *      it seems like 51056 is better,based on https://core.trac.wordpress.org/ticket/51056#comment:3
+		 *      it's valid for simplepie to expect a string instead of array, b/c its parser combined multiple headers into a command-separated string
+		 *      if that's the case, then close 51956 as duplicate, and mention that on both tickets
+		 *      iterate on 51056 patch if necessary & commit, include props from 51956
 		 */
 	}
 
