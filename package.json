@@ -155,9 +155,9 @@
 		"watch": "grunt watch",
 		"watch:src": "grunt watch --src",
 
-		"build:dev": "echo '`build:dev` is deprecated, please run `build:src` instead.' && grunt build --dev",
-		"watch:dev": "echo '`watch:dev` is deprecated, please run `watch:src` instead.' && grunt watch --dev",
-		"dev": "echo '`dev` is deprecated, please run `watch:src` instead.' && grunt watch --dev",
+		"build:dev": "echo '`build:dev` is deprecated, please run `build:src` instead.' && npm run build:src",
+		"watch:dev": "echo '`watch:dev` is deprecated, please run `watch:src` instead.' && npm run watch:src",
+		"dev": "echo '`dev` is deprecated, please run `watch:src` instead.' && npm run watch:src",
 
 		"test": "grunt test",
 		"grunt": "grunt",

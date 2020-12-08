@@ -139,3 +139,5 @@ npm run build       # copies and compiles all files into the `build/` folder
 npm run watch:src   # compiles dynamic files into the `src/` folder
 npm run build:src   # compiles dynamic files into the `src/` folder
 ```
+
+Those map to corresponding Grunt commands; e.g., `npm run watch` is the same as `grunt watch`, and `npm run watch:src` is the same as `grunt watch --src`.
