@@ -40,11 +40,16 @@ Your WordPress site will accessible at http://localhost:8889. You can see or cha
 
 #### To watch for changes
 
-If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
+If you're making changes to WordPress core files, you should start one of the file watchers in order to build or copy the files as necessary:
 
 ```
-npm run watch
+npm run watch       # copies and compiles all files into the `build/` folder
+npm run watch:src   # compiles dynamic files into the `src/` folder
 ```
+
+er, maybe shouldn't change any of these instructions, because it's geared towards wp-env?
+maybe instead add a new section for folks using their own environment?
+
 
 To stop the watcher, press `ctrl+c`.
 
@@ -112,3 +117,25 @@ To generate a new password (recommended):
 2. Click the Users menu on the left
 3. Click the Edit link below the admin user
 4. Scroll down and click 'Generate password'. Either use this password (recommended) or change it, then click 'Update User'. If you use the generated password be sure to save it somewhere (password manager, etc).
+
+
+## Using Your Own Environment
+
+you can also run in your own environment
+link to existing docs for that
+
+### `src/` and `build/`
+
+briefly describe why there are two folders, how they're used
+
+you can configure you web server to have either of them as the root
+pros & cons of doing that for each of them
+
+comprehensive list of commands to run, and descriptions of what they do:
+
+```
+npm run watch       # copies and compiles all files into the `build/` folder
+npm run build       # copies and compiles all files into the `build/` folder
+npm run watch:src   # compiles dynamic files into the `src/` folder
+npm run build:src   # compiles dynamic files into the `src/` folder
+```

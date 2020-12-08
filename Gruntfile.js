@@ -1,3 +1,5 @@
+/* todo test all changes here */
+
 /* jshint node:true */
 /* jshint esversion: 6 */
 /* globals Set */
@@ -5,12 +7,17 @@ var webpackConfig = require( './webpack.config' );
 var installChanged = require( 'install-changed' );
 
 module.exports = function(grunt) {
+	if ( grunt.option( 'dev' ) ) {
+		grunt.warn( 'The `--dev flag is deprecated, please use `--src` instead.' );
+		grunt.option( 'src', true );
+	}
+
 	var path = require('path'),
 		fs = require( 'fs' ),
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
-		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
+		WORKING_DIR = grunt.option( 'src' ) ? SOURCE_DIR : BUILD_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		nodesass = require( 'node-sass' ),
@@ -511,7 +518,7 @@ module.exports = function(grunt) {
 					'wp-includes/css/*.css',
 
 					// Exclude minified and already processed files, and files from external packages.
-					// These are present when running `grunt build` after `grunt --dev`.
+					// These are present when running `grunt build` after `grunt --src`.
 					'!wp-admin/css/*-rtl.css',
 					'!wp-includes/css/*-rtl.css',
 					'!wp-admin/css/*.min.css',
@@ -762,7 +769,9 @@ module.exports = function(grunt) {
 		},
 		webpack: {
 			prod: webpackConfig( { environment: 'production', buildTarget: WORKING_DIR } ),
-			dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
+			//dev: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
+				// does this also need to be deprecated, or is it just the grunt option?
+			src: webpackConfig( { environment: 'development', buildTarget: WORKING_DIR } ),
 			watch: webpackConfig( { environment: 'development', watch: true } )
 		},
 		concat: {
@@ -1153,6 +1162,7 @@ module.exports = function(grunt) {
 					'webpack-dev.config.js'
 				],
 				tasks: ['clean:dynamic', 'webpack:dev', 'uglify:dynamic', 'jsvalidate:dynamic'],
+					// is this related to the dev/src grunt option, or something different?
 				options: {
 					dot: true,
 					spawn: false
@@ -1429,7 +1439,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
-		if ( grunt.option( 'dev' ) ) {
+		if ( grunt.option( 'src' ) ) {
 			grunt.task.run( [
 				'build:js',
 				'build:css',
