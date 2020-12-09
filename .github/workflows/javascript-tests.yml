@@ -23,6 +23,8 @@ jobs:
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
