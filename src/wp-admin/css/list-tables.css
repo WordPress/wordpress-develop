@@ -908,6 +908,43 @@ tr.inline-edit-row td,
 	padding: 2px;
 }
 
+.inline-edit-save {
+	align-items: center;
+	display: flex;
+}
+
+.inline-edit-save .spinner {
+	margin: 0;
+	width: 0;
+}
+
+.inline-edit-save .spinner.is-active {
+	margin: 0 10px;
+	width: 20px;
+}
+
+.inline-edit-save .cancel {
+	align-items: center;
+	color: #a00;
+	cursor: pointer;
+	display: inline-flex;
+	margin-left: 10px;
+	min-height: 40px;
+	margin-bottom: 4px;
+}
+
+@media screen and (min-width: 783px) {
+	.inline-edit-save .cancel {
+		min-height: 30px;
+		margin-bottom: 0;
+	}
+}
+
+.inline-edit-save .spinner.is-active + .cancel {
+	margin-left: 0;
+}
+
+
 /*	Positioning */
 
 /* Needs higher specificity for the padding */
