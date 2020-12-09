@@ -66,7 +66,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
@@ -161,7 +161,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Use cached Node modules
         uses: actions/cache@v2
