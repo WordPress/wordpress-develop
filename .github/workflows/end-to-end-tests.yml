@@ -34,7 +34,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == pull_request }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
