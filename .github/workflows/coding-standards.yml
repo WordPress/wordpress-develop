@@ -27,7 +27,7 @@ jobs:
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == pull_request }}
 
     steps:
       - name: Checkout repository
@@ -89,7 +89,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
-    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == pull_request }}
 
     steps:
       - name: Checkout repository
