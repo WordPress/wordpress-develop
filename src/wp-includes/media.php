@@ -1739,7 +1739,7 @@ function wp_lazy_loading_enabled( $tag_name, $context ) {
  * Future similar optimizations should be added/expected here.
  *
  * @since 5.5.0
- * @since 5.7.0 Now adds `loading` attributes to `iframe` tags.
+ * @since 5.7.0 Now supports adding `loading` attributes to `iframe` tags.
  *
  * @see wp_img_tag_add_width_and_height_attr()
  * @see wp_img_tag_add_srcset_and_sizes_attr()
