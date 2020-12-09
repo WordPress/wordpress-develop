@@ -73,8 +73,8 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 
 		register_nav_menus(
 			array(
-				'primary' => esc_html__( 'Primary Navigation', 'twentytwentyone' ),
-				'footer'  => __( 'Footer Navigation', 'twentytwentyone' ),
+				'primary' => esc_html__( 'Primary menu', 'twentytwentyone' ),
+				'footer'  => __( 'Secondary menu', 'twentytwentyone' ),
 			)
 		);
 
@@ -171,7 +171,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 					'slug'      => 'large',
 				),
 				array(
-					'name'      => esc_html__( 'Extra Large', 'twentytwentyone' ),
+					'name'      => esc_html__( 'Extra large', 'twentytwentyone' ),
 					'shortName' => esc_html_x( 'XL', 'Font size', 'twentytwentyone' ),
 					'size'      => 40,
 					'slug'      => 'extra-large',
@@ -220,7 +220,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 					'color' => $black,
 				),
 				array(
-					'name'  => esc_html__( 'Dark Gray', 'twentytwentyone' ),
+					'name'  => esc_html__( 'Dark gray', 'twentytwentyone' ),
 					'slug'  => 'dark-gray',
 					'color' => $dark_gray,
 				),
@@ -271,43 +271,43 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 			'editor-gradient-presets',
 			array(
 				array(
-					'name'     => esc_html__( 'Purple to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $purple . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Purple to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $purple . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'purple-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Purple', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $purple . ')',
+					'name'     => esc_html__( 'Yellow to purple', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $purple . ' 100%)',
 					'slug'     => 'yellow-to-purple',
 				),
 				array(
-					'name'     => esc_html__( 'Green to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $green . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Green to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $green . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'green-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Green', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $green . ')',
+					'name'     => esc_html__( 'Yellow to green', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $green . ' 100%)',
 					'slug'     => 'yellow-to-green',
 				),
 				array(
-					'name'     => esc_html__( 'Red to Yellow', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $red . ', ' . $yellow . ')',
+					'name'     => esc_html__( 'Red to yellow', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $red . ' 0%, ' . $yellow . ' 100%)',
 					'slug'     => 'red-to-yellow',
 				),
 				array(
-					'name'     => esc_html__( 'Yellow to Red', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $yellow . ', ' . $red . ')',
+					'name'     => esc_html__( 'Yellow to red', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $yellow . ' 0%, ' . $red . ' 100%)',
 					'slug'     => 'yellow-to-red',
 				),
 				array(
-					'name'     => esc_html__( 'Purple to Red', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $purple . ', ' . $red . ')',
+					'name'     => esc_html__( 'Purple to red', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $purple . ' 0%, ' . $red . ' 100%)',
 					'slug'     => 'purple-to-red',
 				),
 				array(
-					'name'     => esc_html__( 'Red to Purple', 'twentytwentyone' ),
-					'gradient' => 'linear-gradient(160deg, ' . $red . ', ' . $purple . ')',
+					'name'     => esc_html__( 'Red to purple', 'twentytwentyone' ),
+					'gradient' => 'linear-gradient(160deg, ' . $red . ' 0%, ' . $purple . ' 100%)',
 					'slug'     => 'red-to-purple',
 				),
 			)
@@ -333,7 +333,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		add_theme_support( 'experimental-link-color' );
 
 		// Add support for experimental cover block spacing.
-		add_theme_support( 'experimental-custom-spacing' );
+		add_theme_support( 'custom-spacing' );
 
 		// Add support for custom units.
 		// This was removed in WordPress 5.6 but is still required to properly support WP 5.5.
@@ -455,7 +455,7 @@ add_action( 'wp_enqueue_scripts', 'twenty_twenty_one_scripts' );
  */
 function twentytwentyone_block_editor_script() {
 
-	wp_enqueue_script( 'twentytwentyone-unregister-block-style', get_theme_file_uri( '/assets/js/unregister-block-style.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
+	wp_enqueue_script( 'twentytwentyone-editor', get_theme_file_uri( '/assets/js/editor.js' ), array( 'wp-blocks', 'wp-dom' ), wp_get_theme()->get( 'Version' ), true );
 }
 
 add_action( 'enqueue_block_editor_assets', 'twentytwentyone_block_editor_script' );

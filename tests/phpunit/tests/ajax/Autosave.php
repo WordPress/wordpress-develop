@@ -28,7 +28,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	protected static $post_id;
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$user_ids[] = self::$admin_id;
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );

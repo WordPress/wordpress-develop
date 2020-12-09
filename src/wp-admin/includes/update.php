@@ -240,12 +240,17 @@ function core_update_footer( $msg = '' ) {
 		$cur->current = '';
 	}
 
-	if ( ! isset( $cur->url ) ) {
-		$cur->url = '';
-	}
-
 	if ( ! isset( $cur->response ) ) {
 		$cur->response = '';
+	}
+
+	// Include an unmodified $wp_version.
+	require ABSPATH . WPINC . '/version.php';
+
+	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
+
+	if ( $is_development_version && 'latest' === $cur->response ) {
+		$cur->response = 'development';
 	}
 
 	switch ( $cur->response ) {
