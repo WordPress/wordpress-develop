@@ -27,6 +27,11 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		update_option( 'home', 'https://example.com/' );
 		$this->assertTrue( wp_is_using_https() );
+
+		// Test that the manually included 'site_url' filter works as expected
+		// by using it to set the URL to use HTTP.
+		add_filter( 'site_url', $this->filter_set_url_scheme( 'http' ) );
+		$this->assertFalse( wp_is_using_https() );
 	}
 
 	public function test_wp_is_https_supported() {
@@ -164,5 +169,18 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	private function mock_error() {
 		return new WP_Error( 'bad_ssl_certificate', 'Bad SSL certificate.' );
+	}
+
+	/**
+	 * Returns a filter callback that expects a URL and will set the URL scheme
+	 * to the provided $scheme.
+	 *
+	 * @param string $scheme URL scheme to set.
+	 * @return callable Filter callback.
+	 */
+	private function filter_set_url_scheme( $scheme ) {
+		return function( $url ) use ( $scheme ) {
+			return set_url_scheme( $url, $scheme );
+		};
 	}
 }

@@ -20,9 +20,13 @@ function wp_is_using_https() {
 		return false;
 	}
 
-	// Use direct option access for 'siteurl' because site_url() will adjust the
-	// scheme based on what the current request is using.
-	if ( 'https' !== wp_parse_url( get_option( 'siteurl' ), PHP_URL_SCHEME ) ) {
+	// Use direct option access for 'siteurl' and manually run the 'site_url'
+	// filter because site_url() will adjust the scheme based on what the
+	// current request is using.
+	/** This filter is documented in wp-includes/link-template.php */
+	$site_url = apply_filters( 'site_url', get_option( 'siteurl' ), '', null, null );
+
+	if ( 'https' !== wp_parse_url( $site_url, PHP_URL_SCHEME ) ) {
 		return false;
 	}
 
