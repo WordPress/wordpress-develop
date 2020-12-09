@@ -31,7 +31,7 @@ Ensure [Docker](https://www.docker.com/products/docker-desktop) is running befor
 
 ```
 npm install
-npm run build:dev
+npm run build
 npm run env:start
 npm run env:install
 ```
@@ -44,7 +44,7 @@ If you're making changes to WordPress core files, you should start one of the fi
 
 ```
 npm run watch       # copies and compiles all files into the `build/` folder
-npm run watch:src   # compiles dynamic files into the `src/` folder
+and  # compiles dynamic files into the `src/` folder
 ```
 
 er, maybe shouldn't change any of these instructions, because it's geared towards wp-env?
@@ -131,13 +131,7 @@ briefly describe why there are two folders, how they're used
 you can configure you web server to have either of them as the root
 pros & cons of doing that for each of them
 
+regardless of which folder is the server root, you'll run `npm run watch` or `npm run build`. Those tasks will compile dynamic files into the `src/` folder, and then copy the compiled files into `build/`.
 comprehensive list of commands to run, and descriptions of what they do:
 
-```
-npm run watch       # copies and compiles all files into the `build/` folder
-npm run build       # copies and compiles all files into the `build/` folder
-npm run watch:src   # compiles dynamic files into the `src/` folder
-npm run build:src   # compiles dynamic files into the `src/` folder
-```
-
-Those map to corresponding Grunt commands; e.g., `npm run watch` is the same as `grunt watch`, and `npm run watch:src` is the same as `grunt watch --src`.
+The npm tasks map to corresponding Grunt tasks; e.g., `npm run watch` is the same as `grunt watch`.

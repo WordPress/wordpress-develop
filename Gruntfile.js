@@ -8,8 +8,8 @@ var installChanged = require( 'install-changed' );
 
 module.exports = function(grunt) {
 	if ( grunt.option( 'dev' ) ) {
-		grunt.warn( 'The `--dev flag is deprecated, please use `--src` instead.' );
-		grunt.option( 'src', true );
+		grunt.warn( 'The `--dev` flag is deprecated. Please run `watch` or `build` without any parameters; they will update both `src/` and `build/`.' );
+		grunt.option( 'dev', false );
 	}
 
 	var path = require('path'),
@@ -17,7 +17,7 @@ module.exports = function(grunt) {
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
-		WORKING_DIR = grunt.option( 'src' ) ? SOURCE_DIR : BUILD_DIR,
+		WORKING_DIR = SOURCE_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
 		nodesass = require( 'node-sass' ),
@@ -518,7 +518,8 @@ module.exports = function(grunt) {
 					'wp-includes/css/*.css',
 
 					// Exclude minified and already processed files, and files from external packages.
-					// These are present when running `grunt build` after `grunt --src`.
+					// These are present when running `grunt build` after `grunt --dev`.
+						// todo what to do with these?
 					'!wp-admin/css/*-rtl.css',
 					'!wp-includes/css/*-rtl.css',
 					'!wp-admin/css/*.min.css',
@@ -1439,12 +1440,6 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'build', function() {
-		if ( grunt.option( 'src' ) ) {
-			grunt.task.run( [
-				'build:js',
-				'build:css',
-			] );
-		} else {
 			grunt.task.run( [
 				'build:files',
 				'build:js',
@@ -1452,8 +1447,8 @@ module.exports = function(grunt) {
 				'includes:emoji',
 				'includes:embed',
 				'replace:emojiBannerText'
+				// todo now copy all files from src/ to build/. or just the changed ones?
 			] );
-		}
 	} );
 
 	grunt.registerTask( 'prerelease', [
