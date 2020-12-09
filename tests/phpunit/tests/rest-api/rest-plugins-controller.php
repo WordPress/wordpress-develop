@@ -49,7 +49,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber_id = $factory->user->create(
 			array(
 				'role' => 'subscriber',

@@ -30,7 +30,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory A WP_UnitTest_Factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy' => 'category' ) );
 		self::$post_tags = $factory->term->create_many( 10 );
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
