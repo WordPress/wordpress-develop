@@ -299,7 +299,7 @@ function wp_nav_menu_item_link_meta_box() {
 		<input type="hidden" value="custom" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-type]" />
 		<p id="menu-item-url-wrap" class="wp-clearfix">
 			<label class="howto" for="custom-menu-item-url"><?php _e( 'URL' ); ?></label>
-			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]" type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="code menu-item-textbox" placeholder="https://" />
+			<input id="custom-menu-item-url" name="menu-item[<?php echo $_nav_menu_placeholder; ?>][menu-item-url]" type="text"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> class="code menu-item-textbox form-required" placeholder="https://" />
 		</p>
 
 		<p id="menu-item-name-wrap" class="wp-clearfix">
@@ -382,7 +382,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 			$important_pages[]   = $front_page_obj;
 			$suppress_page_ids[] = $front_page_obj->ID;
 		} else {
-			$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? intval( $_nav_menu_placeholder ) - 1 : -1;
+			$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? (int) $_nav_menu_placeholder - 1 : -1;
 			$front_page_obj        = (object) array(
 				'front_or_home' => true,
 				'ID'            => 0,
@@ -609,7 +609,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 				$args['walker'] = $walker;
 
 				if ( $post_type->has_archive ) {
-					$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? intval( $_nav_menu_placeholder ) - 1 : -1;
+					$_nav_menu_placeholder = ( 0 > $_nav_menu_placeholder ) ? (int) $_nav_menu_placeholder - 1 : -1;
 					array_unshift(
 						$posts,
 						(object) array(
@@ -725,7 +725,6 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 
 	$num_pages = ceil(
 		wp_count_terms(
-			$taxonomy_name,
 			array_merge(
 				$args,
 				array(

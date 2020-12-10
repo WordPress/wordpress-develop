@@ -8,11 +8,27 @@
 class Tests_Kses extends WP_UnitTestCase {
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
 	 */
-	function test_wp_filter_post_kses_address() {
+	function test_wp_filter_post_kses_address( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_address.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_address() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -25,21 +41,43 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
 				$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
 				$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
-				$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+
+				$data[] = array( $string, $expect_string );
 			}
 		}
+
+		return $data;
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_a
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_a() {
+	function test_wp_filter_post_kses_a( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_a.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_a() {
 		$attributes = array(
 			'class'    => 'classname',
 			'id'       => 'id',
@@ -53,6 +91,8 @@ class Tests_Kses extends WP_UnitTestCase {
 			'download' => '',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
@@ -63,8 +103,10 @@ class Tests_Kses extends WP_UnitTestCase {
 			}
 			$string        = "<a $attr>I link this</a>";
 			$expect_string = "<a $expected_attr>I link this</a>";
-			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	/**
@@ -122,11 +164,28 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_abbr() {
+	function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for data_wp_filter_post_kses_abbr.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_abbr() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -134,11 +193,15 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			$string        = "<abbr $name='$value'>WP</abbr>";
 			$expect_string = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
-			$this->assertEquals( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	function test_feed_links() {
@@ -172,7 +235,7 @@ EOF;
 <a href="">CLICK ME</a>
 EOF;
 
-		$this->assertEquals( $expected, wp_kses( $content, $allowedposttags ) );
+		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
 	function test_wp_kses_bad_protocol() {
@@ -211,25 +274,25 @@ EOF;
 			if ( ! empty( $result ) && 'alert(1);' !== $result && 'alert(1)' !== $result ) {
 				switch ( $k ) {
 					case 6:
-						$this->assertEquals( 'javascript&amp;#0000058alert(1);', $result );
+						$this->assertSame( 'javascript&amp;#0000058alert(1);', $result );
 						break;
 					case 12:
-						$this->assertEquals( str_replace( '&', '&amp;', $x ), $result );
+						$this->assertSame( str_replace( '&', '&amp;', $x ), $result );
 						break;
 					case 22:
-						$this->assertEquals( 'javascript&amp;#0000058alert(1);', $result );
+						$this->assertSame( 'javascript&amp;#0000058alert(1);', $result );
 						break;
 					case 23:
-						$this->assertEquals( 'javascript&amp;#0000058alert(1)//?:', $result );
+						$this->assertSame( 'javascript&amp;#0000058alert(1)//?:', $result );
 						break;
 					case 24:
-						$this->assertEquals( 'feed:alert(1)', $result );
+						$this->assertSame( 'feed:alert(1)', $result );
 						break;
 					case 26:
-						$this->assertEquals( 'javascript&amp;#58alert(1)', $result );
+						$this->assertSame( 'javascript&amp;#58alert(1)', $result );
 						break;
 					case 27:
-						$this->assertEquals( 'javascript&amp;#x3ax=1;alert(1)', $result );
+						$this->assertSame( 'javascript&amp;#x3ax=1;alert(1)', $result );
 						break;
 					default:
 						$this->fail( "wp_kses_bad_protocol failed on $k, $x. Result: $result" );
@@ -304,106 +367,106 @@ EOF;
 
 			switch ( $attack->name ) {
 				case 'XSS Locator':
-					$this->assertEquals( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;alert(String.fromCharCode(88,83,83))=&amp;{}', $result );
+					$this->assertSame( '\';alert(String.fromCharCode(88,83,83))//\\\';alert(String.fromCharCode(88,83,83))//";alert(String.fromCharCode(88,83,83))//\\";alert(String.fromCharCode(88,83,83))//--&gt;"&gt;\'&gt;alert(String.fromCharCode(88,83,83))=&amp;{}', $result );
 					break;
 				case 'XSS Quick Test':
-					$this->assertEquals( '\'\';!--"=&amp;{()}', $result );
+					$this->assertSame( '\'\';!--"=&amp;{()}', $result );
 					break;
 				case 'SCRIPT w/Alert()':
-					$this->assertEquals( "alert('XSS')", $result );
+					$this->assertSame( "alert('XSS')", $result );
 					break;
 				case 'SCRIPT w/Char Code':
-					$this->assertEquals( 'alert(String.fromCharCode(88,83,83))', $result );
+					$this->assertSame( 'alert(String.fromCharCode(88,83,83))', $result );
 					break;
 				case 'IMG STYLE w/expression':
-					$this->assertEquals( 'exp/*', $result );
+					$this->assertSame( 'exp/*', $result );
 					break;
 				case 'List-style-image':
-					$this->assertEquals( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
+					$this->assertSame( 'li {list-style-image: url("javascript:alert(\'XSS\')");}XSS', $result );
 					break;
 				case 'STYLE':
-					$this->assertEquals( "alert('XSS');", $result );
+					$this->assertSame( "alert('XSS');", $result );
 					break;
 				case 'STYLE w/background-image':
-					$this->assertEquals( '.XSS{background-image:url("javascript:alert(\'XSS\')");}<A></A>', $result );
+					$this->assertSame( '.XSS{background-image:url("javascript:alert(\'XSS\')");}<A></A>', $result );
 					break;
 				case 'STYLE w/background':
-					$this->assertEquals( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
+					$this->assertSame( 'BODY{background:url("javascript:alert(\'XSS\')")}', $result );
 					break;
 				case 'Remote Stylesheet 2':
-					$this->assertEquals( "@import'http://ha.ckers.org/xss.css';", $result );
+					$this->assertSame( "@import'http://ha.ckers.org/xss.css';", $result );
 					break;
 				case 'Remote Stylesheet 3':
-					$this->assertEquals( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
+					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Link&quot; Content=&quot;; REL=stylesheet"&gt;', $result );
 					break;
 				case 'Remote Stylesheet 4':
-					$this->assertEquals( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
+					$this->assertSame( 'BODY{-moz-binding:url("http://ha.ckers.org/xssmoz.xml#xss")}', $result );
 					break;
 				case 'XML data island w/CDATA':
-					$this->assertEquals( '&lt;![CDATA[]]&gt;', $result );
+					$this->assertSame( '&lt;![CDATA[]]&gt;', $result );
 					break;
 				case 'XML data island w/comment':
-					$this->assertEquals( "<I><B>&lt;IMG SRC=&quot;javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
+					$this->assertSame( "<I><B>&lt;IMG SRC=&quot;javas<!-- -->cript:alert('XSS')\"&gt;</B></I>", $result );
 					break;
 				case 'XML HTML+TIME':
-					$this->assertEquals( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
+					$this->assertSame( '&lt;t:set attributeName=&quot;innerHTML&quot; to=&quot;XSSalert(\'XSS\')"&gt;', $result );
 					break;
 				case 'Commented-out Block':
-					$this->assertEquals( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
+					$this->assertSame( "<!--[if gte IE 4]&gt;-->\nalert('XSS');", $result );
 					break;
 				case 'Cookie Manipulation':
-					$this->assertEquals( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
+					$this->assertSame( '&lt;META HTTP-EQUIV=&quot;Set-Cookie&quot; Content=&quot;USERID=alert(\'XSS\')"&gt;', $result );
 					break;
 				case 'SSI':
-					$this->assertEquals( '&lt;!--#exec cmd=&quot;/bin/echo &#039;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;\'"-->', $result );
+					$this->assertSame( '&lt;!--#exec cmd=&quot;/bin/echo &#039;<!--#exec cmd="/bin/echo \'=http://ha.ckers.org/xss.js&gt;\'"-->', $result );
 					break;
 				case 'PHP':
-					$this->assertEquals( '&lt;? echo(&#039;alert("XSS")\'); ?&gt;', $result );
+					$this->assertSame( '&lt;? echo(&#039;alert("XSS")\'); ?&gt;', $result );
 					break;
 				case 'UTF-7 Encoding':
-					$this->assertEquals( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
+					$this->assertSame( '+ADw-SCRIPT+AD4-alert(\'XSS\');+ADw-/SCRIPT+AD4-', $result );
 					break;
 				case 'Escaping JavaScript escapes':
-					$this->assertEquals( '\";alert(\'XSS\');//', $result );
+					$this->assertSame( '\";alert(\'XSS\');//', $result );
 					break;
 				case 'STYLE w/broken up JavaScript':
-					$this->assertEquals( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
+					$this->assertSame( '@im\port\'\ja\vasc\ript:alert("XSS")\';', $result );
 					break;
 				case 'Null Chars 2':
-					$this->assertEquals( '&amp;alert("XSS")', $result );
+					$this->assertSame( '&amp;alert("XSS")', $result );
 					break;
 				case 'No Closing Script Tag':
-					$this->assertEquals( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
+					$this->assertSame( '&lt;SCRIPT SRC=http://ha.ckers.org/xss.js', $result );
 					break;
 				case 'Half-Open HTML/JavaScript':
-					$this->assertEquals( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
+					$this->assertSame( '&lt;IMG SRC=&quot;javascript:alert(&#039;XSS&#039;)&quot;', $result );
 					break;
 				case 'Double open angle brackets':
-					$this->assertEquals( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
+					$this->assertSame( '&lt;IFRAME SRC=http://ha.ckers.org/scriptlet.html &lt;', $result );
 					break;
 				case 'Extraneous Open Brackets':
-					$this->assertEquals( '&lt;alert("XSS");//&lt;', $result );
+					$this->assertSame( '&lt;alert("XSS");//&lt;', $result );
 					break;
 				case 'Malformed IMG Tags':
-					$this->assertEquals( 'alert("XSS")"&gt;', $result );
+					$this->assertSame( 'alert("XSS")"&gt;', $result );
 					break;
 				case 'No Quotes/Semicolons':
-					$this->assertEquals( "a=/XSS/\nalert(a.source)", $result );
+					$this->assertSame( "a=/XSS/\nalert(a.source)", $result );
 					break;
 				case 'Evade Regex Filter 1':
-					$this->assertEquals( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( '" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 4':
-					$this->assertEquals( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( '\'" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Evade Regex Filter 5':
-					$this->assertEquals( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( '` SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 1':
-					$this->assertEquals( 'document.write("&lt;SCRI&quot;);PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( 'document.write("&lt;SCRI&quot;);PT SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				case 'Filter Evasion 2':
-					$this->assertEquals( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
+					$this->assertSame( '\'&gt;" SRC="http://ha.ckers.org/xss.js"&gt;', $result );
 					break;
 				default:
 					$this->fail( 'KSES failed on ' . $attack->name . ': ' . $result );
@@ -425,7 +488,7 @@ EOF;
 	public function test_wp_kses_allowed_html() {
 		global $allowedposttags, $allowedtags, $allowedentitynames;
 
-		$this->assertEquals( $allowedposttags, wp_kses_allowed_html( 'post' ) );
+		$this->assertSame( $allowedposttags, wp_kses_allowed_html( 'post' ) );
 
 		$tags = wp_kses_allowed_html( 'post' );
 
@@ -436,9 +499,9 @@ EOF;
 			$this->assertTrue( $tag['title'] );
 		}
 
-		$this->assertEquals( $allowedtags, wp_kses_allowed_html( 'data' ) );
-		$this->assertEquals( $allowedtags, wp_kses_allowed_html( '' ) );
-		$this->assertEquals( $allowedtags, wp_kses_allowed_html() );
+		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
+		$this->assertSame( $allowedtags, wp_kses_allowed_html( '' ) );
+		$this->assertSame( $allowedtags, wp_kses_allowed_html() );
 
 		$tags = wp_kses_allowed_html( 'user_description' );
 		$this->assertTrue( $tags['a']['rel'] );
@@ -446,7 +509,7 @@ EOF;
 		$tags = wp_kses_allowed_html();
 		$this->assertFalse( isset( $tags['a']['rel'] ) );
 
-		$this->assertEquals( array(), wp_kses_allowed_html( 'strip' ) );
+		$this->assertSame( array(), wp_kses_allowed_html( 'strip' ) );
 
 		$custom_tags = array(
 			'a' => array(
@@ -458,16 +521,16 @@ EOF;
 			),
 		);
 
-		$this->assertEquals( $custom_tags, wp_kses_allowed_html( $custom_tags ) );
+		$this->assertSame( $custom_tags, wp_kses_allowed_html( $custom_tags ) );
 
 		add_filter( 'wp_kses_allowed_html', array( $this, '_wp_kses_allowed_html_filter' ), 10, 2 );
 
-		$this->assertEquals( array( 'a' => array( 'href' => true ) ), wp_kses_allowed_html( 'post' ) );
-		$this->assertEquals( array( 'a' => array( 'href' => false ) ), wp_kses_allowed_html( 'data' ) );
+		$this->assertSame( array( 'a' => array( 'href' => true ) ), wp_kses_allowed_html( 'post' ) );
+		$this->assertSame( array( 'a' => array( 'href' => false ) ), wp_kses_allowed_html( 'data' ) );
 
 		remove_filter( 'wp_kses_allowed_html', array( $this, '_wp_kses_allowed_html_filter' ) );
-		$this->assertEquals( $allowedposttags, wp_kses_allowed_html( 'post' ) );
-		$this->assertEquals( $allowedtags, wp_kses_allowed_html( 'data' ) );
+		$this->assertSame( $allowedposttags, wp_kses_allowed_html( 'post' ) );
+		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}
 
 	function test_hyphenated_tag() {
@@ -480,23 +543,23 @@ EOF;
 		$expect_stripped_string = 'Alot of hyphens.';
 
 		$expect_valid_string = '<hyphenated-tag attribute="value">Alot of hyphens.</hyphenated-tag>';
-		$this->assertEquals( $expect_stripped_string, wp_kses_post( $string ) );
-		$this->assertEquals( $expect_valid_string, wp_kses( $string, $custom_tags ) );
+		$this->assertSame( $expect_stripped_string, wp_kses_post( $string ) );
+		$this->assertSame( $expect_valid_string, wp_kses( $string, $custom_tags ) );
 	}
 
 	/**
 	 * @ticket 26290
 	 */
 	public function test_wp_kses_normalize_entities() {
-		$this->assertEquals( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
+		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
 
-		$this->assertEquals( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
-		$this->assertEquals( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
-		$this->assertEquals( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
-		$this->assertEquals( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
-		$this->assertEquals( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
-		$this->assertEquals( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
-		$this->assertEquals( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
+		$this->assertSame( '&sup1;', wp_kses_normalize_entities( '&sup1;' ) );
+		$this->assertSame( '&sup2;', wp_kses_normalize_entities( '&sup2;' ) );
+		$this->assertSame( '&sup3;', wp_kses_normalize_entities( '&sup3;' ) );
+		$this->assertSame( '&frac14;', wp_kses_normalize_entities( '&frac14;' ) );
+		$this->assertSame( '&frac12;', wp_kses_normalize_entities( '&frac12;' ) );
+		$this->assertSame( '&frac34;', wp_kses_normalize_entities( '&frac34;' ) );
+		$this->assertSame( '&there4;', wp_kses_normalize_entities( '&there4;' ) );
 	}
 
 	/**
@@ -508,7 +571,7 @@ EOF;
 	function test_ctrl_removal( $input, $output ) {
 		global $allowedposttags;
 
-		return $this->assertEquals( $output, wp_kses( $input, $allowedposttags ) );
+		return $this->assertSame( $output, wp_kses( $input, $allowedposttags ) );
 	}
 
 	function data_ctrl_removal() {
@@ -545,7 +608,7 @@ EOF;
 	function test_slash_zero_removal( $input, $output ) {
 		global $allowedposttags;
 
-		return $this->assertEquals( $output, wp_kses( $input, $allowedposttags ) );
+		return $this->assertSame( $output, wp_kses( $input, $allowedposttags ) );
 	}
 
 	function data_slash_zero_removal() {
@@ -595,7 +658,7 @@ EOF;
 	 * @dataProvider data_hair_parse
 	 */
 	function test_hair_parse( $input, $output ) {
-		return $this->assertEquals( $output, wp_kses_hair_parse( $input ) );
+		return $this->assertSame( $output, wp_kses_hair_parse( $input ) );
 	}
 
 	function data_hair_parse() {
@@ -661,7 +724,7 @@ EOF;
 	 * @dataProvider data_attr_parse
 	 */
 	function test_attr_parse( $input, $output ) {
-		return $this->assertEquals( $output, wp_kses_attr_parse( $input ) );
+		return $this->assertSame( $output, wp_kses_attr_parse( $input ) );
 	}
 
 	function data_attr_parse() {
@@ -719,7 +782,7 @@ EOF;
 	 * @dataProvider data_one_attr
 	 */
 	function test_one_attr( $element, $input, $output ) {
-		return $this->assertEquals( $output, wp_kses_one_attr( $input, $element ) );
+		return $this->assertSame( $output, wp_kses_one_attr( $input, $element ) );
 	}
 
 	function data_one_attr() {
@@ -800,7 +863,7 @@ EOF;
 
 		$input = '<p>This is <bdo dir="rtl">a BDO tag</bdo>. Weird, <bdo dir="ltr">right?</bdo></p>';
 
-		$this->assertEquals( $input, wp_kses( $input, $allowedposttags ) );
+		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
 	}
 
 	/**
@@ -811,7 +874,7 @@ EOF;
 
 		$input = '<ol reversed="reversed"><li>Item 1</li><li>Item 2</li><li>Item 3</li></ol>';
 
-		$this->assertEquals( $input, wp_kses( $input, $allowedposttags ) );
+		$this->assertSame( $input, wp_kses( $input, $allowedposttags ) );
 	}
 
 	/**
@@ -821,7 +884,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertEquals( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
+		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => array() ), array() ) );
 	}
 
 	/**
@@ -831,7 +894,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertEquals( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
+		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => true ), array() ) );
 	}
 
 	/**
@@ -841,7 +904,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertEquals( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
+		$this->assertSame( "<{$element} title=\"foo\">", wp_kses_attr( $element, $attribute, array( 'foo' => array( 'title' => true ) ), array() ) );
 	}
 
 	/**
@@ -851,7 +914,7 @@ EOF;
 		$element   = 'foo';
 		$attribute = 'title="foo" class="bar"';
 
-		$this->assertEquals( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
+		$this->assertSame( "<{$element}>", wp_kses_attr( $element, $attribute, array( 'foo' => false ), array() ) );
 	}
 
 	/**
@@ -1057,7 +1120,7 @@ EOF;
 		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
 		$expected = '<div data-foo="foo" data-bar="bar" data-two-hyphens="remains">Pens and pencils</div>';
 
-		$this->assertEquals( $expected, wp_kses_post( $test ) );
+		$this->assertSame( $expected, wp_kses_post( $test ) );
 	}
 
 	/**

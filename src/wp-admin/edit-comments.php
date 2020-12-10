@@ -120,7 +120,7 @@ if ( $doaction ) {
 		$redirect_to = add_query_arg( 'deleted', $deleted, $redirect_to );
 	}
 	if ( $trashed || $spammed ) {
-		$redirect_to = add_query_arg( 'ids', join( ',', $comment_ids ), $redirect_to );
+		$redirect_to = add_query_arg( 'ids', implode( ',', $comment_ids ), $redirect_to );
 	}
 
 	wp_safe_redirect( $redirect_to );
@@ -232,8 +232,8 @@ if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
 	echo '<span class="subtitle">';
 	printf(
 		/* translators: %s: Search query. */
-		__( 'Search results for &#8220;%s&#8221;' ),
-		wp_html_excerpt( esc_html( wp_unslash( $_REQUEST['s'] ) ), 50, '&hellip;' )
+		__( 'Search results for: %s' ),
+		'<strong>' . wp_html_excerpt( esc_html( wp_unslash( $_REQUEST['s'] ) ), 50, '&hellip;' ) . '</strong>'
 	);
 	echo '</span>';
 }
@@ -329,7 +329,7 @@ if ( isset( $_REQUEST['approved'] ) || isset( $_REQUEST['deleted'] ) || isset( $
 <?php $wp_list_table->search_box( __( 'Search Comments' ), 'comment' ); ?>
 
 <?php if ( $post_id ) : ?>
-<input type="hidden" name="p" value="<?php echo esc_attr( intval( $post_id ) ); ?>" />
+<input type="hidden" name="p" value="<?php echo esc_attr( (int) $post_id ); ?>" />
 <?php endif; ?>
 <input type="hidden" name="comment_status" value="<?php echo esc_attr( $comment_status ); ?>" />
 <input type="hidden" name="pagegen_timestamp" value="<?php echo esc_attr( current_time( 'mysql', 1 ) ); ?>" />

@@ -396,7 +396,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		if ( 'top' === $which ) {
 			ob_start();
 
-			$this->comment_status_dropdown( $comment_type );
+			$this->comment_type_dropdown( $comment_type );
 
 			/**
 			 * Fires just before the Filter submit button for comment types.
@@ -472,19 +472,20 @@ class WP_Comments_List_Table extends WP_List_Table {
 	}
 
 	/**
-	 * Displays a comment status drop-down for filtering on the Comments list table.
+	 * Displays a comment type drop-down for filtering on the Comments list table.
 	 *
 	 * @since 5.5.0
+	 * @since 5.6.0 Renamed from `comment_status_dropdown()` to `comment_type_dropdown()`.
 	 *
 	 * @param string $comment_type The current comment type slug.
 	 */
-	protected function comment_status_dropdown( $comment_type ) {
+	protected function comment_type_dropdown( $comment_type ) {
 		/**
-		 * Filters the comment types dropdown menu.
+		 * Filters the comment types shown in the drop-down menu on the Comments list table.
 		 *
 		 * @since 2.7.0
 		 *
-		 * @param array $comment_types An array of comment types. Accepts 'Comments', 'Pings'.
+		 * @param string[] $comment_types Array of comment type labels keyed by their name.
 		 */
 		$comment_types = apply_filters(
 			'admin_comment_types_dropdown',
@@ -614,7 +615,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		if ( ! $the_comment_class ) {
 			$the_comment_class = '';
 		}
-		$the_comment_class = join( ' ', get_comment_class( $the_comment_class, $comment, $comment->comment_post_ID ) );
+		$the_comment_class = implode( ' ', get_comment_class( $the_comment_class, $comment, $comment->comment_post_ID ) );
 
 		if ( $comment->comment_post_ID > 0 ) {
 			$post = get_post( $comment->comment_post_ID );
@@ -954,9 +955,9 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$submitted = sprintf(
 			/* translators: 1: Comment date, 2: Comment time. */
 			__( '%1$s at %2$s' ),
-			/* translators: Comment date format. See https://www.php.net/date */
+			/* translators: Comment date format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'Y/m/d' ), $comment ),
-			/* translators: Comment time format. See https://www.php.net/date */
+			/* translators: Comment time format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
 

@@ -9,6 +9,9 @@
  * @group date
  */
 class Tests_WP_Date_Query extends WP_UnitTestCase {
+	/**
+	 * @var WP_Date_Query $q
+	 */
 	public $q;
 
 	public function setUp() {
@@ -110,7 +113,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			'relation' => 'AND',
 		);
 
-		$this->assertEquals( $expected, $q->queries );
+		$this->assertSame( $expected, $q->queries );
 	}
 
 	public function test_get_compare_empty() {
@@ -524,7 +527,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
 	public function mysql_datetime_input_provider() {
@@ -559,7 +562,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found = $q->build_mysql_datetime( $datetime, $default_to_max );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 
 	}
 
@@ -583,7 +586,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$found     = $q->build_mysql_datetime( '-1 day' );
 
 		$message = "Expected {$expected}, got {$found}";
-		$this->assertEquals( strtotime( $expected ), strtotime( $found ), $message, 10 );
+		$this->assertEqualsWithDelta( strtotime( $expected ), strtotime( $found ), 10, $message );
 	}
 
 	public function test_build_time_query_insufficient_time_values() {
@@ -1078,7 +1081,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -1100,7 +1103,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( array( $p2 ), $q->posts );
+		$this->assertSame( array( $p2 ), $q->posts );
 	}
 
 	/**
@@ -1124,7 +1127,7 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		);
 
 		// MySQL ignores the invalid clause.
-		$this->assertEquals( array( $p1, $p2 ), $q->posts );
+		$this->assertSame( array( $p1, $p2 ), $q->posts );
 	}
 
 	/** Helpers */

@@ -250,15 +250,48 @@ final class WP_Post_Type {
 	/**
 	 * Whether to delete posts of this type when deleting a user.
 	 *
-	 * If true, posts of this type belonging to the user will be moved to Trash when then user is deleted.
-	 * If false, posts of this type belonging to the user will *not* be trashed or deleted.
-	 * If not set (the default), posts are trashed if post_type_supports( 'author' ).
-	 * Otherwise posts are not trashed or deleted. Default null.
+	 * - If true, posts of this type belonging to the user will be moved to Trash when the user is deleted.
+	 * - If false, posts of this type belonging to the user will *not* be trashed or deleted.
+	 * - If not set (the default), posts are trashed if post type supports the 'author' feature.
+	 *   Otherwise posts are not trashed or deleted.
+	 *
+	 * Default null.
 	 *
 	 * @since 4.6.0
 	 * @var bool $delete_with_user
 	 */
 	public $delete_with_user = null;
+
+	/**
+	 * Array of blocks to use as the default initial state for an editor session.
+	 *
+	 * Each item should be an array containing block name and optional attributes.
+	 *
+	 * Default empty array.
+	 *
+	 * @link https://developer.wordpress.org/block-editor/developers/block-api/block-templates/
+	 *
+	 * @since 5.0.0
+	 * @var array $template
+	 */
+	public $template = array();
+
+	/**
+	 * Whether the block template should be locked if $template is set.
+	 *
+	 * - If set to 'all', the user is unable to insert new blocks, move existing blocks
+	 *   and delete blocks.
+	 * - If set to 'insert', the user is able to move existing blocks but is unable to insert
+	 *   new blocks and delete blocks.
+	 *
+	 * Default false.
+	 *
+	 * @link https://developer.wordpress.org/block-editor/developers/block-api/block-templates/
+	 *
+	 * @since 5.0.0
+	 * @var string|false $template_lock
+	 */
+	public $template_lock = false;
 
 	/**
 	 * Whether this post type is a native or "built-in" post_type.
@@ -415,6 +448,8 @@ final class WP_Post_Type {
 			'show_in_rest'          => false,
 			'rest_base'             => false,
 			'rest_controller_class' => false,
+			'template'              => array(),
+			'template_lock'         => false,
 			'_builtin'              => false,
 			'_edit_link'            => 'post.php?post=%d',
 		);

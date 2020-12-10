@@ -65,7 +65,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Error $wp_error WP_Error.
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
@@ -155,13 +155,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'theme-install.php' ),
-				__( 'Return to Theme Installer' )
+				__( 'Go to Theme Installer' )
 			);
 		} elseif ( current_user_can( 'switch_themes' ) || current_user_can( 'edit_theme_options' ) ) {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'themes.php' ),
-				__( 'Return to Themes page' )
+				__( 'Go to Themes page' )
 			);
 		}
 
@@ -206,7 +206,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		$all_themes         = wp_get_themes( array( 'errors' => null ) );
 
 		foreach ( $all_themes as $theme ) {
-			if ( rtrim( $theme->get_stylesheet_directory(), '/' ) !== $folder ) {
+			$stylesheet_dir = wp_normalize_path( $theme->get_stylesheet_directory() );
+
+			if ( rtrim( $stylesheet_dir, '/' ) !== $folder ) {
 				continue;
 			}
 
@@ -358,8 +360,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		/**
-		 * Filters the list of action links available following a single theme installation
-		 * failure when overwriting is allowed.
+		 * Filters the list of action links available following a single theme installation failure
+		 * when overwriting is allowed.
 		 *
 		 * @since 5.5.0
 		 *

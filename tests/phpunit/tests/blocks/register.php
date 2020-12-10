@@ -29,7 +29,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create(
 			array(
 				'post_content' => file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-original.html' ),
@@ -285,14 +285,15 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 2, $result->api_version );
 		$this->assertSame( 'my-plugin/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
-		$this->assertEqualSets( array( 'core/group' ), $result->parent );
+		$this->assertSameSets( array( 'core/group' ), $result->parent );
 		$this->assertSame( 'star', $result->icon );
 		$this->assertSame( 'Shows warning, error or success notices…', $result->description );
-		$this->assertEqualSets( array( 'alert', 'message' ), $result->keywords );
-		$this->assertEquals(
+		$this->assertSameSets( array( 'alert', 'message' ), $result->keywords );
+		$this->assertSame(
 			array(
 				'message' => array(
 					'type'     => 'string',
@@ -302,21 +303,21 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			),
 			$result->attributes
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'my-plugin/message' => 'message',
 			),
 			$result->provides_context
 		);
-		$this->assertEqualSets( array( 'groupId' ), $result->uses_context );
-		$this->assertEquals(
+		$this->assertSameSets( array( 'groupId' ), $result->uses_context );
+		$this->assertSame(
 			array(
 				'align'             => true,
 				'lightBlockWrapper' => true,
 			),
 			$result->supports
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				array(
 					'name'      => 'default',
@@ -330,7 +331,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			),
 			$result->styles
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'attributes' => array(
 					'message' => 'This is a notice!',
@@ -396,6 +397,6 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( 'core/test-filtered' );
-		$this->assertEquals( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
+		$this->assertSame( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
 	}
 }

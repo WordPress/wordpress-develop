@@ -17,7 +17,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	/**
 	 * GD Resource.
 	 *
-	 * @var resource
+	 * @var resource|GdImage
 	 */
 	protected $image;
 
@@ -93,13 +93,20 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// Set artificially high because GD uses uncompressed images in memory.
 		wp_raise_memory_limit( 'image' );
 
-		$this->image = @imagecreatefromstring( file_get_contents( $this->file ) );
+		$file_contents = @file_get_contents( $this->file );
 
-		if ( ! is_resource( $this->image ) ) {
+		if ( ! $file_contents ) {
+			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
+		}
+
+		$this->image = @imagecreatefromstring( $file_contents );
+
+		if ( ! is_gd_image( $this->image ) ) {
 			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 		}
 
 		$size = @getimagesize( $this->file );
+
 		if ( ! $size ) {
 			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
 		}
@@ -138,11 +145,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 	/**
 	 * Resizes current image.
-	 * Wraps _resize, since _resize returns a GD Resource.
 	 *
-	 * At minimum, either a height or width must be provided.
-	 * If one of the two is set to null, the resize will
-	 * maintain aspect ratio according to the provided dimension.
+	 * Wraps `::_resize()` which returns a GD resource or GdImage instance.
+	 *
+	 * At minimum, either a height or width must be provided. If one of the two is set
+	 * to null, the resize will maintain aspect ratio according to the provided dimension.
 	 *
 	 * @since 3.5.0
 	 *
@@ -158,7 +165,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 
 		$resized = $this->_resize( $max_w, $max_h, $crop );
 
-		if ( is_resource( $resized ) ) {
+		if ( is_gd_image( $resized ) ) {
 			imagedestroy( $this->image );
 			$this->image = $resized;
 			return true;
@@ -174,7 +181,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param int        $max_w
 	 * @param int        $max_h
 	 * @param bool|array $crop
-	 * @return resource|WP_Error
+	 * @return resource|GdImage|WP_Error
 	 */
 	protected function _resize( $max_w, $max_h, $crop = false ) {
 		$dims = image_resize_dimensions( $this->size['width'], $this->size['height'], $max_w, $max_h, $crop );
@@ -188,7 +195,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$resized = wp_imagecreatetruecolor( $dst_w, $dst_h );
 		imagecopyresampled( $resized, $this->image, $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
 
-		if ( is_resource( $resized ) ) {
+		if ( is_gd_image( $resized ) ) {
 			$this->update_size( $dst_w, $dst_h );
 			return $resized;
 		}
@@ -316,7 +323,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$dst_h = $src_h;
 		}
 
-		$dst = wp_imagecreatetruecolor( $dst_w, $dst_h );
+		foreach ( array( $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
+			if ( ! is_numeric( $value ) || (int) $value <= 0 ) {
+				return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
+			}
+		}
+
+		$dst = wp_imagecreatetruecolor( (int) $dst_w, (int) $dst_h );
 
 		if ( $src_abs ) {
 			$src_w -= $src_x;
@@ -327,9 +340,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imageantialias( $dst, true );
 		}
 
-		imagecopyresampled( $dst, $this->image, 0, 0, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
+		imagecopyresampled( $dst, $this->image, 0, 0, (int) $src_x, (int) $src_y, (int) $dst_w, (int) $dst_h, (int) $src_w, (int) $src_h );
 
-		if ( is_resource( $dst ) ) {
+		if ( is_gd_image( $dst ) ) {
 			imagedestroy( $this->image );
 			$this->image = $dst;
 			$this->update_size();
@@ -353,7 +366,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$transparency = imagecolorallocatealpha( $this->image, 255, 255, 255, 127 );
 			$rotated      = imagerotate( $this->image, $angle, $transparency );
 
-			if ( is_resource( $rotated ) ) {
+			if ( is_gd_image( $rotated ) ) {
 				imagealphablending( $rotated, true );
 				imagesavealpha( $rotated, true );
 				imagedestroy( $this->image );
@@ -362,6 +375,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return true;
 			}
 		}
+
 		return new WP_Error( 'image_rotate_error', __( 'Image rotate failed.' ), $this->file );
 	}
 
@@ -379,7 +393,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		$h   = $this->size['height'];
 		$dst = wp_imagecreatetruecolor( $w, $h );
 
-		if ( is_resource( $dst ) ) {
+		if ( is_gd_image( $dst ) ) {
 			$sx = $vert ? ( $w - 1 ) : 0;
 			$sy = $horz ? ( $h - 1 ) : 0;
 			$sw = $vert ? -$w : $w;
@@ -391,6 +405,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return true;
 			}
 		}
+
 		return new WP_Error( 'image_flip_error', __( 'Image flip failed.' ), $this->file );
 	}
 
@@ -415,9 +430,9 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	}
 
 	/**
-	 * @param resource    $image
-	 * @param string|null $filename
-	 * @param string|null $mime_type
+	 * @param resource|GdImage $image
+	 * @param string|null      $filename
+	 * @param string|null      $mime_type
 	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {

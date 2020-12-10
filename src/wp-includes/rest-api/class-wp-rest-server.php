@@ -94,12 +94,57 @@ class WP_REST_Server {
 	public function __construct() {
 		$this->endpoints = array(
 			// Meta endpoints.
-			'/' => array(
+			'/'         => array(
 				'callback' => array( $this, 'get_index' ),
 				'methods'  => 'GET',
 				'args'     => array(
 					'context' => array(
 						'default' => 'view',
+					),
+				),
+			),
+			'/batch/v1' => array(
+				'callback' => array( $this, 'serve_batch_request_v1' ),
+				'methods'  => 'POST',
+				'args'     => array(
+					'validation' => array(
+						'type'    => 'string',
+						'enum'    => array( 'require-all-validate', 'normal' ),
+						'default' => 'normal',
+					),
+					'requests'   => array(
+						'required' => true,
+						'type'     => 'array',
+						'maxItems' => $this->get_max_batch_size(),
+						'items'    => array(
+							'type'       => 'object',
+							'properties' => array(
+								'method'  => array(
+									'type'    => 'string',
+									'enum'    => array( 'POST', 'PUT', 'PATCH', 'DELETE' ),
+									'default' => 'POST',
+								),
+								'path'    => array(
+									'type'     => 'string',
+									'required' => true,
+								),
+								'body'    => array(
+									'type'                 => 'object',
+									'properties'           => array(),
+									'additionalProperties' => true,
+								),
+								'headers' => array(
+									'type'                 => 'object',
+									'properties'           => array(),
+									'additionalProperties' => array(
+										'type'  => array( 'string', 'array' ),
+										'items' => array(
+											'type' => 'string',
+										),
+									),
+								),
+							),
+						),
 					),
 				),
 			),
@@ -214,7 +259,7 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Handles serving an API request.
+	 * Handles serving a REST API request.
 	 *
 	 * Matches the current server URI to a route and runs the first matching
 	 * callback then outputs a JSON representation of the returned value.
@@ -223,11 +268,30 @@ class WP_REST_Server {
 	 *
 	 * @see WP_REST_Server::dispatch()
 	 *
+	 * @global WP_User $current_user The currently authenticated user.
+	 *
 	 * @param string $path Optional. The request route. If not set, `$_SERVER['PATH_INFO']` will be used.
 	 *                     Default null.
 	 * @return null|false Null if not served and a HEAD request, false otherwise.
 	 */
 	public function serve_request( $path = null ) {
+		/* @var WP_User|null $current_user */
+		global $current_user;
+
+		if ( $current_user instanceof WP_User && ! $current_user->exists() ) {
+			/*
+			 * If there is no current user authenticated via other means, clear
+			 * the cached lack of user, so that an authenticate check can set it
+			 * properly.
+			 *
+			 * This is done because for authentications such as Application
+			 * Passwords, we don't want it to be accepted unless the current HTTP
+			 * request is a REST API request, which can't always be identified early
+			 * enough in evaluation.
+			 */
+			$current_user = null;
+		}
+
 		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
 		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 		$this->send_header( 'X-Robots-Tag', 'noindex' );
@@ -303,7 +367,7 @@ class WP_REST_Server {
 		 *
 		 * @since 4.4.0
 		 * @deprecated 4.7.0 Use the {@see 'rest_authentication_errors'} filter to
-		 *                   restrict access to the API.
+		 *                   restrict access to the REST API.
 		 *
 		 * @param bool $rest_enabled Whether the REST API is enabled. Default true.
 		 */
@@ -385,14 +449,14 @@ class WP_REST_Server {
 		}
 
 		/**
-		 * Filters the API response.
+		 * Filters the REST API response.
 		 *
 		 * Allows modification of the response before returning.
 		 *
 		 * @since 4.4.0
 		 * @since 4.5.0 Applied to embedded responses.
 		 *
-		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
 		 * @param WP_REST_Server   $this    Server instance.
 		 * @param WP_REST_Request  $request Request used to generate the response.
 		 */
@@ -411,7 +475,7 @@ class WP_REST_Server {
 		$this->set_status( $code );
 
 		/**
-		 * Filters whether the request has already been served.
+		 * Filters whether the REST API request has already been served.
 		 *
 		 * Allow sending the request manually - by returning true, the API result
 		 * will not be sent to the client.
@@ -420,7 +484,7 @@ class WP_REST_Server {
 		 *
 		 * @param bool             $served  Whether the request has already been served.
 		 *                                           Default false.
-		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a WP_REST_Response.
+		 * @param WP_HTTP_Response $result  Result to send to the client. Usually a `WP_REST_Response`.
 		 * @param WP_REST_Request  $request Request used to generate the response.
 		 * @param WP_REST_Server   $this    Server instance.
 		 */
@@ -436,7 +500,7 @@ class WP_REST_Server {
 			$result = $this->response_to_data( $result, $embed );
 
 			/**
-			 * Filters the API response.
+			 * Filters the REST API response.
 			 *
 			 * Allows modification of the response data after inserting
 			 * embedded data (if any) and before echoing the response data.
@@ -493,7 +557,7 @@ class WP_REST_Server {
 	 *     Data with sub-requests embedded.
 	 *
 	 *     @type array $_links    Links.
-	 *     @type array $_embedded Embeddeds.
+	 *     @type array $_embedded Embedded objects.
 	 * }
 	 */
 	public function response_to_data( $response, $embed ) {
@@ -617,7 +681,7 @@ class WP_REST_Server {
 	 *     Data with sub-requests embedded.
 	 *
 	 *     @type array $_links    Links.
-	 *     @type array $_embedded Embeddeds.
+	 *     @type array $_embedded Embedded objects.
 	 * }
 	 */
 	protected function embed_links( $data, $embed = true ) {
@@ -911,6 +975,48 @@ class WP_REST_Server {
 			return $result;
 		}
 
+		$error   = null;
+		$matched = $this->match_request_to_handler( $request );
+
+		if ( is_wp_error( $matched ) ) {
+			return $this->error_to_response( $matched );
+		}
+
+		list( $route, $handler ) = $matched;
+
+		if ( ! is_callable( $handler['callback'] ) ) {
+			$error = new WP_Error(
+				'rest_invalid_handler',
+				__( 'The handler for the route is invalid.' ),
+				array( 'status' => 500 )
+			);
+		}
+
+		if ( ! is_wp_error( $error ) ) {
+			$check_required = $request->has_valid_params();
+			if ( is_wp_error( $check_required ) ) {
+				$error = $check_required;
+			} else {
+				$check_sanitized = $request->sanitize_params();
+				if ( is_wp_error( $check_sanitized ) ) {
+					$error = $check_sanitized;
+				}
+			}
+		}
+
+		return $this->respond_to_request( $request, $route, $handler, $error );
+	}
+
+	/**
+	 * Matches a request object to it's handler.
+	 *
+	 * @access private
+	 * @since 5.6.0
+	 *
+	 * @param WP_REST_Request $request The request object.
+	 * @return array|WP_Error The route and request handler on success or a WP_Error instance if no handler was found.
+	 */
+	protected function match_request_to_handler( $request ) {
 		$method = $request->get_method();
 		$path   = $request->get_route();
 
@@ -957,142 +1063,136 @@ class WP_REST_Server {
 				}
 
 				if ( ! is_callable( $callback ) ) {
-					$response = new WP_Error(
-						'rest_invalid_handler',
-						__( 'The handler for the route is invalid' ),
-						array( 'status' => 500 )
-					);
+					return array( $route, $handler );
 				}
 
-				if ( ! is_wp_error( $response ) ) {
-					// Remove the redundant preg_match argument.
-					unset( $args[0] );
+				$request->set_url_params( $args );
+				$request->set_attributes( $handler );
 
-					$request->set_url_params( $args );
-					$request->set_attributes( $handler );
+				$defaults = array();
 
-					$defaults = array();
-
-					foreach ( $handler['args'] as $arg => $options ) {
-						if ( isset( $options['default'] ) ) {
-							$defaults[ $arg ] = $options['default'];
-						}
-					}
-
-					$request->set_default_params( $defaults );
-
-					$check_required = $request->has_valid_params();
-					if ( is_wp_error( $check_required ) ) {
-						$response = $check_required;
-					} else {
-						$check_sanitized = $request->sanitize_params();
-						if ( is_wp_error( $check_sanitized ) ) {
-							$response = $check_sanitized;
-						}
+				foreach ( $handler['args'] as $arg => $options ) {
+					if ( isset( $options['default'] ) ) {
+						$defaults[ $arg ] = $options['default'];
 					}
 				}
 
-				/**
-				 * Filters the response before executing any REST API callbacks.
-				 *
-				 * Allows plugins to perform additional validation after a
-				 * request is initialized and matched to a registered route,
-				 * but before it is executed.
-				 *
-				 * Note that this filter will not be called for requests that
-				 * fail to authenticate or match to a registered route.
-				 *
-				 * @since 4.7.0
-				 *
-				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                                            $handler  Route handler used for the request.
-				 * @param WP_REST_Request                                  $request  Request used to generate the response.
-				 */
-				$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
+				$request->set_default_params( $defaults );
 
-				if ( ! is_wp_error( $response ) ) {
-					// Check permission specified on the route.
-					if ( ! empty( $handler['permission_callback'] ) ) {
-						$permission = call_user_func( $handler['permission_callback'], $request );
-
-						if ( is_wp_error( $permission ) ) {
-							$response = $permission;
-						} elseif ( false === $permission || null === $permission ) {
-							$response = new WP_Error(
-								'rest_forbidden',
-								__( 'Sorry, you are not allowed to do that.' ),
-								array( 'status' => rest_authorization_required_code() )
-							);
-						}
-					}
-				}
-
-				if ( ! is_wp_error( $response ) ) {
-					/**
-					 * Filters the REST dispatch request result.
-					 *
-					 * Allow plugins to override dispatching the request.
-					 *
-					 * @since 4.4.0
-					 * @since 4.5.0 Added `$route` and `$handler` parameters.
-					 *
-					 * @param mixed           $dispatch_result Dispatch result, will be used if not empty.
-					 * @param WP_REST_Request $request         Request used to generate the response.
-					 * @param string          $route           Route matched for the request.
-					 * @param array           $handler         Route handler used for the request.
-					 */
-					$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
-
-					// Allow plugins to halt the request via this filter.
-					if ( null !== $dispatch_result ) {
-						$response = $dispatch_result;
-					} else {
-						$response = call_user_func( $callback, $request );
-					}
-				}
-
-				/**
-				 * Filters the response immediately after executing any REST API
-				 * callbacks.
-				 *
-				 * Allows plugins to perform any needed cleanup, for example,
-				 * to undo changes made during the {@see 'rest_request_before_callbacks'}
-				 * filter.
-				 *
-				 * Note that this filter will not be called for requests that
-				 * fail to authenticate or match to a registered route.
-				 *
-				 * Note that an endpoint's `permission_callback` can still be
-				 * called after this filter - see `rest_send_allow_header()`.
-				 *
-				 * @since 4.7.0
-				 *
-				 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
-				 * @param array                                            $handler  Route handler used for the request.
-				 * @param WP_REST_Request                                  $request  Request used to generate the response.
-				 */
-				$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
-
-				if ( is_wp_error( $response ) ) {
-					$response = $this->error_to_response( $response );
-				} else {
-					$response = rest_ensure_response( $response );
-				}
-
-				$response->set_matched_route( $route );
-				$response->set_matched_handler( $handler );
-
-				return $response;
+				return array( $route, $handler );
 			}
 		}
 
-		return $this->error_to_response(
-			new WP_Error(
-				'rest_no_route',
-				__( 'No route was found matching the URL and request method' ),
-				array( 'status' => 404 )
-			)
+		return new WP_Error(
+			'rest_no_route',
+			__( 'No route was found matching the URL and request method.' ),
+			array( 'status' => 404 )
 		);
+	}
+
+	/**
+	 * Dispatches the request to the callback handler.
+	 *
+	 * @access private
+	 * @since 5.6.0
+	 *
+	 * @param WP_REST_Request $request  The request object.
+	 * @param array           $handler  The matched route handler.
+	 * @param string          $route    The matched route regex.
+	 * @param WP_Error|null   $response The current error object if any.
+	 *
+	 * @return WP_REST_Response
+	 */
+	protected function respond_to_request( $request, $route, $handler, $response ) {
+		/**
+		 * Filters the response before executing any REST API callbacks.
+		 *
+		 * Allows plugins to perform additional validation after a
+		 * request is initialized and matched to a registered route,
+		 * but before it is executed.
+		 *
+		 * Note that this filter will not be called for requests that
+		 * fail to authenticate or match to a registered route.
+		 *
+		 * @since 4.7.0
+		 *
+		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+		 * @param array                                            $handler  Route handler used for the request.
+		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 */
+		$response = apply_filters( 'rest_request_before_callbacks', $response, $handler, $request );
+
+		// Check permission specified on the route.
+		if ( ! is_wp_error( $response ) && ! empty( $handler['permission_callback'] ) ) {
+			$permission = call_user_func( $handler['permission_callback'], $request );
+
+			if ( is_wp_error( $permission ) ) {
+				$response = $permission;
+			} elseif ( false === $permission || null === $permission ) {
+				$response = new WP_Error(
+					'rest_forbidden',
+					__( 'Sorry, you are not allowed to do that.' ),
+					array( 'status' => rest_authorization_required_code() )
+				);
+			}
+		}
+
+		if ( ! is_wp_error( $response ) ) {
+			/**
+			 * Filters the REST dispatch request result.
+			 *
+			 * Allow plugins to override dispatching the request.
+			 *
+			 * @since 4.4.0
+			 * @since 4.5.0 Added `$route` and `$handler` parameters.
+			 *
+			 * @param mixed           $dispatch_result Dispatch result, will be used if not empty.
+			 * @param WP_REST_Request $request         Request used to generate the response.
+			 * @param string          $route           Route matched for the request.
+			 * @param array           $handler         Route handler used for the request.
+			 */
+			$dispatch_result = apply_filters( 'rest_dispatch_request', null, $request, $route, $handler );
+
+			// Allow plugins to halt the request via this filter.
+			if ( null !== $dispatch_result ) {
+				$response = $dispatch_result;
+			} else {
+				$response = call_user_func( $handler['callback'], $request );
+			}
+		}
+
+		/**
+		 * Filters the response immediately after executing any REST API
+		 * callbacks.
+		 *
+		 * Allows plugins to perform any needed cleanup, for example,
+		 * to undo changes made during the {@see 'rest_request_before_callbacks'}
+		 * filter.
+		 *
+		 * Note that this filter will not be called for requests that
+		 * fail to authenticate or match to a registered route.
+		 *
+		 * Note that an endpoint's `permission_callback` can still be
+		 * called after this filter - see `rest_send_allow_header()`.
+		 *
+		 * @since 4.7.0
+		 *
+		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response or WP_Error.
+		 * @param array                                            $handler  Route handler used for the request.
+		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 */
+		$response = apply_filters( 'rest_request_after_callbacks', $response, $handler, $request );
+
+		if ( is_wp_error( $response ) ) {
+			$response = $this->error_to_response( $response );
+		} else {
+			$response = rest_ensure_response( $response );
+		}
+
+		$response->set_matched_route( $route );
+		$response->set_matched_handler( $handler );
+
+		return $response;
 	}
 
 	/**
@@ -1148,7 +1248,7 @@ class WP_REST_Server {
 		$response->add_link( 'help', 'http://v2.wp-api.org/' );
 
 		/**
-		 * Filters the API root index data.
+		 * Filters the REST API root index data.
 		 *
 		 * This contains the data describing the API. This includes information
 		 * about supported authentication schemes, supported namespaces, routes
@@ -1280,6 +1380,8 @@ class WP_REST_Server {
 			}
 		}
 
+		$allowed_schema_keywords = array_flip( rest_get_allowed_schema_keywords() );
+
 		$route = preg_replace( '#\(\?P<(\w+?)>.*?\)#', '{$1}', $route );
 
 		foreach ( $callbacks as $callback ) {
@@ -1297,24 +1399,9 @@ class WP_REST_Server {
 				$endpoint_data['args'] = array();
 
 				foreach ( $callback['args'] as $key => $opts ) {
-					$arg_data = array(
-						'required' => ! empty( $opts['required'] ),
-					);
-					if ( isset( $opts['default'] ) ) {
-						$arg_data['default'] = $opts['default'];
-					}
-					if ( isset( $opts['enum'] ) ) {
-						$arg_data['enum'] = $opts['enum'];
-					}
-					if ( isset( $opts['description'] ) ) {
-						$arg_data['description'] = $opts['description'];
-					}
-					if ( isset( $opts['type'] ) ) {
-						$arg_data['type'] = $opts['type'];
-					}
-					if ( isset( $opts['items'] ) ) {
-						$arg_data['items'] = $opts['items'];
-					}
+					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
+					$arg_data['required'] = ! empty( $opts['required'] );
+
 					$endpoint_data['args'][ $key ] = $arg_data;
 				}
 			}
@@ -1339,6 +1426,178 @@ class WP_REST_Server {
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Gets the maximum number of requests that can be included in a batch.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return int The maximum requests.
+	 */
+	protected function get_max_batch_size() {
+		/**
+		 * Filters the maximum number of requests that can be included in a batch.
+		 *
+		 * @param int $max_size The maximum size.
+		 */
+		return apply_filters( 'rest_get_max_batch_size', 25 );
+	}
+
+	/**
+	 * Serves the batch/v1 request.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param WP_REST_Request $batch_request The batch request object.
+	 * @return WP_REST_Response The generated response object.
+	 */
+	public function serve_batch_request_v1( WP_REST_Request $batch_request ) {
+		$requests = array();
+
+		foreach ( $batch_request['requests'] as $args ) {
+			$parsed_url = wp_parse_url( $args['path'] );
+
+			if ( false === $parsed_url ) {
+				$requests[] = new WP_Error( 'parse_path_failed', __( 'Could not parse the path.' ), array( 'status' => 400 ) );
+
+				continue;
+			}
+
+			$single_request = new WP_REST_Request( isset( $args['method'] ) ? $args['method'] : 'POST', $parsed_url['path'] );
+
+			if ( ! empty( $parsed_url['query'] ) ) {
+				$query_args = null; // Satisfy linter.
+				wp_parse_str( $parsed_url['query'], $query_args );
+				$single_request->set_query_params( $query_args );
+			}
+
+			if ( ! empty( $args['body'] ) ) {
+				$single_request->set_body_params( $args['body'] );
+			}
+
+			if ( ! empty( $args['headers'] ) ) {
+				$single_request->set_headers( $args['headers'] );
+			}
+
+			$requests[] = $single_request;
+		}
+
+		$matches    = array();
+		$validation = array();
+		$has_error  = false;
+
+		foreach ( $requests as $single_request ) {
+			$match     = $this->match_request_to_handler( $single_request );
+			$matches[] = $match;
+			$error     = null;
+
+			if ( is_wp_error( $match ) ) {
+				$error = $match;
+			}
+
+			if ( ! $error ) {
+				list( $route, $handler ) = $match;
+
+				if ( isset( $handler['allow_batch'] ) ) {
+					$allow_batch = $handler['allow_batch'];
+				} else {
+					$route_options = $this->get_route_options( $route );
+					$allow_batch   = isset( $route_options['allow_batch'] ) ? $route_options['allow_batch'] : false;
+				}
+
+				if ( ! is_array( $allow_batch ) || empty( $allow_batch['v1'] ) ) {
+					$error = new WP_Error(
+						'rest_batch_not_allowed',
+						__( 'The requested route does not support batch requests.' ),
+						array( 'status' => 400 )
+					);
+				}
+			}
+
+			if ( ! $error ) {
+				$check_required = $single_request->has_valid_params();
+				if ( is_wp_error( $check_required ) ) {
+					$error = $check_required;
+				}
+			}
+
+			if ( ! $error ) {
+				$check_sanitized = $single_request->sanitize_params();
+				if ( is_wp_error( $check_sanitized ) ) {
+					$error = $check_sanitized;
+				}
+			}
+
+			if ( $error ) {
+				$has_error    = true;
+				$validation[] = $error;
+			} else {
+				$validation[] = true;
+			}
+		}
+
+		$responses = array();
+
+		if ( $has_error && 'require-all-validate' === $batch_request['validation'] ) {
+			foreach ( $validation as $valid ) {
+				if ( is_wp_error( $valid ) ) {
+					$responses[] = $this->envelope_response( $this->error_to_response( $valid ), false )->get_data();
+				} else {
+					$responses[] = null;
+				}
+			}
+
+			return new WP_REST_Response(
+				array(
+					'failed'    => 'validation',
+					'responses' => $responses,
+				),
+				WP_Http::MULTI_STATUS
+			);
+		}
+
+		foreach ( $requests as $i => $single_request ) {
+			$clean_request = clone $single_request;
+			$clean_request->set_url_params( array() );
+			$clean_request->set_attributes( array() );
+			$clean_request->set_default_params( array() );
+
+			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+			$result = apply_filters( 'rest_pre_dispatch', null, $this, $clean_request );
+
+			if ( empty( $result ) ) {
+				$match = $matches[ $i ];
+				$error = null;
+
+				if ( is_wp_error( $validation[ $i ] ) ) {
+					$error = $validation[ $i ];
+				}
+
+				if ( is_wp_error( $match ) ) {
+					$result = $this->error_to_response( $match );
+				} else {
+					list( $route, $handler ) = $match;
+
+					if ( ! $error && ! is_callable( $handler['callback'] ) ) {
+						$error = new WP_Error(
+							'rest_invalid_handler',
+							__( 'The handler for the route is invalid' ),
+							array( 'status' => 500 )
+						);
+					}
+
+					$result = $this->respond_to_request( $single_request, $route, $handler, $error );
+				}
+			}
+
+			/** This filter is documented in wp-includes/rest-api/class-wp-rest-server.php */
+			$result = apply_filters( 'rest_post_dispatch', rest_ensure_response( $result ), $this, $single_request );
+
+			$responses[] = $this->envelope_response( $result, false )->get_data();
+		}
+
+		return new WP_REST_Response( array( 'responses' => $responses ), WP_Http::MULTI_STATUS );
 	}
 
 	/**

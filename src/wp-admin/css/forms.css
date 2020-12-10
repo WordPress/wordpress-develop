@@ -172,7 +172,7 @@ input[type="radio"]:checked::before {
 	display: inline-block;
 	vertical-align: middle;
 	width: 1rem;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -238,10 +238,12 @@ textarea[readonly] {
 	color: #72777c;
 }
 
-.form-invalid input,
-.form-invalid input:focus,
-.form-invalid select,
-.form-invalid select:focus {
+.form-invalid .form-required,
+.form-invalid .form-required:focus,
+.form-invalid.form-required input,
+.form-invalid.form-required input:focus,
+.form-invalid.form-required select,
+.form-invalid.form-required select:focus {
 	border-color: #dc3232 !important;
 	box-shadow: 0 0 2px rgba(204, 0, 0, 0.8);
 }
@@ -533,6 +535,14 @@ fieldset label,
 	margin: 0 0 1em;
 }
 
+.wp-generate-pw {
+	margin-top: 1em;
+}
+
+.wp-pwd {
+	margin-top: 1em;
+}
+
 #misc-publishing-actions label {
 	vertical-align: baseline;
 }
@@ -756,7 +766,7 @@ ul#add-to-blog-users {
 	display: inline-block;
 }
 
-.form-table td fieldset p label { 
+.form-table td fieldset p label {
 	margin-top: 0 !important;
 }
 
@@ -839,6 +849,36 @@ table.form-table td .updated p {
 
 .color-option {
 	cursor: pointer;
+}
+
+.create-application-password .form-field {
+	max-width: 25em;
+}
+
+.create-application-password label {
+	font-weight: 600;
+}
+
+.create-application-password p.submit {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+#application-passwords-section .notice {
+	margin-top: 20px;
+	margin-bottom: 0;
+}
+
+.application-password-display input.code {
+	width: 19em;
+}
+
+.auth-app-card.card {
+	max-width: 768px;
+}
+
+.authorize-application-php .form-wrap p {
+	display: block !important;
 }
 
 /*------------------------------------------------------------------------------
@@ -1294,7 +1334,7 @@ table.form-table td .updated p {
 	display: inline-block;
 	font: normal 20px/1 dashicons;
 	margin: 3px 5px 0 -2px;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	vertical-align: top;

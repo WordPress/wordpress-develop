@@ -23,7 +23,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( $found1, $found2 );
+		$this->assertSameSets( $found1, $found2 );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}
 

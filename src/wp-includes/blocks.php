@@ -207,6 +207,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'supports'        => 'supports',
 		'styles'          => 'styles',
 		'example'         => 'example',
+		'apiVersion'      => 'api_version',
 	);
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
@@ -397,12 +398,13 @@ function strip_core_block_namespace( $block_name = null ) {
  *
  * @since 5.3.1
  *
- * @param string $block_name       Block name.
- * @param array  $block_attributes Block attributes.
- * @param string $block_content    Block save content.
+ * @param string|null $block_name       Block name. Null if the block name is unknown,
+ *                                      e.g. Classic blocks have their name set to null.
+ * @param array       $block_attributes Block attributes.
+ * @param string      $block_content    Block save content.
  * @return string Comment-delimited block content.
  */
-function get_comment_delimited_block_content( $block_name = null, $block_attributes, $block_content ) {
+function get_comment_delimited_block_content( $block_name, $block_attributes, $block_content ) {
 	if ( is_null( $block_name ) ) {
 		return $block_content;
 	}
@@ -811,7 +813,7 @@ function block_version( $content ) {
  * @param array  $style_properties Array containing the properties of the style name,
  *                                 label, style (name of the stylesheet to be enqueued),
  *                                 inline_style (string containing the CSS to be added).
- * @return boolean True if the block style was registered with success and false otherwise.
+ * @return bool True if the block style was registered with success and false otherwise.
  */
 function register_block_style( $block_name, $style_properties ) {
 	return WP_Block_Styles_Registry::get_instance()->register( $block_name, $style_properties );
@@ -824,7 +826,7 @@ function register_block_style( $block_name, $style_properties ) {
  *
  * @param string $block_name       Block type name including namespace.
  * @param array  $block_style_name Block style name.
- * @return boolean True if the block style was unregistered with success and false otherwise.
+ * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {
 	return WP_Block_Styles_Registry::get_instance()->unregister( $block_name, $block_style_name );

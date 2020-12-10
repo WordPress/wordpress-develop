@@ -30,7 +30,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory A WP_UnitTest_Factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$cats      = $factory->term->create_many( 10, array( 'taxonomy' => 'category' ) );
 		self::$post_tags = $factory->term->create_many( 10 );
 		self::$editor_id = $factory->user->create( array( 'role' => 'editor' ) );
@@ -114,7 +114,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
 
-		$this->assertEquals( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
+		$this->assertSame( $expected, $post_list, 'Custom taxonomy term links are not visible.' );
 	}
 
 	/**
@@ -163,7 +163,7 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		// Clean up.
 		unregister_taxonomy_for_object_type( $taxonomy, 'post' );
 
-		$this->assertEmpty( $post_list, 'Private taxonomy term links are visible.' );
+		$this->assertEmpty( $post_list, 'Non-publicly queryable taxonomy term links are visible.' );
 	}
 
 	/**
@@ -216,6 +216,6 @@ class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 		add_filter( 'wp_sitemaps_taxonomies', '__return_empty_array' );
 		$subtypes = $taxonomies_provider->get_object_subtypes();
 
-		$this->assertEquals( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
+		$this->assertSame( array(), $subtypes, 'Could not filter taxonomies subtypes.' );
 	}
 }

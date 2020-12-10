@@ -3,6 +3,7 @@
 /**
  * @group formatting
  * @group functions.php
+ * @covers ::wp_allowed_protocols
  */
 class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 
@@ -18,7 +19,7 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 		foreach ( $this->data_example_urls() as $example ) {
 			$example_protocols[] = $example[0];
 		}
-		$this->assertEqualSets( $example_protocols, wp_allowed_protocols() );
+		$this->assertSameSets( $example_protocols, wp_allowed_protocols() );
 	}
 
 	/**
@@ -29,8 +30,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 * @param string Example URL.
 	 */
 	function test_allowed_protocols( $protocol, $url ) {
-		$this->assertEquals( $url, esc_url( $url, $protocol ) );
-		$this->assertEquals( $url, esc_url( $url, wp_allowed_protocols() ) );
+		$this->assertSame( $url, esc_url( $url, $protocol ) );
+		$this->assertSame( $url, esc_url( $url, wp_allowed_protocols() ) );
 	}
 
 	/**
@@ -45,6 +46,8 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 			array( 'mailto', 'mailto://someone@example.com' ),                     // RFC6068
 			array( 'news', 'news://news.server.example/example.group.this' ),      // RFC5538
 			array( 'irc', 'irc://example.com/wordpress' ),
+			array( 'irc6', 'irc6://example.com/wordpress' ),
+			array( 'ircs', 'ircs://example.com/wordpress' ),
 			array( 'gopher', 'gopher://example.com/7a_gopher_selector%09foobar' ), // RFC4266
 			array( 'nntp', 'nntp://news.server.example/example.group.this' ),      // RFC5538
 			array( 'feed', 'feed://example.com/rss.xml' ),

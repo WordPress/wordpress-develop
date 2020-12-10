@@ -4,8 +4,10 @@
  * Test list_files().
  *
  * @group functions.php
+ * @covers ::list_files
  */
 class Tests_Functions_ListFiles extends WP_UnitTestCase {
+
 	public function test_list_files_returns_a_list_of_files() {
 		$admin_files = list_files( ABSPATH . 'wp-admin/' );
 		$this->assertInternalType( 'array', $admin_files );

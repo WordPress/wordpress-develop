@@ -12,7 +12,7 @@
  *
  * @group link
  * @group privacy
- * @covers get_the_privacy_policy_link
+ * @covers ::get_the_privacy_policy_link
  *
  * @since 4.9.6
  */
@@ -54,7 +54,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$privacy_policy_page_id = $factory->post->create(
 			array(
 				'post_type'  => 'page',

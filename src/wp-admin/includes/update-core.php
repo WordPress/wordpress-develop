@@ -798,6 +798,9 @@ $_old_files = array(
 	'wp-admin/css/ie.min.css',
 	'wp-admin/css/ie-rtl.css',
 	'wp-admin/css/ie-rtl.min.css',
+	// 5.6
+	'wp-includes/js/jquery/ui/position.min.js',
+	'wp-includes/js/jquery/ui/widget.min.js',
 );
 
 /**
@@ -835,6 +838,7 @@ $_new_bundled_files = array(
 	'themes/twentyseventeen/' => '4.7',
 	'themes/twentynineteen/'  => '5.0',
 	'themes/twentytwenty/'    => '5.3',
+	'themes/twentytwentyone/' => '5.6',
 );
 
 /**

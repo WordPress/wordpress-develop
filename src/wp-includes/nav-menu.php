@@ -552,8 +552,8 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	$menu_item_db_id = (int) $menu_item_db_id;
 
 	update_post_meta( $menu_item_db_id, '_menu_item_type', sanitize_key( $args['menu-item-type'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', strval( (int) $args['menu-item-parent-id'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_object_id', strval( (int) $args['menu-item-object-id'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', (string) ( (int) $args['menu-item-parent-id'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_object_id', (string) ( (int) $args['menu-item-object-id'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_object', sanitize_key( $args['menu-item-object'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_target', sanitize_key( $args['menu-item-target'] ) );
 
@@ -988,11 +988,12 @@ function wp_setup_nav_menu_item( $menu_item ) {
  *
  * @since 3.0.0
  *
- * @param int    $object_id   The ID of the original object.
- * @param string $object_type The type of object, such as 'taxonomy' or 'post_type'.
- * @param string $taxonomy    If $object_type is 'taxonomy', $taxonomy is the name of the tax
- *                            that $object_id belongs to.
- * @return int[] The array of menu item IDs; empty array if none;
+ * @param int    $object_id   Optional. The ID of the original object. Default 0.
+ * @param string $object_type Optional. The type of object, such as 'post_type' or 'taxonomy'.
+ *                            Default 'post_type'.
+ * @param string $taxonomy    Optional. If $object_type is 'taxonomy', $taxonomy is the name
+ *                            of the tax that $object_id belongs to. Default empty.
+ * @return int[] The array of menu item IDs; empty array if none.
  */
 function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_type', $taxonomy = '' ) {
 	$object_id     = (int) $object_id;
@@ -1037,7 +1038,7 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
  *
  * @param int $object_id The ID of the original object being trashed.
  */
-function _wp_delete_post_menu_item( $object_id = 0 ) {
+function _wp_delete_post_menu_item( $object_id ) {
 	$object_id = (int) $object_id;
 
 	$menu_item_ids = wp_get_associated_nav_menu_items( $object_id, 'post_type' );
@@ -1053,11 +1054,11 @@ function _wp_delete_post_menu_item( $object_id = 0 ) {
  * @since 3.0.0
  * @access private
  *
- * @param int    $object_id Optional. The ID of the original object being trashed. Default 0.
+ * @param int    $object_id The ID of the original object being trashed.
  * @param int    $tt_id     Term taxonomy ID. Unused.
  * @param string $taxonomy  Taxonomy slug.
  */
-function _wp_delete_tax_menu_item( $object_id = 0, $tt_id, $taxonomy ) {
+function _wp_delete_tax_menu_item( $object_id, $tt_id, $taxonomy ) {
 	$object_id = (int) $object_id;
 
 	$menu_item_ids = wp_get_associated_nav_menu_items( $object_id, 'taxonomy', $taxonomy );

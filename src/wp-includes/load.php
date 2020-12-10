@@ -86,6 +86,47 @@ function wp_fix_server_vars() {
 		$_SERVER['PHP_SELF'] = preg_replace( '/(\?.*)?$/', '', $_SERVER['REQUEST_URI'] );
 		$PHP_SELF            = $_SERVER['PHP_SELF'];
 	}
+
+	wp_populate_basic_auth_from_authorization_header();
+}
+
+/**
+ * Populates the Basic Auth server details from the Authorization header.
+ *
+ * Some servers running in CGI or FastCGI mode don't pass the Authorization
+ * header on to WordPress.  If it's been rewritten to the `HTTP_AUTHORIZATION` header,
+ * fill in the proper $_SERVER variables instead.
+ *
+ * @since 5.6.0
+ */
+function wp_populate_basic_auth_from_authorization_header() {
+	// If we don't have anything to pull from, return early.
+	if ( ! isset( $_SERVER['HTTP_AUTHORIZATION'] ) && ! isset( $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ) ) {
+		return;
+	}
+
+	// If either PHP_AUTH key is already set, do nothing.
+	if ( isset( $_SERVER['PHP_AUTH_USER'] ) || isset( $_SERVER['PHP_AUTH_PW'] ) ) {
+		return;
+	}
+
+	// From our prior conditional, one of these must be set.
+	$header = isset( $_SERVER['HTTP_AUTHORIZATION'] ) ? $_SERVER['HTTP_AUTHORIZATION'] : $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+
+	// Test to make sure the pattern matches expected.
+	if ( ! preg_match( '%^Basic [a-z\d/+]*={0,2}$%i', $header ) ) {
+		return;
+	}
+
+	// Removing `Basic ` the token would start six characters in.
+	$token    = substr( $header, 6 );
+	$userpass = base64_decode( $token );
+
+	list( $user, $pass ) = explode( ':', $userpass );
+
+	// Now shove them in the proper keys where we're expecting later on.
+	$_SERVER['PHP_AUTH_USER'] = $user;
+	$_SERVER['PHP_AUTH_PW']   = $pass;
 }
 
 /**
@@ -112,7 +153,11 @@ function wp_check_php_mysql_versions() {
 		exit( 1 );
 	}
 
-	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' ) ) {
+	if ( ! extension_loaded( 'mysql' ) && ! extension_loaded( 'mysqli' ) && ! extension_loaded( 'mysqlnd' )
+		// This runs before default constants are defined, so we can't assume WP_CONTENT_DIR is set yet.
+		&& ( defined( 'WP_CONTENT_DIR' ) && ! file_exists( WP_CONTENT_DIR . '/db.php' )
+			|| ! file_exists( ABSPATH . 'wp-content/db.php' ) )
+	) {
 		require_once ABSPATH . WPINC . '/functions.php';
 		wp_load_translations_early();
 		$args = array(
@@ -134,10 +179,12 @@ function wp_check_php_mysql_versions() {
  * The type can be set via the `WP_ENVIRONMENT_TYPE` global system variable,
  * or a constant of the same name.
  *
- * Possible values include 'development', 'staging', 'production'. If not set,
- * the type defaults to 'production'.
+ * Possible values are 'local', 'development', 'staging', and 'production'.
+ * If not set, the type defaults to 'production'.
  *
  * @since 5.5.0
+ * @since 5.5.1 Added the 'local' type.
+ * @since 5.5.1 Removed the ability to alter the list of types.
  *
  * @return string The current environment type.
  */
@@ -149,22 +196,26 @@ function wp_get_environment_type() {
 	}
 
 	$wp_environments = array(
+		'local',
 		'development',
 		'staging',
 		'production',
 	);
 
-	// Check if the environment variable has been set, if `getenv` is available on the system.
-	if ( function_exists( 'getenv' ) ) {
-		$has_env = getenv( 'WP_ENVIRONMENT_TYPES' );
-		if ( false !== $has_env ) {
-			$wp_environments = explode( ',', $has_env );
+	// Add a note about the deprecated WP_ENVIRONMENT_TYPES constant.
+	if ( defined( 'WP_ENVIRONMENT_TYPES' ) && function_exists( '_deprecated_argument' ) ) {
+		if ( function_exists( '__' ) ) {
+			/* translators: %s: WP_ENVIRONMENT_TYPES */
+			$message = sprintf( __( 'The %s constant is no longer supported.' ), 'WP_ENVIRONMENT_TYPES' );
+		} else {
+			$message = sprintf( 'The %s constant is no longer supported.', 'WP_ENVIRONMENT_TYPES' );
 		}
-	}
 
-	// Fetch the environment types from a constant, this overrides the global system variable.
-	if ( defined( 'WP_ENVIRONMENT_TYPES' ) ) {
-		$wp_environments = WP_ENVIRONMENT_TYPES;
+		_deprecated_argument(
+			'define()',
+			'5.5.1',
+			$message
+		);
 	}
 
 	// Check if the environment variable has been set, if `getenv` is available on the system.
@@ -1440,17 +1491,30 @@ function wp_doing_cron() {
 }
 
 /**
- * Check whether variable is a WordPress Error.
+ * Checks whether the given variable is a WordPress Error.
  *
- * Returns true if $thing is an object of the WP_Error class.
+ * Returns whether `$thing` is an instance of the `WP_Error` class.
  *
  * @since 2.1.0
  *
- * @param mixed $thing Check if unknown variable is a WP_Error object.
- * @return bool True, if WP_Error. False, if not WP_Error.
+ * @param mixed $thing The variable to check.
+ * @return bool Whether the variable is an instance of WP_Error.
  */
 function is_wp_error( $thing ) {
-	return ( $thing instanceof WP_Error );
+	$is_wp_error = ( $thing instanceof WP_Error );
+
+	if ( $is_wp_error ) {
+		/**
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
+		 *
+		 * @since 5.6.0
+		 *
+		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
+		 */
+		do_action( 'is_wp_error_instance', $thing );
+	}
+
+	return $is_wp_error;
 }
 
 /**
@@ -1531,11 +1595,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false !== strpos( $_SERVER['HTTP_ACCEPT'], 'application/json' ) ) {
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_media_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && wp_is_json_media_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 
@@ -1569,6 +1633,24 @@ function wp_is_jsonp_request() {
 
 	return $jsonp_enabled;
 
+}
+
+/**
+ * Checks whether a string is a valid JSON Media Type.
+ *
+ * @since 5.6.0
+ *
+ * @param string $media_type A Media Type string to check.
+ * @return bool True if string is a valid JSON Media Type.
+ */
+function wp_is_json_media_type( $media_type ) {
+	static $cache = array();
+
+	if ( ! isset( $cache[ $media_type ] ) ) {
+		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+	}
+
+	return $cache[ $media_type ];
 }
 
 /**
