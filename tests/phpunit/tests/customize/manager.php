@@ -45,7 +45,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
 	}

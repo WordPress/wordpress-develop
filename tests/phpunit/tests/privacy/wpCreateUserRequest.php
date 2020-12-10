@@ -59,7 +59,7 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$registered_user_email     = 'export@local.test';
 		self::$non_registered_user_email = 'non-registered-user@local.test';
 

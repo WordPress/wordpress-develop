@@ -17,7 +17,7 @@ class Tests_Post_wpPublishPost extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Test suite factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$auto_draft_id = $factory->post->create( array( 'post_status' => 'auto-draft' ) );
 	}
 

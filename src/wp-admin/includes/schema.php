@@ -536,6 +536,13 @@ function populate_options( array $options = array() ) {
 		'comment_previously_approved'     => 1,
 		'auto_plugin_theme_update_emails' => array(),
 
+		// 5.6.0
+		'auto_update_core_dev'            => 'enabled',
+		'auto_update_core_minor'          => 'enabled',
+		// Default to enabled for new installs.
+		// See https://core.trac.wordpress.org/ticket/51742.
+		'auto_update_core_major'          => 'enabled',
+
 		// 5.7.0
 		'media_search_engine_visibility'  => '1',
 	);

@@ -29,7 +29,7 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'make.wordpress.org/' => array(
 					'domain' => 'make.wordpress.org',
@@ -502,7 +502,7 @@ if ( is_multisite() ) :
 
 			restore_current_blog();
 			$this->assertNotEmpty( $spam_permalink );
-			$this->assertEquals( $post_data['post_title'], $post->post_title );
+			$this->assertSame( $post_data['post_title'], $post->post_title );
 
 			update_blog_status( $spam_blog_id, 'spam', 1 );
 
