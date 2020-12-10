@@ -279,7 +279,7 @@ jobs:
           path: 'test-runner'
 
       - name: WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.report }}
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && matrix.report }}
         env:
           WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
         run: docker-compose run --rm -e "$WPT_REPORT_API_KEY" -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
