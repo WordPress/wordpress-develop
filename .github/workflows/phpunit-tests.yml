@@ -272,10 +272,14 @@ jobs:
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
       - name: WordPress Test Reporter
-        if: ${{ matrix.report }}
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
         uses: actions/checkout@v2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
-        # TODO: Configure hidden keys to successfully report test results.
-        # run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+      - name: WordPress Test Reporter
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        env:
+          WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
+        run: docker-compose run --rm -e "$WPT_REPORT_API_KEY" -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
