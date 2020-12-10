@@ -66,7 +66,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
@@ -161,7 +161,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Use cached Node modules
         uses: actions/cache@v2
@@ -279,7 +279,7 @@ jobs:
           path: 'test-runner'
 
       - name: WordPress Test Reporter
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.event_name != 'pull_request' && matrix.report }}
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && matrix.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e "$WPT_REPORT_API_KEY" -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
