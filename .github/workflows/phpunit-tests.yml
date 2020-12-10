@@ -281,7 +281,7 @@ jobs:
       - name: Set up the Git repo.
         run: |
           git init
-          git remote add origin git@github.com:WordPress/wordpress-develop.git
+          git remote add origin https://github.com/WordPress/wordpress-develop.git
           git fetch
           git reset origin/master
 
