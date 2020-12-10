@@ -120,6 +120,7 @@ jobs:
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
   # - Checks out the WordPress Test reporter repository.
+  # - Reconnect the directory to the Git repository.
   # - Submit the test results to the WordPress.org host test results.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
@@ -279,8 +280,16 @@ jobs:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
 
+      - name: Set up the Git repository
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        run: |
+          git init
+          git remote add origin https://github.com/WordPress/wordpress-develop.git
+          git fetch
+          git reset origin/master
+
       - name: Submit test results to the WordPress.org host test results
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
-        run: docker-compose run --rm -e "$WPT_REPORT_API_KEY" -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
