@@ -1401,6 +1401,11 @@ class WP_REST_Server {
 				foreach ( $callback['args'] as $key => $opts ) {
 					if ( is_string( $opts ) ) {
 						$opts = array( $opts => 0 );
+						_doing_it_wrong(
+							'WP_REST_Server::get_data_for_route',
+							sprintf( __( '$args not properly formatted for register_rest_route.' ), __METHOD__ ),
+							'5.6.1'
+						);
 					}
 					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
 					$arg_data['required'] = ! empty( $opts['required'] );
