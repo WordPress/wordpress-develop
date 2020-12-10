@@ -277,5 +277,9 @@ jobs:
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
-        # TODO: Configure hidden keys to successfully report test results.
-        # run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+      - name: WordPress Test Reporter
+        if: ${{ matrix.report }}
+        env:
+          WPT_REPORT_API_KEY: ${{ secrets.WPT_REPORT_API_KEY }}
+        run: docker-compose run --rm -e "$WPT_REPORT_API_KEY" -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
