@@ -27,81 +27,97 @@
 	// Target the default and filled button states.
 	&:not(.is-style-outline) {
 
-		.wp-block-button__link {
-
-			&:active {
-				color: var(--button--color-text-active) !important;
-				background: transparent !important;
-				border-color: var(--button--color-background);
+		.wp-block-button__link:not(:hover):not(:active) {
+		
+			// Text colors
+			&:not(.has-text-color) {
+				color: var(--global--color-background);
+				
+				// Nested
+				.has-background & {
+					color: var(--local--color-background);
+				
+					&.has-background {
+						color: var(--global--color-primary);
+					}
+				}
 			}
 
-			&:hover {
-				color: var(--button--color-text-hover) !important;
-				background: transparent !important;
-				border-color: var(--button--color-background);
+			// Background-colors
+			&:not(.has-background) {
+				background-color: var(--global--color-primary);
+				
+				// Nested
+				.has-background & {
+					background-color: var(--local-color-primary);
+				}
 			}
+		}
+
+		/* Hover Button color should match parent element foreground color */
+		.wp-block-button__link:hover,
+		.wp-block-button__link:active {	
+			background: transparent;
+			border-color: currentColor;
+			color: inherit;
 		}
 	}
 
 	// Outline Style.
 	&.is-style-outline {
 
-		.wp-block-button__link {
-			color: var(--button--color-background);
-			background: transparent;
-			border: var(--button--border-width) solid currentColor;
-			padding: var(--button--padding-vertical) var(--button--padding-horizontal);
+		.wp-block-button__link:not(:hover):not(:active) {
 
-			&:active,
-			&:hover {
-				background-color: var(--button--color-background);
-				color: var(--button--color-text);
-				border-color: var(--button--color-background);
-			}
-
+			// Border colors
+			&:not(.has-text-color),
+			&:not(.has-background),
 			&.has-background {
-				border-color: var(--button--color-background);
-
-				&:active,
-				&:hover {
-					background-color: var(--button--color-background) !important;
-				}
-			}
-
-			&.has-background:not(.has-text-color) {
-				color: var(--global--color-dark-gray);
-			}
-
-			&.has-background.has-gray-background-color:not(.has-text-color),
-			&.has-background.has-dark-gray-background-color:not(.has-text-color),
-			&.has-background.has-black-background-color:not(.has-text-color) {
-				color: var(--global--color-white);
-			}
-
-			.is-dark-theme & {
-
-				&:not(.has-text-color) {
-
-					&.has-background.has-white-background-color,
-					&.has-background.has-green-background-color,
-					&.has-background.has-blue-background-color,
-					&.has-background.has-purple-background-color,
-					&.has-background.has-red-background-color,
-					&.has-background.has-orange-background-color,
-					&.has-background.has-yellow-background-color {
-						color: var(--global--color-dark-gray);
-					}
-				}
-			}
-
-			&.has-text-color {
 				border-color: currentColor;
-
-				&:active,
-				&:hover {
-					color: var(--button--color-text) !important;
-					border-color: var(--button--color-background);
+			}
+			
+			// Text colors
+			&:not(.has-text-color) {
+				color: var(--global--color-primary);
+				
+				// Nested
+				.has-background & {
+					color: var(--local-color-primary);
 				}
+			}
+			
+			&.has-background {
+				// Nested
+				.has-background &:not(.has-text-color) {
+					color: inherit;
+				}
+			}
+			
+			// Background-colors
+			&:not(.has-background) {
+				background-color: transparent;
+			}    
+		}
+		
+		.wp-block-button__link:hover,
+		.wp-block-button__link:active {
+
+			border-color: transparent;
+			
+			// Reverse color relationship for dark mode 
+			// and dark background palette colors
+			&,
+			.has-background &,
+			.is-dark-theme .has-background[class*="gray"]:not([class*="light"]) &,
+			.is-dark-theme .has-background[class*="black"] & {
+				background: var(--global--color-primary);
+				color: var(--global--color-background);
+			}
+			
+			.has-background[class*="gray"]:not([class*="light"]) &,
+			.has-background[class*="black"] &,
+			.is-dark-theme .has-background & {
+				background: var(--global--color-background);
+				color: var(--global--color-primary);
 			}
 		}
 	}

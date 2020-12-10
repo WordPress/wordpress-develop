@@ -45,64 +45,52 @@
 		@include button-style();
 		box-shadow: none;
 		margin-left: 0;
-		background-color: transparent;
-		color: var(--button--color-text-hover);
 
-		&:hover {
-			color: var(--button--color-text);
-			background-color: var(--button--color-background);
+		// Switch to outline style for dark mode for better a11y.
+		.is-dark-theme & {
+	
+			&:not(:hover):not(:active) {
+				background-color: transparent;
+				border-color: currentColor;
+				color: var(--global--color-primary);
+					
+				// Nested
+				.has-background & {
+					color: var(--local-color-primary);
+				}
+			}
+			
+			&:hover,
+			&:active {
+	
+				border-color: transparent;
+				
+				// Reverse color relationship for dark mode 
+				// and dark background palette colors
+				&,
+				.has-background &,
+				.is-dark-theme .has-background[class*="gray"]:not([class*="light"]) &,
+				.is-dark-theme .has-background[class*="black"] & {
+					background: var(--global--color-primary);
+					color: var(--global--color-background);
+				}
+				
+				.has-background[class*="gray"]:not([class*="light"]) &,
+				.has-background[class*="black"] &,
+				.is-dark-theme .has-background & {
+					background: var(--global--color-background);
+					color: var(--global--color-primary);
+				}
+			}
 		}
 
 		&.has-icon {
 			padding: calc(2 * var(--button--padding-vertical)) calc(0.5 * var(--button--padding-horizontal));
+			display: inherit;
 
 			svg {
 				width: 40px;
 				height: 40px;
-			}
-		}
-
-		.has-background.has-gray-background-color &,
-		.has-background.has-dark-gray-background-color &,
-		.has-background.has-black-background-color & {
-			color: var(--global--color-white);
-			border-color: currentColor;
-
-			&:hover {
-				color: var(--global--color-white);
-				background-color: var(--button--color-background);
-				border-color: var(--global--color-white);
-
-				.is-dark-theme & {
-					color: var(--button--color-text);
-					background-color: var(--button--color-background);
-				}
-			}
-		}
-
-		.has-background.has-white-background-color &,
-		.has-background.has-green-background-color &,
-		.has-background.has-blue-background-color &,
-		.has-background.has-purple-background-color &,
-		.has-background.has-red-background-color &,
-		.has-background.has-orange-background-color &,
-		.has-background.has-yellow-background-color & {
-
-			&:hover {
-				color: var(--global--color-white);
-				background-color: var(--form--border-color);
-				border-color: var(--form--border-color);
-			}
-
-			.is-dark-theme & {
-				color: var(--form--color-text);
-				border-color: currentColor;
-
-				&:hover {
-					color: var(--global--color-white);
-					background-color: var(--button--color-text);
-					border-color: var(--button--color-text);
-				}
 			}
 		}
 	}
@@ -120,50 +108,29 @@
 			border: none;
 		}
 
-		&.wp-block-search__text-button {
+		&.wp-block-search__text-button,
+		&.wp-block-search__icon-button {
 
 			.wp-block-search__button {
-				// Match the text button size with the icon button.
-				padding: var(--button--padding-vertical) var(--button--padding-horizontal);
-			}
-		}
-
-		.wp-block-search__button {
-
-			.is-dark-theme & {
-				color: var(--button--color-text);
-				border-color: currentColor;
-
+				// Search button always needs black contrast against white form background
 				&:hover {
-					color: var(--global--color-white);
-					background-color: var(--button--color-text);
-					border-color: var(--button--color-text);
+					color: var(--global--color-dark-gray);
 				}
-			}
-
-			.has-background.has-gray-background-color &,
-			.has-background.has-dark-gray-background-color &,
-			.has-background.has-black-background-color & {
-				color: var(--button--color-text-hover);
-				border-color: currentColor;
-
-				&:hover {
-					color: var(--global--color-white);
-					background-color: var(--button--color-background);
-					border-color: var(--button--color-background);
-				}
-
+				
 				.is-dark-theme & {
-					color: var(--button--color-text);
-					border-color: currentColor;
+					color: var(--global--color-dark-gray);
 
 					&:hover {
+						background-color: var(--global--color-dark-gray);
 						color: var(--global--color-white);
-						background-color: var(--button--color-text);
-						border-color: var(--button--color-text);
 					}
 				}
 			}
+		}
+
+		&.wp-block-search__text-button .wp-block-search__button {
+			// Match the text button size with the icon button.
+			padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 		}
 	}
 }

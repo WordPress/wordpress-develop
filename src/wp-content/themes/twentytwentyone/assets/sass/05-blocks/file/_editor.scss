@@ -15,10 +15,5 @@
 		// Extend button style
 		@include button-style();
 		display: inline-block;
-
-		&:hover {
-			color: var(--button--color-text-hover);
-			background: transparent;
-		}
 	}
 }
