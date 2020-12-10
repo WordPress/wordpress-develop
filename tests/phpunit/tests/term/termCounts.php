@@ -45,7 +45,7 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Test suite factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$statuses = array( 'publish', 'auto-draft', 'draft', 'private' );
 		foreach ( $statuses as $status ) {
 			self::$post_ids[ $status ] = $factory->post->create( array( 'post_status' => $status ) );

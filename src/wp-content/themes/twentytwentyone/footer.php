@@ -13,7 +13,7 @@
 
 ?>
 			</main><!-- #main -->
-		</section><!-- #primary -->
+		</div><!-- #primary -->
 	</div><!-- #content -->
 
 	<?php get_template_part( 'template-parts/footer/footer-widgets' ); ?>
@@ -28,11 +28,11 @@
 						array(
 							'theme_location' => 'footer',
 							'items_wrap'     => '%3$s',
-							'container'      => 'false',
+							'container'      => false,
 							'depth'          => 1,
 							'link_before'    => '<span>',
 							'link_after'     => '</span>',
-							'fallback_cb'    => 'false',
+							'fallback_cb'    => false,
 						)
 					);
 					?>
@@ -58,7 +58,7 @@
 				printf(
 					/* translators: %s: WordPress. */
 					esc_html__( 'Proudly powered by %s.', 'twentytwentyone' ),
-					'<a href="' . esc_attr__( 'https://wordpress.org/', 'twentytwentyone' ) . '">WordPress</a>'
+					'<a href="' . esc_url( __( 'https://wordpress.org/', 'twentytwentyone' ) ) . '">WordPress</a>'
 				);
 				?>
 			</div><!-- .powered-by -->

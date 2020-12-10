@@ -31,7 +31,7 @@ class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 
 	protected static $comment_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$comment_post = $factory->post->create_and_get();
 		self::$comment_ids  = $factory->comment->create_post_comments( self::$comment_post->ID, 5 );
 		self::$draft_post   = $factory->post->create_and_get( array( 'post_status' => 'draft' ) );

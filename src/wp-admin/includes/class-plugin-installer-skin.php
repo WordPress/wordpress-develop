@@ -65,7 +65,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Error $wp_error WP_Error.
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
@@ -107,7 +107,7 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['activate_plugin'] = sprintf(
 				'<a class="button button-primary" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( 'plugins.php?action=activate&amp;from=press-this&amp;plugin=' . urlencode( $plugin_file ), 'activate-plugin_' . $plugin_file ),
-				__( 'Activate Plugin &amp; Return to Press This' )
+				__( 'Activate Plugin &amp; Go to Press This' )
 			);
 		} else {
 			$install_actions['activate_plugin'] = sprintf(
@@ -130,25 +130,25 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['importers_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				admin_url( 'import.php' ),
-				__( 'Return to Importers' )
+				__( 'Go to Importers' )
 			);
 		} elseif ( 'web' === $this->type ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				__( 'Return to Plugin Installer' )
+				__( 'Go to Plugin Installer' )
 			);
 		} elseif ( 'upload' === $this->type && 'plugins' === $from ) {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s">%s</a>',
 				self_admin_url( 'plugin-install.php' ),
-				__( 'Return to Plugin Installer' )
+				__( 'Go to Plugin Installer' )
 			);
 		} else {
 			$install_actions['plugins_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'plugins.php' ),
-				__( 'Return to Plugins page' )
+				__( 'Go to Plugins page' )
 			);
 		}
 
@@ -325,8 +325,8 @@ class Plugin_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		/**
-		 * Filters the list of action links available following a single plugin installation
-		 * failure when overwriting is allowed.
+		 * Filters the list of action links available following a single plugin installation failure
+		 * when overwriting is allowed.
 		 *
 		 * @since 5.5.0
 		 *

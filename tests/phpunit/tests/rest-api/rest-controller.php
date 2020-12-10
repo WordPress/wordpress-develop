@@ -248,7 +248,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
-		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
+		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
 		$this->assertFalse( isset( $args['someinteger']['description'] ) );
 	}
 

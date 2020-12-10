@@ -88,17 +88,30 @@ if ( is_wp_error( $is_valid ) ) {
 	);
 }
 
+if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+	wp_die(
+		__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
+		__( 'Cannot Authorize Application' ),
+		array(
+			'response'  => 501,
+			'link_text' => __( 'Go Back' ),
+			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
+		)
+	);
+}
+
 if ( ! wp_is_application_passwords_available_for_user( $user ) ) {
 	if ( wp_is_application_passwords_available() ) {
-		$message = __( 'Application passwords are not enabled for your account. Please contact the site administrator for assistance.' );
+		$message = __( 'Application passwords are not available for your account. Please contact the site administrator for assistance.' );
 	} else {
-		$message = __( 'Application passwords are not enabled.' );
+		$message = __( 'Application passwords are not available.' );
 	}
 
 	wp_die(
 		$message,
 		__( 'Cannot Authorize Application' ),
 		array(
+			'response'  => 501,
 			'link_text' => __( 'Go Back' ),
 			'link_url'  => $reject_url ? add_query_arg( 'error', 'disabled', $reject_url ) : admin_url(),
 		)
@@ -171,15 +184,18 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php if ( $new_password ) : ?>
 			<div class="notice notice-success notice-alt below-h2">
 				<p class="application-password-display">
-					<?php
-					printf(
-						/* translators: 1: Application name, 2: Generated password. */
-						__( 'Your new password for %1$s is %2$s.' ),
-						'<strong>' . esc_html( $app_name ) . '</strong>',
-						sprintf( '<input type="text" class="code" readonly="readonly" value="%s" />', esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ) )
-					);
-					?>
+					<label for="new-application-password-value">
+						<?php
+						printf(
+							/* translators: %s: Application name. */
+							esc_html__( 'Your new password for %s is:' ),
+							'<strong>' . esc_html( $app_name ) . '</strong>'
+						);
+						?>
+					</label>
+					<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="<?php esc_attr( WP_Application_Passwords::chunk_password( $new_password ) ); ?>" />
 				</p>
+				<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			</div>
 
 			<?php
@@ -204,7 +220,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 				<div class="form-field">
 					<label for="app_name"><?php _e( 'New Application Password Name' ); ?></label>
-					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" required aria-required="true" />
+					<input type="text" id="app_name" name="app_name" value="<?php echo esc_attr( $app_name ); ?>" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" required />
 				</div>
 
 				<?php
