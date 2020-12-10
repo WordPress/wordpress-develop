@@ -4,27 +4,11 @@
 .site .button,
 input[type="submit"],
 input[type="reset"],
-.wp-block-search__button,
-.wp-block-button .wp-block-button__link {
+.wp-block-search .wp-block-search__button,
+.wp-block-button .wp-block-button__link,
+.wp-block-file a.wp-block-file__button {
 	// Extend button style
 	@include button-style();
-}
-
-.site .button,
-input[type="submit"],
-input[type="reset"],
-.wp-block-search .wp-block-search__button,
-.wp-block-file .wp-block-file__button {
-
-	&:active {
-		color: var(--button--color-text-active);
-		background-color: var(--button--color-background-active);
-	}
-
-	&:hover {
-		color: var(--button--color-text-hover);
-		background: transparent;
-	}
 }
 
 /**
@@ -35,90 +19,100 @@ input[type="reset"],
 	// Target the default and filled button states.
 	&:not(.is-style-outline) {
 
-		.wp-block-button__link {
-
-			&:active {
-				color: var(--button--color-text-active) !important;
-				background: transparent !important;
-				border-color: var(--button--color-background);
+		.wp-block-button__link:not(:hover):not(:active) {
+		
+			// Text colors
+			&:not(.has-text-color) {
+				color: var(--global--color-background);
+				
+				// Nested
+				.has-background & {
+					color: var(--local--color-background);
+				
+					&.has-background {
+						color: var(--global--color-primary);
+					}
+				}
 			}
 
-			&:hover {
-				color: var(--button--color-text-hover) !important;
-				background: transparent !important;
-				border-color: var(--button--color-background);
+			// Background-colors
+			&:not(.has-background) {
+				background-color: var(--global--color-primary);
+				
+				// Nested
+				.has-background & {
+					background-color: var(--local-color-primary);
+				}
 			}
+		}
 
-			&:focus {
-				color: var(--button--color-text) !important;
-				background: var(--button--color-background) !important;
-			}
+		/* Hover Button color should match parent element foreground color */
+		.wp-block-button__link:hover,
+		.wp-block-button__link:active {	
+			background: transparent;
+			border-color: currentColor;
+			color: inherit;
 		}
 	}
 
 	// Outline Style.
 	&.is-style-outline {
 
-		.wp-block-button__link {
-			padding: var(--button--padding-vertical) var(--button--padding-horizontal);
+		.wp-block-button__link:not(:hover):not(:active) {
 
-			&:not(.has-background) {
-				background: transparent;
-			}
-
-			&:not(.has-background):not(.has-text-color) {
-				background: transparent;
-				color: var(--button--color-background);
-				border-color: var(--button--color-background);
-			}
-
-			&.has-background:not(.has-text-color) {
-				color: currentColor;
-			}
-
-			&.has-background.has-gray-background-color:not(.has-text-color),
-			&.has-background.has-dark-gray-background-color:not(.has-text-color),
-			&.has-background.has-black-background-color:not(.has-text-color) {
-				color: var(--global--color-white);
-			}
-
-			.is-dark-theme & {
-
-				&:not(.has-text-color) {
-
-					&.has-background {
-						color: var(--global--color-dark-gray);
-					}
-
-					&.has-background.has-gray-background-color,
-					&.has-background.has-dark-gray-background-color,
-					&.has-background.has-black-background-color {
-						color: var(--global--color-white);
-					}
-				}
-			}
-
-			&.has-text-color,
-			&.has-background.has-text-color {
+			// Border colors
+			&:not(.has-text-color),
+			&:not(.has-background),
+			&.has-background {
 				border-color: currentColor;
 			}
-
-			&:active,
-			&:hover {
-				color: var(--button--color-text) !important;
-				background: var(--button--color-background) !important;
-				border-color: var(--button--color-background);
-
-				&.has-text-color {
-					border-color: var(--button--color-background);
+			
+			// Text colors
+			&:not(.has-text-color) {
+				color: var(--global--color-primary);
+				
+				// Nested
+				.has-background & {
+					color: var(--local-color-primary);
 				}
 			}
-
-			&:focus {
-				color: var(--button--color-background) !important;
-				background: transparent !important;
+			
+			&.has-background {
+				// Nested
+				.has-background &:not(.has-text-color) {
+					color: inherit;
+				}
 			}
+			
+			// Background-colors
+			&:not(.has-background) {
+				background-color: transparent;
+			}    
 		}
+		
+		.wp-block-button__link:hover,
+		.wp-block-button__link:active {
+
+			border-color: transparent;
+			
+			// Reverse color relationship for dark mode 
+			// and dark background palette colors
+			&,
+			.has-background &,
+			.is-dark-theme .has-background[class*="gray"]:not([class*="light"]) &,
+			.is-dark-theme .has-background[class*="black"] & {
+				background: var(--global--color-primary);
+				color: var(--global--color-background);
+			}
+			
+			.has-background[class*="gray"]:not([class*="light"]) &,
+			.has-background[class*="black"] &,
+			.is-dark-theme .has-background & {
+				background: var(--global--color-background);
+				color: var(--global--color-primary);
+			}
+
+	}
 	}
 
 	// Squared Style
