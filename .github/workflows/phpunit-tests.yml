@@ -271,14 +271,21 @@ jobs:
         if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
-      - name: WordPress Test Reporter
+      - name: Checkout the WordPress Test Reporter
         if: ${{ matrix.report }}
         uses: actions/checkout@v2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
 
-      - name: WordPress Test Reporter
+      - name: Set up the Git repo.
+        run: |
+          git init
+          git remote add origin git@github.com:WordPress/wordpress-develop.git
+          git fetch
+          git reset origin/master
+
+      - name: Submit test results to the WordPress.org host test results
         if: ${{ matrix.report }}
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
