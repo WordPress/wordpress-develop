@@ -122,15 +122,31 @@ jobs:
       - name: Run PHPUnit tests
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html report -c phpunit.xml.dist
 
-      - name: Create ZIP artifact
+      - name: Run tests as a multisite install
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html multisite-report -c tests/phpunit/multisite.xml
+
+      - name: Create ZIP artifact of single site results
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-${{ github.sha }}.zip
           path: report
 
-      - name: Upload build artifact
+      - name: Create ZIP artifact of multisite results
+        uses: thedoctor0/zip-release@0.4.1
+        with:
+          filename: wp-code-coverage-ms-${{ github.sha }}.zip
+          path: multisite-report
+
+      - name: Upload single site coveragre report
         uses: actions/upload-artifact@v2
         with:
           name: wp-code-coverage-${{ github.sha }}
           path: wp-code-coverage-${{ github.sha }}.zip
+          if-no-files-found: error
+
+      - name: Upload mutlsite coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: wp-code-coverage-ms-${{ github.sha }}
+          path: wp-code-coverage-ms-${{ github.sha }}.zip
           if-no-files-found: error
