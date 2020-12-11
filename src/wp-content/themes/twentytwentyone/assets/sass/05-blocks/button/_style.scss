@@ -49,7 +49,7 @@ input[type="reset"],
 		/* Hover Button color should match parent element foreground color */
 		.wp-block-button__link:hover,
 		.wp-block-button__link:active {	
-			background: transparent;
+			background-color: transparent;
 			border-color: currentColor;
 			color: inherit;
 		}

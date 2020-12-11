@@ -62,8 +62,8 @@
 	
 	/* Hover Button color should match parent element foreground color */
 	&:hover,
-	&:active {	
-		background: transparent;
+	&:active {
+		background-color: transparent;
 		border-color: currentColor;
 		color: inherit;
 	}

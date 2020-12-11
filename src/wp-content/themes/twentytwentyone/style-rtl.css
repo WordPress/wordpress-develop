@@ -1787,7 +1787,7 @@ input[type=reset]:active,
 .wp-block-button .wp-block-button__link:active,
 .wp-block-file a.wp-block-file__button:hover,
 .wp-block-file a.wp-block-file__button:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
 }
@@ -1843,7 +1843,7 @@ input[type=reset]:disabled,
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover,
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
 }
