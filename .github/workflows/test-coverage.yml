@@ -11,7 +11,7 @@ env:
   COMPOSER_INSTALL: ${{ false }}
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
-  LOCAL_PHP: '7.4'
+  LOCAL_PHP: '7.4-fpm'
   LOCAL_PHP_XDEBUG: true
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
