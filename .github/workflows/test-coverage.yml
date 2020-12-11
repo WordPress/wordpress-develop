@@ -19,7 +19,7 @@ jobs:
   # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Cancels all previous workflow runs for pull requests that have not completed.
+  # - Set environment variables.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
@@ -27,10 +27,18 @@ jobs:
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
-  # - Creates a ZIP file of compiled WordPress.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs debug general information.
+  # - Logs the running Docker containers.
+  # - Logs WordPress Docker container debug information.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  # - Creates a ZIP file of the code coverage report.
   # - Uploads ZIP file as an artifact.
   test-coverage-report:
-    name: Setup WordPress
+    name: Generate a code coverage report
     runs-on: ubuntu-latest
 
     steps:
@@ -108,6 +116,9 @@ jobs:
           docker-compose run --rm php php -i
           docker-compose run --rm php locale -a
 
+      - name: Install WordPress
+        run: npm run env:install
+
       - name: Run PHPUnit tests
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html report -c phpunit.xml.dist
 
@@ -123,29 +134,3 @@ jobs:
           name: wp-code-coverage-${{ github.sha }}
           path: wp-code-coverage-${{ github.sha }}.zip
           if-no-files-found: error
-
-  # Runs the PHPUnit tests for WordPress.
-  #
-  # Performs the following steps:
-  # - Set environment variables.
-  # - Sets up the environment variables needed for testing with memcached (if desired).
-  # - Downloads the built WordPress artifact from the previous job.
-  # - Unzips the artifact.
-  # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Configures caching for Composer.
-  # _ Installs Composer dependencies (if desired).
-  # - Logs Docker debug information (about both the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Starts the memcached server after the Docker network has been created (if desired).
-  # - Logs WordPress Docker container debug information.
-  # - Logs debug general information.
-  # - Logs the running Docker containers.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Checks out the WordPress Test reporter repository.
-  # - Reconnect the directory to the Git repository.
-  # - Submit the test results to the WordPress.org host test results.
-  # - todo: Configure Slack notifications for failing tests.
