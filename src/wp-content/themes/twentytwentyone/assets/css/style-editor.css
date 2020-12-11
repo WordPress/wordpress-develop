@@ -567,7 +567,7 @@ a:hover {
 
 .wp-block-button__link:hover,
 .wp-block-button__link:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
 }
@@ -626,9 +626,19 @@ a:hover {
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover,
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
+}
+
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style~="background-color:"],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style~="background-color:"] {
+	background-color: transparent !important;
+}
+
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style~="color:"],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style~="color:"] {
+	color: inherit !important;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color),
@@ -934,7 +944,7 @@ a:hover {
 
 .wp-block-file .wp-block-file__button:hover,
 .wp-block-file .wp-block-file__button:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
 }
@@ -1887,7 +1897,7 @@ pre.wp-block-preformatted {
 
 .wp-block-search .wp-block-search__button:hover,
 .wp-block-search .wp-block-search__button:active {
-	background: transparent;
+	background-color: transparent;
 	border-color: currentColor;
 	color: inherit;
 }

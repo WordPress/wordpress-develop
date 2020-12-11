@@ -57,9 +57,18 @@
 		/* Hover Button color should match parent element foreground color */
 		.wp-block-button__link:hover,
 		.wp-block-button__link:active {	
-			background: transparent;
+			background-color: transparent;
 			border-color: currentColor;
 			color: inherit;
+			
+			// Must use `!important` here to override Block editor style attribute CSS
+			&[style~="background-color:"] {
+				background-color: transparent !important;
+			}
+
+			&[style~="color:"] {
+				color: inherit !important;
+			}
 		}
 	}
 
