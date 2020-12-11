@@ -126,7 +126,7 @@ jobs:
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-${{ github.sha }}.zip
-          path: report
+          path: ./report
 
       - name: Upload single site coveragre report
         uses: actions/upload-artifact@v2
@@ -142,7 +142,7 @@ jobs:
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-ms-${{ github.sha }}.zip
-          path: multisite-report
+          path: ./multisite-report
 
       - name: Upload mutlsite coverage report
         uses: actions/upload-artifact@v2
@@ -158,7 +158,7 @@ jobs:
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-rest-api-${{ github.sha }}.zip
-          path: rest-api-report
+          path: ./rest-api-report
 
       - name: Upload REST API coverage report
         uses: actions/upload-artifact@v2
