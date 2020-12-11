@@ -119,9 +119,6 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Run PHPUnit tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html report -c phpunit.xml.dist
-
       - name: Run tests as a multisite install
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html multisite-report -c tests/phpunit/multisite.xml
 
@@ -131,12 +128,6 @@ jobs:
           filename: wp-code-coverage-${{ github.sha }}.zip
           path: report
 
-      - name: Create ZIP artifact of multisite results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-ms-${{ github.sha }}.zip
-          path: multisite-report
-
       - name: Upload single site coveragre report
         uses: actions/upload-artifact@v2
         with:
@@ -144,9 +135,35 @@ jobs:
           path: wp-code-coverage-${{ github.sha }}.zip
           if-no-files-found: error
 
+      - name: Run tests as a multisite install
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html multisite-report -c phpunit.xml.dist
+
+      - name: Create ZIP artifact of multisite results
+        uses: thedoctor0/zip-release@0.4.1
+        with:
+          filename: wp-code-coverage-ms-${{ github.sha }}.zip
+          path: multisite-report
+
       - name: Upload mutlsite coverage report
         uses: actions/upload-artifact@v2
         with:
           name: wp-code-coverage-ms-${{ github.sha }}
           path: wp-code-coverage-ms-${{ github.sha }}.zip
           if-no-files-found: error
+
+      - name: Run REST API tests
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose --coverage-html rest-api-report -c phpunit.xml.dist --group restapi-jsclient
+
+      - name: Create ZIP artifact of REST API results
+        uses: thedoctor0/zip-release@0.4.1
+        with:
+          filename: wp-code-coverage-rest-api-${{ github.sha }}.zip
+          path: rest-api-report
+
+      - name: Upload REST API coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: wp-code-coverage-rest-api-${{ github.sha }}
+          path: wp-code-coverage-rest-api-${{ github.sha }}.zip
+          if-no-files-found: error
+
