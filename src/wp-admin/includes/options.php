@@ -18,7 +18,7 @@ function options_discussion_add_js() {
 	(function($){
 		var parent = $( '#show_avatars' ),
 			children = $( '.avatar-settings' );
-		parent.change(function(){
+		parent.on( 'change', function(){
 			children.toggleClass( 'hide-if-js', ! this.checked );
 		});
 	})(jQuery);
@@ -117,7 +117,7 @@ function options_reading_add_js() {
 				selects.prop( 'disabled', ! staticPage.prop('checked') );
 			};
 		check_disabled();
-		section.find( 'input:radio' ).change( check_disabled );
+		section.find( 'input:radio' ).on( 'change', check_disabled );
 	});
 </script>
 	<?php
