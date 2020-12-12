@@ -905,7 +905,7 @@ window.commentReply = {
 					.show()
 					.find( '.vim-q' )
 						.attr( 'aria-expanded', 'false' )
-						.focus();
+						.trigger( 'focus' );
 			} ).css( 'backgroundColor', '' );
 		}
 
@@ -913,7 +913,7 @@ window.commentReply = {
 		if ( 'replyto-comment' === this.act ) {
 			commentRow.find( '.vim-r' )
 				.attr( 'aria-expanded', 'false' )
-				.focus();
+				.trigger( 'focus' );
 		}
 
 		// Reset the Quicktags buttons.
@@ -1032,7 +1032,7 @@ window.commentReply = {
 			else if ( rtop - 20 < scrollTop )
 				window.scroll(0, rtop - 35);
 
-			$('#replycontent').focus().keyup(function(e){
+			$('#replycontent').trigger( 'focus' ).on( 'keyup', function(e){
 				if ( e.which == 27 )
 					commentReply.revert(); // Close on Escape.
 			});
@@ -1135,7 +1135,7 @@ window.commentReply = {
 			updateCountText( 'span.all-count', 1 );
 		}
 
-		c = $.trim(r.data); // Trim leading whitespaces.
+		c = r.data.toString().trim(); // Trim leading whitespaces.
 		$(c).hide();
 		$('#replyrow').after(c);
 
