@@ -728,7 +728,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
-		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( ! empty( $request['sticky'] ) && ! current_user_can( $post_type->cap->edit_others_posts ) && ! current_user_can( 'publish_post', $post ) ) {
 			return new WP_Error(
 				'rest_cannot_assign_sticky',
 				__( 'Sorry, you are not allowed to make posts sticky.' ),
@@ -2028,7 +2028,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$post_type = get_post_type_object( $post->post_type );
 
-		if ( 'attachment' !== $this->post_type && current_user_can( $post_type->cap->publish_posts ) ) {
+		if ( 'attachment' !== $this->post_type && current_user_can( 'publish_post', $post ) ) {
 			$rels[] = 'https://api.w.org/action-publish';
 		}
 
@@ -2037,7 +2037,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( 'post' === $post_type->name ) {
-			if ( current_user_can( $post_type->cap->edit_others_posts ) && current_user_can( $post_type->cap->publish_posts ) ) {
+			if ( current_user_can( $post_type->cap->edit_others_posts ) && current_user_can( 'publish_post', $post ) ) {
 				$rels[] = 'https://api.w.org/action-sticky';
 			}
 		}
