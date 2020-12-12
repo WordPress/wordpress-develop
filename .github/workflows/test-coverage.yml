@@ -144,7 +144,7 @@ jobs:
           filename: wp-code-coverage-ms-${{ github.sha }}.zip
           path: ./multisite-report
 
-      - name: Upload mutlsite coverage report
+      - name: Upload multisite coverage report
         uses: actions/upload-artifact@v2
         with:
           name: wp-code-coverage-ms-${{ github.sha }}
@@ -166,4 +166,3 @@ jobs:
           name: wp-code-coverage-rest-api-${{ github.sha }}
           path: wp-code-coverage-rest-api-${{ github.sha }}.zip
           if-no-files-found: error
-
