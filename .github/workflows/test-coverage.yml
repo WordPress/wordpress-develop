@@ -208,7 +208,7 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: 'Run PHPUnit tests - ${{ matrix.type }}
+      - name: Run PHPUnit tests - ${{ matrix.type }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ matrix.ruleset }} --coverage-html ${{ matrix.report_name }}
 
       - name: Create ZIP artifact of single site results
