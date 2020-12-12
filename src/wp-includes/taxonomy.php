@@ -139,7 +139,7 @@ function create_initial_taxonomies() {
 				'separate_items_with_commas' => null,
 				'add_or_remove_items'        => null,
 				'choose_from_most_used'      => null,
-				'back_to_items'              => __( '&larr; Back to Link Categories' ),
+				'back_to_items'              => __( '&larr; Go to Link Categories' ),
 			),
 			'capabilities' => array(
 				'manage_terms' => 'manage_links',
@@ -336,7 +336,6 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @since 5.1.0 Introduced `meta_box_sanitize_cb` argument.
  * @since 5.4.0 Added the registered taxonomy object as a return value.
  * @since 5.5.0 Introduced `default_term` argument.
- * @since 5.6.0 Introduced `update_count_by_callback` argument.
  *
  * @global array $wp_taxonomies Registered taxonomies.
  *
@@ -345,45 +344,45 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  * @param array|string $args        {
  *     Optional. Array or query string of arguments for registering a taxonomy.
  *
- *     @type array         $labels                   An array of labels for this taxonomy. By default, Tag labels are
- *                                                   used for non-hierarchical taxonomies, and Category labels are used
- *                                                   for hierarchical taxonomies. See accepted values in
- *                                                   get_taxonomy_labels(). Default empty array.
- *     @type string        $description              A short descriptive summary of what the taxonomy is for. Default empty.
- *     @type bool          $public                   Whether a taxonomy is intended for use publicly either via
- *                                                   the admin interface or by front-end users. The default settings
- *                                                   of `$publicly_queryable`, `$show_ui`, and `$show_in_nav_menus`
- *                                                   are inherited from `$public`.
- *     @type bool          $publicly_queryable       Whether the taxonomy is publicly queryable.
- *                                                   If not set, the default is inherited from `$public`
- *     @type bool          $hierarchical             Whether the taxonomy is hierarchical. Default false.
- *     @type bool          $show_ui                  Whether to generate and allow a UI for managing terms in this taxonomy in
- *                                                   the admin. If not set, the default is inherited from `$public`
- *                                                   (default true).
- *     @type bool          $show_in_menu             Whether to show the taxonomy in the admin menu. If true, the taxonomy is
- *                                                   shown as a submenu of the object type menu. If false, no menu is shown.
- *                                                   `$show_ui` must be true. If not set, default is inherited from `$show_ui`
- *                                                   (default true).
- *     @type bool          $show_in_nav_menus        Makes this taxonomy available for selection in navigation menus. If not
- *                                                   set, the default is inherited from `$public` (default true).
- *     @type bool          $show_in_rest             Whether to include the taxonomy in the REST API. Set this to true
- *                                                   for the taxonomy to be available in the block editor.
- *     @type string        $rest_base                To change the base url of REST API route. Default is $taxonomy.
- *     @type string        $rest_controller_class    REST API Controller class name. Default is 'WP_REST_Terms_Controller'.
- *     @type bool          $show_tagcloud            Whether to list the taxonomy in the Tag Cloud Widget controls. If not set,
- *                                                   the default is inherited from `$show_ui` (default true).
- *     @type bool          $show_in_quick_edit       Whether to show the taxonomy in the quick/bulk edit panel. It not set,
- *                                                   the default is inherited from `$show_ui` (default true).
- *     @type bool          $show_admin_column        Whether to display a column for the taxonomy on its post type listing
- *                                                   screens. Default false.
- *     @type bool|callable $meta_box_cb              Provide a callback function for the meta box display. If not set,
- *                                                   post_categories_meta_box() is used for hierarchical taxonomies, and
- *                                                   post_tags_meta_box() is used for non-hierarchical. If false, no meta
- *                                                   box is shown.
- *     @type callable      $meta_box_sanitize_cb     Callback function for sanitizing taxonomy data saved from a meta
- *                                                   box. If no callback is defined, an appropriate one is determined
- *                                                   based on the value of `$meta_box_cb`.
- *     @type array         $capabilities {
+ *     @type string[]      $labels                An array of labels for this taxonomy. By default, Tag labels are
+ *                                                used for non-hierarchical taxonomies, and Category labels are used
+ *                                                for hierarchical taxonomies. See accepted values in
+ *                                                get_taxonomy_labels(). Default empty array.
+ *     @type string        $description           A short descriptive summary of what the taxonomy is for. Default empty.
+ *     @type bool          $public                Whether a taxonomy is intended for use publicly either via
+ *                                                the admin interface or by front-end users. The default settings
+ *                                                of `$publicly_queryable`, `$show_ui`, and `$show_in_nav_menus`
+ *                                                are inherited from `$public`.
+ *     @type bool          $publicly_queryable    Whether the taxonomy is publicly queryable.
+ *                                                If not set, the default is inherited from `$public`
+ *     @type bool          $hierarchical          Whether the taxonomy is hierarchical. Default false.
+ *     @type bool          $show_ui               Whether to generate and allow a UI for managing terms in this taxonomy in
+ *                                                the admin. If not set, the default is inherited from `$public`
+ *                                                (default true).
+ *     @type bool          $show_in_menu          Whether to show the taxonomy in the admin menu. If true, the taxonomy is
+ *                                                shown as a submenu of the object type menu. If false, no menu is shown.
+ *                                                `$show_ui` must be true. If not set, default is inherited from `$show_ui`
+ *                                                (default true).
+ *     @type bool          $show_in_nav_menus     Makes this taxonomy available for selection in navigation menus. If not
+ *                                                set, the default is inherited from `$public` (default true).
+ *     @type bool          $show_in_rest          Whether to include the taxonomy in the REST API. Set this to true
+ *                                                for the taxonomy to be available in the block editor.
+ *     @type string        $rest_base             To change the base url of REST API route. Default is $taxonomy.
+ *     @type string        $rest_controller_class REST API Controller class name. Default is 'WP_REST_Terms_Controller'.
+ *     @type bool          $show_tagcloud         Whether to list the taxonomy in the Tag Cloud Widget controls. If not set,
+ *                                                the default is inherited from `$show_ui` (default true).
+ *     @type bool          $show_in_quick_edit    Whether to show the taxonomy in the quick/bulk edit panel. It not set,
+ *                                                the default is inherited from `$show_ui` (default true).
+ *     @type bool          $show_admin_column     Whether to display a column for the taxonomy on its post type listing
+ *                                                screens. Default false.
+ *     @type bool|callable $meta_box_cb           Provide a callback function for the meta box display. If not set,
+ *                                                post_categories_meta_box() is used for hierarchical taxonomies, and
+ *                                                post_tags_meta_box() is used for non-hierarchical. If false, no meta
+ *                                                box is shown.
+ *     @type callable      $meta_box_sanitize_cb  Callback function for sanitizing taxonomy data saved from a meta
+ *                                                box. If no callback is defined, an appropriate one is determined
+ *                                                based on the value of `$meta_box_cb`.
+ *     @type string[]      $capabilities {
  *         Array of capabilities for this taxonomy.
  *
  *         @type string $manage_terms Default 'manage_categories'.
@@ -400,17 +399,14 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *         @type bool   $hierarchical Either hierarchical rewrite tag or not. Default false.
  *         @type int    $ep_mask      Assign an endpoint mask. Default `EP_NONE`.
  *     }
- *     @type string|bool   $query_var                Sets the query var key for this taxonomy. Default `$taxonomy` key. If
- *                                                   false, a taxonomy cannot be loaded at `?{query_var}={term_slug}`. If a
- *                                                   string, the query `?{query_var}={term_slug}` will be valid.
- *     @type callable      $update_count_callback    Works much like a hook, in that it will be called when the count is
- *                                                   updated. Default _update_post_term_count() for taxonomies attached
- *                                                   to post types, which confirms that the objects are published before
- *                                                   counting them. Default _update_generic_term_count() for taxonomies
- *                                                   attached to other object types, such as users.
- *     @type callable      $update_count_by_callback Works much like a hook, in that it will be called when the count is
- *                                                   incremented or decremented. Defaults to the value of `$update_count_callback` if
- *                                                   a custom callack is defined, otherwise uses wp_modify_term_count_by().
+ *     @type string|bool   $query_var             Sets the query var key for this taxonomy. Default `$taxonomy` key. If
+ *                                                false, a taxonomy cannot be loaded at `?{query_var}={term_slug}`. If a
+ *                                                string, the query `?{query_var}={term_slug}` will be valid.
+ *     @type callable      $update_count_callback Works much like a hook, in that it will be called when the count is
+ *                                                updated. Default _update_post_term_count() for taxonomies attached
+ *                                                to post types, which confirms that the objects are published before
+ *                                                counting them. Default _update_generic_term_count() for taxonomies
+ *                                                attached to other object types, such as users.
  *     @type string|array  $default_term {
  *         Default term to be used for the taxonomy.
  *
@@ -418,8 +414,8 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *         @type string $slug         Slug for default term. Default empty.
  *         @type string $description  Description for default term. Default empty.
  *     }
- *     @type bool          $_builtin                 This taxonomy is a "built-in" taxonomy. INTERNAL USE ONLY!
- *                                                   Default false.
+ *     @type bool          $_builtin              This taxonomy is a "built-in" taxonomy. INTERNAL USE ONLY!
+ *                                                Default false.
  * }
  * @return WP_Taxonomy|WP_Error The registered taxonomy object on success, WP_Error object on failure.
  */
@@ -608,7 +604,7 @@ function get_taxonomy_labels( $tax ) {
 		'items_list'                 => array( __( 'Tags list' ), __( 'Categories list' ) ),
 		/* translators: Tab heading when selecting from the most used terms. */
 		'most_used'                  => array( _x( 'Most Used', 'tags' ), _x( 'Most Used', 'categories' ) ),
-		'back_to_items'              => array( __( '&larr; Back to Tags' ), __( '&larr; Back to Categories' ) ),
+		'back_to_items'              => array( __( '&larr; Go to Tags' ), __( '&larr; Go to Categories' ) ),
 	);
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
@@ -728,10 +724,10 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
 /**
  * Retrieve object_ids of valid taxonomy and term.
  *
- * The strings of $taxonomies must exist before this function will continue. On
- * failure of finding a valid taxonomy, it will return an WP_Error class, kind
- * of like Exceptions in PHP 5, except you can't catch them. Even so, you can
- * still test for the WP_Error class and get the error message.
+ * The strings of $taxonomies must exist before this function will continue.
+ * On failure of finding a valid taxonomy, it will return a WP_Error class,
+ * kind of like Exceptions in PHP 5, except you can't catch them. Even so,
+ * you can still test for the WP_Error class and get the error message.
  *
  * The $terms aren't checked the same as $taxonomies, but still need to exist
  * for $object_ids to be returned.
@@ -1513,20 +1509,21 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
 }
 
 /**
- * Sanitize Term all fields.
+ * Sanitize all term fields.
  *
  * Relies on sanitize_term_field() to sanitize the term. The difference is that
- * this function will sanitize <strong>all</strong> fields. The context is based
+ * this function will sanitize **all** fields. The context is based
  * on sanitize_term_field().
  *
- * The $term is expected to be either an array or an object.
+ * The `$term` is expected to be either an array or an object.
  *
  * @since 2.3.0
  *
  * @param array|object $term     The term to check.
  * @param string       $taxonomy The taxonomy name to use.
- * @param string       $context  Optional. Context in which to sanitize the term. Accepts 'edit', 'db',
- *                               'display', 'attribute', or 'js'. Default 'display'.
+ * @param string       $context  Optional. Context in which to sanitize the term.
+ *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
@@ -1576,8 +1573,9 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $value    Search for this term value.
  * @param int    $term_id  Term ID.
  * @param string $taxonomy Taxonomy Name.
- * @param string $context  Context in which to sanitize the term field. Accepts 'edit', 'db', 'display',
- *                         'attribute', or 'js'.
+ * @param string $context  Context in which to sanitize the term field.
+ *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                         'attribute', or 'js'. Default 'display'.
  * @return mixed Sanitized field.
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
@@ -2052,8 +2050,8 @@ function wp_delete_category( $cat_ID ) {
  * @param int|int[]       $object_ids The ID(s) of the object(s) to retrieve.
  * @param string|string[] $taxonomies The taxonomy names to retrieve terms from.
  * @param array|string    $args       See WP_Term_Query::__construct() for supported arguments.
- * @return array|WP_Error The requested term data or empty array if no terms found.
- *                        WP_Error if any of the taxonomies don't exist.
+ * @return WP_Term[]|WP_Error Array of terms or empty array if no terms found.
+ *                            WP_Error if any of the taxonomies don't exist.
  */
 function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	if ( empty( $object_ids ) || empty( $taxonomies ) ) {
@@ -2129,11 +2127,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param array    $terms      Array of terms for the given object or objects.
-	 * @param int[]    $object_ids Array of object IDs for which terms were retrieved.
-	 * @param string[] $taxonomies Array of taxonomy names from which terms were retrieved.
-	 * @param array    $args       Array of arguments for retrieving terms for the given
-	 *                             object(s). See wp_get_object_terms() for details.
+	 * @param WP_Term[] $terms      Array of terms for the given object or objects.
+	 * @param int[]     $object_ids Array of object IDs for which terms were retrieved.
+	 * @param string[]  $taxonomies Array of taxonomy names from which terms were retrieved.
+	 * @param array     $args       Array of arguments for retrieving terms for the given
+	 *                              object(s). See wp_get_object_terms() for details.
 	 */
 	$terms = apply_filters( 'get_object_terms', $terms, $object_ids, $taxonomies, $args );
 
@@ -2148,11 +2146,11 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param array    $terms      Array of terms for the given object or objects.
-	 * @param int[]    $object_ids Array of object IDs for which terms were retrieved.
-	 * @param string[] $taxonomies Array of taxonomy names from which terms were retrieved.
-	 * @param array    $args       Array of arguments for retrieving terms for the given
-	 *                             object(s). See wp_get_object_terms() for details.
+	 * @param WP_Term[] $terms      Array of terms for the given object or objects.
+	 * @param string    $object_ids Comma separated list of object IDs for which terms were retrieved.
+	 * @param string    $taxonomies SQL fragment of taxonomy names from which terms were retrieved.
+	 * @param array     $args       Array of arguments for retrieving terms for the given
+	 *                              object(s). See wp_get_object_terms() for details.
 	 */
 	return apply_filters( 'wp_get_object_terms', $terms, $object_ids, $taxonomies, $args );
 }
@@ -2197,8 +2195,12 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     @type int    $parent      The id of the parent term. Default 0.
  *     @type string $slug        The term slug to use. Default empty string.
  * }
- * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
- *                        WP_Error otherwise.
+ * @return array|WP_Error {
+ *     An array of the new term data, WP_Error otherwise.
+ *
+ *     @type int        $term_id          The new term ID.
+ *     @type int|string $term_taxonomy_id The new term taxonomy ID. Can be a numeric string.
+ * }
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -2565,25 +2567,6 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
-	$taxonomy_object = get_taxonomy( $taxonomy );
-
-	$object_types = (array) $taxonomy_object->object_type;
-	foreach ( $object_types as &$object_type ) {
-		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
-			list( $object_type ) = explode( ':', $object_type );
-		}
-	}
-
-	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
-		// This taxonomy applies to non-posts, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
-	} elseif ( 'publish' === get_post_status( $object_id ) ) {
-		// Published post, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
-	} else {
-		$do_recount = false;
-	}
-
 	if ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -2669,8 +2652,8 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		$new_tt_ids[] = $tt_id;
 	}
 
-	if ( $new_tt_ids && $do_recount ) {
-		wp_increment_term_count( $new_tt_ids, $taxonomy );
+	if ( $new_tt_ids ) {
+		wp_update_term_count( $new_tt_ids, $taxonomy );
 	}
 
 	if ( ! $append ) {
@@ -2688,7 +2671,9 @@ function wp_set_object_terms( $object_id, $terms, $taxonomy, $append = false ) {
 		}
 	}
 
-	if ( ! $append && isset( $taxonomy_object->sort ) && $taxonomy_object->sort ) {
+	$t = get_taxonomy( $taxonomy );
+
+	if ( ! $append && isset( $t->sort ) && $t->sort ) {
 		$values     = array();
 		$term_order = 0;
 
@@ -2769,31 +2754,6 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		return new WP_Error( 'invalid_taxonomy', __( 'Invalid taxonomy.' ) );
 	}
 
-	$taxonomy_object = get_taxonomy( $taxonomy );
-
-	$object_types = (array) $taxonomy_object->object_type;
-	foreach ( $object_types as &$object_type ) {
-		if ( 0 === strpos( $object_type, 'attachment:' ) ) {
-			list( $object_type ) = explode( ':', $object_type );
-		}
-	}
-
-	if ( array_filter( $object_types, 'post_type_exists' ) !== $object_types ) {
-		// This taxonomy applies to non-posts, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
-	} elseif (
-		'publish' === get_post_status( $object_id ) ||
-		(
-			'inherit' === get_post_status( $object_id ) &&
-			'publish' === get_post_status( wp_get_post_parent_id( $object_id ) )
-		)
-	) {
-		// Published post, count changes now.
-		$do_recount = ! _wp_prevent_term_counting();
-	} else {
-		$do_recount = false;
-	}
-
 	if ( ! is_array( $terms ) ) {
 		$terms = array( $terms );
 	}
@@ -2852,9 +2812,7 @@ function wp_remove_object_terms( $object_id, $terms, $taxonomy ) {
 		 */
 		do_action( 'deleted_term_relationships', $object_id, $tt_ids, $taxonomy );
 
-		if ( $do_recount ) {
-			wp_decrement_term_count( $tt_ids, $taxonomy );
-		}
+		wp_update_term_count( $tt_ids, $taxonomy );
 
 		return (bool) $deleted;
 	}
@@ -3274,199 +3232,11 @@ function wp_defer_term_counting( $defer = null ) {
 		$_defer = $defer;
 		// Flush any deferred counts.
 		if ( ! $defer ) {
-			wp_modify_term_count_by( null, null, null, true );
 			wp_update_term_count( null, null, true );
 		}
 	}
 
 	return $_defer;
-}
-
-/**
- * Prevents add/removing a term from modifying a term count.
- *
- * This is used by functions calling wp_transition_post_status() to indicate the
- * term count will be handled during the post's transition.
- *
- * @private
- * @since 5.6.0
- *
- * @param bool $new_setting The new setting for preventing term counts.
- * @return bool Whether term count prevention is enabled or disabled.
- */
-function _wp_prevent_term_counting( $new_setting = null ) {
-	static $prevent = false;
-
-	if ( is_bool( $new_setting ) ) {
-		$prevent = $new_setting;
-	}
-
-	return $prevent;
-}
-
-/**
- * Increments the amount of terms in taxonomy.
- *
- * If there is a taxonomy callback applied, then it will be called for updating
- * the count.
- *
- * The default action is to increment the count by one and update the database.
- *
- * @since 5.6.0
- *
- * @param int|array $tt_ids       The term_taxonomy_id of the terms.
- * @param string    $taxonomy     The context of the term.
- * @param int       $increment_by By how many the term count is to be incremented. Default 1.
- * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
- * @return bool If no terms will return false, and if successful will return true.
- */
-function wp_increment_term_count( $tt_ids, $taxonomy, $increment_by = 1, $do_deferred = false ) {
-	return wp_modify_term_count_by( $tt_ids, $taxonomy, $increment_by, $do_deferred );
-}
-
-/**
- * Decrements the amount of terms in taxonomy.
- *
- * If there is a taxonomy callback applied, then it will be called for updating
- * the count.
- *
- * The default action is to decrement the count by one and update the database.
- *
- * @since 5.6.0
- *
- * @param int|array $tt_ids       The term_taxonomy_id of the terms.
- * @param string    $taxonomy     The context of the term.
- * @param int       $decrement_by By how many the term count is to be decremented. Default 1.
- * @param bool      $do_deferred  Whether to flush the deferred term counts too. Default false.
- * @return bool If no terms will return false, and if successful will return true.
- */
-function wp_decrement_term_count( $tt_ids, $taxonomy, $decrement_by = 1, $do_deferred = false ) {
-	return wp_modify_term_count_by( $tt_ids, $taxonomy, $decrement_by * -1, $do_deferred );
-}
-
-/**
- * Modifies the amount of terms in taxonomy.
- *
- * If there is a taxonomy callback applied, then it will be called for updating
- * the count.
- *
- * The default action is to decrement the count by one and update the database.
- *
- * @since 5.6.0
- *
- * @param int|array $tt_ids      The term_taxonomy_id of the terms.
- * @param string    $taxonomy    The context of the term.
- * @param int       $modify_by   By how many the term count is to be modified.
- * @param bool      $do_deferred Whether to flush the deferred term counts too. Default false.
- * @return bool If no terms will return false, and if successful will return true.
- */
-function wp_modify_term_count_by( $tt_ids, $taxonomy, $modify_by, $do_deferred = false ) {
-	static $_deferred = array();
-
-	if ( $do_deferred ) {
-		foreach ( (array) $_deferred as $taxonomy_name => $modifications ) {
-			$tax_by_count = array_reduce(
-				array_keys( $modifications ),
-				function( $by_count, $tt_id ) use ( $modifications ) {
-					if ( ! isset( $by_count[ $modifications[ $tt_id ] ] ) ) {
-						$by_count[ $modifications[ $tt_id ] ] = array();
-					}
-					$by_count[ $modifications[ $tt_id ] ][] = $tt_id;
-					return $by_count;
-				},
-				array()
-			);
-
-			foreach ( $tax_by_count as $_modify_by => $_tt_ids ) {
-				wp_modify_term_count_by_now( $_tt_ids, $taxonomy_name, $_modify_by );
-			}
-			unset( $_deferred[ $taxonomy_name ] );
-		}
-	}
-
-	if ( empty( $tt_ids ) ) {
-		return false;
-	}
-
-	if ( ! is_array( $tt_ids ) ) {
-		$tt_ids = array( $tt_ids );
-	}
-
-	if ( wp_defer_term_counting() ) {
-		foreach ( $tt_ids as $tt_id ) {
-			if ( ! isset( $_deferred[ $taxonomy ][ $tt_id ] ) ) {
-				$_deferred[ $taxonomy ][ $tt_id ] = 0;
-			}
-			$_deferred[ $taxonomy ][ $tt_id ] += $modify_by;
-		}
-		return true;
-	}
-
-	return wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by );
-}
-
-/**
- * Modifies the amount of terms in taxonomy immediately
- *
- * If there is a taxonomy callback applied, then it will be called for updating
- * the count.
- *
- * The default action is to decrement the count by one and update the database.
- *
- * @since 5.6.0
- *
- * @param int|array $tt_ids      The term_taxonomy_id of the terms.
- * @param string    $taxonomy    The context of the term.
- * @param int       $modify_by   By how many the term count is to be modified.
- * @return bool If no terms will return false, and if successful will return true.
- */
-function wp_modify_term_count_by_now( $tt_ids, $taxonomy, $modify_by ) {
-	global $wpdb;
-
-	if ( 0 === $modify_by ) {
-		return false;
-	}
-
-	$tt_ids = array_filter( array_map( 'intval', (array) $tt_ids ) );
-
-	if ( empty( $tt_ids ) ) {
-		return false;
-	}
-
-	$taxonomy = get_taxonomy( $taxonomy );
-	if ( ! empty( $taxonomy->update_count_by_callback ) ) {
-		call_user_func( $taxonomy->update_count_by_callback, $tt_ids, $taxonomy, $modify_by );
-		clean_term_cache( $tt_ids, '', false );
-		return true;
-	}
-
-	$tt_ids_string = '(' . implode( ',', $tt_ids ) . ')';
-
-	foreach ( $tt_ids as $tt_id ) {
-		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edit_term_taxonomy', $tt_id, $taxonomy );
-	}
-
-	$result = $wpdb->query(
-		$wpdb->prepare(
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"UPDATE {$wpdb->term_taxonomy} AS tt SET tt.count = GREATEST( 0, tt.count + %d ) WHERE tt.term_taxonomy_id IN $tt_ids_string",
-			$modify_by
-		)
-	);
-
-	if ( ! $result ) {
-		return false;
-	}
-
-	foreach ( $tt_ids as $tt_id ) {
-		/** This action is documented in wp-includes/taxonomy.php */
-		do_action( 'edited_term_taxonomy', $tt_id, $taxonomy );
-	}
-
-	clean_term_cache( $tt_ids, '', false );
-
-	return true;
 }
 
 /**
@@ -3976,8 +3746,8 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array  $terms    List of term objects (passed by reference).
- * @param string $taxonomy Term context.
+ * @param object[]|WP_Term[] $terms    List of term objects (passed by reference).
+ * @param string             $taxonomy Term context.
  */
 function _pad_term_counts( &$terms, $taxonomy ) {
 	global $wpdb;
@@ -4802,9 +4572,10 @@ function get_post_taxonomies( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param int              $object_id ID of the object (post ID, link ID, ...).
- * @param string           $taxonomy  Single taxonomy name.
- * @param int|string|array $terms     Optional. Term term_id, name, slug or array of said. Default null.
+ * @param int                       $object_id ID of the object (post ID, link ID, ...).
+ * @param string                    $taxonomy  Single taxonomy name.
+ * @param int|string|int[]|string[] $terms     Optional. Term ID, name, slug, or array of such
+ *                                             to check against. Default null.
  * @return bool|WP_Error WP_Error on input error.
  */
 function is_object_in_term( $object_id, $taxonomy, $terms = null ) {

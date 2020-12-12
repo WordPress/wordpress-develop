@@ -38,7 +38,7 @@ final class WP_Taxonomy {
 	 * @see get_taxonomy_labels()
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $labels;
 
@@ -152,7 +152,7 @@ final class WP_Taxonomy {
 	 * Capabilities for this taxonomy.
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $cap;
 
@@ -179,14 +179,6 @@ final class WP_Taxonomy {
 	 * @var callable
 	 */
 	public $update_count_callback;
-
-	/**
-	 * Function that will be called when the count is modified by an amount.
-	 *
-	 * @since 5.6.0
-	 * @var callable
-	 */
-	public $update_count_by_callback;
 
 	/**
 	 * Whether this taxonomy should appear in the REST API.
@@ -247,6 +239,8 @@ final class WP_Taxonomy {
 	/**
 	 * Constructor.
 	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
+	 *
 	 * @since 4.7.0
 	 *
 	 * @global WP $wp Current WordPress environment instance.
@@ -265,6 +259,8 @@ final class WP_Taxonomy {
 	/**
 	 * Sets taxonomy properties.
 	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
+	 *
 	 * @since 4.7.0
 	 *
 	 * @param array|string $object_type Name of the object type for the taxonomy object.
@@ -279,35 +275,35 @@ final class WP_Taxonomy {
 		 * @since 4.4.0
 		 *
 		 * @param array    $args        Array of arguments for registering a taxonomy.
+		 *                              See the register_taxonomy() function for accepted arguments.
 		 * @param string   $taxonomy    Taxonomy key.
 		 * @param string[] $object_type Array of names of object types for the taxonomy.
 		 */
 		$args = apply_filters( 'register_taxonomy_args', $args, $this->name, (array) $object_type );
 
 		$defaults = array(
-			'labels'                   => array(),
-			'description'              => '',
-			'public'                   => true,
-			'publicly_queryable'       => null,
-			'hierarchical'             => false,
-			'show_ui'                  => null,
-			'show_in_menu'             => null,
-			'show_in_nav_menus'        => null,
-			'show_tagcloud'            => null,
-			'show_in_quick_edit'       => null,
-			'show_admin_column'        => false,
-			'meta_box_cb'              => null,
-			'meta_box_sanitize_cb'     => null,
-			'capabilities'             => array(),
-			'rewrite'                  => true,
-			'query_var'                => $this->name,
-			'update_count_callback'    => '',
-			'update_count_by_callback' => '',
-			'show_in_rest'             => false,
-			'rest_base'                => false,
-			'rest_controller_class'    => false,
-			'default_term'             => null,
-			'_builtin'                 => false,
+			'labels'                => array(),
+			'description'           => '',
+			'public'                => true,
+			'publicly_queryable'    => null,
+			'hierarchical'          => false,
+			'show_ui'               => null,
+			'show_in_menu'          => null,
+			'show_in_nav_menus'     => null,
+			'show_tagcloud'         => null,
+			'show_in_quick_edit'    => null,
+			'show_admin_column'     => false,
+			'meta_box_cb'           => null,
+			'meta_box_sanitize_cb'  => null,
+			'capabilities'          => array(),
+			'rewrite'               => true,
+			'query_var'             => $this->name,
+			'update_count_callback' => '',
+			'show_in_rest'          => false,
+			'rest_base'             => false,
+			'rest_controller_class' => false,
+			'default_term'          => null,
+			'_builtin'              => false,
 		);
 
 		$args = array_merge( $defaults, $args );
@@ -418,17 +414,6 @@ final class WP_Taxonomy {
 					'description' => '',
 				)
 			);
-		}
-
-		// If generic update callback is defined but increment/decrement callback is not.
-		if (
-			! empty( $args['update_count_callback'] ) &&
-			is_callable( $args['update_count_callback'] ) &&
-			empty( $args['update_count_by_callback'] )
-		) {
-			$args['update_count_by_callback'] = function( $tt_ids, $taxonomy ) use ( $args ) {
-				return call_user_func( $args['update_count_callback'], $tt_ids, $taxonomy );
-			};
 		}
 
 		foreach ( $args as $property_name => $property_value ) {

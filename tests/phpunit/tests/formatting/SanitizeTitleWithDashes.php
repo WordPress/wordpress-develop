@@ -7,7 +7,7 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 	function test_strips_html() {
 		$input    = 'Captain <strong>Awesome</strong>';
 		$expected = 'captain-awesome';
-		$this->assertSame( $expected, sanitize_title( $input ) );
+		$this->assertSame( $expected, sanitize_title_with_dashes( $input ) );
 	}
 
 	function test_strips_unencoded_percent_signs() {

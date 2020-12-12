@@ -42,7 +42,7 @@ function wp_get_additional_image_sizes() {
  *
  * @since 2.5.0
  *
- * @global int   $content_width
+ * @global int $content_width
  *
  * @param int          $width   Width of the image in pixels.
  * @param int          $height  Height of the image in pixels.
@@ -1081,7 +1081,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param array        $attr       Array of attribute values for the image markup, keyed by attribute name.
+		 * @param string[]     $attr       Array of attribute values for the image markup, keyed by attribute name.
 		 *                                 See wp_get_attachment_image().
 		 * @param WP_Post      $attachment Image attachment post.
 		 * @param string|int[] $size       Requested image size. Can be any registered image size name, or
@@ -1109,7 +1109,7 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param bool         $icon          Whether the image should be treated as an icon.
-	 * @param array        $attr          Array of attribute values for the image markup, keyed by attribute name.
+	 * @param string[]     $attr          Array of attribute values for the image markup, keyed by attribute name.
 	 *                                    See wp_get_attachment_image().
 	 */
 	return apply_filters( 'wp_get_attachment_image', $html, $attachment_id, $size, $icon, $attr );
@@ -1237,7 +1237,7 @@ function wp_get_attachment_image_srcset( $attachment_id, $size = 'medium', $imag
  * @param string $image_src     The 'src' of the image.
  * @param array  $image_meta    The image meta data as returned by 'wp_get_attachment_metadata()'.
  * @param int    $attachment_id Optional. The image attachment ID. Default 0.
- * @return string|bool          The 'srcset' attribute value. False on error or when only one source exists.
+ * @return string|false The 'srcset' attribute value. False on error or when only one source exists.
  */
 function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id = 0 ) {
 	/**
@@ -1476,7 +1476,7 @@ function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image
  *                                    Default null.
  * @param int          $attachment_id Optional. Image attachment ID. Either `$image_meta` or `$attachment_id`
  *                                    is needed when using the image size name as argument for `$size`. Default 0.
- * @return string|bool A valid source size value for use in a 'sizes' attribute or false.
+ * @return string|false A valid source size value for use in a 'sizes' attribute or false.
  */
 function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null, $attachment_id = 0 ) {
 	$width = 0;
@@ -3505,7 +3505,8 @@ function is_gd_image( $image ) {
  *
  * @param int $width  Image width in pixels.
  * @param int $height Image height in pixels.
- * @return resource|GdImage The GD image resource or GdImage instance.
+ * @return resource|GdImage|false The GD image resource or GdImage instance on success.
+ *                                False on failure.
  */
 function wp_imagecreatetruecolor( $width, $height ) {
 	$img = imagecreatetruecolor( $width, $height );
@@ -3578,8 +3579,8 @@ function wp_max_upload_size() {
  * @param string $path Path to the file to load.
  * @param array  $args Optional. Additional arguments for retrieving the image editor.
  *                     Default empty array.
- * @return WP_Image_Editor|WP_Error The WP_Image_Editor object if successful, an WP_Error
- *                                  object otherwise.
+ * @return WP_Image_Editor|WP_Error The WP_Image_Editor object on success,
+ *                                  a WP_Error object otherwise.
  */
 function wp_get_image_editor( $path, $args = array() ) {
 	$args['path'] = $path;
@@ -3630,8 +3631,8 @@ function wp_image_editor_supports( $args = array() ) {
  * @since 3.5.0
  *
  * @param array $args Optional. Array of arguments for choosing a capable editor. Default empty array.
- * @return string|false Class name for the first editor that claims to support the request. False if no
- *                     editor claims to support the request.
+ * @return string|false Class name for the first editor that claims to support the request.
+ *                      False if no editor claims to support the request.
  */
 function _wp_image_editor_choose( $args = array() ) {
 	require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
@@ -3767,7 +3768,47 @@ function wp_plupload_default_settings() {
  * @since 3.5.0
  *
  * @param int|WP_Post $attachment Attachment ID or object.
- * @return array|void Array of attachment details.
+ * @return array|void {
+ *     Array of attachment details, or void if the parameter does not correspond to an attachment.
+ *
+ *     @type string $alt                   Alt text of the attachment.
+ *     @type string $author                ID of the attachment author, as a string.
+ *     @type string $authorName            Name of the attachment author.
+ *     @type string $caption               Caption for the attachment.
+ *     @type array  $compat                Containing item and meta.
+ *     @type string $context               Context, whether it's used as the site icon for example.
+ *     @type int    $date                  Uploaded date, timestamp in milliseconds.
+ *     @type string $dateFormatted         Formatted date (e.g. June 29, 2018).
+ *     @type string $description           Description of the attachment.
+ *     @type string $editLink              URL to the edit page for the attachment.
+ *     @type string $filename              File name of the attachment.
+ *     @type string $filesizeHumanReadable Filesize of the attachment in human readable format (e.g. 1 MB).
+ *     @type int    $filesizeInBytes       Filesize of the attachment in bytes.
+ *     @type int    $height                If the attachment is an image, represents the height of the image in pixels.
+ *     @type string $icon                  Icon URL of the attachment (e.g. /wp-includes/images/media/archive.png).
+ *     @type int    $id                    ID of the attachment.
+ *     @type string $link                  URL to the attachment.
+ *     @type int    $menuOrder             Menu order of the attachment post.
+ *     @type array  $meta                  Meta data for the attachment.
+ *     @type string $mime                  Mime type of the attachment (e.g. image/jpeg or application/zip).
+ *     @type int    $modified              Last modified, timestamp in milliseconds.
+ *     @type string $name                  Name, same as title of the attachment.
+ *     @type array  $nonces                Nonces for update, delete and edit.
+ *     @type string $orientation           If the attachment is an image, represents the image orientation
+ *                                         (landscape or portrait).
+ *     @type array  $sizes                 If the attachment is an image, contains an array of arrays
+ *                                         for the images sizes: thumbnail, medium, large, and full.
+ *     @type string $status                Post status of the attachment (usually 'inherit').
+ *     @type string $subtype               Mime subtype of the attachment (usually the last part, e.g. jpeg or zip).
+ *     @type string $title                 Title of the attachment (usually slugified file name without the extension).
+ *     @type string $type                  Type of the attachment (usually first part of the mime type, e.g. image).
+ *     @type int    $uploadedTo            Parent post to which the attachment was uploaded.
+ *     @type string $uploadedToLink        URL to the edit page of the parent post of the attachment.
+ *     @type string $uploadedToTitle       Post title of the parent of the attachment.
+ *     @type string $url                   Direct URL to the attachment file (from wp-content).
+ *     @type int    $width                 If the attachment is an image, represents the width of the image in pixels.
+ * }
+ *
  */
 function wp_prepare_attachment_for_js( $attachment ) {
 	$attachment = get_post( $attachment );
@@ -3989,9 +4030,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 		$response['compat'] = get_compat_media_markup( $attachment->ID, array( 'in_modal' => true ) );
 	}
 
-	$media_states = get_media_states( $attachment );
-	if ( ! empty( $media_states ) ) {
-		$response['mediaStates'] = implode( ', ', $media_states );
+	if ( function_exists( 'get_media_states' ) ) {
+		$media_states = get_media_states( $attachment );
+		if ( ! empty( $media_states ) ) {
+			$response['mediaStates'] = implode( ', ', $media_states );
+		}
 	}
 
 	/**
@@ -3999,7 +4042,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array       $response   Array of prepared attachment data.
+	 * @param array       $response   Array of prepared attachment data. @see wp_prepare_attachment_for_js().
 	 * @param WP_Post     $attachment Attachment object.
 	 * @param array|false $meta       Array of attachment meta data, or false if there is none.
 	 */
@@ -4250,7 +4293,7 @@ function wp_enqueue_media( $args = array() ) {
 		'createNewGallery'            => __( 'Create a new gallery' ),
 		'createNewPlaylist'           => __( 'Create a new playlist' ),
 		'createNewVideoPlaylist'      => __( 'Create a new video playlist' ),
-		'returnToLibrary'             => __( '&#8592; Return to library' ),
+		'returnToLibrary'             => __( '&#8592; Go to library' ),
 		'allMediaItems'               => __( 'All media items' ),
 		'allDates'                    => __( 'All dates' ),
 		'noItemsFound'                => __( 'No items found.' ),

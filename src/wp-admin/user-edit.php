@@ -202,7 +202,7 @@ switch ( $action ) {
 	<p><strong><?php _e( 'User updated.' ); ?></strong></p>
 	<?php endif; ?>
 			<?php if ( $wp_http_referer && false === strpos( $wp_http_referer, 'user-new.php' ) && ! IS_PROFILE_PAGE ) : ?>
-	<p><a href="<?php echo esc_url( wp_validate_redirect( esc_url_raw( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Back to Users' ); ?></a></p>
+	<p><a href="<?php echo esc_url( wp_validate_redirect( esc_url_raw( $wp_http_referer ), self_admin_url( 'users.php' ) ) ); ?>"><?php _e( '&larr; Go to Users' ); ?></a></p>
 	<?php endif; ?>
 </div>
 		<?php endif; ?>
@@ -641,7 +641,7 @@ endif;
 				<span class="dashicons dashicons-hidden" aria-hidden="true"></span>
 				<span class="text"><?php _e( 'Hide' ); ?></span>
 			</button>
-			<button type="button" class="button wp-cancel-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Cancel' ); ?>">
+			<button type="button" class="button wp-cancel-pw hide-if-no-js" data-toggle="0" aria-label="<?php esc_attr_e( 'Cancel password change' ); ?>">
 				<span class="dashicons dashicons-no" aria-hidden="true"></span>
 				<span class="text"><?php _e( 'Cancel' ); ?></span>
 			</button>
@@ -715,23 +715,57 @@ endif;
 	<div class="application-passwords hide-if-no-js" id="application-passwords-section">
 		<h2><?php _e( 'Application Passwords' ); ?></h2>
 		<p><?php _e( 'Application passwords allow authentication via non-interactive systems, such as XML-RPC or the REST API, without providing your actual password. Application passwords can be easily revoked. They cannot be used for traditional logins to your website.' ); ?></p>
-		<div class="create-application-password">
-			<label for="new_application_password_name" class="screen-reader-text"><?php _e( 'New Application Password Name' ); ?></label>
-			<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'New Application Password Name' ); ?>" class="input" />
-
 			<?php
-			/**
-			 * Fires in the create Application Passwords form.
-			 *
-			 * @since 5.6.0
-			 *
-			 * @param WP_User $profileuser The current WP_User object.
-			 */
-			do_action( 'wp_create_application_password_form', $profileuser );
-			?>
+			if ( is_multisite() ) {
+				$blogs       = get_blogs_of_user( $user_id, true );
+				$blogs_count = count( $blogs );
+				if ( $blogs_count > 1 ) {
+					?>
+					<p>
+						<?php
+						printf(
+							/* translators: 1: URL to my-sites.php, 2: Number of blogs the user has. */
+							_n(
+								'Application passwords grant access to <a href="%1$s">the %2$s blog in this installation that you have permissions on</a>.',
+								'Application passwords grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.',
+								$blogs_count
+							),
+							admin_url( 'my-sites.php' ),
+							number_format_i18n( $blogs_count )
+						);
+						?>
+					</p>
+					<?php
+				}
+			}
 
-			<?php submit_button( __( 'Add New' ), 'secondary', 'do_new_application_password', false ); ?>
-		</div>
+			if ( empty( $_SERVER['PHP_AUTH_USER'] ) && empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+				?>
+			<div class="create-application-password form-wrap">
+				<div class="form-field">
+					<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
+					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+					<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
+				</div>
+
+				<?php
+				/**
+				 * Fires in the create Application Passwords form.
+				 *
+				 * @since 5.6.0
+				 *
+				 * @param WP_User $profileuser The current WP_User object.
+				 */
+				do_action( 'wp_create_application_password_form', $profileuser );
+				?>
+
+				<?php submit_button( __( 'Add New Application Password' ), 'secondary', 'do_new_application_password' ); ?>
+			</div>
+		<?php } else { ?>
+			<div class="notice notice-error inline">
+				<p><?php _e( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ); ?></p>
+			</div>
+		<?php } ?>
 
 		<div class="application-passwords-list-table-wrapper">
 			<?php
@@ -831,20 +865,22 @@ endif;
 
 <?php if ( isset( $application_passwords_list_table ) ) : ?>
 	<script type="text/html" id="tmpl-new-application-password">
-		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="0">
-			<p>
-				<?php
-				printf(
-					/* translators: 1: Application name, 2: Generated password. */
-					esc_html__( 'Your new password for %1$s is: %2$s' ),
-					'<strong>{{ data.name }}</strong>',
-					'<kbd>{{ data.password }}</kbd>'
-				);
-				?>
+		<div class="notice notice-success is-dismissible new-application-password-notice" role="alert" tabindex="-1">
+			<p class="application-password-display">
+				<label for="new-application-password-value">
+					<?php
+					printf(
+						/* translators: %s: Application name. */
+						__( 'Your new password for %s is:' ),
+						'<strong>{{ data.name }}</strong>'
+					);
+					?>
+				</label>
+				<input id="new-application-password-value" type="text" class="code" readonly="readonly" value="{{ data.password }}" />
 			</p>
-			<p><?php esc_attr_e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
+			<p><?php _e( 'Be sure to save this in a safe location. You will not be able to retrieve it.' ); ?></p>
 			<button type="button" class="notice-dismiss">
-				<span class="screen-reader-text"><?php __( 'Dismiss this notice.' ); ?></span>
+				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.' ); ?></span>
 			</button>
 		</div>
 	</script>

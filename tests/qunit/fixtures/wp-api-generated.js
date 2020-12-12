@@ -4917,6 +4917,12 @@ mockedApiResponse.Schema = {
                         "POST"
                     ],
                     "args": {
+                        "app_id": {
+                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "type": "string",
+                            "format": "uuid",
+                            "required": false
+                        },
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
@@ -4967,6 +4973,12 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "app_id": {
+                            "description": "A uuid provided by the application to uniquely identify it. It is recommended to use an UUID v5 with the URL or DNS namespace.",
+                            "type": "string",
+                            "format": "uuid",
+                            "required": false
+                        },
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
@@ -6122,6 +6134,27 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/dotorg-communication"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/authorization-header": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/authorization-header"
                     }
                 ]
             }

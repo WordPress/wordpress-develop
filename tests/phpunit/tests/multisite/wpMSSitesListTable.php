@@ -19,7 +19,7 @@ if ( is_multisite() ) :
 			$this->table = _get_list_table( 'WP_MS_Sites_List_Table', array( 'screen' => 'ms-sites' ) );
 		}
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
 				'wordpress.org/'          => array(
 					'domain' => 'wordpress.org',

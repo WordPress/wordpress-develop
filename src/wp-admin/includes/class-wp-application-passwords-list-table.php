@@ -38,6 +38,8 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * Prepares the list of items for displaying.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @global int $user_id User ID.
 	 */
 	public function prepare_items() {
 		global $user_id;
@@ -66,7 +68,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['created'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['created'] );
+			echo date_i18n( __( 'F j, Y' ), $item['created'] );
 		}
 	}
 
@@ -81,7 +83,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 		if ( empty( $item['last_used'] ) ) {
 			echo '&mdash;';
 		} else {
-			echo gmdate( get_option( 'date_format', 'r' ), $item['last_used'] );
+			echo date_i18n( __( 'F j, Y' ), $item['last_used'] );
 		}
 	}
 
@@ -104,9 +106,20 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 	 * Handles the revoke column output.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @param array $item The current application password item.
 	 */
-	public function column_revoke() {
-		submit_button( __( 'Revoke' ), 'delete', 'revoke-application-password', false );
+	public function column_revoke( $item ) {
+		submit_button(
+			__( 'Revoke' ),
+			'delete',
+			'revoke-application-password-' . $item['uuid'],
+			false,
+			array(
+				/* translators: %s: the application password's given name. */
+				'aria-label' => sprintf( __( 'Revoke "%s"' ), $item['name'] ),
+			)
+		);
 	}
 
 	/**
@@ -211,16 +224,22 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 					echo '{{ data.name }}';
 					break;
 				case 'created':
-					echo "<# print( wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.created ) ) #>";
+					// JSON encoding automatically doubles backslashes to ensure they don't get lost when printing the inline JS.
+					echo '<# print( wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ', data.created ) ) #>';
 					break;
 				case 'last_used':
-					echo "<# print( data.last_used !== null ? wp.date.dateI18n( '" . esc_js( get_option( 'date_format' ) ) . "', data.last_used ) : '—' ) #>";
+					echo '<# print( data.last_used !== null ? wp.date.dateI18n( ' . wp_json_encode( __( 'F j, Y' ) ) . ", data.last_used ) : '—' ) #>";
 					break;
 				case 'last_ip':
 					echo "{{ data.last_ip || '—' }}";
 					break;
 				case 'revoke':
-					echo $this->column_revoke();
+					printf(
+						'<input type="submit" class="button delete" value="%1$s" aria-label="%2$s">',
+						esc_attr( __( 'Revoke' ) ),
+						/* translators: %s: the application password's given name. */
+						esc_attr( sprintf( __( 'Revoke "%s"' ), '{{ data.name }}' ) )
+					);
 					break;
 				default:
 					/**

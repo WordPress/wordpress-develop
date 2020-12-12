@@ -149,9 +149,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		// Suppress warnings from "Cannot modify header information - headers already sent by".
 		$this->_error_level = error_reporting();
 		error_reporting( $this->_error_level & ~E_WARNING );
-
-		// Make some posts.
-		self::factory()->post->create_many( 5 );
 	}
 
 	/**

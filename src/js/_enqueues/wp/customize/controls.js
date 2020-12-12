@@ -3700,8 +3700,8 @@
 						parentContainer = ( section.contentContainer.is( 'ul' ) ) ? section.contentContainer : section.contentContainer.find( 'ul:first' );
 						if ( ! control.container.parent().is( parentContainer ) ) {
 							parentContainer.append( control.container );
-							control.renderContent();
 						}
+						control.renderContent();
 						control.deferred.embedded.resolve();
 					});
 				});
@@ -7712,7 +7712,7 @@
 			/**
 			 * Trash the current changes.
 			 *
-			 * Revert the Customizer to it's previously-published state.
+			 * Revert the Customizer to its previously-published state.
 			 *
 			 * @since 4.9.0
 			 *

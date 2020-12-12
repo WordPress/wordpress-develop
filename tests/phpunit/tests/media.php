@@ -8,13 +8,43 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $large_id;
 	protected static $_sizes;
 	protected static $large_filename = 'test-image-large.jpg';
+	protected static $post_ids;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
+
+		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
+		foreach ( $post_statuses as $post_status ) {
+			$date = '';
+			if ( 'future' === $post_status ) {
+				strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+			}
+
+			self::$post_ids[ $post_status ] = $factory->post->create(
+				array(
+					'post_status' => 'trash' === $post_status ? 'publish' : $post_status,
+					'post_date'   => $date,
+					'post_name'   => "$post_status-post",
+				)
+			);
+
+			// Attachments without media.
+			self::$post_ids[ "$post_status-attachment" ] = $factory->attachment->create_object(
+				array(
+					'post_parent' => self::$post_ids[ $post_status ],
+					'post_status' => 'inherit',
+					'post_name'   => "$post_status-attachment",
+					'post_date'   => $date,
+				)
+			);
+		}
+
+		// Trash the trash post.
+		wp_trash_post( self::$post_ids['trash'] );
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -3023,6 +3053,50 @@ EOF;
 		$this->assertNotContains( '<a ', $actual );
 	}
 
+	/**
+	 * Test attachment permalinks based on parent post status.
+	 *
+	 * @dataProvider data_attachment_permalinks_based_on_parent_status
+	 * @ticket 51776
+	 *
+	 * @param string $post_key     Post as keyed in the shared fixture array.
+	 * @param string $expected     Expected result.
+	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
+	 *
+	 */
+	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected, $expected_404 ) {
+		$this->set_permalink_structure( '/%postname%' );
+		$post = get_post( self::$post_ids[ $post_key ] );
+
+		/*
+		 * The dataProvider runs before the fixures are set up, therefore the
+		 * post object IDs are placeholders that needs to be replaced.
+		 */
+		$expected = home_url( str_replace( '%ID%', $post->ID, $expected ) );
+
+		$this->assertSame( $expected, get_permalink( $post ) );
+		$this->go_to( get_permalink( $post ) );
+		$this->assertSame( $expected_404, is_404() );
+	}
+
+	/**
+	 * Data provider for test_attachment_permalinks_based_on_parent_status().
+	 *
+	 * @return array[] {
+	 *     @type string $post_key     Post as keyed in the shared fixture array.
+	 *     @type string $expected     Expected result.
+	 *     $type bool   $expected_404 Whether the page is expected to return a 404 result.
+	 * }
+	 */
+	function data_attachment_permalinks_based_on_parent_status() {
+		return array(
+			array( 'draft-attachment', '/?attachment_id=%ID%', true ),
+			array( 'publish-attachment', '/publish-post/publish-attachment', false ),
+			array( 'future-attachment', '/future-post/future-attachment', false ),
+			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
+			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
+		);
+	}
 }
 
 /**

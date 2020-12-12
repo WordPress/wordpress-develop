@@ -673,7 +673,7 @@ function metadata_exists( $meta_type, $object_id, $meta_key ) {
 	}
 
 	/** This filter is documented in wp-includes/meta.php */
-	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, true );
+	$check = apply_filters( "get_{$meta_type}_metadata", null, $object_id, $meta_key, true, $meta_type );
 	if ( null !== $check ) {
 		return (bool) $check;
 	}
@@ -1159,7 +1159,8 @@ function _get_meta_table( $type ) {
  * @return bool Whether the meta key is considered protected.
  */
 function is_protected_meta( $meta_key, $meta_type = '' ) {
-	$protected = ( '_' === $meta_key[0] );
+	$sanitized_key = preg_replace( "/[^\x20-\x7E\p{L}]/", '', $meta_key );
+	$protected     = strlen( $sanitized_key ) > 0 && ( '_' === $sanitized_key[0] );
 
 	/**
 	 * Filters whether a meta key is considered protected.

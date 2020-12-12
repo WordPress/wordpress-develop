@@ -96,11 +96,13 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	 * Returns the rendered output for the current block.
 	 *
 	 * @param array $block Block to render.
+	 *
+	 * @return string Rendered output for the current block.
 	 */
 	private function render_example_block( $block ) {
-		global $current_parsed_block;
-		$current_parsed_block = $block;
-		$wrapper_attributes   = get_block_wrapper_attributes(
+		WP_Block_Supports::init();
+		WP_Block_Supports::$block_to_render = $block;
+		$wrapper_attributes                 = get_block_wrapper_attributes(
 			array(
 				'class' => 'foo-bar-class',
 				'style' => 'test: style;',
@@ -121,8 +123,8 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$class_list   = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list   = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertEquals( $expected_classes, $class_list );
-		$this->assertEquals( $expected_styles, $style_list );
+		$this->assertSame( $expected_classes, $class_list );
+		$this->assertSame( $expected_styles, $style_list );
 	}
 
 	/**
@@ -136,18 +138,18 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 		$styled_block = $this->render_example_block( $block );
 
 		// Ensure blocks to not add extra whitespace.
-		$this->assertEquals( $styled_block, trim( $styled_block ) );
+		$this->assertSame( $styled_block, trim( $styled_block ) );
 
 		$content    = $this->get_content_from_block( $styled_block );
 		$class_list = $this->get_attribute_from_block( 'class', $styled_block );
 		$style_list = $this->get_attribute_from_block( 'style', $styled_block );
 
-		$this->assertEquals( self::BLOCK_CONTENT, $content );
-		$this->assertEqualSets(
+		$this->assertSame( self::BLOCK_CONTENT, $content );
+		$this->assertSameSets(
 			explode( ' ', $expected_classes ),
 			explode( ' ', $class_list )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array_map( 'trim', explode( ';', $expected_styles ) ),
 			array_map( 'trim', explode( ';', $style_list ) )
 		);

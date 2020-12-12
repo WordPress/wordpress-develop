@@ -230,7 +230,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				'compatibility' => new stdClass(),
 			);
 
-			$filter_payload = (object) array_merge( $filter_payload, array_intersect_key( $plugin_data, $filter_payload ) );
+			$filter_payload = (object) wp_parse_args( $plugin_data, $filter_payload );
 
 			$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, $filter_payload );
 
@@ -317,7 +317,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 		$js_plugins = array();
 		foreach ( $plugins as $key => $list ) {
-			$js_plugins[ $key ] = array_keys( (array) $list );
+			$js_plugins[ $key ] = array_keys( $list );
 		}
 
 		wp_localize_script(
@@ -407,7 +407,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 			$s = esc_html( wp_unslash( $_REQUEST['s'] ) );
 
 			/* translators: %s: Plugin search term. */
-			printf( __( 'No plugins found for &#8220;%s&#8221;.' ), $s );
+			printf( __( 'No plugins found for: %s.' ), '<strong>' . $s . '</strong>' );
 
 			// We assume that somebody who can install plugins in multisite is experienced enough to not need this helper link.
 			if ( ! is_multisite() && current_user_can( 'install_plugins' ) ) {
@@ -948,7 +948,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$requires_php   = isset( $plugin_data['requires_php'] ) ? $plugin_data['requires_php'] : null;
 		$compatible_php = is_php_version_compatible( $requires_php );
 		$class          = $is_active ? 'active' : 'inactive';
-		$checkbox_id    = 'checkbox_' . md5( $plugin_data['Name'] );
+		$checkbox_id    = 'checkbox_' . md5( $plugin_file );
 
 		if ( $restrict_network_active || $restrict_network_only || in_array( $status, array( 'mustuse', 'dropins' ), true ) || ! $compatible_php ) {
 			$checkbox = '';

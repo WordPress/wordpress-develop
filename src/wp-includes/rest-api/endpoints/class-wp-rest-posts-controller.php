@@ -266,7 +266,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Filters the query arguments for a request.
+		 * Filters WP_Query arguments when querying users via the REST API.
+		 *
+		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_post_query`
+		 *  - `rest_page_query`
+		 *  - `rest_attachment_query`
 		 *
 		 * Enables adding extra arguments or setting defaults for a post collection request.
 		 *
@@ -274,8 +282,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_query/
 		 *
-		 * @param array           $args    Key value array of query var to query value.
-		 * @param WP_REST_Request $request The request used.
+		 * @param array           $args    Array of arguments to be passed to WP_Query.
+		 * @param WP_REST_Request $request The REST API request.
 		 */
 		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
 		$query_args = $this->prepare_items_query( $args, $request );
@@ -677,7 +685,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, true );
 
-		wp_after_insert_post( $post, false );
+		wp_after_insert_post( $post, false, null );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
@@ -753,7 +761,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $valid_check;
 		}
 
-		$post = $this->prepare_item_for_database( $request );
+		$post_before = get_post( $request['id'] );
+		$post        = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -830,7 +839,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
 
-		wp_after_insert_post( $post, true );
+		wp_after_insert_post( $post, true, $post_before );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 
@@ -1052,7 +1061,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return stdClass|WP_Error Post object or WP_Error.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_post = new stdClass();
+		$prepared_post  = new stdClass();
+		$current_status = '';
 
 		// Post ID.
 		if ( isset( $request['id'] ) ) {
@@ -1062,6 +1072,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			$prepared_post->ID = $existing_post->ID;
+			$current_status    = $existing_post->post_status;
 		}
 
 		$schema = $this->get_item_schema();
@@ -1105,7 +1116,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status.
-		if ( ! empty( $schema['properties']['status'] ) && isset( $request['status'] ) ) {
+		if (
+			! empty( $schema['properties']['status'] ) &&
+			isset( $request['status'] ) &&
+			( ! $current_status || $current_status !== $request['status'] )
+		) {
 			$status = $this->handle_status_param( $request['status'], $post_type );
 
 			if ( is_wp_error( $status ) ) {
@@ -1256,6 +1271,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether the status is valid for the given post.
+	 *
+	 * Allows for sending an update request with the current status, even if that status would not be acceptable.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string          $status  The provided status.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The parameter name.
+	 * @return true|WP_Error True if the status is valid, or WP_Error if not.
+	 */
+	public function check_status( $status, $request, $param ) {
+		if ( $request['id'] ) {
+			$post = $this->get_post( $request['id'] );
+
+			if ( ! is_wp_error( $post ) && $post->post_status === $status ) {
+				return true;
+			}
+		}
+
+		$args = $request->get_attributes()['args'][ $param ];
+
+		return rest_validate_value_from_schema( $status, $args, $param );
+	}
+
+	/**
 	 * Determines validity and normalizes the given status parameter.
 	 *
 	 * @since 4.7.0
@@ -1344,8 +1385,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( $request['id'] ) {
+			$post             = get_post( $request['id'] );
 			$current_template = get_page_template_slug( $request['id'] );
 		} else {
+			$post             = null;
 			$current_template = '';
 		}
 
@@ -1355,7 +1398,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// If this is a create request, get_post() will return null and wp theme will fallback to the passed post type.
-		$allowed_templates = wp_get_theme()->get_page_templates( get_post( $request['id'] ), $this->post_type );
+		$allowed_templates = wp_get_theme()->get_page_templates( $post, $this->post_type );
 
 		if ( isset( $allowed_templates[ $template ] ) ) {
 			return true;
@@ -2113,6 +2156,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'validate_callback' => array( $this, 'check_status' ),
+					),
 				),
 				'type'         => array(
 					'description' => __( 'Type of Post for the object.' ),

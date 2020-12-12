@@ -130,7 +130,7 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
  *     @type callable|null $update_callback Optional. The callback function used to set and update the field value. Default
  *                                          is 'null', the value cannot be set or updated. The function will be passed
  *                                          the model object, like WP_Post.
- *     @type array|null $schema             Optional. The callback function used to create the schema for this field.
+ *     @type array|null $schema             Optional. The schema for this field.
  *                                          Default is 'null', no schema entry will be returned.
  * }
  */
@@ -153,7 +153,7 @@ function register_rest_field( $object_type, $attribute, $args = array() ) {
 }
 
 /**
- * Registers rewrite rules for the API.
+ * Registers rewrite rules for the REST API.
  *
  * @since 4.4.0
  *
@@ -317,7 +317,7 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Block_Directory_Controller();
 	$controller->register_routes();
 
-	// Site Health
+	// Site Health.
 	$site_health = WP_Site_Health::get_instance();
 	$controller  = new WP_REST_Site_Health_Controller( $site_health );
 	$controller->register_routes();
@@ -498,7 +498,7 @@ function rest_get_server() {
 		/**
 		 * Filters the REST Server Class.
 		 *
-		 * This filter allows you to adjust the server class used by the API, using a
+		 * This filter allows you to adjust the server class used by the REST API, using a
 		 * different class to handle requests.
 		 *
 		 * @since 4.4.0
@@ -509,7 +509,7 @@ function rest_get_server() {
 		$wp_rest_server       = new $wp_rest_server_class;
 
 		/**
-		 * Fires when preparing to serve an API request.
+		 * Fires when preparing to serve a REST API request.
 		 *
 		 * Endpoint objects should be created and register their hooks on this action rather
 		 * than another action to ensure they're only loaded when needed.
@@ -802,7 +802,7 @@ function _rest_array_intersect_key_recursive( $array1, $array2 ) {
 }
 
 /**
- * Filters the API response to include only a white-listed set of response object fields.
+ * Filters the REST API response to include only a white-listed set of response object fields.
  *
  * @since 4.8.0
  *
@@ -2009,13 +2009,35 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s items.' ), $param, number_format_i18n( $args['minItems'] ) ) );
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number. */
+					_n(
+						'%1$s must contain at least %2$s item.',
+						'%1$s must contain at least %2$s items.',
+						$args['minItems']
+					),
+					$param,
+					number_format_i18n( $args['minItems'] )
+				)
+			);
 		}
 
 		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s items.' ), $param, number_format_i18n( $args['maxItems'] ) ) );
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number. */
+					_n(
+						'%1$s must contain at most %2$s item.',
+						'%1$s must contain at most %2$s items.',
+						$args['maxItems']
+					),
+					$param,
+					number_format_i18n( $args['maxItems'] )
+				)
+			);
 		}
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
@@ -2086,13 +2108,35 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at least %2$s properties.' ), $param, number_format_i18n( $args['minProperties'] ) ) );
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number. */
+					_n(
+						'%1$s must contain at least %2$s property.',
+						'%1$s must contain at least %2$s properties.',
+						$args['minProperties']
+					),
+					$param,
+					number_format_i18n( $args['minProperties'] )
+				)
+			);
 		}
 
 		if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
-			/* translators: 1: Parameter, 2: Number. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must contain at most %2$s properties.' ), $param, number_format_i18n( $args['maxProperties'] ) ) );
+			return new WP_Error(
+				'rest_invalid_param',
+				sprintf(
+					/* translators: 1: Parameter, 2: Number. */
+					_n(
+						'%1$s must contain at most %2$s property.',
+						'%1$s must contain at most %2$s properties.',
+						$args['maxProperties']
+					),
+					$param,
+					number_format_i18n( $args['maxProperties'] )
+				)
+			);
 		}
 	}
 

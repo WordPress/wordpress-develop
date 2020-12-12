@@ -108,7 +108,7 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 				array(
 					'type'    => 'radio',
 					'section' => 'excerpt_settings',
-					'label'   => esc_html__( 'On archive pages, posts show:', 'twentytwentyone' ),
+					'label'   => esc_html__( 'On Archive Pages, posts show:', 'twentytwentyone' ),
 					'choices' => array(
 						'excerpt' => esc_html__( 'Summary', 'twentytwentyone' ),
 						'full'    => esc_html__( 'Full text', 'twentytwentyone' ),
@@ -140,34 +140,10 @@ if ( ! class_exists( 'Twenty_Twenty_One_Customize' ) ) {
 					$wp_customize,
 					'background_color',
 					array(
-						'label'   => esc_html__( 'Background Control', 'twentytwentyone' ),
+						'label'   => esc_html_x( 'Background color', 'Customizer control', 'twentytwentyone' ),
 						'section' => 'colors',
 						'palette' => $colors,
 					)
-				)
-			);
-
-			$wp_customize->add_setting(
-				'respect_user_color_preference',
-				array(
-					'capability'        => 'edit_theme_options',
-					'default'           => true,
-					'sanitize_callback' => function( $value ) {
-						return (bool) $value;
-					},
-				)
-			);
-
-			$wp_customize->add_control(
-				'respect_user_color_preference',
-				array(
-					'type'            => 'checkbox',
-					'section'         => 'colors',
-					'label'           => esc_html__( 'Respect visitor\'s device dark mode settings', 'twentytwentyone' ),
-					'description'     => __( 'Dark mode is a device setting. If a visitor to your site requests it, your site will be shown with a dark background and light text.', 'twentytwentyone' ),
-					'active_callback' => function( $value ) {
-						return 127 < Twenty_Twenty_One_Custom_Colors::get_relative_luminance_from_hex( get_theme_mod( 'background_color', 'D1E4DD' ) );
-					},
 				)
 			);
 		}

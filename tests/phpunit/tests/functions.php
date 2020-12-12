@@ -269,6 +269,30 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, is_serialized( $value ) );
 	}
 
+	/**
+	 * @dataProvider data_serialize_deserialize_objects
+	 */
+	function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
+		$serialized = maybe_serialize( $value );
+		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
+			$new_value = unserialize( $serialized );
+			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
+			$property->setAccessible( true );
+			$callback_value = $property->getValue( $new_value );
+			$this->assertSame( null, $callback_value );
+		} else {
+			$this->assertEquals( $value->count(), unserialize( $serialized )->count() );
+		}
+	}
+
+	function data_serialize_deserialize_objects() {
+		return array(
+			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
+			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
+			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
+		);
+	}
+
 	function data_is_serialized() {
 		return array(
 			array( serialize( null ), true ),
@@ -1726,6 +1750,29 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '61:59', false ),    // Out of bound.
 			array( '3:59:61', false ),  // Out of bound.
 			array( '03:61:59', false ), // Out of bound.
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider data_test_wp_is_json_media_type
+	 */
+	public function test_wp_is_json_media_type( $input, $expected ) {
+		$this->assertSame( $expected, wp_is_json_media_type( $input ) );
+	}
+
+
+	public function data_test_wp_is_json_media_type() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/json', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
+			array( 'application/activity+json, application/nojson', true ),
 		);
 	}
 }

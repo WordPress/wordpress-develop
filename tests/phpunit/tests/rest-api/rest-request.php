@@ -178,6 +178,87 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEmpty( $this->request->get_param( 'has_json_params' ) );
 	}
 
+	public static function alternate_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', 'json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', 'json', true ),
+			array( 'application/activity+json', 'json', true ),
+			array( 'application/json+oembed', 'json', true ),
+			array( 'application/nojson', 'body', false ),
+			array( 'application/no.json', 'body', false ),
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider alternate_json_content_type_provider
+	 *
+	 * @param string  $content_type The content-type
+	 * @param string  $source The source value.
+	 * @param boolean $accept_json The accept_json value.
+	 */
+	public function test_alternate_json_content_type( $content_type, $source, $accept_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_method( 'POST' );
+		$this->request->set_header( 'Content-Type', $content_type );
+		$this->request->set_attributes( array( 'accept_json' => true ) );
+
+		// Check that JSON takes precedence.
+		$this->assertSame( $source, $this->request->get_param( 'source' ) );
+		$this->assertEquals( $accept_json, $this->request->get_param( 'has_json_params' ) );
+	}
+
+	public static function is_json_content_type_provider() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider is_json_content_type_provider
+	 *
+	 * @param string  $content_type The content-type
+	 * @param boolean $is_json The is_json value.
+	 */
+	public function test_is_json_content_type( $content_type, $is_json ) {
+		$this->request_with_parameters();
+
+		$this->request->set_header( 'Content-Type', $content_type );
+
+		// Check for JSON content-type.
+		$this->assertSame( $is_json, $this->request->is_json_content_type() );
+	}
+
+	/**
+	 * @ticket 49404
+	 */
+	public function test_content_type_cache() {
+		$this->request_with_parameters();
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/activity+json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/nojson' );
+		$this->assertFalse( $this->request->is_json_content_type() );
+
+		$this->request->set_header( 'Content-Type', 'application/json' );
+		$this->assertTrue( $this->request->is_json_content_type() );
+
+		$this->request->remove_header( 'Content-Type' );
+		$this->assertFalse( $this->request->is_json_content_type() );
+	}
+
 	public function test_parameter_order_json() {
 		$this->request_with_parameters();
 
@@ -845,6 +926,6 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$valid = $request->has_valid_params();
 		$this->assertWPError( $valid );
-		$this->assertEquals( 'rest_invalid_param', $valid->get_error_code() );
+		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 }
