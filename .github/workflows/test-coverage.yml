@@ -16,10 +16,9 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
-  # Sets up WordPress for testing or development use.
   #
   # Performs the following steps:
-  # - Set environment variables.
+  # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
@@ -27,25 +26,19 @@ jobs:
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
-  # - Logs Docker debug information (about the Docker installation within the runner).
-  # - Starts the WordPress Docker container.
-  # - Logs debug general information.
-  # - Logs the running Docker containers.
-  # - Logs WordPress Docker container debug information.
-  # - Logs debug information about what's installed within the WordPress Docker containers.
-  # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Creates a ZIP file of the code coverage report.
+  # - Creates a ZIP file of compiled WordPress.
   # - Uploads ZIP file as an artifact.
-  test-coverage-report:
-    name: Generate a code coverage report
+  setup-wordpress:
+    name: Setup WordPress
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
-      - name: Configure environment variables
-        run: |
-          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
-          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
 
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -88,6 +81,102 @@ jobs:
       - name: Build WordPress
         run: npm run build
 
+      - name: Create ZIP artifact
+        uses: thedoctor0/zip-release@0.4.1
+        with:
+          filename: built-wp-${{ github.sha }}.zip
+          exclusions: '*.git* /*node_modules/* packagehash.txt'
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+          path: built-wp-${{ github.sha }}.zip
+          if-no-files-found: error
+
+  # Sets up WordPress for testing or development use.
+  #
+  # Performs the following steps:
+  # - Set environment variables.
+  # - Checks out the repository.
+  # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Logs Docker debug information (about the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Logs debug general information.
+  # - Logs the running Docker containers.
+  # - Logs WordPress Docker container debug information.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  # - Creates a ZIP file of the code coverage report.
+  # - Uploads ZIP file as an artifact.
+  test-coverage-report:
+    name: Generate a code coverage report
+    runs-on: ubuntu-latest
+    needs: setup-wordpress
+    strategy:
+      include:
+      - type: 'Single site'
+        ruleset: 'phpunit.xml.dist'
+        report_name: 'wp-code-coverage-single'
+      - type: 'Multisite
+        ruleset: 'tests/phpunit/multisite.xml'
+        report_name: 'wp-code-coverage-multisite'
+      - type: 'REST API'
+        ruleset: 'phpunit.xml.dist'
+        report_name: 'wp-code-coverage-rest-api'
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Download the built WordPress artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+
+      - name: Unzip built artifact
+        run: unzip built-wp-${{ github.sha }}.zip
+
+      - name: Log debug information
+        run: |
+          echo "$GITHUB_REF"
+          echo "$GITHUB_EVENT_NAME"
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          locale -a
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        run: npx install-changed --install-command="npm ci"
+
       - name: Docker debug information
         run: |
           docker -v
@@ -119,50 +208,18 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Run tests as a single site
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html wp-code-coverage-single
+      - name: 'Run PHPUnit tests - ${{ matrix.type }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ matrix.ruleset }} --coverage-html ${{ matrix.report_name }}
 
       - name: Create ZIP artifact of single site results
         uses: thedoctor0/zip-release@0.4.1
         with:
-          filename: wp-code-coverage-${{ github.sha }}.zip
-          path: wp-code-coverage-single
+          filename: ${{ matrix.report_name }}-${{ github.sha }}.zip
+          path: ${{ matrix.report_name }}
 
       - name: Upload single site coverage report
         uses: actions/upload-artifact@v2
         with:
-          name: wp-code-coverage-${{ github.sha }}
-          path: wp-code-coverage-${{ github.sha }}.zip
-          if-no-files-found: error
-
-      - name: Run tests as a multisite install
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html wp-code-coverage-multisite
-
-      - name: Create ZIP artifact of multisite results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-ms-${{ github.sha }}.zip
-          path: wp-code-coverage-multisite
-
-      - name: Upload multisite coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-code-coverage-multisite-${{ github.sha }}
-          path: wp-code-coverage-multisite-${{ github.sha }}.zip
-          if-no-files-found: error
-
-      - name: Run REST API tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient --coverage-html wp-code-coverage-rest-api
-
-      - name: Create ZIP artifact of REST API results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-rest-api-${{ github.sha }}.zip
-          path: wp-code-coverage-rest-api
-
-      - name: Upload REST API coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-code-coverage-rest-api-${{ github.sha }}
-          path: wp-code-coverage-rest-api-${{ github.sha }}.zip
+          name: ${{ matrix.report_name }}-${{ github.sha }}
+          path: ${{ matrix.report_name }}-${{ github.sha }}.zip
           if-no-files-found: error
