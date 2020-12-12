@@ -37,6 +37,9 @@ jobs:
   # - Run the PHPUnit tests.
   # - Creates a ZIP file of the code coverage report.
   # - Uploads ZIP file as an artifact.
+  # - Run the PHPUnit tests as a multisite.
+  # - Creates a ZIP file of the code coverage report.
+  # - Uploads ZIP file as an artifact.
   test-coverage-report:
     name: Generate a code coverage report
     runs-on: ubuntu-latest
@@ -149,20 +152,4 @@ jobs:
         with:
           name: wp-code-coverage-multisite-${{ github.sha }}
           path: wp-code-coverage-multisite-${{ github.sha }}.zip
-          if-no-files-found: error
-
-      - name: Run REST API tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient --coverage-html wp-code-coverage-rest-api
-
-      - name: Create ZIP artifact of REST API results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-rest-api-${{ github.sha }}.zip
-          path: wp-code-coverage-rest-api
-
-      - name: Upload REST API coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-code-coverage-rest-api-${{ github.sha }}
-          path: wp-code-coverage-rest-api-${{ github.sha }}.zip
           if-no-files-found: error
