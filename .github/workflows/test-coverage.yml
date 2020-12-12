@@ -120,13 +120,13 @@ jobs:
         run: npm run env:install
 
       - name: Run tests as a single site
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html report
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html wp-code-coverage-single
 
       - name: Create ZIP artifact of single site results
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-${{ github.sha }}.zip
-          path: report
+          path: wp-code-coverage-single
 
       - name: Upload single site coverage report
         uses: actions/upload-artifact@v2
@@ -136,29 +136,29 @@ jobs:
           if-no-files-found: error
 
       - name: Run tests as a multisite install
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html multisite-report
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html wp-code-coverage-multisite
 
       - name: Create ZIP artifact of multisite results
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-ms-${{ github.sha }}.zip
-          path: multisite-report
+          path: wp-code-coverage-multisite
 
       - name: Upload multisite coverage report
         uses: actions/upload-artifact@v2
         with:
-          name: wp-code-coverage-ms-${{ github.sha }}
-          path: wp-code-coverage-ms-${{ github.sha }}.zip
+          name: wp-code-coverage-multisite-${{ github.sha }}
+          path: wp-code-coverage-multisite-${{ github.sha }}.zip
           if-no-files-found: error
 
       - name: Run REST API tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient --coverage-html rest-api-report
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient --coverage-html wp-code-coverage-rest-api
 
       - name: Create ZIP artifact of REST API results
         uses: thedoctor0/zip-release@0.4.1
         with:
           filename: wp-code-coverage-rest-api-${{ github.sha }}.zip
-          path: rest-api-report
+          path: wp-code-coverage-rest-api
 
       - name: Upload REST API coverage report
         uses: actions/upload-artifact@v2
