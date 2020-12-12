@@ -121,10 +121,11 @@ jobs:
     needs: setup-wordpress
     strategy:
       matrix:
+        type: [ 'Single site' ]
+        ruleset: [ 'phpunit.xml.dist' ]
+        report_name: [ 'wp-code-coverage-single' ]
+
         include:
-        - type: 'Single site'
-          ruleset: 'phpunit.xml.dist'
-          report_name: 'wp-code-coverage-single'
         - type: 'Multisite'
           ruleset: 'tests/phpunit/multisite.xml'
           report_name: 'wp-code-coverage-multisite'
