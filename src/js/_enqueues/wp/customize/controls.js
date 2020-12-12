@@ -1597,7 +1597,7 @@
 							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
 
-							backBtn.focus();
+							backBtn.trigger( 'focus' );
 							content.css( 'top', '' );
 							container.scrollTop( 0 );
 
@@ -5452,7 +5452,7 @@
 			controls = section.controls();
 			controlIndex = controls.indexOf( control );
 			if ( controls.length === controlIndex + 1 ) {
-				$( '#customize-footer-actions .collapse-sidebar' ).focus();
+				$( '#customize-footer-actions .collapse-sidebar' ).trigger( 'focus' );
 			} else {
 				controls[ controlIndex + 1 ].container.find( ':focusable:first' ).focus();
 			}
@@ -6336,7 +6336,7 @@
 					} ) );
 				} );
 				previewFrame.container.append( form );
-				form.submit();
+				form.trigger( 'submit' );
 				form.remove(); // No need to keep the form around after submitted.
 			}
 
@@ -7081,7 +7081,7 @@
 
 		// Restore focus if there was a reflow and there was an active (focused) element.
 		if ( wasReflowed && activeElement ) {
-			activeElement.focus();
+			activeElement.trigger( 'focus' );
 		}
 		api.trigger( 'pane-contents-reflowed' );
 	}, api );
@@ -8397,10 +8397,10 @@
 		}
 
 		// Button bindings.
-		saveBtn.click( function( event ) {
+		saveBtn.on( 'click', function( event ) {
 			api.previewer.save();
 			event.preventDefault();
-		}).keydown( function( event ) {
+		}).on( 'keydown', function( event ) {
 			if ( 9 === event.which ) { // Tab.
 				return;
 			}
@@ -8410,7 +8410,7 @@
 			event.preventDefault();
 		});
 
-		closeBtn.keydown( function( event ) {
+		closeBtn.on( 'keydown', function( event ) {
 			if ( 9 === event.which ) { // Tab.
 				return;
 			}
