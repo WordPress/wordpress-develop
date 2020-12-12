@@ -385,7 +385,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_post':
 		case 'edit_page':
 		case 'publish_post':
-		case 'publish_page':
 		case 'read_post':
 		case 'read_page':
 			$post = get_post( $args[0] );
@@ -394,7 +393,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			if ( ! in_array( $cap, array( 'publish_post', 'publish_page' ), true ) && 'revision' === $post->post_type ) {
+			if ( 'publish_post' !== $cap && 'revision' === $post->post_type ) {
 				if ( in_array( $cap, array( 'delete_post', 'delete_page' ), true ) ) {
 					$caps[] = 'do_not_allow';
 					break;
@@ -507,7 +506,6 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 					}
 					break;
 				case 'publish_post':
-				case 'publish_page':
 					$caps[] = $post_type->cap->publish_posts;
 					break;
 				case 'read_post':
