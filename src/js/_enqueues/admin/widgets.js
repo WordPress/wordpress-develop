@@ -36,7 +36,7 @@ window.wpWidgets = {
 			 * Toggle the widgets containers when clicked and update the toggle
 			 * button `aria-expanded` attribute value.
 			 */
-			.click( function() {
+			.on( 'click', function() {
 				var $this = $( this ),
 					$wrap = $this.closest( '.widgets-holder-wrap '),
 					$toggle = $this.find( '.handlediv' );
@@ -101,7 +101,7 @@ window.wpWidgets = {
 		});
 
 		// Handle the widgets containers in the left column.
-		$( '#widgets-left .sidebar-name' ).click( function() {
+		$( '#widgets-left .sidebar-name' ).on( 'click', function() {
 			var $wrap = $( this ).closest( '.widgets-holder-wrap' );
 
 			$wrap
@@ -112,7 +112,7 @@ window.wpWidgets = {
 			$document.triggerHandler( 'wp-pin-menu' );
 		});
 
-		$(document.body).bind('click.widgets-toggle', function(e) {
+		$(document.body).on('click.widgets-toggle', function(e) {
 			var target = $(e.target), css = {},
 				widget, inside, targetWidth, widgetWidth, margin, saveButton, widgetId,
 				toggleBtn = target.closest( '.widget' ).find( '.widget-top button.widget-action' );
@@ -428,7 +428,7 @@ window.wpWidgets = {
 					'aria-pressed': 'false',
 					'class': 'widgets-chooser-button',
 					'aria-label': ariaLabel
-				} ).text( $.trim( name ) );
+				} ).text( name.toString().trim() );
 
 			li.append( button );
 
