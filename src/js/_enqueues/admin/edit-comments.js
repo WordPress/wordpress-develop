@@ -445,7 +445,7 @@ window.setCommentsList = function() {
 			a.attr('class', 'vim-z vim-destructive aria-button-if-js');
 			$('.avatar', el).first().clone().prependTo('#undo-' + id + ' .' + action + '-undo-inside');
 
-			a.click(function( e ){
+			a.on( 'click', function( e ){
 				e.preventDefault();
 				e.stopPropagation(); // Ticket #35904.
 				list.wpList.del(this);
@@ -762,7 +762,7 @@ window.setCommentsList = function() {
 	 * @global
 	 */
 	window.theList = $('#the-comment-list').wpList( { alt: '', delBefore: delBefore, dimAfter: dimAfter, delAfter: delAfter, addColor: 'none' } )
-		.bind('wpListDelEnd', function(e, s){
+		.on('wpListDelEnd', function(e, s){
 			var wpListsData = $(s.target).attr('data-wp-lists'), id = s.element.replace(/[^0-9]+/g, '');
 
 			if ( wpListsData.indexOf(':trash=1') != -1 || wpListsData.indexOf(':spam=1') != -1 )
@@ -793,9 +793,9 @@ window.commentReply = {
 	init : function() {
 		var row = $('#replyrow');
 
-		$( '.cancel', row ).click( function() { return commentReply.revert(); } );
-		$( '.save', row ).click( function() { return commentReply.send(); } );
-		$( 'input#author-name, input#author-email, input#author-url', row ).keypress( function( e ) {
+		$( '.cancel', row ).on( 'click', function() { return commentReply.revert(); } );
+		$( '.save', row ).on( 'click', function() { return commentReply.send(); } );
+		$( 'input#author-name, input#author-email, input#author-url', row ).on( 'keypress', function( e ) {
 			if ( e.which == 13 ) {
 				commentReply.send();
 				e.preventDefault();
@@ -804,11 +804,11 @@ window.commentReply = {
 		});
 
 		// Add events.
-		$('#the-comment-list .column-comment > p').dblclick(function(){
+		$('#the-comment-list .column-comment > p').on( 'dblclick', function(){
 			commentReply.toggle($(this).parent());
 		});
 
-		$('#doaction, #doaction2, #post-query-submit').click(function(){
+		$('#doaction, #doaction2, #post-query-submit').on( 'click', function(){
 			if ( $('#the-comment-list #replyrow').length > 0 )
 				commentReply.close();
 		});
@@ -831,7 +831,7 @@ window.commentReply = {
 	 */
 	addEvents : function(r) {
 		r.each(function() {
-			$(this).find('.column-comment > p').dblclick(function(){
+			$(this).find('.column-comment > p').on( 'dblclick', function(){
 				commentReply.toggle($(this).parent());
 			});
 		});
