@@ -390,7 +390,7 @@
 				thisItem.shiftHorizontally( 1 );
 				break;
 			}
-			$this.focus();
+			$this.trigger( 'focus' );
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
@@ -572,7 +572,7 @@
 						break;
 					}
 					// Put focus back on same menu item.
-					$( '#edit-' + thisItemData['menu-item-db-id'] ).focus();
+					$( '#edit-' + thisItemData['menu-item-db-id'] ).trigger( 'focus' );
 					return false;
 				});
 			});
@@ -947,8 +947,12 @@
 		},
 
 		addCustomLink : function( processMethod ) {
-			var url = $('#custom-menu-item-url').val().trim(),
+			var url = $('#custom-menu-item-url').val().toString(),
 				label = $('#custom-menu-item-name').val();
+
+			if ( '' !== url ) {
+				url = url.trim();
+			}
 
 			processMethod = processMethod || api.addMenuItemToBottom;
 
@@ -999,7 +1003,7 @@
 			$.post( ajaxurl, params, function(menuMarkup) {
 				var ins = $('#menu-instructions');
 
-				menuMarkup = $.trim( menuMarkup ); // Trim leading whitespaces.
+				menuMarkup = menuMarkup.toString().trim(); // Trim leading whitespaces.
 				processMethod(menuMarkup, params);
 
 				// Make it stand out a bit more visually, by adding a fadeIn.
@@ -1083,7 +1087,7 @@
 					target.parent().addClass('tabs');
 
 					// Select the search bar.
-					$('.quick-search', wrapper).focus();
+					$('.quick-search', wrapper).trigger( 'focus' );
 
 					// Hide controls in the search tab if no items found.
 					if ( ! wrapper.find( '.tabs-panel-active .menu-item-title' ).length ) {
