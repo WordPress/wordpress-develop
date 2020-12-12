@@ -37,6 +37,7 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$this->user = clone self::$_user;
 		wp_set_current_user( self::$user_id );
+		update_site_option( 'using_application_passwords', 1 );
 	}
 
 	public function tearDown() {
@@ -603,5 +604,15 @@ class Tests_Auth extends WP_UnitTestCase {
 		$user = wp_authenticate_application_password( null, self::$_user->user_email, WP_Application_Passwords::chunk_password( $password ) );
 		$this->assertInstanceOf( WP_User::class, $user );
 		$this->assertSame( self::$user_id, $user->ID );
+	}
+
+	/**
+	 * @ticket 51939
+	 */
+	public function test_authenticate_application_password_returns_null_if_not_in_use() {
+		delete_site_option( 'using_application_passwords' );
+
+		$authenticated = wp_authenticate_application_password( null, 'idonotexist', 'password' );
+		$this->assertNull( $authenticated );
 	}
 }

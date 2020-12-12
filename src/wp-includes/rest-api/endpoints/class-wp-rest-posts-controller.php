@@ -266,7 +266,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Filters the query arguments for a request.
+		 * Filters WP_Query arguments when querying users via the REST API.
+		 *
+		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_post_query`
+		 *  - `rest_page_query`
+		 *  - `rest_attachment_query`
 		 *
 		 * Enables adding extra arguments or setting defaults for a post collection request.
 		 *
@@ -274,8 +282,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_query/
 		 *
-		 * @param array           $args    Key value array of query var to query value.
-		 * @param WP_REST_Request $request The request used.
+		 * @param array           $args    Array of arguments to be passed to WP_Query.
+		 * @param WP_REST_Request $request The REST API request.
 		 */
 		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
 		$query_args = $this->prepare_items_query( $args, $request );
@@ -677,7 +685,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, true );
 
-		wp_after_insert_post( $post, false );
+		wp_after_insert_post( $post, false, null );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
@@ -753,7 +761,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $valid_check;
 		}
 
-		$post = $this->prepare_item_for_database( $request );
+		$post_before = get_post( $request['id'] );
+		$post        = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
@@ -830,7 +839,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
 
-		wp_after_insert_post( $post, true );
+		wp_after_insert_post( $post, true, $post_before );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 

@@ -1393,7 +1393,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *         @type bool   $feeds      Whether the feed permastruct should be built for this post type.
  *                                  Default is value of $has_archive.
  *         @type bool   $pages      Whether the permastruct should provide for pagination. Default true.
- *         @type const  $ep_mask    Endpoint mask to assign. If not specified and permalink_epmask is set,
+ *         @type int    $ep_mask    Endpoint mask to assign. If not specified and permalink_epmask is set,
  *                                  inherits from $permalink_epmask. If not specified and permalink_epmask
  *                                  is not set, defaults to EP_PERMALINK.
  *     }
@@ -2334,8 +2334,8 @@ function is_sticky( $post_id = 0 ) {
  *
  * @param object|WP_Post|array $post    The post object or array
  * @param string               $context Optional. How to sanitize post fields.
- *                                      Accepts 'raw', 'edit', 'db', or 'display'.
- *                                      Default 'display'.
+ *                                      Accepts 'raw', 'edit', 'db', 'display',
+ *                                      'attribute', or 'js'. Default 'display'.
  * @return object|WP_Post|array The now sanitized post object or array (will be the
  *                              same type as `$post`).
  */
@@ -2507,9 +2507,9 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 *
 			 * @param mixed  $value   Value of the prefixed post field.
 			 * @param int    $post_id Post ID.
-			 * @param string $context Context for how to sanitize the field. Possible
-			 *                        values include 'edit', 'display',
-			 *                        'attribute' and 'js'.
+			 * @param string $context Context for how to sanitize the field.
+			 *                        Accepts 'raw', 'edit', 'db', 'display',
+			 *                        'attribute', or 'js'. Default 'display'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
 		} else {
@@ -3716,6 +3716,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$previous_status = get_post_field( 'post_status', $post_ID );
 	} else {
 		$previous_status = 'new';
+		$post_before     = null;
 	}
 
 	$post_type = empty( $postarr['post_type'] ) ? 'post' : $postarr['post_type'];
@@ -4318,7 +4319,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
 	if ( $fire_after_hooks ) {
-		wp_after_insert_post( $post, $update );
+		wp_after_insert_post( $post, $update, $post_before );
 	}
 
 	return $post_ID;
@@ -4431,6 +4432,8 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
+	$post_before = get_post( $post->ID );
+
 	// Ensure at least one term is applied for taxonomies with a default term.
 	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
 		// Skip taxonomy if no default term is set.
@@ -4481,7 +4484,7 @@ function wp_publish_post( $post ) {
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'wp_insert_post', $post->ID, $post, true );
 
-	wp_after_insert_post( $post, true );
+	wp_after_insert_post( $post, true, $post_before );
 }
 
 /**
@@ -4936,10 +4939,12 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
  *
  * @since 5.6.0
  *
- * @param int|WP_Post $post   The post ID or object that has been saved.
- * @param bool        $update Whether this is an existing post being updated.
+ * @param int|WP_Post  $post        The post ID or object that has been saved.
+ * @param bool         $update      Whether this is an existing post being updated.
+ * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+ *                                  to the update for updated posts.
  */
-function wp_after_insert_post( $post, $update ) {
+function wp_after_insert_post( $post, $update, $post_before ) {
 	$post = get_post( $post );
 	if ( ! $post ) {
 		return;
@@ -4952,11 +4957,13 @@ function wp_after_insert_post( $post, $update ) {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated.
+	 * @param int          $post_id     Post ID.
+	 * @param WP_Post      $post        Post object.
+	 * @param bool         $update      Whether this is an existing post being updated.
+	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+	 *                                  to the update for updated posts.
 	 */
-	do_action( 'wp_after_insert_post', $post_id, $post, $update );
+	do_action( 'wp_after_insert_post', $post_id, $post, $update, $post_before );
 }
 
 //
@@ -5501,7 +5508,9 @@ function get_page_uri( $page = 0 ) {
  *     @type string|array $post_status  A comma-separated list or array of post statuses to include.
  *                                      Default 'publish'.
  * }
- * @return array|false Array of pages matching defaults or `$args`.
+ * @return WP_Post[]|int[]|false Array of pages (or hierarchical post type items). Boolean false if the
+ *                               specified post type is not hierarchical or the specified status is not
+ *                               supported by the post type.
  */
 function get_pages( $args = array() ) {
 	global $wpdb;
