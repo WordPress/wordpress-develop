@@ -1318,7 +1318,7 @@ $document.ready( function() {
 		 *
 		 * @return {void}
 		 */
-		pageInput.closest('form').submit( function() {
+		pageInput.closest('form').on( 'submit', function() {
 			/*
 			 * action = bulk action dropdown at the top of the table
 			 * action2 = bulk action dropdow at the bottom of the table
