@@ -120,16 +120,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup-wordpress
     strategy:
-      include:
-      - type: 'Single site'
-        ruleset: 'phpunit.xml.dist'
-        report_name: 'wp-code-coverage-single'
-      - type: 'Multisite'
-        ruleset: 'tests/phpunit/multisite.xml'
-        report_name: 'wp-code-coverage-multisite'
-      - type: 'REST API'
-        ruleset: 'phpunit.xml.dist'
-        report_name: 'wp-code-coverage-rest-api'
+      matrix:
+        include:
+        - type: 'Single site'
+          ruleset: 'phpunit.xml.dist'
+          report_name: 'wp-code-coverage-single'
+        - type: 'Multisite'
+          ruleset: 'tests/phpunit/multisite.xml'
+          report_name: 'wp-code-coverage-multisite'
+        - type: 'REST API'
+          ruleset: 'phpunit.xml.dist'
+          report_name: 'wp-code-coverage-rest-api'
 
     steps:
       - name: Configure environment variables
