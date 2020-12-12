@@ -141,7 +141,7 @@ jobs:
       - name: Create ZIP artifact of multisite results
         uses: thedoctor0/zip-release@0.4.1
         with:
-          filename: wp-code-coverage-ms-${{ github.sha }}.zip
+          filename: wp-code-coverage-multisite-${{ github.sha }}.zip
           path: wp-code-coverage-multisite
 
       - name: Upload multisite coverage report
