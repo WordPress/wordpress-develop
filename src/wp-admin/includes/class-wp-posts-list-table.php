@@ -1018,13 +1018,15 @@ class WP_Posts_List_Table extends WP_List_Table {
 		}
 
 		$pad = str_repeat( '&#8212; ', $this->current_level );
-		echo '<strong>';
 
 		$title = _draft_or_post_title();
 
 		if ( $can_edit_post && 'trash' !== $post->post_status ) {
+			$column       = apply_filters( 'list_table_primary_column', WP_List_Table::get_default_primary_column_name(), $this->screen->id );
+			$bolded_class = ( 'title' === $column ) ? 'bolded-class' : false;
 			printf(
-				'<a class="row-title" href="%s" aria-label="%s">%s%s</a>',
+				'<a class="row-title%s" href="%s" aria-label="%s">%s%s</a>',
+				$bolded_class,
 				get_edit_post_link( $post->ID ),
 				/* translators: %s: Post title. */
 				esc_attr( sprintf( __( '&#8220;%s&#8221; (Edit)' ), $title ) ),
@@ -1044,7 +1046,6 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$post_type_object = get_post_type_object( $post->post_type );
 			echo ' | ' . $post_type_object->labels->parent_item_colon . ' ' . esc_html( $parent_name );
 		}
-		echo "</strong>\n";
 
 		if ( 'excerpt' === $mode
 			&& ! is_post_type_hierarchical( $this->screen->post_type )
@@ -1202,9 +1203,10 @@ class WP_Posts_List_Table extends WP_List_Table {
 						$posts_in_term_qv['term']     = $t->slug;
 					}
 
-					$label = esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, $taxonomy, 'display' ) );
-
-					$term_links[] = $this->get_edit_link( $posts_in_term_qv, $label );
+					$label          = esc_html( sanitize_term_field( 'name', $t->name, $t->term_id, $taxonomy, 'display' ) );
+					$default_column = WP_List_Table::get_default_primary_column_name();
+					$bolded_class   = ( $column_name === $default_column ) ? 'bolded-class' : false;
+					$term_links[]   = $this->get_edit_link( $posts_in_term_qv, $label, $bolded_class );
 				}
 
 				/**
