@@ -124,7 +124,7 @@ jobs:
       - type: 'Single site'
         ruleset: 'phpunit.xml.dist'
         report_name: 'wp-code-coverage-single'
-      - type: 'Multisite'
+      - type: 'Multisite
         ruleset: 'tests/phpunit/multisite.xml'
         report_name: 'wp-code-coverage-multisite'
       - type: 'REST API'
