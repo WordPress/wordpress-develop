@@ -1342,10 +1342,10 @@
 				template = wp.template( 'customize-' + container.containerType + '-default' );
 			}
 			if ( template && container.container ) {
-				return $.trim( template( _.extend(
+				return template( _.extend(
 					{ id: container.id },
 					container.params
-				) ) );
+				) ).toString().trim();
 			}
 
 			return '<li></li>';
@@ -1645,7 +1645,7 @@
 					backBtn.attr( 'tabindex', '-1' );
 					sectionTitle.attr( 'tabindex', '0' );
 
-					sectionTitle.focus();
+					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
 
 					if ( args.completeCallback ) {
@@ -2734,7 +2734,7 @@
 					backBtn.attr( 'tabindex', '-1' );
 					sectionTitle.attr( 'tabindex', '0' );
 
-					sectionTitle.focus();
+					sectionTitle.trigger( 'focus' );
 					content.css( 'top', '' );
 
 					if ( args.completeCallback ) {
@@ -4485,7 +4485,7 @@
 				y = control.settings.y.get();
 				inputValue = String( x ) + ' ' + String( y );
 				radioInput = control.container.find( 'input[name="background-position"][value="' + inputValue + '"]' );
-				radioInput.click();
+				radioInput.trigger( 'click' );
 			} );
 			control.settings.x.bind( updateRadios );
 			control.settings.y.bind( updateRadios );
@@ -8752,7 +8752,7 @@
 		if ( title.length ) {
 			api( 'blogname', function( setting ) {
 				var updateTitle = function() {
-					title.text( $.trim( setting() ) || api.l10n.untitledBlogName );
+					title.text( setting().toString().trim() || api.l10n.untitledBlogName );
 				};
 				setting.bind( updateTitle );
 				updateTitle();
