@@ -3421,7 +3421,7 @@
 	function displayNavMenuName( name ) {
 		name = name || '';
 		name = wp.sanitize.stripTagsAndEncodeText( name ); // Remove any potential tags from name.
-		name = $.trim( name );
+		name = name.toString().trim();
 		return name || api.Menus.data.l10n.unnamed;
 	}
 
