@@ -26,7 +26,7 @@ jobs:
   # - Checks out the repository.
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
@@ -35,6 +35,7 @@ jobs:
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
@@ -65,7 +66,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
@@ -104,7 +105,7 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Downloads the built WordPress artifact from the previous job.
   # - Unzips the artifact.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `nvmrc` file to support older branches)
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Configures caching for Composer.
@@ -118,7 +119,9 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests.
-  # - Reports test results to the Distributed Hosting Tests.
+  # - Checks out the WordPress Test reporter repository.
+  # - Reconnect the directory to the Git repository.
+  # - Submit the test results to the WordPress.org host test results.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
     name: ${{ matrix.php }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
@@ -160,7 +163,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Use cached Node modules
         uses: actions/cache@v2
@@ -270,11 +273,23 @@ jobs:
         if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
         run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
 
-      - name: WordPress Test Reporter
-        if: ${{ matrix.report }}
+      - name: Checkout the WordPress Test Reporter
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
         uses: actions/checkout@v2
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
-        # TODO: Configure hidden keys to successfully report test results.
-        # run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+      - name: Set up the Git repository
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        run: |
+          git init
+          git remote add origin https://github.com/WordPress/wordpress-develop.git
+          git fetch
+          git reset origin/master
+
+      - name: Submit test results to the WordPress.org host test results
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        env:
+          WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
+        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
