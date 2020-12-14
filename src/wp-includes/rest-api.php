@@ -81,6 +81,10 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		'args'     => array(),
 	);
 
+	if ( count( array_filter( $args, 'is_array' ) ) !== count( $args ) ) {
+		_doing_it_wrong( __FUNCTION__, __( 'REST API $args should be an array of arrays.' ), '5.6.1' );
+	}
+
 	foreach ( $args as $key => &$arg_group ) {
 		if ( ! is_numeric( $key ) ) {
 			// Route option, skip here.
