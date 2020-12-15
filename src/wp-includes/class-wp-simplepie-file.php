@@ -10,6 +10,9 @@
 /**
  * Core class for fetching remote files and reading local files with SimplePie.
  *
+ * This uses Core's HTTP API to make requests, which allows plugins the ability
+ * to hook into the process.
+ *
  * @since 2.8.0
  *
  * @see SimplePie_File
@@ -21,6 +24,8 @@ class WP_SimplePie_File extends SimplePie_File {
 	 *
 	 * @since 2.8.0
 	 * @since 3.2.0 Updated to use a PHP5 constructor.
+	 * @since 5.6.1 Multiple headers are concatenated into a comma-separated string, rather than remaining
+	 *              an array.
 	 *
 	 * @param string       $url             Remote file URL.
 	 * @param int          $timeout         Optional. How long the connection should stay open in seconds.
@@ -60,16 +65,32 @@ class WP_SimplePie_File extends SimplePie_File {
 			if ( is_wp_error( $res ) ) {
 				$this->error   = 'WP HTTP Error: ' . $res->get_error_message();
 				$this->success = false;
+
 			} else {
-				$this->headers     = wp_remote_retrieve_headers( $res );
-				// Merge multiple headers of the same name to a single one, separated by comma.
+				$this->headers = wp_remote_retrieve_headers( $res );
+
+				/*
+				 * SimplePie expects multiple headers to be stored as a comma-separated string, but
+				 * `wp_remote_retrieve_headers()` returns them as an array, so they need to be
+				 * converted.
+				 *
+				 * The only exception to that is the `content-type` header, which should ignore any
+				 * previous values and only use the last one.
+				 *
+				 * @see SimplePie_HTTP_Parser::new_line().
+				 */
 				foreach ( $this->headers as $name => $value ) {
-					if ( is_array( $value ) && $name === 'content-type' ) { // We should only use the last Content-Type header.
+					if ( ! is_array( $value ) ) {
+						continue;
+					}
+
+					if ( 'content-type' === $name ) {
 						$this->headers[ $name ] = array_pop( $value );
-					} else if( is_array( $value ) ) {
+					} else {
 						$this->headers[ $name ] = join( ', ', $value );
 					}
 				}
+
 				$this->body        = wp_remote_retrieve_body( $res );
 				$this->status_code = wp_remote_retrieve_response_code( $res );
 			}
