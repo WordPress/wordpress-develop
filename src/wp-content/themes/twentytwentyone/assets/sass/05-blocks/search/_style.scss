@@ -56,41 +56,16 @@
 			}
 		}
 
-		// Switch to outline style for dark mode for better a11y.
-		.is-dark-theme & {
-	
-			&:not(:hover):not(:active) {
-				background-color: transparent;
-				border-color: currentColor;
-				color: var(--global--color-primary);
-					
-				// Nested
-				.has-background & {
-					color: var(--local-color-primary);
-				}
+		&:hover,
+		&:active {
+
+			.has-background & {
+				background-color: var(--local--color-background, var(--global--color-background)) !important;
+				color: var(--local--color-primary, var(--global--color-primary)) !important;
 			}
-			
-			&:hover,
-			&:active {
-	
-				border-color: transparent;
-				
-				// Reverse color relationship for dark mode 
-				// and dark background palette colors
-				&,
-				.has-background &,
-				.is-dark-theme .has-background[class*="gray"]:not([class*="light"]) &,
-				.is-dark-theme .has-background[class*="black"] & {
-					background: var(--global--color-primary);
-					color: var(--global--color-background);
-				}
-				
-				.has-background[class*="gray"]:not([class*="light"]) &,
-				.has-background[class*="black"] &,
-				.is-dark-theme .has-background & {
-					background: var(--global--color-background);
-					color: var(--global--color-primary);
-				}
+
+			.has-text-color & {
+				color: var(--local--color-primary, var(--global--color-primary)) !important;
 			}
 		}
 	}
@@ -101,12 +76,13 @@
 			background-color: var(--global--color-white);
 			border: var(--form--border-width) solid var(--form--border-color);
 			border-radius: var(--form--border-radius);
+			padding: var(--form--border-width);
 
 			.wp-block-search__input {
 				margin-left: 0;
 				margin-right: 0;
 				padding-left: var(--form--spacing-unit);
-				
+
 				// Add outline for focus styles to override default
 				&:focus {
 					color: var(--form--color-text);
@@ -117,12 +93,12 @@
 
 			button.wp-block-search__button {
 				padding: var(--button--padding-vertical) var(--button--padding-horizontal);
-				
+
 				// Search button always needs black contrast against white form background
 				&:hover {
 					color: var(--global--color-dark-gray);
 				}
-				
+
 				.is-dark-theme & {
 					color: var(--global--color-dark-gray);
 
