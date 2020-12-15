@@ -57,20 +57,21 @@
 		// Hover Button color should match parent element foreground color 
 		.wp-block-button__link:hover,
 		.wp-block-button__link:active {
-			background-color: transparent !important;
-			border-color: currentColor !important;
-			color: inherit !important;
+			border-color: currentColor;
 
-			// Must use `!important` here to override Block editor style attribute CSS
-			&[style~="background-color:"] {
-				background-color: transparent !important;
+			// Allow custom text colors to persist on hover
+			&[style^="background-color"],
+			&[style*="background-color"][style*="color"] {
+				background-color: transparent;
 			}
 
-			&[style~="color:"] {
-				color: inherit !important;
+			// Allow custom text colors to persist on hover
+			&[style^="color"],
+			&[style*="background-color"][style*="color"] {
+				color: inherit;
 			}
 		}
-
+		
 		// Remove :focus styles in the editor
 		.wp-block-button__link:focus {
 			outline-offset: inherit;
@@ -113,23 +114,70 @@
 			}
 		}
 
+		// Hover Button color should match default button style 
 		.wp-block-button__link:hover,
 		.wp-block-button__link:active {
 
+			background-color: var(--global--color-primary);
 			border-color: transparent !important;
+			color: var(--global--color-background);
 
-			// Reverse color relationship for dark mode
-			// and dark background palette colors
-			background-color: var(--global--color-primary) !important;
-			color: var(--global--color-background) !important;
-
-			.has-background & {
-				background-color: var(--local--color-primary, var(--global--color-primary)) !important;
-				color: var(--local--color-background, var(--global--color-background)) !important;
+			// Allow custom text colors to persist on hover
+			&[class*="-background-color"] {
+				background-color: var(--global--color-primary) !important;
 			}
 
-			.has-text-color & {
-				color: var(--local--color-background, var(--global--color-background)) !important;
+			// Allow custom text colors to persist on hover
+			// Gutenberg needs a more exclusive class text colors
+			// - ie: has-text-color, has-blue-color
+			// - ^ this cannot be selected independently to avoid the style attribute
+			&[class*="black-text"],
+			&[class*="gray-text"],
+			&[class*="dark-gray-text"],
+			&[class*="green-text"],
+			&[class*="blue-text"],
+			&[class*="purple-text"],
+			&[class*="red-text"],
+			&[class*="orange-text"],
+			&[class*="yellow-text"],
+			&[class*="white-text"] {
+				color: var(--global--color-background) !important;
+			}
+
+			.has-background & {
+				// Allow custom text colors to persist on hover
+				&[class*="-background-color"] {
+					background-color: var(--local--color-primary, var(--global--color-primary)) !important;
+				}
+	
+				&[class*="black-text"],
+				&[class*="gray-text"],
+				&[class*="dark-gray-text"],
+				&[class*="green-text"],
+				&[class*="blue-text"],
+				&[class*="purple-text"],
+				&[class*="red-text"],
+				&[class*="orange-text"],
+				&[class*="yellow-text"],
+				&[class*="white-text"] {
+					color: var(--local--color-background, var(--global--color-background)) !important;
+				}
+			}
+
+			.has-text-color & {	
+				// Allow custom text colors to persist on hover
+				&[class*="black-text"],
+				&[class*="gray-text"],
+				&[class*="dark-gray-text"],
+				&[class*="green-text"],
+				&[class*="blue-text"],
+				&[class*="purple-text"],
+				&[class*="red-text"],
+				&[class*="orange-text"],
+				&[class*="yellow-text"],
+				&[class*="white-text"] {
+					color: var(--local--color-background, var(--global--color-background)) !important;
+				}
 			}
 		}
 

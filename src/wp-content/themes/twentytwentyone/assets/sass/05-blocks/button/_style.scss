@@ -49,9 +49,19 @@ input[type="reset"],
 		// Hover Button color should match parent element foreground color 
 		.wp-block-button__link:hover,
 		.wp-block-button__link:active {
-			background-color: transparent !important;
-			border-color: currentColor !important;
-			color: inherit !important;
+			border-color: currentColor;
+
+			// Allow custom text colors to persist on hover
+			&[style^="background-color"],
+			&[style*="background-color"][style*="color"] {
+				background-color: transparent;
+			}
+
+			// Allow custom text colors to persist on hover
+			&[style^="color"],
+			&[style*="background-color"][style*="color"] {
+				color: inherit;
+			}
 		}
 	}
 
@@ -95,18 +105,31 @@ input[type="reset"],
 
 			border-color: transparent !important;
 
-			// Reverse color relationship for dark mode
-			// and dark background palette colors
-			background-color: var(--global--color-primary) !important;
-			color: var(--global--color-background) !important;
-
-			.has-background & {
-				background-color: var(--local--color-primary, var(--global--color-primary)) !important;
-				color: var(--local--color-background, var(--global--color-background)) !important;
+			// Allow custom text colors to persist on hover
+			&:not([style*="background-color"]) {
+				background-color: var(--global--color-primary) !important;
 			}
 
-			.has-text-color & {
-				color: var(--local--color-background, var(--global--color-background)) !important;
+			&:not([style*="color"]) {
+				color: var(--global--color-background) !important;
+			}
+
+			.has-background & {
+				// Allow custom text colors to persist on hover
+				&:not([style*="background-color"]) {
+					background-color: var(--local--color-primary, var(--global--color-primary)) !important;
+				}
+	
+				&:not([style*="color"]) {
+					color: var(--local--color-background, var(--global--color-background)) !important;
+				}
+			}
+
+			.has-text-color & {	
+				// Allow custom text colors to persist on hover
+				&:not([style*="color"]) {
+					color: var(--local--color-background, var(--global--color-background)) !important;
+				}
 			}
 		}
 	}

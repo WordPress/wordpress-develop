@@ -2546,9 +2546,21 @@ input[type=reset]:disabled {
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover,
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active {
-	background-color: transparent !important;
-	border-color: currentColor !important;
-	color: inherit !important;
+	border-color: currentColor;
+}
+
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style^=background-color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style*=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style^=background-color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style*=color] {
+	background-color: transparent;
+}
+
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style^=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style*=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style^=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style*=color] {
+	color: inherit;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color),
@@ -2573,33 +2585,48 @@ input[type=reset]:disabled {
 	background-color: transparent;
 }
 
-.wp-block-button.is-style-outline .wp-block-button__link:hover {
-	border-color: transparent !important;
-	background-color: #28303d !important;
-	color: #d1e4dd !important;
-}
-
+.wp-block-button.is-style-outline .wp-block-button__link:hover,
 .wp-block-button.is-style-outline .wp-block-button__link:active {
 	border-color: transparent !important;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link:hover:not([style*=background-color]) {
 	background-color: #28303d !important;
-	color: #d1e4dd !important;
 }
 
-.has-background .wp-block-button.is-style-outline .wp-block-button__link:hover {
+.wp-block-button.is-style-outline .wp-block-button__link:active:not([style*=background-color]) {
 	background-color: #28303d !important;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link:hover:not([style*=color]) {
 	color: #d1e4dd !important;
 }
 
-.has-background .wp-block-button.is-style-outline .wp-block-button__link:active {
+.wp-block-button.is-style-outline .wp-block-button__link:active:not([style*=color]) {
+	color: #d1e4dd !important;
+}
+
+.has-background .wp-block-button.is-style-outline .wp-block-button__link:hover:not([style*=background-color]) {
 	background-color: #28303d !important;
+}
+
+.has-background .wp-block-button.is-style-outline .wp-block-button__link:active:not([style*=background-color]) {
+	background-color: #28303d !important;
+}
+
+.has-background .wp-block-button.is-style-outline .wp-block-button__link:hover:not([style*=color]) {
 	color: #d1e4dd !important;
 }
 
-.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:hover {
+.has-background .wp-block-button.is-style-outline .wp-block-button__link:active:not([style*=color]) {
 	color: #d1e4dd !important;
 }
 
-.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:active {
+.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:hover:not([style*=color]) {
+	color: #d1e4dd !important;
+}
+
+.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:active:not([style*=color]) {
 	color: #d1e4dd !important;
 }
 
@@ -7670,18 +7697,6 @@ h1.page-title {
 	background-color: #fff;
 }
 
-.has-background:not(.has-text-color).has-black-background-color[class] {
-	color: #d1e4dd;
-}
-
-.has-background:not(.has-text-color).has-gray-background-color[class] {
-	color: #d1e4dd;
-}
-
-.has-background:not(.has-text-color).has-dark-gray-background-color[class] {
-	color: #d1e4dd;
-}
-
 .has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
@@ -7931,34 +7946,6 @@ h1.page-title {
 }
 
 .has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-green-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-blue-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-purple-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-red-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-orange-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-yellow-background-color[class] {
-	color: #28303d;
-}
-
-.has-background:not(.has-text-color).has-white-background-color[class] {
 	color: #28303d;
 }
 

@@ -218,7 +218,6 @@
 			}
 			color: var(--local--color-primary, var(--global--color-primary));
 		}
-		color: var(--global--color-background);
 	}
 
 	&.has-green-background-color[class],
@@ -237,7 +236,6 @@
 			}
 			color: var(--local--color-primary, var(--global--color-primary));
 		}
-		color: var(--global--color-primary);
 	}
 }
 
