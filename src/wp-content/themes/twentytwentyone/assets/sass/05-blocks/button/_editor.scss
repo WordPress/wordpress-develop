@@ -66,9 +66,17 @@
 			}
 
 			// Allow custom text colors to persist on hover
-			&[style^="color"],
-			&[style*="background-color"][style*="color"] {
-				color: inherit;
+			&[class*="black-color"],
+			&[class*="gray-color"],
+			&[class*="dark-gray-color"],
+			&[class*="green-color"],
+			&[class*="blue-color"],
+			&[class*="purple-color"],
+			&[class*="red-color"],
+			&[class*="orange-color"],
+			&[class*="yellow-color"],
+			&[class*="white-color"] {
+				color: inherit !important;
 			}
 		}
 		
@@ -131,16 +139,16 @@
 			// Gutenberg needs a more exclusive class text colors
 			// - ie: has-text-color, has-blue-color
 			// - ^ this cannot be selected independently to avoid the style attribute
-			&[class*="black-text"],
-			&[class*="gray-text"],
-			&[class*="dark-gray-text"],
-			&[class*="green-text"],
-			&[class*="blue-text"],
-			&[class*="purple-text"],
-			&[class*="red-text"],
-			&[class*="orange-text"],
-			&[class*="yellow-text"],
-			&[class*="white-text"] {
+			&[class*="black-color"],
+			&[class*="gray-color"],
+			&[class*="dark-gray-color"],
+			&[class*="green-color"],
+			&[class*="blue-color"],
+			&[class*="purple-color"],
+			&[class*="red-color"],
+			&[class*="orange-color"],
+			&[class*="yellow-color"],
+			&[class*="white-color"] {
 				color: var(--global--color-background) !important;
 			}
 
@@ -150,32 +158,32 @@
 					background-color: var(--local--color-primary, var(--global--color-primary)) !important;
 				}
 	
-				&[class*="black-text"],
-				&[class*="gray-text"],
-				&[class*="dark-gray-text"],
-				&[class*="green-text"],
-				&[class*="blue-text"],
-				&[class*="purple-text"],
-				&[class*="red-text"],
-				&[class*="orange-text"],
-				&[class*="yellow-text"],
-				&[class*="white-text"] {
+				&[class*="black-color"],
+				&[class*="gray-color"],
+				&[class*="dark-gray-color"],
+				&[class*="green-color"],
+				&[class*="blue-color"],
+				&[class*="purple-color"],
+				&[class*="red-color"],
+				&[class*="orange-color"],
+				&[class*="yellow-color"],
+				&[class*="white-color"] {
 					color: var(--local--color-background, var(--global--color-background)) !important;
 				}
 			}
 
 			.has-text-color & {	
 				// Allow custom text colors to persist on hover
-				&[class*="black-text"],
-				&[class*="gray-text"],
-				&[class*="dark-gray-text"],
-				&[class*="green-text"],
-				&[class*="blue-text"],
-				&[class*="purple-text"],
-				&[class*="red-text"],
-				&[class*="orange-text"],
-				&[class*="yellow-text"],
-				&[class*="white-text"] {
+				&[class*="black-color"],
+				&[class*="gray-color"],
+				&[class*="dark-gray-color"],
+				&[class*="green-color"],
+				&[class*="blue-color"],
+				&[class*="purple-color"],
+				&[class*="red-color"],
+				&[class*="orange-color"],
+				&[class*="yellow-color"],
+				&[class*="white-color"] {
 					color: var(--local--color-background, var(--global--color-background)) !important;
 				}
 			}

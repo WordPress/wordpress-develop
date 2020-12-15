@@ -53,13 +53,13 @@ input[type="reset"],
 
 			// Allow custom text colors to persist on hover
 			&[style^="background-color"],
-			&[style*="background-color"][style*="color"] {
+			&[style*="background-color"][style^="color"] {
 				background-color: transparent;
 			}
 
 			// Allow custom text colors to persist on hover
 			&[style^="color"],
-			&[style*="background-color"][style*="color"] {
+			&[style*="background-color"][style^="color"] {
 				color: inherit;
 			}
 		}

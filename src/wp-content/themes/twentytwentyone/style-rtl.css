@@ -1834,16 +1834,16 @@ input[type=reset]:disabled,
 }
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style^=background-color],
-.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style*=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style^=color],
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style^=background-color],
-.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style*=color] {
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style^=color] {
 	background-color: transparent;
 }
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style^=color],
-.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style*=color],
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:hover[style*=background-color][style^=color],
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style^=color],
-.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style*=color] {
+.wp-block-button:not(.is-style-outline) .wp-block-button__link:active[style*=background-color][style^=color] {
 	color: inherit;
 }
 
