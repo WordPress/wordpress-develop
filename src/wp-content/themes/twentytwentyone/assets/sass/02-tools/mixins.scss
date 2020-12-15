@@ -31,18 +31,18 @@
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
-	
+
 	/* Standard Button Color Relationship Logic */
 	&:not(:hover):not(:active)  {
-		
+
 			// Text colors
 			&:not(.has-text-color) {
 				color: var(--global--color-background);
-				
+
 				// Nested
 				.has-background & {
-					color: var(--local--color-background);
-				
+					color: var(--local--color-background, var(--global--color-primary));
+
 					&.has-background {
 						color: var(--global--color-primary);
 					}
@@ -52,14 +52,14 @@
 			// Background-colors
 			&:not(.has-background) {
 				background-color: var(--global--color-primary);
-				
+
 				// Nested
 				.has-background & {
-					background-color: var(--local-color-primary);
+					background-color: var(--local--color-primary, var(--global--color-primary));
 				}
 			}
 	}
-	
+
 	/* Hover Button color should match parent element foreground color */
 	&:hover,
 	&:active {
@@ -73,7 +73,7 @@
 		outline-offset: -6px;
 		outline: 2px dotted currentColor;
 	}
-	
+
 	/* Disabled Button colors */
 	&:disabled {
 		background-color: var(--global--color-white-50);
