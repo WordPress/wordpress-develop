@@ -1307,7 +1307,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *
  *     @type string       $label                 Name of the post type shown in the menu. Usually plural.
  *                                               Default is value of $labels['name'].
- *     @type array        $labels                An array of labels for this post type. If not set, post
+ *     @type string[]     $labels                An array of labels for this post type. If not set, post
  *                                               labels are inherited for non-hierarchical types and page
  *                                               labels for hierarchical ones. See get_post_type_labels() for a full
  *                                               list of supported labels.
@@ -1356,7 +1356,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                               May be passed as an array to allow for alternative plurals when using
  *                                               this argument as a base to construct the capabilities, e.g.
  *                                               array('story', 'stories'). Default 'post'.
- *     @type array        $capabilities          Array of capabilities for this post type. $capability_type is used
+ *     @type string[]     $capabilities          Array of capabilities for this post type. $capability_type is used
  *                                               as a base to construct capabilities by default.
  *                                               See get_post_type_capabilities().
  *     @type bool         $map_meta_cap          Whether to use the internal default meta capability handling.
@@ -1375,7 +1375,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type callable     $register_meta_box_cb  Provide a callback function that sets up the meta boxes for the
  *                                               edit form. Do remove_meta_box() and add_meta_box() calls in the
  *                                               callback. Default null.
- *     @type array        $taxonomies            An array of taxonomy identifiers that will be registered for the
+ *     @type string[]     $taxonomies            An array of taxonomy identifiers that will be registered for the
  *                                               post type. Taxonomies can be registered later with register_taxonomy()
  *                                               or register_taxonomy_for_object_type().
  *                                               Default empty array.
@@ -1393,7 +1393,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *         @type bool   $feeds      Whether the feed permastruct should be built for this post type.
  *                                  Default is value of $has_archive.
  *         @type bool   $pages      Whether the permastruct should provide for pagination. Default true.
- *         @type const  $ep_mask    Endpoint mask to assign. If not specified and permalink_epmask is set,
+ *         @type int    $ep_mask    Endpoint mask to assign. If not specified and permalink_epmask is set,
  *                                  inherits from $permalink_epmask. If not specified and permalink_epmask
  *                                  is not set, defaults to EP_PERMALINK.
  *     }
@@ -2398,8 +2398,8 @@ function is_sticky( $post_id = 0 ) {
  *
  * @param object|WP_Post|array $post    The post object or array
  * @param string               $context Optional. How to sanitize post fields.
- *                                      Accepts 'raw', 'edit', 'db', or 'display'.
- *                                      Default 'display'.
+ *                                      Accepts 'raw', 'edit', 'db', 'display',
+ *                                      'attribute', or 'js'. Default 'display'.
  * @return object|WP_Post|array The now sanitized post object or array (will be the
  *                              same type as `$post`).
  */
@@ -2571,9 +2571,9 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 *
 			 * @param mixed  $value   Value of the prefixed post field.
 			 * @param int    $post_id Post ID.
-			 * @param string $context Context for how to sanitize the field. Possible
-			 *                        values include 'edit', 'display',
-			 *                        'attribute' and 'js'.
+			 * @param string $context Context for how to sanitize the field.
+			 *                        Accepts 'raw', 'edit', 'db', 'display',
+			 *                        'attribute', or 'js'. Default 'display'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
 		} else {
@@ -2786,8 +2786,8 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $mime_type Optional. Array or comma-separated list of
- *                                MIME patterns. Default empty.
+ * @param string|string[] $mime_type Optional. Array or comma-separated list of
+ *                                   MIME patterns. Default empty.
  * @return object An object containing the attachment counts by mime type.
  */
 function wp_count_attachments( $mime_type = '' ) {
@@ -2807,10 +2807,9 @@ function wp_count_attachments( $mime_type = '' ) {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param object $counts    An object containing the attachment counts by
-	 *                          mime type.
-	 * @param string $mime_type The mime type pattern used to filter the attachments
-	 *                          counted.
+	 * @param object          $counts    An object containing the attachment counts by
+	 *                                   mime type.
+	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
 	 */
 	return apply_filters( 'wp_count_attachments', (object) $counts, $mime_type );
 }
@@ -2928,9 +2927,9 @@ function get_post_mime_types() {
  *
  * @since 2.5.0
  *
- * @param string|array $wildcard_mime_types Mime types, e.g. audio/mpeg or image (same as image/*)
- *                                          or flash (same as *flash*).
- * @param string|array $real_mime_types     Real post mime type values.
+ * @param string|string[] $wildcard_mime_types Mime types, e.g. audio/mpeg or image (same as image/*)
+ *                                             or flash (same as *flash*).
+ * @param string|string[] $real_mime_types     Real post mime type values.
  * @return array array(wildcard=>array(real types)).
  */
 function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
@@ -2980,10 +2979,10 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
  *
  * @since 2.5.0
  *
- * @param string|array $post_mime_types List of mime types or comma separated string
- *                                      of mime types.
- * @param string       $table_alias     Optional. Specify a table alias, if needed.
- *                                      Default empty.
+ * @param string|string[] $post_mime_types List of mime types or comma separated string
+ *                                         of mime types.
+ * @param string          $table_alias     Optional. Specify a table alias, if needed.
+ *                                         Default empty.
  * @return string The SQL AND clause for mime searching.
  */
 function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
@@ -3585,11 +3584,11 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  * @since 2.8.0
  *
- * @param int          $post_id  Optional. The Post ID. Does not default to the ID of the
- *                               global $post. Default 0.
- * @param string|array $taxonomy Optional. The taxonomy slug or array of slugs for which
- *                               to retrieve terms. Default 'post_tag'.
- * @param array        $args     {
+ * @param int             $post_id  Optional. The Post ID. Does not default to the ID of the
+ *                                  global $post. Default 0.
+ * @param string|string[] $taxonomy Optional. The taxonomy slug or array of slugs for which
+ *                                  to retrieve terms. Default 'post_tag'.
+ * @param array           $args     {
  *     Optional. Term query parameters. See WP_Term_Query::__construct() for supported arguments.
  *
  *     @type string $fields Term fields to retrieve. Default 'all'.
@@ -3781,6 +3780,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		$previous_status = get_post_field( 'post_status', $post_ID );
 	} else {
 		$previous_status = 'new';
+		$post_before     = null;
 	}
 
 	$post_type = empty( $postarr['post_type'] ) ? 'post' : $postarr['post_type'];
@@ -4383,7 +4383,7 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
 
 	if ( $fire_after_hooks ) {
-		wp_after_insert_post( $post, $update );
+		wp_after_insert_post( $post, $update, $post_before );
 	}
 
 	return $post_ID;
@@ -4496,6 +4496,8 @@ function wp_publish_post( $post ) {
 		return;
 	}
 
+	$post_before = get_post( $post->ID );
+
 	// Ensure at least one term is applied for taxonomies with a default term.
 	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
 		// Skip taxonomy if no default term is set.
@@ -4546,7 +4548,7 @@ function wp_publish_post( $post ) {
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'wp_insert_post', $post->ID, $post, true );
 
-	wp_after_insert_post( $post, true );
+	wp_after_insert_post( $post, true, $post_before );
 }
 
 /**
@@ -5001,10 +5003,12 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
  *
  * @since 5.6.0
  *
- * @param int|WP_Post $post   The post ID or object that has been saved.
- * @param bool        $update Whether this is an existing post being updated.
+ * @param int|WP_Post  $post        The post ID or object that has been saved.
+ * @param bool         $update      Whether this is an existing post being updated.
+ * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+ *                                  to the update for updated posts.
  */
-function wp_after_insert_post( $post, $update ) {
+function wp_after_insert_post( $post, $update, $post_before ) {
 	$post = get_post( $post );
 	if ( ! $post ) {
 		return;
@@ -5017,11 +5021,13 @@ function wp_after_insert_post( $post, $update ) {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param int     $post_id Post ID.
-	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated.
+	 * @param int          $post_id     Post ID.
+	 * @param WP_Post      $post        Post object.
+	 * @param bool         $update      Whether this is an existing post being updated.
+	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+	 *                                  to the update for updated posts.
 	 */
-	do_action( 'wp_after_insert_post', $post_id, $post, $update );
+	do_action( 'wp_after_insert_post', $post_id, $post, $update, $post_before );
 }
 
 //
@@ -5566,7 +5572,9 @@ function get_page_uri( $page = 0 ) {
  *     @type string|array $post_status  A comma-separated list or array of post statuses to include.
  *                                      Default 'publish'.
  * }
- * @return array|false Array of pages matching defaults or `$args`.
+ * @return WP_Post[]|int[]|false Array of pages (or hierarchical post type items). Boolean false if the
+ *                               specified post type is not hierarchical or the specified status is not
+ *                               supported by the post type.
  */
 function get_pages( $args = array() ) {
 	global $wpdb;
