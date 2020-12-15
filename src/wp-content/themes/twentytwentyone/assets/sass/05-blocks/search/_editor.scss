@@ -69,6 +69,12 @@
 				color: var(--local--color-primary, var(--global--color-primary)) !important;
 			}
 		}
+
+		// Remove :focus styles in the editor
+		&:focus {
+			outline-offset: inherit;
+			outline: inherit;
+		}
 	}
 
 	&.wp-block-search__button-inside {

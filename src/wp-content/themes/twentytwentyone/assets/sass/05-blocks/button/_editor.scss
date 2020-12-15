@@ -70,6 +70,12 @@
 				color: inherit !important;
 			}
 		}
+
+		// Remove :focus styles in the editor
+		.wp-block-button__link:focus {
+			outline-offset: inherit;
+			outline: inherit;
+		}
 	}
 
 	// Outline Style.
@@ -125,6 +131,12 @@
 			.has-text-color & {
 				color: var(--local--color-background, var(--global--color-background)) !important;
 			}
+		}
+
+		// Remove :focus styles in the editor
+		.wp-block-button__link:focus {
+			outline-offset: inherit;
+			outline: inherit;
 		}
 	}
 
