@@ -1720,14 +1720,6 @@ input[type=reset],
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .site .button:not(:hover):not(:active):not(.has-text-color),
@@ -1816,11 +1808,6 @@ input[type=reset]:disabled,
 /**
  * Block Options
  */
-.wp-block-button:not(.is-style-outline) {
-
-	/* Hover Button color should match parent element foreground color */
-}
-
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
 	color: var(--global--color-background);
 }

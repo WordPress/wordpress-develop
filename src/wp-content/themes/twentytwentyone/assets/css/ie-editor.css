@@ -407,14 +407,6 @@ a:hover {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
@@ -469,11 +461,6 @@ a:hover {
 
 [data-block].wp-block-buttons .wp-block-button:last-child {
 	margin-bottom: 30px;
-}
-
-.wp-block-button:not(.is-style-outline) {
-
-	/* Hover Button color should match parent element foreground color */
 }
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
@@ -932,14 +919,6 @@ a:hover {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 	display: inline-block;
 }
 
@@ -2452,14 +2431,6 @@ pre.wp-block-preformatted {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 	box-shadow: none;
 	margin-left: 0;
 }

@@ -535,14 +535,6 @@ a:hover {
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
@@ -597,11 +589,6 @@ a:hover {
 
 [data-block].wp-block-buttons .wp-block-button:last-child {
 	margin-bottom: var(--global--spacing-vertical);
-}
-
-.wp-block-button:not(.is-style-outline) {
-
-	/* Hover Button color should match parent element foreground color */
 }
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
@@ -902,14 +889,6 @@ a:hover {
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 	display: inline-block;
 }
 
@@ -1866,14 +1845,6 @@ pre.wp-block-preformatted {
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 	box-shadow: none;
 	margin-left: 0;
 }

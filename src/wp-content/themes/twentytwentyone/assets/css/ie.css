@@ -2266,14 +2266,6 @@ a:hover {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 input[type=submit] {
@@ -2288,14 +2280,6 @@ input[type=submit] {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 input[type=reset] {
@@ -2310,14 +2294,6 @@ input[type=reset] {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .wp-block-search .wp-block-search__button {
@@ -2332,14 +2308,6 @@ input[type=reset] {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .wp-block-button .wp-block-button__link {
@@ -2354,14 +2322,6 @@ input[type=reset] {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .wp-block-file a.wp-block-file__button {
@@ -2376,14 +2336,6 @@ input[type=reset] {
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
-
-	/* Standard Button Color Relationship Logic */
-
-	/* Hover Button color should match parent element foreground color */
-
-	/* Focus Button outline color should always match the current text color */
-
-	/* Disabled Button colors */
 }
 
 .site .button:not(:hover):not(:active):not(.has-text-color) {
@@ -2572,11 +2524,6 @@ input[type=reset]:disabled {
 /**
  * Block Options
  */
-.wp-block-button:not(.is-style-outline) {
-
-	/* Hover Button color should match parent element foreground color */
-}
-
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
 	color: #d1e4dd;
 }
