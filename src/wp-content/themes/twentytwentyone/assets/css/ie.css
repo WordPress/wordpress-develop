@@ -2411,27 +2411,27 @@ input[type=reset]:not(:hover):not(:active):not(.has-text-color) {
 }
 
 .has-background .site .button:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background input[type=submit]:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background input[type=reset]:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background .wp-block-search .wp-block-search__button:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background .wp-block-button .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background .wp-block-file a.wp-block-file__button:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background .site .button:not(:hover):not(:active):not(.has-text-color).has-background {
@@ -2483,27 +2483,27 @@ input[type=reset]:not(:hover):not(:active):not(.has-background) {
 }
 
 .has-background .site .button:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .has-background input[type=submit]:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .has-background input[type=reset]:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .has-background .wp-block-search .wp-block-search__button:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .has-background .wp-block-button .wp-block-button__link:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .has-background .wp-block-file a.wp-block-file__button:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .site .button:hover,
@@ -2582,7 +2582,7 @@ input[type=reset]:disabled {
 }
 
 .has-background .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #d1e4dd;
 }
 
 .has-background .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-text-color).has-background {
@@ -2594,14 +2594,14 @@ input[type=reset]:disabled {
 }
 
 .has-background .wp-block-button:not(.is-style-outline) .wp-block-button__link:not(:hover):not(:active):not(.has-background) {
-	background-color: undefined;
+	background-color: #28303d;
 }
 
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:hover,
 .wp-block-button:not(.is-style-outline) .wp-block-button__link:active {
-	background-color: transparent;
-	border-color: currentColor;
-	color: inherit;
+	background-color: transparent !important;
+	border-color: currentColor !important;
+	color: inherit !important;
 }
 
 .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color),
@@ -2615,7 +2615,7 @@ input[type=reset]:disabled {
 }
 
 .has-background .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active):not(.has-text-color) {
-	color: undefined;
+	color: #28303d;
 }
 
 .has-background .wp-block-button.is-style-outline .wp-block-button__link:not(:hover):not(:active).has-background:not(.has-text-color) {
@@ -2626,79 +2626,34 @@ input[type=reset]:disabled {
 	background-color: transparent;
 }
 
-.wp-block-button.is-style-outline .wp-block-button__link:hover,
-.wp-block-button.is-style-outline .wp-block-button__link:active {
-	border-color: transparent;
+.wp-block-button.is-style-outline .wp-block-button__link:hover {
+	border-color: transparent !important;
+	background-color: #28303d !important;
+	color: #d1e4dd !important;
 }
 
-.wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #28303d;
-	color: #d1e4dd;
+.wp-block-button.is-style-outline .wp-block-button__link:active {
+	border-color: transparent !important;
+	background-color: #28303d !important;
+	color: #d1e4dd !important;
 }
 
 .has-background .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=gray]:not([class*=light]) .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=black] .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #28303d;
-	color: #d1e4dd;
+	background-color: #28303d !important;
+	color: #d1e4dd !important;
 }
 
 .has-background .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #28303d;
-	color: #d1e4dd;
+	background-color: #28303d !important;
+	color: #d1e4dd !important;
 }
 
-.is-dark-theme .has-background[class*=gray]:not([class*=light]) .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #28303d;
-	color: #d1e4dd;
+.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:hover {
+	color: #d1e4dd !important;
 }
 
-.is-dark-theme .has-background[class*=black] .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.has-background[class*=gray]:not([class*=light]) .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=black] .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.is-dark-theme .has-background .wp-block-button.is-style-outline .wp-block-button__link:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=gray]:not([class*=light]) .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=black] .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.is-dark-theme .has-background .wp-block-button.is-style-outline .wp-block-button__link:active {
-	background: #d1e4dd;
-	color: #28303d;
+.has-text-color .wp-block-button.is-style-outline .wp-block-button__link:active {
+	color: #d1e4dd !important;
 }
 
 .wp-block-button .is-style-squared .wp-block-button__link {
@@ -4730,95 +4685,29 @@ pre.wp-block-preformatted {
 	fill: currentColor;
 }
 
-.is-dark-theme .wp-block-search button.wp-block-search__button:not(:hover):not(:active) {
-	background-color: transparent;
-	border-color: currentColor;
-	color: #28303d;
+.has-background .wp-block-search button.wp-block-search__button:hover {
+	background-color: #d1e4dd !important;
+	color: #28303d !important;
 }
 
-.has-background .is-dark-theme .wp-block-search button.wp-block-search__button:not(:hover):not(:active) {
-	color: undefined;
+.has-background .wp-block-search button.wp-block-search__button:active {
+	background-color: #d1e4dd !important;
+	color: #28303d !important;
 }
 
-.is-dark-theme .wp-block-search button.wp-block-search__button:hover,
-.is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	border-color: transparent;
+.has-text-color .wp-block-search button.wp-block-search__button:hover {
+	color: #28303d !important;
 }
 
-.is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.has-background .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=gray]:not([class*=light]) .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=black] .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.has-background .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=gray]:not([class*=light]) .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.is-dark-theme .has-background[class*=black] .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #28303d;
-	color: #d1e4dd;
-}
-
-.has-background[class*=gray]:not([class*=light]) .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=black] .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.is-dark-theme .has-background .is-dark-theme .wp-block-search button.wp-block-search__button:hover {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=gray]:not([class*=light]) .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.has-background[class*=black] .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #d1e4dd;
-	color: #28303d;
-}
-
-.is-dark-theme .has-background .is-dark-theme .wp-block-search button.wp-block-search__button:active {
-	background: #d1e4dd;
-	color: #28303d;
+.has-text-color .wp-block-search button.wp-block-search__button:active {
+	color: #28303d !important;
 }
 
 .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper {
 	background-color: #fff;
 	border: 3px solid #39414d;
 	border-radius: 0;
+	padding: 3px;
 }
 
 .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper .wp-block-search__input {
@@ -7659,7 +7548,15 @@ h1.page-title {
 	color: #000;
 }
 
+.has-black-color[class] [class*=__inner-container] {
+	color: #000;
+}
+
 .has-gray-color[class] {
+	color: #39414d;
+}
+
+.has-gray-color[class] [class*=__inner-container] {
 	color: #39414d;
 }
 
@@ -7667,7 +7564,15 @@ h1.page-title {
 	color: #28303d;
 }
 
+.has-dark-gray-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
 .has-green-color[class] {
+	color: #d1e4dd;
+}
+
+.has-green-color[class] [class*=__inner-container] {
 	color: #d1e4dd;
 }
 
@@ -7675,7 +7580,15 @@ h1.page-title {
 	color: #d1dfe4;
 }
 
+.has-blue-color[class] [class*=__inner-container] {
+	color: #d1dfe4;
+}
+
 .has-purple-color[class] {
+	color: #d1d1e4;
+}
+
+.has-purple-color[class] [class*=__inner-container] {
 	color: #d1d1e4;
 }
 
@@ -7683,7 +7596,15 @@ h1.page-title {
 	color: #e4d1d1;
 }
 
+.has-red-color[class] [class*=__inner-container] {
+	color: #e4d1d1;
+}
+
 .has-orange-color[class] {
+	color: #e4dad1;
+}
+
+.has-orange-color[class] [class*=__inner-container] {
 	color: #e4dad1;
 }
 
@@ -7691,7 +7612,15 @@ h1.page-title {
 	color: #eeeadd;
 }
 
+.has-yellow-color[class] [class*=__inner-container] {
+	color: #eeeadd;
+}
+
 .has-white-color[class] {
+	color: #fff;
+}
+
+.has-white-color[class] [class*=__inner-container] {
 	color: #fff;
 }
 
@@ -7710,7 +7639,15 @@ h1.page-title {
 	background-color: #000;
 }
 
+.has-black-background-color[class] [class*=__inner-container] {
+	background-color: #000;
+}
+
 .has-dark-gray-background-color[class] {
+	background-color: #28303d;
+}
+
+.has-dark-gray-background-color[class] [class*=__inner-container] {
 	background-color: #28303d;
 }
 
@@ -7718,7 +7655,15 @@ h1.page-title {
 	background-color: #39414d;
 }
 
+.has-gray-background-color[class] [class*=__inner-container] {
+	background-color: #39414d;
+}
+
 .has-light-gray-background-color[class] {
+	background-color: #f0f0f0;
+}
+
+.has-light-gray-background-color[class] [class*=__inner-container] {
 	background-color: #f0f0f0;
 }
 
@@ -7726,7 +7671,15 @@ h1.page-title {
 	background-color: #d1e4dd;
 }
 
+.has-green-background-color[class] [class*=__inner-container] {
+	background-color: #d1e4dd;
+}
+
 .has-blue-background-color[class] {
+	background-color: #d1dfe4;
+}
+
+.has-blue-background-color[class] [class*=__inner-container] {
 	background-color: #d1dfe4;
 }
 
@@ -7734,7 +7687,15 @@ h1.page-title {
 	background-color: #d1d1e4;
 }
 
+.has-purple-background-color[class] [class*=__inner-container] {
+	background-color: #d1d1e4;
+}
+
 .has-red-background-color[class] {
+	background-color: #e4d1d1;
+}
+
+.has-red-background-color[class] [class*=__inner-container] {
 	background-color: #e4d1d1;
 }
 
@@ -7742,7 +7703,15 @@ h1.page-title {
 	background-color: #e4dad1;
 }
 
+.has-orange-background-color[class] [class*=__inner-container] {
+	background-color: #e4dad1;
+}
+
 .has-yellow-background-color[class] {
+	background-color: #eeeadd;
+}
+
+.has-yellow-background-color[class] [class*=__inner-container] {
 	background-color: #eeeadd;
 }
 
@@ -7750,43 +7719,887 @@ h1.page-title {
 	background-color: #fff;
 }
 
-:not(.has-text-color).has-black-background-color[class] {
+.has-white-background-color[class] [class*=__inner-container] {
+	background-color: #fff;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] {
 	color: #d1e4dd;
 }
 
-:not(.has-text-color).has-gray-background-color[class] {
+.has-background:not(.has-text-color).has-gray-background-color[class] {
 	color: #d1e4dd;
 }
 
-:not(.has-text-color).has-dark-gray-background-color[class] {
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] {
 	color: #d1e4dd;
 }
 
-:not(.has-text-color).has-green-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-blue-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-purple-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-red-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-orange-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-yellow-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
-:not(.has-text-color).has-white-background-color[class] {
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-black-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-dark-gray-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-green-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-blue-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-purple-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-red-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-orange-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-yellow-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
+	color: #28303d;
+}
+
+.has-background:not(.has-text-color).has-white-background-color[class] [class*=__inner-container] {
 	color: #28303d;
 }
 
