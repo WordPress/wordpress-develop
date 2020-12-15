@@ -4209,12 +4209,20 @@
         if ($p_entry['compression'] == 0) {
 
           // ----- Reading the file
-          $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
+          } else {
+            $p_string = false;
+          }
         }
         else {
 
           // ----- Reading the file
-          $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          if ($p_entry['compressed_size'] > 0) {
+            $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
+          } else {
+            $v_data = false;
+          }
 
           // ----- Decompress the file
           if (($p_string = @gzinflate($v_data)) === FALSE) {
