@@ -73,7 +73,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
 function generate_block_asset_handle( $block_name, $field_name ) {
 	if ( 0 === strpos( $block_name, 'core/' ) ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
-		if ( strpos( $field_name, 'editor' ) === 0 ) {
+		if ( 0 === strpos( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
 		return $asset_handle;
