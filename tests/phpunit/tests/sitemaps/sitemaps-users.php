@@ -42,7 +42,8 @@ class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 				$post = self::factory()->post->create_and_get( array( 'post_author' => $user_id ) );
 
 				return array(
-					'loc' => get_author_posts_url( $user_id ),
+					'loc'     => get_author_posts_url( $user_id ),
+					'lastmod' => gmdate( 'c', strtotime( $post->post_modified_gmt ) ),
 				);
 			},
 			self::$users

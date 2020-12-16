@@ -116,21 +116,32 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	public function test_get_sitemap_entries() {
 		$entries = $this->_get_sitemap_entries();
 
+		$latest_post        = $this->_get_latest_post();
+		$last_modified_post = gmdate( 'c', strtotime( $latest_post->post_modified_gmt ) );
+
+		$latest_page        = $this->_get_latest_post( 'page' );
+		$last_modified_page = gmdate( 'c', strtotime( $latest_page->post_modified_gmt ) );
+
 		$expected = array(
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=post&paged=1',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=post&paged=1',
+				'lastmod' => $last_modified_post,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=page&paged=1',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=posts&sitemap-subtype=page&paged=1',
+				'lastmod' => $last_modified_page,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=category&paged=1',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=category&paged=1',
+				'lastmod' => $last_modified_post,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=taxonomies&sitemap-subtype=post_tag&paged=1',
+				'lastmod' => $last_modified_post,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=users&paged=1',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/?sitemap=users&paged=1',
+				'lastmod' => $last_modified_post,
 			),
 		);
 
@@ -145,21 +156,32 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$entries = $this->_get_sitemap_entries();
 
+		$latest_post   = $this->_get_latest_post();
+		$last_modified = gmdate( 'c', strtotime( $latest_post->post_modified_gmt ) );
+
+		$latest_page        = $this->_get_latest_post( 'page' );
+		$last_modified_page = gmdate( 'c', strtotime( $latest_page->post_modified_gmt ) );
+
 		$expected = array(
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-post-1.xml',
+				'lastmod' => $last_modified,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-posts-page-1.xml',
+				'lastmod' => $last_modified_page,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-taxonomies-category-1.xml',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-taxonomies-category-1.xml',
+				'lastmod' => $last_modified,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-taxonomies-post_tag-1.xml',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-taxonomies-post_tag-1.xml',
+				'lastmod' => $last_modified,
 			),
 			array(
-				'loc' => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-users-1.xml',
+				'loc'     => 'http://' . WP_TESTS_DOMAIN . '/wp-sitemap-users-1.xml',
+				'lastmod' => $last_modified,
 			),
 		);
 
@@ -253,11 +275,15 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
+		$latest_post   = $this->_get_latest_post( 'page' );
+		$last_modified = gmdate( 'c', strtotime( $latest_post->post_modified_gmt ) );
+
 		// Add the homepage to the front of the URL list.
 		array_unshift(
 			$expected,
 			array(
-				'loc' => home_url( '/' ),
+				'loc'     => home_url( '/' ),
+				'lastmod' => $last_modified,
 			)
 		);
 
@@ -378,11 +404,34 @@ class Test_Sitemaps extends WP_UnitTestCase {
 		return array_map(
 			static function ( $post ) {
 				return array(
-					'loc' => get_permalink( $post ),
+					'loc'     => get_permalink( $post ),
+					'lastmod' => gmdate( 'c', strtotime( $post->post_modified_gmt ) ),
 				);
 			},
 			$posts
 		);
+	}
+
+	/**
+	 * Helper function to get the latest post.
+	 *
+	 * @param string $post_type Post type.
+	 *
+	 * @return WP_Post
+	 */
+	public function _get_latest_post( $post_type = 'post' ) {
+		$latest_post = new WP_Query(
+			array(
+				'post_type'              => $post_type,
+				'orderby'                => 'modified',
+				'order'                  => 'DESC',
+				'posts_per_page'         => 1,
+				'no_found_rows'          => true,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+		return end( $latest_post->posts );
 	}
 
 	/**

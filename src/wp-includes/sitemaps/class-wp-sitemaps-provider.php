@@ -111,6 +111,42 @@ abstract class WP_Sitemaps_Provider {
 					'loc' => $this->get_sitemap_url( $type['name'], $page ),
 				);
 
+				// Get last modified date.
+				$args = array(
+					'post_type'              => 'any',
+					'post_status'            => 'publish',
+					'posts_per_page'         => 1,
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'orderby'                => 'modified',
+					'order'                  => 'DESC',
+				);
+
+				switch ( $this->object_type ) {
+					case 'post':
+						$args['post_type'] = $type['name'];
+						break;
+					case 'term':
+						$args['update_post_term_cache'] = true;
+						$args['tax_query']              = array(
+							array(
+								'taxonomy' => $type['name'],
+								'operator' => 'ANY',
+							),
+						);
+						break;
+					case 'user':
+						$args['post_type'] = 'post';
+						break;
+				}
+
+				$post = new WP_Query( $args );
+
+				if ( ! empty( $post->posts ) ) {
+					$sitemap_entry['lastmod'] = gmdate( 'c', strtotime( end( $post->posts )->post_modified_gmt ) );
+				}
+
 				/**
 				 * Filters the sitemap entry for the sitemap index.
 				 *

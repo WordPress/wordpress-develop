@@ -106,6 +106,23 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 				'loc' => home_url( '/' ),
 			);
 
+			// Get last modified date from the latest post.
+			$latest_post = new WP_Query(
+				array(
+					'post_type'              => 'post',
+					'orderby'                => 'modified',
+					'order'                  => 'DESC',
+					'posts_per_page'         => 1,
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+				)
+			);
+
+			if ( ! empty( $latest_post->posts ) ) {
+				$sitemap_entry['lastmod'] = gmdate( 'c', strtotime( end( $latest_post->posts )->post_modified_gmt ) );
+			}
+
 			/**
 			 * Filters the sitemap entry for the home page when the 'show_on_front' option equals 'posts'.
 			 *
@@ -119,7 +136,8 @@ class WP_Sitemaps_Posts extends WP_Sitemaps_Provider {
 
 		foreach ( $query->posts as $post ) {
 			$sitemap_entry = array(
-				'loc' => get_permalink( $post ),
+				'loc'     => get_permalink( $post ),
+				'lastmod' => gmdate( 'c', strtotime( $post->post_modified_gmt ) ),
 			);
 
 			/**

@@ -70,6 +70,25 @@ class WP_Sitemaps_Users extends WP_Sitemaps_Provider {
 				'loc' => get_author_posts_url( $user->ID ),
 			);
 
+			// Get last modified date from the latest post by this user.
+			$post = new WP_Query(
+				array(
+					'post_type'              => 'post',
+					'post_status'            => 'publish',
+					'posts_per_page'         => 1,
+					'no_found_rows'          => true,
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'orderby'                => 'modified',
+					'order'                  => 'DESC',
+					'author'                 => $user->ID,
+				)
+			);
+
+			if ( ! empty( $post->posts ) ) {
+				$sitemap_entry['lastmod'] = gmdate( 'c', strtotime( end( $post->posts )->post_modified_gmt ) );
+			}
+
 			/**
 			 * Filters the sitemap entry for an individual user.
 			 *
