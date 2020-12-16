@@ -2899,44 +2899,44 @@ EOF;
 	 * @ticket 50756
 	 */
 	function test_wp_iframe_tag_add_loading_attr() {
-		$img = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
-		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertContains( ' loading="lazy"', $img );
+		$this->assertContains( ' loading="lazy"', $iframe );
 	}
 
 	/**
 	 * @ticket 50756
 	 */
 	function test_wp_iframe_tag_add_loading_attr_without_src() {
-		$img = '<iframe width="640" height="360"></iframe>';
-		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+		$iframe = '<iframe width="640" height="360"></iframe>';
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertNotContains( ' loading=', $iframe );
 	}
 
 	/**
 	 * @ticket 50756
 	 */
 	function test_wp_iframe_tag_add_loading_attr_with_single_quotes() {
-		$img = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
-		$img = wp_iframe_tag_add_loading_attr( $img, 'test' );
+		$iframe = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertNotContains( ' loading=', $iframe );
 
 		// Test specifically that the attribute is not there with double-quotes,
 		// to avoid regressions.
-		$this->assertNotContains( ' loading="lazy"', $img );
+		$this->assertNotContains( ' loading="lazy"', $iframe );
 	}
 
 	/**
 	 * @ticket 50756
 	 */
 	function test_wp_iframe_tag_add_loading_attr_opt_out() {
-		$img = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
 
-		$this->assertNotContains( ' loading=', $img );
+		$this->assertNotContains( ' loading=', $iframe );
 	}
 
 	/**

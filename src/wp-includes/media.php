@@ -1981,7 +1981,7 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	 * @since 5.7.0
 	 *
 	 * @param string|bool $value   The `loading` attribute value. Returning a falsey value will result in
-	 *                             the attribute being omitted for the image. Default 'lazy'.
+	 *                             the attribute being omitted for the iframe. Default 'lazy'.
 	 * @param string      $iframe  The HTML `iframe` tag to be filtered.
 	 * @param string      $context Additional context about how the function was called or where the iframe tag is.
 	 */
