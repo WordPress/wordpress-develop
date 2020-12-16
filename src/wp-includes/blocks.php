@@ -71,7 +71,7 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name ) {
-	if ( strpos( $block_name, 'core/' ) === 0 ) {
+	if ( 0 === strpos( $block_name, 'core/' ) ) {
 		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
 		if ( strpos( $field_name, 'editor' ) === 0 ) {
 			$asset_handle .= '-editor';
