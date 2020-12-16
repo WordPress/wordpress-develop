@@ -1509,20 +1509,21 @@ function term_is_ancestor_of( $term1, $term2, $taxonomy ) {
 }
 
 /**
- * Sanitize Term all fields.
+ * Sanitize all term fields.
  *
  * Relies on sanitize_term_field() to sanitize the term. The difference is that
- * this function will sanitize <strong>all</strong> fields. The context is based
+ * this function will sanitize **all** fields. The context is based
  * on sanitize_term_field().
  *
- * The $term is expected to be either an array or an object.
+ * The `$term` is expected to be either an array or an object.
  *
  * @since 2.3.0
  *
  * @param array|object $term     The term to check.
  * @param string       $taxonomy The taxonomy name to use.
- * @param string       $context  Optional. Context in which to sanitize the term. Accepts 'edit', 'db',
- *                               'display', 'attribute', or 'js'. Default 'display'.
+ * @param string       $context  Optional. Context in which to sanitize the term.
+ *                               Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                               'attribute', or 'js'. Default 'display'.
  * @return array|object Term with all fields sanitized.
  */
 function sanitize_term( $term, $taxonomy, $context = 'display' ) {
@@ -1572,8 +1573,9 @@ function sanitize_term( $term, $taxonomy, $context = 'display' ) {
  * @param string $value    Search for this term value.
  * @param int    $term_id  Term ID.
  * @param string $taxonomy Taxonomy Name.
- * @param string $context  Context in which to sanitize the term field. Accepts 'edit', 'db', 'display',
- *                         'attribute', or 'js'.
+ * @param string $context  Context in which to sanitize the term field.
+ *                         Accepts 'raw', 'edit', 'db', 'display', 'rss',
+ *                         'attribute', or 'js'. Default 'display'.
  * @return mixed Sanitized field.
  */
 function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
@@ -2193,8 +2195,12 @@ function wp_get_object_terms( $object_ids, $taxonomies, $args = array() ) {
  *     @type int    $parent      The id of the parent term. Default 0.
  *     @type string $slug        The term slug to use. Default empty string.
  * }
- * @return array|WP_Error An array containing the `term_id` and `term_taxonomy_id`,
- *                        WP_Error otherwise.
+ * @return array|WP_Error {
+ *     An array of the new term data, WP_Error otherwise.
+ *
+ *     @type int        $term_id          The new term ID.
+ *     @type int|string $term_taxonomy_id The new term taxonomy ID. Can be a numeric string.
+ * }
  */
 function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	global $wpdb;
@@ -3740,8 +3746,8 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param array  $terms    List of term objects (passed by reference).
- * @param string $taxonomy Term context.
+ * @param object[]|WP_Term[] $terms    List of term objects (passed by reference).
+ * @param string             $taxonomy Term context.
  */
 function _pad_term_counts( &$terms, $taxonomy ) {
 	global $wpdb;
