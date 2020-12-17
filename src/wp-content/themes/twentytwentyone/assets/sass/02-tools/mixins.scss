@@ -31,8 +31,8 @@
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
 
-	// Standard Button Color Relationship Logic
-	&:not(:hover):not(:active)  {
+	// Standard Button Color Relationship Logic 
+	&:not(:hover):not(:active) {
 
 		// Text colors
 		&:not(.has-text-color) {
