@@ -33,7 +33,7 @@
 	text-decoration: none;
 
 	// Standard Button Color Relationship Logic 
-	&:not(:hover):not(:active)  {
+	&:not(:hover):not(:active) {
 
 			// Text colors
 			&:not(.has-text-color) {
