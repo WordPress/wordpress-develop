@@ -31,35 +31,35 @@
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
 
-	// Standard Button Color Relationship Logic 
+	// Standard Button Color Relationship Logic
 	&:not(:hover):not(:active)  {
 
-			// Text colors
-			&:not(.has-text-color) {
-				color: var(--global--color-background);
+		// Text colors
+		&:not(.has-text-color) {
+			color: var(--global--color-background);
 
-				// Nested
-				.has-background & {
-					color: var(--local--color-background, var(--global--color-primary));
+			// Nested
+			.has-background & {
+				color: var(--local--color-background, var(--global--color-primary));
 
-					&.has-background {
-						color: var(--global--color-primary);
-					}
+				&.has-background {
+					color: var(--global--color-primary);
 				}
 			}
+		}
 
-			// Background-colors
-			&:not(.has-background) {
-				background-color: var(--global--color-primary);
+		// Background-colors
+		&:not(.has-background) {
+			background-color: var(--global--color-primary);
 
-				// Nested
-				.has-background & {
-					background-color: var(--local--color-primary, var(--global--color-primary));
-				}
+			// Nested
+			.has-background & {
+				background-color: var(--local--color-primary, var(--global--color-primary));
 			}
+		}
 	}
 
-	// Hover Button color should match parent element foreground color 
+	// Hover Button color should match parent element foreground color
 	&:hover,
 	&:active {
 		background-color: transparent;
@@ -67,13 +67,13 @@
 		color: inherit;
 	}
 
-	// Focus Button outline color should always match the current text color 
+	// Focus Button outline color should always match the current text color
 	&:focus {
 		outline-offset: -6px;
 		outline: 2px dotted currentColor;
 	}
 
-	// Disabled Button colors 
+	// Disabled Button colors
 	&:disabled {
 		background-color: var(--global--color-white-50);
 		border-color: var(--global--color-white-50);
