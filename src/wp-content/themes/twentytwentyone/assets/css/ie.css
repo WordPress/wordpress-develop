@@ -2653,6 +2653,7 @@ input[type=reset]:disabled {
 }
 
 .wp-block-code code {
+	color: #28303d;
 	font-size: 1rem;
 	white-space: pre;
 	overflow-x: auto;
@@ -5720,12 +5721,6 @@ h1.entry-title {
 .entry-content > iframe[style] {
 	margin: 30px 0 !important;
 	max-width: 100% !important;
-}
-@media only screen and (min-width: 482px) {
-
-	.entry-content > iframe[style] {
-		max-width: 30px !important;
-	}
 }
 
 .entry-footer {

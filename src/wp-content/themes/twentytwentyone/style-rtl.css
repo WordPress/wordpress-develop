@@ -1918,6 +1918,7 @@ input[type=reset]:disabled,
 }
 
 .wp-block-code code {
+	color: var(--global--color-primary);
 	font-size: var(--global--font-size-xs);
 	white-space: pre;
 	overflow-x: auto;
@@ -4070,12 +4071,6 @@ h1.entry-title {
 .entry-content > iframe[style] {
 	margin: var(--global--spacing-vertical) 0 !important;
 	max-width: 100% !important;
-}
-@media only screen and (min-width: 482px) {
-
-	.entry-content > iframe[style] {
-		max-width: var(--global--spacing-vertical) !important;
-	}
 }
 
 .entry-footer {
