@@ -275,7 +275,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 
 		$expected = $this->_get_expected_url_list( 'page', self::$pages );
 
-		$latest_post   = $this->_get_latest_post( 'page' );
+		$latest_post   = $this->_get_latest_post();
 		$last_modified = gmdate( 'c', strtotime( $latest_post->post_modified_gmt ) );
 
 		// Add the homepage to the front of the URL list.
