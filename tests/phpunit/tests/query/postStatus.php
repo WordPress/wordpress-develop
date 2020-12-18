@@ -469,9 +469,9 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			'wptests_pt1',
 			array(
 				'exclude_from_search' => false,
-				'capabilities'        => [
+				'capabilities'        => array(
 					'read_private_posts' => 'read_private_pt1s',
-				],
+				),
 			)
 		);
 
@@ -549,9 +549,9 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 			'wptests_pt1',
 			array(
 				'exclude_from_search' => false,
-				'capabilities'        => [
+				'capabilities'        => array(
 					'read_private_posts' => 'read_private_pt1s',
-				],
+				),
 			)
 		);
 
@@ -611,7 +611,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
-				'post_type' => [ 'wptests_pt1', 'wptests_pt2' ],
+				'post_type' => array( 'wptests_pt1', 'wptests_pt2' ),
 			)
 		);
 
