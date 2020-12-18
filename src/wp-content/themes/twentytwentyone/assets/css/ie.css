@@ -2262,7 +2262,6 @@ a:hover {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -2276,7 +2275,6 @@ input[type=submit] {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -2290,7 +2288,6 @@ input[type=reset] {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -2304,7 +2301,6 @@ input[type=reset] {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -2318,7 +2314,6 @@ input[type=reset] {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -2332,7 +2327,6 @@ input[type=reset] {
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
-	font-weight: bolder;
 	line-height: 1.5;
 	padding: 15px 30px;
 	text-decoration: none;
@@ -4599,23 +4593,8 @@ pre.wp-block-preformatted {
 	border-color: #39414d;
 }
 
-.has-background .wp-block-search .wp-block-search__input,
-[class*=background-color] .wp-block-search .wp-block-search__input,
-[style*=background-color] .wp-block-search .wp-block-search__input,
-.wp-block-cover[style*=background-image] .wp-block-search .wp-block-search__input {
-	border-color: currentColor;
-}
-
-.has-background.has-gray-background-color .wp-block-search .wp-block-search__input {
-	border-color: #fff;
-}
-
-.has-background.has-dark-gray-background-color .wp-block-search .wp-block-search__input {
-	border-color: #fff;
-}
-
-.has-background.has-black-background-color .wp-block-search .wp-block-search__input {
-	border-color: #fff;
+.has-background .wp-block-search .wp-block-search__input {
+	border-color: #28303d !important;
 }
 
 .wp-block-search button.wp-block-search__button {
@@ -4656,6 +4635,10 @@ pre.wp-block-preformatted {
 	border: 3px solid #39414d;
 	border-radius: 0;
 	padding: 3px;
+}
+
+.has-background .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper {
+	border-color: #28303d !important;
 }
 
 .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper .wp-block-search__input {

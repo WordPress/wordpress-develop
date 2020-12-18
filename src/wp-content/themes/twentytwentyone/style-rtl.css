@@ -1716,7 +1716,6 @@ input[type=reset],
 	font-weight: var(--button--font-weight);
 	font-family: var(--button--font-family);
 	font-size: var(--button--font-size);
-	font-weight: bolder;
 	line-height: var(--button--line-height);
 	padding: var(--button--padding-vertical) var(--button--padding-horizontal);
 	text-decoration: none;
@@ -3249,17 +3248,8 @@ pre.wp-block-preformatted {
 	border-color: var(--form--border-color);
 }
 
-.has-background .wp-block-search .wp-block-search__input,
-[class*=background-color] .wp-block-search .wp-block-search__input,
-[style*=background-color] .wp-block-search .wp-block-search__input,
-.wp-block-cover[style*=background-image] .wp-block-search .wp-block-search__input {
-	border-color: currentColor;
-}
-
-.has-background.has-gray-background-color .wp-block-search .wp-block-search__input,
-.has-background.has-dark-gray-background-color .wp-block-search .wp-block-search__input,
-.has-background.has-black-background-color .wp-block-search .wp-block-search__input {
-	border-color: var(--global--color-white);
+.has-background .wp-block-search .wp-block-search__input {
+	border-color: var(--local--color-primary, var(--global--color-primary)) !important;
 }
 
 .wp-block-search button.wp-block-search__button {
@@ -3293,6 +3283,10 @@ pre.wp-block-preformatted {
 	border: var(--form--border-width) solid var(--form--border-color);
 	border-radius: var(--form--border-radius);
 	padding: var(--form--border-width);
+}
+
+.has-background .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper {
+	border-color: var(--local--color-primary, var(--global--color-primary)) !important;
 }
 
 .wp-block-search.wp-block-search__button-inside .wp-block-search__inside-wrapper .wp-block-search__input {
