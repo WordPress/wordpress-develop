@@ -28,17 +28,8 @@
 			border-color: var(--form--border-color);
 		}
 
-		.has-background &,
-		[class*="background-color"] &,
-		[style*="background-color"] &,
-		.wp-block-cover[style*="background-image"] & {
-			border-color: currentColor;
-		}
-
-		.has-background.has-gray-background-color &,
-		.has-background.has-dark-gray-background-color &,
-		.has-background.has-black-background-color & {
-			border-color: var(--global--color-white);
+		.has-background & {
+			border-color: var(--local--color-primary, var(--global--color-primary)) !important;
 		}
 	}
 
@@ -77,6 +68,10 @@
 			border: var(--form--border-width) solid var(--form--border-color);
 			border-radius: var(--form--border-radius);
 			padding: var(--form--border-width);
+
+			.has-background & {
+				border-color: var(--local--color-primary, var(--global--color-primary)) !important;
+			}
 
 			.wp-block-search__input {
 				margin-left: 0;
