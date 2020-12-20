@@ -589,4 +589,37 @@ class Tests_General_Template extends WP_UnitTestCase {
 			array( 0, false ),
 		);
 	}
+
+	/**
+	 * @ticket 44183
+	 */
+	function test_get_the_archive_title_is_correct_for_author_queries() {
+		$user_with_posts = $this->factory()->user->create_and_get(
+			array(
+				'role' => 'author',
+			)
+		);
+		$user_with_no_posts = $this->factory()->user->create_and_get(
+			array(
+				'role' => 'author',
+			)
+		);
+
+		$this->factory()->post->create( [
+			'post_author' => $user_with_posts->ID,
+		] );
+
+		// Simplify the assertion by removing the default archive title prefix:
+		add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
+
+		$this->go_to( get_author_posts_url( $user_with_posts->ID ) );
+		$title_when_posts = get_the_archive_title();
+
+		$this->go_to( get_author_posts_url( $user_with_no_posts->ID ) );
+		$title_when_no_posts = get_the_archive_title();
+
+		// Ensure the title is correct both when the user has posts and when they dont:
+		$this->assertSame( $user_with_posts->display_name, $title_when_posts );
+		$this->assertSame( $user_with_no_posts->display_name, $title_when_no_posts );
+	}
 }
