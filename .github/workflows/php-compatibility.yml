@@ -27,6 +27,7 @@ jobs:
   php-comatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository

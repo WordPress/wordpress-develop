@@ -9,7 +9,7 @@
  *
  * @param {Element} el - The element.
  * @param {boolean} withListeners - Whether we want to add/remove listeners or not.
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 function twentytwentyoneToggleAriaExpanded( el, withListeners ) {
 	if ( 'true' !== el.getAttribute( 'aria-expanded' ) ) {
@@ -41,10 +41,19 @@ function twentytwentyoneCollapseMenuOnClickOutside( event ) {
  */
 function twentytwentyoneSubmenuPosition( li ) {
 	var subMenu = li.querySelector( 'ul.sub-menu' ),
-		rect = subMenu.getBoundingClientRect(),
-		right = Math.round( rect.right ),
-		left = Math.round( rect.left ),
-		windowWidth = Math.round( window.innerWidth );
+		rect,
+		right,
+		left,
+		windowWidth;
+
+	if ( ! subMenu ) {
+		return;
+	}
+
+	rect = subMenu.getBoundingClientRect();
+	right = Math.round( rect.right );
+	left = Math.round( rect.left );
+	windowWidth = Math.round( window.innerWidth );
 
 	if ( right > windowWidth ) {
 		subMenu.classList.add( 'submenu-reposition-right' );
