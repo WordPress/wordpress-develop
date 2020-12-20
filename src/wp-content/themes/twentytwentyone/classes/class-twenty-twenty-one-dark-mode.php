@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 /**
@@ -17,7 +17,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
 
@@ -51,7 +51,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -90,7 +90,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -110,7 +110,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -132,7 +132,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
 	 *
@@ -184,9 +184,9 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		$description  = '<p>';
 		$description .= sprintf(
-			// translators: %s is the wordpress.org Twenty Twenty-One support article URL.
+			/* translators: %s: Twenty Twenty-One support article URL. */
 			__( 'Dark Mode is a device setting. If a visitor to your site requests it, your site will be shown with a dark background and light text. <a href="%s">Learn more about Dark Mode.</a>', 'twentytwentyone' ),
-			__( 'https://wordpress.org/support/article/twenty-twenty-one/', 'twentytwentyone' )
+			esc_url( __( 'https://wordpress.org/support/article/twenty-twenty-one/#dark-mode-support', 'twentytwentyone' ) )
 		);
 		$description .= '</p>';
 		$description .= '<p>' . __( 'Dark Mode can also be turned on and off with a button that you can find in the bottom right corner of the page.', 'twentytwentyone' ) . '</p>';
@@ -224,7 +224,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The classes for <html> element.
 	 *
@@ -249,7 +249,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The admin body-classes.
 	 *
@@ -282,7 +282,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return bool
 	 */
@@ -300,7 +300,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -319,7 +319,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param array $attrs The attributes to add to our <button> element.
 	 *
@@ -380,7 +380,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -395,7 +395,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
