@@ -1,6 +1,11 @@
 table,
 .wp-block-table {
 
+	thead,
+	tfoot {
+		text-align: center;
+	}
+
 	th {
 		font-family: var(--heading--font-family);
 	}

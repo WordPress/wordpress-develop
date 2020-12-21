@@ -4,6 +4,11 @@ table,
 	min-width: 240px;
 	border-collapse: collapse;
 
+	thead,
+	tfoot {
+		text-align: center;
+	}
+
 	th {
 		font-family: var(--heading--font-family);
 	}
@@ -12,6 +17,11 @@ table,
 	th {
 		padding: calc(0.5 * var(--global--spacing-unit));
 		border: 1px solid;
+	}
+
+	figcaption {
+		color: var(--global--color-primary);
+		font-size: var(--global--font-size-xs);
 	}
 
 	&.is-style-regular .has-background,
