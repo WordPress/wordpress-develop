@@ -145,6 +145,30 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 50328
+	 */
+	function test_generate_block_asset_handle_core_block() {
+		$block_name = 'core/paragraph';
+
+		$this->assertSame(
+			'wp-block-paragraph-editor',
+			generate_block_asset_handle( $block_name, 'editorScript' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph',
+			generate_block_asset_handle( $block_name, 'script' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph-editor',
+			generate_block_asset_handle( $block_name, 'editorStyle' )
+		);
+		$this->assertSame(
+			'wp-block-paragraph',
+			generate_block_asset_handle( $block_name, 'style' )
+		);
+	}
+
+	/**
 	 * @ticket 50263
 	 */
 	function test_field_not_found_register_block_script_handle() {
