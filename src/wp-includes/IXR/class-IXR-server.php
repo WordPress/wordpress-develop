@@ -130,7 +130,10 @@ EOD;
             $error = new IXR_Error($error, $message);
         }
 
-        status_header( $error->code );
+		if ( function_exists( 'status_header' ) ) {
+			status_header( $error->code );
+		}
+
         $this->output($error->getXml());
     }
 
