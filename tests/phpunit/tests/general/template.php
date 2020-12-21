@@ -605,9 +605,11 @@ class Tests_General_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->factory()->post->create( [
-			'post_author' => $user_with_posts->ID,
-		] );
+		$this->factory()->post->create(
+			array(
+				'post_author' => $user_with_posts->ID,
+			)
+		);
 
 		// Simplify the assertion by removing the default archive title prefix:
 		add_filter( 'get_the_archive_title_prefix', '__return_empty_string' );
