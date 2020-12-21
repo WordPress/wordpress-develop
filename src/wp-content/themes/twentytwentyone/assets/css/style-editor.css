@@ -2030,6 +2030,13 @@ hr.is-style-dots:before {
 	background: none;
 }
 
+table thead,
+table tfoot,
+.wp-block-table thead,
+.wp-block-table tfoot {
+	text-align: center;
+}
+
 table th,
 .wp-block-table th {
 	font-family: var(--heading--font-family);

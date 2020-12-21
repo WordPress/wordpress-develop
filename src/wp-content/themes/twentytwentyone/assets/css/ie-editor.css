@@ -2790,6 +2790,13 @@ hr.is-style-dots:before {
 	background: none;
 }
 
+table thead,
+table tfoot,
+.wp-block-table thead,
+.wp-block-table tfoot {
+	text-align: center;
+}
+
 table th {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }

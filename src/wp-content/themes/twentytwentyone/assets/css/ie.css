@@ -4985,6 +4985,13 @@ table,
 	border-collapse: collapse;
 }
 
+table thead,
+table tfoot,
+.wp-block-table thead,
+.wp-block-table tfoot {
+	text-align: center;
+}
+
 table th {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
@@ -5011,6 +5018,16 @@ table th {
 .wp-block-table th {
 	padding: 10px;
 	border: 1px solid;
+}
+
+table figcaption {
+	color: #28303d;
+	font-size: 1rem;
+}
+
+.wp-block-table figcaption {
+	color: #28303d;
+	font-size: 1rem;
 }
 
 table.is-style-regular .has-background {

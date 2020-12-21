@@ -3518,6 +3518,13 @@ table,
 	border-collapse: collapse;
 }
 
+table thead,
+table tfoot,
+.wp-block-table thead,
+.wp-block-table tfoot {
+	text-align: center;
+}
+
 table th,
 .wp-block-table th {
 	font-family: var(--heading--font-family);
@@ -3529,6 +3536,12 @@ table th,
 .wp-block-table th {
 	padding: calc(0.5 * var(--global--spacing-unit));
 	border: 1px solid;
+}
+
+table figcaption,
+.wp-block-table figcaption {
+	color: var(--global--color-primary);
+	font-size: var(--global--font-size-xs);
 }
 
 table.is-style-regular .has-background,
