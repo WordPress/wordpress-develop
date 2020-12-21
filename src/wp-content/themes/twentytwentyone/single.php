@@ -37,7 +37,7 @@ while ( have_posts() ) :
 	$twentytwentyone_prev = is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' );
 
 	$twentytwentyone_next_label = esc_html__( 'Next post', 'twentytwentyone' );
-	$twentytwentyone_previous_label = esc_html__( 'Previous Post', 'twentytwentyone' );
+	$twentytwentyone_previous_label = esc_html__( 'Previous post', 'twentytwentyone' );
 
 	the_post_navigation(
 		array(
