@@ -5094,11 +5094,11 @@ table.is-style-stripes tbody tr:nth-child(odd) {
 }
 
 table.is-style-stripes .has-background tbody tr:nth-child(odd) {
-	background-color: #f0f0f0;
+	background-color: rgba(255, 255, 255, 0.9);
 }
 
 .wp-block-table.is-style-stripes .has-background tbody tr:nth-child(odd) {
-	background-color: #f0f0f0;
+	background-color: rgba(255, 255, 255, 0.9);
 }
 
 table.wp-calendar-table td,

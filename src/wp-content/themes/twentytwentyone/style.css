@@ -3576,7 +3576,7 @@ table.is-style-stripes tbody tr:nth-child(odd),
 
 table.is-style-stripes .has-background tbody tr:nth-child(odd),
 .wp-block-table.is-style-stripes .has-background tbody tr:nth-child(odd) {
-	background-color: var(--global--color-light-gray);
+	background-color: var(--global--color-white-90);
 }
 
 table.wp-calendar-table td,
