@@ -2825,6 +2825,10 @@ table.is-style-regular .has-background {
 	color: #28303d;
 }
 
+table.is-style-stripes .has-background {
+	color: #28303d;
+}
+
 table.is-style-stripes .has-background thead tr {
 	color: #28303d;
 }
@@ -2833,11 +2837,15 @@ table.is-style-stripes .has-background tfoot tr {
 	color: #28303d;
 }
 
-table.is-style-stripes .has-background tbody tr:nth-child(even) {
+table.is-style-stripes .has-background tbody tr {
 	color: #28303d;
 }
 
 .wp-block-table.is-style-regular .has-background {
+	color: #28303d;
+}
+
+.wp-block-table.is-style-stripes .has-background {
 	color: #28303d;
 }
 
@@ -2849,7 +2857,7 @@ table.is-style-stripes .has-background tbody tr:nth-child(even) {
 	color: #28303d;
 }
 
-.wp-block-table.is-style-stripes .has-background tbody tr:nth-child(even) {
+.wp-block-table.is-style-stripes .has-background tbody tr {
 	color: #28303d;
 }
 
@@ -2873,6 +2881,14 @@ table.is-style-stripes tbody tr:nth-child(odd) {
 }
 
 .wp-block-table.is-style-stripes tbody tr:nth-child(odd) {
+	background-color: #f0f0f0;
+}
+
+table.is-style-stripes .has-background tbody tr:nth-child(odd) {
+	background-color: #f0f0f0;
+}
+
+.wp-block-table.is-style-stripes .has-background tbody tr:nth-child(odd) {
 	background-color: #f0f0f0;
 }
 
