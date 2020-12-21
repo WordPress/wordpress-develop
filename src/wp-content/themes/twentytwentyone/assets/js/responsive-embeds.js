@@ -30,7 +30,13 @@ function twentytwentyoneResponsiveEmbeds() {
 }
 
 // Run on initial load.
-twentytwentyoneResponsiveEmbeds();
+if ( window.NodeList && NodeList.prototype.forEach ) {
+	twentytwentyoneResponsiveEmbeds();
+} else {
+	window.addEventListener('load', function(event) {
+		twentytwentyoneResponsiveEmbeds();
+	});
+}
 
 // Run on resize.
 window.onresize = twentytwentyoneResponsiveEmbeds;
