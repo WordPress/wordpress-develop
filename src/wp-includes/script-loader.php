@@ -204,16 +204,15 @@ function wp_get_script_polyfill( $scripts, $tests ) {
 
 		$polyfill .= (
 			// Test presence of feature...
-			'if ( ' . $test . ' ) { ' .
+			'( ' . $test . ' ) || ' .
 			/*
 			 * ...appending polyfill on any failures. Cautious viewers may balk
-			 * at the async=false. Its caveat mid-stream blocking that
-			 * synchronous loading is exactly the behavior we need though.
+			 * at the `document.write`. Its caveat of synchronous mid-stream
+			 * blocking write is exactly the behavior we need though.
 			 */
-			"
-			(function(src){var script = document.createElement('script');
-			script.defer = true; script.async=false;script.src=src;
-			document.head.appendChild(script);}('{$src}'));}"
+			'document.write( \'<script src="' .
+			$src .
+			'"></scr\' + \'ipt>\' );'
 		);
 	}
 
