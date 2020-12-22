@@ -91,8 +91,8 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertEquals( 'https://example.com/', $this->last_request_url );
 	}
 
-	public function test_wp_cron_schedule_https_detection() {
-		wp_cron_schedule_https_detection();
+	public function test_wp_schedule_https_detection() {
+		wp_schedule_https_detection();
 		$this->assertEquals( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
 	}
 

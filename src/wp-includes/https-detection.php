@@ -114,7 +114,7 @@ function wp_update_https_detection_errors() {
  * @since 5.7.0
  * @access private
  */
-function wp_cron_schedule_https_detection() {
+function wp_schedule_https_detection() {
 	if ( ! wp_next_scheduled( 'wp_https_detection' ) ) {
 		wp_schedule_event( time(), 'twicedaily', 'wp_https_detection' );
 	}
