@@ -438,7 +438,7 @@ function twenty_twenty_one_scripts() {
 		wp_get_script_polyfill(
 			$wp_scripts,
 			array(
-				'( ! Element.prototype.matches ) || ( ! Element.prototype.closest ) || ( window.NodeList && ! NodeList.prototype.forEach )' => 'twenty-twenty-one-ie11-polyfills-asset',
+				'Element.prototype.matches && Element.prototype.closest && window.NodeList && NodeList.prototype.forEach' => 'twenty-twenty-one-ie11-polyfills-asset',
 			)
 		)
 	);
