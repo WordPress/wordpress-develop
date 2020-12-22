@@ -1178,7 +1178,7 @@ function remove_query_arg( $key, $query = false ) {
  *
  * @since 4.4.0
  *
- * @return string[] An array of parameters to remove from the URL.
+ * @return string[] An array of query variable names to remove from the URL.
  */
 function wp_removable_query_args() {
 	$removable_query_args = array(
@@ -1213,11 +1213,11 @@ function wp_removable_query_args() {
 	);
 
 	/**
-	 * Filters the list of query variables to remove.
+	 * Filters the list of query variable names to remove.
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param string[] $removable_query_args An array of query variables to remove from a URL.
+	 * @param string[] $removable_query_args An array of query variable names to remove from a URL.
 	 */
 	return apply_filters( 'removable_query_args', $removable_query_args );
 }
@@ -2791,7 +2791,7 @@ function wp_ext2type( $ext ) {
  * @since 2.0.4
  *
  * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -2833,7 +2833,7 @@ function wp_check_filetype( $filename, $mimes = null ) {
  * @param string   $file     Full path to the file.
  * @param string   $filename The name of the file (may differ from $file due to $file being
  *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
