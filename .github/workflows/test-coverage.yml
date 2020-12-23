@@ -124,7 +124,7 @@ jobs:
         run: npm run env:install
 
       - name: Run tests as a single site
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html wp-code-coverage-single-${{ github.sha }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html wp-code-coverage-single-${{ github.sha }} --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
       - name: Create ZIP artifact of single site results
         uses: thedoctor0/zip-release@0.4.1
@@ -139,8 +139,14 @@ jobs:
           path: wp-code-coverage-single-${{ github.sha }}.zip
           if-no-files-found: error
 
+      - name: Upload single site report  to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: wp-code-coverage-single-clover-${{ github.sha }}.xml
+          flags: single,php
+
       - name: Run tests as a multisite install
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html wp-code-coverage-multisite-${{ github.sha }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html wp-code-coverage-multisite-${{ github.sha }} --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
       - name: Create ZIP artifact of multisite results
         uses: thedoctor0/zip-release@0.4.1
@@ -154,3 +160,9 @@ jobs:
           name: wp-code-coverage-multisite-${{ github.sha }}
           path: wp-code-coverage-multisite-${{ github.sha }}.zip
           if-no-files-found: error
+
+      - name: Upload multisite report to codecov
+        uses: codecov/codecov-action@v1
+        with:
+          file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+          flags: multisite,php
