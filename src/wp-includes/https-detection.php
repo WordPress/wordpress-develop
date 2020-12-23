@@ -165,17 +165,15 @@ function wp_is_owned_html_output( $html ) {
 	// 2. Check if HTML includes the site's Windows Live Writer manifest link.
 	if ( has_action( 'wp_head', 'wlwmanifest_link' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern             = includes_url( 'wlwmanifest.xml' ); // See wlwmanifest_link().
-		$alternative_pattern = false !== strpos( $pattern, 'https://' ) ? str_replace( 'https://', 'http://', $pattern ) : str_replace( 'http://', 'https://', $pattern );
-		return false !== strpos( $html, $pattern ) || false !== strpos( $html, $alternative_pattern );
+		$pattern = preg_replace( '#^https?:(?=//)#', '', includes_url( 'wlwmanifest.xml' ) ); // See wlwmanifest_link().
+		return false !== strpos( $html, $pattern );
 	}
 
 	// 3. Check if HTML includes the site's REST API link.
 	if ( has_action( 'wp_head', 'rest_output_link_wp_head' ) ) {
 		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern             = esc_url( get_rest_url() ); // See rest_output_link_wp_head().
-		$alternative_pattern = false !== strpos( $pattern, 'https://' ) ? str_replace( 'https://', 'http://', $pattern ) : str_replace( 'http://', 'https://', $pattern );
-		return false !== strpos( $html, $pattern ) || false !== strpos( $html, $alternative_pattern );
+		$pattern = esc_url( preg_replace( '#^https?:(?=//)#', '', get_rest_url() ) ); // See rest_output_link_wp_head().
+		return false !== strpos( $html, $pattern );
 	}
 
 	// Otherwise the result cannot be determined.
