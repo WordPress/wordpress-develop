@@ -85,7 +85,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	/**
 	 * Test WP Query with an invalid post type.
 	 *
-	 * @ticket 48556.
+	 * @ticket 48556
 	 */
 	public function test_unregistered_post_type_wp_query() {
 		global $wpdb;
@@ -101,7 +101,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	/**
 	 * Test WP Query with an invalid post type specified in the URL.
 	 *
-	 * @ticket 48556.
+	 * @ticket 48556
 	 */
 	public function test_unregistered_post_type_goto() {
 		global $wpdb, $wp_query;
