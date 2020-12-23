@@ -6,16 +6,14 @@
 class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public static $editor_user_id;
 	public static $author_user_id;
-	public static $subscriber_user_id;
 	public static $editor_private_post;
 	public static $author_private_post;
 	public static $editor_privatefoo_post;
 	public static $author_privatefoo_post;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		self::$editor_user_id     = $factory->user->create( array( 'role' => 'editor' ) );
-		self::$author_user_id     = $factory->user->create( array( 'role' => 'author' ) );
-		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
+		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
+		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 
 		self::$editor_private_post = $factory->post->create(
 			array(
@@ -458,163 +456,5 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 		);
 
 		$this->assertContains( $p1, wp_list_pluck( $q->posts, 'ID' ) );
-	}
-
-	/**
-	 * @ticket 48556
-	 * @ticket 13509
-	 */
-	public function test_non_singular_queries_using_post_type_any_should_respect_post_type_read_private_posts_cap() {
-		register_post_type(
-			'wptests_pt1',
-			array(
-				'exclude_from_search' => false,
-				'capabilities'        => array(
-					'read_private_posts' => 'read_private_pt1s',
-				),
-			)
-		);
-
-		register_post_type(
-			'wptests_pt2',
-			array(
-				'exclude_from_search' => false,
-			)
-		);
-
-		$post_ids = array();
-
-		$post_ids['wptests_pt1_p1'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt1',
-				'post_status' => 'private',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt1_p2'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt1',
-				'post_status' => 'publish',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt2_p1'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt2',
-				'post_status' => 'private',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt2_p2'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt2',
-				'post_status' => 'publish',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		wp_set_current_user( 0 );
-
-		$q = new WP_Query(
-			array(
-				'post_type' => 'any',
-			)
-		);
-
-		$this->assertSameSets( array( $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
-
-		wp_set_current_user( self::$subscriber_user_id );
-		$GLOBALS['current_user']->add_cap( 'read_private_pt1s' );
-
-		$q = new WP_Query(
-			array(
-				'post_type' => 'any',
-			)
-		);
-
-		$this->assertSameSets( array( $post_ids['wptests_pt1_p1'], $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
-	}
-
-	/**
-	 * @ticket 48556
-	 * @ticket 13509
-	 */
-	public function test_non_singular_queries_using_multiple_post_type_should_respect_post_type_read_private_posts_cap() {
-		wp_set_current_user( 0 );
-
-		register_post_type(
-			'wptests_pt1',
-			array(
-				'exclude_from_search' => false,
-				'capabilities'        => array(
-					'read_private_posts' => 'read_private_pt1s',
-				),
-			)
-		);
-
-		register_post_type(
-			'wptests_pt2',
-			array(
-				'exclude_from_search' => false,
-			)
-		);
-
-		$post_ids = array();
-
-		$post_ids['wptests_pt1_p1'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt1',
-				'post_status' => 'private',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt1_p2'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt1',
-				'post_status' => 'publish',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt2_p1'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt2',
-				'post_status' => 'private',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$post_ids['wptests_pt2_p2'] = $this->factory->post->create(
-			array(
-				'post_type'   => 'wptests_pt2',
-				'post_status' => 'publish',
-				'post_author' => self::$editor_user_id,
-			)
-		);
-
-		$q = new WP_Query(
-			array(
-				'post_type' => 'any',
-			)
-		);
-
-		$this->assertSameSets( array( $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
-
-		$u = $this->factory->user->create();
-
-		wp_set_current_user( self::$subscriber_user_id );
-		$GLOBALS['current_user']->add_cap( 'read_private_pt1s' );
-
-		$q = new WP_Query(
-			array(
-				'post_type' => array( 'wptests_pt1', 'wptests_pt2' ),
-			)
-		);
-
-		$this->assertSameSets( array( $post_ids['wptests_pt1_p1'], $post_ids['wptests_pt1_p2'], $post_ids['wptests_pt2_p2'] ), wp_list_pluck( $q->posts, 'ID' ) );
 	}
 }
