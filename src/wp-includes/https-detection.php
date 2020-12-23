@@ -158,33 +158,22 @@ function wp_cron_conditionally_prevent_sslverify( $request ) {
 function wp_is_owned_html_output( $html ) {
 	// 1. Check if HTML includes the site's Really Simple Discovery link.
 	if ( has_action( 'wp_head', 'rsd_link' ) ) {
-		ob_start();
-		rsd_link();
-
-		$pattern = ob_get_clean();
+		$pattern = esc_url( site_url( 'xmlrpc.php?rsd', 'rpc' ) ); // See rsd_link().
 		return false !== strpos( $html, $pattern );
 	}
 
 	// 2. Check if HTML includes the site's Windows Live Writer manifest link.
 	if ( has_action( 'wp_head', 'wlwmanifest_link' ) ) {
-		ob_start();
-		wlwmanifest_link();
-
 		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern             = ob_get_clean();
+		$pattern             = includes_url( 'wlwmanifest.xml' ); // See wlwmanifest_link().
 		$alternative_pattern = false !== strpos( $pattern, 'https://' ) ? str_replace( 'https://', 'http://', $pattern ) : str_replace( 'http://', 'https://', $pattern );
 		return false !== strpos( $html, $pattern ) || false !== strpos( $html, $alternative_pattern );
 	}
 
 	// 3. Check if HTML includes the site's REST API link.
 	if ( has_action( 'wp_head', 'rest_output_link_wp_head' ) ) {
-		ob_start();
-		add_filter( 'rest_queried_resource_route', '__return_empty_string', 9999 );
-		rest_output_link_wp_head();
-		remove_filter( 'rest_queried_resource_route', '__return_empty_string', 9999 );
-
 		// Try both HTTPS and HTTP since the URL depends on context.
-		$pattern             = ob_get_clean();
+		$pattern             = esc_url( get_rest_url() ); // See rest_output_link_wp_head().
 		$alternative_pattern = false !== strpos( $pattern, 'https://' ) ? str_replace( 'https://', 'http://', $pattern ) : str_replace( 'http://', 'https://', $pattern );
 		return false !== strpos( $html, $pattern ) || false !== strpos( $html, $alternative_pattern );
 	}

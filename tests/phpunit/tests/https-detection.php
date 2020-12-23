@@ -147,6 +147,11 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_owned_html_output( $html ) );
 
+		// HTML includes modified RSD link but same URL.
+		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_owned_html_output( $html ) );
+
 		// HTML does not include RSD link.
 		$html = $this->get_sample_html_string();
 		$this->assertFalse( wp_is_owned_html_output( $html ) );
@@ -160,6 +165,11 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes WLW manifest link.
 		$head_tag = get_echo( 'wlwmanifest_link' );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_owned_html_output( $html ) );
+
+		// HTML includes modified WLW manifest link but same URL.
+		$head_tag = str_replace( ' />', '>', get_echo( 'wlwmanifest_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_owned_html_output( $html ) );
 
@@ -183,6 +193,11 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes REST API link.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_owned_html_output( $html ) );
+
+		// HTML includes modified REST API link but same URL.
+		$head_tag = str_replace( ' />', '>', get_echo( 'rest_output_link_wp_head' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_owned_html_output( $html ) );
 
