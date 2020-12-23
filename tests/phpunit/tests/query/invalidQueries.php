@@ -136,7 +136,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	public function test_deprecated_parameters_have_no_effect_on_post() {
 		$query = new WP_Query(
 			array(
-				'static'    => 'a',
+				'static' => 'a',
 			)
 		);
 		$posts = $query->get_posts();
