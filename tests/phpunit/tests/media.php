@@ -3159,6 +3159,126 @@ EOF;
 			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
 		);
 	}
+
+	/**
+	 * @ticket 36982
+	 */
+	public function test_filter_image_srcset_and_sizes_by_image_attributes() {
+
+		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$class_attribute_string = 'test-class-string test-image-full';
+
+		// Add a filter to remove srcset and sizes from the generated image.
+		add_filter( 'wp_calculate_image_srcset', '__return_false' );
+		add_filter( 'wp_calculate_image_sizes', '__return_false' );
+
+		$image_with_class_attribute_no_srcset_sizes = wp_get_attachment_image( self::$large_id, 'full', false, array( 'class' => $class_attribute_string, 'alt' => 'Full size test image' ) );
+		$image_without_class_attribute_no_srcset_sizes = wp_get_attachment_image( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) );
+
+		// Remove the filter to restore srcset and sizes from the generated image.
+		remove_filter( 'wp_calculate_image_srcset', '__return_false' );
+		remove_filter( 'wp_calculate_image_sizes', '__return_false' );
+
+		$default_image_without_class_attribute = wp_get_attachment_image( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) );
+		$default_srcset_string_without_class_attribute = wp_get_attachment_image_srcset( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) );
+		$default_sizes_string_without_class_attribute = wp_get_attachment_image_sizes( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) );
+
+		// Filter the srcset and sizes values.
+		add_filter( 'wp_calculate_image_srcset', array( $this, '_filter_36982_srcset' ), 10, 6 );
+		add_filter( 'wp_calculate_image_sizes', array( $this, '_filter_36982_sizes' ), 10, 6 );
+
+		// Generate an image with srcset and sizes values that should match the filtered image.
+		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$image_file_date_dir = preg_replace( '/(\d{4}\/\d{2}\/).+/', '$1', $image_meta['file'] );
+
+		// Set sources that will match the filtered values.
+		$expected_sources = array(
+			$image_meta['width'] => array(
+				'url' => $uploads_dir_url . $image_meta['file'],
+				'descriptor' => 'w',
+				'value' => $image_meta['width'],
+				'width' => $image_meta['width'],
+				'height' => $image_meta['height'],
+			),
+		);
+
+		foreach( $image_meta['sizes'] as $size ) {
+			$expected_sources[ $size['width'] ] = array(
+				'url' => $uploads_dir_url . $image_file_date_dir . $size['file'],
+				'descriptor' => 'w',
+				'value' => $size['width'],
+				'width' => $size['width'],
+				'height' => $size['height'],
+			);
+		}
+
+		$expected_sources = array_slice( array_filter( array_map( function( $source, $image_meta ) {
+			if ( ! wp_image_matches_ratio( $image_meta['width'], $image_meta['height'], $source['width'], $source['height'] ) || $source['value'] > apply_filters( 'max_srcset_image_width', 1600, array( $image_meta['width'], $image_meta['height'] ) ) ) {
+				return false;
+			}
+			return $source['url'] . ' ' . $source['value'] . $source['descriptor'];
+		}, $expected_sources, array_fill( 0, count( $expected_sources ), $image_meta ) ) ), 2 );
+
+		// Set a sizes sting value that will match the arbitrary value set in the filter.
+		$expected_sizes_string = sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', 9999 );
+
+		$expected_image = '<img width="' . $image_meta['width'] . '" height="' . $image_meta['height'] . '" src="' . $uploads_dir_url . $image_meta['file'] . '" class="' . $class_attribute_string . '" alt="Full size test image" srcset="' . implode( ', ', $expected_sources ) . '" sizes="' . $expected_sizes_string . '" />';
+
+		// Images without a class attribute that will match the test filter. Should match the default image with unfiltered srcset and sizes values.
+		$this->assertSame( $default_image_without_class_attribute, wp_get_attachment_image( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) ) );
+		$this->assertSame( $default_image_without_class_attribute, wp_image_add_srcset_and_sizes( $image_without_class_attribute_no_srcset_sizes, $image_meta, self::$large_id ) );
+
+		// Images with a class attribute that will match the test filter. Should match the expected image with filtered srcset and sizes values.
+		$this->assertSame( $expected_image, wp_image_add_srcset_and_sizes( $image_with_class_attribute_no_srcset_sizes, $image_meta, self::$large_id ) );
+		$this->assertSame( $expected_image, wp_get_attachment_image( self::$large_id, 'full', false, array( 'class' => $class_attribute_string, 'alt' => 'Full size test image' ) ) );
+
+		// Srcset and sizes strings with class attribute string. Should match the filtered string.
+		$this->assertSame( implode( ', ', $expected_sources ), wp_get_attachment_image_srcset( self::$large_id, 'full', false, array( 'class' => $class_attribute_string, 'alt' => 'Full size test image' ) ) );
+		$this->assertSame( $expected_sizes_string, wp_get_attachment_image_sizes( self::$large_id, 'full', false, array( 'class' => $class_attribute_string, 'alt' => 'Full size test image' ) ) );
+
+		// Srcset and sizes strings without class attribute string. Should match the unfiltered default string.
+		$this->assertSame( $default_srcset_string_without_class_attribute, wp_get_attachment_image_srcset( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) ) );
+		$this->assertSame( $default_sizes_string_without_class_attribute, wp_get_attachment_image_sizes( self::$large_id, 'full', false, array( 'class' => '', 'alt' => 'Full size test image' ) ) );
+
+
+	}
+
+	public function _filter_36982_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id, $image_attr ) {
+
+		if ( empty( $image_attr ) ) {
+			return $sources;
+		}
+
+		if ( empty( $image_attr['class'] ) ) {
+			return $sources;
+		}
+
+		$class_array = explode( ' ', $image_attr['class'] );
+
+		if ( in_array( 'test-image-full', $class_array, true ) ) {
+			return array_slice( $sources, 2 );
+		}
+
+		return $sources;
+	}
+	public function _filter_36982_sizes( $sizes, $size_array, $image_src, $image_meta, $attachment_id, $image_attr ) {
+
+		if ( empty( $image_attr ) ) {
+			return $sizes;
+		}
+
+		if ( empty( $image_attr['class'] ) ) {
+			return $sizes;
+		}
+
+		$class_array = explode( ' ', $image_attr['class'] );
+
+		if ( in_array( 'test-image-full', $class_array, true ) ) {
+			return sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', 9999 );
+		}
+
+		return $sizes;
+	}
 }
 
 /**
