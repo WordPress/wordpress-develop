@@ -2524,6 +2524,7 @@ class WP_Query {
 			if ( ! empty( $where_status ) ) {
 				$where .= " AND ($where_status)";
 			}
+
 		} elseif ( ! $this->is_singular ) {
 			if ( 'any' === $post_type ) {
 				$queried_post_types = get_post_types( array( 'exclude_from_search' => false ) );
@@ -2549,7 +2550,7 @@ class WP_Query {
 
 					// Public statuses.
 					$public_statuses = get_post_stati( array( 'public' => true ) );
-					$status_clauses  = array();
+					$status_clauses  = [];
 					foreach ( (array) $public_statuses as $public_status ) {
 						$status_clauses[] = "{$wpdb->posts}.post_status = '$public_status'";
 					}
@@ -2588,6 +2589,7 @@ class WP_Query {
 			} else {
 				$where .= ' AND 1=0 ';
 			}
+
 		} else {
 			$where .= $post_type_where;
 		}
