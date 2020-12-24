@@ -666,13 +666,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  *              passed, whether the current user has the given meta capability for the given object.
  */
 function current_user_can( $capability, ...$args ) {
-	$current_user = wp_get_current_user();
-
-	if ( empty( $current_user ) ) {
-		return false;
-	}
-
-	return $current_user->has_cap( $capability, ...$args );
+	return user_can( wp_get_current_user(), $capability, ...$args );
 }
 
 /**
@@ -782,7 +776,7 @@ function user_can( $user, $capability, ...$args ) {
 		$user = get_userdata( $user );
 	}
 
-	if ( ! $user || ! $user->exists() ) {
+	if ( empty( $user ) ) {
 		return false;
 	}
 
