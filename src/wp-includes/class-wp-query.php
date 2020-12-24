@@ -2541,9 +2541,6 @@ class WP_Query {
 				foreach ( $queried_post_types as $queried_post_type ) {
 
 					$queried_post_type_object = get_post_type_object( $queried_post_type );
-					if ( ! $queried_post_type_object instanceof \WP_Post_Type ) {
-						continue;
-					}
 
 					$type_where = '(' . $wpdb->prepare( "{$wpdb->posts}.post_type = %s AND (", $queried_post_type );
 
@@ -2569,7 +2566,7 @@ class WP_Query {
 					}
 
 					// Add private states that are visible to current user.
-					if ( is_user_logged_in() ) {
+					if ( is_user_logged_in() && $queried_post_type_object instanceof \WP_Post_Type ) {
 						$read_private_cap = $queried_post_type_object->cap->read_private_posts;
 						$private_statuses = get_post_stati( array( 'private' => true ) );
 						foreach ( (array) $private_statuses as $private_status ) {
