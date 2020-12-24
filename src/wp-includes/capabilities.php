@@ -656,6 +656,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  * @since 2.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.7.0 Converted to wrapper for the user_can() function.
  *
  * @see WP_User::has_cap()
  * @see map_meta_cap()
@@ -685,6 +686,7 @@ function current_user_can( $capability, ...$args ) {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.7.0 Wraps current_user_can() after switching to blog.
  *
  * @param int    $blog_id    Site ID.
  * @param string $capability Capability name.
@@ -694,16 +696,7 @@ function current_user_can( $capability, ...$args ) {
 function current_user_can_for_blog( $blog_id, $capability, ...$args ) {
 	$switched = is_multisite() ? switch_to_blog( $blog_id ) : false;
 
-	$current_user = wp_get_current_user();
-
-	if ( empty( $current_user ) ) {
-		if ( $switched ) {
-			restore_current_blog();
-		}
-		return false;
-	}
-
-	$can = $current_user->has_cap( $capability, ...$args );
+	$can = current_user_can( $capability, ...$args );
 
 	if ( $switched ) {
 		restore_current_blog();
