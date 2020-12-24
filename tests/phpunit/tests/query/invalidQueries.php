@@ -108,7 +108,7 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 
 		$query = new WP_Query(
 			array(
-				'post_type' => array( 'unregistered_cpt', 'page' )
+				'post_type' => array( 'unregistered_cpt', 'page' ),
 			)
 		);
 		$posts = $query->get_posts();
