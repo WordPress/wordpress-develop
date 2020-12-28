@@ -1615,7 +1615,7 @@ function wp_prototype_before_jquery( $js_array ) {
 
 /**
  * Load localized data on print rather than initialization.
- *S
+ *
  * These localizations require information that may not be loaded even by init.
  *
  * @since 2.5.0
