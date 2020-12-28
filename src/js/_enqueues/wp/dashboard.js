@@ -392,7 +392,7 @@ jQuery( function( $ ) {
 		 */
 		toggleLocationForm: function( action ) {
 			var $toggleButton = $( '.community-events-toggle-location' ),
-			  	$clearButton = $( '.community-events-clear-location' ),
+			  	$clearButton  = $( '.community-events-clear-location' ),
 				$cancelButton = $( '.community-events-cancel' ),
 				$form         = $( '.community-events-form' ),
 				$target       = $();
