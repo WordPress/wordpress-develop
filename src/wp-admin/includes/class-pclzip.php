@@ -4209,19 +4209,15 @@
         if ($p_entry['compression'] == 0) {
 
           // ----- Reading the file
-          if ($p_entry['compressed_size'] > 0) {
-            $p_string = @fread($this->zip_fd, $p_entry['compressed_size']);
-          } else {
-            $p_string = false;
+          if ($p_entry['compressed_size'] <= 0 || ($p_string = @fread($this->zip_fd, $p_entry['compressed_size'])) === false) {
+            $p_string = '';
           }
         }
         else {
 
           // ----- Reading the file
-          if ($p_entry['compressed_size'] > 0) {
-            $v_data = @fread($this->zip_fd, $p_entry['compressed_size']);
-          } else {
-            $v_data = false;
+          if ($p_entry['compressed_size'] <= 0 || ($v_data = @fread($this->zip_fd, $p_entry['compressed_size'])) === false) {
+            $v_data = '';
           }
 
           // ----- Decompress the file
