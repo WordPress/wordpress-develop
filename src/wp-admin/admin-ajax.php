@@ -130,6 +130,7 @@ $core_actions_post = array(
 	'install-theme',
 	'get-post-thumbnail-html',
 	'get-community-events',
+	'clear-community-events',
 	'edit-theme-plugin-file',
 	'wp-privacy-export-personal-data',
 	'wp-privacy-erase-personal-data',

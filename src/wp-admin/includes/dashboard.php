@@ -1311,6 +1311,10 @@ function wp_print_community_events_markup() {
 				<button class="button-link community-events-toggle-location" aria-label="<?php esc_attr_e( 'Edit city' ); ?>" aria-expanded="false">
 					<span class="dashicons dashicons-edit"></span>
 				</button>
+
+				<button class="button-link community-events-clear-location" aria-label="<?php esc_attr_e( 'Clear city' ); ?>" aria-expanded="false">
+					<span class="dashicons dashicons-no"></span>
+				</button>
 			</p>
 
 			<form class="community-events-form" aria-hidden="true" action="<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>" method="post">
