@@ -497,7 +497,7 @@ jQuery( function( $ ) {
 			var template,
 				elementVisibility,
 				$toggleButton    = $( '.community-events-toggle-location' ),
-				$clearButton = $( '.community-events-clear-location' ),
+				$clearButton 	 = $( '.community-events-clear-location' ),
 				$locationMessage = $( '#community-events-location-message' ),
 				$results         = $( '.community-events-results' );
 
