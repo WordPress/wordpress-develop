@@ -60,4 +60,19 @@ class Tests_XMLRPC_wp_getTaxonomy extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( (array) $taxonomy->cap, $result['cap'], 'capabilities' );
 		$this->assertSame( (array) $taxonomy->object_type, $result['object_type'], 'object_types' );
 	}
+
+	/**
+	 * @ticket 51493
+	 */
+	function test_taxonomy_with_menu_field_specified() {
+		$this->make_user_by_role( 'editor' );
+
+		$fields = array(
+			'menu',
+		);
+
+		$result = $this->myxmlrpcserver->wp_getTaxonomy( array( 1, 'editor', 'editor', 'category', $fields ) );
+		$this->assertNotIXRError( $result );
+		$this->assertTrue( $result['show_in_menu'] );
+	}
 }
