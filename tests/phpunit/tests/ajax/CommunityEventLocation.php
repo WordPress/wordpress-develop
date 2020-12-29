@@ -11,7 +11,7 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @package    WordPress
  * @subpackage UnitTests
  * @since      5.7.0
- * @group      ajaxo
+ * @group      ajax
  */
 class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 {
