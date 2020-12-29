@@ -22,11 +22,11 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function setUp() {
 		parent::setUp();
-		$wpUser = get_user_by('email', WP_TESTS_EMAIL);
-		update_user_meta($wpUser->ID, 'community-events-location', 'DummyData');
+		$wpUser = get_user_by( 'email', WP_TESTS_EMAIL );
+		update_user_meta( $wpUser->ID, 'community-events-location', 'DummyData' );
 
-		$wpUser = get_user_by('email', WP_TESTS_EMAIL);
-		wp_set_current_user($wpUser->ID);
+		$wpUser = get_user_by( 'email', WP_TESTS_EMAIL );
+		wp_set_current_user( $wpUser->ID );
 		$this->user_id = $wpUser->ID;
 	}
 
@@ -35,13 +35,13 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_without_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->user_id, 'community-events-location', true);
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
+		$this->assertNotTrue( $this->isNullOrEmptyString ( $content ) );
 		$this->handleAjaxCall();
 
 		// After Failed Ajax Call should be still 'DummyData';
 		$content = $this->getCommunityEventsContent();
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 	}
 
 	/**
@@ -49,14 +49,14 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_with_wrong_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->user_id, 'community-events-location', true);
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
-		$_POST['_wpnonce'] = wp_create_nonce('community_events_but_wrong_nonce');
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
+		$_POST['_wpnonce'] = wp_create_nonce( 'community_events_but_wrong_nonce' );
 		$this->handleAjaxCall();
 
 		// After Failed Ajax Call should be still 'DummyData';
 		$content = $this->getCommunityEventsContent();
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 	}
 
 	/**
@@ -66,14 +66,14 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 		$this->logout();
 
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->user_id, 'community-events-location', true);
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
-		$_POST['_wpnonce'] = wp_create_nonce('community_events');
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
+		$_POST['_wpnonce'] = wp_create_nonce( 'community_events' );
 		$this->handleAjaxCall();
 
 		// After Failed Ajax Call should be still 'DummyData';
 		$content = $this->getCommunityEventsContent();
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
+		$this->assertNotTrue($this->isNullOrEmptyString( $content ) );
 	}
 
 	/**
@@ -82,31 +82,31 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	public function test_clear_community_events_location() {
 		// Before should be set to 'DummyData'
 		$content = $this->getCommunityEventsContent();
-		$this->assertNotTrue($this->isNullOrEmptyString($content));
-		$_POST['_wpnonce'] = wp_create_nonce('community_events');
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
+		$_POST['_wpnonce'] = wp_create_nonce( 'community_events' );
 		$this->handleAjaxCall();
 
 		// After Ajax Call should be set to null
 		$content = $this->getCommunityEventsContent();
-		$this->assertTrue($this->isNullOrEmptyString($content));
+		$this->assertTrue( $this->isNullOrEmptyString( $content ) );
 	}
 
 	/**
 	 * @return mixed
 	 */
 	private function getCommunityEventsContent() {
-		return get_user_meta($this->user_id, 'community-events-location', true);
+		return get_user_meta( $this->user_id, 'community-events-location', true );
 	}
 
 	private function handleAjaxCall() {
 		try {
 			$this->_handleAjax('clear-community-events');
-		} catch (WPDieException $e) {
+		} catch ( WPDieException $e ) {
 			unset($e);
 		}
 	}
 
 	private function isNullOrEmptyString($string) {
-		return (!isset($string) || trim($string) === '');
+		return ( ! isset( $string ) || trim( $string ) === '');
 	}
 }
