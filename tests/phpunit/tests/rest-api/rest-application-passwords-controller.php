@@ -405,6 +405,22 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 	}
 
 	/**
+	 * @ticket 51939
+	 */
+	public function test_create_item_records_app_passwords_in_use() {
+		wp_set_current_user( self::$admin );
+
+		$this->assertFalse( WP_Application_Passwords::is_in_use() );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/users/me/application-passwords' );
+		$request->set_body_params( array( 'name' => 'App' ) );
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertTrue( WP_Application_Passwords::is_in_use() );
+	}
+
+	/**
 	 * @ticket 42790
 	 */
 	public function test_update_item() {

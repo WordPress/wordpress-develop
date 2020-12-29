@@ -87,8 +87,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="about__section has-2-columns is-wider-left has-transparent-background-color">
 				<div class="column">
-					<h2><?php _e( 'Caption videos—right in the block editor' ); ?></h2>
-					<p><?php _e( 'Adding captions to your videos has landed in the block editor, with special attention to accessibility. Whether you’re navigating with a keyboard or a mouse, whether or not you use a screen reader, captions are easier to include than ever.' ); ?></p>
+					<h2><?php _e( 'Upload video captions directly in the block editor' ); ?></h2>
+					<p><?php _e( 'To help you add subtitles or captions to your videos, you can now upload them within your post or page. This makes it easier than ever to make your videos accessible for anyone who needs or prefers to use subtitles.' ); ?></p>
 				</div>
 			</div>
 		</div>
@@ -108,7 +108,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column about__image is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2020/11/TT1-Screenshots-Compressed.jpg" alt="" />
+				<img src="https://s.w.org/images/core/5.6/twentytwentyone-layouts.jpg" alt="" />
 			</div>
 		</div>
 
@@ -119,8 +119,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %s: WCAG information link. */
-						__( 'What’s more, this default theme puts accessibility at the heart of your website. It conforms to <a href="%s">Web Content Accessibility Guidelines (WCAG) 2.1</a> at Level AAA right out of the box, so you can meet the highest level of international accessibility standards. Just add the necessary elements to your plugins, pictures, and other content, and you’re ready to go!' ),
+						/* translators: 1: WordPress accessibility-ready guidelines link, 2: WCAG information link. */
+						__( 'What’s more, this default theme puts accessibility at the heart of your website. It conforms to the <a href="%1$s">WordPress accessibility-ready guidelines</a> and addresses several more specialized standards from the <a href="%2$s">Web Content Accessibility Guidelines (WCAG) 2.1 at level AAA</a>. It will help you meet the highest level of international accessibility standards when you create accessible content and choose plugins which are accessible too!' ),
+						'https://make.wordpress.org/themes/handbook/review/accessibility/',
 						'https://www.w3.org/WAI/WCAG2AAA-Conformance'
 					);
 					?>
@@ -145,7 +146,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__section">
 			<div class="column about__image is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2020/11/Rainbow-Compressed.png" alt="" />
+				<img src="https://s.w.org/images/core/5.6/twentytwentyone-rainbow.png" alt="" />
 			</div>
 		</div>
 
@@ -165,7 +166,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column has-border" style="background-color:#e4d1d1;background-color:var(--global--color-red)">
 				<h3><?php _e( 'Accessibility statement template' ); ?></h3>
-				<p><?php _e( 'Even if you’re not an expert, you can start letting folks know about your site’s commitment to accessibility at the click of a button! The new <a href="%s">feature plugin</a> includes template copy for you to update and publish, and it’s written to support different contexts and jurisdictions.', '#' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Accessibility statement feature plugin link. */
+						__( 'Even if you’re not an expert, you can start letting folks know about your site’s commitment to accessibility at the click of a button! The new <a href="%s">feature plugin</a> includes template copy for you to update and publish, and it’s written to support different contexts and jurisdictions.' ),
+						'https://github.com/10degrees/accessibility-statement-plugin'
+					);
+					?>
+				</p>
 			</div>
 			<div class="column has-border" style="background-color:#d1d1e4;background-color:var(--global--color-purple)">
 				<h3><?php _e( 'Built-in patterns' ); ?></h3>
@@ -183,7 +192,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<h3><?php _e( 'More PHP 8 support' ); ?></h3>
-				<p><?php _e( '5.6 marks the first steps toward WordPress Core support for PHP 8. Now is a great time to start planning how your WordPress products, services and sites can support the latest PHP version. For more information about what to expect next, [link text].' ); ?></p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: WordPress and PHP 8 dev note link. */
+						__( '5.6 marks the first steps toward WordPress Core support for PHP 8. Now is a great time to start planning how your WordPress products, services and sites can support the latest PHP version. For more information about what to expect next, <a href="%s">read the PHP 8 developer note</a>.' ),
+						'https://make.wordpress.org/core/2020/11/23/wordpress-and-php-8-0/'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 		<div class="about__section">
@@ -194,16 +211,20 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: jQuery update test plugin link. */
 						__( 'Updates to jQuery in WordPress take place across three releases: 5.5, 5.6, and 5.7. As we reach the mid-point of this process, run the <a href="%s">update test plugin</a> to check your sites for errors ahead of time.' ),
-						'https://wordpress.org/plugins/wp-jquery-update-test/'
+						current_user_can( 'install_plugins' ) ?
+							esc_url( network_admin_url( 'plugin-install.php?tab=search&type=term&s=slug:wp-jquery-update-test' ) ) :
+							esc_url( __( 'https://wordpress.org/plugins/wp-jquery-update-test/' ) )
 					);
 					?>
 				</p>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: jQuery migrate plugin link. */
-						__( 'If you find issues with the way your site looks (e.g. a slider doesn’t work, a button is stuck — that sort of thing), install the <a href="%s">jQuery Migrate plugin.</a>' ),
-						'https://wordpress.org/plugins/enable-jquery-migrate-helper/ '
+						/* translators: %s: jQuery Migrate plugin link. */
+						__( 'If you find issues with the way your site looks (e.g. a slider doesn’t work, a button is stuck — that sort of thing), install the <a href="%s">jQuery Migrate plugin</a>.' ),
+						current_user_can( 'install_plugins' ) ?
+							esc_url( network_admin_url( 'plugin-install.php?tab=search&type=term&s=slug:enable-jquery-migrate-helper' ) ) :
+							esc_url( __( 'https://wordpress.org/plugins/enable-jquery-migrate-helper/' ) )
 					);
 					?>
 				</p>
@@ -220,7 +241,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					printf(
 						/* translators: %s: WordPress 5.6 Field Guide link. */
 						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 5.6 Field Guide.</a>' ),
-						'#'
+						'https://make.wordpress.org/core/2020/11/20/wordpress-5-6-field-guide/'
 					);
 					?>
 				</p>

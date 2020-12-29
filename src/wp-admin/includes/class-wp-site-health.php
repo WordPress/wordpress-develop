@@ -1493,12 +1493,13 @@ class WP_Site_Health {
 	 * enabled, but only if you visit the right site address.
 	 *
 	 * @since 5.2.0
+	 * @since 5.7.0 Updated to rely on {@see wp_is_using_https()} and {@see wp_is_https_supported()}.
 	 *
 	 * @return array The test results.
 	 */
 	public function get_test_https_status() {
 		$result = array(
-			'label'       => __( 'Your website is using an active HTTPS connection.' ),
+			'label'       => __( 'Your website is using an active HTTPS connection' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1519,15 +1520,11 @@ class WP_Site_Health {
 			'test'        => 'https_status',
 		);
 
-		if ( is_ssl() ) {
-			$wp_url   = get_bloginfo( 'wpurl' );
-			$site_url = get_bloginfo( 'url' );
+		if ( ! wp_is_using_https() ) {
+			$result['status'] = 'critical';
+			$result['label']  = __( 'Your website does not use HTTPS' );
 
-			if ( 'https' !== substr( $wp_url, 0, 5 ) || 'https' !== substr( $site_url, 0, 5 ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'Only parts of your site are using HTTPS' );
-
+			if ( is_ssl() ) {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(
@@ -1536,17 +1533,34 @@ class WP_Site_Health {
 						esc_url( admin_url( 'options-general.php' ) )
 					)
 				);
+			} else {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: %s: URL to General Settings screen. */
+						__( 'Your <a href="%s">WordPress Address</a> is not set up to use HTTPS.' ),
+						esc_url( admin_url( 'options-general.php' ) )
+					)
+				);
+			}
 
-				$result['actions'] .= sprintf(
+			if ( wp_is_https_supported() ) {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'HTTPS is already supported for your website.' )
+				);
+
+				$result['actions'] = sprintf(
 					'<p><a href="%s">%s</a></p>',
 					esc_url( admin_url( 'options-general.php' ) ),
 					__( 'Update your site addresses' )
 				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Talk to your web host about supporting HTTPS for your website.' )
+				);
 			}
-		} else {
-			$result['status'] = 'recommended';
-
-			$result['label'] = __( 'Your site does not use HTTPS' );
 		}
 
 		return $result;
@@ -2125,7 +2139,7 @@ class WP_Site_Health {
 		} else {
 			$result['actions'] .= sprintf(
 				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working',
+				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
 				__( 'Learn how to configure the Authorization header.' ),
 				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )

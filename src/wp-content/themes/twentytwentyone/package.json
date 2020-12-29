@@ -1,6 +1,6 @@
 {
 	"name": "twentytwentyone",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Default WP Theme",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -9,9 +9,9 @@
 		"Theme"
 	],
 	"bugs": {
-		"url": "https://github.com/wordpress/twentytwentyone"
+		"url": "https://core.trac.wordpress.org/"
 	},
-	"homepage": "https://github.com/wordpress/twentytwentyone",
+	"homepage": "https://wordpress.org/themes/twentytwentyone/",
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^2.2.2",
 		"@wordpress/eslint-plugin": "^7.3.0",

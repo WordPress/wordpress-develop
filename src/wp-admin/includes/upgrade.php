@@ -874,7 +874,7 @@ function upgrade_all() {
 		upgrade_550();
 	}
 
-	if ( $wp_current_db_version < 49632 ) {
+	if ( $wp_current_db_version < 49752 ) {
 		upgrade_560();
 	}
 
@@ -2274,6 +2274,24 @@ function upgrade_560() {
 		 */
 		save_mod_rewrite_rules();
 	}
+
+	if ( $wp_current_db_version < 49735 ) {
+		delete_transient( 'dirsize_cache' );
+	}
+
+	if ( $wp_current_db_version < 49752 ) {
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$wpdb->usermeta} WHERE meta_key = %s LIMIT 1",
+				WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS
+			)
+		);
+
+		if ( ! empty( $results ) ) {
+			$network_id = get_main_network_id();
+			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
+		}
+	}
 }
 
 /**
@@ -3529,6 +3547,8 @@ function wp_should_upgrade_global_tables() {
 
 	/**
 	 * Filters if upgrade routines should be run on global tables.
+	 *
+	 * @since 4.3.0
 	 *
 	 * @param bool $should_upgrade Whether to run the upgrade routines on global tables.
 	 */
