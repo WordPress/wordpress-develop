@@ -13,31 +13,29 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @since      5.7.0
  * @group      ajax
  */
-class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
-{
-	private $userId;
+class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
+
+	private $user_id;
 
 	/**
 	 * Runs before each Test
 	 */
-	public function setUp()
-	{
+	public function setUp() {
 		parent::setUp();
 		$wpUser = get_user_by('email', WP_TESTS_EMAIL);
 		update_user_meta($wpUser->ID, 'community-events-location', 'DummyData');
 
 		$wpUser = get_user_by('email', WP_TESTS_EMAIL);
 		wp_set_current_user($wpUser->ID);
-		$this->userId = $wpUser->ID;
+		$this->user_id = $wpUser->ID;
 	}
 
 	/**
 	 *    Tests the new Clear Community Events Location Ajax endpoint without nonce
 	 */
-	public function test_clear_community_events_location_without_nonce()
-	{
+	public function test_clear_community_events_location_without_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->userId, 'community-events-location', true);
+		$content = get_user_meta($this->user_id, 'community-events-location', true);
 		$this->assertNotTrue($this->isNullOrEmptyString($content));
 		$this->handleAjaxCall();
 
@@ -49,10 +47,9 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 	/**
 	 *    Tests the new Clear Community Events Location Ajax endpoint with wrong nonce
 	 */
-	public function test_clear_community_events_location_with_wrong_nonce()
-	{
+	public function test_clear_community_events_location_with_wrong_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->userId, 'community-events-location', true);
+		$content = get_user_meta($this->user_id, 'community-events-location', true);
 		$this->assertNotTrue($this->isNullOrEmptyString($content));
 		$_POST['_wpnonce'] = wp_create_nonce('community_events_but_wrong_nonce');
 		$this->handleAjaxCall();
@@ -65,12 +62,11 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 	/**
 	 *    Tests the new Clear Community Events Location Ajax endpoint without being logged in
 	 */
-	public function test_clear_community_events_location_logged_out()
-	{
+	public function test_clear_community_events_location_logged_out() {
 		$this->logout();
 
 		// Before should be set to 'DummyData'
-		$content = get_user_meta($this->userId, 'community-events-location', true);
+		$content = get_user_meta($this->user_id, 'community-events-location', true);
 		$this->assertNotTrue($this->isNullOrEmptyString($content));
 		$_POST['_wpnonce'] = wp_create_nonce('community_events');
 		$this->handleAjaxCall();
@@ -83,8 +79,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 	/**
 	 *    Tests the new Clear Community Events Location Ajax endpoint in the correct way
 	 */
-	public function test_clear_community_events_location()
-	{
+	public function test_clear_community_events_location() {
 		// Before should be set to 'DummyData'
 		$content = $this->getCommunityEventsContent();
 		$this->assertNotTrue($this->isNullOrEmptyString($content));
@@ -99,13 +94,11 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 	/**
 	 * @return mixed
 	 */
-	private function getCommunityEventsContent()
-	{
-		return get_user_meta($this->userId, 'community-events-location', true);
+	private function getCommunityEventsContent() {
+		return get_user_meta($this->user_id, 'community-events-location', true);
 	}
 
-	private function handleAjaxCall()
-	{
+	private function handleAjaxCall() {
 		try {
 			$this->_handleAjax('clear-community-events');
 		} catch (WPDieException $e) {
@@ -113,8 +106,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase
 		}
 	}
 
-	private function isNullOrEmptyString($string)
-	{
+	private function isNullOrEmptyString($string) {
 		return (!isset($string) || trim($string) === '');
 	}
 }
