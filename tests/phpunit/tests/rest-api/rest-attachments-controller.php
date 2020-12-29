@@ -2048,7 +2048,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 					),
 				),
 			),
-			'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
 		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
