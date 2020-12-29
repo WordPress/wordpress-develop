@@ -22,9 +22,8 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 		$wp_user = get_user_by( 'email', WP_TESTS_EMAIL );
-		update_user_meta( $wpUser->ID, 'community-events-location', 'DummyData' );
+		update_user_meta( $wp_user->ID, 'community-events-location', 'DummyData' );
 
-		$wpUser = get_user_by( 'email', WP_TESTS_EMAIL );
 		wp_set_current_user( $wp_user->ID );
 		$this->user_id = $wp_user->ID;
 	}
