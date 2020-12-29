@@ -101,7 +101,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 		try {
 			$this->_handleAjax( 'clear-community-events' );
 		} catch ( WPDieException $e ) {
-			unset ( $e );
+			unset( $e );
 		}
 	}
 
