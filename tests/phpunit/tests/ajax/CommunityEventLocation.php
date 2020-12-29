@@ -35,8 +35,8 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_without_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', true );
-		$this->assertNotTrue( $this->isNullOrEmptyString ( $content ) );
+		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$this->handleAjaxCall();
 
 		// After Failed Ajax Call should be still 'DummyData';
@@ -49,7 +49,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_with_wrong_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', true );
+		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
 		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$_POST['_wpnonce'] = wp_create_nonce( 'community_events_but_wrong_nonce' );
 		$this->handleAjaxCall();
@@ -66,14 +66,14 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 		$this->logout();
 
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', true );
+		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
 		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$_POST['_wpnonce'] = wp_create_nonce( 'community_events' );
 		$this->handleAjaxCall();
 
 		// After Failed Ajax Call should be still 'DummyData';
 		$content = $this->getCommunityEventsContent();
-		$this->assertNotTrue($this->isNullOrEmptyString( $content ) );
+		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 	}
 
 	/**
@@ -95,18 +95,18 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 * @return mixed
 	 */
 	private function getCommunityEventsContent() {
-		return get_user_meta( $this->user_id, 'community-events-location', true );
+		return get_user_meta( $this->user_id, 'community-events-location', TRUE );
 	}
 
 	private function handleAjaxCall() {
 		try {
-			$this->_handleAjax('clear-community-events');
+			$this->_handleAjax( 'clear-community-events' );
 		} catch ( WPDieException $e ) {
-			unset($e);
+			unset ( $e );
 		}
 	}
 
-	private function isNullOrEmptyString($string) {
-		return ( ! isset( $string ) || trim( $string ) === '');
+	private function isNullOrEmptyString( $string ) {
+		return ( ! isset( $string ) || trim( $string ) === '' );
 	}
 }
