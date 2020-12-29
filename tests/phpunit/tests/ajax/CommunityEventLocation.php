@@ -14,7 +14,6 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @group      ajax
  */
 class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
-
 	private $user_id;
 
 	/**
@@ -35,7 +34,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_without_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
 		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$this->handleAjaxCall();
 
@@ -49,7 +48,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_clear_community_events_location_with_wrong_nonce() {
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
 		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$_POST['_wpnonce'] = wp_create_nonce( 'community_events_but_wrong_nonce' );
 		$this->handleAjaxCall();
@@ -66,7 +65,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 		$this->logout();
 
 		// Before should be set to 'DummyData'
-		$content = get_user_meta( $this->user_id, 'community-events-location', TRUE );
+		$content = get_user_meta( $this->user_id, 'community-events-location', true );
 		$this->assertNotTrue( $this->isNullOrEmptyString( $content ) );
 		$_POST['_wpnonce'] = wp_create_nonce( 'community_events' );
 		$this->handleAjaxCall();
@@ -95,7 +94,7 @@ class Tests_Community_Event_location extends WP_Ajax_UnitTestCase {
 	 * @return mixed
 	 */
 	private function getCommunityEventsContent() {
-		return get_user_meta( $this->user_id, 'community-events-location', TRUE );
+		return get_user_meta( $this->user_id, 'community-events-location', true );
 	}
 
 	private function handleAjaxCall() {
