@@ -474,14 +474,14 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					),
 				);
 			}
-		}
 
-		if ( 0 === count( $modifiers ) ) {
-			return new WP_Error(
-				'rest_image_not_edited',
-				__( 'The image was not edited. Edit the image before applying the changes.' ),
-				array( 'status' => 400 )
-			);
+			if ( 0 === count( $modifiers ) ) {
+				return new WP_Error(
+					'rest_image_not_edited',
+					__( 'The image was not edited. Edit the image before applying the changes.' ),
+					array( 'status' => 400 )
+				);
+			}
 		}
 
 		/*
@@ -1357,6 +1357,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			'modifiers' => array(
 				'description' => __( 'Array of image edits.' ),
 				'type'        => 'array',
+				'minItems'    => 1,
 				'items'       => array(
 					'description' => __( 'Image edit.' ),
 					'type'        => 'object',
@@ -1366,7 +1367,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 					),
 					'oneOf'       => array(
 						array(
-							'title'       => __( 'rotation' ),
+							'title'       => __( 'Rotation' ),
 							'properties'  => array(
 								'type' => array(
 									'description' => __( 'Rotation type.' ),
@@ -1389,7 +1390,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 							),
 						),
 						array(
-							'title'       => __( 'crop' ),
+							'title'       => __( 'Crop' ),
 							'properties'  => array(
 								'type' => array(
 									'description' => __( 'Crop type.' ),
