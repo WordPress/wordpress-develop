@@ -1316,38 +1316,6 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 	 */
 	protected function get_edit_media_item_args() {
 		return array(
-			'rotation'  => array(
-				'description'      => __( 'DEPRECATED: Use `modifiers` instead. The amount to rotate the image clockwise in degrees.' ),
-				'type'             => 'integer',
-				'minimum'          => 0,
-				'exclusiveMinimum' => true,
-				'maximum'          => 360,
-				'exclusiveMaximum' => true,
-			),
-			'x'         => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the x position to start the crop from.' ),
-				'type'        => 'number',
-				'minimum'     => 0,
-				'maximum'     => 100,
-			),
-			'y'         => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the y position to start the crop from.' ),
-				'type'        => 'number',
-				'minimum'     => 0,
-				'maximum'     => 100,
-			),
-			'width'     => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the width to crop the image to.' ),
-				'type'        => 'number',
-				'minimum'     => 0,
-				'maximum'     => 100,
-			),
-			'height'    => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the height to crop the image to.' ),
-				'type'        => 'number',
-				'minimum'     => 0,
-				'maximum'     => 100,
-			),
 			'src'       => array(
 				'description' => __( 'URL to the edited image file.' ),
 				'type'        => 'string',
@@ -1429,6 +1397,38 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 						),
 					),
 				),
+			),
+			'rotation'  => array(
+				'description'      => __( 'DEPRECATED: Use `modifiers` instead. The amount to rotate the image clockwise in degrees.' ),
+				'type'             => 'integer',
+				'minimum'          => 0,
+				'exclusiveMinimum' => true,
+				'maximum'          => 360,
+				'exclusiveMaximum' => true,
+			),
+			'x'         => array(
+				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the x position to start the crop from.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'y'         => array(
+				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the y position to start the crop from.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'width'     => array(
+				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the width to crop the image to.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
+			),
+			'height'    => array(
+				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the height to crop the image to.' ),
+				'type'        => 'number',
+				'minimum'     => 0,
+				'maximum'     => 100,
 			),
 		);
 	}
