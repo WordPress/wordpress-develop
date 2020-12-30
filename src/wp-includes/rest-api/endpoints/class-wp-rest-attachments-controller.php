@@ -1399,7 +1399,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				),
 			),
 			'rotation'  => array(
-				'description'      => __( 'DEPRECATED: Use `modifiers` instead. The amount to rotate the image clockwise in degrees.' ),
+				'description'      => __( 'The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.' ),
 				'type'             => 'integer',
 				'minimum'          => 0,
 				'exclusiveMinimum' => true,
@@ -1407,25 +1407,25 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'exclusiveMaximum' => true,
 			),
 			'x'         => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the x position to start the crop from.' ),
+				'description' => __( 'As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'y'         => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the y position to start the crop from.' ),
+				'description' => __( 'As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'width'     => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the width to crop the image to.' ),
+				'description' => __( 'As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
 			),
 			'height'    => array(
-				'description' => __( 'DEPRECATED: Use `modifiers` instead. As a percentage of the image, the height to crop the image to.' ),
+				'description' => __( 'As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.' ),
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
