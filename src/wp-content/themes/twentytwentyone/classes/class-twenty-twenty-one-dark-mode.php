@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 /**
@@ -17,7 +17,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
 
@@ -51,7 +51,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -65,7 +65,7 @@ class Twenty_Twenty_One_Dark_Mode {
 			// Add Dark Mode variable overrides.
 			wp_add_inline_style(
 				'twenty-twenty-one-custom-color-overrides',
-				'.is-dark-theme.is-dark-theme .editor-styles-wrapper { --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); --button--color-text: var(--global--color-background); --button--color-text-hover: var(--global--color-secondary); --button--color-text-active: var(--global--color-secondary); --button--color-background: var(--global--color-secondary); --button--color-background-active: var(--global--color-background); --global--color-border: #9ea1a7; }'
+				'.is-dark-theme.is-dark-theme .editor-styles-wrapper { --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); --button--color-text: var(--global--color-background); --button--color-text-hover: var(--global--color-secondary); --button--color-text-active: var(--global--color-secondary); --button--color-background: var(--global--color-secondary); --button--color-background-active: var(--global--color-background); --global--color-border: #9ea1a7; --table--stripes-border-color: rgba(240, 240, 240, 0.15); --table--stripes-background-color: rgba(240, 240, 240, 0.15); }'
 			);
 		}
 		wp_enqueue_script(
@@ -90,7 +90,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -110,7 +110,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -132,7 +132,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param WP_Customize_Manager $wp_customize Theme Customizer object.
 	 *
@@ -224,7 +224,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The classes for <html> element.
 	 *
@@ -249,7 +249,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $classes The admin body-classes.
 	 *
@@ -282,7 +282,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return bool
 	 */
@@ -300,7 +300,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -319,7 +319,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param array $attrs The attributes to add to our <button> element.
 	 *
@@ -380,7 +380,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -395,7 +395,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
