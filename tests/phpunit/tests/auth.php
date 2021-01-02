@@ -615,4 +615,21 @@ class Tests_Auth extends WP_UnitTestCase {
 		$authenticated = wp_authenticate_application_password( null, 'idonotexist', 'password' );
 		$this->assertNull( $authenticated );
 	}
+
+	/**
+	 * @ticket 52003
+	 *
+	 * @covers ::wp_validate_application_password
+	 */
+	public function test_application_passwords_does_not_attempt_auth_if_missing_password() {
+		WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$_SERVER['PHP_AUTH_USER'] = self::$_user->user_login;
+		unset( $_SERVER['PHP_AUTH_PW'] );
+
+		$this->assertNull( wp_validate_application_password( null ) );
+	}
 }
