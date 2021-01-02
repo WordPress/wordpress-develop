@@ -666,6 +666,7 @@ class WP_Upgrader {
 	 *                              or false if unable to connect to the filesystem.
 	 */
 	public function run( $options ) {
+		$start_time = time();
 
 		$defaults = array(
 			'package'                     => '', // Please always pass this.
@@ -728,6 +729,7 @@ class WP_Upgrader {
 		$this->skin->before();
 
 		if ( is_wp_error( $res ) ) {
+			$this->send_error_data( $res, $start_time, 'fs_connect' );
 			$this->skin->error( $res );
 			$this->skin->after();
 			if ( ! $options['is_multi'] ) {
@@ -765,6 +767,7 @@ class WP_Upgrader {
 		}
 
 		if ( is_wp_error( $download ) ) {
+			$this->send_error_data( $download, $start_time, 'download_package' );
 			$this->skin->error( $download );
 			$this->skin->after();
 			if ( ! $options['is_multi'] ) {
@@ -778,6 +781,7 @@ class WP_Upgrader {
 		// Unzips the file into a temporary directory.
 		$working_dir = $this->unpack_package( $download, $delete_package );
 		if ( is_wp_error( $working_dir ) ) {
+			$this->send_error_data( $working_dir, $start_time, 'unpack_package' );
 			$this->skin->error( $working_dir );
 			$this->skin->after();
 			if ( ! $options['is_multi'] ) {
@@ -800,6 +804,7 @@ class WP_Upgrader {
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
+			$this->send_error_data( $result, $start_time, 'install_package' );
 			$this->skin->error( $result );
 
 			if ( ! method_exists( $this->skin, 'hide_process_failed' ) || ! $this->skin->hide_process_failed( $result ) ) {
@@ -937,6 +942,61 @@ class WP_Upgrader {
 		return delete_option( $lock_name . '.lock' );
 	}
 
+	/**
+	 * Send upgrade WP_Error data to WordPress.org.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @global string             $wp_version    The WordPress version string.
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @param  WP_Error           $result        WP_Error data from failed upgrade process.
+	 * @param  int                $start_time    Time that run() started.
+	 * @param  string             $method        Name of method sending data.
+	 *
+	 * @return void
+	 */
+	public function send_error_data( $result, $start_time, $method = null ) {
+		global $wp_version, $wp_filesystem;
+
+		if ( ! is_wp_error( $result ) ) {
+			return;
+		}
+		$stats = array(
+			'process'          => $method,
+			'update_type'      => null,
+			'name'             => null,
+			'update_version'   => null,
+			'success'          => false,
+			'fs_method'        => $wp_filesystem->method,
+			'fs_method_forced' => defined( 'FS_METHOD' ) || has_filter( 'filesystem_method' ),
+			'fs_method_direct' => ! empty( $GLOBALS['_wp_filesystem_direct_method'] ) ? $GLOBALS['_wp_filesystem_direct_method'] : '',
+			'time_taken'       => time() - $start_time,
+			'wp_version'       => $wp_version,
+			'error_code'       => $result->get_error_code(),
+			'error_message'    => $result->get_error_message(),
+			'error_data'       => $result->get_error_data(),
+		);
+		if ( $this instanceof Plugin_Upgrader ) {
+			if ( isset( $this->skin->plugin_info ) ) {
+				$stats['update_type']    = 'manual_plugin_update';
+				$stats['name']           = $this->skin->plugin_info['Name'];
+				$stats['update_version'] = $this->skin->plugin_info['Version'];
+			} else {
+				$stats['update_type'] = 'automatic_plugin_update';
+			}
+			wp_update_plugins( $stats );
+		}
+		if ( $this instanceof Theme_Upgrader ) {
+			if ( isset( $this->skin->theme_info )) {
+				$stats['update_type']    = 'manual_theme_update';
+				$stats['name']           = $this->skin->theme_info->get('Name');
+				$stats['update_version'] = $this->skin->theme_info->get('Version');
+			} else {
+				$stats['update_type'] = 'automatic_theme_update';
+			}
+			wp_update_themes( $stats );
+		}
+	}
 }
 
 /** Plugin_Upgrader class */
