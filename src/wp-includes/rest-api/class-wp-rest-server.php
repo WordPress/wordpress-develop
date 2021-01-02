@@ -530,7 +530,7 @@ class WP_REST_Server {
 				);
 
 				$result = $this->error_to_response( $json_error_obj );
-				$result = wp_json_encode( $result->data[0] );
+				$result = wp_json_encode( $result->data );
 			}
 
 			if ( $jsonp_callback ) {
@@ -1008,7 +1008,7 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Matches a request object to it's handler.
+	 * Matches a request object to its handler.
 	 *
 	 * @access private
 	 * @since 5.6.0
@@ -1440,6 +1440,8 @@ class WP_REST_Server {
 	protected function get_max_batch_size() {
 		/**
 		 * Filters the maximum number of requests that can be included in a batch.
+		 *
+		 * @since 5.6.0
 		 *
 		 * @param int $max_size The maximum size.
 		 */

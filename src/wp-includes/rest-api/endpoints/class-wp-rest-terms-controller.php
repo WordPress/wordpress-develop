@@ -233,7 +233,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters the query arguments before passing them to get_terms().
+		 * Filters get_terms() arguments when querying users via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->taxonomy`, refers to the taxonomy slug.
 		 *
@@ -246,7 +246,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 		 *
 		 * @param array           $prepared_args Array of arguments to be
 		 *                                       passed to get_terms().
-		 * @param WP_REST_Request $request       The current request.
+		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( "rest_{$this->taxonomy}_query", $prepared_args, $request );
 
@@ -965,7 +965,7 @@ class WP_REST_Terms_Controller extends WP_REST_Controller {
 				'taxonomy'    => array(
 					'description' => __( 'Type attribution for the term.' ),
 					'type'        => 'string',
-					'enum'        => array_keys( get_taxonomies() ),
+					'enum'        => array( $this->taxonomy ),
 					'context'     => array( 'view', 'embed', 'edit' ),
 					'readonly'    => true,
 				),

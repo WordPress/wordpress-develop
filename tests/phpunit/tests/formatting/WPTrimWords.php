@@ -41,7 +41,7 @@ class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
 	function test_strips_script_and_style_content() {
 		$trimmed = 'This text contains. It should go.';
 
-		$text = 'This text contains<script>alert(" Javascript");</script>. It should go.';
+		$text = 'This text contains<script>alert(" JavaScript");</script>. It should go.';
 		$this->assertSame( $trimmed, wp_trim_words( $text ) );
 
 		$text = 'This text contains<style>#css { width:expression(alert("css")) }</style>. It should go.';

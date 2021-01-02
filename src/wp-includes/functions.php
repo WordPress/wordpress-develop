@@ -1178,7 +1178,7 @@ function remove_query_arg( $key, $query = false ) {
  *
  * @since 4.4.0
  *
- * @return string[] An array of parameters to remove from the URL.
+ * @return string[] An array of query variable names to remove from the URL.
  */
 function wp_removable_query_args() {
 	$removable_query_args = array(
@@ -1213,11 +1213,11 @@ function wp_removable_query_args() {
 	);
 
 	/**
-	 * Filters the list of query variables to remove.
+	 * Filters the list of query variable names to remove.
 	 *
 	 * @since 4.2.0
 	 *
-	 * @param string[] $removable_query_args An array of query variables to remove from a URL.
+	 * @param string[] $removable_query_args An array of query variable names to remove from a URL.
 	 */
 	return apply_filters( 'removable_query_args', $removable_query_args );
 }
@@ -2791,7 +2791,7 @@ function wp_ext2type( $ext ) {
  * @since 2.0.4
  *
  * @param string   $filename File name or path.
- * @param string[] $mimes    Optional. Array of mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
  * @return array {
  *     Values for the extension and mime type.
  *
@@ -2833,7 +2833,7 @@ function wp_check_filetype( $filename, $mimes = null ) {
  * @param string   $file     Full path to the file.
  * @param string   $filename The name of the file (may differ from $file due to $file being
  *                           in a tmp directory).
- * @param string[] $mimes    Optional. Array of mime types keyed by their file extension regex.
+ * @param string[] $mimes    Optional. Array of allowed mime types keyed by their file extension regex.
  * @return array {
  *     Values for the extension, mime type, and corrected filename.
  *
@@ -3502,13 +3502,14 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 		}
 		body {
 			background: #fff;
+			border: 1px solid #ccd0d4;
 			color: #444;
 			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 			margin: 2em auto;
 			padding: 1em 2em;
 			max-width: 700px;
-			-webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
-			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+			-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+			box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 		}
 		h1 {
 			border-bottom: 1px solid #dadada;
@@ -3553,9 +3554,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			outline: none;
 		}
 		.button {
-			background: #f7f7f7;
-			border: 1px solid #ccc;
-			color: #555;
+			background: #f3f5f6;
+			border: 1px solid #016087;
+			color: #016087;
 			display: inline-block;
 			text-decoration: none;
 			font-size: 13px;
@@ -3572,36 +3573,35 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 			-moz-box-sizing:    border-box;
 			box-sizing:         border-box;
 
-			-webkit-box-shadow: 0 1px 0 #ccc;
-			box-shadow: 0 1px 0 #ccc;
 			vertical-align: top;
 		}
 
 		.button.button-large {
-			height: 30px;
-			line-height: 2.15384615;
-			padding: 0 12px 2px;
+			line-height: 2.30769231;
+			min-height: 32px;
+			padding: 0 12px;
 		}
 
 		.button:hover,
 		.button:focus {
-			background: #fafafa;
-			border-color: #999;
-			color: #23282d;
+			background: #f1f1f1;
 		}
 
 		.button:focus {
-			border-color: #5b9dd9;
-			-webkit-box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
-			box-shadow: 0 0 3px rgba(0, 115, 170, 0.8);
-			outline: none;
+			background: #f3f5f6;
+			border-color: #007cba;
+			-webkit-box-shadow: 0 0 0 1px #007cba;
+			box-shadow: 0 0 0 1px #007cba;
+			color: #016087;
+			outline: 2px solid transparent;
+			outline-offset: 0;
 		}
 
 		.button:active {
-			background: #eee;
-			border-color: #999;
-			-webkit-box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
-			box-shadow: inset 0 2px 5px -3px rgba(0, 0, 0, 0.5);
+			background: #f3f5f6;
+			border-color: #7e8993;
+			-webkit-box-shadow: none;
+			box-shadow: none;
 		}
 
 		<?php
@@ -7626,8 +7626,6 @@ function get_dirsize( $directory, $max_execution_time = null ) {
  */
 function recurse_dirsize( $directory, $exclude = null, $max_execution_time = null, &$directory_cache = null ) {
 	$directory  = untrailingslashit( $directory );
-	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $directory ) );
-
 	$save_cache = false;
 
 	if ( ! isset( $directory_cache ) ) {
@@ -7635,8 +7633,8 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		$save_cache      = true;
 	}
 
-	if ( isset( $directory_cache[ $cache_path ] ) ) {
-		return $directory_cache[ $cache_path ];
+	if ( isset( $directory_cache[ $directory ] ) && is_int( $directory_cache[ $directory ] ) ) {
+		return $directory_cache[ $directory ];
 	}
 
 	if ( ! file_exists( $directory ) || ! is_dir( $directory ) || ! is_readable( $directory ) ) {
@@ -7705,7 +7703,7 @@ function recurse_dirsize( $directory, $exclude = null, $max_execution_time = nul
 		}
 	}
 
-	$directory_cache[ $cache_path ] = $size;
+	$directory_cache[ $directory ] = $size;
 
 	// Only write the transient on the top level call and not on recursive calls.
 	if ( $save_cache ) {
@@ -7731,12 +7729,12 @@ function clean_dirsize_cache( $path ) {
 		return;
 	}
 
-	$cache_path = untrailingslashit( str_replace( ABSPATH, '', $path ) );
-	unset( $directory_cache[ $cache_path ] );
+	$path = untrailingslashit( $path );
+	unset( $directory_cache[ $path ] );
 
-	while ( DIRECTORY_SEPARATOR !== $cache_path && '.' !== $cache_path && '..' !== $cache_path ) {
-		$cache_path = dirname( $cache_path );
-		unset( $directory_cache[ $cache_path ] );
+	while ( DIRECTORY_SEPARATOR !== $path && '.' !== $path && '..' !== $path ) {
+		$path = dirname( $path );
+		unset( $directory_cache[ $path ] );
 	}
 
 	set_transient( 'dirsize_cache', $directory_cache );

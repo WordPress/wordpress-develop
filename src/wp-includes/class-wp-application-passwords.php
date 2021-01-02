@@ -18,18 +18,41 @@ class WP_Application_Passwords {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @type string
+	 * @var string
 	 */
 	const USERMETA_KEY_APPLICATION_PASSWORDS = '_application_passwords';
+
+	/**
+	 * The option name used to store whether application passwords is in use.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @var string
+	 */
+	const OPTION_KEY_IN_USE = 'using_application_passwords';
 
 	/**
 	 * The generated application password length.
 	 *
 	 * @since 5.6.0
 	 *
-	 * @type int
+	 * @var int
 	 */
 	const PW_LENGTH = 24;
+
+	/**
+	 * Checks if Application Passwords are being used by the site.
+	 *
+	 * This returns true if at least one App Password has ever been created.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return bool
+	 */
+	public static function is_in_use() {
+		$network_id = get_main_network_id();
+		return (bool) get_network_option( $network_id, self::OPTION_KEY_IN_USE );
+	}
 
 	/**
 	 * Creates a new application password.
@@ -65,6 +88,11 @@ class WP_Application_Passwords {
 
 		if ( ! $saved ) {
 			return new WP_Error( 'db_error', __( 'Could not save application password.' ) );
+		}
+
+		$network_id = get_main_network_id();
+		if ( ! get_network_option( $network_id, self::OPTION_KEY_IN_USE ) ) {
+			update_network_option( $network_id, self::OPTION_KEY_IN_USE, true );
 		}
 
 		/**
@@ -203,7 +231,7 @@ class WP_Application_Passwords {
 
 			// Only record activity once a day.
 			if ( $password['last_used'] + DAY_IN_SECONDS > time() ) {
-				continue;
+				return true;
 			}
 
 			$password['last_used'] = time();

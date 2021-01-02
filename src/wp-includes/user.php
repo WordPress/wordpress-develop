@@ -306,10 +306,15 @@ function wp_authenticate_cookie( $user, $username, $password ) {
  *                                          callback failed authentication.
  * @param string                $username   Username for authentication.
  * @param string                $password   Password for authentication.
- * @return WP_User|WP_Error WP_User on success, WP_Error on failure.
+ * @return WP_User|WP_Error|null WP_User on success, WP_Error on failure, null if
+ *                               null is passed in and this isn't an API request.
  */
 function wp_authenticate_application_password( $input_user, $username, $password ) {
 	if ( $input_user instanceof WP_User ) {
+		return $input_user;
+	}
+
+	if ( ! WP_Application_Passwords::is_in_use() ) {
 		return $input_user;
 	}
 
@@ -457,8 +462,8 @@ function wp_validate_application_password( $input_user ) {
 		return $input_user;
 	}
 
-	// Check that we're trying to authenticate
-	if ( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+	// Both $_SERVER['PHP_AUTH_USER'] and $_SERVER['PHP_AUTH_PW'] must be set in order to attempt authentication.
+	if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
 		return $input_user;
 	}
 

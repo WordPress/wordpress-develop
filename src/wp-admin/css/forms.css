@@ -862,6 +862,7 @@ table.form-table td .updated p {
 .create-application-password p.submit {
 	margin-bottom: 0;
 	padding-bottom: 0;
+	display: block;
 }
 
 #application-passwords-section .notice {
@@ -875,6 +876,10 @@ table.form-table td .updated p {
 
 .auth-app-card.card {
 	max-width: 768px;
+}
+
+.authorize-application-php .form-wrap p {
+	display: block;
 }
 
 /*------------------------------------------------------------------------------
