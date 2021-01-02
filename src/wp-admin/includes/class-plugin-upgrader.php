@@ -116,7 +116,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error otherwise.
 	 */
 	public function install( $package, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );
 		$defaults    = array(
 			'clear_update_cache' => true,
 			'overwrite_package'  => false, // Do not overwrite files.
@@ -193,7 +193,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
 	public function upgrade( $plugin, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );;
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -284,7 +284,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);

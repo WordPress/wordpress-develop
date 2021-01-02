@@ -666,7 +666,7 @@ class WP_Upgrader {
 	 *                              or false if unable to connect to the filesystem.
 	 */
 	public function run( $options ) {
-		$start_time = time();
+		$start_time = microtime( true );
 
 		$defaults = array(
 			'package'                     => '', // Please always pass this.
@@ -970,7 +970,7 @@ class WP_Upgrader {
 			'fs_method'        => $wp_filesystem->method,
 			'fs_method_forced' => defined( 'FS_METHOD' ) || has_filter( 'filesystem_method' ),
 			'fs_method_direct' => ! empty( $GLOBALS['_wp_filesystem_direct_method'] ) ? $GLOBALS['_wp_filesystem_direct_method'] : '',
-			'time_taken'       => time() - $start_time,
+			'time_taken'       => microtime( true ) - $start_time,
 			'wp_version'       => $wp_version,
 			'error_code'       => $result->get_error_code(),
 			'error_message'    => $result->get_error_message(),
