@@ -660,3 +660,27 @@ function wp_is_authorize_application_password_request_valid( $request, $user ) {
 
 	return true;
 }
+
+/**
+ * Is this site protected by HTTP Basic Auth.
+ *
+ * This is used to disable creating Application Passwords since it uses Basic Auth under the hood.
+ *
+ * @since 5.6.1
+ *
+ * @return bool
+ */
+function wp_is_site_protected_by_basic_auth() {
+	$is_protected = ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] );
+
+	/**
+	 * Filters whether a site is protected by HTTP Basic Auth.
+	 *
+	 * This is used to disable creating Application Passwords since it uses Basic Auth under the hood.
+	 *
+	 * @since 5.6.1
+	 *
+	 * @param $is_protected bool Whether the site is protected by Basic Auth.
+	 */
+	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected );
+}
