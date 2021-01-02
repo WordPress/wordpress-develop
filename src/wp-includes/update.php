@@ -105,7 +105,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	);
 
 	/**
-	 * Filter the query arguments sent as part of the core version check.
+	 * Filters the query arguments sent as part of the core version check.
 	 *
 	 * WARNING: Changing this data may result in your site not receiving security updates.
 	 * Please exercise extreme caution.
@@ -134,6 +134,11 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 
 	if ( is_array( $extra_stats ) ) {
 		$post_body = array_merge( $post_body, $extra_stats );
+	}
+
+	// Allow for WP_AUTO_UPDATE_CORE to specify beta/RC releases.
+	if ( defined( 'WP_AUTO_UPDATE_CORE' ) && in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc' ), true ) ) {
+		$query['channel'] = WP_AUTO_UPDATE_CORE;
 	}
 
 	$url      = 'http://api.wordpress.org/core/version-check/1.7/?' . http_build_query( $query, null, '&' );
@@ -242,7 +247,7 @@ function wp_version_check( $extra_stats = array(), $force_check = false ) {
 	// Trigger background updates if running non-interactively, and we weren't called from the update handler.
 	if ( $doing_cron && ! doing_action( 'wp_maybe_auto_update' ) ) {
 		/**
-		 * Fires during wp_cron, starting the auto update process.
+		 * Fires during wp_cron, starting the auto-update process.
 		 *
 		 * @since 3.9.0
 		 */
@@ -322,7 +327,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		foreach ( $plugins as $file => $p ) {
 			$new_option->checked[ $file ] = $p['Version'];
 
-			if ( ! isset( $current->checked[ $file ] ) || strval( $current->checked[ $file ] ) !== strval( $p['Version'] ) ) {
+			if ( ! isset( $current->checked[ $file ] ) || (string) $current->checked[ $file ] !== (string) $p['Version'] ) {
 				$plugin_changed = true;
 			}
 		}
@@ -527,7 +532,7 @@ function wp_update_themes( $extra_stats = array() ) {
 		$theme_changed = false;
 
 		foreach ( $checked as $slug => $v ) {
-			if ( ! isset( $last_update->checked[ $slug ] ) || strval( $last_update->checked[ $slug ] ) !== strval( $v ) ) {
+			if ( ! isset( $last_update->checked[ $slug ] ) || (string) $last_update->checked[ $slug ] !== (string) $v ) {
 				$theme_changed = true;
 			}
 		}
@@ -621,6 +626,7 @@ function wp_update_themes( $extra_stats = array() ) {
 
 	if ( is_array( $response ) ) {
 		$new_update->response     = $response['themes'];
+		$new_update->no_update    = $response['no_update'];
 		$new_update->translations = $response['translations'];
 	}
 

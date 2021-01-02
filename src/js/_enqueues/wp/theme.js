@@ -802,8 +802,11 @@ themes.view.Details = wp.Backbone.View.extend({
 
 		// Support concurrent clicks in different Theme Details overlays.
 		callback = function( event, data ) {
+			var autoupdate;
 			if ( _this.model.get( 'id' ) === data.asset ) {
-				_this.model.set( { autoupdate: 'enable' === data.state } );
+				autoupdate = _this.model.get( 'autoupdate' );
+				autoupdate.enabled = 'enable' === data.state;
+				_this.model.set( { autoupdate: autoupdate } );
 				$( document ).off( 'wp-auto-update-setting-changed', callback );
 			}
 		};
@@ -1428,7 +1431,7 @@ themes.view.Search = wp.Backbone.View.extend({
  * @since 4.9.0
  *
  * @param {string} url - URL to navigate to.
- * @param {object} state - State.
+ * @param {Object} state - State.
  * @return {void}
  */
 function navigateRouter( url, state ) {
@@ -1841,7 +1844,7 @@ themes.view.Installer = themes.view.Appearance.extend({
 	/**
 	 * Get the checked filters.
 	 *
-	 * @return {array} of tags or false
+	 * @return {Array} of tags or false
 	 */
 	filtersChecked: function() {
 		var items = $( '.filter-group' ).find( ':checkbox' ),

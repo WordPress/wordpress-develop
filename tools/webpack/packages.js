@@ -123,6 +123,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'code',
 		'column',
 		'columns',
+		'embed',
 		'file',
 		'gallery',
 		'group',
@@ -250,6 +251,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DefinePlugin( {
 				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
 				'process.env.GUTENBERG_PHASE': 1,
+				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
+					process.env.FORCE_REDUCED_MOTION
+				),
 			} ),
 			new LibraryExportDefaultPlugin( [
 				'api-fetch',

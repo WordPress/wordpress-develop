@@ -259,27 +259,27 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Block', 'post type singular name' ),
-				'menu_name'                => _x( 'Blocks', 'admin menu' ),
-				'name_admin_bar'           => _x( 'Block', 'add new on admin bar' ),
-				'add_new'                  => _x( 'Add New', 'Block' ),
-				'add_new_item'             => __( 'Add New Block' ),
-				'new_item'                 => __( 'New Block' ),
-				'edit_item'                => __( 'Edit Block' ),
-				'view_item'                => __( 'View Block' ),
-				'all_items'                => __( 'All Blocks' ),
-				'search_items'             => __( 'Search Blocks' ),
-				'not_found'                => __( 'No blocks found.' ),
-				'not_found_in_trash'       => __( 'No blocks found in Trash.' ),
-				'filter_items_list'        => __( 'Filter blocks list' ),
-				'items_list_navigation'    => __( 'Blocks list navigation' ),
-				'items_list'               => __( 'Blocks list' ),
-				'item_published'           => __( 'Block published.' ),
-				'item_published_privately' => __( 'Block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Block reverted to draft.' ),
-				'item_scheduled'           => __( 'Block scheduled.' ),
-				'item_updated'             => __( 'Block updated.' ),
+				'name'                     => _x( 'Reusable Blocks', 'post type general name' ),
+				'singular_name'            => _x( 'Reusable Block', 'post type singular name' ),
+				'menu_name'                => _x( 'Reusable Blocks', 'admin menu' ),
+				'name_admin_bar'           => _x( 'Reusable Block', 'add new on admin bar' ),
+				'add_new'                  => _x( 'Add New', 'Reusable Block' ),
+				'add_new_item'             => __( 'Add New Reusable Block' ),
+				'new_item'                 => __( 'New Reusable Block' ),
+				'edit_item'                => __( 'Edit Reusable Block' ),
+				'view_item'                => __( 'View Reusable Block' ),
+				'all_items'                => __( 'All Reusable Blocks' ),
+				'search_items'             => __( 'Search Reusable Blocks' ),
+				'not_found'                => __( 'No reusable blocks found.' ),
+				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
+				'filter_items_list'        => __( 'Filter reusable blocks list' ),
+				'items_list_navigation'    => __( 'Reusable Blocks list navigation' ),
+				'items_list'               => __( 'Reusable Blocks list' ),
+				'item_published'           => __( 'Reusable Block published.' ),
+				'item_published_privately' => __( 'Reusable Block published privately.' ),
+				'item_reverted_to_draft'   => __( 'Reusable Block reverted to draft.' ),
+				'item_scheduled'           => __( 'Reusable Block scheduled.' ),
+				'item_updated'             => __( 'Reusable Block updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -633,8 +633,9 @@ function _wp_relative_upload_path( $path ) {
  * @global WP_Post $post Global post object.
  *
  * @param mixed  $args   Optional. User defined arguments for replacing the defaults. Default empty.
- * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                       a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                       correspond to a WP_Post object, an associative array, or a numeric array,
+ *                       respectively. Default OBJECT.
  * @return WP_Post[]|int[] Array of post objects or post IDs.
  */
 function get_children( $args = '', $output = OBJECT ) {
@@ -751,8 +752,9 @@ function get_extended( $post ) {
  * @global WP_Post $post Global post object.
  *
  * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
- * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                 a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
  * @param string           $filter Optional. Type of filter to apply. Accepts 'raw', 'edit', 'db',
  *                                 or 'display'. Default 'raw'.
  * @return WP_Post|array|null Type corresponding to $output on success or null on failure.
@@ -794,12 +796,12 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 }
 
 /**
- * Retrieve ancestors of a post.
+ * Retrieves the IDs of the ancestors of a post.
  *
  * @since 2.5.0
  *
  * @param int|WP_Post $post Post ID or post object.
- * @return int[] Ancestor IDs or empty array if none are found.
+ * @return int[] Array of ancestor IDs or empty array if there are none.
  */
 function get_post_ancestors( $post ) {
 	$post = get_post( $post );
@@ -982,10 +984,10 @@ function get_page_statuses() {
  */
 function _wp_privacy_statuses() {
 	return array(
-		'request-pending'   => __( 'Pending' ),      // Pending confirmation from user.
-		'request-confirmed' => __( 'Confirmed' ),    // User has confirmed the action.
-		'request-failed'    => __( 'Failed' ),       // User failed to confirm the action.
-		'request-completed' => __( 'Completed' ),    // Admin has handled the request.
+		'request-pending'   => _x( 'Pending', 'request status' ),      // Pending confirmation from user.
+		'request-confirmed' => _x( 'Confirmed', 'request status' ),    // User has confirmed the action.
+		'request-failed'    => _x( 'Failed', 'request status' ),       // User failed to confirm the action.
+		'request-completed' => _x( 'Completed', 'request status' ),    // Admin has handled the request.
 	);
 }
 
@@ -1002,7 +1004,7 @@ function _wp_privacy_statuses() {
  *
  * @global array $wp_post_statuses Inserts new post status object into the list
  *
- * @param string $post_status Name of the post status.
+ * @param string       $post_status Name of the post status.
  * @param array|string $args {
  *     Optional. Array or string of post status arguments.
  *
@@ -1292,94 +1294,95 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  * @since 4.6.0 Post type object returned is now an instance of `WP_Post_Type`.
  * @since 4.7.0 Introduced `show_in_rest`, `rest_base` and `rest_controller_class`
  *              arguments to register the post type in REST API.
+ * @since 5.0.0 The `template` and `template_lock` arguments were added.
  * @since 5.3.0 The `supports` argument will now accept an array of arguments for a feature.
- * .
+ *
  * @global array $wp_post_types List of post types.
  *
- * @param string $post_type Post type key. Must not exceed 20 characters and may
- *                          only contain lowercase alphanumeric characters, dashes,
- *                          and underscores. See sanitize_key().
+ * @param string       $post_type Post type key. Must not exceed 20 characters and may
+ *                                only contain lowercase alphanumeric characters, dashes,
+ *                                and underscores. See sanitize_key().
  * @param array|string $args {
  *     Array or string of arguments for registering a post type.
  *
- *     @type string      $label                 Name of the post type shown in the menu. Usually plural.
- *                                              Default is value of $labels['name'].
- *     @type array       $labels                An array of labels for this post type. If not set, post
- *                                              labels are inherited for non-hierarchical types and page
- *                                              labels for hierarchical ones. See get_post_type_labels() for a full
- *                                              list of supported labels.
- *     @type string      $description           A short descriptive summary of what the post type is.
- *                                              Default empty.
- *     @type bool        $public                Whether a post type is intended for use publicly either via
- *                                              the admin interface or by front-end users. While the default
- *                                              settings of $exclude_from_search, $publicly_queryable, $show_ui,
- *                                              and $show_in_nav_menus are inherited from public, each does not
- *                                              rely on this relationship and controls a very specific intention.
- *                                              Default false.
- *     @type bool        $hierarchical          Whether the post type is hierarchical (e.g. page). Default false.
- *     @type bool        $exclude_from_search   Whether to exclude posts with this post type from front end search
- *                                              results. Default is the opposite value of $public.
- *     @type bool        $publicly_queryable    Whether queries can be performed on the front end for the post type
- *                                              as part of parse_request(). Endpoints would include:
- *                                              * ?post_type={post_type_key}
- *                                              * ?{post_type_key}={single_post_slug}
- *                                              * ?{post_type_query_var}={single_post_slug}
- *                                              If not set, the default is inherited from $public.
- *     @type bool        $show_ui               Whether to generate and allow a UI for managing this post type in the
- *                                              admin. Default is value of $public.
- *     @type bool|string $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
- *                                              must be true. If true, the post type is shown in its own top level
- *                                              menu. If false, no menu is shown. If a string of an existing top
- *                                              level menu (eg. 'tools.php' or 'edit.php?post_type=page'), the post
- *                                              type will be placed as a sub-menu of that.
- *                                              Default is value of $show_ui.
- *     @type bool        $show_in_nav_menus     Makes this post type available for selection in navigation menus.
- *                                              Default is value of $public.
- *     @type bool        $show_in_admin_bar     Makes this post type available via the admin bar. Default is value
- *                                              of $show_in_menu.
- *     @type bool        $show_in_rest          Whether to include the post type in the REST API. Set this to true
- *                                              for the post type to be available in the block editor.
- *     @type string      $rest_base             To change the base url of REST API route. Default is $post_type.
- *     @type string      $rest_controller_class REST API Controller class name. Default is 'WP_REST_Posts_Controller'.
- *     @type int         $menu_position         The position in the menu order the post type should appear. To work,
- *                                              $show_in_menu must be true. Default null (at the bottom).
- *     @type string      $menu_icon             The url to the icon to be used for this menu. Pass a base64-encoded
- *                                              SVG using a data URI, which will be colored to match the color scheme
- *                                              -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
- *                                              of a Dashicons helper class to use a font icon, e.g.
- *                                              'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
- *                                              so an icon can be added via CSS. Defaults to use the posts icon.
- *     @type string      $capability_type       The string to use to build the read, edit, and delete capabilities.
- *                                              May be passed as an array to allow for alternative plurals when using
- *                                              this argument as a base to construct the capabilities, e.g.
- *                                              array('story', 'stories'). Default 'post'.
- *     @type array       $capabilities          Array of capabilities for this post type. $capability_type is used
- *                                              as a base to construct capabilities by default.
- *                                              See get_post_type_capabilities().
- *     @type bool        $map_meta_cap          Whether to use the internal default meta capability handling.
- *                                              Default false.
- *     @type array       $supports              Core feature(s) the post type supports. Serves as an alias for calling
- *                                              add_post_type_support() directly. Core features include 'title',
- *                                              'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
- *                                              'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
- *                                              Additionally, the 'revisions' feature dictates whether the post type
- *                                              will store revisions, and the 'comments' feature dictates whether the
- *                                              comments count will show on the edit screen. A feature can also be
- *                                              specified as an array of arguments to provide additional information
- *                                              about supporting that feature.
- *                                              Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
- *                                              Default is an array containing 'title' and 'editor'.
- *     @type callable    $register_meta_box_cb  Provide a callback function that sets up the meta boxes for the
- *                                              edit form. Do remove_meta_box() and add_meta_box() calls in the
- *                                              callback. Default null.
- *     @type array       $taxonomies            An array of taxonomy identifiers that will be registered for the
- *                                              post type. Taxonomies can be registered later with register_taxonomy()
- *                                              or register_taxonomy_for_object_type().
- *                                              Default empty array.
- *     @type bool|string $has_archive           Whether there should be post type archives, or if a string, the
- *                                              archive slug to use. Will generate the proper rewrite rules if
- *                                              $rewrite is enabled. Default false.
- *     @type bool|array  $rewrite              {
+ *     @type string       $label                 Name of the post type shown in the menu. Usually plural.
+ *                                               Default is value of $labels['name'].
+ *     @type string[]     $labels                An array of labels for this post type. If not set, post
+ *                                               labels are inherited for non-hierarchical types and page
+ *                                               labels for hierarchical ones. See get_post_type_labels() for a full
+ *                                               list of supported labels.
+ *     @type string       $description           A short descriptive summary of what the post type is.
+ *                                               Default empty.
+ *     @type bool         $public                Whether a post type is intended for use publicly either via
+ *                                               the admin interface or by front-end users. While the default
+ *                                               settings of $exclude_from_search, $publicly_queryable, $show_ui,
+ *                                               and $show_in_nav_menus are inherited from public, each does not
+ *                                               rely on this relationship and controls a very specific intention.
+ *                                               Default false.
+ *     @type bool         $hierarchical          Whether the post type is hierarchical (e.g. page). Default false.
+ *     @type bool         $exclude_from_search   Whether to exclude posts with this post type from front end search
+ *                                               results. Default is the opposite value of $public.
+ *     @type bool         $publicly_queryable    Whether queries can be performed on the front end for the post type
+ *                                               as part of parse_request(). Endpoints would include:
+ *                                               * ?post_type={post_type_key}
+ *                                               * ?{post_type_key}={single_post_slug}
+ *                                               * ?{post_type_query_var}={single_post_slug}
+ *                                               If not set, the default is inherited from $public.
+ *     @type bool         $show_ui               Whether to generate and allow a UI for managing this post type in the
+ *                                               admin. Default is value of $public.
+ *     @type bool|string  $show_in_menu          Where to show the post type in the admin menu. To work, $show_ui
+ *                                               must be true. If true, the post type is shown in its own top level
+ *                                               menu. If false, no menu is shown. If a string of an existing top
+ *                                               level menu (eg. 'tools.php' or 'edit.php?post_type=page'), the post
+ *                                               type will be placed as a sub-menu of that.
+ *                                               Default is value of $show_ui.
+ *     @type bool         $show_in_nav_menus     Makes this post type available for selection in navigation menus.
+ *                                               Default is value of $public.
+ *     @type bool         $show_in_admin_bar     Makes this post type available via the admin bar. Default is value
+ *                                               of $show_in_menu.
+ *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
+ *                                               for the post type to be available in the block editor.
+ *     @type string       $rest_base             To change the base url of REST API route. Default is $post_type.
+ *     @type string       $rest_controller_class REST API Controller class name. Default is 'WP_REST_Posts_Controller'.
+ *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
+ *                                               $show_in_menu must be true. Default null (at the bottom).
+ *     @type string       $menu_icon             The url to the icon to be used for this menu. Pass a base64-encoded
+ *                                               SVG using a data URI, which will be colored to match the color scheme
+ *                                               -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
+ *                                               of a Dashicons helper class to use a font icon, e.g.
+ *                                               'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
+ *                                               so an icon can be added via CSS. Defaults to use the posts icon.
+ *     @type string       $capability_type       The string to use to build the read, edit, and delete capabilities.
+ *                                               May be passed as an array to allow for alternative plurals when using
+ *                                               this argument as a base to construct the capabilities, e.g.
+ *                                               array('story', 'stories'). Default 'post'.
+ *     @type string[]     $capabilities          Array of capabilities for this post type. $capability_type is used
+ *                                               as a base to construct capabilities by default.
+ *                                               See get_post_type_capabilities().
+ *     @type bool         $map_meta_cap          Whether to use the internal default meta capability handling.
+ *                                               Default false.
+ *     @type array        $supports              Core feature(s) the post type supports. Serves as an alias for calling
+ *                                               add_post_type_support() directly. Core features include 'title',
+ *                                               'editor', 'comments', 'revisions', 'trackbacks', 'author', 'excerpt',
+ *                                               'page-attributes', 'thumbnail', 'custom-fields', and 'post-formats'.
+ *                                               Additionally, the 'revisions' feature dictates whether the post type
+ *                                               will store revisions, and the 'comments' feature dictates whether the
+ *                                               comments count will show on the edit screen. A feature can also be
+ *                                               specified as an array of arguments to provide additional information
+ *                                               about supporting that feature.
+ *                                               Example: `array( 'my_feature', array( 'field' => 'value' ) )`.
+ *                                               Default is an array containing 'title' and 'editor'.
+ *     @type callable     $register_meta_box_cb  Provide a callback function that sets up the meta boxes for the
+ *                                               edit form. Do remove_meta_box() and add_meta_box() calls in the
+ *                                               callback. Default null.
+ *     @type string[]     $taxonomies            An array of taxonomy identifiers that will be registered for the
+ *                                               post type. Taxonomies can be registered later with register_taxonomy()
+ *                                               or register_taxonomy_for_object_type().
+ *                                               Default empty array.
+ *     @type bool|string  $has_archive           Whether there should be post type archives, or if a string, the
+ *                                               archive slug to use. Will generate the proper rewrite rules if
+ *                                               $rewrite is enabled. Default false.
+ *     @type bool|array   $rewrite               {
  *         Triggers the handling of rewrites for this post type. To prevent rewrite, set to false.
  *         Defaults to true, using $post_type as slug. To specify rewrite rules, an array can be
  *         passed with any of these keys:
@@ -1394,21 +1397,32 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                  inherits from $permalink_epmask. If not specified and permalink_epmask
  *                                  is not set, defaults to EP_PERMALINK.
  *     }
- *     @type string|bool $query_var             Sets the query_var key for this post type. Defaults to $post_type
- *                                              key. If false, a post type cannot be loaded at
- *                                              ?{query_var}={post_slug}. If specified as a string, the query
- *                                              ?{query_var_string}={post_slug} will be valid.
- *     @type bool        $can_export            Whether to allow this post type to be exported. Default true.
- *     @type bool        $delete_with_user      Whether to delete posts of this type when deleting a user. If true,
- *                                              posts of this type belonging to the user will be moved to Trash
- *                                              when then user is deleted. If false, posts of this type belonging
- *                                              to the user will *not* be trashed or deleted. If not set (the default),
- *                                              posts are trashed if post_type_supports('author'). Otherwise posts
- *                                              are not trashed or deleted. Default null.
- *     @type bool        $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
- *                                              "built-in" post_type. Default false.
- *     @type string      $_edit_link            FOR INTERNAL USE ONLY! URL segment to use for edit link of
- *                                              this post type. Default 'post.php?post=%d'.
+ *     @type string|bool  $query_var             Sets the query_var key for this post type. Defaults to $post_type
+ *                                               key. If false, a post type cannot be loaded at
+ *                                               ?{query_var}={post_slug}. If specified as a string, the query
+ *                                               ?{query_var_string}={post_slug} will be valid.
+ *     @type bool         $can_export            Whether to allow this post type to be exported. Default true.
+ *     @type bool         $delete_with_user      Whether to delete posts of this type when deleting a user.
+ *                                               - If true, posts of this type belonging to the user will be moved
+ *                                                 to Trash when the user is deleted.
+ *                                               - If false, posts of this type belonging to the user will *not*
+ *                                                 be trashed or deleted.
+ *                                               - If not set (the default), posts are trashed if post type supports
+ *                                                 the 'author' feature. Otherwise posts are not trashed or deleted.
+ *                                               Default null.
+ *     @type array        $template              Array of blocks to use as the default initial state for an editor
+ *                                               session. Each item should be an array containing block name and
+ *                                               optional attributes. Default empty array.
+ *     @type string|false $template_lock         Whether the block template should be locked if $template is set.
+ *                                               - If set to 'all', the user is unable to insert new blocks,
+ *                                                 move existing blocks and delete blocks.
+ *                                               - If set to 'insert', the user is able to move existing blocks
+ *                                                 but is unable to insert new blocks and delete blocks.
+ *                                               Default false.
+ *     @type bool         $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
+ *                                               "built-in" post_type. Default false.
+ *     @type string       $_edit_link            FOR INTERNAL USE ONLY! URL segment to use for edit link of
+ *                                               this post type. Default 'post.php?post=%d'.
  * }
  * @return WP_Post_Type|WP_Error The registered post type object on success,
  *                               WP_Error object on failure.
@@ -2001,13 +2015,13 @@ function is_post_type_viewable( $post_type ) {
  *     Optional. Arguments to retrieve posts. See WP_Query::parse_query() for all
  *     available arguments.
  *
- *     @type int        $numberposts      Total number of posts to retrieve. Is an alias of $posts_per_page
+ *     @type int        $numberposts      Total number of posts to retrieve. Is an alias of `$posts_per_page`
  *                                        in WP_Query. Accepts -1 for all. Default 5.
  *     @type int|string $category         Category ID or comma-separated list of IDs (this or any children).
- *                                        Is an alias of $cat in WP_Query. Default 0.
- *     @type array      $include          An array of post IDs to retrieve, sticky posts will be included.
- *                                        Is an alias of $post__in in WP_Query. Default empty array.
- *     @type array      $exclude          An array of post IDs not to retrieve. Default empty array.
+ *                                        Is an alias of `$cat` in WP_Query. Default 0.
+ *     @type int[]      $include          An array of post IDs to retrieve, sticky posts will be included.
+ *                                        Is an alias of `$post__in` in WP_Query. Default empty array.
+ *     @type int[]      $exclude          An array of post IDs not to retrieve. Default empty array.
  *     @type bool       $suppress_filters Whether to suppress filters. Default true.
  * }
  * @return WP_Post[]|int[] Array of post objects or post IDs.
@@ -2118,7 +2132,7 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  *                        This parameter has no effect if $key is not specified.
  *                        Default false.
  * @return mixed An array if $single is false. The value of the meta field
- *               if $single is true.
+ *               if $single is true. False for an invalid $post_id.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2309,7 +2323,7 @@ function is_sticky( $post_id = 0 ) {
 }
 
 /**
- * Sanitize every post field.
+ * Sanitizes every post field.
  *
  * If the context is 'raw', then the post object or array will get minimal
  * sanitization of the integer fields.
@@ -2318,12 +2332,12 @@ function is_sticky( $post_id = 0 ) {
  *
  * @see sanitize_post_field()
  *
- * @param object|WP_Post|array $post    The Post Object or Array
+ * @param object|WP_Post|array $post    The post object or array
  * @param string               $context Optional. How to sanitize post fields.
  *                                      Accepts 'raw', 'edit', 'db', or 'display'.
  *                                      Default 'display'.
- * @return object|WP_Post|array The now sanitized Post Object or Array (will be the
- *                              same type as $post).
+ * @return object|WP_Post|array The now sanitized post object or array (will be the
+ *                              same type as `$post`).
  */
 function sanitize_post( $post, $context = 'display' ) {
 	if ( is_object( $post ) ) {
@@ -2355,7 +2369,7 @@ function sanitize_post( $post, $context = 'display' ) {
 }
 
 /**
- * Sanitize post field based on context.
+ * Sanitizes a post field based on context.
  *
  * Possible context values are:  'raw', 'edit', 'db', 'display', 'attribute' and
  * 'js'. The 'display' context is used by default. 'attribute' and 'js' contexts
@@ -2367,7 +2381,7 @@ function sanitize_post( $post, $context = 'display' ) {
  * @param string $field   The Post Object field name.
  * @param mixed  $value   The Post Object value.
  * @param int    $post_id Post ID.
- * @param string $context Optional. How to sanitize post fields. Looks for 'raw', 'edit',
+ * @param string $context Optional. How to sanitize the field. Possible values are 'raw', 'edit',
  *                        'db', 'display', 'attribute' and 'js'. Default 'display'.
  * @return mixed Sanitized value.
  */
@@ -2494,7 +2508,7 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 			 * @param mixed  $value   Value of the prefixed post field.
 			 * @param int    $post_id Post ID.
 			 * @param string $context Context for how to sanitize the field. Possible
-			 *                        values include 'raw', 'edit', 'db', 'display',
+			 *                        values include 'edit', 'display',
 			 *                        'attribute' and 'js'.
 			 */
 			$value = apply_filters( "{$field}", $value, $post_id, $context );
@@ -2647,6 +2661,13 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
 
 	$counts = wp_cache_get( $cache_key, 'counts' );
 	if ( false !== $counts ) {
+		// We may have cached this before every status was registered.
+		foreach ( get_post_stati() as $status ) {
+			if ( ! isset( $counts->{$status} ) ) {
+				$counts->{$status} = 0;
+			}
+		}
+
 		/** This filter is documented in wp-includes/post.php */
 		return apply_filters( 'wp_count_posts', $counts, $type, $perm );
 	}
@@ -2701,8 +2722,8 @@ function wp_count_posts( $type = 'post', $perm = '' ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param string|array $mime_type Optional. Array or comma-separated list of
- *                                MIME patterns. Default empty.
+ * @param string|string[] $mime_type Optional. Array or comma-separated list of
+ *                                   MIME patterns. Default empty.
  * @return object An object containing the attachment counts by mime type.
  */
 function wp_count_attachments( $mime_type = '' ) {
@@ -2722,10 +2743,9 @@ function wp_count_attachments( $mime_type = '' ) {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param object $counts    An object containing the attachment counts by
-	 *                          mime type.
-	 * @param string $mime_type The mime type pattern used to filter the attachments
-	 *                          counted.
+	 * @param object          $counts    An object containing the attachment counts by
+	 *                                   mime type.
+	 * @param string|string[] $mime_type Array or comma-separated list of MIME patterns.
 	 */
 	return apply_filters( 'wp_count_attachments', (object) $counts, $mime_type );
 }
@@ -2843,9 +2863,9 @@ function get_post_mime_types() {
  *
  * @since 2.5.0
  *
- * @param string|array $wildcard_mime_types Mime types, e.g. audio/mpeg or image (same as image/*)
- *                                          or flash (same as *flash*).
- * @param string|array $real_mime_types     Real post mime type values.
+ * @param string|string[] $wildcard_mime_types Mime types, e.g. audio/mpeg or image (same as image/*)
+ *                                             or flash (same as *flash*).
+ * @param string|string[] $real_mime_types     Real post mime type values.
  * @return array array(wildcard=>array(real types)).
  */
 function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
@@ -2895,10 +2915,10 @@ function wp_match_mime_types( $wildcard_mime_types, $real_mime_types ) {
  *
  * @since 2.5.0
  *
- * @param string|array $post_mime_types List of mime types or comma separated string
- *                                      of mime types.
- * @param string       $table_alias     Optional. Specify a table alias, if needed.
- *                                      Default empty.
+ * @param string|string[] $post_mime_types List of mime types or comma separated string
+ *                                         of mime types.
+ * @param string          $table_alias     Optional. Specify a table alias, if needed.
+ *                                         Default empty.
  * @return string The SQL AND clause for mime searching.
  */
 function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
@@ -2943,7 +2963,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
 	}
 
 	if ( ! empty( $wheres ) ) {
-		$where = ' AND (' . join( ' OR ', $wheres ) . ') ';
+		$where = ' AND (' . implode( ' OR ', $wheres ) . ') ';
 	}
 
 	return $where;
@@ -3178,6 +3198,7 @@ function wp_trash_post( $post_id = 0 ) {
 	 * @param WP_Post   $post  Post object.
 	 */
 	$check = apply_filters( 'pre_trash_post', null, $post );
+
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -3220,11 +3241,13 @@ function wp_trash_post( $post_id = 0 ) {
 }
 
 /**
- * Restore a post or page from the Trash.
+ * Restores a post from the Trash.
  *
  * @since 2.9.0
+ * @since 5.6.0 An untrashed post is now returned to 'draft' status by default, except for
+ *              attachments which are returned to their original 'inherit' status.
  *
- * @param int $post_id Optional. Post ID. Default is ID of the global $post.
+ * @param int $post_id Optional. Post ID. Default is ID of the global `$post`.
  * @return WP_Post|false|null Post data on success, false or null on failure.
  */
 function wp_untrash_post( $post_id = 0 ) {
@@ -3234,19 +3257,25 @@ function wp_untrash_post( $post_id = 0 ) {
 		return $post;
 	}
 
+	$post_id = $post->ID;
+
 	if ( 'trash' !== $post->post_status ) {
 		return false;
 	}
+
+	$previous_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
 
 	/**
 	 * Filters whether a post untrashing should take place.
 	 *
 	 * @since 4.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param bool|null $untrash Whether to go forward with untrashing.
-	 * @param WP_Post   $post    Post object.
+	 * @param bool|null $untrash         Whether to go forward with untrashing.
+	 * @param WP_Post   $post            Post object.
+	 * @param string    $previous_status The status of the post at the point where it was trashed.
 	 */
-	$check = apply_filters( 'pre_untrash_post', null, $post );
+	$check = apply_filters( 'pre_untrash_post', null, $post, $previous_status );
 	if ( null !== $check ) {
 		return $check;
 	}
@@ -3255,12 +3284,31 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires before a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrash_post', $post_id );
+	do_action( 'untrash_post', $post_id, $previous_status );
 
-	$post_status = get_post_meta( $post_id, '_wp_trash_meta_status', true );
+	$new_status = ( 'attachment' === $post->post_type ) ? 'inherit' : 'draft';
+
+	/**
+	 * Filters the status that a post gets assigned when it is restored from the trash (untrashed).
+	 *
+	 * By default posts that are restored will be assigned a status of 'draft'. Return the value of `$previous_status`
+	 * in order to assign the status that the post had before it was trashed. The `wp_untrash_post_set_previous_status()`
+	 * function is available for this.
+	 *
+	 * Prior to WordPress 5.6.0, restored posts were always assigned their original status.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $new_status      The new status of the post being restored.
+	 * @param int    $post_id         The ID of the post being restored.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
+	 */
+	$post_status = apply_filters( 'wp_untrash_post_status', $new_status, $post_id, $previous_status );
 
 	delete_post_meta( $post_id, '_wp_trash_meta_status' );
 	delete_post_meta( $post_id, '_wp_trash_meta_time' );
@@ -3282,10 +3330,12 @@ function wp_untrash_post( $post_id = 0 ) {
 	 * Fires after a post is restored from the Trash.
 	 *
 	 * @since 2.9.0
+	 * @since 5.6.0 The `$previous_status` parameter was added.
 	 *
-	 * @param int $post_id Post ID.
+	 * @param int    $post_id         Post ID.
+	 * @param string $previous_status The status of the post at the point where it was trashed.
 	 */
-	do_action( 'untrashed_post', $post_id );
+	do_action( 'untrashed_post', $post_id, $previous_status );
 
 	return $post;
 }
@@ -3304,7 +3354,8 @@ function wp_trash_post_comments( $post = null ) {
 	global $wpdb;
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -3320,7 +3371,8 @@ function wp_trash_post_comments( $post = null ) {
 	do_action( 'trash_post_comments', $post_id );
 
 	$comments = $wpdb->get_results( $wpdb->prepare( "SELECT comment_ID, comment_approved FROM $wpdb->comments WHERE comment_post_ID = %d", $post_id ) );
-	if ( empty( $comments ) ) {
+
+	if ( ! $comments ) {
 		return;
 	}
 
@@ -3363,7 +3415,8 @@ function wp_untrash_post_comments( $post = null ) {
 	global $wpdb;
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -3371,7 +3424,7 @@ function wp_untrash_post_comments( $post = null ) {
 
 	$statuses = get_post_meta( $post_id, '_wp_trash_meta_comments_status', true );
 
-	if ( empty( $statuses ) ) {
+	if ( ! $statuses ) {
 		return true;
 	}
 
@@ -3467,11 +3520,11 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  *
  * @since 2.8.0
  *
- * @param int          $post_id  Optional. The Post ID. Does not default to the ID of the
- *                               global $post. Default 0.
- * @param string|array $taxonomy Optional. The taxonomy slug or array of slugs for which
- *                               to retrieve terms. Default 'post_tag'.
- * @param array        $args     {
+ * @param int             $post_id  Optional. The Post ID. Does not default to the ID of the
+ *                                  global $post. Default 0.
+ * @param string|string[] $taxonomy Optional. The taxonomy slug or array of slugs for which
+ *                                  to retrieve terms. Default 'post_tag'.
+ * @param array           $args     {
  *     Optional. Term query parameters. See WP_Term_Query::__construct() for supported arguments.
  *
  *     @type string $fields Term fields to retrieve. Default 'all'.
@@ -3498,10 +3551,11 @@ function wp_get_post_terms( $post_id = 0, $taxonomy = 'post_tag', $args = array(
  * @see get_posts()
  *
  * @param array  $args   Optional. Arguments to retrieve posts. Default empty array.
- * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which correspond to
- *                       a WP_Post object or an associative array, respectively. Default ARRAY_A.
- * @return array|false Array of recent posts, where the type of each element is determined by $output parameter.
- *                     Empty array on failure.
+ * @param string $output Optional. The required return type. One of OBJECT or ARRAY_A, which
+ *                       correspond to a WP_Post object or an associative array, respectively.
+ *                       Default ARRAY_A.
+ * @return array|false Array of recent posts, where the type of each element is determined
+ *                     by the `$output` parameter. Empty array on failure.
  */
 function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 
@@ -3552,8 +3606,10 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  * setting the value for 'comment_status' key.
  *
  * @since 1.0.0
+ * @since 2.6.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
  * @since 4.2.0 Support was added for encoding emoji in the post title, content, and excerpt.
  * @since 4.4.0 A 'meta_input' array can now be passed to `$postarr` to add post meta data.
+ * @since 5.6.0 Added the `$fire_after_hooks` parameter.
  *
  * @see sanitize_post()
  * @global wpdb $wpdb WordPress database abstraction object.
@@ -3593,16 +3649,17 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
  *     @type string $guid                  Global Unique ID for referencing the post. Default empty.
- *     @type array  $post_category         Array of category IDs.
+ *     @type int[]  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
  *     @type array  $tax_input             Array of taxonomy terms keyed by their taxonomy name. Default empty.
  *     @type array  $meta_input            Array of post meta values keyed by their post meta key. Default empty.
  * }
- * @param bool  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool  $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool  $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_post( $postarr, $wp_error = false ) {
+function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true ) {
 	global $wpdb;
 
 	// Capture original pre-sanitized array for passing into filters.
@@ -3659,6 +3716,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		$previous_status = get_post_field( 'post_status', $post_ID );
 	} else {
 		$previous_status = 'new';
+		$post_before     = null;
 	}
 
 	$post_type = empty( $postarr['post_type'] ) ? 'post' : $postarr['post_type'];
@@ -4033,6 +4091,33 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		wp_set_post_tags( $post_ID, $postarr['tags_input'] );
 	}
 
+	// Add default term for all associated custom taxonomies.
+	if ( 'auto-draft' !== $post_status ) {
+		foreach ( get_object_taxonomies( $post_type, 'object' ) as $taxonomy => $tax_object ) {
+
+			if ( ! empty( $tax_object->default_term ) ) {
+
+				// Filter out empty terms.
+				if ( isset( $postarr['tax_input'][ $taxonomy ] ) && is_array( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$postarr['tax_input'][ $taxonomy ] = array_filter( $postarr['tax_input'][ $taxonomy ] );
+				}
+
+				// Passed custom taxonomy list overwrites the existing list if not empty.
+				$terms = wp_get_object_terms( $post_ID, $taxonomy, array( 'fields' => 'ids' ) );
+				if ( ! empty( $terms ) && empty( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$postarr['tax_input'][ $taxonomy ] = $terms;
+				}
+
+				if ( empty( $postarr['tax_input'][ $taxonomy ] ) ) {
+					$default_term_id = get_option( 'default_term_' . $taxonomy );
+					if ( ! empty( $default_term_id ) ) {
+						$postarr['tax_input'][ $taxonomy ] = array( (int) $default_term_id );
+					}
+				}
+			}
+		}
+	}
+
 	// New-style support for all custom taxonomies.
 	if ( ! empty( $postarr['tax_input'] ) ) {
 		foreach ( $postarr['tax_input'] as $taxonomy => $tags ) {
@@ -4091,7 +4176,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 		}
 
 		if ( $thumbnail_support ) {
-			$thumbnail_id = intval( $postarr['_thumbnail_id'] );
+			$thumbnail_id = (int) $postarr['_thumbnail_id'];
 			if ( -1 === $thumbnail_id ) {
 				delete_post_thumbnail( $post_ID );
 			} else {
@@ -4207,7 +4292,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( "save_post_{$post->post_type}", $post_ID, $post, $update );
 
@@ -4218,7 +4303,7 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'save_post', $post_ID, $post, $update );
 
@@ -4229,9 +4314,13 @@ function wp_insert_post( $postarr, $wp_error = false ) {
 	 *
 	 * @param int     $post_ID Post ID.
 	 * @param WP_Post $post    Post object.
-	 * @param bool    $update  Whether this is an existing post being updated or not.
+	 * @param bool    $update  Whether this is an existing post being updated.
 	 */
 	do_action( 'wp_insert_post', $post_ID, $post, $update );
+
+	if ( $fire_after_hooks ) {
+		wp_after_insert_post( $post, $update, $post_before );
+	}
 
 	return $post_ID;
 }
@@ -4243,13 +4332,17 @@ function wp_insert_post( $postarr, $wp_error = false ) {
  * not be overridden.
  *
  * @since 1.0.0
+ * @since 3.5.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
+ * @since 5.6.0 Added the `$fire_after_hooks` parameter.
  *
- * @param array|object $postarr  Optional. Post data. Arrays are expected to be escaped,
- *                               objects are not. Default array.
- * @param bool         $wp_error Optional. Allow return of WP_Error on failure. Default false.
+ * @param array|object $postarr          Optional. Post data. Arrays are expected to be escaped,
+ *                                       objects are not. See wp_insert_post() for accepted arguments.
+ *                                       Default array.
+ * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
  */
-function wp_update_post( $postarr = array(), $wp_error = false ) {
+function wp_update_post( $postarr = array(), $wp_error = false, $fire_after_hooks = true ) {
 	if ( is_object( $postarr ) ) {
 		// Non-escaped post was passed.
 		$postarr = get_object_vars( $postarr );
@@ -4314,7 +4407,7 @@ function wp_update_post( $postarr = array(), $wp_error = false ) {
 		}
 	}
 
-	return wp_insert_post( $postarr, $wp_error );
+	return wp_insert_post( $postarr, $wp_error, $fire_after_hooks );
 }
 
 /**
@@ -4330,12 +4423,42 @@ function wp_publish_post( $post ) {
 	global $wpdb;
 
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return;
 	}
 
 	if ( 'publish' === $post->post_status ) {
 		return;
+	}
+
+	$post_before = get_post( $post->ID );
+
+	// Ensure at least one term is applied for taxonomies with a default term.
+	foreach ( get_object_taxonomies( $post->post_type, 'object' ) as $taxonomy => $tax_object ) {
+		// Skip taxonomy if no default term is set.
+		if (
+			'category' !== $taxonomy &&
+			empty( $tax_object->default_term )
+		) {
+			continue;
+		}
+
+		// Do not modify previously set terms.
+		if ( ! empty( get_the_terms( $post, $taxonomy ) ) ) {
+			continue;
+		}
+
+		if ( 'category' === $taxonomy ) {
+			$default_term_id = (int) get_option( 'default_category', 0 );
+		} else {
+			$default_term_id = (int) get_option( 'default_term_' . $taxonomy, 0 );
+		}
+
+		if ( ! $default_term_id ) {
+			continue;
+		}
+		wp_set_post_terms( $post->ID, array( $default_term_id ), $taxonomy );
 	}
 
 	$wpdb->update( $wpdb->posts, array( 'post_status' => 'publish' ), array( 'ID' => $post->ID ) );
@@ -4360,6 +4483,8 @@ function wp_publish_post( $post ) {
 
 	/** This action is documented in wp-includes/post.php */
 	do_action( 'wp_insert_post', $post->ID, $post, true );
+
+	wp_after_insert_post( $post, true, $post_before );
 }
 
 /**
@@ -4375,7 +4500,7 @@ function wp_publish_post( $post ) {
 function check_and_publish_future_post( $post_id ) {
 	$post = get_post( $post_id );
 
-	if ( empty( $post ) ) {
+	if ( ! $post ) {
 		return;
 	}
 
@@ -4521,7 +4646,7 @@ function wp_unique_post_slug( $slug, $post_ID, $post_status, $post_type, $post_p
 		// Prevent new post slugs that could result in URLs that conflict with date archives.
 		$conflicts_with_date_archive = false;
 		if ( 'post' === $post_type && ( ! $post || $post->post_name !== $slug ) && preg_match( '/^[0-9]+$/', $slug ) ) {
-			$slug_num = intval( $slug );
+			$slug_num = (int) $slug;
 
 			if ( $slug_num ) {
 				$permastructs   = array_values( array_filter( explode( '/', get_option( 'permalink_structure' ) ) ) );
@@ -4699,7 +4824,7 @@ function wp_set_post_terms( $post_id = 0, $tags = '', $taxonomy = 'post_tag', $a
  *
  * @param int       $post_ID         Optional. The Post ID. Does not default to the ID
  *                                   of the global $post. Default 0.
- * @param array|int $post_categories Optional. List of category IDs, or the ID of a single category.
+ * @param int[]|int $post_categories Optional. List of category IDs, or the ID of a single category.
  *                                   Default empty array.
  * @param bool      $append          If true, don't delete existing categories, just add on.
  *                                   If false, replace the categories with the new categories.
@@ -4778,7 +4903,7 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	/**
 	 * Fires when a post is transitioned from one status to another.
 	 *
-	 * The dynamic portions of the hook name, `$new_status` and `$old status`,
+	 * The dynamic portions of the hook name, `$new_status` and `$old_status`,
 	 * refer to the old and new post statuses, respectively.
 	 *
 	 * @since 2.3.0
@@ -4809,6 +4934,38 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	do_action( "{$new_status}_{$post->post_type}", $post->ID, $post );
 }
 
+/**
+ * Fires actions after a post, its terms and meta data has been saved.
+ *
+ * @since 5.6.0
+ *
+ * @param int|WP_Post  $post        The post ID or object that has been saved.
+ * @param bool         $update      Whether this is an existing post being updated.
+ * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+ *                                  to the update for updated posts.
+ */
+function wp_after_insert_post( $post, $update, $post_before ) {
+	$post = get_post( $post );
+	if ( ! $post ) {
+		return;
+	}
+
+	$post_id = $post->ID;
+
+	/**
+	 * Fires once a post, its terms and meta data has been saved.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param int          $post_id     Post ID.
+	 * @param WP_Post      $post        Post object.
+	 * @param bool         $update      Whether this is an existing post being updated.
+	 * @param null|WP_Post $post_before Null for new posts, the WP_Post object prior
+	 *                                  to the update for updated posts.
+	 */
+	do_action( 'wp_after_insert_post', $post_id, $post, $update, $post_before );
+}
+
 //
 // Comment, trackback, and pingback functions.
 //
@@ -4830,6 +4987,7 @@ function add_ping( $post_id, $uri ) {
 	global $wpdb;
 
 	$post = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -4906,6 +5064,7 @@ function get_enclosed( $post_id ) {
  */
 function get_pung( $post_id ) {
 	$post = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -4930,7 +5089,7 @@ function get_pung( $post_id ) {
  * @since 4.7.0 `$post_id` can be a WP_Post object.
  *
  * @param int|WP_Post $post_id Post Object or ID
- * @param string[] List of URLs yet to ping.
+ * @return string[]|false List of URLs yet to ping.
  */
 function get_to_ping( $post_id ) {
 	$post = get_post( $post_id );
@@ -5014,8 +5173,9 @@ function get_all_page_ids() {
  * @deprecated 3.5.0 Use get_post()
  *
  * @param int|WP_Post $page   Page object or page ID. Passed by reference.
- * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                            a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string      $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                            correspond to a WP_Post object, an associative array, or a numeric array,
+ *                            respectively. Default OBJECT.
  * @param string      $filter Optional. How the return value should be filtered. Accepts 'raw',
  *                            'edit', 'db', 'display'. Default 'raw'.
  * @return WP_Post|array|null WP_Post or array on success, null on failure.
@@ -5032,8 +5192,9 @@ function get_page( $page, $output = OBJECT, $filter = 'raw' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string       $page_path Page path.
- * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string       $output    Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                respectively. Default OBJECT.
  * @param string|array $post_type Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
@@ -5134,8 +5295,9 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string       $page_title Page title.
- * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which correspond to
- *                                 a WP_Post object, an associative array, or a numeric array, respectively. Default OBJECT.
+ * @param string       $output     Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
+ *                                 correspond to a WP_Post object, an associative array, or a numeric array,
+ *                                 respectively. Default OBJECT.
  * @param string|array $post_type  Optional. Post type or array of post types. Default 'page'.
  * @return WP_Post|array|null WP_Post (or array) on success, or null on failure.
  */
@@ -5189,7 +5351,7 @@ function get_page_children( $page_id, $pages ) {
 	// Build a hash of ID -> children.
 	$children = array();
 	foreach ( (array) $pages as $page ) {
-		$children[ intval( $page->post_parent ) ][] = $page;
+		$children[ (int) $page->post_parent ][] = $page;
 	}
 
 	$page_list = array();
@@ -5233,7 +5395,7 @@ function get_page_hierarchy( &$pages, $page_id = 0 ) {
 
 	$children = array();
 	foreach ( (array) $pages as $p ) {
-		$parent_id                = intval( $p->post_parent );
+		$parent_id                = (int) $p->post_parent;
 		$children[ $parent_id ][] = $p;
 	}
 
@@ -5307,7 +5469,7 @@ function get_page_uri( $page = 0 ) {
 }
 
 /**
- * Retrieve a list of pages (or hierarchical post type items).
+ * Retrieve an array of pages (or hierarchical post type items).
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -5328,8 +5490,8 @@ function get_page_uri( $page = 0 ) {
  *     @type bool         $hierarchical Whether to return pages hierarchically. If false in conjunction with
  *                                      `$child_of` also being false, both arguments will be disregarded.
  *                                      Default true.
- *     @type array        $exclude      Array of page IDs to exclude. Default empty array.
- *     @type array        $include      Array of page IDs to include. Cannot be used with `$child_of`,
+ *     @type int[]        $exclude      Array of page IDs to exclude. Default empty array.
+ *     @type int[]        $include      Array of page IDs to include. Cannot be used with `$child_of`,
  *                                      `$parent`, `$exclude`, `$meta_key`, `$meta_value`, or `$hierarchical`.
  *                                      Default empty array.
  *     @type string       $meta_key     Only include pages with this meta key. Default empty.
@@ -5337,7 +5499,7 @@ function get_page_uri( $page = 0 ) {
  *                                      Default empty.
  *     @type string       $authors      A comma-separated list of author IDs. Default empty.
  *     @type int          $parent       Page ID to return direct children of. Default -1, or no restriction.
- *     @type string|array $exclude_tree Comma-separated string or array of page IDs to exclude.
+ *     @type string|int[] $exclude_tree Comma-separated string or array of page IDs to exclude.
  *                                      Default empty array.
  *     @type int          $number       The number of pages to return. Default 0, or all pages.
  *     @type int          $offset       The number of pages to skip before returning. Requires `$number`.
@@ -5346,7 +5508,7 @@ function get_page_uri( $page = 0 ) {
  *     @type string|array $post_status  A comma-separated list or array of post statuses to include.
  *                                      Default 'publish'.
  * }
- * @return array|false List of pages matching defaults or `$args`.
+ * @return array|false Array of pages matching defaults or `$args`.
  */
 function get_pages( $args = array() ) {
 	global $wpdb;
@@ -5442,7 +5604,7 @@ function get_pages( $args = array() ) {
 		if ( ! empty( $post_authors ) ) {
 			foreach ( $post_authors as $post_author ) {
 				// Do we have an author id or an author login?
-				if ( 0 == intval( $post_author ) ) {
+				if ( 0 == (int) $post_author ) {
 					$post_author = get_user_by( 'login', $post_author );
 					if ( empty( $post_author ) ) {
 						continue;
@@ -5674,16 +5836,18 @@ function is_local_attachment( $url ) {
  *
  * @since 2.0.0
  * @since 4.7.0 Added the `$wp_error` parameter to allow a WP_Error to be returned on failure.
+ * @since 5.6.0 Added the `$fire_after_hooks` parameter.
  *
  * @see wp_insert_post()
  *
- * @param string|array $args     Arguments for inserting an attachment.
- * @param string       $file     Optional. Filename.
- * @param int          $parent   Optional. Parent post ID.
- * @param bool         $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @param string|array $args             Arguments for inserting an attachment.
+ * @param string       $file             Optional. Filename.
+ * @param int          $parent           Optional. Parent post ID.
+ * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
+ * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
  * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
  */
-function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false ) {
+function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = false, $fire_after_hooks = true ) {
 	$defaults = array(
 		'file'        => $file,
 		'post_parent' => 0,
@@ -5697,7 +5861,7 @@ function wp_insert_attachment( $args, $file = false, $parent = 0, $wp_error = fa
 
 	$data['post_type'] = 'attachment';
 
-	return wp_insert_post( $data, $wp_error );
+	return wp_insert_post( $data, $wp_error, $fire_after_hooks );
 }
 
 /**
@@ -5760,7 +5924,7 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	$file         = get_attached_file( $post_id );
 
 	if ( is_multisite() ) {
-		delete_transient( 'dirsize_cache' );
+		clean_dirsize_cache( $file );
 	}
 
 	/**
@@ -5814,6 +5978,8 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
  * Deletes all files that belong to the given attachment.
  *
  * @since 4.9.7
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int    $post_id      Attachment ID.
  * @param array  $meta         The attachment's meta data.
@@ -5920,12 +6086,11 @@ function wp_delete_attachment_files( $post_id, $meta, $backup_sizes, $file ) {
 function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	$attachment_id = (int) $attachment_id;
 
-	$post = get_post( $attachment_id );
-	if ( ! $post ) {
+	$data = get_post_meta( $attachment_id, '_wp_attachment_metadata', true );
+
+	if ( ! $data ) {
 		return false;
 	}
-
-	$data = get_post_meta( $post->ID, '_wp_attachment_metadata', true );
 
 	if ( $unfiltered ) {
 		return $data;
@@ -5940,7 +6105,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	 *                                  if the object does not exist.
 	 * @param int        $attachment_id Attachment post ID.
 	 */
-	return apply_filters( 'wp_get_attachment_metadata', $data, $post->ID );
+	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
 }
 
 /**
@@ -5956,6 +6121,7 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -5990,6 +6156,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6023,7 +6190,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	 * If any of the above options failed, Fallback on the GUID as used pre-2.7,
 	 * not recommended to rely upon this.
 	 */
-	if ( empty( $url ) ) {
+	if ( ! $url ) {
 		$url = get_the_guid( $post->ID );
 	}
 
@@ -6042,7 +6209,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	 */
 	$url = apply_filters( 'wp_get_attachment_url', $url, $post->ID );
 
-	if ( empty( $url ) ) {
+	if ( ! $url ) {
 		return false;
 	}
 
@@ -6060,6 +6227,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 function wp_get_attachment_caption( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6092,6 +6260,7 @@ function wp_get_attachment_caption( $post_id = 0 ) {
 function wp_get_attachment_thumb_file( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6131,6 +6300,7 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
 	$post    = get_post( $post_id );
+
 	if ( ! $post ) {
 		return false;
 	}
@@ -6174,11 +6344,13 @@ function wp_get_attachment_thumb_url( $post_id = 0 ) {
  */
 function wp_attachment_is( $type, $post = null ) {
 	$post = get_post( $post );
+
 	if ( ! $post ) {
 		return false;
 	}
 
 	$file = get_attached_file( $post->ID );
+
 	if ( ! $file ) {
 		return false;
 	}
@@ -6188,6 +6360,7 @@ function wp_attachment_is( $type, $post = null ) {
 	}
 
 	$check = wp_check_filetype( $file );
+
 	if ( empty( $check['ext'] ) ) {
 		return false;
 	}
@@ -6565,8 +6738,8 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
  * Retrieves the most recent time that a post on the site was published.
  *
  * The server timezone is the default and is the difference between GMT and
- * server time. The 'blog' value is the date when the last post was posted. The
- * 'gmt' is when the last post was posted in GMT formatted date.
+ * server time. The 'blog' value is the date when the last post was posted.
+ * The 'gmt' is when the last post was posted in GMT formatted date.
  *
  * @since 0.71
  * @since 4.4.0 The `$post_type` argument was added.
@@ -6580,24 +6753,29 @@ function get_posts_by_author_sql( $post_type, $full = true, $post_author = null,
  * @return string The date of the last post, or false on failure.
  */
 function get_lastpostdate( $timezone = 'server', $post_type = 'any' ) {
+	$lastpostdate = _get_last_post_time( $timezone, 'date', $post_type );
+
 	/**
 	 * Filters the most recent time that a post on the site was published.
 	 *
 	 * @since 2.3.0
+	 * @since 5.5.0 Added the `$post_type` parameter.
 	 *
-	 * @param string|false $date     Date the last post was published. False on failure.
-	 * @param string       $timezone Location to use for getting the post published date.
-	 *                               See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string|false $lastpostdate The most recent time that a post was published,
+	 *                                   in 'Y-m-d H:i:s' format. False on failure.
+	 * @param string       $timezone     Location to use for getting the post published date.
+	 *                                   See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string       $post_type    The post type to check.
 	 */
-	return apply_filters( 'get_lastpostdate', _get_last_post_time( $timezone, 'date', $post_type ), $timezone );
+	return apply_filters( 'get_lastpostdate', $lastpostdate, $timezone, $post_type );
 }
 
 /**
  * Get the most recent time that a post on the site was modified.
  *
  * The server timezone is the default and is the difference between GMT and
- * server time. The 'blog' value is just when the last post was modified. The
- * 'gmt' is when the last post was modified in GMT time.
+ * server time. The 'blog' value is just when the last post was modified.
+ * The 'gmt' is when the last post was modified in GMT time.
  *
  * @since 1.2.0
  * @since 4.4.0 The `$post_type` argument was added.
@@ -6614,35 +6792,39 @@ function get_lastpostmodified( $timezone = 'server', $post_type = 'any' ) {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param string|false $lastpostmodified The most recent time that a post was modified, in 'Y-m-d H:i:s' format, or
-	 *                                       false. Returning anything other than false will short-circuit the function.
+	 * @param string|false $lastpostmodified The most recent time that a post was modified,
+	 *                                       in 'Y-m-d H:i:s' format, or false. Returning anything
+	 *                                       other than false will short-circuit the function.
 	 * @param string       $timezone         Location to use for getting the post modified date.
 	 *                                       See get_lastpostdate() for accepted `$timezone` values.
 	 * @param string       $post_type        The post type to check.
 	 */
 	$lastpostmodified = apply_filters( 'pre_get_lastpostmodified', false, $timezone, $post_type );
+
 	if ( false !== $lastpostmodified ) {
 		return $lastpostmodified;
 	}
 
 	$lastpostmodified = _get_last_post_time( $timezone, 'modified', $post_type );
+	$lastpostdate     = get_lastpostdate( $timezone, $post_type );
 
-	$lastpostdate = get_lastpostdate( $timezone );
 	if ( $lastpostdate > $lastpostmodified ) {
 		$lastpostmodified = $lastpostdate;
 	}
 
 	/**
-	 * Filters the most recent time that a post was modified.
+	 * Filters the most recent time that a post on the site was modified.
 	 *
 	 * @since 2.3.0
+	 * @since 5.5.0 Added the `$post_type` parameter.
 	 *
-	 * @param string|false $lastpostmodified The most recent time that a post was modified, in 'Y-m-d H:i:s' format.
-	 *                                       False on failure.
+	 * @param string|false $lastpostmodified The most recent time that a post was modified,
+	 *                                       in 'Y-m-d H:i:s' format. False on failure.
 	 * @param string       $timezone         Location to use for getting the post modified date.
 	 *                                       See get_lastpostdate() for accepted `$timezone` values.
+	 * @param string       $post_type        The post type to check.
 	 */
-	return apply_filters( 'get_lastpostmodified', $lastpostmodified, $timezone );
+	return apply_filters( 'get_lastpostmodified', $lastpostmodified, $timezone, $post_type );
 }
 
 /**
@@ -6749,7 +6931,8 @@ function clean_post_cache( $post ) {
 	}
 
 	$post = get_post( $post );
-	if ( empty( $post ) ) {
+
+	if ( ! $post ) {
 		return;
 	}
 
@@ -7014,7 +7197,8 @@ function _publish_post_hook( $post_id ) {
  * @since 3.1.0
  *
  * @param int|WP_Post $post Post ID or post object. Defaults to global $post.
- * @return int|false Post parent ID (which can be 0 if there is no parent), or false if the post does not exist.
+ * @return int|false Post parent ID (which can be 0 if there is no parent),
+ *                   or false if the post does not exist.
  */
 function wp_get_post_parent_id( $post ) {
 	$post = get_post( $post );
@@ -7045,7 +7229,7 @@ function wp_check_post_hierarchy_for_loops( $post_parent, $post_ID ) {
 	}
 
 	// New post can't cause a loop.
-	if ( empty( $post_ID ) ) {
+	if ( ! $post_ID ) {
 		return $post_parent;
 	}
 
@@ -7212,7 +7396,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'posts' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", join( ',', $non_cached_ids ) ) );
+		$fresh_posts = $wpdb->get_results( sprintf( "SELECT $wpdb->posts.* FROM $wpdb->posts WHERE ID IN (%s)", implode( ',', $non_cached_ids ) ) );
 
 		update_post_caches( $fresh_posts, 'any', $update_term_cache, $update_meta_cache );
 	}
@@ -7280,7 +7464,7 @@ function wp_add_trashed_suffix_to_post_name_for_post( $post ) {
 }
 
 /**
- * Filter the SQL clauses of an attachment query to include filenames.
+ * Filters the SQL clauses of an attachment query to include filenames.
  *
  * @since 4.7.0
  * @access private
@@ -7394,7 +7578,7 @@ function wp_get_original_image_url( $attachment_id ) {
 
 	$image_url = wp_get_attachment_url( $attachment_id );
 
-	if ( empty( $image_url ) ) {
+	if ( ! $image_url ) {
 		return false;
 	}
 
@@ -7415,4 +7599,20 @@ function wp_get_original_image_url( $attachment_id ) {
 	 * @param int    $attachment_id      Attachment ID.
 	 */
 	return apply_filters( 'wp_get_original_image_url', $original_image_url, $attachment_id );
+}
+
+/**
+ * Filter callback which sets the status of an untrashed post to its previous status.
+ *
+ * This can be used as a callback on the `wp_untrash_post_status` filter.
+ *
+ * @since 5.6.0
+ *
+ * @param string $new_status      The new status of the post being restored.
+ * @param int    $post_id         The ID of the post being restored.
+ * @param string $previous_status The status of the post at the point where it was trashed.
+ * @return string The new status of the post.
+ */
+function wp_untrash_post_set_previous_status( $new_status, $post_id, $previous_status ) {
+	return $previous_status;
 }

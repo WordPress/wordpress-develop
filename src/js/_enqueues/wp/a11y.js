@@ -18,8 +18,8 @@ window.wp = window.wp || {};
 	 * @since 4.2.0
 	 * @since 4.3.0 Introduced the 'ariaLive' argument.
 	 *
-	 * @param {String} message    The message to be announced by Assistive Technologies.
-	 * @param {String} [ariaLive] The politeness level for aria-live. Possible values:
+	 * @param {string} message    The message to be announced by Assistive Technologies.
+	 * @param {string} [ariaLive] The politeness level for aria-live. Possible values:
 	 *                            polite or assertive. Default polite.
 	 * @return {void}
 	 */
@@ -53,7 +53,7 @@ window.wp = window.wp || {};
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param {String} ariaLive Optional. Value for the 'aria-live' attribute, default 'polite'.
+	 * @param {string} ariaLive Optional. Value for the 'aria-live' attribute, default 'polite'.
 	 *
 	 * @return {Object} $container The ARIA live region jQuery object.
 	 */

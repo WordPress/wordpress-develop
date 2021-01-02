@@ -45,8 +45,8 @@ class WP_Widget_Text extends WP_Widget {
 	/**
 	 * Add hooks for enqueueing assets when registering all widget instances of this widget class.
 	 *
-	 * @param integer $number Optional. The unique order number of this widget instance
-	 *                        compared to other instances of the same class. Default -1.
+	 * @param int $number Optional. The unique order number of this widget instance
+	 *                    compared to other instances of the same class. Default -1.
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -193,7 +193,7 @@ class WP_Widget_Text extends WP_Widget {
 	}
 
 	/**
-	 * Filter gallery shortcode attributes.
+	 * Filters gallery shortcode attributes.
 	 *
 	 * Prevents all of a site's attachments from being shown in a gallery displayed on a
 	 * non-singular template where a $post context is not available.
@@ -331,7 +331,7 @@ class WP_Widget_Text extends WP_Widget {
 
 		$text = preg_replace_callback( '#<(video|iframe|object|embed)\s[^>]*>#i', array( $this, 'inject_video_max_width_style' ), $text );
 
-		// Adds noreferrer and noopener relationships, without duplicating values, to all HTML A elements that have a target.
+		// Adds 'noopener' relationship, without duplicating values, to all HTML A elements that have a target.
 		$text = wp_targeted_link_rel( $text );
 
 		?>

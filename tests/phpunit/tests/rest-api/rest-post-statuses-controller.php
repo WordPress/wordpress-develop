@@ -22,14 +22,14 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/statuses' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 		// Single.
 		$request  = new WP_REST_Request( 'OPTIONS', '/wp/v2/statuses/publish' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'view', $data['endpoints'][0]['args']['context']['default'] );
-		$this->assertEqualSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
+		$this->assertSame( 'view', $data['endpoints'][0]['args']['context']['default'] );
+		$this->assertSameSets( array( 'embed', 'view', 'edit' ), $data['endpoints'][0]['args']['context']['enum'] );
 	}
 
 	public function test_get_items() {
@@ -38,8 +38,8 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 
 		$data     = $response->get_data();
 		$statuses = get_post_stati( array( 'public' => true ), 'objects' );
-		$this->assertEquals( 1, count( $data ) );
-		$this->assertEquals( 'publish', $data['publish']['slug'] );
+		$this->assertSame( 1, count( $data ) );
+		$this->assertSame( 'publish', $data['publish']['slug'] );
 	}
 
 	public function test_get_items_logged_in() {
@@ -50,8 +50,8 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response = rest_get_server()->dispatch( $request );
 
 		$data = $response->get_data();
-		$this->assertEquals( 6, count( $data ) );
-		$this->assertEqualSets(
+		$this->assertSame( 6, count( $data ) );
+		$this->assertSameSets(
 			array(
 				'publish',
 				'private',
@@ -106,21 +106,21 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		/** Post statuses can't be created */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/statuses' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_update_item() {
 		/** Post statuses can't be updated */
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/statuses/draft' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_delete_item() {
 		/** Post statuses can't be deleted */
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/statuses/draft' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 	}
 
 	public function test_prepare_item() {
@@ -139,7 +139,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$request->set_param( 'context', 'edit' );
 		$request->set_param( '_fields', 'id,name' );
 		$response = $endpoint->prepare_item_for_response( $obj, $request );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				// 'id' doesn't exist in this context.
 				'name',
@@ -153,7 +153,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertEquals( 8, count( $properties ) );
+		$this->assertSame( 8, count( $properties ) );
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'private', $properties );
 		$this->assertArrayHasKey( 'protected', $properties );
@@ -189,7 +189,7 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 		$data     = $response->get_data();
 
 		$this->assertArrayHasKey( 'my_custom_int', $data['schema']['properties'] );
-		$this->assertEquals( $schema, $data['schema']['properties']['my_custom_int'] );
+		$this->assertSame( $schema, $data['schema']['properties']['my_custom_int'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/statuses/publish' );
 
@@ -205,24 +205,24 @@ class WP_Test_REST_Post_Statuses_Controller extends WP_Test_REST_Controller_Test
 	}
 
 	protected function check_post_status_obj( $status_obj, $data, $links ) {
-		$this->assertEquals( $status_obj->label, $data['name'] );
-		$this->assertEquals( $status_obj->private, $data['private'] );
-		$this->assertEquals( $status_obj->protected, $data['protected'] );
-		$this->assertEquals( $status_obj->public, $data['public'] );
-		$this->assertEquals( $status_obj->publicly_queryable, $data['queryable'] );
-		$this->assertEquals( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
-		$this->assertEquals( $status_obj->name, $data['slug'] );
-		$this->assertEqualSets(
+		$this->assertSame( $status_obj->label, $data['name'] );
+		$this->assertSame( $status_obj->private, $data['private'] );
+		$this->assertSame( $status_obj->protected, $data['protected'] );
+		$this->assertSame( $status_obj->public, $data['public'] );
+		$this->assertSame( $status_obj->publicly_queryable, $data['queryable'] );
+		$this->assertSame( $status_obj->show_in_admin_all_list, $data['show_in_list'] );
+		$this->assertSame( $status_obj->name, $data['slug'] );
+		$this->assertSameSets(
 			array(
 				'archives',
 			),
 			array_keys( $links )
 		);
-		$this->assertEquals( $status_obj->date_floating, $data['date_floating'] );
+		$this->assertSame( $status_obj->date_floating, $data['date_floating'] );
 	}
 
 	protected function check_post_status_object_response( $response ) {
-		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 		$obj  = get_post_status_object( 'publish' );
 		$this->check_post_status_obj( $obj, $data, $response->get_links() );

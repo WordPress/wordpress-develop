@@ -7,7 +7,7 @@ abstract class WP_Test_REST_TestCase extends WP_UnitTestCase {
 			$response = $response->as_error();
 		}
 
-		$this->assertInstanceOf( 'WP_Error', $response );
+		$this->assertWPError( $response );
 		$this->assertEquals( $code, $response->get_error_code() );
 
 		if ( null !== $status ) {

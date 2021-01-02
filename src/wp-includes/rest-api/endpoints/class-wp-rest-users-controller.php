@@ -116,9 +116,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'/' . $this->rest_base . '/me',
 			array(
 				array(
-					'methods'  => WP_REST_Server::READABLE,
-					'callback' => array( $this, 'get_current_item' ),
-					'args'     => array(
+					'methods'             => WP_REST_Server::READABLE,
+					'permission_callback' => '__return_true',
+					'callback'            => array( $this, 'get_current_item' ),
+					'args'                => array(
 						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 					),
 				),
@@ -1172,8 +1173,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param integer $user_id User ID.
-	 * @param array   $roles   New user roles.
+	 * @param int   $user_id User ID.
+	 * @param array $roles   New user roles.
 	 * @return true|WP_Error True if the current user is allowed to make the role change,
 	 *                       otherwise a WP_Error object.
 	 */
@@ -1290,7 +1291,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( false !== strpos( $password, '\\' ) ) {
 			return new WP_Error(
 				'rest_user_invalid_password',
-				__( 'Passwords cannot contain the "\\" character.' ),
+				sprintf(
+					/* translators: %s: The '\' character. */
+					__( 'Passwords cannot contain the "%s" character.' ),
+					'\\'
+				),
 				array( 'status' => 400 )
 			);
 		}
@@ -1554,7 +1559,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the users controller.
+		 * Filters collection parameters for the users controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_User_Query parameter.  Use the

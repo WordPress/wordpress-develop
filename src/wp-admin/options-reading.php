@@ -41,8 +41,9 @@ get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'site-visibility',
 		'title'   => has_action( 'blog_privacy_selector' ) ? __( 'Site visibility' ) : __( 'Search engine visibility' ),
-		'content' => '<p>' . __( 'You can choose whether or not your site will be crawled by robots, ping services, and spiders. If you want those services to ignore your site, click the checkbox next to &#8220;Discourage search engines from indexing this site&#8221; and click the Save Changes button at the bottom of the screen. Note that your privacy is not complete; your site is still visible on the web.' ) . '</p>' .
-			'<p>' . __( 'When this setting is in effect, a reminder is shown in the At a Glance box of the Dashboard that says, &#8220;Search engines discouraged,&#8221; to remind you that your site is not being crawled.' ) . '</p>',
+		'content' => '<p>' . __( 'You can choose whether or not your site will be crawled by robots, ping services, and spiders. If you want those services to ignore your site, click the checkbox next to &#8220;Discourage search engines from indexing this site&#8221; and click the Save Changes button at the bottom of the screen.' ) . '</p>' .
+			'<p>' . __( 'Note that even when set to discourage search engines, your site is still visible on the web and not all search engines adhere to this directive.' ) . '</p>' .
+			'<p>' . __( 'When this setting is in effect, a reminder is shown in the At a Glance box of the Dashboard that says, &#8220;Search engines discouraged&#8221;, to remind you that you have directed search engines to not crawl your site.' ) . '</p>',
 	)
 );
 
@@ -137,10 +138,10 @@ else :
 </label></li>
 </ul>
 	<?php if ( 'page' === get_option( 'show_on_front' ) && get_option( 'page_for_posts' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="front-page-warning" class="error inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
+	<div id="front-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same!' ); ?></p></div>
 	<?php endif; ?>
 	<?php if ( get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_for_posts' ) || get_option( 'wp_page_for_privacy_policy' ) === get_option( 'page_on_front' ) ) : ?>
-	<div id="privacy-policy-page-warning" class="error inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ); ?></p></div>
+	<div id="privacy-policy-page-warning" class="notice notice-warning inline"><p><?php _e( '<strong>Warning:</strong> these pages should not be the same as your Privacy Policy page!' ); ?></p></div>
 	<?php endif; ?>
 </fieldset></td>
 </tr>

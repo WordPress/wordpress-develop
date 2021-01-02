@@ -17,25 +17,10 @@
  *
  * @global WP_Sitemaps $wp_sitemaps Global Core Sitemaps instance.
  *
- * @return WP_Sitemaps|null Sitemaps instance, or null if sitemaps are disabled.
+ * @return WP_Sitemaps Sitemaps instance.
  */
 function wp_sitemaps_get_server() {
 	global $wp_sitemaps;
-
-	$is_enabled = (bool) get_option( 'blog_public' );
-
-	/**
-	 * Filters whether XML Sitemaps are enabled or not.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param bool $is_enabled Whether XML Sitemaps are enabled or not. Defaults to true for public sites.
-	 */
-	$is_enabled = (bool) apply_filters( 'wp_sitemaps_enabled', $is_enabled );
-
-	if ( ! $is_enabled ) {
-		return null;
-	}
 
 	// If there isn't a global instance, set and bootstrap the sitemaps system.
 	if ( empty( $wp_sitemaps ) ) {
@@ -64,14 +49,9 @@ function wp_sitemaps_get_server() {
  *
  * @return WP_Sitemaps_Provider[] Array of sitemap providers.
  */
-function wp_get_sitemaps() {
+function wp_get_sitemap_providers() {
 	$sitemaps = wp_sitemaps_get_server();
-
-	if ( ! $sitemaps ) {
-		return array();
-	}
-
-	return $sitemaps->registry->get_sitemaps();
+	return $sitemaps->registry->get_providers();
 }
 
 /**
@@ -81,16 +61,11 @@ function wp_get_sitemaps() {
  *
  * @param string               $name     Unique name for the sitemap provider.
  * @param WP_Sitemaps_Provider $provider The `Sitemaps_Provider` instance implementing the sitemap.
- * @return bool Returns true if the sitemap was added. False on failure.
+ * @return bool Whether the sitemap was added.
  */
-function wp_register_sitemap( $name, WP_Sitemaps_Provider $provider ) {
+function wp_register_sitemap_provider( $name, WP_Sitemaps_Provider $provider ) {
 	$sitemaps = wp_sitemaps_get_server();
-
-	if ( ! $sitemaps ) {
-		return false;
-	}
-
-	return $sitemaps->registry->add_sitemap( $name, $provider );
+	return $sitemaps->registry->add_provider( $name, $provider );
 }
 
 /**
@@ -111,4 +86,40 @@ function wp_sitemaps_get_max_urls( $object_type ) {
 	 * @param string $object_type Object type for sitemap to be filtered (e.g. 'post', 'term', 'user').
 	 */
 	return apply_filters( 'wp_sitemaps_max_urls', 2000, $object_type );
+}
+
+/**
+ * Retrieves the full URL for a sitemap.
+ *
+ * @since 5.5.1
+ *
+ * @param string $name         The sitemap name.
+ * @param string $subtype_name The sitemap subtype name.  Default empty string.
+ * @param int    $page         The page of the sitemap.  Default 1.
+ * @return string|false The sitemap URL or false if the sitemap doesn't exist.
+ */
+function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
+	$sitemaps = wp_sitemaps_get_server();
+	if ( ! $sitemaps ) {
+		return false;
+	}
+
+	if ( 'index' === $name ) {
+		return $sitemaps->index->get_index_url();
+	}
+
+	$provider = $sitemaps->registry->get_provider( $name );
+	if ( ! $provider ) {
+		return false;
+	}
+
+	if ( $subtype_name && ! in_array( $subtype_name, array_keys( $provider->get_object_subtypes() ), true ) ) {
+		return false;
+	}
+
+	$page = absint( $page );
+	if ( 0 >= $page ) {
+		$page = 1;
+	}
+	return $provider->get_sitemap_url( $subtype_name, $page );
 }

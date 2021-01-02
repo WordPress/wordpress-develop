@@ -45,7 +45,7 @@ class WP_Date_Query {
 	 * The value comparison operator. Can be changed via the query arguments.
 	 *
 	 * @since 3.7.0
-	 * @var array
+	 * @var string
 	 */
 	public $compare = '=';
 
@@ -69,10 +69,10 @@ class WP_Date_Query {
 	 * @since 4.0.0 The $inclusive logic was updated to include all times within the date range.
 	 * @since 4.1.0 Introduced 'dayofweek_iso' time type parameter.
 	 *
-	 * @param array $date_query {
+	 * @param array  $date_query {
 	 *     Array of date query clauses.
 	 *
-	 *     @type array {
+	 *     @type array ...$0 {
 	 *         @type string $column   Optional. The column to query against. If undefined, inherits the value of
 	 *                                the `$default_column` parameter. Accepts 'post_date', 'post_date_gmt',
 	 *                                'post_modified','post_modified_gmt', 'comment_date', 'comment_date_gmt'.
@@ -81,7 +81,7 @@ class WP_Date_Query {
 	 *                                'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN'. Default '='.
 	 *         @type string $relation Optional. The boolean relationship between the date queries. Accepts 'OR' or 'AND'.
 	 *                                Default 'OR'.
-	 *         @type array {
+	 *         @type array  ...$0 {
 	 *             Optional. An array of first-order clause parameters, or another fully-formed date query.
 	 *
 	 *             @type string|array $before {
@@ -115,27 +115,27 @@ class WP_Date_Query {
 	 *                                               arrays in some time-related parameters. Default '='.
 	 *             @type bool         $inclusive     Optional. Include results from dates specified in 'before' or
 	 *                                               'after'. Default false.
-	 *             @type int|array    $year          Optional. The four-digit year number. Accepts any four-digit year
+	 *             @type int|int[]    $year          Optional. The four-digit year number. Accepts any four-digit year
 	 *                                               or an array of years if `$compare` supports it. Default empty.
-	 *             @type int|array    $month         Optional. The two-digit month number. Accepts numbers 1-12 or an
+	 *             @type int|int[]    $month         Optional. The two-digit month number. Accepts numbers 1-12 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|array    $week          Optional. The week number of the year. Accepts numbers 0-53 or an
+	 *             @type int|int[]    $week          Optional. The week number of the year. Accepts numbers 0-53 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|array    $dayofyear     Optional. The day number of the year. Accepts numbers 1-366 or an
+	 *             @type int|int[]    $dayofyear     Optional. The day number of the year. Accepts numbers 1-366 or an
 	 *                                               array of valid numbers if `$compare` supports it.
-	 *             @type int|array    $day           Optional. The day of the month. Accepts numbers 1-31 or an array
+	 *             @type int|int[]    $day           Optional. The day of the month. Accepts numbers 1-31 or an array
 	 *                                               of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|array    $dayofweek     Optional. The day number of the week. Accepts numbers 1-7 (1 is
+	 *             @type int|int[]    $dayofweek     Optional. The day number of the week. Accepts numbers 1-7 (1 is
 	 *                                               Sunday) or an array of valid numbers if `$compare` supports it.
 	 *                                               Default empty.
-	 *             @type int|array    $dayofweek_iso Optional. The day number of the week (ISO). Accepts numbers 1-7
+	 *             @type int|int[]    $dayofweek_iso Optional. The day number of the week (ISO). Accepts numbers 1-7
 	 *                                               (1 is Monday) or an array of valid numbers if `$compare` supports it.
 	 *                                               Default empty.
-	 *             @type int|array    $hour          Optional. The hour of the day. Accepts numbers 0-23 or an array
+	 *             @type int|int[]    $hour          Optional. The hour of the day. Accepts numbers 0-23 or an array
 	 *                                               of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|array    $minute        Optional. The minute of the hour. Accepts numbers 0-60 or an array
+	 *             @type int|int[]    $minute        Optional. The minute of the hour. Accepts numbers 0-60 or an array
 	 *                                               of valid numbers if `$compare` supports it. Default empty.
-	 *             @type int|array    $second        Optional. The second of the minute. Accepts numbers 0-60 or an
+	 *             @type int|int[]    $second        Optional. The second of the minute. Accepts numbers 0-60 or an
 	 *                                               array of valid numbers if `$compare` supports it. Default empty.
 	 *         }
 	 *     }
@@ -797,8 +797,8 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string $compare The compare operator to use
-	 * @param string|array $value The value
+	 * @param string       $compare The compare operator to use.
+	 * @param string|array $value   The value.
 	 * @return string|false|int The value to be used in SQL or false on error.
 	 */
 	public function build_value( $compare, $value ) {
@@ -874,32 +874,32 @@ class WP_Date_Query {
 			if ( preg_match( '/^(\d{4})$/', $datetime, $matches ) ) {
 				// Y
 				$datetime = array(
-					'year' => intval( $matches[1] ),
+					'year' => (int) $matches[1],
 				);
 
 			} elseif ( preg_match( '/^(\d{4})\-(\d{2})$/', $datetime, $matches ) ) {
 				// Y-m
 				$datetime = array(
-					'year'  => intval( $matches[1] ),
-					'month' => intval( $matches[2] ),
+					'year'  => (int) $matches[1],
+					'month' => (int) $matches[2],
 				);
 
 			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2})$/', $datetime, $matches ) ) {
 				// Y-m-d
 				$datetime = array(
-					'year'  => intval( $matches[1] ),
-					'month' => intval( $matches[2] ),
-					'day'   => intval( $matches[3] ),
+					'year'  => (int) $matches[1],
+					'month' => (int) $matches[2],
+					'day'   => (int) $matches[3],
 				);
 
 			} elseif ( preg_match( '/^(\d{4})\-(\d{2})\-(\d{2}) (\d{2}):(\d{2})$/', $datetime, $matches ) ) {
 				// Y-m-d H:i
 				$datetime = array(
-					'year'   => intval( $matches[1] ),
-					'month'  => intval( $matches[2] ),
-					'day'    => intval( $matches[3] ),
-					'hour'   => intval( $matches[4] ),
-					'minute' => intval( $matches[5] ),
+					'year'   => (int) $matches[1],
+					'month'  => (int) $matches[2],
+					'day'    => (int) $matches[3],
+					'hour'   => (int) $matches[4],
+					'minute' => (int) $matches[5],
 				);
 			}
 
@@ -956,11 +956,11 @@ class WP_Date_Query {
 	 *
 	 * @since 3.7.0
 	 *
-	 * @param string $column The column to query against. Needs to be pre-validated!
-	 * @param string $compare The comparison operator. Needs to be pre-validated!
-	 * @param int|null $hour Optional. An hour value (0-23).
-	 * @param int|null $minute Optional. A minute value (0-59).
-	 * @param int|null $second Optional. A second value (0-59).
+	 * @param string   $column  The column to query against. Needs to be pre-validated!
+	 * @param string   $compare The comparison operator. Needs to be pre-validated!
+	 * @param int|null $hour    Optional. An hour value (0-23).
+	 * @param int|null $minute  Optional. A minute value (0-59).
+	 * @param int|null $second  Optional. A second value (0-59).
 	 * @return string|false A query part or false on failure.
 	 */
 	public function build_time_query( $column, $compare, $hour = null, $minute = null, $second = null ) {

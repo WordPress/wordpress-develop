@@ -191,6 +191,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		 */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, true );
 
+		wp_after_insert_post( $attachment, false, null );
+
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
 			// Set a custom header with the attachment_id.
 			// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
@@ -270,7 +272,7 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// $post_parent is inherited from $attachment['post_parent'].
-		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true );
+		$id = wp_insert_attachment( wp_slash( (array) $attachment ), $file, 0, true, false );
 
 		if ( is_wp_error( $id ) ) {
 			if ( 'db_update_error' === $id->get_error_code() ) {
@@ -319,7 +321,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$response = parent::update_item( $request );
+		$attachment_before = get_post( $request['id'] );
+		$response          = parent::update_item( $request );
 
 		if ( is_wp_error( $response ) ) {
 			return $response;
@@ -344,6 +347,8 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-attachments-controller.php */
 		do_action( 'rest_after_insert_attachment', $attachment, $request, false );
+
+		wp_after_insert_post( $attachment, true, $attachment_before );
 
 		$response = $this->prepare_item_for_response( $attachment, $request );
 		$response = rest_ensure_response( $response );
@@ -421,7 +426,11 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		$image_file = wp_get_original_image_path( $attachment_id );
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
 
-		if ( ! $image_meta || ! $image_file ) {
+		if (
+			! $image_meta ||
+			! $image_file ||
+			! wp_image_file_matches_image_meta( $request['src'], $image_meta, $attachment_id )
+		) {
 			return new WP_Error(
 				'rest_unknown_attachment',
 				__( 'Unable to get meta information for file.' ),
@@ -460,7 +469,17 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			);
 		}
 
-		$image_editor = wp_get_image_editor( $image_file );
+		/*
+		 * If the file doesn't exist, attempt a URL fopen on the src link.
+		 * This can occur with certain file replication plugins.
+		 * Keep the original file path to get a modified name later.
+		 */
+		$image_file_to_edit = $image_file;
+		if ( ! file_exists( $image_file_to_edit ) ) {
+			$image_file_to_edit = _load_image_to_edit_path( $attachment_id );
+		}
+
+		$image_editor = wp_get_image_editor( $image_file_to_edit );
 
 		if ( is_wp_error( $image_editor ) ) {
 			return new WP_Error(
@@ -485,10 +504,10 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		if ( $crop ) {
 			$size = $image_editor->get_size();
 
-			$crop_x = round( ( $size['width'] * floatval( $request['x'] ) ) / 100.0 );
-			$crop_y = round( ( $size['height'] * floatval( $request['y'] ) ) / 100.0 );
-			$width  = round( ( $size['width'] * floatval( $request['width'] ) ) / 100.0 );
-			$height = round( ( $size['height'] * floatval( $request['height'] ) ) / 100.0 );
+			$crop_x = round( ( $size['width'] * (float) $request['x'] ) / 100.0 );
+			$crop_y = round( ( $size['height'] * (float) $request['y'] ) / 100.0 );
+			$width  = round( ( $size['width'] * (float) $request['width'] ) / 100.0 );
+			$height = round( ( $size['height'] * (float) $request['height'] ) / 100.0 );
 
 			$result = $image_editor->crop( $crop_x, $crop_y, $width, $height );
 
@@ -531,14 +550,23 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		}
 
 		// Create new attachment post.
-		$attachment_post = array(
+		$new_attachment_post = array(
 			'post_mime_type' => $saved['mime-type'],
 			'guid'           => $uploads['url'] . "/$filename",
-			'post_title'     => $filename,
+			'post_title'     => $image_name,
 			'post_content'   => '',
 		);
 
-		$new_attachment_id = wp_insert_attachment( wp_slash( $attachment_post ), $saved['path'], 0, true );
+		// Copy post_content, post_excerpt, and post_title from the edited image's attachment post.
+		$attachment_post = get_post( $attachment_id );
+
+		if ( $attachment_post ) {
+			$new_attachment_post['post_content'] = $attachment_post->post_content;
+			$new_attachment_post['post_excerpt'] = $attachment_post->post_excerpt;
+			$new_attachment_post['post_title']   = $attachment_post->post_title;
+		}
+
+		$new_attachment_id = wp_insert_attachment( wp_slash( $new_attachment_post ), $saved['path'], 0, true );
 
 		if ( is_wp_error( $new_attachment_id ) ) {
 			if ( 'db_update_error' === $new_attachment_id->get_error_code() ) {
@@ -550,19 +578,30 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 			return $new_attachment_id;
 		}
 
+		// Copy the image alt text from the edited image.
+		$image_alt = get_post_meta( $attachment_id, '_wp_attachment_image_alt', true );
+
+		if ( ! empty( $image_alt ) ) {
+			// update_post_meta() expects slashed.
+			update_post_meta( $new_attachment_id, '_wp_attachment_image_alt', wp_slash( $image_alt ) );
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			// Set a custom header with the attachment_id.
+			// Used by the browser/client to resume creating image sub-sizes after a PHP fatal error.
+			header( 'X-WP-Upload-Attachment-ID: ' . $new_attachment_id );
+		}
+
 		// Generate image sub-sizes and meta.
 		$new_image_meta = wp_generate_attachment_metadata( $new_attachment_id, $saved['path'] );
 
 		// Copy the EXIF metadata from the original attachment if not generated for the edited image.
-		if ( ! empty( $image_meta['image_meta'] ) ) {
-			$empty_image_meta = true;
-
-			if ( isset( $new_image_meta['image_meta'] ) && is_array( $new_image_meta['image_meta'] ) ) {
-				$empty_image_meta = empty( array_filter( array_values( $new_image_meta['image_meta'] ) ) );
-			}
-
-			if ( $empty_image_meta ) {
-				$new_image_meta['image_meta'] = $image_meta['image_meta'];
+		if ( isset( $image_meta['image_meta'] ) && isset( $new_image_meta['image_meta'] ) && is_array( $new_image_meta['image_meta'] ) ) {
+			// Merge but skip empty values.
+			foreach ( (array) $image_meta['image_meta'] as $key => $value ) {
+				if ( empty( $new_image_meta['image_meta'][ $key ] ) && ! empty( $value ) ) {
+					$new_image_meta['image_meta'][ $key ] = $value;
+				}
 			}
 		}
 
@@ -579,15 +618,15 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 		);
 
 		/**
-		 * Filters the updated attachment meta data.
+		 * Filters the meta data for the new image created by editing an existing image.
 		 *
 		 * @since 5.5.0
 		 *
-		 * @param array $data              Array of updated attachment meta data.
-		 * @param int   $new_attachment_id Attachment post ID.
-		 * @param int   $attachment_id     Original Attachment post ID.
+		 * @param array $new_image_meta    Meta data for the new image.
+		 * @param int   $new_attachment_id Attachment post ID for the new image.
+		 * @param int   $attachment_id     Attachment post ID for the edited (parent) image.
 		 */
-		$new_image_meta = apply_filters( 'wp_edited_attachment_metadata', $new_image_meta, $new_attachment_id, $attachment_id );
+		$new_image_meta = apply_filters( 'wp_edited_image_metadata', $new_image_meta, $new_attachment_id, $attachment_id );
 
 		wp_update_attachment_metadata( $new_attachment_id, $new_image_meta );
 
@@ -1278,6 +1317,12 @@ class WP_REST_Attachments_Controller extends WP_REST_Posts_Controller {
 				'type'        => 'number',
 				'minimum'     => 0,
 				'maximum'     => 100,
+			),
+			'src'      => array(
+				'description' => __( 'URL to the edited image file.' ),
+				'type'        => 'string',
+				'format'      => 'uri',
+				'required'    => true,
 			),
 		);
 	}

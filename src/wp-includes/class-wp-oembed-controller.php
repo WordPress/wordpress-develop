@@ -10,7 +10,7 @@
 /**
  * oEmbed API endpoint controller.
  *
- * Registers the API route and delivers the response data.
+ * Registers the REST API route and delivers the response data.
  * The output format (XML or JSON) is handled by the REST API.
  *
  * @since 4.4.0
@@ -36,9 +36,10 @@ final class WP_oEmbed_Controller {
 			'/embed',
 			array(
 				array(
-					'methods'  => WP_REST_Server::READABLE,
-					'callback' => array( $this, 'get_item' ),
-					'args'     => array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'get_item' ),
+					'permission_callback' => '__return_true',
+					'args'                => array(
 						'url'      => array(
 							'description' => __( 'The URL of the resource for which to fetch oEmbed data.' ),
 							'required'    => true,

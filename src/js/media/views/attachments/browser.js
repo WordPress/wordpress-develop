@@ -126,7 +126,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	}, 200 ),
 
 	editSelection: function( modal ) {
-		// When editing a selection, move focus to the "Return to library" button.
+		// When editing a selection, move focus to the "Go to library" button.
 		modal.$( '.media-button-backToLibrary' ).focus();
 	},
 

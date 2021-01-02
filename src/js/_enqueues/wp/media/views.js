@@ -48,7 +48,7 @@ media.events = _.extend( {}, Backbone.Events );
  * Makes it easier to bind events using transitions.
  *
  * @param {string} selector
- * @param {Number} sensitivity
+ * @param {number} sensitivity
  * @return {Promise}
  */
 media.transition = function( selector, sensitivity ) {

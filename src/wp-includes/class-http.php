@@ -237,20 +237,20 @@ class WP_Http {
 		}
 
 		/**
-		 * Filters whether to preempt an HTTP request's return value.
+		 * Filters the preemptive return value of an HTTP request.
 		 *
 		 * Returning a non-false value from the filter will short-circuit the HTTP request and return
-		 * early with that value. A filter should return either:
+		 * early with that value. A filter should return one of:
 		 *
 		 *  - An array containing 'headers', 'body', 'response', 'cookies', and 'filename' elements
 		 *  - A WP_Error instance
-		 *  - boolean false (to avoid short-circuiting the response)
+		 *  - boolean false to avoid short-circuiting the response
 		 *
 		 * Returning any other value may result in unexpected behaviour.
 		 *
 		 * @since 2.9.0
 		 *
-		 * @param false|array|WP_Error $preempt     Whether to preempt an HTTP request's return value. Default false.
+		 * @param false|array|WP_Error $preempt     A preemptive return value of an HTTP request. Default false.
 		 * @param array                $parsed_args HTTP request arguments.
 		 * @param string               $url         The request URL.
 		 */
@@ -509,8 +509,8 @@ class WP_Http {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @param array $args Request arguments.
-	 * @param string $url URL to Request.
+	 * @param array  $args Request arguments.
+	 * @param string $url  URL to request.
 	 * @return string|false Class name for the first transport that claims to support the request.
 	 *                      False if no transport claims to support the request.
 	 */
@@ -559,8 +559,8 @@ class WP_Http {
 	 * @deprecated 5.1.0 Use WP_Http::request()
 	 * @see WP_Http::request()
 	 *
-	 * @param string $url URL to Request.
-	 * @param array $args Request arguments.
+	 * @param string $url  URL to request.
+	 * @param array  $args Request arguments.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
 	 */
@@ -615,7 +615,7 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $url The request URL.
+	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
@@ -633,7 +633,7 @@ class WP_Http {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string $url The request URL.
+	 * @param string       $url  The request URL.
 	 * @param string|array $args Optional. Override the defaults.
 	 * @return array|WP_Error Array containing 'headers', 'body', 'response', 'cookies', 'filename'.
 	 *                        A WP_Error instance upon error.
@@ -667,17 +667,27 @@ class WP_Http {
 	}
 
 	/**
-	 * Transform header string into an array.
-	 *
-	 * If an array is given, then it is assumed to be raw header data with numeric keys with the
-	 * headers as the values. No headers must be passed that were already processed.
+	 * Transforms header string into an array.
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param string|array $headers
-	 * @param string $url The URL that was requested.
-	 * @return array Processed string headers. If duplicate headers are encountered,
-	 *               then a numbered array is returned as the value of that header-key.
+	 * @param string|array $headers The original headers. If a string is passed, it will be converted
+	 *                              to an array. If an array is passed, then it is assumed to be
+	 *                              raw header data with numeric keys with the headers as the values.
+	 *                              No headers must be passed that were already processed.
+	 * @param string       $url     Optional. The URL that was requested. Default empty.
+	 * @return array {
+	 *     Processed string headers. If duplicate headers are encountered,
+	 *     then a numbered array is returned as the value of that header-key.
+	 *
+	 *     @type array            $response {
+	 *          @type int    $code    The response status code. Default 0.
+	 *          @type string $message The response message. Default empty.
+	 *     }
+	 *     @type array            $newheaders The processed header data as a multidimensional array.
+	 *     @type WP_Http_Cookie[] $cookies    If the original headers contain the 'Set-Cookie' key,
+	 *                                        an array containing `WP_Http_Cookie` objects is returned.
+	 * }
 	 */
 	public static function processHeaders( $headers, $url = '' ) { // phpcs:ignore WordPress.NamingConventions.ValidFunctionName.MethodNameInvalid
 		// Split headers, one per array element.
@@ -742,7 +752,7 @@ class WP_Http {
 		}
 
 		// Cast the Response Code to an int.
-		$response['code'] = intval( $response['code'] );
+		$response['code'] = (int) $response['code'];
 
 		return array(
 			'response' => $response,
@@ -1066,7 +1076,7 @@ class WP_Http {
 	 * @since 3.7.0
 	 *
 	 * @param string $maybe_ip A suspected IP address.
-	 * @return integer|bool Upon success, '4' or '6' to represent a IPv4 or IPv6 address, false upon failure
+	 * @return int|bool Upon success, '4' or '6' to represent a IPv4 or IPv6 address, false upon failure
 	 */
 	public static function is_ip_address( $maybe_ip ) {
 		if ( preg_match( '/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $maybe_ip ) ) {

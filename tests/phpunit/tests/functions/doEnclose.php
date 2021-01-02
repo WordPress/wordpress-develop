@@ -10,11 +10,11 @@
 /**
  * Tests_Functions_DoEnclose class.
  *
+ * @since 5.3.0
+ *
  * @group functions.php
  * @group post
- * @covers do_enclose
- *
- * @since 5.3.0
+ * @covers ::do_enclose
  */
 class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 
@@ -135,6 +135,10 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 				'expected' => "https://example.com/wp-content/uploads/2018/06/audio.ogg\n321\naudio/ogg\n" .
 								"https://example.com/wp-content/uploads/2018/06/movie.mp4\n123\nvideo/mp4\n",
 			),
+			'no-path'               => array(
+				'content'  => 'https://example.com?test=1',
+				'expected' => '',
+			),
 		);
 	}
 
@@ -249,7 +253,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 *
 	 * @param  int    $post_id Post ID.
-	 * @return string          All enclosure data for the given post.
+	 * @return string  All enclosure data for the given post.
 	 */
 	protected function get_enclosed_by_post_id( $post_id ) {
 		return implode( '', (array) get_post_meta( $post_id, 'enclosure', false ) );

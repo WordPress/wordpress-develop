@@ -45,6 +45,6 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 	 * @dataProvider get_input_output
 	 */
 	function test_get_url_in_content( $in_str, $exp_str ) {
-		$this->assertEquals( $exp_str, get_url_in_content( $in_str ) );
+		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
 	}
 }

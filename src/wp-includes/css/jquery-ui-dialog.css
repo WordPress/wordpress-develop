@@ -291,12 +291,13 @@
 	height: 36px;
 	text-align: center;
 	border-radius: 0;
+	overflow: hidden;
 }
 
 .ui-dialog-titlebar-close:before {
 	font: normal 20px/1 dashicons;
 	vertical-align: top;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	line-height: 1.8;
@@ -307,7 +308,7 @@
 
 .ui-button.ui-dialog-titlebar-close:hover,
 .ui-button.ui-dialog-titlebar-close:focus {
-	color: #00a0d2;
+	color: #006799;
 }
 
 .ui-button.ui-dialog-titlebar-close:focus {
@@ -317,10 +318,6 @@
 	/* Only visible in Windows High Contrast mode */
 	outline: 2px solid transparent;
 	outline-offset: -2px;
-}
-
-.ui-dialog-titlebar-close .ui-button-text {
-	display: none;
 }
 
 .ui-dialog-content {

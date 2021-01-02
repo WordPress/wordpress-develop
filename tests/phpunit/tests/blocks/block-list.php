@@ -54,12 +54,12 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		$this->assertTrue( isset( $blocks[0] ) );
 
 		// Test "offsetGet".
-		$this->assertEquals( 'core/example', $blocks[0]->name );
+		$this->assertSame( 'core/example', $blocks[0]->name );
 
 		// Test "offsetSet".
 		$parsed_blocks[0]['blockName'] = 'core/updated';
 		$blocks[0]                     = new WP_Block( $parsed_blocks[0], $context, $this->registry );
-		$this->assertEquals( 'core/updated', $blocks[0]->name );
+		$this->assertSame( 'core/updated', $blocks[0]->name );
 
 		// Test "offsetUnset".
 		unset( $blocks[0] );
@@ -76,10 +76,10 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		$assertions    = 0;
 
 		foreach ( $blocks as $block ) {
-			$this->assertEquals( 'core/example', $block->name );
+			$this->assertSame( 'core/example', $block->name );
 			$assertions++;
 			foreach ( $block->inner_blocks as $inner_block ) {
-				$this->assertEquals( 'core/example', $inner_block->name );
+				$this->assertSame( 'core/example', $inner_block->name );
 				$assertions++;
 			}
 		}
@@ -88,14 +88,14 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		while ( $blocks->valid() ) {
 			$key   = $blocks->key();
 			$block = $blocks->current();
-			$this->assertEquals( 0, $key );
+			$this->assertSame( 0, $key );
 			$assertions++;
-			$this->assertEquals( 'core/example', $block->name );
+			$this->assertSame( 'core/example', $block->name );
 			$assertions++;
 			$blocks->next();
 		}
 
-		$this->assertEquals( 4, $assertions );
+		$this->assertSame( 4, $assertions );
 	}
 
 	/**
@@ -106,7 +106,7 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		$context       = array();
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 
-		$this->assertEquals( 1, count( $blocks ) );
+		$this->assertSame( 1, count( $blocks ) );
 	}
 
 }

@@ -147,8 +147,20 @@ body.post-new-php .submitbox .submitdelete {
 }
 
 /* Post Screen */
-#post-body #normal-sortables {
-	min-height: 50px;
+
+/* Only highlight drop zones when dragging and only in the 2 columns layout. */
+.is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
+	outline: 3px dashed #606a73;
+	/* Prevent margin on the child from collapsing with margin on the parent. */
+	display: flow-root;
+	/*
+	 * This min-height is meant to limit jumpiness while dragging. It's equivalent
+	 * to the minimum height of the sortable-placeholder which is given by the height
+	 * of a collapsed post box (36px + 1px top and bottom borders) + the placeholder
+	 * bottom margin (20px) + 2 additional pixels to compensate browsers rounding.
+	 */
+	min-height: 60px;
+	margin-bottom: 20px;
 }
 
 .postbox {
@@ -447,6 +459,8 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
@@ -456,11 +470,13 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	margin-left: -1px;
 	padding-right: 3px;
@@ -480,6 +496,18 @@ form#tags-filter {
 
 .curtime #timestamp:before {
 	content: "\f145";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedby:before {
+	content: "\f110";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedto:before {
+	content: "\f318";
 	position: relative;
 	top: -1px;
 }
@@ -713,7 +741,19 @@ form#tags-filter {
 
 .text-removed .policy-text {
 	color: #666;
-	font-weight: 600;
+	font-weight: 300;
+	padding-left: 1em;
+	border-left: 3px solid #ffb900;
+}
+
+.text-removed .policy-text h1,
+.text-removed .policy-text h2,
+.text-removed .policy-text h3,
+.text-removed .policy-text h4,
+.text-removed .policy-text h5,
+.text-removed .policy-text h6 {
+	color: #39424a;
+	font-weight: 500;
 }
 
 .privacy-text-actions {
@@ -937,13 +977,13 @@ strong.privacy-policy-tutorial {
 	margin-right: 7px;
 	color: #ddd;
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
 a.post-format-icon:hover:before {
-	color: #00a0d2;
+	color: #006799;
 }
 
 #post-formats-select {
@@ -1199,7 +1239,7 @@ p.popular-tags a {
 	display: inline-block;
 }
 
-/* Suggest.js autocomplete, no more used by core. */
+/* Back-compat styles from deprecated jQuery.suggest, see ticket #40260. */
 .ac_results {
 	display: none;
 	margin: -1px 0 0;
@@ -1453,7 +1493,10 @@ table.links-table {
 	}
 }
 
-/* one column on the attachment editor screen */
+/*
+ * The edit attachment screen auto-switches to one column layout when the
+ * viewport is smaller than 1200 pixels.
+ */
 @media only screen and (max-width: 1200px) {
 	.post-type-attachment #poststuff {
 		min-width: 0;
@@ -1470,7 +1513,7 @@ table.links-table {
 
 	.post-type-attachment #poststuff #postbox-container-1 .empty-container,
 	.post-type-attachment #poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
+		outline: none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1478,6 +1521,12 @@ table.links-table {
 	.post-type-attachment #poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	.is-dragging-metaboxes.post-type-attachment #post-body .meta-box-sortables {
+		outline: none;
+		min-height: 0;
+		margin-bottom: 0;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1504,7 +1553,6 @@ table.links-table {
 
 	#poststuff #postbox-container-1 .empty-container,
 	#poststuff #postbox-container-1 #side-sortables:empty {
-		border: 0 none;
 		height: 0;
 		min-height: 0;
 	}
@@ -1512,6 +1560,15 @@ table.links-table {
 	#poststuff #post-body.columns-2 #side-sortables {
 		min-height: 0;
 		width: auto;
+	}
+
+	/* Increase min-height while dragging for the #side-sortables and any potential sortables area with custom ID. */
+	.is-dragging-metaboxes #poststuff #postbox-container-1 .empty-container,
+	.is-dragging-metaboxes #poststuff #postbox-container-1 #side-sortables:empty,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 #side-sortables,
+	.is-dragging-metaboxes #poststuff #post-body.columns-2 .meta-box-sortables {
+		height: auto;
+		min-height: 60px;
 	}
 
 	/* hide the radio buttons for column prefs */
@@ -1753,6 +1810,10 @@ table.links-table {
 	.links-table th,
 	.links-table td {
 		padding: 10px 0;
+	}
+
+	.edit-term-notes {
+		display: none;
 	}
 
 	.privacy-text-box {

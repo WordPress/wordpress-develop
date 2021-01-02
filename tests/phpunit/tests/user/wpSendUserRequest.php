@@ -13,7 +13,7 @@
  *
  * @group privacy
  * @group user
- * @covers wp_send_user_request
+ * @covers ::wp_send_user_request
  */
 class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 
@@ -42,7 +42,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Test fixture factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_user = $factory->user->create_and_get(
 			array(
 				'user_email' => 'admin@local.dev',
@@ -292,7 +292,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -336,7 +336,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 
 	/**
@@ -374,7 +374,7 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		update_user_meta( self::$admin_user->ID, 'locale', 'es_ES' );
 		wp_set_current_user( self::$admin_user->ID );
 
-		$request_id = wp_create_user_request( 'erase-user-not-registered@example.com', 'erase_personal_data' );
+		$request_id = wp_create_user_request( 'erase-user-not-registered@example.com', 'remove_personal_data' );
 
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -396,11 +396,11 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		update_user_meta( self::$admin_user->ID, 'locale', 'de_DE' );
 		wp_set_current_user( self::$admin_user->ID );
 
-		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'erase_personal_data' );
+		$request_id = wp_create_user_request( 'export-user-not-registered@example.com', 'remove_personal_data' );
 
 		wp_send_user_request( $request_id );
 		$mailer = tests_retrieve_phpmailer_instance();
 
-		$this->assertContains( 'Confirma la', $mailer->get_sent()->subject );
+		$this->assertContains( 'Confirmar la', $mailer->get_sent()->subject );
 	}
 }
