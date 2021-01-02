@@ -122,7 +122,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool
 	 */
 	public function check_parent_theme_filter( $install_result, $hook_extra, $child_result ) {
-		$start_time = time();
+		$start_time = microtime( true );
 
 		// Check to see if we need to install a parent theme.
 		$theme_info = $this->theme_info();
@@ -231,7 +231,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error object otherwise.
 	 */
 	public function install( $package, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );
 		$defaults    = array(
 			'clear_update_cache' => true,
 			'overwrite_package'  => false, // Do not overwrite files.
@@ -301,7 +301,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
 	public function upgrade( $theme, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -387,7 +387,7 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return array[]|false An array of results, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $themes, $args = array() ) {
-		$start_time  = time();
+		$start_time  = microtime( true );
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
