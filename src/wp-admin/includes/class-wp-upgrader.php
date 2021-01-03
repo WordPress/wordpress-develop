@@ -945,7 +945,7 @@ class WP_Upgrader {
 	/**
 	 * Send upgrade WP_Error data to WordPress.org.
 	 *
-	 * @since 5.7.0
+	 * @since 5.6.1
 	 *
 	 * @global string             $wp_version    The WordPress version string.
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
