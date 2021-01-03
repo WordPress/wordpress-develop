@@ -1269,9 +1269,9 @@ class WP_REST_Server {
 	 * @param WP_REST_Response $response REST API response.
 	 */
 	protected function add_active_theme_link_to_index( WP_REST_Response $response ) {
-		$should_add = false;
+		$should_add = current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' );
 
-		if ( current_user_can( 'edit_posts' ) ) {
+		if ( ! $should_add && current_user_can( 'edit_posts' ) ) {
 			$should_add = true;
 		}
 
