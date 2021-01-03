@@ -62,9 +62,6 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'get_item' ),
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
-					'args'                => array(
-						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
-					),
 				),
 				'schema' => array( $this, 'get_public_item_schema' ),
 			)
@@ -90,7 +87,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		}
 
 		return new WP_Error(
-			'rest_user_cannot_view',
+			'rest_cannot_view_themes',
 			__( 'Sorry, you are not allowed to view themes.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
@@ -109,14 +106,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			return true;
 		}
 
-		$wp_theme      = wp_get_theme( $request['name'] );
+		$wp_theme      = wp_get_theme( $request['stylesheet'] );
 		$current_theme = wp_get_theme();
-		if ( $this->is_same_theme( $wp_theme, $current_theme ) && true === $this->check_read_active_theme_permission() ) {
-			return true;
+
+		if ( $this->is_same_theme( $wp_theme, $current_theme ) ) {
+			return $this->check_read_active_theme_permission();
 		}
 
 		return new WP_Error(
-			'rest_cannot_view_active_theme',
+			'rest_cannot_view_themes',
 			__( 'Sorry, you are not allowed to view themes.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
@@ -142,7 +140,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 
 		return new WP_Error(
 			'rest_cannot_view_active_theme',
-			__( 'Sorry, you are not allowed to view active theme.' ),
+			__( 'Sorry, you are not allowed to view the active theme.' ),
 			array( 'status' => rest_authorization_required_code() )
 		);
 	}
@@ -159,8 +157,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		$wp_theme = wp_get_theme( $request['stylesheet'] );
 		if ( ! $wp_theme->exists() ) {
 			return new WP_Error(
-				'rest_theme_invalid_slug',
-				__( 'Invalid theme slug.' ),
+				'rest_theme_not_found',
+				__( 'Theme not found.' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -189,8 +187,9 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 			if ( is_array( $status ) && ! in_array( $theme_status, $status, true ) ) {
 				continue;
 			}
-			$_theme   = $this->prepare_item_for_response( $theme, $request );
-			$themes[] = $this->prepare_response_for_collection( $_theme );
+
+			$prepared = $this->prepare_item_for_response( $theme, $request );
+			$themes[] = $this->prepare_response_for_collection( $prepared );
 		}
 
 		$response = rest_ensure_response( $themes );
@@ -334,31 +333,30 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 */
 	protected function prepare_links( $theme ) {
 		return array(
+			'self'       => array(
+				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme->get_stylesheet() ) ),
+			),
 			'collection' => array(
 				'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
-			),
-			'self'       => array(
-				'href' => rest_url( sprintf( '%s/%s/%s', $this->namespace, $this->rest_base, $theme->get_template() ) ),
 			),
 		);
 	}
 
 	/**
-	 * Helper function to compare theme to current theme.
+	 * Helper function to compare two themes.
 	 *
 	 * @since 5.7.0
 	 *
-	 * @param WP_Theme $theme  Theme to compare to active theme.
-	 * @param WP_Theme $current_theme Current active theme.
+	 * @param WP_Theme $theme_a First theme to compare.
+	 * @param WP_Theme $theme_b Second theme to compare.
 	 *
 	 * @return bool
 	 */
-	protected function is_same_theme( $theme, $current_theme ) {
-		return (string) $theme === (string) $current_theme;
+	protected function is_same_theme( $theme_a, $theme_b ) {
+		return $theme_a->get_stylesheet() === $theme_b->get_stylesheet();
 	}
 
 	/**
-	 *
 	 * Prepares the theme support value for inclusion in the REST API response.
 	 *
 	 * @since 5.5.0
@@ -570,16 +568,15 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
-		$query_params = parent::get_collection_params();
-
-		$query_params['status'] = array(
-			'description'       => __( 'Limit result set to themes assigned one or more statuses.' ),
-			'type'              => 'array',
-			'items'             => array(
-				'enum' => array( 'active', 'inactive' ),
-				'type' => 'string',
+		$query_params = array(
+			'status' => array(
+				'description' => __( 'Limit result set to themes assigned one or more statuses.' ),
+				'type'        => 'array',
+				'items'       => array(
+					'enum' => array( 'active', 'inactive' ),
+					'type' => 'string',
+				),
 			),
-			'sanitize_callback' => array( $this, 'sanitize_theme_status' ),
 		);
 
 		/**
@@ -596,6 +593,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * Sanitizes and validates the list of theme status.
 	 *
 	 * @since 5.0.0
+	 * @deprecated 5.7.0
 	 *
 	 * @param string|array    $statuses  One or more theme statuses.
 	 * @param WP_REST_Request $request   Full details about the request.
@@ -603,6 +601,8 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error A list of valid statuses, otherwise WP_Error object.
 	 */
 	public function sanitize_theme_status( $statuses, $request, $parameter ) {
+		_deprecated_function( __METHOD__, '5.7.0' );
+
 		$statuses = wp_parse_slug_list( $statuses );
 
 		foreach ( $statuses as $status ) {
