@@ -1017,7 +1017,7 @@ class WP_Upgrader {
 			wp_update_plugins( $stats );
 		}
 		if ( $this instanceof Theme_Upgrader ) {
-			if ( isset( $this->skin->theme_info )) {
+			if ( isset( $this->skin->theme_info ) ) {
 				$stats['update_type']    = 'manual_theme_update';
 				$stats['name']           = $this->skin->theme_info->get( 'Name' );
 				$stats['update_version'] = $this->skin->theme_info->get( 'Version' );
