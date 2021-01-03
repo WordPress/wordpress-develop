@@ -9,7 +9,16 @@ parameters:
     - src/wp-admin
   excludes_analyse:
     - src/js
+    - src/wp-admin/includes/class-ftp-sockets.php
+    - src/wp-admin/includes/class-pclzip.php
     - src/wp-content
+    - src/wp-includes/atomlib.php
+    - src/wp-includes/class-json.php
+    - src/wp-includes/class-phpmailer.php
+    - src/wp-includes/class-requests.php
+    - src/wp-includes/class-simplepie.php
+    - src/wp-includes/class-smtp.php
+    - src/wp-includes/deprecated.php
     - src/wp-includes/ID3
     - src/wp-includes/IXR
     - src/wp-includes/PHPMailer
@@ -21,3 +30,34 @@ parameters:
     - src/wp-includes/Text
   bootstrapFiles:
     - tests/phpstan-bootstrap.php
+  ignoreErrors:
+    - '#Undefined variable: \$wp_version#'
+    - '#Undefined variable: \$required_php_version#'
+    - '#Undefined variable: \$required_mysql_version#'
+    - '#Undefined variable: \$wp_local_package#'
+    - '#Inner named functions are not supported by PHPStan#'
+    - '#Function mysql_get_server_info not found#'
+    - '#Function mysql_get_client_info not found#'
+    - '#Function wxr_authors_list not found#'
+    - '#Function wxr_cat_name not found#'
+    - '#Function wxr_category_description not found#'
+    - '#Function wxr_cdata not found#'
+    - '#Function wxr_nav_menu_terms not found#'
+    - '#Function wxr_post_taxonomy not found#'
+    - '#Function wxr_site_url not found#'
+    - '#Function wxr_tag_description not found#'
+    - '#Function wxr_tag_name not found#'
+    - '#Function wxr_term_description not found#'
+    - '#Function wxr_term_meta not found#'
+    - '#Function wxr_term_name not found#'
+    - '#ParagonIE_Sodium_Compat#'
+    - '#PclZip#'
+    - '#getID3#'
+    - '#Reflection error: SimplePie_Cache not found#'
+    - '#Reflection error: SimplePie_File not found#'
+    - '#Reflection error: SimplePie_Sanitize not found#'
+    - '#Reflection error: Requests_Hooks not found#'
+    - '#Reflection error: IXR_Client not found#'
+    - '#Reflection error: IXR_Server not found#'
+    - '#Reflection error: Text_Diff_Renderer not found#'
+    - '#Reflection error: Text_Diff_Renderer_inline not found#'
