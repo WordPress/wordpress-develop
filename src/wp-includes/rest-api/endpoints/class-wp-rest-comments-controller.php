@@ -246,44 +246,32 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args['date_query'] = array();
 
-		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
-			$prepared_args['date_query'][0]['before'] = $request['before'];
-		}
-
-		// Guard against using 'before' and 'modified_before' in the same request.
-		if ( isset( $registered['modified_before'], $request['modified_before'] ) && isset( $request['before'] ) ) {
-			return new WP_Error(
-				'rest_comment_invalid_date_query',
-				__( 'Sorry, you cannot query by modified_before and before at the same time.' ),
-				array( 'status' => 400 )
+			$prepared_args['date_query'][] = array(
+				'before' => $request['before'],
+				'column' => 'post_date',
 			);
 		}
 
-		// Set modified_before into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['modified_before'], $request['modified_before'] ) && ! isset( $request['before'] ) ) {
-			$prepared_args['date_query'][0]['before'] = $request['modified_before'];
-			$prepared_args['date_query'][0]['column'] = 'post_modified';
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
+			$prepared_args['date_query'][] = array(
+				'before' => $request['modified_before'],
+				'column' => 'post_modified',
+			);
 		}
 
-		// Set after into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['after'], $request['after'] ) ) {
-			$prepared_args['date_query'][0]['after'] = $request['after'];
-		}
-
-		// Guard against using 'after' and 'modified_after' in the same request.
-		if ( isset( $registered['modified_after'], $request['modified_after'] ) && isset( $request['after'] ) ) {
-			return new WP_Error(
-				'rest_comment_invalid_date_query',
-				__( 'Sorry, you cannot query by modified_after and after at the same time.' ),
-				array( 'status' => 400 )
+			$prepared_args['date_query'][] = array(
+				'after'  => $request['after'],
+				'column' => 'post_date',
 			);
 		}
 
-		// Set modified_after into date query. Date query must be specified as an array of an array.
-		if ( isset( $registered['modified_after'], $request['modified_after'] ) && ! isset( $request['after'] ) ) {
-			$prepared_args['date_query'][0]['after']  = $request['modified_after'];
-			$prepared_args['date_query'][0]['column'] = 'post_modified';
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
+			$prepared_args['date_query'][] = array(
+				'after'  => $request['modified_after'],
+				'column' => 'post_modified',
+			);
 		}
 
 		if ( isset( $registered['page'] ) && empty( $request['offset'] ) ) {
