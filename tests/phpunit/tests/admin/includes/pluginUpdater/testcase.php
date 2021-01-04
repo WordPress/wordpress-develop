@@ -1,6 +1,6 @@
 <?php
 
-class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
+abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 	protected $plugin       = array();
 	protected $error_report = array();
 

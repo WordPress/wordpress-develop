@@ -32,7 +32,7 @@ class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUp
 			->method( 'send_error_data' );
 
 		ob_start();
-		$actual = $plugin_upgrader->install( $plugin['package'] );
+		$actual         = $plugin_upgrader->install( $plugin['package'] );
 		$actual_message = ob_get_clean();
 
 		$this->assertTrue( $actual );
@@ -58,7 +58,7 @@ class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUp
 <p>Plugin installed successfully.</p>
 </div>
 MESSAGE
-			,
+				,
 				),
 			),
 			'when downloading from w.org' => array(
