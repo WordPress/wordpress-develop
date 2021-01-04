@@ -13,7 +13,7 @@ class Tests_Admin_Includes_PluginUpdater_BulkUpgrade extends Admin_Includes_Plug
 	/**
 	 * @dataProvider data_should_not_send_error_data
 	 *
-	 * @group        51928b
+	 * @group        51928
 	 *
 	 * @param array $plugins        Array of plugins information.
 	 * @param array $update_plugins Value for the "update_plugins" transient.
@@ -151,7 +151,7 @@ MESSAGE
 		$this->plugin = $plugins;
 
 		$this->shortcircuit_w_org_download();
-		$this->capture_error_report();
+		$this->capture_error_data();
 
 		$plugin_upgrader = new Plugin_Upgrader( $this->mock_skin_feedback() );
 
@@ -165,47 +165,18 @@ MESSAGE
 		// Validate the upgrade did not happen.
 		$this->assertArrayHasKey( 'hello-dolly/hello.php', $actual_results );
 		$this->assertNull( $actual_results['hello-dolly/hello.php'] );
-		foreach ( $expected['messages'] as $expected ) {
-			$this->assertContains( $expected, $actual_message );
+		foreach ( $expected['messages'] as $expected_message ) {
+			$this->assertContains( $expected_message, $actual_message );
 		}
 
 		// Validate the sent error data.
-		foreach ( $this->error_report as $index => $stats ) {
+		foreach ( $this->error_data as $index => $stats ) {
 			$this->assertContains( $expected['stats'][ $index ], $stats );
 			$this->assertGreaterThan( 0.0, $stats['time_taken'] );
 		}
 	}
 
 	public function data_should_send_error_data() {
-		$not_available_stats = array(
-			array(
-				'process'          => 'download_package',
-				'update_type'      => 'automatic_plugin_update',
-				'name'             => null,
-				'update_version'   => null,
-				'success'          => false,
-				'fs_method'        => 'direct',
-				'fs_method_forced' => true,
-				'fs_method_direct' => '',
-				'error_code'       => 'no_package',
-				'error_message'    => 'Installation package not available.',
-				'error_data'       => null,
-			),
-			array(
-				'process'          => 'plugin_install',
-				'update_type'      => 'automatic_plugin_update',
-				'name'             => null,
-				'update_version'   => null,
-				'success'          => false,
-				'fs_method'        => 'direct',
-				'fs_method_forced' => true,
-				'fs_method_direct' => '',
-				'error_code'       => 'no_package',
-				'error_message'    => 'Installation package not available.',
-				'error_data'       => null,
-			),
-		);
-
 		return array(
 			'when new version does not exist' => array(
 				'plugins'        => array(
@@ -217,13 +188,13 @@ MESSAGE
 				'update_plugins' => (object) array(
 					'last_checked' => time(),
 					'checked'      => array(
-						'hello.php' => '1.6',
+						'hello-dolly/hello.php' => '1.6',
 					),
 					'response'     => array(
 						'hello-dolly/hello.php' => (object) array(
 							'id'          => 'w.org/plugins/hello-dolly',
 							'slug'        => 'hello-dolly',
-							'plugin'      => 'hello.php',
+							'plugin'      => 'hello-dolly/hello.php',
 							'new_version' => '99999',
 							'url'         => 'https://wordpress.org/plugins/hello-dolly/',
 							'package'     => DIR_TESTDATA . '/plugins/hello-99999/hello.zip',
@@ -239,7 +210,34 @@ MESSAGE
 ERROR_MESSAGE
 					,
 					),
-					'stats'    => $not_available_stats,
+					'stats'    => array(
+						array(
+							'process'          => 'download_package',
+							'update_type'      => 'automatic_plugin_update',
+							'name'             => null,
+							'update_version'   => null,
+							'success'          => false,
+							'fs_method'        => 'direct',
+							'fs_method_forced' => true,
+							'fs_method_direct' => '',
+							'error_code'       => 'no_package',
+							'error_message'    => 'Installation package not available.',
+							'error_data'       => null,
+						),
+						array(
+							'process'          => 'plugin_install',
+							'update_type'      => 'automatic_plugin_update',
+							'name'             => null,
+							'update_version'   => null,
+							'success'          => false,
+							'fs_method'        => 'direct',
+							'fs_method_forced' => true,
+							'fs_method_direct' => '',
+							'error_code'       => 'no_package',
+							'error_message'    => 'Installation package not available.',
+							'error_data'       => null,
+						),
+					),
 				),
 			),
 		);
