@@ -95,4 +95,15 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 
 		return $skin;
 	}
+
+	protected function install_older_version( $upgrader, $package, $update_plugins = array() ) {
+		ob_start();
+		$upgrader->install( $package );
+		ob_get_clean();
+		$upgrader->result = null;
+
+		if ( ! empty( $update_plugins ) ) {
+			set_site_transient( 'update_plugins', $update_plugins );
+		}
+	}
 }
