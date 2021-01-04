@@ -168,7 +168,7 @@ class WP_User {
 	 */
 	public function init( $data, $site_id = '' ) {
 		$this->data = $data;
-		$this->ID   = isset( $data->ID ) ? (int) $data->ID : 0;
+		$this->ID   = (int) $data->ID;
 
 		$this->for_site( $site_id );
 	}
