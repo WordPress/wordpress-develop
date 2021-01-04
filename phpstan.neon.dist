@@ -63,3 +63,5 @@ parameters:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
 		# PHP 8:
     - '#Class GdImage not found#'
+		# WP_List_Table::__get() provides public access to protected properties:
+    - '#Access to protected property WP_List_Table::#'
