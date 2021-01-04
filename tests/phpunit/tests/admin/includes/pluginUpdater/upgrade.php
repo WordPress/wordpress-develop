@@ -1,40 +1,14 @@
 <?php
 
+require_once __DIR__ . '/testcase.php';
+
 /**
  * @covers Plugin_Upgrader::upgrade
  *
  * @group  updater
  * @group  plugin_updater
  */
-class Tests_Admin_Includes_PluginUpdater_Upgrade extends WP_UnitTestCase {
-	private $plugin = array();
-
-	public static function setUpBeforeClass() {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-	}
-
-	public function setUp() {
-		parent::setUp();
-
-		// Remove upgrade hooks which are not required for plugin installation tests
-		// and may interfere with the results due to a timeout in external HTTP requests.
-		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
-		remove_action( 'upgrader_process_complete', 'wp_version_check' );
-		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
-		remove_action( 'upgrader_process_complete', 'wp_update_themes' );
-	}
-
-	public function tearDown() {
-		// Remove the installed plugin.
-		if ( $this->plugin['dest_file'] && file_exists( $this->plugin['dest_file'] ) ) {
-			$this->rmdir( $this->plugin['dest_dir'] );
-			rmdir( $this->plugin['dest_dir'] );
-		}
-
-		delete_site_transient( 'update_plugins' );
-
-		parent::tearDown();
-	}
+class Tests_Admin_Includes_PluginUpdater_Upgrade extends Admin_Includes_PluginUpdater_TestCase {
 
 	/**
 	 * @dataProvider data_should_not_send_error_report
@@ -52,7 +26,7 @@ class Tests_Admin_Includes_PluginUpdater_Upgrade extends WP_UnitTestCase {
 
 		$plugin_upgrader = $this
 			->getMockBuilder( Plugin_Upgrader::class )
-			->setConstructorArgs( array( $this->mock_skin() ) )
+			->setConstructorArgs( array( $this->mock_skin_feedback() ) )
 			->setMethods( array( 'send_error_data' ) )
 			->getMock();
 
@@ -159,31 +133,16 @@ MESSAGE
 
 		set_site_transient( 'update_plugins', $update_plugins );
 
-		$this->setup_test();
+		$this->shortcircuit_w_org_download();
+		$this->capture_error_report();
 
-		$actual_stats = array();
-		add_filter(
-			'pre_http_request',
-			function ( $preempt, $parsed_args ) use ( &$actual_stats ) {
-				if ( ! isset( $parsed_args['body']['update_stats'] ) ) {
-					return $preempt;
-				}
-
-				$actual_stats[] = (array) json_decode( $parsed_args['body']['update_stats'] );
-
-				return true;
-			},
-			10,
-			2
-		);
-
-		$plugin_upgrader = new Plugin_Upgrader( $this->mock_skin() );
+		$plugin_upgrader = new Plugin_Upgrader( $this->mock_skin_feedback() );
 
 		ob_start();
 		$plugin_upgrader->upgrade( $plugin['plugin'] );
 		$actual_message = ob_get_clean();
 
-		foreach ( $actual_stats as $index => $stats ) {
+		foreach ( $this->error_report as $index => $stats ) {
 			$this->assertContains( $expected_stats[ $index ], $stats );
 			$this->assertGreaterThan( 0.0, $stats['time_taken'] );
 		}
@@ -256,52 +215,6 @@ ERROR_MESSAGE
 				),
 				'expected_stats'   => $not_available_stats,
 			),
-		);
-	}
-
-	/**
-	 * Mocks WP_Upgrader_Skin::feedback method.
-	 *
-	 * @return \PHPUnit\Framework\MockObject\MockObject
-	 */
-	private function mock_skin() {
-		$skin = $this
-			->getMockBuilder( WP_Upgrader_Skin::class )
-			->setMethods( array( 'feedback' ) )
-			->getMock();
-
-		// Mocks the feedback method to prevent `show_message()` from running, i.e.
-		// to avoid it from flushing and ending all output buffers. Why?
-		// Avoids printing in the console and allows testing the feedback messages.
-		$skin
-			->expects( $this->atLeastOnce() )
-			->method( 'feedback' )
-			->willReturnCallback(
-				function ( $message ) use ( $skin ) {
-					if ( isset( $skin->upgrader->strings[ $message ] ) ) {
-						$message = $skin->upgrader->strings[ $message ];
-					}
-
-					echo "<p>$message</p>\n";
-				}
-			);
-
-		return $skin;
-	}
-
-	private function setup_test() {
-		// Short-circuit calling w.org for the download.
-		add_filter(
-			'upgrader_pre_download',
-			function ( $reply, $package, $upgrader ) {
-				if ( ! empty( $package ) && $upgrader instanceof Plugin_Upgrader ) {
-					return $package;
-				}
-
-				return $reply;
-			},
-			10,
-			3
 		);
 	}
 }
