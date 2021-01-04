@@ -4,6 +4,7 @@ parameters:
     - src
   scanFiles:
     - wp-config.php
+    - src/wp-admin/includes/ms.php
   scanDirectories:
     - src/wp-includes
     - src/wp-admin
