@@ -145,7 +145,7 @@ class WP_User {
 			$id   = 0;
 		}
 
-		if ( $id || 0 === $id ) {
+		if ( $id ) {
 			$data = self::get_data_by( 'id', $id );
 		} else {
 			$data = self::get_data_by( 'login', $name );
@@ -200,9 +200,6 @@ class WP_User {
 				return false;
 			}
 			$value = (int) $value;
-			if ( 0 === $value ) {
-				return new stdClass;
-			}
 			if ( $value < 1 ) {
 				return false;
 			}
