@@ -597,17 +597,17 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		}
 		$this->assertSame( $expected_roles, $user->roles, "User should only have the {$role} role" );
 
-		$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
+		$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test via WP_User->has_cap() method)." );
 		$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by user object)." );
-		$this->assertFalse( user_can( $user->ID, 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by user object)." );
+		$this->assertFalse( user_can( $user->ID, 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by user ID)." );
 		$this->assertFalse( current_user_can( 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by current user)." );
 
-		$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
+		$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test via WP_User->has_cap() method)." );
 		$this->assertFalse( user_can( $user, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by user object)." );
 		$this->assertFalse( user_can( $user->ID, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by user ID)." );
 		$this->assertFalse( current_user_can( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by current user)." );
 
-		$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability" );
+		$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability (test via WP_User->has_cap() method)." );
 		$this->assertTrue( user_can( $user, 'exist' ), "User with the {$role} role should have the exist capability (test by user object)." );
 		$this->assertTrue( user_can( $user->ID, 'exist' ), "User with the {$role} role should have the exist capability (test by user ID)." );
 		$this->assertTrue( current_user_can( 'exist' ), "User with the {$role} role should have the exist capability (test by current user)." );
