@@ -1004,7 +1004,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	function test_user_add_cap() {
 		// There are two contributors.
-		$id_1 = self::factory()->user->create( array( 'role' => 'contributor' ) );
+		$id_1 = self::$users['contributor']->ID;
 		$id_2 = self::factory()->user->create( array( 'role' => 'contributor' ) );
 
 		// User 1 has an extra capability.
@@ -1043,7 +1043,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	function test_user_remove_cap() {
 		// There are two contributors.
-		$id_1 = self::factory()->user->create( array( 'role' => 'contributor' ) );
+		$id_1 = self::$users['contributor']->ID;
 		$id_2 = self::factory()->user->create( array( 'role' => 'contributor' ) );
 
 		// User 1 has an extra capability.
@@ -1098,7 +1098,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	function test_user_remove_all_caps() {
 		// User starts as an author.
-		$id   = self::factory()->user->create( array( 'role' => 'author' ) );
+		$id   = self::$users['author']->ID;
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
