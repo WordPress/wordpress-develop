@@ -1538,7 +1538,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' ) || get_site_option( 'upload_space_check_disabled' ) ) {
@@ -1680,7 +1680,7 @@ function dashboard_browser_nag_class( $classes ) {
  *
  * @since 3.2.0
  *
- * @return array|bool Array of browser data on success, false on failure.
+ * @return array|false Array of browser data on success, false on failure.
  */
 function wp_check_browser_version() {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
