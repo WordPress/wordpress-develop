@@ -61,7 +61,10 @@ parameters:
     - '#(ParagonIE_Sodium_Compat|PclZip|getID3|Requests|PHPMailer|SimplePie|Text_Diff)#'
 		# Classes in excluded files:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
+    - '#unknown class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin)#'
 		# PHP 8:
     - '#Class GdImage not found#'
 		# WP_List_Table::__get() provides public access to protected properties:
     - '#Access to protected property WP_List_Table::#'
+		# WP_Theme::__get() provides public access to private properties:
+    - '#Access to private property WP_Theme::#'
