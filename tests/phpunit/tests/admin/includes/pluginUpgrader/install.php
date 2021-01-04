@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/testcase.php';
+require_once dirname( __DIR__ ) . '/class-wp-upgrader-testcase.php';
 
 /**
  * @covers Plugin_Upgrader::install
@@ -8,7 +8,7 @@ require_once __DIR__ . '/testcase.php';
  * @group  upgrader
  * @group  plugin_upgrader
  */
-class Tests_Admin_Includes_PluginUpgrader_Install extends Admin_Includes_PluginUpgrader_TestCase {
+class Tests_Admin_Includes_PluginUpgrader_Install extends WP_Upgrader_TestCase {
 
 	/**
 	 * @dataProvider data_should_not_send_error_data
