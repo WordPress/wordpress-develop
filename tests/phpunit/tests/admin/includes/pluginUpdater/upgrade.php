@@ -147,7 +147,7 @@ MESSAGE
 
 		// Do the upgrade.
 		ob_start();
-		$result = $plugin_upgrader->upgrade( $plugin['plugin'] );
+		$result         = $plugin_upgrader->upgrade( $plugin['plugin'] );
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
