@@ -20,6 +20,7 @@ jobs:
   # - Sets up PHP.
   # - Logs debug information about the runner container.
   # - Installs Composer dependencies (from cache if possible).
+  # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
   # - todo: Configure Slack notifications for failing scans.
