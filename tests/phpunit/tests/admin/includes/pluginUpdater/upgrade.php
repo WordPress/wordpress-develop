@@ -68,7 +68,6 @@ class Tests_Admin_Includes_PluginUpdater_Upgrade extends Admin_Includes_PluginUp
 					),
 				),
 				'expected_message' => array(
-					'data/plugins/hello-1.7.2/hello.zip',
 					<<<MESSAGE
 <p>Unpacking the update&#8230;</p>
 <p>Installing the latest version&#8230;</p>
