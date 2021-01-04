@@ -191,9 +191,9 @@ jobs:
           cache-name: cache-composer-dependencies
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Install Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
