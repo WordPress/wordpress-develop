@@ -1075,7 +1075,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 */
 	function test_user_level_update() {
 		// User starts as an author.
-		$id   = self::factory()->user->create( array( 'role' => 'author' ) );
+		$id   = self::$users['author']->ID;
 		$user = new WP_User( $id );
 		$this->assertTrue( $user->exists(), "Problem getting user $id" );
 
@@ -1153,10 +1153,10 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertTrue( $author->exists(), "Problem getting user $author->ID" );
 
 		// Add some other users.
-		$admin       = new WP_User( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$admin       = self::$users['administrator'];
 		$author_2    = new WP_User( self::factory()->user->create( array( 'role' => 'author' ) ) );
-		$editor      = new WP_User( self::factory()->user->create( array( 'role' => 'editor' ) ) );
-		$contributor = new WP_User( self::factory()->user->create( array( 'role' => 'contributor' ) ) );
+		$editor      = self::$users['editor'];
+		$contributor = self::$users['contributor'];
 
 		// Administrators, editors and the post owner can edit it.
 		$this->assertTrue( $admin->has_cap( 'edit_post', $post ) );
@@ -1900,7 +1900,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 35488
 	 */
 	function test_wp_logout_should_clear_current_user() {
-		$user_id = self::factory()->user->create();
+		$user_id = self::$users['author']->ID;
 		wp_set_current_user( $user_id );
 
 		wp_logout();
