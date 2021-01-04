@@ -246,32 +246,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_args['date_query'] = array();
 
+		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
-			$prepared_args['date_query'][] = array(
-				'before' => $request['before'],
-				'column' => 'post_date',
-			);
+			$prepared_args['date_query'][0]['before'] = $request['before'];
 		}
 
-		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
-			$prepared_args['date_query'][] = array(
-				'before' => $request['modified_before'],
-				'column' => 'post_modified',
-			);
-		}
-
+		// Set after into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['after'], $request['after'] ) ) {
-			$prepared_args['date_query'][] = array(
-				'after'  => $request['after'],
-				'column' => 'post_date',
-			);
-		}
-
-		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
-			$prepared_args['date_query'][] = array(
-				'after'  => $request['modified_after'],
-				'column' => 'post_modified',
-			);
+			$prepared_args['date_query'][0]['after'] = $request['after'];
 		}
 
 		if ( isset( $registered['page'] ) && empty( $request['offset'] ) ) {
@@ -1568,12 +1550,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			'format'      => 'date-time',
 		);
 
-		$query_params['modified_after'] = array(
-			'description' => __( 'Limit response to comments modified after a given ISO8601 compliant date.' ),
-			'type'        => 'string',
-			'format'      => 'date-time',
-		);
-
 		$query_params['author'] = array(
 			'description' => __( 'Limit result set to comments assigned to specific user IDs. Requires authorization.' ),
 			'type'        => 'array',
@@ -1599,12 +1575,6 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to comments published before a given ISO8601 compliant date.' ),
-			'type'        => 'string',
-			'format'      => 'date-time',
-		);
-
-		$query_params['modified_before'] = array(
-			'description' => __( 'Limit response to comments modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
