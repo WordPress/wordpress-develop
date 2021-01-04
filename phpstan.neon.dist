@@ -47,11 +47,19 @@ parameters:
   bootstrapFiles:
     - tests/phpstan-bootstrap.php
   ignoreErrors:
+    # These are imported by including wp-includes/version.php:
     - '#Undefined variable: \$(wp_version|required_php_version|required_mysql_version|wp_local_package)#'
+    # Inner functions aren't supported:
     - '#Inner named functions are not supported by PHPStan#'
+    # mysql_* functions are used within appropriate compat checks:
     - '#Function mysql_[a-z_]+ not found#'
+    # Inner functions within the importer:
     - '#Function wxr_[a-z_]+ not found#'
+    # Only defined by an object cache dropin:
     - '#Function wp_cache_postload not found#'
+		# Not worried about any external libs for now:
     - '#(ParagonIE_Sodium_Compat|PclZip|getID3|Requests|PHPMailer|SimplePie|Text_Diff)#'
+		# Classes in excluded files:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
+		# PHP 8:
     - '#Class GdImage not found#'
