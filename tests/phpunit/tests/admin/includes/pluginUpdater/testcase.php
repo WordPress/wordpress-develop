@@ -1,18 +1,25 @@
 <?php
 
 abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
-	protected $plugin       = array();
-	protected $error_report = array();
+	protected $plugin     = array();
+	protected $error_data = array();
+	protected static $filesystem;
 
 	public static function setUpBeforeClass() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
+
+		self::$filesystem = new WP_Filesystem_Direct( new StdClass() );
+
+		self::remove_hello_dolly_plugin();
 	}
 
 	public function setUp() {
 		parent::setUp();
 
-		$this->plugin       = array();
-		$this->error_report = array();
+		$this->plugin     = array();
+		$this->error_data = array();
 
 		// Remove upgrade hooks which are not required for plugin installation tests
 		// and may interfere with the results due to a timeout in external HTTP requests.
@@ -23,15 +30,17 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		// Remove the installed plugin.
-		if ( $this->plugin['dest_file'] && file_exists( $this->plugin['dest_file'] ) ) {
-			$this->rmdir( $this->plugin['dest_dir'] );
-			rmdir( $this->plugin['dest_dir'] );
-		}
+		self::remove_hello_dolly_plugin();
 
 		delete_site_transient( 'update_plugins' );
 
 		parent::tearDown();
+	}
+
+	protected static function remove_hello_dolly_plugin() {
+		if ( file_exists( WP_PLUGIN_DIR . '/hello-dolly/hello.php' ) ) {
+			self::$filesystem->rmdir( WP_PLUGIN_DIR . '/hello-dolly/', true );
+		}
 	}
 
 	protected function shortcircuit_w_org_download() {
@@ -49,7 +58,7 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 		);
 	}
 
-	protected function capture_error_report() {
+	protected function capture_error_data() {
 		add_filter(
 			'pre_http_request',
 			function ( $preempt, $parsed_args ) {
@@ -57,7 +66,7 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 					return $preempt;
 				}
 
-				$this->error_report[] = (array) json_decode( $parsed_args['body']['update_stats'] );
+				$this->error_data[] = (array) json_decode( $parsed_args['body']['update_stats'] );
 
 				return true;
 			},
@@ -105,5 +114,7 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 		if ( ! empty( $update_plugins ) ) {
 			set_site_transient( 'update_plugins', $update_plugins );
 		}
+
+//		$this->error_data = array();
 	}
 }

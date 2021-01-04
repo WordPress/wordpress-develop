@@ -11,14 +11,14 @@ require_once __DIR__ . '/testcase.php';
 class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUpdater_TestCase {
 
 	/**
-	 * @dataProvider data_should_not_send_error_report
+	 * @dataProvider data_should_not_send_error_data
 	 *
 	 * @group        51928
 	 *
-	 * @param array $plugin           Array of plugin information.
-	 * @param array $expected_message Array of expected admin output messages.
+	 * @param array $plugin   Array of plugin information.
+	 * @param array $expected Array of expected admin output messages.
 	 */
-	public function test_should_not_send_error_report( $plugin, $expected_message ) {
+	public function test_should_not_send_error_data( $plugin, $expected ) {
 		$this->plugin = $plugin;
 
 		$plugin_upgrader = $this
@@ -31,88 +31,97 @@ class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUp
 			->expects( $this->never() )
 			->method( 'send_error_data' );
 
+		// Do the install.
 		ob_start();
 		$actual         = $plugin_upgrader->install( $plugin['package'] );
 		$actual_message = ob_get_clean();
 
+		// Validate the install happened.
 		$this->assertTrue( $actual );
-
-		foreach ( $expected_message as $expected ) {
-			$this->assertContains( $expected, $actual_message );
+		foreach ( $expected['messages'] as $expected_message ) {
+			$this->assertContains( $expected_message, $actual_message );
 		}
 	}
 
-	public function data_should_not_send_error_report() {
+	public function data_should_not_send_error_data() {
 		return array(
 			'when local zip file exists'  => array(
-				'plugin'           => array(
-					'dest_file' => WP_PLUGIN_DIR . '/hello/hello.php',
-					'dest_dir'  => WP_PLUGIN_DIR . '/hello',
-					'package'   => DIR_TESTDATA . '/plugins/hello-1.6/hello.zip',
+				'plugin'   => array(
+					'dest_file' => WP_PLUGIN_DIR . '/hello-dolly/hello.php',
+					'dest_dir'  => WP_PLUGIN_DIR . '/hello-dolly',
+					'package'   => DIR_TESTDATA . '/plugins/hello-1.6/hello-dolly.zip',
 				),
-				'expected_message' => array(
-					<<<MESSAGE
+				'expected' => array(
+					'messages' => array(
+						<<<MESSAGE
 <p>Unpacking the package&#8230;</p>
 <p>Installing the plugin&#8230;</p>
 <p>Plugin installed successfully.</p>
 </div>
 MESSAGE
-				,
+					,
+					),
 				),
 			),
 			'when downloading from w.org' => array(
-				'plugin'           => array(
+				'plugin'   => array(
 					'dest_file' => WP_PLUGIN_DIR . '/hello-dolly/hello.php',
 					'dest_dir'  => WP_PLUGIN_DIR . '/hello-dolly',
 					'package'   => 'https://downloads.wordpress.org/plugin/hello-dolly.1.7.2.zip',
 				),
-				'expected_message' => array(
-					'<div class="wrap"><h1></h1><p>Downloading installation package from <span class="code">%s</span>&#8230;</p>',
-					'<p>The authenticity of <span class="code">hello-dolly.1.7.2.zip</span> could not be verified as no signature was found.',
-					<<<MESSAGE
+				'expected' => array(
+					'messages' => array(
+						'<div class="wrap"><h1></h1><p>Downloading installation package from <span class="code">%s</span>&#8230;</p>',
+						'<p>The authenticity of <span class="code">hello-dolly.1.7.2.zip</span> could not be verified as no signature was found.',
+						<<<MESSAGE
 <p>Unpacking the package&#8230;</p>
 <p>Installing the plugin&#8230;</p>
 <p>Plugin installed successfully.</p>
 </div>
 MESSAGE
-				,
+					,
+					),
 				),
 			),
 		);
 	}
 
 	/**
-	 * @dataProvider data_should_send_error_report
+	 * @dataProvider data_should_send_error_data
 	 *
 	 * @group        51928
 	 *
-	 * @param array $plugin           Array of plugin information.
-	 * @param array $expected_message Array of expected admin output messages.
-	 * @param array $expected_stats   Array of expected stats.
+	 * @param array $plugin   Array of plugin information.
+	 * @param array $expected Array of expected messages and stats.
 	 */
-	public function test_should_send_error_report( $plugin, $expected_message, $expected_stats ) {
+	public function test_should_send_error_data( $plugin, $expected ) {
 		$this->plugin = $plugin;
 
 		$this->shortcircuit_w_org_download();
-		$this->capture_error_report();
+		$this->capture_error_data();
 
 		$plugin_upgrader = new Plugin_Upgrader( $this->mock_skin_feedback() );
 
+		// Do the install.
 		ob_start();
-		$plugin_upgrader->install( $plugin['package'] );
+		$result         = $plugin_upgrader->install( $plugin['package'] );
 		$actual_message = ob_get_clean();
 
-		foreach ( $expected_message as $expected ) {
-			$this->assertContains( $expected, $actual_message );
+		// Validate the upgrade did not happen.
+		$this->assertNull( $result );
+		foreach ( $expected['messages'] as $expected_message ) {
+			$this->assertContains( $expected_message, $actual_message );
 		}
 
-		foreach ( $this->error_report as $index => $stats ) {
+		// Validate the sent error data.
+		$expected_stats = $expected['stats'];
+		foreach ( $this->error_data as $index => $stats ) {
 			$this->assertContains( $expected_stats[ $index ], $stats );
 			$this->assertGreaterThan( 0.0, $stats['time_taken'] );
 		}
 	}
 
-	public function data_should_send_error_report() {
+	public function data_should_send_error_data() {
 		$not_available_stats = array(
 			array(
 				'process'          => 'download_package',
@@ -144,30 +153,34 @@ MESSAGE
 
 		return array(
 			'no_package when empty package given' => array(
-				'plugin'           => array(
+				'plugin'   => array(
 					'dest_file' => '',
 					'dest_dir'  => '',
 					'package'   => '',
 				),
-				'expected_message' => array(
-					'<p>Installation package not available.</p>',
+				'expected' => array(
+					'messages' => array(
+						'<p>Installation package not available.</p>',
+					),
+					'stats'    => $not_available_stats,
 				),
-				'expected_stats'   => $not_available_stats,
 			),
 			'when package does not exist'         => array(
-				'plugin'           => array(
+				'plugin'   => array(
 					'dest_file' => '',
 					'dest_dir'  => '',
 					'package'   => DIR_TESTDATA . '/plugins/hello-1.7.2/doesnotexist.zip',
 				),
-				'expected_message' => array(
-					<<<ERROR_MESSAGE
+				'expected' => array(
+					'messages' => array(
+						<<<ERROR_MESSAGE
 <p>Unpacking the package&#8230;</p>
 <p>The package could not be installed. PCLZIP_ERR_MISSING_FILE (-4) : Missing archive file
 ERROR_MESSAGE
-				,
+					,
+					),
+					'stats'    => $not_available_stats,
 				),
-				'expected_stats'   => $not_available_stats,
 			),
 		);
 	}
