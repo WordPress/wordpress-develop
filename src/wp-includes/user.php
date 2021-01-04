@@ -1208,7 +1208,7 @@ function setup_userdata( $for_user_id = 0 ) {
 	}
 	$user = get_userdata( $for_user_id );
 
-	if ( 0 === $user->ID ) {
+	if ( ! $user ) {
 		$user_ID       = 0;
 		$user_level    = 0;
 		$userdata      = null;
