@@ -1,8 +1,8 @@
 <?php
 
 abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
-	protected $plugin     = array();
-	protected $error_data = array();
+	protected        $plugin     = array();
+	protected        $error_data = array();
 	protected static $filesystem;
 
 	public static function setUpBeforeClass() {
@@ -114,7 +114,5 @@ abstract class Admin_Includes_PluginUpdater_TestCase extends WP_UnitTestCase {
 		if ( ! empty( $update_plugins ) ) {
 			set_site_transient( 'update_plugins', $update_plugins );
 		}
-
-//		$this->error_data = array();
 	}
 }
