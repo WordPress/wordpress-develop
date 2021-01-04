@@ -955,7 +955,7 @@ class WP_Upgrader {
 	 *
 	 * @return void
 	 */
-	public function send_error_data( $result, $start_time, $method = null ) {
+	protected function send_error_data( $result, $start_time, $method = null ) {
 		global $wp_version, $wp_filesystem;
 
 		if ( ! is_wp_error( $result ) ) {
