@@ -181,6 +181,8 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'context',
 				'exclude',
 				'include',
+				'modified_after',
+				'modified_before',
 				'offset',
 				'order',
 				'orderby',
