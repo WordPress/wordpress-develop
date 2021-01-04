@@ -3,24 +3,24 @@
 require_once __DIR__ . '/testcase.php';
 
 /**
- * @covers Plugin_Upgrader::bulk_upgrade
+ * @covers Plugin_Upgrader::upgrade
  *
- * @group  updater
- * @group  plugin_updater
+ * @group  upgrader
+ * @group  plugin_upgrader
  */
-class Tests_Admin_Includes_PluginUpdater_BulkUpgrade extends Admin_Includes_PluginUpdater_TestCase {
+class Tests_Admin_Includes_PluginUpgrader_Upgrade extends Admin_Includes_PluginUpgrader_TestCase {
 
 	/**
 	 * @dataProvider data_should_not_send_error_data
 	 *
 	 * @group        51928
 	 *
-	 * @param array $plugins        Array of plugins information.
+	 * @param array $plugin         Array of plugin information.
 	 * @param array $update_plugins Value for the "update_plugins" transient.
-	 * @param array $expected       Array of expected results and messages.
+	 * @param array $expected       Array of expected results and/or messages.
 	 */
-	public function test_should_not_send_error_data( $plugins, $update_plugins, $expected ) {
-		$this->plugin = $plugins;
+	public function test_should_not_send_error_data( $plugin, $update_plugins, $expected ) {
+		$this->plugin = $plugin;
 
 		$plugin_upgrader = $this
 			->getMockBuilder( Plugin_Upgrader::class )
@@ -32,33 +32,28 @@ class Tests_Admin_Includes_PluginUpdater_BulkUpgrade extends Admin_Includes_Plug
 			->expects( $this->never() )
 			->method( 'send_error_data' );
 
-		$this->install_older_version( $plugin_upgrader, $plugins['install'], $update_plugins );
+		$this->install_older_version( $plugin_upgrader, $plugin['install'], $update_plugins );
 
-		// Do the bulk upgrade.
+		// Do the upgrade.
 		ob_start();
-		$actual_results = $plugin_upgrader->bulk_upgrade( $plugins['plugins'] );
+		$result         = $plugin_upgrader->upgrade( $plugin['plugin'] );
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade happened.
-		$this->assertArrayHasKey( 'hello-dolly/hello.php', $actual_results );
-		$this->assertArrayHasKey( 'source_files', $actual_results['hello-dolly/hello.php'] );
-		$this->assertSame(
-			$expected['results']['hello-dolly/hello.php']['source_files'],
-			$actual_results['hello-dolly/hello.php']['source_files']
-		);
-		foreach ( $expected['messages'] as $expected ) {
-			$this->assertContains( $expected, $actual_message );
+		$this->assertTrue( $result );
+		foreach ( $expected['messages'] as $expected_message ) {
+			$this->assertContains( $expected_message, $actual_message );
 		}
 	}
 
 	public function data_should_not_send_error_data() {
 		return array(
 			'when local zip file exists'  => array(
-				'plugins'        => array(
+				'plugin'         => array(
 					'install'   => DIR_TESTDATA . '/plugins/hello-1.6/hello-dolly.zip',
 					'dest_file' => WP_PLUGIN_DIR . '/hello-dolly/hello.php',
 					'dest_dir'  => WP_PLUGIN_DIR . '/hello-dolly',
-					'plugins'   => array( 'hello-dolly/hello.php' ),
+					'plugin'    => 'hello-dolly/hello.php',
 				),
 				'update_plugins' => (object) array(
 					'last_checked' => time(),
@@ -77,11 +72,6 @@ class Tests_Admin_Includes_PluginUpdater_BulkUpgrade extends Admin_Includes_Plug
 					),
 				),
 				'expected'       => array(
-					'results'  => array(
-						'hello-dolly/hello.php' => array(
-							'source_files' => array( 'hello.php' ),
-						),
-					),
 					'messages' => array(
 						<<<MESSAGE
 <p>Unpacking the update&#8230;</p>
@@ -98,7 +88,7 @@ MESSAGE
 					'install'   => DIR_TESTDATA . '/plugins/hello-1.6/hello-dolly.zip',
 					'dest_file' => WP_PLUGIN_DIR . '/hello-dolly/hello.php',
 					'dest_dir'  => WP_PLUGIN_DIR . '/hello-dolly',
-					'plugins'   => array( 'hello-dolly/hello.php' ),
+					'plugin'    => 'hello-dolly/hello.php',
 				),
 				'update_plugins' => (object) array(
 					'last_checked' => time(),
@@ -117,15 +107,13 @@ MESSAGE
 					),
 				),
 				'expected'       => array(
-					'results'  => array(
-						'hello-dolly/hello.php' => array(
-							'source_files' => array( 'hello.php', 'readme.txt' ),
-						),
-					),
 					'messages' => array(
 						<<<MESSAGE
 <p>Downloading update from <span class="code">%s</span>&#8230;</p>
 <p>The authenticity of <span class="code">hello-dolly.1.7.2.zip</span> could not be verified as no signature was found.</p>
+MESSAGE
+					,
+						<<<MESSAGE
 <p>Unpacking the update&#8230;</p>
 <p>Installing the latest version&#8230;</p>
 <p>Removing the old version of the plugin&#8230;</p>
@@ -143,35 +131,35 @@ MESSAGE
 	 *
 	 * @group        51928
 	 *
-	 * @param array $plugins        Array of plugins information.
+	 * @param array $plugin         Array of plugin information.
 	 * @param array $update_plugins Value for the "update_plugins" transient.
-	 * @param array $expected       Array of expected results, messages, and stats.
+	 * @param array $expected       Array of expected messages and stats.
 	 */
-	public function test_should_send_error_data( $plugins, $update_plugins, $expected ) {
-		$this->plugin = $plugins;
+	public function test_should_send_error_data( $plugin, $update_plugins, $expected ) {
+		$this->plugin = $plugin;
 
 		$this->shortcircuit_w_org_download();
 		$this->capture_error_data();
 
 		$plugin_upgrader = new Plugin_Upgrader( $this->mock_skin_feedback() );
 
-		$this->install_older_version( $plugin_upgrader, $plugins['install'], $update_plugins );
+		$this->install_older_version( $plugin_upgrader, $plugin['install'], $update_plugins );
 
-		// Do the bulk upgrade.
+		// Do the upgrade.
 		ob_start();
-		$actual_results = $plugin_upgrader->bulk_upgrade( $plugins['plugins'] );
+		$result         = $plugin_upgrader->upgrade( $plugin['plugin'] );
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
-		$this->assertArrayHasKey( 'hello-dolly/hello.php', $actual_results );
-		$this->assertNull( $actual_results['hello-dolly/hello.php'] );
+		$this->assertNull( $result );
 		foreach ( $expected['messages'] as $expected_message ) {
 			$this->assertContains( $expected_message, $actual_message );
 		}
 
 		// Validate the sent error data.
+		$expected_stats = $expected['stats'];
 		foreach ( $this->error_data as $index => $stats ) {
-			$this->assertContains( $expected['stats'][ $index ], $stats );
+			$this->assertContains( $expected_stats[ $index ], $stats );
 			$this->assertGreaterThan( 0.0, $stats['time_taken'] );
 		}
 	}
@@ -179,11 +167,11 @@ MESSAGE
 	public function data_should_send_error_data() {
 		return array(
 			'when new version does not exist' => array(
-				'plugins'        => array(
+				'plugin'         => array(
 					'install'   => DIR_TESTDATA . '/plugins/hello-1.6/hello-dolly.zip',
 					'dest_file' => WP_PLUGIN_DIR . '/hello-dolly/hello.php',
 					'dest_dir'  => WP_PLUGIN_DIR . '/hello-dolly',
-					'plugins'   => array( 'hello-dolly/hello.php' ),
+					'plugin'    => 'hello-dolly/hello.php',
 				),
 				'update_plugins' => (object) array(
 					'last_checked' => time(),
@@ -197,13 +185,13 @@ MESSAGE
 							'plugin'      => 'hello-dolly/hello.php',
 							'new_version' => '99999',
 							'url'         => 'https://wordpress.org/plugins/hello-dolly/',
-							'package'     => DIR_TESTDATA . '/plugins/hello-99999/hello.zip',
+							'package'     => DIR_TESTDATA . '/plugins/hello-99999/hello-dolly.zip',
 						),
 					),
 				),
 				'expected'       => array(
 					'messages' => array(
-						'data/plugins/hello-99999/hello.zip',
+						'data/plugins/hello-99999/hello-dolly.zip',
 						<<<ERROR_MESSAGE
 <p>Unpacking the update&#8230;</p>
 <p>The package could not be installed. PCLZIP_ERR_MISSING_FILE (-4) : Missing archive file

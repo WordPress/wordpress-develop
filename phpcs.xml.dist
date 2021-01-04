@@ -249,7 +249,7 @@
 				<element value="WP_Import_UnitTestCase"/>
 				<element value="Tests_Query_Conditionals"/>
 				<element value="WP_Test_XML_TestCase"/>
-				<element value="Admin_Includes_PluginUpdater_TestCase"/>
+				<element value="Admin_Includes_PluginUpgrader_TestCase"/>
 
 				<!-- Mock classes. -->
 				<element value="Spy_REST_Server"/>
