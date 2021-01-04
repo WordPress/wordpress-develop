@@ -606,6 +606,13 @@ class WP_List_Table {
 			$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
 		}
 
+		/**
+		 * Filters the 'Months' drop-down query.
+		 *
+		 *
+		 * @param string $post_type The post type.
+		 * @param string $extra_checks Filtering options for the post status.
+		 */
 		$months = apply_filters( 'edit_months_dropdown', $post_type, $extra_checks );
 
 		if ( ! is_array( $months ) ) {
