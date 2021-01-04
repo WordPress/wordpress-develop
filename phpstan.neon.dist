@@ -1,5 +1,5 @@
 parameters:
-  level: 0
+  level: 1
   paths:
     - src
   scanFiles:
@@ -9,12 +9,13 @@ parameters:
     - src/wp-includes
     - src/wp-admin
   excludes_analyse:
-    - src/js
     - src/wp-admin/includes/class-ftp.php
     - src/wp-admin/includes/class-ftp-pure.php
     - src/wp-admin/includes/class-ftp-sockets.php
     - src/wp-admin/includes/class-pclzip.php
     - src/wp-admin/includes/deprecated.php
+    - src/wp-admin/includes/noop.php
+    - src/wp-admin/includes/ms-deprecated.php
     - src/wp-content
     - src/wp-includes/atomlib.php
     - src/wp-includes/class-json.php
@@ -32,6 +33,8 @@ parameters:
     - src/wp-includes/class-wp-text-diff-renderer-table.php
     - src/wp-includes/class-wp-feed-cache.php
     - src/wp-includes/deprecated.php
+    - src/wp-includes/ms-deprecated.php
+    - src/wp-includes/pluggable-deprecated.php
     - src/wp-includes/rss.php
     - src/wp-includes/ID3
     - src/wp-includes/PHPMailer
