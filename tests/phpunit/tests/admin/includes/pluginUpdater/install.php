@@ -51,7 +51,6 @@ class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUp
 					'package'   => DIR_TESTDATA . '/plugins/hello-1.6/hello.zip',
 				),
 				'expected_message' => array(
-					'data/plugins/hello-1.6/hello.zip',
 					<<<MESSAGE
 <p>Unpacking the package&#8230;</p>
 <p>Installing the plugin&#8230;</p>
@@ -102,7 +101,10 @@ MESSAGE
 		ob_start();
 		$plugin_upgrader->install( $plugin['package'] );
 		$actual_message = ob_get_clean();
-		$this->assertContains( $expected_message, $actual_message );
+
+		foreach ( $expected_message as $expected ) {
+			$this->assertContains( $expected, $actual_message );
+		}
 
 		foreach ( $this->error_report as $index => $stats ) {
 			$this->assertContains( $expected_stats[ $index ], $stats );
@@ -147,7 +149,9 @@ MESSAGE
 					'dest_dir'  => '',
 					'package'   => '',
 				),
-				'expected_message' => '<p>Installation package not available.</p>',
+				'expected_message' => array(
+					'<p>Installation package not available.</p>',
+				),
 				'expected_stats'   => $not_available_stats,
 			),
 			'when package does not exist'         => array(
@@ -156,11 +160,13 @@ MESSAGE
 					'dest_dir'  => '',
 					'package'   => DIR_TESTDATA . '/plugins/hello-1.7.2/doesnotexist.zip',
 				),
-				'expected_message' => <<<ERROR_MESSAGE
+				'expected_message' => array(
+					<<<ERROR_MESSAGE
 <p>Unpacking the package&#8230;</p>
 <p>The package could not be installed. PCLZIP_ERR_MISSING_FILE (-4) : Missing archive file
 ERROR_MESSAGE
-			,
+				,
+				),
 				'expected_stats'   => $not_available_stats,
 			),
 		);
