@@ -1,9 +1,9 @@
 name: Code Coverage Report
 
 on:
-  # Once weekly On Sundays at 00:00 UTC.
+  # Once daily at 00:00 UTC.
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 0 * * *'
 
 env:
   LOCAL_DIR: build
@@ -34,12 +34,10 @@ jobs:
   # - Logs WordPress Docker container debug information.
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
-  # - Run the PHPUnit tests.
-  # - Creates a ZIP file of the code coverage report.
-  # - Uploads ZIP file as an artifact.
+  # - Run the PHPUnit tests as a single site.
+  # - Upload the single site code coverage report to Codecov.io.
   # - Run the PHPUnit tests as a multisite.
-  # - Creates a ZIP file of the code coverage report.
-  # - Uploads ZIP file as an artifact.
+  # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
     name: Generate a code coverage report
     runs-on: ubuntu-latest
@@ -124,44 +122,18 @@ jobs:
         run: npm run env:install
 
       - name: Run tests as a single site
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-html wp-code-coverage-single-${{ github.sha }} --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
-      - name: Create ZIP artifact of single site results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-single-${{ github.sha }}.zip
-          path: wp-code-coverage-single-${{ github.sha }}
-
-      - name: Upload single site coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-code-coverage-single-${{ github.sha }}
-          path: wp-code-coverage-single-${{ github.sha }}.zip
-          if-no-files-found: error
-
-      - name: Upload single site report  to codecov
+      - name: Upload single site report to Codecov
         uses: codecov/codecov-action@v1
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
 
       - name: Run tests as a multisite install
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-html wp-code-coverage-multisite-${{ github.sha }} --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
-      - name: Create ZIP artifact of multisite results
-        uses: thedoctor0/zip-release@0.4.1
-        with:
-          filename: wp-code-coverage-multisite-${{ github.sha }}.zip
-          path: wp-code-coverage-multisite-${{ github.sha }}
-
-      - name: Upload multisite coverage report
-        uses: actions/upload-artifact@v2
-        with:
-          name: wp-code-coverage-multisite-${{ github.sha }}
-          path: wp-code-coverage-multisite-${{ github.sha }}.zip
-          if-no-files-found: error
-
-      - name: Upload multisite report to codecov
+      - name: Upload multisite report to Codecov
         uses: codecov/codecov-action@v1
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
