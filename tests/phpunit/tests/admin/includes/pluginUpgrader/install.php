@@ -5,10 +5,10 @@ require_once __DIR__ . '/testcase.php';
 /**
  * @covers Plugin_Upgrader::install
  *
- * @group  updater
- * @group  plugin_updater
+ * @group  upgrader
+ * @group  plugin_upgrader
  */
-class Tests_Admin_Includes_PluginUpdater_Install extends Admin_Includes_PluginUpdater_TestCase {
+class Tests_Admin_Includes_PluginUpgrader_Install extends Admin_Includes_PluginUpgrader_TestCase {
 
 	/**
 	 * @dataProvider data_should_not_send_error_data
