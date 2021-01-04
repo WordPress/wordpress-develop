@@ -9,8 +9,11 @@ parameters:
     - src/wp-admin
   excludes_analyse:
     - src/js
+    - src/wp-admin/includes/class-ftp.php
+    - src/wp-admin/includes/class-ftp-pure.php
     - src/wp-admin/includes/class-ftp-sockets.php
     - src/wp-admin/includes/class-pclzip.php
+    - src/wp-admin/includes/deprecated.php
     - src/wp-content
     - src/wp-includes/atomlib.php
     - src/wp-includes/class-json.php
@@ -18,9 +21,18 @@ parameters:
     - src/wp-includes/class-requests.php
     - src/wp-includes/class-simplepie.php
     - src/wp-includes/class-smtp.php
+    - src/wp-includes/class-snoopy.php
+    - src/wp-includes/class-wp-http-ixr-client.php
+    - src/wp-includes/class-wp-http-requests-hooks.php
+    - src/wp-includes/class-wp-http-requests-response.php
+    - src/wp-includes/class-wp-simplepie-file.php
+    - src/wp-includes/class-wp-simplepie-sanitize-kses.php
+    - src/wp-includes/class-wp-text-diff-renderer-inline.php
+    - src/wp-includes/class-wp-text-diff-renderer-table.php
+    - src/wp-includes/class-wp-feed-cache.php
     - src/wp-includes/deprecated.php
+    - src/wp-includes/rss.php
     - src/wp-includes/ID3
-    - src/wp-includes/IXR
     - src/wp-includes/PHPMailer
     - src/wp-includes/pomo
     - src/wp-includes/random_compat
@@ -36,28 +48,18 @@ parameters:
     - '#Undefined variable: \$required_mysql_version#'
     - '#Undefined variable: \$wp_local_package#'
     - '#Inner named functions are not supported by PHPStan#'
-    - '#Function mysql_get_server_info not found#'
-    - '#Function mysql_get_client_info not found#'
-    - '#Function wxr_authors_list not found#'
-    - '#Function wxr_cat_name not found#'
-    - '#Function wxr_category_description not found#'
-    - '#Function wxr_cdata not found#'
-    - '#Function wxr_nav_menu_terms not found#'
-    - '#Function wxr_post_taxonomy not found#'
-    - '#Function wxr_site_url not found#'
-    - '#Function wxr_tag_description not found#'
-    - '#Function wxr_tag_name not found#'
-    - '#Function wxr_term_description not found#'
-    - '#Function wxr_term_meta not found#'
-    - '#Function wxr_term_name not found#'
+    - '#Function mysql_[a-z_]+ not found#'
+    - '#Function wxr_[a-z_]+ not found#'
     - '#ParagonIE_Sodium_Compat#'
     - '#PclZip#'
     - '#getID3#'
-    - '#Reflection error: SimplePie_Cache not found#'
-    - '#Reflection error: SimplePie_File not found#'
-    - '#Reflection error: SimplePie_Sanitize not found#'
-    - '#Reflection error: Requests_Hooks not found#'
-    - '#Reflection error: IXR_Client not found#'
-    - '#Reflection error: IXR_Server not found#'
-    - '#Reflection error: Text_Diff_Renderer not found#'
-    - '#Reflection error: Text_Diff_Renderer_inline not found#'
+    - '#Requests#'
+    - '#PHPMailer#'
+    - '#SimplePie#'
+    - '#Text_Diff#'
+    - '#Instantiated class ftp not found#'
+    - '#Instantiated class IXR_Error not found#'
+    - '#Instantiated class WP_HTTP_IXR_Client not found#'
+    - '#Instantiated class MO not found#'
+    - '#Instantiated class NOOP_Translations not found#'
+    - '#Class GdImage not found#'
