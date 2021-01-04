@@ -48,7 +48,7 @@ jobs:
       - name: Install Composer dependencies
         uses: ramsey/composer-install@v1
         with:
-          composer-options: "--no-suggest --no-progress --no-ansi --no-interaction"
+          composer-options: "--no-progress --no-ansi --no-interaction"
 
       - name: Make Composer packages available globally
         run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
