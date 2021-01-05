@@ -281,18 +281,23 @@
 			if (!( object instanceof HTMLElement )) {
 				return;
 			}
+			var emojis, i, emoji, description, parent_node, child_count, attrs, j, attr;
 
-			const emojis = [ ...object.querySelectorAll('img.emoji[alt]') ];
-			emojis.forEach(emoji => {
-				const parent_node = emoji.parentNode;
+			emojis = object.querySelectorAll('img.emoji[alt]');
+			emojis = Array.prototype.slice.call(emojis);
+
+			for ( i=0; i < emojis.length; i++ ) {
+				emoji       = emojis[i];
+				description = null;
+				parent_node = emoji.parentNode;
+
 				if (parent_node) {
-					const child_count = parent_node.querySelectorAll(':scope > img.emoji[alt]').length;
+					child_count = parent_node.querySelectorAll(':scope > img.emoji[alt]').length;
 					if (child_count === 1) {
-						let description, attrs, i, attr;
 
 						attrs = ['aria-label', 'title', 'label'];
-						for (i=0; !description && (i < attrs.length); i++) {
-							attr = attrs[i];
+						for ( j=0; !description && (j < attrs.length); j++ ) {
+							attr = attrs[j];
 							if (parent_node.hasAttribute(attr)) {
 								description = parent_node.getAttribute(attr);
 							}
@@ -300,14 +305,14 @@
 
 						if (description) {
 							attrs = ['aria-label', 'title'];
-							for (i=0; i < attrs.length; i++) {
-								attr = attrs[i];
+							for ( j=0; j < attrs.length; j++ ) {
+								attr = attrs[j];
 								emoji.setAttribute(attr, description);
 							}
 						}
 					}
 				}
-			})
+			}
 		}
 
 		/**
