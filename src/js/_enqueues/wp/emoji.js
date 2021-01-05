@@ -281,7 +281,10 @@
 			if (!( object instanceof HTMLElement )) {
 				return;
 			}
-			var emojis, i, emoji, description, parent_node, child_count, attrs, j, attr;
+			var emojis, i, emoji, description, parent_node, child_count, j, attr;
+
+			var attrs_read  = ['aria-label', 'title', 'label'];
+			var attrs_write = ['aria-label', 'title'];
 
 			emojis = object.querySelectorAll('img.emoji[alt]');
 			emojis = Array.prototype.slice.call(emojis);
@@ -293,20 +296,18 @@
 
 				if (parent_node) {
 					child_count = parent_node.querySelectorAll(':scope > img.emoji[alt]').length;
-					if (child_count === 1) {
 
-						attrs = ['aria-label', 'title', 'label'];
-						for ( j=0; !description && (j < attrs.length); j++ ) {
-							attr = attrs[j];
+					if (child_count === 1) {
+						for ( j=0; !description && (j < attrs_read.length); j++ ) {
+							attr = attrs_read[j];
 							if (parent_node.hasAttribute(attr)) {
 								description = parent_node.getAttribute(attr);
 							}
 						}
 
 						if (description) {
-							attrs = ['aria-label', 'title'];
-							for ( j=0; j < attrs.length; j++ ) {
-								attr = attrs[j];
+							for ( j=0; j < attrs_write.length; j++ ) {
+								attr = attrs_write[j];
 								emoji.setAttribute(attr, description);
 							}
 						}
