@@ -45,11 +45,8 @@ class Tests_Admin_Includes_ThemeUpgrader_Upgrade extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade happened.
-		$this->assertSame( $expected['results']['source'], $actual_results['source'] );
+		$this->assertTrue( $actual_results );
 		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
-
-		// Validate there's no error data.
-		$this->assertEmpty( $this->error_data );
 	}
 
 	public function data_should_not_send_error_data() {
@@ -63,7 +60,6 @@ class Tests_Admin_Includes_ThemeUpgrader_Upgrade extends WP_Upgrader_TestCase {
 				),
 				'update_themes' => $this->theme_data_provider->get_update_themes( 'new' ),
 				'expected'      => array(
-					'results'  => $this->theme_data_provider->get_upgrade_results( 'new' ),
 					'messages' => $this->theme_data_provider->get_messages( 'success_upgrade' ),
 				),
 			),
@@ -95,9 +91,7 @@ class Tests_Admin_Includes_ThemeUpgrader_Upgrade extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade did not happen.
-		$this->assertWPError( $result );
-		$this->assertSame( $expected['WP_Error']['errors'], $result->errors );
-		$this->assertSame( $expected['WP_Error']['error_data'], $result->error_data );
+		$this->assertNull( $result );
 		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
 
 		// Validate the sent error data.
