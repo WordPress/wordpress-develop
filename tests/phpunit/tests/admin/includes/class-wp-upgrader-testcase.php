@@ -17,17 +17,11 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		self::$theme_dir = WP_CONTENT_DIR . '/themes';
 
 		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-base.php';
-		require_once ABSPATH . 'wp-admin/includes/class-wp-filesystem-direct.php';
-
-		self::$filesystem = new WP_Filesystem_Direct( new StdClass() );
 
 		self::$originals = array(
 			'update_themes'  => get_site_transient( 'update_themes' ),
 			'update_plugins' => get_site_transient( 'update_plugins' ),
 		);
-		self::remove_test_theme();
-		self::remove_test_plugin();
 	}
 
 	public static function tearDownAfterClass() {
@@ -58,23 +52,25 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		self::remove_test_theme();
-		self::remove_test_plugin();
+		$this->remove_test_theme();
+		$this->remove_test_plugin();
 
 		parent::tearDown();
 	}
 
-	protected static function remove_test_plugin() {
+	protected function remove_test_plugin() {
 		delete_site_transient( 'update_plugins' );
-		if ( file_exists( WP_PLUGIN_DIR . '/hello-dolly/hello.php' ) ) {
-			self::$filesystem->rmdir( WP_PLUGIN_DIR . '/hello-dolly/', true );
+		if ( file_exists( WP_PLUGIN_DIR . '/hello-dolly' ) ) {
+			$this->rmdir( WP_PLUGIN_DIR . '/hello-dolly' );
+			rmdir( WP_PLUGIN_DIR . '/hello-dolly' );
 		}
 	}
 
-	protected static function remove_test_theme() {
+	protected function remove_test_theme() {
 		delete_site_transient( 'update_themes' );
-		if ( file_exists( WP_CONTENT_DIR . '/themes/upgrader-test-theme/style.css' ) ) {
-			self::$filesystem->rmdir( WP_CONTENT_DIR . '/themes/upgrader-test-theme/', true );
+		if ( file_exists( WP_CONTENT_DIR . '/themes/upgrader-test-theme' ) ) {
+			$this->rmdir( WP_CONTENT_DIR . '/themes/upgrader-test-theme' );
+			rmdir( WP_CONTENT_DIR . '/themes/upgrader-test-theme' );
 		}
 	}
 
