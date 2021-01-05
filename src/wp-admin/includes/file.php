@@ -85,9 +85,9 @@ function get_file_description( $file ) {
 	if ( isset( $wp_file_descriptions[ basename( $file ) ] ) && '.' === $dirname ) {
 		return $wp_file_descriptions[ basename( $file ) ];
 	} elseif ( file_exists( $file_path ) && is_file( $file_path ) ) {
-		$template_data = implode( '', file( $file_path ) );
+		$file_contents = file( $file_path );
 
-		if ( preg_match( '|Template Name:(.*)$|mi', $template_data, $name ) ) {
+		if ( false !== $file_contents && preg_match( '|Template Name:(.*)$|mi', implode( '', $file_contents ), $name ) ) {
 			/* translators: %s: Template name. */
 			return sprintf( __( '%s Page Template' ), _cleanup_header_comment( $name[1] ) );
 		}
@@ -160,7 +160,7 @@ function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 
 			if ( is_dir( $folder . $file ) ) {
 				$files2 = list_files( $folder . $file, $levels - 1 );
-				if ( $files2 ) {
+				if ( is_array( $files2 ) ) {
 					$files = array_merge( $files, $files2 );
 				} else {
 					$files[] = $folder . $file . '/';
@@ -1072,7 +1072,12 @@ function download_url( $url, $timeout = 300, $signature_verification = false ) {
 		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
 	}
 
-	$url_filename = basename( parse_url( $url, PHP_URL_PATH ) );
+	$url_path = parse_url( $url, PHP_URL_PATH );
+	if ( null === $url_path ) {
+		return new WP_Error( 'http_no_url', __( 'Invalid URL Provided.' ) );
+	}
+
+	$url_filename = basename( $url_path );
 
 	$tmpfname = wp_tempnam( $url_filename );
 	if ( ! $tmpfname ) {
@@ -1255,7 +1260,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
  *
  * @param string       $filename            The file to validate.
  * @param string|array $signatures          A Signature provided for the file.
- * @param string       $filename_for_errors A friendly filename for errors. Optional.
+ * @param string|false $filename_for_errors A friendly filename for errors. Optional.
  * @return bool|WP_Error True on success, false if verification not attempted,
  *                       or WP_Error describing an error condition.
  */
@@ -1355,37 +1360,39 @@ function verify_file_signature( $filename, $signatures, $filename_for_errors = f
 	$trusted_keys = wp_trusted_keys();
 	$file_hash    = hash_file( 'sha384', $filename, true );
 
-	mbstring_binary_safe_encoding();
+	if ( false !== $file_hash ) {
+		mbstring_binary_safe_encoding();
 
-	$skipped_key       = 0;
-	$skipped_signature = 0;
+		$skipped_key       = 0;
+		$skipped_signature = 0;
 
-	foreach ( (array) $signatures as $signature ) {
-		$signature_raw = base64_decode( $signature );
+		foreach ( (array) $signatures as $signature ) {
+			$signature_raw = base64_decode( $signature );
 
-		// Ensure only valid-length signatures are considered.
-		if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
-			$skipped_signature++;
-			continue;
-		}
-
-		foreach ( (array) $trusted_keys as $key ) {
-			$key_raw = base64_decode( $key );
-
-			// Only pass valid public keys through.
-			if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
-				$skipped_key++;
+			// Ensure only valid-length signatures are considered.
+			if ( SODIUM_CRYPTO_SIGN_BYTES !== strlen( $signature_raw ) ) {
+				$skipped_signature++;
 				continue;
 			}
 
-			if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
-				reset_mbstring_encoding();
-				return true;
+			foreach ( (array) $trusted_keys as $key ) {
+				$key_raw = base64_decode( $key );
+
+				// Only pass valid public keys through.
+				if ( SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES !== strlen( $key_raw ) ) {
+					$skipped_key++;
+					continue;
+				}
+
+				if ( sodium_crypto_sign_verify_detached( $signature_raw, $file_hash, $key_raw ) ) {
+					reset_mbstring_encoding();
+					return true;
+				}
 			}
 		}
-	}
 
-	reset_mbstring_encoding();
+		reset_mbstring_encoding();
+	}
 
 	return new WP_Error(
 		'signature_verification_failed',
