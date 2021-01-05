@@ -41,7 +41,8 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade happened.
-		$this->assertSame( $expected['results'], $actual_results );
+		$theme_name = $themes['themes'][0];
+		$this->assertSame( $expected['results'][ $theme_name ]['source'], $actual_results[ $theme_name ]['source'] );
 		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
 
 		// Validate there's no error data.
@@ -60,7 +61,7 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 				'update_themes' => $this->theme_data_provider->get_update_themes( 'new' ),
 				'expected'      => array(
 					'results'  => array(
-						'upgrader-test-theme' => $this->theme_data_provider->get_upgrade_results( 'new' ),
+						$this->theme_data_provider->theme_name => $this->theme_data_provider->get_upgrade_results( 'new' ),
 					),
 					'messages' => $this->theme_data_provider->get_messages( 'success_upgrade' ),
 				),
