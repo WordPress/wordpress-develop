@@ -52,6 +52,9 @@ define( 'WP_DEBUG_LOG', false );
 define( 'WP_DEBUG', false );
 define( 'WPMU_ACCEL_REDIRECT', false );
 define( 'WPMU_SENDFILE', false );
+define( 'SHORTINIT', false );
+define( 'NOBLOGREDIRECT', false );
+define( 'UPLOADBLOGSDIR', false );
 
 define( 'ARRAY_A', '' );
 define( 'ARRAY_N', '' );

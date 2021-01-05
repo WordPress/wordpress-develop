@@ -45,7 +45,7 @@ parameters:
     - src/wp-includes/sodium_compat
     - src/wp-includes/Text
   bootstrapFiles:
-    - tests/phpstan-bootstrap.php
+    - tests/phpstan/bootstrap.php
   ignoreErrors:
     # These are imported by including wp-includes/version.php:
     - '#Undefined variable: \$(wp_version|required_php_version|required_mysql_version|wp_local_package)#'
