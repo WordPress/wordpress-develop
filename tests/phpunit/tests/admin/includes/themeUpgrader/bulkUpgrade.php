@@ -29,11 +29,11 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 			->setMethods( array( 'send_error_data' ) )
 			->getMock();
 
+		$this->install_older_version( $theme_upgrader, $themes['install'], $update_themes );
+
 		$theme_upgrader
 			->expects( $this->never() )
 			->method( 'send_error_data' );
-
-		$this->install_older_version( $theme_upgrader, $themes['install'], $update_themes );
 
 		// Do the bulk upgrade.
 		ob_start();
@@ -71,7 +71,7 @@ class Tests_Admin_Includes_ThemeUpgrader_BulkUpgrade extends WP_Upgrader_TestCas
 	/**
 	 * @dataProvider data_should_send_error_data
 	 *
-	 * @group        51928
+	 * @group        51928x
 	 *
 	 * @param array $themes        Array of themes information.
 	 * @param array $update_themes Value for the "update_themes" transient.
