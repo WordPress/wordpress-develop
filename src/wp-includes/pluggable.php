@@ -85,27 +85,6 @@ if ( ! function_exists( 'get_userdata' ) ) :
 	}
 endif;
 
-if ( ! function_exists( 'get_user_object' ) ) :
-	function get_user_object( $id ) {
-		return get_user_object_by( 'id', $id );
-	}
-endif;
-
-if ( ! function_exists( 'get_user_object_by' ) ) :
-	function get_user_object_by( $field, $value ) {
-		$user = get_user_by( $field, $value );
-
-		if ( false !== $user ) {
-			return $user;
-		}
-
-		// Present the anonymous user.
-		$user = new WP_User( 0 );
-		$user->init( new stdClass );
-		return $user;
-	}
-endif;
-
 if ( ! function_exists( 'get_user_by' ) ) :
 	/**
 	 * Retrieve user info by a given field
@@ -126,6 +105,58 @@ if ( ! function_exists( 'get_user_by' ) ) :
 
 		$user = new WP_User;
 		$user->init( $userdata );
+
+		return $user;
+	}
+endif;
+
+if ( ! function_exists( 'get_user_object' ) ) :
+	/**
+	 * Retrieve the user object via the user ID.
+	 *
+	 * Similar to get_userdata() with the difference that requesting the
+	 * user ID 0 will return the anonymous user's object.
+	 *
+	 * @since 5.7
+	 *
+	 * @param int $user_id User ID
+	 * @return WP_User The WP_User object.
+	 */
+	function get_user_object( $user_id ) {
+		return get_user_object_by( 'id', $user_id );
+	}
+endif;
+
+if ( ! function_exists( 'get_user_object_by' ) ) :
+	/**
+	 * Retrieve the user object by a given field.
+	 *
+	 * Similar to get_user_by() with the difference that requesting the
+	 * user ID 0 will return the anonymous user's object.
+	 *
+	 * @since 5.7
+	 *
+	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
+	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
+	 * @return WP_User|false WP_User object on success, false on failure.
+	 */
+	function get_user_object_by( $field, $value ) {
+		// 'ID' is an alias of 'id'.
+		if ( 'ID' === $field ) {
+			$field = 'id';
+		}
+
+		$user = get_user_by( $field, $value );
+
+		if ( false !== $user ) {
+			return $user;
+		}
+
+		if ( 'id' === $field && 0 === $value ) {
+			// Present the anonymous user.
+			$user = new WP_User( 0 );
+			$user->init( new stdClass );
+		}
 
 		return $user;
 	}
