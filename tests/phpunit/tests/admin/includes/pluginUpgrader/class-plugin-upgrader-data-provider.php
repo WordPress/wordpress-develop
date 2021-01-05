@@ -1,29 +1,29 @@
 <?php
 
-class Theme_Upgrader_Data_Provider {
-	public  $theme_name = 'upgrader-test-theme';
+class Plugin_Upgrader_Data_Provider {
+	public  $plugin_name = 'hello-dolly/hello.php';
 	public  $packages;
 	private $package_versions;
 	public  $error_data_stats;
-	private $update_themes;
+	private $update_plugins;
 	private $success_results;
 
 	public function init() {
 		$this->packages         = array(
-			'old'          => DIR_TESTDATA . '/upgrader/upgrader-test-theme-1.0.zip',
-			'new'          => DIR_TESTDATA . '/upgrader/upgrader-test-theme-1.1.zip',
-			'doesnotexist' => DIR_TESTDATA . '/upgrader/upgrader-test-theme-99999.zip',
+			'old'          => DIR_TESTDATA . '/upgrader/hello-dolly-1.6.zip',
+			'new'          => DIR_TESTDATA . '/upgrader/hello-dolly-1.7.2.zip',
+			'doesnotexist' => DIR_TESTDATA . '/upgrader/hello-dolly-99999.zip',
 		);
 		$this->package_versions = array(
-			'old'          => '1.0',
-			'new'          => '1.1',
+			'old'          => '1.6',
+			'new'          => '1.7.2',
 			'doesnotexist' => '99999',
 		);
 
 		$this->error_data_stats = array(
 			array(
 				'process'          => 'download_package',
-				'update_type'      => 'automatic_theme_update',
+				'update_type'      => 'automatic_plugin_update',
 				'name'             => null,
 				'update_version'   => null,
 				'success'          => false,
@@ -35,8 +35,8 @@ class Theme_Upgrader_Data_Provider {
 				'error_data'       => null,
 			),
 			array(
-				'process'          => 'theme_install',
-				'update_type'      => 'automatic_theme_update',
+				'process'          => 'plugin_install',
+				'update_type'      => 'automatic_plugin_update',
 				'name'             => null,
 				'update_version'   => null,
 				'success'          => false,
@@ -48,42 +48,40 @@ class Theme_Upgrader_Data_Provider {
 				'error_data'       => null,
 			),
 		);
-		$this->update_themes    = (object) array(
+		$this->update_plugins   = (object) array(
 			'last_checked' => time(),
 			'checked'      => array(
-				'upgrader-test-theme' => '1.0',
+				$this->plugin_name => '1.6',
 			),
 			'response'     => array(
-				'upgrader-test-theme' => array(
-					'theme'        => 'upgrader-test-theme',
-					'new_version'  => '', // added in the $this->get_update_themes() method.
-					'url'          => 'https://wordpress.org/themes/upgrader-test-theme/',
-					'package'      => '', // added in the $this->get_update_themes() method.
-					'requires'     => '5.3',
-					'requires_php' => '5.6',
+				$this->plugin_name => (object) array(
+					'id'          => 'w.org/plugins/hello-dolly',
+					'slug'        => 'hello-dolly',
+					'plugin'      => $this->plugin_name,
+					'new_version' => '', // added in the $this->get_update_plugins() method.
+					'url'         => 'https://wordpress.org/themes/upgrader-test-theme/',
+					'package'     => '', // added in the $this->get_update_plugins() method.
 				),
 			),
 		);
 		$this->success_results  = array(
 			'source'             => '', // added in the $this->get_upgrade_results method.
 			'source_files'       => array(
-				'functions.php',
-				'index.php',
-				'style.css',
+				'hello.php',
 			),
-			'destination'        => WP_CONTENT_DIR . '/themes/upgrader-test-theme/',
-			'destination_name'   => 'upgrader-test-theme',
-			'local_destination'  => WP_CONTENT_DIR . '/themes',
-			'remote_destination' => WP_CONTENT_DIR . '/themes/upgrader-test-theme/',
+			'destination'        => WP_PLUGIN_DIR . '/hello-dolly/',
+			'destination_name'   => 'hello-dolly',
+			'local_destination'  => WP_PLUGIN_DIR,
+			'remote_destination' => WP_PLUGIN_DIR . '/hello-dolly/',
 			'clear_destination'  => true,
 		);
 	}
 
-	public function get_update_themes( $upgrade_package ) {
-		$this->update_themes->response['upgrader-test-theme']['new_version'] = $this->package_versions[ $upgrade_package ];
-		$this->update_themes->response['upgrader-test-theme']['package']     = $this->packages[ $upgrade_package ];
+	public function get_update_plugins( $upgrade_package ) {
+		$this->update_plugins->response[ $this->plugin_name ]->new_version = $this->package_versions[ $upgrade_package ];
+		$this->update_plugins->response[ $this->plugin_name ]->package     = $this->packages[ $upgrade_package ];
 
-		return $this->update_themes;
+		return $this->update_plugins;
 	}
 
 	public function get_messages( $type, $package = '' ) {
@@ -91,15 +89,15 @@ class Theme_Upgrader_Data_Provider {
 			case 'success_install':
 				return array(
 					'<p>Unpacking the package&#8230;</p>' . "\n" .
-					'<p>Installing the theme&#8230;</p>' . "\n" .
-					'<p>Theme installed successfully.</p>',
+					'<p>Installing the plugin&#8230;</p>' . "\n" .
+					'<p>Plugin installed successfully.</p>',
 				);
 			case 'success_upgrade':
 				return array(
 					'<p>Unpacking the update&#8230;</p>' . "\n" .
 					'<p>Installing the latest version&#8230;</p>' . "\n" .
-					'<p>Removing the old version of the theme&#8230;</p>' . "\n" .
-					'<p>Theme updated successfully.</p>',
+					'<p>Removing the old version of the plugin&#8230;</p>' . "\n" .
+					'<p>Plugin updated successfully.</p>',
 				);
 			case 'not_available':
 				return array(
@@ -119,7 +117,7 @@ class Theme_Upgrader_Data_Provider {
 	}
 
 	public function get_upgrade_results( $upgrade_version ) {
-		$this->success_results['source'] = WP_CONTENT_DIR . "/upgrade/upgrader-test-theme-{$this->package_versions[ $upgrade_version ]}/upgrader-test-theme/";
+		$this->success_results['source'] = WP_CONTENT_DIR . "/upgrade/hello-dolly-{$this->package_versions[ $upgrade_version ]}/hello-dolly/";
 
 		return $this->success_results;
 	}

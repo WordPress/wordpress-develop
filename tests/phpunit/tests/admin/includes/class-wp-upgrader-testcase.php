@@ -3,10 +3,11 @@
 abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 	protected $error_data = array();
 	protected $plugin     = array();
-	protected $plugin_data_provider;
 	protected $theme      = array();
-	protected $theme_data_provider;
 	protected $is_theme   = false;
+
+	protected $theme_data_provider;
+	protected $plugin_data_provider;
 
 	protected static $filesystem;
 	protected static $theme_dir;
@@ -72,8 +73,8 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 
 	protected static function remove_test_theme() {
 		delete_site_transient( 'update_themes' );
-		if ( file_exists( self::$theme_dir . '/upgrader-test-theme/style.css' ) ) {
-			self::$filesystem->rmdir( self::$theme_dir . '/upgrader-test-theme/', true );
+		if ( file_exists( WP_CONTENT_DIR . '/themes/upgrader-test-theme/style.css' ) ) {
+			self::$filesystem->rmdir( WP_CONTENT_DIR . '/themes/upgrader-test-theme/', true );
 		}
 	}
 
@@ -152,6 +153,7 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 		$upgrader->install( $package );
 		ob_get_clean();
 		$upgrader->result = null;
+		$this->error_data = array();
 
 		if ( ! empty( $update_transient ) ) {
 			$transient = $this->is_theme ? 'update_themes' : 'update_plugins';
@@ -173,6 +175,22 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 
 		$this->theme_data_provider = new Theme_Upgrader_Data_Provider();
 		$this->theme_data_provider->init();
+	}
+
+	/**
+	 * Initializes the plugin's data provider.
+	 *
+	 * Data is encapsulated for reuse as much of the data repeats from test-to-test.
+	 */
+	protected function init_plugin_data_provider() {
+		require_once __DIR__ . '/pluginUpgrader/class-plugin-upgrader-data-provider.php';
+
+		if ( $this->plugin_data_provider instanceof Plugin_Upgrader_Data_Provider ) {
+			return;
+		}
+
+		$this->plugin_data_provider = new Plugin_Upgrader_Data_Provider();
+		$this->plugin_data_provider->init();
 	}
 
 	/**
