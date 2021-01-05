@@ -45,7 +45,7 @@ class Tests_Admin_Includes_ThemeUpgrader_Upgrade extends WP_Upgrader_TestCase {
 		$actual_message = ob_get_clean();
 
 		// Validate the upgrade happened.
-		$this->assertSame( $expected['results'], $actual_results );
+		$this->assertSame( $expected['results']['source'], $actual_results['source'] );
 		$this->assertContainsAdminMessages( $expected['messages'], $actual_message );
 
 		// Validate there's no error data.
