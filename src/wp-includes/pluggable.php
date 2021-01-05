@@ -85,6 +85,27 @@ if ( ! function_exists( 'get_userdata' ) ) :
 	}
 endif;
 
+if ( ! function_exists( 'get_user_object' ) ) :
+	function get_user_object( $id ) {
+		return get_user_object_by( 'id', $id );
+	}
+endif;
+
+if ( ! function_exists( 'get_user_object_by' ) ) :
+	function get_user_object_by( $field, $value ) {
+		$user = get_user_by( $field, $value );
+
+		if ( false !== $user ) {
+			return $user;
+		}
+
+		// Present the anonymous user.
+		$user = new WP_User( 0 );
+		$user->init( new stdClass );
+		return $user;
+	}
+endif;
+
 if ( ! function_exists( 'get_user_by' ) ) :
 	/**
 	 * Retrieve user info by a given field

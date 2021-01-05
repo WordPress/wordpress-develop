@@ -766,7 +766,7 @@ function author_can( $post, $capability, ...$args ) {
  */
 function user_can( $user, $capability, ...$args ) {
 	if ( ! is_object( $user ) ) {
-		$user = get_userdata( $user );
+		$user = get_user_object( $user );
 	}
 
 	if ( empty( $user ) ) {
