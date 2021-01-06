@@ -29,9 +29,9 @@ function translations_api( $type, $args = null ) {
 	 *
 	 * @since 4.0.0
 	 *
-	 * @param bool|array  $result The result object. Default false.
-	 * @param string      $type   The type of translations being requested.
-	 * @param object      $args   Translation API arguments.
+	 * @param false|object $result The result object. Default false.
+	 * @param string       $type   The type of translations being requested.
+	 * @param object       $args   Translation API arguments.
 	 */
 	$res = apply_filters( 'translations_api', false, $type, $args );
 
@@ -206,8 +206,8 @@ function wp_install_language_form( $languages ) {
  * @see wp_get_available_translations()
  *
  * @param string $download Language code to download.
- * @return string|bool Returns the language code if successfully downloaded
- *                     (or already installed), or false on failure.
+ * @return string|false Returns the language code if successfully downloaded
+ *                      (or already installed), or false on failure.
  */
 function wp_download_language_pack( $download ) {
 	// Check if the translation is already installed.

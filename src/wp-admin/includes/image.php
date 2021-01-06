@@ -11,15 +11,15 @@
  *
  * @since 2.1.0
  *
- * @param string|int $src      The source file or Attachment ID.
- * @param int        $src_x    The start x position to crop from.
- * @param int        $src_y    The start y position to crop from.
- * @param int        $src_w    The width to crop.
- * @param int        $src_h    The height to crop.
- * @param int        $dst_w    The destination width.
- * @param int        $dst_h    The destination height.
- * @param bool       $src_abs  Optional. If the source crop points are absolute.
- * @param string     $dst_file Optional. The destination file to write to.
+ * @param string|int   $src      The source file or Attachment ID.
+ * @param int          $src_x    The start x position to crop from.
+ * @param int          $src_y    The start y position to crop from.
+ * @param int          $src_w    The width to crop.
+ * @param int          $src_h    The height to crop.
+ * @param int          $dst_w    The destination width.
+ * @param int          $dst_h    The destination height.
+ * @param bool|false   $src_abs  Optional. If the source crop points are absolute.
+ * @param string|false $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
@@ -680,7 +680,7 @@ function wp_exif_date2ts( $str ) {
  * @since 2.5.0
  *
  * @param string $file
- * @return bool|array False on failure. Image metadata array on success.
+ * @return array|false Image metadata array on success, false on failure.
  */
 function wp_read_image_metadata( $file ) {
 	if ( ! file_exists( $file ) ) {
@@ -1014,7 +1014,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string       $image_url     Current image URL.
+		 * @param string|false $image_url     Current image URL.
 		 * @param int          $attachment_id Attachment ID.
 		 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 		 *                                    an array of width and height values in pixels (in that order).
@@ -1027,7 +1027,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string|bool  $filepath      File path or URL to current image, or false.
+	 * @param string|false $filepath      File path or URL to current image, or false.
 	 * @param int          $attachment_id Attachment ID.
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).
