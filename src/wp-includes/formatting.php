@@ -2034,14 +2034,7 @@ function sanitize_file_name( $filename ) {
 
 	// Return if only one extension.
 	if ( count( $parts ) <= 2 ) {
-		/**
-		 * Filters a sanitized filename string.
-		 *
-		 * @since 2.8.0
-		 *
-		 * @param string $filename     Sanitized filename.
-		 * @param string $filename_raw The filename prior to sanitization.
-		 */
+		/** This filter is documented in wp-includes/formatting.php */
 		return apply_filters( 'sanitize_file_name', $filename, $filename_raw );
 	}
 
@@ -2074,7 +2067,14 @@ function sanitize_file_name( $filename ) {
 
 	$filename .= '.' . $extension;
 
-	/** This filter is documented in wp-includes/formatting.php */
+	/**
+	 * Filters a sanitized filename string.
+	 *
+	 * @since 2.8.0
+	 *
+	 * @param string $filename     Sanitized filename.
+	 * @param string $filename_raw The filename prior to sanitization.
+	 */
 	return apply_filters( 'sanitize_file_name', $filename, $filename_raw );
 }
 
@@ -3585,7 +3585,7 @@ function iso8601_timezone_to_offset( $timezone ) {
  *
  * @param string $date_string Date and time in ISO 8601 format {@link https://en.wikipedia.org/wiki/ISO_8601}.
  * @param string $timezone    Optional. If set to 'gmt' returns the result in UTC. Default 'user'.
- * @return string|bool The date and time in MySQL DateTime format - Y-m-d H:i:s, or false on failure.
+ * @return string|false The date and time in MySQL DateTime format - Y-m-d H:i:s, or false on failure.
  */
 function iso8601_to_datetime( $date_string, $timezone = 'user' ) {
 	$timezone    = strtolower( $timezone );
@@ -5545,8 +5545,8 @@ function wp_slash( $value ) {
  *
  * @since 3.6.0
  *
- * @param string|string[] $value String or array of strings to unslash.
- * @return string|string[] Unslashed $value
+ * @param string|array $value String or array of strings to unslash.
+ * @return string|array Unslashed $value
  */
 function wp_unslash( $value ) {
 	return stripslashes_deep( $value );

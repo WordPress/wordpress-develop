@@ -487,7 +487,7 @@ function register_taxonomy( $taxonomy, $object_type, $args = array() ) {
  * @global array $wp_taxonomies List of taxonomies.
  *
  * @param string $taxonomy Taxonomy name.
- * @return bool|WP_Error True on success, WP_Error on failure or if the taxonomy doesn't exist.
+ * @return true|WP_Error True on success, WP_Error on failure or if the taxonomy doesn't exist.
  */
 function unregister_taxonomy( $taxonomy ) {
 	if ( ! taxonomy_exists( $taxonomy ) ) {
@@ -743,8 +743,7 @@ function unregister_taxonomy_for_object_type( $taxonomy, $object_type ) {
  * @param int|array    $term_ids   Term ID or array of term IDs of terms that will be used.
  * @param string|array $taxonomies String of taxonomy name or Array of string values of taxonomy names.
  * @param array|string $args       Change the order of the object_ids, either ASC or DESC.
- * @return WP_Error|array If the taxonomy does not exist, then WP_Error will be returned. On success.
- *  the array can be empty meaning that there are no $object_ids found or it will return the $object_ids found.
+ * @return array|WP_Error An array of $object_ids on success, WP_Error if the taxonomy does not exist.
  */
 function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 	global $wpdb;
@@ -3532,7 +3531,8 @@ function get_object_term_cache( $id, $taxonomy ) {
  *
  * @param string|int[]    $object_ids  Comma-separated list or array of term object IDs.
  * @param string|string[] $object_type The taxonomy object type or array of the same.
- * @return void|false False if all of the terms in `$object_ids` are already cached.
+ * @return void|false Void on success or if the `$object_ids` parameter is empty,
+ *                    false if all of the terms in `$object_ids` are already cached.
  */
 function update_object_term_cache( $object_ids, $object_type ) {
 	if ( empty( $object_ids ) ) {
