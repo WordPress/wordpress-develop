@@ -666,7 +666,7 @@ class WP_Upgrader {
 	 *                              or false if unable to connect to the filesystem.
 	 */
 	public function run( $options ) {
-		$start_time = microtime( true );
+		$start_time = time();
 
 		$defaults = array(
 			'package'                     => '', // Please always pass this.
@@ -961,6 +961,7 @@ class WP_Upgrader {
 		if ( ! is_wp_error( $result ) ) {
 			return;
 		}
+
 		$stats = array(
 			'process'          => $method,
 			'update_type'      => null,
@@ -970,12 +971,13 @@ class WP_Upgrader {
 			'fs_method'        => $wp_filesystem->method,
 			'fs_method_forced' => defined( 'FS_METHOD' ) || has_filter( 'filesystem_method' ),
 			'fs_method_direct' => ! empty( $GLOBALS['_wp_filesystem_direct_method'] ) ? $GLOBALS['_wp_filesystem_direct_method'] : '',
-			'time_taken'       => microtime( true ) - $start_time,
+			'time_taken'       => time() - $start_time,
 			'wp_version'       => $wp_version,
 			'error_code'       => $result->get_error_code(),
 			'error_message'    => $result->get_error_message(),
 			'error_data'       => $result->get_error_data(),
 		);
+
 		if ( $this instanceof Plugin_Upgrader ) {
 			if ( isset( $this->skin->plugin_info ) ) {
 				$stats['update_type']    = 'manual_plugin_update';
@@ -986,6 +988,7 @@ class WP_Upgrader {
 			}
 			wp_update_plugins( $stats );
 		}
+
 		if ( $this instanceof Theme_Upgrader ) {
 			if ( isset( $this->skin->theme_info ) ) {
 				$stats['update_type']    = 'manual_theme_update';
