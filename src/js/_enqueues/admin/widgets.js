@@ -419,7 +419,7 @@ window.wpWidgets = {
 		// Area Chooser.
 		$( '#widgets-right .widgets-holder-wrap' ).each( function( index, element ) {
 			var $element = $( element ),
-				name = $element.find( '.sidebar-name h2' ).text(),
+				name = $element.find( '.sidebar-name h2' ).text() || '',
 				ariaLabel = $element.find( '.sidebar-name' ).data( 'add-to' ),
 				id = $element.find( '.widgets-sortables' ).attr( 'id' ),
 				li = $( '<li>' ),

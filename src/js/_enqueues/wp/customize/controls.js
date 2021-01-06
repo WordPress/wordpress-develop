@@ -8752,7 +8752,8 @@
 		if ( title.length ) {
 			api( 'blogname', function( setting ) {
 				var updateTitle = function() {
-					title.text( setting().toString().trim() || api.l10n.untitledBlogName );
+					var blogTitle = setting() || '';
+					title.text( blogTitle.toString().trim() || api.l10n.untitledBlogName );
 				};
 				setting.bind( updateTitle );
 				updateTitle();

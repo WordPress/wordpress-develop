@@ -1003,6 +1003,7 @@
 			$.post( ajaxurl, params, function(menuMarkup) {
 				var ins = $('#menu-instructions');
 
+				menuMarkup = menuMarkup || '';
 				menuMarkup = menuMarkup.toString().trim(); // Trim leading whitespaces.
 				processMethod(menuMarkup, params);
 

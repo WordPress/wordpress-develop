@@ -1135,6 +1135,7 @@ window.commentReply = {
 			updateCountText( 'span.all-count', 1 );
 		}
 
+		r.data = r.data || '';
 		c = r.data.toString().trim(); // Trim leading whitespaces.
 		$(c).hide();
 		$('#replyrow').after(c);
