@@ -925,29 +925,37 @@ class WP_Posts_List_Table extends WP_List_Table {
 	 * @param WP_Post $post The current WP_Post object.
 	 */
 	public function column_cb( $post ) {
-		if ( current_user_can( 'edit_post', $post->ID ) ) :
-			?>
-			<label class="screen-reader-text" for="cb-select-<?php the_ID(); ?>">
-				<?php
-					/* translators: %s: Post title. */
-					printf( __( 'Select %s' ), _draft_or_post_title() );
-				?>
-			</label>
-			<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
-			<div class="locked-indicator">
-				<span class="locked-indicator-icon" aria-hidden="true"></span>
-				<span class="screen-reader-text">
-				<?php
-				printf(
-					/* translators: %s: Post title. */
-					__( '&#8220;%s&#8221; is locked' ),
-					_draft_or_post_title()
-				);
-				?>
-				</span>
-			</div>
-			<?php
+				/**
+		 * Filters whether to disable the capability check on the column cb.
+		 *
+		 * @since 5.7
+		 *
+		 * @param bool $bypass Whether to bypass the edit_post capability check.
+		 */
+		if ( ! current_user_can( 'edit_post', $post->ID ) && false === apply_filters( 'bypass_cap_check_on_post_cb', false ) ) :
+			return;
 		endif;
+		?>
+		<label class="screen-reader-text" for="cb-select-<?php the_ID(); ?>">
+			<?php
+				/* translators: %s: Post title. */
+				printf( __( 'Select %s' ), _draft_or_post_title() );
+			?>
+		</label>
+		<input id="cb-select-<?php the_ID(); ?>" type="checkbox" name="post[]" value="<?php the_ID(); ?>" />
+		<div class="locked-indicator">
+			<span class="locked-indicator-icon" aria-hidden="true"></span>
+			<span class="screen-reader-text">
+			<?php
+			printf(
+				/* translators: %s: Post title. */
+				__( '&#8220;%s&#8221; is locked' ),
+				_draft_or_post_title()
+			);
+			?>
+			</span>
+		</div>
+		<?php
 	}
 
 	/**
