@@ -78,3 +78,5 @@ wp-tests-config.php
 
 # Files for local environment config
 /docker-compose.override.yml
+
+.package-lock.json
