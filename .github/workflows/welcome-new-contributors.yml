@@ -8,6 +8,7 @@ jobs:
   # Comments on a pull request when the author is a new contributor.
   post-welcome-message:
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:
       - uses: bubkoo/welcome-action@v1

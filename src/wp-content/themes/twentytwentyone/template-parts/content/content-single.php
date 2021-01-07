@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 ?>
@@ -41,4 +41,4 @@
 		<?php get_template_part( 'template-parts/post/author-bio' ); ?>
 	<?php endif; ?>
 
-</article><!-- #post-${ID} -->
+</article><!-- #post-<?php the_ID(); ?> -->

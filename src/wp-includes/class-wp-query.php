@@ -1730,7 +1730,7 @@ class WP_Query {
 	 * @since 3.9.0 The `$default` argument was introduced.
 	 *
 	 * @param string $query_var Query variable key.
-	 * @param mixed  $default   Optional. Value to return if the query variable is not set. Default empty.
+	 * @param mixed  $default   Optional. Value to return if the query variable is not set. Default empty string.
 	 * @return mixed Contents of the query variable.
 	 */
 	public function get( $query_var, $default = '' ) {
@@ -1760,6 +1760,8 @@ class WP_Query {
 	 * database query.
 	 *
 	 * @since 1.5.0
+	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
 	 * @return WP_Post[]|int[] Array of post objects or post IDs.
 	 */
@@ -3230,11 +3232,14 @@ class WP_Query {
 	 *
 	 * @since 3.5.0
 	 *
+	 * @global wpdb $wpdb WordPress database abstraction object.
+	 *
 	 * @param array  $q      Query variables.
 	 * @param string $limits LIMIT clauses of the query.
 	 */
 	private function set_found_posts( $q, $limits ) {
 		global $wpdb;
+
 		// Bail if posts is an empty array. Continue if posts is an empty string,
 		// null, or false to accommodate caching plugins that fill posts later.
 		if ( $q['no_found_rows'] || ( is_array( $this->posts ) && ! $this->posts ) ) {
@@ -4325,7 +4330,7 @@ class WP_Query {
 	 * @since 5.2.0
 	 *
 	 * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
-	 * @return array|bool Elements of post or false on failure.
+	 * @return array|false Elements of post or false on failure.
 	 */
 	public function generate_postdata( $post ) {
 

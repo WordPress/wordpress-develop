@@ -8,12 +8,12 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 ?>
 			</main><!-- #main -->
-		</section><!-- #primary -->
+		</div><!-- #primary -->
 	</div><!-- #content -->
 
 	<?php get_template_part( 'template-parts/footer/footer-widgets' ); ?>
@@ -58,7 +58,7 @@
 				printf(
 					/* translators: %s: WordPress. */
 					esc_html__( 'Proudly powered by %s.', 'twentytwentyone' ),
-					'<a href="' . esc_attr__( 'https://wordpress.org/', 'twentytwentyone' ) . '">WordPress</a>'
+					'<a href="' . esc_url( __( 'https://wordpress.org/', 'twentytwentyone' ) ) . '">WordPress</a>'
 				);
 				?>
 			</div><!-- .powered-by -->

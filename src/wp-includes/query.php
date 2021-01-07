@@ -901,12 +901,12 @@ function is_embed() {
 function is_main_query() {
 	if ( 'pre_get_posts' === current_filter() ) {
 		$message = sprintf(
-			/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Link to codex is_main_query() page. */
+			/* translators: 1: pre_get_posts, 2: WP_Query->is_main_query(), 3: is_main_query(), 4: Documentation URL. */
 			__( 'In %1$s, use the %2$s method, not the %3$s function. See %4$s.' ),
 			'<code>pre_get_posts</code>',
 			'<code>WP_Query->is_main_query()</code>',
 			'<code>is_main_query()</code>',
-			__( 'https://codex.wordpress.org/Function_Reference/is_main_query' )
+			__( 'https://developer.wordpress.org/reference/functions/is_main_query/' )
 		);
 		_doing_it_wrong( __FUNCTION__, $message, '3.7.0' );
 	}
@@ -1186,7 +1186,7 @@ function setup_postdata( $post ) {
  * @global WP_Query $wp_query WordPress Query object.
  *
  * @param WP_Post|object|int $post WP_Post instance or Post ID/object.
- * @return array|bool Elements of post, or false on failure.
+ * @return array|false Elements of post, or false on failure.
  */
 function generate_postdata( $post ) {
 	global $wp_query;

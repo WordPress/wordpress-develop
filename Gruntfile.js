@@ -673,6 +673,10 @@ module.exports = function(grunt) {
 				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml']
 			},
+			'ms-ajax': {
+				cmd: 'phpunit',
+				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ajax']
+			},
 			'ms-files': {
 				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ms-files']
@@ -1513,7 +1517,7 @@ module.exports = function(grunt) {
 	} );
 
 	// Travis CI tasks.
-	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
+	grunt.registerTask('travis:js', 'Runs JavaScript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
 	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travisErrors:error', 'lint:php:travisWarnings:error' ]);
 

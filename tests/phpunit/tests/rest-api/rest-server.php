@@ -959,6 +959,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertContains( 'GET', $route['methods'] );
 		$this->assertContains( 'DELETE', $route['methods'] );
 		$this->assertArrayHasKey( '_links', $route );
+
+		$this->assertArrayHasKey( 'help', $index->get_links() );
+		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
 	}
 
 	public function test_get_namespace_index() {
@@ -1994,6 +1997,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$args     = $response->get_data()['endpoints'][0]['args'];
 
 		$this->assertSameSetsWithIndex( $expected, $args['param'] );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_index_includes_link_to_active_theme_if_authenticated() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$index = rest_do_request( '/' );
+		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

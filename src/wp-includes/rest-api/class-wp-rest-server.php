@@ -530,7 +530,7 @@ class WP_REST_Server {
 				);
 
 				$result = $this->error_to_response( $json_error_obj );
-				$result = wp_json_encode( $result->data[0] );
+				$result = wp_json_encode( $result->data );
 			}
 
 			if ( $jsonp_callback ) {
@@ -1008,7 +1008,7 @@ class WP_REST_Server {
 	}
 
 	/**
-	 * Matches a request object to it's handler.
+	 * Matches a request object to its handler.
 	 *
 	 * @access private
 	 * @since 5.6.0
@@ -1203,7 +1203,7 @@ class WP_REST_Server {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @return bool|string Boolean false or string error message.
+	 * @return false|string Boolean false or string error message.
 	 */
 	protected function get_json_last_error() {
 		$last_error_code = json_last_error();
@@ -1244,8 +1244,8 @@ class WP_REST_Server {
 		);
 
 		$response = new WP_REST_Response( $available );
-
 		$response->add_link( 'help', 'http://v2.wp-api.org/' );
+		$this->add_active_theme_link_to_index( $response );
 
 		/**
 		 * Filters the REST API root index data.
@@ -1259,6 +1259,35 @@ class WP_REST_Server {
 		 * @param WP_REST_Response $response Response data.
 		 */
 		return apply_filters( 'rest_index', $response );
+	}
+
+	/**
+	 * Adds a link to the active theme for users who have proper permissions.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_REST_Response $response REST API response.
+	 */
+	protected function add_active_theme_link_to_index( WP_REST_Response $response ) {
+		$should_add = current_user_can( 'switch_themes' ) || current_user_can( 'manage_network_themes' );
+
+		if ( ! $should_add && current_user_can( 'edit_posts' ) ) {
+			$should_add = true;
+		}
+
+		if ( ! $should_add ) {
+			foreach ( get_post_types( array( 'show_in_rest' => true ), 'objects' ) as $post_type ) {
+				if ( current_user_can( $post_type->cap->edit_posts ) ) {
+					$should_add = true;
+					break;
+				}
+			}
+		}
+
+		if ( $should_add ) {
+			$theme = wp_get_theme();
+			$response->add_link( 'https://api.w.org/active-theme', rest_url( 'wp/v2/themes/' . $theme->get_stylesheet() ) );
+		}
 	}
 
 	/**
@@ -1438,6 +1467,8 @@ class WP_REST_Server {
 	protected function get_max_batch_size() {
 		/**
 		 * Filters the maximum number of requests that can be included in a batch.
+		 *
+		 * @since 5.6.0
 		 *
 		 * @param int $max_size The maximum size.
 		 */

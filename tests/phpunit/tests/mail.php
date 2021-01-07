@@ -415,4 +415,20 @@ class Tests_Mail extends WP_UnitTestCase {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
 	}
+
+	/**
+	 * Test for short-circuiting wp_mail().
+	 *
+	 * @ticket 35069
+	 */
+	public function test_wp_mail_can_be_shortcircuited() {
+		$result1 = wp_mail( WP_TESTS_EMAIL, 'Foo', 'Bar' );
+
+		add_filter( 'pre_wp_mail', '__return_false' );
+		$result2 = wp_mail( WP_TESTS_EMAIL, 'Foo', 'Bar' );
+		remove_filter( 'pre_wp_mail', '__return_false' );
+
+		$this->assertTrue( $result1 );
+		$this->assertFalse( $result2 );
+	}
 }
