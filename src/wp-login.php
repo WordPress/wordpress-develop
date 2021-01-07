@@ -370,9 +370,11 @@ function retrieve_password() {
 	}
 
 	/**
-	 * Filters $user_data variable.
+	 * Filters the user data during a password reset request.
 	 *
-	 * Allow, for example, a custom validation using username or email address.
+	 * Allows, for example, a custom validation using username or email address.
+	 *
+	 * @since 5.7.0
 	 *
 	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
 	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
