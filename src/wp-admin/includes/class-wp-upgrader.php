@@ -964,7 +964,7 @@ class WP_Upgrader {
 		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
 		$type         = key( $hook_extra );
 		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root(). '/' . $slug;
+		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root() . '/' . $slug;
 		if ( $wp_filesystem->mkdir( $rollback_dir ) ) {
 			$path_prefix = strlen( $src ) + 1;
 			$zip         = new ZipArchive();
