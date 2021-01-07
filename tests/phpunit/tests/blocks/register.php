@@ -422,7 +422,10 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
 	}
 
-	public function test_filter_pre_block_registration_from_metadata() {
+	/**
+	 * @ticket 52138
+	 */
+	public function test_filter_block_registration_metadata() {
 		$filter_metadata_registration = function( $metadata ) {
 			$metadata['apiVersion'] = 3;
 			return $metadata;
@@ -437,7 +440,10 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 3, $result->api_version );
 	}
 
-	public function test_filter_post_block_registration_from_metadata() {
+	/**
+	 * @ticket 52138
+	 */
+	public function test_filter_block_registration_metadata_settings() {
 		$filter_metadata_registration = function( $settings, $metadata ) {
 			$settings['api_version'] = $metadata['apiVersion'] + 1;
 			return $settings;
