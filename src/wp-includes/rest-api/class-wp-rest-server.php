@@ -1401,6 +1401,8 @@ class WP_REST_Server {
 				foreach ( $callback['args'] as $key => $opts ) {
 					if ( is_string( $opts ) ) {
 						$opts = array( $opts => 0 );
+					} elseif ( ! is_array( $opts ) ) {
+						$opts = array();
 					}
 					$arg_data             = array_intersect_key( $opts, $allowed_schema_keywords );
 					$arg_data['required'] = ! empty( $opts['required'] );
