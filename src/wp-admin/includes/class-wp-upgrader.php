@@ -594,6 +594,10 @@ class WP_Upgrader {
 		// Copy new version of item into place.
 		$result = copy_dir( $source, $remote_destination );
 		if ( is_wp_error( $result ) ) {
+			$rollback_result = $this->extract_rollback( $destination, $args['hook_extra'] );
+			if ( is_wp_error( $rollback_result ) ) {
+				$result->merge_from( $rollback_result );
+			}
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
 			}
@@ -775,6 +779,9 @@ class WP_Upgrader {
 
 		$delete_package = ( $download != $options['package'] ); // Do not delete a "local" file.
 
+		// Zip the plugin/theme being updated to rollback directory.
+		add_filter( 'upgrader_pre_install', array( $this, 'zip_to_rollback_dir' ), 15, 2 );
+
 		// Unzips the file into a temporary directory.
 		$working_dir = $this->unpack_package( $download, $delete_package );
 		if ( is_wp_error( $working_dir ) ) {
@@ -937,6 +944,87 @@ class WP_Upgrader {
 		return delete_option( $lock_name . '.lock' );
 	}
 
+
+	/**
+	 * Create a zip archive of the plugin/theme being upgraded into a rollback directory.
+	 *
+	 * @since 5.7.0
+	 * @uses 'upgrader_pre_install' filter.
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @param  bool               $response      Boolean response to 'upgrader_pre_install' filter.
+	 *                                           Default is true.
+	 * @param  array              $hook_extra    Array of data for plugin/theme being updated.
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function zip_to_rollback_dir( $response, $hook_extra ) {
+		global $wp_filesystem;
+
+		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+		$type         = key( $hook_extra );
+		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . "/{$slug}" : get_theme_root(). "/{$slug}";
+		if ( $wp_filesystem->mkdir( $rollback_dir ) ) {
+			$path_prefix = strlen( $src ) + 1;
+			$zip         = new ZipArchive();
+
+			if ( true === $zip->open( "{$rollback_dir}{$slug}.zip", ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
+				$files = new RecursiveIteratorIterator(
+					new RecursiveDirectoryIterator( $src ),
+					RecursiveIteratorIterator::LEAVES_ONLY
+				);
+
+				foreach ( $files as $name => $file ) {
+					// Skip directories (they would be added automatically).
+					if ( ! $file->isDir() ) {
+						// Get real and relative path for current file.
+						$file_path     = $file->getRealPath();
+						$relative_path = substr( $file_path, $path_prefix );
+
+						// Add current file to archive.
+						$zip->addFile( $file_path, $relative_path );
+					}
+				}
+
+				$zip->close();
+			} else {
+				return new WP_Error( 'zip_rollback_failed', __( 'Zip plugin/theme to rollback directory failed.' ) );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Extract zipped rollback to original location.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @param  string             $destination   File path of plugin/theme.
+	 * @param  array              $hook_extra    Array of data for plugin/theme being updated.
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function extract_rollback( $destination, $hook_extra ) {
+		global $wp_filesystem;
+
+		// Start with a clean slate.
+		if ( $wp_filesystem->is_dir( $destination ) ) {
+			$wp_filesystem->delete( $destination, true );
+		}
+
+		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+		$type         = key( $hook_extra );
+		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+		$rollback     = $rollback_dir . "{$slug}.zip";
+
+		$result = unzip_file( $rollback, $destination );
+		if ( is_wp_error( $result ) ) {
+			return new WP_Error( 'extract_rollback_failed', __( "Extract rollback of {$type} {$slug} failed." ) );
+		}
+	}
 }
 
 /** Plugin_Upgrader class */

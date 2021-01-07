@@ -1336,21 +1336,27 @@ function update_core( $from, $to ) {
  * @ignore
  * @since 3.2.0
  * @since 3.7.0 Updated not to use a regular expression for the skip list.
+ * @since 5.7.0 Add $first_pass parameter.
  *
  * @see copy_dir()
  * @link https://core.trac.wordpress.org/ticket/17173
  *
  * @global WP_Filesystem_Base $wp_filesystem
  *
- * @param string   $from      Source directory.
- * @param string   $to        Destination directory.
- * @param string[] $skip_list Array of files/folders to skip copying.
+ * @param string   $from       Source directory.
+ * @param string   $to         Destination directory.
+ * @param string[] $skip_list  Array of files/folders to skip copying.
+ * @param bool     $first_pass True on the initial call, but false on subsequent calls.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function _copy_dir( $from, $to, $skip_list = array() ) {
+function _copy_dir( $from, $to, $skip_list = array(), $first_pass = true ) {
 	global $wp_filesystem;
 
 	$dirlist = $wp_filesystem->dirlist( $from );
+
+	if ( ! $dirlist && $first_pass ) {
+		return new WP_Error( 'dirlist_failed__copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+	}
 
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
@@ -1391,7 +1397,7 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 				}
 			}
 
-			$result = _copy_dir( $from . $filename, $to . $filename, $sub_skip_list );
+			$result = _copy_dir( $from . $filename, $to . $filename, $sub_skip_list, false );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
