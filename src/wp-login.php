@@ -375,8 +375,10 @@ function retrieve_password() {
 	 * Allow, for example, a custom validation using username or email address.
 	 *
 	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
 	 */
-	$user_data = apply_filters( 'lostpassword_user_data', $user_data );
+	$user_data = apply_filters( 'lostpassword_user_data', $user_data, $errors );
 
 	/**
 	 * Fires before errors are returned from a password reset request.
