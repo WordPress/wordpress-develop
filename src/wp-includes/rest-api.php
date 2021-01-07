@@ -81,10 +81,6 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 		'args'     => array(),
 	);
 
-	if ( count( array_filter( $args, 'is_array' ) ) !== count( $args ) ) {
-		_doing_it_wrong( __FUNCTION__, __( 'REST API $args should be an array of arrays.' ), '5.6.1' );
-	}
-
 	foreach ( $args as $key => &$arg_group ) {
 		if ( ! is_numeric( $key ) ) {
 			// Route option, skip here.
@@ -105,6 +101,18 @@ function register_rest_route( $namespace, $route, $args = array(), $override = f
 					'<code>__return_true</code>'
 				),
 				'5.5.0'
+			);
+		}
+
+		if ( count( array_filter( $arg_group['args'], 'is_array' ) ) !== count( $arg_group['args'] ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				sprintf(
+					/* translators: 1: The REST API route being registered. */
+					__( 'REST API $args should be an array of arrays. Non-array value detected for %s.' ),
+					'<code>' . $clean_namespace . '/' . trim( $route, '/' ) . '</code>'
+				),
+				'5.6.1'
 			);
 		}
 	}
