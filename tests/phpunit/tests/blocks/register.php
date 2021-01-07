@@ -428,11 +428,11 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			return $metadata;
 		};
 
-		add_filter( 'pre_register_block_type_from_metadata', $filter_metadata_registration, 10, 2 );
+		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
 			__DIR__ . '/fixtures'
 		);
-		remove_filter( 'pre_register_block_type_from_metadata', $filter_metadata_registration );
+		remove_filter( 'block_type_metadata', $filter_metadata_registration );
 
 		$this->assertSame( 3, $result->api_version );
 	}
@@ -443,11 +443,11 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			return $settings;
 		};
 
-		add_filter( 'post_register_block_type_from_metadata', $filter_metadata_registration, 10, 2 );
+		add_filter( 'block_type_metadata_settings', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
 			__DIR__ . '/fixtures'
 		);
-		remove_filter( 'post_register_block_type_from_metadata', $filter_metadata_registration );
+		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
 
 		$this->assertSame( 3, $result->api_version );
 	}

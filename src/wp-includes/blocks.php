@@ -208,7 +208,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 *
 	 * @param array $metadata Metadata for registering a block type.
 	 */
-	$metadata = apply_filters( 'pre_register_block_type_from_metadata', $metadata );
+	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
 	$settings          = array();
 	$property_mappings = array(
@@ -270,7 +270,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 * @param array $metadata Metadata provided for registering a block type.
 	 */
 	$settings = apply_filters(
-		'post_register_block_type_from_metadata',
+		'block_type_metadata_settings',
 		array_merge(
 			$settings,
 			$args
