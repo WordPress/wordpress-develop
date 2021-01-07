@@ -965,6 +965,10 @@ class WP_Upgrader {
 		$type         = key( $hook_extra );
 		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
 		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root() . '/' . $slug;
+
+		 // Zip can use a lot of memory. From `unzip_file()`.
+		 wp_raise_memory_limit( 'admin' );
+
 		if ( $wp_filesystem->mkdir( $rollback_dir ) ) {
 			$path_prefix = strlen( $src ) + 1;
 			$zip         = new ZipArchive();
