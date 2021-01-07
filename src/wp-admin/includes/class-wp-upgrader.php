@@ -964,7 +964,7 @@ class WP_Upgrader {
 		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
 		$type         = key( $hook_extra );
 		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . "/{$slug}" : get_theme_root(). "/{$slug}";
+		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root(). '/' . $slug;
 		if ( $wp_filesystem->mkdir( $rollback_dir ) ) {
 			$path_prefix = strlen( $src ) + 1;
 			$zip         = new ZipArchive();
@@ -1022,7 +1022,7 @@ class WP_Upgrader {
 
 		$result = unzip_file( $rollback, $destination );
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'extract_rollback_failed', __( "Extract rollback of {$type} {$slug} failed." ) );
+			return new WP_Error( 'extract_rollback_failed', sprintf( __( "Extract rollback of %s %s failed." ), $type, $slug ) );
 		}
 	}
 }
