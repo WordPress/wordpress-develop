@@ -1022,7 +1022,7 @@ class WP_Upgrader {
 
 		$result = unzip_file( $rollback, $destination );
 		if ( is_wp_error( $result ) ) {
-			return new WP_Error( 'extract_rollback_failed', sprintf( __( 'Extract rollback of %s %s failed.' ), $type, $slug ) );
+			return new WP_Error( 'extract_rollback_failed', sprintf( __( 'Extract rollback of %1$s %2$s failed.' ), $type, $slug ) );
 		}
 	}
 }
