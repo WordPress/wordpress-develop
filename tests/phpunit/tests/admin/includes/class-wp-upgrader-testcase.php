@@ -212,7 +212,7 @@ abstract class WP_Upgrader_TestCase extends WP_UnitTestCase {
 	protected function assertContainsErrorDataStats( $expected ) {
 		foreach ( $this->error_data as $index => $stats ) {
 			$this->assertContains( $expected[ $index ], $stats );
-			$this->assertGreaterThan( 0.0, $stats['time_taken'] );
+			$this->assertGreaterThan( 0, $stats['time_taken'] );
 		}
 	}
 }
