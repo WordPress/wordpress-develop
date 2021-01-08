@@ -62,9 +62,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		foreach ( array( 'test-static', 'test-dynamic' ) as $block_name ) {
-			$block_name = 'core/' . $block_name;
-
+		foreach ( array( 'core/test-static', 'core/test-dynamic', 'my-plugin/notice' ) as $block_name ) {
 			if ( $registry->is_registered( $block_name ) ) {
 				$registry->unregister( $block_name );
 			}
@@ -422,5 +420,41 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$registry   = WP_Block_Type_Registry::get_instance();
 		$block_type = $registry->get_registered( 'core/test-filtered' );
 		$this->assertSame( 'boolean', $block_type->attributes['core/test-filtered']['type'] );
+	}
+
+	/**
+	 * @ticket 52138
+	 */
+	public function test_filter_block_registration_metadata() {
+		$filter_metadata_registration = function( $metadata ) {
+			$metadata['apiVersion'] = 3;
+			return $metadata;
+		};
+
+		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
+		$result = register_block_type_from_metadata(
+			__DIR__ . '/fixtures'
+		);
+		remove_filter( 'block_type_metadata', $filter_metadata_registration );
+
+		$this->assertSame( 3, $result->api_version );
+	}
+
+	/**
+	 * @ticket 52138
+	 */
+	public function test_filter_block_registration_metadata_settings() {
+		$filter_metadata_registration = function( $settings, $metadata ) {
+			$settings['api_version'] = $metadata['apiVersion'] + 1;
+			return $settings;
+		};
+
+		add_filter( 'block_type_metadata_settings', $filter_metadata_registration, 10, 2 );
+		$result = register_block_type_from_metadata(
+			__DIR__ . '/fixtures'
+		);
+		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
+
+		$this->assertSame( 3, $result->api_version );
 	}
 }
