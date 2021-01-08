@@ -930,10 +930,11 @@ class WP_Posts_List_Table extends WP_List_Table {
 		 *
 		 * @since 5.7
 		 *
-		 * @param bool $bypass Whether to bypass the edit_post capability check.
+		 * @param bool $show Whether to bypass the edit_post capability check.
 		 * @param WP_Post $post The current WP_Post object.
 		 */
-		if ( ! current_user_can( 'edit_post', $post->ID ) && false === apply_filters( 'wp_list_table_show_post_checkbox', false, $post ) ) :
+		$show = current_user_can( 'edit_post', $post->ID );
+		if ( false === apply_filters( 'wp_list_table_show_post_checkbox', $show, $post ) ) :
 			return;
 		endif;
 		?>
