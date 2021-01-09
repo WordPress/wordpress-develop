@@ -337,7 +337,7 @@ function wp_ajax_autocomplete_user() {
 function wp_ajax_clear_community_events() {
 	check_ajax_referer( 'community_events' );
 	$user_id        = get_current_user_id();
-	update_user_option( $user_id, 'community-events-location', null, true );
+	delete_user_option($user_id,'community-events-location',true);
 	wp_send_json_success();
 }
 

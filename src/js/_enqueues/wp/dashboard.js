@@ -355,17 +355,22 @@ jQuery( function( $ ) {
 			app.initialized = true;
 		},
 
+		getRequestParams: function () {
+			var requestParams = {},initiatedBy;
+			requestParams._wpnonce = communityEventsData.nonce;
+			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
+			initiatedBy = requestParams.location ? 'user' : 'app';
+			return {requestParams: requestParams,initiatedBy: initiatedBy};
+		},
+
 		/**
 		 * Resets the location
 		 * @return {void}
 		 */
 		clearLocationForm: function() {
-			var requestParams = {};
-			var initiatedBy;
-
-			requestParams._wpnonce = communityEventsData.nonce;
-			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
-			initiatedBy = requestParams.location ? 'user' : 'app';
+			var params = app.getRequestParams(),
+				requestParams= params.requestParams,
+				initiatedBy = params.initiatedBy;
 
 			wp.ajax.post( 'clear-community-events', requestParams )
 				.done( function() {
@@ -439,15 +444,14 @@ jQuery( function( $ ) {
 		 * @return {void}
 		 */
 		getEvents: function( requestParams ) {
-			var initiatedBy,
-				app = this,
-				$spinner = $( '.community-events-form' ).children( '.spinner' );
+			var app = this,
+				params = app.getRequestParams(),
+				initiatedBy = params.initiatedBy,
+				$spinner = $('.community-events-form').children('.spinner');
 
-			requestParams          = requestParams || {};
-			requestParams._wpnonce = communityEventsData.nonce;
-			requestParams.timezone = window.Intl ? window.Intl.DateTimeFormat().resolvedOptions().timeZone : '';
-
-			initiatedBy = requestParams.location ? 'user' : 'app';
+			requestParams = requestParams || params.requestParams;
+			requestParams._wpnonce = params.requestParams._wpnonce;
+			requestParams.timezone= params.requestParams.timezone;
 
 			$spinner.addClass( 'is-active' );
 
