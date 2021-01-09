@@ -201,22 +201,35 @@ class WP_REST_Server {
 	 * @return WP_REST_Response List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
-		$error_data = $error->get_error_data();
-
-		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
-			$status = $error_data['status'];
-		} else {
-			$status = 500;
-		}
+		$status = array_reduce(
+			$error->get_all_error_data(),
+			function( $status, $error_data ) {
+				return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+			},
+			500
+		);
 
 		$errors = array();
 
 		foreach ( (array) $error->errors as $code => $messages ) {
+			$last_data = $error->get_error_data( $code );
+			$all_data  = $error->get_all_error_data( $code );
+
+			$param = array_reduce(
+				$error->get_all_error_data(),
+				function( $param, $error_data ) {
+					return is_array( $error_data ) && isset( $error_data['param'] ) ? $error_data['param'] : $param;
+				},
+				''
+			);
+
 			foreach ( (array) $messages as $message ) {
 				$errors[] = array(
-					'code'    => $code,
-					'message' => $message,
-					'data'    => $error->get_error_data( $code ),
+					'code'     => $code,
+					'message'  => $message,
+					'data'     => $last_data,
+					'param'    => $param,
+					'all_data' => $all_data,
 				);
 			}
 		}

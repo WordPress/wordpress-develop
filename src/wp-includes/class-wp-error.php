@@ -274,10 +274,12 @@ class WP_Error {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param WP_Error $error Error object to merge.
+	 * @param WP_Error $error               Error object to merge.
+	 * @param bool $preserve_top_error_data Whether to keep the current "main" error data for this error. If false,
+	 *                                      the error data will be pushed down the stack.
 	 */
-	public function merge_from( WP_Error $error ) {
-		static::copy_errors( $error, $this );
+	public function merge_from( WP_Error $error, $preserve_top_error_data = false ) {
+		static::copy_errors( $error, $this, $preserve_top_error_data );
 	}
 
 	/**
@@ -285,10 +287,12 @@ class WP_Error {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param WP_Error $error Error object to export into.
+	 * @param WP_Error $error               Error object to export into.
+	 * @param bool $preserve_top_error_data Whether to keep the current "main" error data for the given error. If false,
+	 *                                      the error data will be pushed down the stack.
 	 */
-	public function export_to( WP_Error $error ) {
-		static::copy_errors( $this, $error );
+	public function export_to( WP_Error $error, $preserve_top_error_data = false ) {
+		static::copy_errors( $this, $error, $preserve_top_error_data );
 	}
 
 	/**
@@ -296,17 +300,25 @@ class WP_Error {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @param WP_Error $from The WP_Error to copy from.
-	 * @param WP_Error $to   The WP_Error to copy to.
+	 * @param WP_Error $from                    The WP_Error to copy from.
+	 * @param WP_Error $to                      The WP_Error to copy to.
+	 * @param bool     $preserve_top_error_data Whether to keep the current "main" error data for `$to`. If false,
+	 *                                          the error data will be pushed down the stack.
 	 */
-	protected static function copy_errors( WP_Error $from, WP_Error $to ) {
+	protected static function copy_errors( WP_Error $from, WP_Error $to, $preserve_top_error_data = false ) {
 		foreach ( $from->get_error_codes() as $code ) {
 			foreach ( $from->get_error_messages( $code ) as $error_message ) {
 				$to->add( $code, $error_message );
 			}
 
-			foreach ( $from->get_all_error_data( $code ) as $data ) {
-				$to->add_data( $data, $code );
+			if ( $preserve_top_error_data && $to->get_error_data( $code ) ) {
+				foreach ( $from->get_all_error_data( $code ) as $data ) {
+					$to->additional_data[ $code ][] = $data;
+				}
+			} else {
+				foreach ( $from->get_all_error_data( $code ) as $data ) {
+					$to->add_data( $data, $code );
+				}
 			}
 		}
 	}

@@ -895,6 +895,7 @@ class WP_REST_Request implements ArrayAccess {
 		 * This is done after required checking as required checking is cheaper.
 		 */
 		$invalid_params = array();
+		$invalid_errors = array();
 
 		foreach ( $args as $key => $arg ) {
 
@@ -908,13 +909,16 @@ class WP_REST_Request implements ArrayAccess {
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
-					$invalid_params[ $key ] = $valid_check->get_error_message();
+					$invalid_params[ $key ] = implode( ' ', $valid_check->get_error_messages() );
+
+					$valid_check->add_data( array( 'param' => $key ) );
+					$invalid_errors[] = $valid_check;
 				}
 			}
 		}
 
 		if ( $invalid_params ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
@@ -923,6 +927,12 @@ class WP_REST_Request implements ArrayAccess {
 					'params' => $invalid_params,
 				)
 			);
+
+			foreach ( $invalid_errors as $invalid_error ) {
+				$error->merge_from( $invalid_error, true );
+			}
+
+			return $error;
 		}
 
 		if ( isset( $attributes['validate_callback'] ) ) {
