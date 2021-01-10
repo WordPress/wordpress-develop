@@ -212,11 +212,10 @@ class WP_REST_Server {
 		$errors = array();
 
 		foreach ( (array) $error->errors as $code => $messages ) {
-			$last_data = $error->get_error_data( $code );
 			$all_data  = $error->get_all_error_data( $code );
-
-			$param = array_reduce(
-				$error->get_all_error_data(),
+			$last_data = array_pop( $all_data );
+			$param     = array_reduce(
+				$error->get_all_error_data( $code ),
 				function( $param, $error_data ) {
 					return is_array( $error_data ) && isset( $error_data['param'] ) ? $error_data['param'] : $param;
 				},
@@ -224,13 +223,21 @@ class WP_REST_Server {
 			);
 
 			foreach ( (array) $messages as $message ) {
-				$errors[] = array(
-					'code'     => $code,
-					'message'  => $message,
-					'data'     => $last_data,
-					'param'    => $param,
-					'all_data' => $all_data,
+				$formatted = array(
+					'code'    => $code,
+					'message' => $message,
+					'data'    => $last_data,
 				);
+
+				if ( $param ) {
+					$formatted['param'] = $param;
+				}
+
+				if ( $all_data ) {
+					$formatted['additional_data'] = $all_data;
+				}
+
+				$errors[] = $formatted;
 			}
 		}
 

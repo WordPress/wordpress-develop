@@ -911,7 +911,9 @@ class WP_REST_Request implements ArrayAccess {
 				if ( is_wp_error( $valid_check ) ) {
 					$invalid_params[ $key ] = implode( ' ', $valid_check->get_error_messages() );
 
-					$valid_check->add_data( array( 'param' => $key ) );
+					if ( ! is_array( $valid_check->get_error_data() ) || ! isset( $valid_check->get_error_data()['param'] ) ) {
+						$valid_check->add_data( array( 'param' => $key ) );
+					}
 					$invalid_errors[] = $valid_check;
 				}
 			}
