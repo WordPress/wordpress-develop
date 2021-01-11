@@ -226,9 +226,11 @@ function find_core_update( $version, $locale ) {
  * @return string
  */
 function core_update_footer( $msg = '' ) {
+	/* translators: %s: WordPress version. */
+	$msg = sprintf( __( 'Version %s.' ), get_bloginfo( 'version', 'display' ) );
+
 	if ( ! current_user_can( 'update_core' ) ) {
-		/* translators: %s: WordPress version. */
-		return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
+		return $msg;
 	}
 
 	$cur = get_preferred_from_update_core();
@@ -249,31 +251,19 @@ function core_update_footer( $msg = '' ) {
 
 	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
 
-	if ( $is_development_version && 'latest' === $cur->response ) {
-		$cur->response = 'development';
-	}
-
-	switch ( $cur->response ) {
-		case 'development':
-			return sprintf(
-				/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
-				__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
-				get_bloginfo( 'version', 'display' ),
-				network_admin_url( 'update-core.php' )
-			);
-
-		case 'upgrade':
-			return sprintf(
-				'<strong><a href="%s">%s</a></strong>',
-				network_admin_url( 'update-core.php' ),
-				/* translators: %s: WordPress version. */
-				sprintf( __( 'Get Version %s' ), $cur->current )
-			);
-
-		case 'latest':
-		default:
+	if ( 'upgrade' === $cur->response ) {
+		return sprintf(
+			'<strong><a href="%s">%s</a></strong>',
+			network_admin_url( 'update-core.php' ),
 			/* translators: %s: WordPress version. */
-			return sprintf( __( 'Version %s' ), get_bloginfo( 'version', 'display' ) );
+			sprintf( __( 'Get Version %s' ), $cur->current )
+		);
+	} else {
+		/* translators: s: URL to WordPress Updates screen. */
+		$stay_updated = sprintf( __( 'Please <a href="%s">stay updated</a>.' ), network_admin_url( 'update-core.php' ) );
+		$msg          = $is_development_version ? $msg . '&nbsp;' . $stay_updated : $msg;
+
+		return $msg;
 	}
 }
 
