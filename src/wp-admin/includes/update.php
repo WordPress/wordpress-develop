@@ -259,9 +259,16 @@ function core_update_footer( $msg = '' ) {
 			sprintf( __( 'Get Version %s' ), $cur->current )
 		);
 	} else {
-		/* translators: s: URL to WordPress Updates screen. */
+		/* translators: %s: URL to WordPress Updates screen. */
 		$stay_updated = sprintf( __( 'Please <a href="%s">stay updated</a>.' ), network_admin_url( 'update-core.php' ) );
-		$msg          = $is_development_version ? $msg . '&nbsp;' . $stay_updated : $msg;
+		if ( $is_development_version ) {
+			$msg = sprintf(
+				/* translators: 1: Version number. 2: "Stay updated" message. */
+				__( '%1$s &nbsp; %2$s' ),
+				$msg,
+				$stay_updated
+			);
+		}
 
 		return $msg;
 	}
