@@ -541,13 +541,29 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 				unset( $_parsed_query['name'] );
 			}
 		}
+		
+		/**
+		 * Confirm the old and new query strings are genuinely different before updating the redirect URL.
+		 *
+		 * This prevents caching plugins like Batcache from creating cached redirect loops when processing
+		 * the query string.
+		 *
+		 * https://core.trac.wordpress.org/ticket/41712
+		 */
+		parse_str( $original['query'], $_parsed_original_query );
+		ksort( $_parsed_original_query );
+		ksort( $_parsed_query );
 
-		$_parsed_query = array_combine(
-			rawurlencode_deep( array_keys( $_parsed_query ) ),
-			rawurlencode_deep( array_values( $_parsed_query ) )
-		);
+		if ( $_parsed_query !== $_parsed_original_query ) {
+			$_parsed_query = array_combine(
+				rawurlencode_deep( array_keys( $_parsed_query ) ),
+				rawurlencode_deep( array_values( $_parsed_query ) )
+			);
 
-		$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
+			$redirect_url = add_query_arg( $_parsed_query, $redirect_url );
+		} else {
+			$redirect_url .= '?' . $original['query'];
+		}
 	}
 
 	if ( $redirect_url ) {
