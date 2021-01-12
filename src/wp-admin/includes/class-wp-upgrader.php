@@ -961,7 +961,7 @@ class WP_Upgrader {
 	public function zip_to_rollback_dir( $response, $hook_extra ) {
 		global $wp_filesystem;
 
-		// Exit early.
+		// Exit early on plugin/theme installation.
 		if ( isset( $hook_extra['type'] ) ) {
 			if ( 'plugin' === $hook_extra['type'] && ! isset( $hook_extra['plugin'] ) ) {
 				return $response;
@@ -1029,12 +1029,12 @@ class WP_Upgrader {
 	public function extract_rollback( $destination, $hook_extra ) {
 		global $wp_filesystem;
 
-		// Exit early.
+		// Exit early on plugin/theme installation.
 		if ( isset( $hook_extra['type'] ) ) {
 			if ( 'plugin' === $hook_extra['type'] && ! isset( $hook_extra['plugin'] ) ) {
-				return new WP_Error( 'extract_rollback_error', __( '$hook_extra not correctly set' ) );
+				return new WP_Error( 'extract_rollback_error', __( '$hook_extra set for installation' ) );
 			} elseif ( 'theme' === $hook_extra['type'] && ! isset( $hook_extra['theme'] ) ) {
-				return new WP_Error( 'extract_rollback_error', __( '$hook_extra not correctly set' ) );
+				return new WP_Error( 'extract_rollback_error', __( '$hook_extra set for installation' ) );
 			}
 		}
 
