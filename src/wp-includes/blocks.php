@@ -227,9 +227,47 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'apiVersion'      => 'api_version',
 	);
 
+	$textdomain = isset( $metadata['textdomain'] ) ? $metadata['textdomain'] : 'default';
+
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$settings[ $mapped_key ] = $metadata[ $key ];
+			$value = $metadata[ $key ];
+			switch ( $key ) {
+				case 'title':
+				case 'description':
+					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+					$settings[ $mapped_key ] = translate( $value, $textdomain );
+					break;
+				case 'keywords':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $keyword ) {
+						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+						$settings[ $mapped_key ][] = translate( $keyword, $textdomain );
+					}
+
+					break;
+				case 'styles':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $style ) {
+						if ( ! empty( $style['label'] ) ) {
+							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+							$style['label'] = translate( $style['label'], $textdomain );
+						}
+						$settings[ $mapped_key ][] = $style;
+					}
+
+					break;
+				default:
+					$settings[ $mapped_key ] = $value;
+			}
 		}
 	}
 
