@@ -961,19 +961,14 @@ class WP_Upgrader {
 	public function zip_to_rollback_dir( $response, $hook_extra ) {
 		global $wp_filesystem;
 
-		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-		$type         = key( $hook_extra );
-		if ( 'plugin' === $type ) {
-			$slug = dirname( $hook_extra['plugin'] );
-			$src  = WP_PLUGIN_DIR . '/' . $slug;
-		}
-		if ( 'theme' === $type ) {
-			$slug = $hook_extra['theme'];
-			$src  = get_theme_root() . '/' . $slug;
-		}
-		if ( ! isset( $slug, $src ) ) {
+		if ( ! isset( $hook_extra ) ) {
 			return new WP_Error( 'zip_rollback_failed', __( '$hook_extra not defined.' ) );
 		}
+
+		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+		$type         = key( $hook_extra );
+		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root() . '/' . $slug;
 
 		 // Zip can use a lot of memory. From `unzip_file()`.
 		 wp_raise_memory_limit( 'admin' );
