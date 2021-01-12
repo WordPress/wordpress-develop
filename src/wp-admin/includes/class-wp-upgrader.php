@@ -961,14 +961,25 @@ class WP_Upgrader {
 	public function zip_to_rollback_dir( $response, $hook_extra ) {
 		global $wp_filesystem;
 
-		if ( ! isset( $hook_extra ) ) {
-			return new WP_Error( 'zip_rollback_failed', __( '$hook_extra not defined.' ) );
+		// Exit early.
+		if ( isset( $hook_extra['type'] ) ) {
+			if ( 'plugin' === $hook_extra['type'] && ! isset( $hook_extra['plugin'] ) ) {
+				return $response;
+			} elseif ( 'theme' === $hook_extra['type'] && ! isset( $hook_extra['theme'] ) ) {
+				return $response;
+			}
 		}
 
+		// Setup variables.
+		if ( isset( $hook_extra['plugin'] ) ) {
+			$slug = dirname( $hook_extra['plugin'] );
+			$src  = WP_PLUGIN_DIR . '/' . $slug;
+		}
+		if ( isset( $hook_extra['theme'] ) ) {
+			$slug = $hook_extra['theme'];
+			$src  = get_theme_root() . '/' . $slug;
+		}
 		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-		$type         = key( $hook_extra );
-		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-		$src          = 'plugin' === $type ? WP_PLUGIN_DIR . '/' . $slug : get_theme_root() . '/' . $slug;
 
 		 // Zip can use a lot of memory. From `unzip_file()`.
 		 wp_raise_memory_limit( 'admin' );
@@ -1018,14 +1029,30 @@ class WP_Upgrader {
 	public function extract_rollback( $destination, $hook_extra ) {
 		global $wp_filesystem;
 
+		// Exit early.
+		if ( isset( $hook_extra['type'] ) ) {
+			if ( 'plugin' === $hook_extra['type'] && ! isset( $hook_extra['plugin'] ) ) {
+				return new WP_Error( 'extract_rollback_error', __( '$hook_extra not correctly set' ) );
+			} elseif ( 'theme' === $hook_extra['type'] && ! isset( $hook_extra['theme'] ) ) {
+				return new WP_Error( 'extract_rollback_error', __( '$hook_extra not correctly set' ) );
+			}
+		}
+
 		// Start with a clean slate.
 		if ( $wp_filesystem->is_dir( $destination ) ) {
 			$wp_filesystem->delete( $destination, true );
 		}
 
+		// Setup variables.
+		if ( isset( $hook_extra['plugin'] ) ) {
+			$type = 'plugin';
+			$slug = dirname( $hook_extra['plugin'] );
+		}
+		if ( isset( $hook_extra['theme'] ) ) {
+			$type = 'theme';
+			$slug = $hook_extra['theme'];
+		}
 		$rollback_dir = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-		$type         = key( $hook_extra );
-		$slug         = 'plugin' === $type ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
 		$rollback     = $rollback_dir . "{$slug}.zip";
 
 		$result = unzip_file( $rollback, $destination );
