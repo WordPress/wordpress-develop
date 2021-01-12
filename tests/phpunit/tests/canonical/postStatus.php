@@ -193,8 +193,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		register_post_type(
 			'a-private-cpt',
 			array(
-				'public'  => false,
-				'rewrite' => array(
+				'public'             => false,
+				'publicly_queryable' => false,
+				'rewrite'            => array(
 					'slug' => 'a-private-cpt',
 				),
 			)
