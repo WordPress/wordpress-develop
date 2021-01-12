@@ -25,6 +25,7 @@
 		"grunt-contrib-watch": "~1.1.0",
 		"grunt-cssjanus": "~0.2.4",
 		"grunt-legacy-util": "^2.0.0",
+		"grunt-patch-wordpress": "~3.0.0",
 		"grunt-sass": "~3.1.0",
 		"matchdep": "~2.0.0",
 		"node-sass": "~5.0.0"

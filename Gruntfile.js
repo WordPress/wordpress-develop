@@ -400,6 +400,9 @@ module.exports = function(grunt) {
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', 'phpunit');
 
+	// Patch task.
+	grunt.renameTask('patch_wordpress', 'patch');
+
 	// Default task.
 	grunt.registerTask('default', ['build']);
 
