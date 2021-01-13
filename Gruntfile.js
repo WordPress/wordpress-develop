@@ -2,7 +2,8 @@
 module.exports = function(grunt) {
 	var path = require('path'),
 		SOURCE_DIR = 'src/',
-		BUILD_DIR = 'build/';
+		BUILD_DIR = 'build/',
+		nodesass = require( 'node-sass' );
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
@@ -122,6 +123,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
+					implementation: nodesass,
 					outputStyle: 'expanded'
 				}
 			}
@@ -335,6 +337,9 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
+			options: {
+				'!ie8': false
+			},
 			core: {
 				expand: true,
 				cwd: SOURCE_DIR,
