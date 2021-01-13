@@ -1027,6 +1027,9 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertSame( $post_original->post_content, $post_updated->post_content );
 	}
 
+	/**
+	 * @ticket 50790
+	 */
 	public function test_remove_multi_value_with_empty_array() {
 		add_post_meta( self::$post_id, 'test_multi', 'val1' );
 		$values = get_post_meta( self::$post_id, 'test_multi', false );
