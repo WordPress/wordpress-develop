@@ -28,5 +28,11 @@
 		"grunt-sass": "~3.1.0",
 		"matchdep": "~2.0.0",
 		"node-sass": "~5.0.0"
+	},
+	"scripts": {
+		"build": "grunt build",
+		"test": "grunt test",
+		"watch": "grunt watch",
+		"grunt": "grunt"
 	}
 }
