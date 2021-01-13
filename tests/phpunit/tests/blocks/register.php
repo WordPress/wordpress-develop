@@ -193,7 +193,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$metadata = array(
 			'file'   => __FILE__,
 			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./fixtures/missing-asset.js',
+			'script' => 'file:./blocks/notice/missing-asset.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
@@ -217,9 +217,9 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_success_register_block_script_handle() {
 		$metadata = array(
-			'file'   => __FILE__,
+			'file'   => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./fixtures/block.js',
+			'script' => 'file:./block.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
@@ -262,9 +262,9 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_success_register_block_style_handle() {
 		$metadata = array(
-			'file'  => __FILE__,
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'  => 'unit-tests/test-block',
-			'style' => 'file:./fixtures/block.css',
+			'style' => 'file:./block.css',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
 
@@ -303,7 +303,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
@@ -365,6 +365,44 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'my-plugin-notice-script', $result->script );
 		$this->assertSame( 'my-plugin-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'my-plugin-notice-style', $result->style );
+	}
+
+	/**
+	 * @ticket 000
+	 */
+	function test_block_registers_with_metadata_i18n_support() {
+		function filter_set_locale_to_german() {
+			return 'de_DE';
+		}
+		add_filter( 'locale', 'filter_set_locale_to_german' );
+		load_textdomain( 'internationalized', WP_LANG_DIR . '/plugins/internationalized-plugin-de_DE.mo' );
+
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/internationalized'
+		);
+
+		unload_textdomain( 'internationalized' );
+		remove_filter( 'locale', 'filter_set_locale_to_german' );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 'tests/internationalized', $result->name );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $result->title );
+		$this->assertSame( 'Das ist ein Dummy Plugin', $result->description );
+		$this->assertSameSets( array( 'alert', 'Das ist ein Dummy Plugin' ), $result->keywords );
+		$this->assertSame(
+			array(
+				array(
+					'name'      => 'default',
+					'label'     => 'Default',
+					'isDefault' => true,
+				),
+				array(
+					'name'  => 'other',
+					'label' => 'Das ist ein Dummy Plugin',
+				),
+			),
+			$result->styles
+		);
 	}
 
 	/**
@@ -433,7 +471,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 		remove_filter( 'block_type_metadata', $filter_metadata_registration );
 
@@ -451,7 +489,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		add_filter( 'block_type_metadata_settings', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
 
