@@ -145,11 +145,13 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
+			$value = $meta[ $name ];
+
 			/*
 			 * A null value means reset the field, which is essentially deleting it
 			 * from the database and then relying on the default value.
 			 */
-			if ( is_null( $meta[ $name ] ) ) {
+			if ( is_null( $value ) ) {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
@@ -172,7 +174,16 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
-			$value = $meta[ $name ];
+			/*
+			 * Non-single meta can also be removed by sending an empty array.
+			 */
+			if ( is_array( $value ) && empty( $value ) && ! $args['single'] ) {
+				$result = $this->delete_meta_value( $object_id, $meta_key, $name );
+				if ( is_wp_error( $result ) ) {
+					return $result;
+				}
+				continue;
+			}
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
 				return new WP_Error(
