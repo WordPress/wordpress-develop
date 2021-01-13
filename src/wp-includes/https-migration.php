@@ -82,6 +82,7 @@ function wp_replace_insecure_home_url( $content ) {
  * This is hooked into the {@see 'update_option_home'} action.
  *
  * @since 5.7.0
+ * @access private
  *
  * @param mixed $old_url Previous value of the URL option.
  * @param mixed $new_url New value of the URL option.
