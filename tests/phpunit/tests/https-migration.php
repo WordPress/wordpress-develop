@@ -1,0 +1,137 @@
+<?php
+
+/**
+ * @group https-migration
+ */
+class Tests_HTTPS_Migration extends WP_UnitTestCase {
+
+	/**
+	 * @ticket 51437
+	 */
+	public function test_wp_should_replace_insecure_home_url() {
+		// Should return false because site is not using HTTPS.
+		$this->force_wp_is_using_https( false );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+
+		// Should still return false because HTTPS migration flag is not set.
+		$this->force_wp_is_using_https( true );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+
+		// Should return false because HTTPS migration flag is marked as done.
+		update_option( 'https_migrated', '1' );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+
+		// Should return true because HTTPS migration flag is marked as not done.
+		update_option( 'https_migrated', '0' );
+		$this->assertTrue( wp_should_replace_insecure_home_url() );
+
+		// Should be overridable via filter.
+		add_filter( 'wp_should_replace_insecure_home_url', '__return_false' );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+	}
+
+	/**
+	 * @ticket 51437
+	 */
+	public function test_wp_replace_insecure_home_url() {
+		$http_url  = home_url( '', 'http' );
+		$https_url = home_url( '', 'https' );
+
+		$http_block_data = array(
+			'id'  => 3,
+			'url' => $http_url . '/wp-content/uploads/2021/01/image.jpg',
+		);
+		$https_block_data = array(
+			'id'  => 3,
+			'url' => $https_url . '/wp-content/uploads/2021/01/image.jpg',
+		);
+
+		$content = '
+			<!-- wp:paragraph -->
+			<p><a href="%1$s">This is a link.</a></p>
+			<!-- /wp:paragraph -->
+
+			<!-- wp:custom-media %2$s -->
+			<img src="%3$s" alt="">
+			<!-- /wp:custom-media -->
+			';
+
+		$http_content  = sprintf( $content, $http_url, wp_json_encode( $http_block_data ), $http_block_data['url'] );
+		$https_content = sprintf( $content, $https_url, wp_json_encode( $https_block_data ), $https_block_data['url'] );
+
+		// Replaces URLs, including its encoded variant.
+		add_filter( 'wp_should_replace_insecure_home_url', '__return_true' );
+		$this->assertEquals( $https_content, wp_replace_insecure_home_url( $http_content ) );
+
+		// Does not replace anything if determined as unnecessary.
+		add_filter( 'wp_should_replace_insecure_home_url', '__return_false' );
+		$this->assertEquals( $http_content, wp_replace_insecure_home_url( $http_content ) );
+	}
+
+	/**
+	 * @ticket 51437
+	 */
+	public function test_wp_update_https_migrated() {
+		// Changing HTTP to HTTPS on a site with content should result in flag being set, requiring migration.
+		update_option( 'fresh_site', '0' );
+		wp_update_https_migrated( 'http://example.org', 'https://example.org' );
+		$this->assertEquals( '0', get_option( 'https_migrated' ) );
+
+		// Changing another part than the scheme should delete/reset the flag because changing those parts (e.g. the
+		// domain) can have further implications.
+		wp_update_https_migrated( 'http://example.org', 'https://another-example.org' );
+		$this->assertFalse( get_option( 'https_migrated' ) );
+
+		// Changing HTTP to HTTPS on a site without content should result in flag being set, marked as completed.
+		update_option( 'fresh_site', '1' );
+		wp_update_https_migrated( 'http://example.org', 'https://example.org' );
+		$this->assertEquals( '1', get_option( 'https_migrated' ) );
+
+		// Changing (back) from HTTPS to HTTP should delete/reset the flag.
+		wp_update_https_migrated( 'https://example.org', 'http://example.org' );
+		$this->assertFalse( get_option( 'https_migrated' ) );
+	}
+
+	/**
+	 * @ticket 51437
+	 */
+	public function test_wp_should_replace_insecure_home_url_integration() {
+		// Setup (a site on HTTP, with existing content).
+		remove_all_filters( 'option_home' );
+		remove_all_filters( 'option_siteurl' );
+		remove_all_filters( 'home_url' );
+		remove_all_filters( 'site_url' );
+		$http_url  = 'http://example.org';
+		$https_url = 'https://example.org';
+		update_option( 'home', $http_url );
+		update_option( 'siteurl', $http_url );
+		update_option( 'fresh_site', '0' );
+
+		// Should return false when URLs are HTTP.
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+
+		// Should still return false because only one of the two URLs was updated to its HTTPS counterpart.
+		update_option( 'home', $https_url );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+
+		// Should return true because now both URLs are updated to their HTTPS counterpart.
+		update_option( 'siteurl', $https_url );
+		$this->assertTrue( wp_should_replace_insecure_home_url() );
+
+		// Should return false because the domains of 'home' and 'siteurl' do not match, and we shouldn't make any
+		// assumptions about such special cases.
+		update_option( 'siteurl', 'https://wp.example.org' );
+		$this->assertFalse( wp_should_replace_insecure_home_url() );
+	}
+
+	private function force_wp_is_using_https( $enabled ) {
+		$scheme = $enabled ? 'https' : 'http';
+
+		$replace_scheme = function( $url ) use ( $scheme ) {
+			return str_replace( array( 'http://', 'https://' ), $scheme . '://', $url );
+		};
+
+		add_filter( 'home_url', $replace_scheme, 99 );
+		add_filter( 'site_url', $replace_scheme, 99 );
+	}
+}
