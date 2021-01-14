@@ -42,7 +42,7 @@ if ( 'update_https' === $action ) {
 
 	$result = wp_update_urls_to_https();
 
-	wp_redirect( add_query_arg( 'https_updated', $result, wp_get_referer() ) );
+	wp_redirect( add_query_arg( 'https_updated', (int) $result, wp_get_referer() ) );
 	exit;
 }
 
