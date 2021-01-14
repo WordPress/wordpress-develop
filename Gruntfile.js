@@ -3,7 +3,8 @@ module.exports = function(grunt) {
 	var path = require('path'),
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
-		autoprefixer = require('autoprefixer-core'),
+		autoprefixer = require('autoprefixer'),
+		nodesass = require( 'node-sass' ),
 		mediaConfig = {},
 		mediaBuilds = ['audiovideo', 'grid', 'models', 'views'];
 
@@ -24,7 +25,6 @@ module.exports = function(grunt) {
 			options: {
 				processors: [
 					autoprefixer({
-						browsers: ['Android >= 2.1', 'Chrome >= 21', 'Explorer >= 7', 'Firefox >= 17', 'Opera >= 12.1', 'Safari >= 6.0'],
 						cascade: false
 					})
 				]
@@ -140,6 +140,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
+					implementation: nodesass,
 					outputStyle: 'expanded'
 				}
 			}
@@ -181,14 +182,14 @@ module.exports = function(grunt) {
 		rtlcss: {
 			options: {
 				// rtlcss options
-				config: {
-					swapLeftRightInUrl: false,
-					swapLtrRtlInUrl: false,
-					autoRename: false,
-					preserveDirectives: true,
+				opts: {
+					clean: false,
+					processUrls: { atrule: true, decl: false },
 					stringMap: [
 						{
 							name: 'import-rtl-stylesheet',
+							priority: 10,
+							exclusive: true,
 							search: [ '.css' ],
 							replace: [ '-rtl.css' ],
 							options: {
@@ -198,29 +199,38 @@ module.exports = function(grunt) {
 						}
 					]
 				},
-				properties : [
+				saveUnmodified: false,
+				plugins: [
 					{
 						name: 'swap-dashicons-left-right-arrows',
-						expr: /content/im,
-						action: function( prop, value ) {
-							if ( value === '"\\f141"' ) { // dashicons-arrow-left
-								value = '"\\f139"';
-							} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
-								value = '"\\f344"';
-							} else if ( value === '"\\f341"' ) { // dashicons-arrow-left-alt2
-								value = '"\\f345"';
-							} else if ( value === '"\\f139"' ) { // dashicons-arrow-right
-								value = '"\\f141"';
-							} else if ( value === '"\\f344"' ) { // dashicons-arrow-right-alt
-								value = '"\\f340"';
-							} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
-								value = '"\\f341"';
+						priority: 10,
+						directives: {
+							control: {},
+							value: []
+						},
+						processors: [
+							{
+								expr: /content/im,
+								action: function( prop, value ) {
+									if ( value === '"\\f141"' ) { // dashicons-arrow-left
+										value = '"\\f139"';
+									} else if ( value === '"\\f340"' ) { // dashicons-arrow-left-alt
+										value = '"\\f344"';
+									} else if ( value === '"\\f341"' ) { // dashicons-arrow-left-alt2
+										value = '"\\f345"';
+									} else if ( value === '"\\f139"' ) { // dashicons-arrow-right
+										value = '"\\f141"';
+									} else if ( value === '"\\f344"' ) { // dashicons-arrow-right-alt
+										value = '"\\f340"';
+									} else if ( value === '"\\f345"' ) { // dashicons-arrow-right-alt2
+										value = '"\\f341"';
+									}
+									return { prop: prop, value: value };
+								}
 							}
-							return { prop: prop, value: value };
-						}
+						]
 					}
-				],
-				saveUnmodified: false
+				]
 			},
 			core: {
 				expand: true,
@@ -400,7 +410,8 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				ASCIIOnly: true
+				'output.ascii_only': true,
+				'!ie8': false
 			},
 			core: {
 				expand: true,
@@ -543,13 +554,6 @@ module.exports = function(grunt) {
 					spawn: false,
 					interval: 2000
 				}
-			},
-			browserify: {
-				files: [
-					SOURCE_DIR + 'wp-includes/js/media/*.js',
-					'!' + SOURCE_DIR + 'wp-includes/js/media/*.manifest.js'
-				],
-				tasks: ['uglify:media']
 			},
 			config: {
 				files: 'Gruntfile.js'
