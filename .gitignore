@@ -38,3 +38,9 @@ wp-tests-config.php
 
 # Ignore other .gitignore files to allow for personal customizations
 .gitignore
+
+# Files related to applying patches
+*.rej
+*.orig
+*.patch
+*.diff
