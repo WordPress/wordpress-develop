@@ -71,6 +71,40 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 	/**
 	 * @ticket 51437
 	 */
+	public function test_wp_update_urls_to_https() {
+		remove_all_filters( 'option_home' );
+		remove_all_filters( 'option_siteurl' );
+		remove_all_filters( 'home_url' );
+		remove_all_filters( 'site_url' );
+
+		$http_url  = 'http://example.org';
+		$https_url = 'https://example.org';
+
+		// Set up options to use HTTP URLs.
+		update_option( 'home', $http_url );
+		update_option( 'siteurl', $http_url );
+
+		// Update URLs to HTTPS (successfully).
+		$this->assertTrue( wp_update_urls_to_https() );
+		$this->assertEquals( $https_url, get_option( 'home' ) );
+		$this->assertEquals( $https_url, get_option( 'siteurl' ) );
+
+		// Switch options back to use HTTP URLs, but now add filter to
+		// force option value which will make the update irrelevant.
+		update_option( 'home', $http_url );
+		update_option( 'siteurl', $http_url );
+		$this->force_option( 'home', $http_url );
+
+		// Update URLs to HTTPS. While the update technically succeeds, it does not take effect due to the enforced
+		// option. Therefore the change is expected to be reverted.
+		$this->assertFalse( wp_update_urls_to_https() );
+		$this->assertEquals( $http_url, get_option( 'home' ) );
+		$this->assertEquals( $http_url, get_option( 'siteurl' ) );
+	}
+
+	/**
+	 * @ticket 51437
+	 */
 	public function test_wp_update_https_migrated() {
 		// Changing HTTP to HTTPS on a site with content should result in flag being set, requiring migration.
 		update_option( 'fresh_site', '0' );
@@ -133,5 +167,14 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 		add_filter( 'home_url', $replace_scheme, 99 );
 		add_filter( 'site_url', $replace_scheme, 99 );
+	}
+
+	private function force_option( $option, $value ) {
+		add_filter(
+			"option_$option",
+			function() use ( $value ) {
+				return $value;
+			}
+		);
 	}
 }

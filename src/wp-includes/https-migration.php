@@ -74,6 +74,41 @@ function wp_replace_insecure_home_url( $content ) {
 }
 
 /**
+ * Update the 'home' and 'siteurl' option to use the HTTPS variant of their URL.
+ *
+ * If this update does not result in WordPress recognizing that the site is now using HTTPS (e.g. due to constants
+ * overriding the URLs used), the changes will be reverted. In such a case the function will return false.
+ *
+ * @since 5.7.0
+ *
+ * @return bool True on success, false on failure.
+ */
+function wp_update_urls_to_https() {
+	// Get current URL options.
+	$orig_home    = get_option( 'home' );
+	$orig_siteurl = get_option( 'siteurl' );
+
+	// Get current URL options, replacing HTTP with HTTPS.
+	$home    = str_replace( 'http://', 'https://', $orig_home );
+	$siteurl = str_replace( 'http://', 'https://', $orig_siteurl );
+
+	// Update the options.
+	update_option( 'home', $home );
+	update_option( 'siteurl', $siteurl );
+
+	if ( ! wp_is_using_https() ) {
+		// If this did not result in the site recognizing HTTPS as being used,
+		// revert the change and return false.
+		update_option( 'home', $orig_home );
+		update_option( 'siteurl', $orig_siteurl );
+		return false;
+	}
+
+	// Otherwise the URLs were successfully changed to use HTTPS.
+	return true;
+}
+
+/**
  * Updates the 'https_migrated' option if needed when the given URL has been updated from HTTP to HTTPS.
  *
  * If this is a fresh site, a migration will not be necessary, so the migration will be flagged as '1'. Otherwise, it
