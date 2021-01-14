@@ -248,8 +248,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 			switch ( $key ) {
 				case 'title':
 				case 'description':
-					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-					$settings[ $mapped_key ] = translate( $value, $textdomain );
+					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
+					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
 					break;
 				case 'keywords':
 					$settings[ $mapped_key ] = array();
@@ -259,7 +259,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 					foreach ( $value as $keyword ) {
 						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-						$settings[ $mapped_key ][] = translate( $keyword, $textdomain );
+						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
 					}
 
 					break;
@@ -272,7 +272,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 					foreach ( $value as $style ) {
 						if ( ! empty( $style['label'] ) ) {
 							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
-							$style['label'] = translate( $style['label'], $textdomain );
+							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
 						}
 						$settings[ $mapped_key ][] = $style;
 					}

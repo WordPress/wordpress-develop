@@ -368,7 +368,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 000
+	 * @ticket 52301
 	 */
 	function test_block_registers_with_metadata_i18n_support() {
 		function filter_set_locale_to_polish() {
