@@ -37,7 +37,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		$http_url  = home_url( '', 'http' );
 		$https_url = home_url( '', 'https' );
 
-		$http_block_data = array(
+		$http_block_data  = array(
 			'id'  => 3,
 			'url' => $http_url . '/wp-content/uploads/2021/01/image.jpg',
 		);
