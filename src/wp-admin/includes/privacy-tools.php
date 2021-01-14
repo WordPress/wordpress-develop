@@ -507,8 +507,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 			$error = __( 'Unable to add data to user privacy export file (JSON format).' );
 		}
 
-		if ( ! $zip->addFile( $html_report_pathname, 'index.php' ) ) {
-			$error = __( 'Unable to add data to user privacy export file (PHP format).' );
+		if ( ! $zip->addFile( $html_report_pathname, 'index.html' ) ) {
+			$error = __( 'Unable to add data to user privacy export file (HTML format).' );
 		}
 
 		$zip->close();
