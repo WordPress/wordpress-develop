@@ -33,7 +33,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 	$post_id          = (int) $post->ID;
 	$post_type        = $post->post_type;
 	$post_type_object = get_post_type_object( $post_type );
-	$can_publish      = current_user_can( $post_type_object->cap->publish_posts );
+	$can_publish      = current_user_can( 'publish_post', $post );
 	?>
 <div class="submitbox" id="submitpost">
 
@@ -1559,7 +1559,7 @@ function register_and_do_post_meta_boxes( $post ) {
 		}
 	}
 
-	if ( ! ( 'pending' === get_post_status( $post ) && ! current_user_can( $post_type_object->cap->publish_posts ) ) ) {
+	if ( ! ( 'pending' === get_post_status( $post ) && ! current_user_can( 'publish_post', $post ) ) ) {
 		add_meta_box( 'slugdiv', __( 'Slug' ), 'post_slug_meta_box', null, 'normal', 'core', array( '__back_compat_meta_box' => true ) );
 	}
 

@@ -1581,6 +1581,7 @@ function get_post_type_capabilities( $args ) {
 		'edit_post'          => 'edit_' . $singular_base,
 		'read_post'          => 'read_' . $singular_base,
 		'delete_post'        => 'delete_' . $singular_base,
+		'publish_post'       => 'publish_' . $singular_base,
 		// Primitive capabilities used outside of map_meta_cap():
 		'edit_posts'         => 'edit_' . $plural_base,
 		'edit_others_posts'  => 'edit_others_' . $plural_base,
@@ -1631,7 +1632,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
 	global $post_type_meta_caps;
 
 	foreach ( $capabilities as $core => $custom ) {
-		if ( in_array( $core, array( 'read_post', 'delete_post', 'edit_post' ), true ) ) {
+		if ( in_array( $core, array( 'read_post', 'delete_post', 'edit_post', 'publish_post' ), true ) ) {
 			$post_type_meta_caps[ $custom ] = $core;
 		}
 	}
