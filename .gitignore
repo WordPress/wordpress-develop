@@ -20,3 +20,9 @@ npm-debug.log
 
 # The WordPress output directory.
 build
+
+# Files related to applying patches
+*.rej
+*.orig
+*.patch
+*.diff
