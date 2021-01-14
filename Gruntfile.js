@@ -549,13 +549,6 @@ module.exports = function(grunt) {
 					interval: 2000
 				}
 			},
-			browserify: {
-				files: [
-					SOURCE_DIR + 'wp-includes/js/media/*.js',
-					'!' + SOURCE_DIR + 'wp-includes/js/media/*.manifest.js'
-				],
-				tasks: ['uglify:media']
-			},
 			config: {
 				files: 'Gruntfile.js'
 			},
