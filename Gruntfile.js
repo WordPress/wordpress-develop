@@ -405,10 +405,7 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				output: {
-					ascii_only: true,
-					ie8: true
-				}
+				'!ie8': false
 			},
 			core: {
 				expand: true,
