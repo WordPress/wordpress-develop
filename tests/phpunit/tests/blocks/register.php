@@ -62,7 +62,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		foreach ( array( 'core/test-static', 'core/test-dynamic', 'my-plugin/notice' ) as $block_name ) {
+		foreach ( array( 'core/test-static', 'core/test-dynamic', 'tests/notice' ) as $block_name ) {
 			if ( $registry->is_registered( $block_name ) ) {
 				$registry->unregister( $block_name );
 			}
@@ -308,7 +308,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 2, $result->api_version );
-		$this->assertSame( 'my-plugin/notice', $result->name );
+		$this->assertSame( 'tests/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
 		$this->assertSameSets( array( 'core/group' ), $result->parent );
@@ -327,7 +327,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'my-plugin/message' => 'message',
+				'tests/message' => 'message',
 			),
 			$result->provides_context
 		);
@@ -361,44 +361,44 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			),
 			$result->example
 		);
-		$this->assertSame( 'my-plugin-notice-editor-script', $result->editor_script );
-		$this->assertSame( 'my-plugin-notice-script', $result->script );
-		$this->assertSame( 'my-plugin-notice-editor-style', $result->editor_style );
-		$this->assertSame( 'my-plugin-notice-style', $result->style );
+		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
+		$this->assertSame( 'tests-notice-script', $result->script );
+		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
+		$this->assertSame( 'tests-notice-style', $result->style );
 	}
 
 	/**
 	 * @ticket 000
 	 */
 	function test_block_registers_with_metadata_i18n_support() {
-		function filter_set_locale_to_german() {
-			return 'de_DE';
+		function filter_set_locale_to_polish() {
+			return 'pl_PL';
 		}
-		add_filter( 'locale', 'filter_set_locale_to_german' );
-		load_textdomain( 'internationalized', WP_LANG_DIR . '/plugins/internationalized-plugin-de_DE.mo' );
+		add_filter( 'locale', 'filter_set_locale_to_polish' );
+		load_textdomain( 'notice', WP_LANG_DIR . '/plugins/notice-pl_PL.mo' );
 
 		$result = register_block_type_from_metadata(
-			DIR_TESTDATA . '/blocks/internationalized'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 
-		unload_textdomain( 'internationalized' );
-		remove_filter( 'locale', 'filter_set_locale_to_german' );
+		unload_textdomain( 'notice' );
+		remove_filter( 'locale', 'filter_set_locale_to_polish' );
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
-		$this->assertSame( 'tests/internationalized', $result->name );
-		$this->assertSame( 'Das ist ein Dummy Plugin', $result->title );
-		$this->assertSame( 'Das ist ein Dummy Plugin', $result->description );
-		$this->assertSameSets( array( 'alert', 'Das ist ein Dummy Plugin' ), $result->keywords );
+		$this->assertSame( 'tests/notice', $result->name );
+		$this->assertSame( 'Powiadomienie', $result->title );
+		$this->assertSame( 'Wyświetla ostrzeżenie, błąd lub powiadomienie o sukcesie…', $result->description );
+		$this->assertSameSets( array( 'ostrzeżenie', 'wiadomość' ), $result->keywords );
 		$this->assertSame(
 			array(
 				array(
 					'name'      => 'default',
-					'label'     => 'Default',
+					'label'     => 'Domyślny',
 					'isDefault' => true,
 				),
 				array(
 					'name'  => 'other',
-					'label' => 'Das ist ein Dummy Plugin',
+					'label' => 'Inny',
 				),
 			),
 			$result->styles
