@@ -4,7 +4,8 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		mediaConfig = {},
-		mediaBuilds = ['audiovideo', 'grid', 'models', 'views'];
+		mediaBuilds = ['audiovideo', 'grid', 'models', 'views'],
+		nodesass = require( 'node-sass' );
 
 	// Load tasks.
 	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
@@ -134,6 +135,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
+					implementation: nodesass,
 					outputStyle: 'expanded'
 				}
 			}
@@ -393,6 +395,9 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
+			options: {
+				'!ie8': false
+			},
 			core: {
 				expand: true,
 				cwd: SOURCE_DIR,
