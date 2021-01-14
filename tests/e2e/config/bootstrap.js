@@ -1,6 +1,4 @@
 import { get } from 'lodash';
-import { configureToMatchImageSnapshot } from 'jest-image-snapshot';
-
 import {
 	clearLocalStorage,
 	enablePageDialogAccept,
@@ -35,14 +33,6 @@ const pageEvents = [];
 // The Jest timeout is increased because these tests are a bit slow
 jest.setTimeout( PUPPETEER_TIMEOUT || 100000 );
 
-const toMatchImageSnapshot = configureToMatchImageSnapshot( {
-	dumpDiffToConsole: true,
-	failureThresholdType: 'percent',
-	failureThreshold: 3,
-} );
-
-// Extend Jest's "expect" with image snapshot functionality.
-expect.extend( { toMatchImageSnapshot } );
 
 /**
  * Adds an event listener to the page to handle additions of page event
@@ -120,11 +110,7 @@ function observeConsoleLogging() {
 		// correctly. Instead, the logic here synchronously inspects the
 		// internal object shape of the JSHandle to find the error text. If it
 		// cannot be found, the default text value is used instead.
-		text = get(
-			message.args(),
-			[ 0, '_remoteObject', 'description' ],
-			text
-		);
+		text = get( message.args(), [ 0, '_remoteObject', 'description' ], text );
 
 		// Disable reason: We intentionally bubble up the console message
 		// which, unless the test explicitly anticipates the logging via
