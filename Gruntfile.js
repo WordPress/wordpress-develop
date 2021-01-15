@@ -694,7 +694,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:php', [
-		// 'phpunit'
+		'phpunit'
 	] );
 
 	grunt.registerTask( 'precommit', 'Runs test and build tasks in preparation for a commit', function() {
