@@ -338,7 +338,9 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				'!ie8': false
+				output: {
+					ie8: true
+				}
 			},
 			core: {
 				expand: true,
@@ -365,7 +367,9 @@ module.exports = function(grunt) {
 			},
 			jqueryui: {
 				options: {
-					preserveComments: 'some'
+					output: {
+						comments: /^!/
+					}
 				},
 				expand: true,
 				cwd: SOURCE_DIR,
