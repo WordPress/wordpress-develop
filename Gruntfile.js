@@ -332,7 +332,9 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				'!ie8': false
+				output: {
+					ie8: true
+				}
 			},
 			core: {
 				expand: true,
