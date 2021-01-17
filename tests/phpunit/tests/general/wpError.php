@@ -791,6 +791,20 @@ class Tests_WP_Error extends WP_UnitTestCase {
 
 	/**
 	 * @covers ::merge_from()
+	 * @ticket 46191
+	 */
+	public function test_merge_from_should_add_data_to_the_bottom() {
+		$this->wp_error->add( 'code1', 'message1', 'data1' );
+
+		$other = new WP_Error( 'code1', 'message2', 'data2' );
+		$this->wp_error->merge_from( $other, 'bottom' );
+
+		$this->assertSame( 'data2', $this->wp_error->get_error_data( 'code1' ) );
+		$this->assertSame( array( 'data2', 'data1' ), $this->wp_error->get_all_error_data( 'code1' ) );
+	}
+
+	/**
+	 * @covers ::merge_from()
 	 */
 	public function test_merge_from_with_no_errors_should_not_add_to_instance() {
 		$other = new WP_Error();
@@ -816,6 +830,22 @@ class Tests_WP_Error extends WP_UnitTestCase {
 		$this->assertSame( 'data2', $other->get_error_data( 'code1' ) );
 		$this->assertSame( array( 'data1', 'data2' ), $other->get_all_error_data( 'code1' ) );
 		$this->assertSame( 'message3', $other->get_error_message( 'code2' ) );
+	}
+
+	/**
+	 * @covers ::export_to()
+	 * @ticket 46191
+	 */
+	public function test_export_to_should_add_data_to_the_bottom() {
+		$other = new WP_Error();
+		$other->add( 'code1', 'message1', 'data1' );
+
+		$this->wp_error->add( 'code1', 'message2', 'data2' );
+
+		$this->wp_error->export_to( $other, 'bottom' );
+
+		$this->assertSame( 'data2', $other->get_error_data( 'code1' ) );
+		$this->assertSame( array( 'data2', 'data1' ), $other->get_all_error_data( 'code1' ) );
 	}
 
 	/**

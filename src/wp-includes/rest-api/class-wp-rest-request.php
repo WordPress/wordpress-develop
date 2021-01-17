@@ -803,6 +803,7 @@ class WP_REST_Request implements ArrayAccess {
 		$order = $this->get_parameter_order();
 
 		$invalid_params = array();
+		$invalid_errors = array();
 
 		foreach ( $order as $type ) {
 			if ( empty( $this->params[ $type ] ) ) {
@@ -829,6 +830,11 @@ class WP_REST_Request implements ArrayAccess {
 
 				if ( is_wp_error( $sanitized_value ) ) {
 					$invalid_params[ $key ] = $sanitized_value->get_error_message();
+
+					if ( ! is_array( $sanitized_value->get_error_data() ) || ! isset( $sanitized_value->get_error_data()['param'] ) ) {
+						$sanitized_value->add_data( array( 'param' => $key ) );
+					}
+					$invalid_errors[] = $sanitized_value;
 				} else {
 					$this->params[ $type ][ $key ] = $sanitized_value;
 				}
@@ -836,7 +842,7 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		if ( $invalid_params ) {
-			return new WP_Error(
+			$error = new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
@@ -845,6 +851,12 @@ class WP_REST_Request implements ArrayAccess {
 					'params' => $invalid_params,
 				)
 			);
+
+			foreach ( $invalid_errors as $invalid_error ) {
+				$error->merge_from( $invalid_error, 'bottom' );
+			}
+
+			return $error;
 		}
 
 		return true;
@@ -931,7 +943,7 @@ class WP_REST_Request implements ArrayAccess {
 			);
 
 			foreach ( $invalid_errors as $invalid_error ) {
-				$error->merge_from( $invalid_error, true );
+				$error->merge_from( $invalid_error, 'bottom' );
 			}
 
 			return $error;

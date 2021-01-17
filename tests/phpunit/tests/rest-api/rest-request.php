@@ -462,6 +462,70 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertSame( 'rest_invalid_param', $valid->get_error_code() );
 	}
 
+	/**
+	 * @ticket 46191
+	 */
+	public function test_sanitize_params_error_multiple_messages() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'sanitize_callback' => function () {
+							$error = new WP_Error( 'invalid', 'Invalid.' );
+							$error->add( 'invalid', 'Super Invalid.' );
+							$error->add( 'broken', 'Broken.' );
+
+							return $error;
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->sanitize_params();
+		$this->assertWPError( $valid );
+		$data = $valid->get_error_data();
+
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'params', $data );
+		$this->assertArrayHasKey( 'failparam', $data['params'] );
+		$this->assertEquals( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+	}
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_sanitize_params_merges_error() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'sanitize_callback' => function () {
+							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->sanitize_params();
+		$this->assertWPError( $valid );
+
+		$this->assertEquals( 'Invalid.', $valid->get_error_message( 'invalid' ) );
+		$this->assertEquals( array( 'param' => 'failparam' ), $valid->get_error_data( 'invalid' ) );
+		$this->assertContains( 'mydata', $valid->get_all_error_data( 'invalid' ) );
+	}
+
 	public function test_sanitize_params_with_null_callback() {
 		$this->request->set_url_params(
 			array(
@@ -650,6 +714,71 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 		$this->assertSame( array( 'someinteger', 'someotherparams' ), array_keys( $error_data['params'] ) );
 		$this->assertSame( 'This is not valid!', $error_data['params']['someotherparams'] );
+	}
+
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_invalid_params_error_multiple_messages() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'validate_callback' => function () {
+							$error = new WP_Error( 'invalid', 'Invalid.' );
+							$error->add( 'invalid', 'Super Invalid.' );
+							$error->add( 'broken', 'Broken.' );
+
+							return $error;
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->has_valid_params();
+		$this->assertWPError( $valid );
+		$data = $valid->get_error_data();
+
+		$this->assertIsArray( $data );
+		$this->assertArrayHasKey( 'params', $data );
+		$this->assertArrayHasKey( 'failparam', $data['params'] );
+		$this->assertEquals( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+	}
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_invalid_params_merges_error() {
+		$this->request->set_url_params(
+			array(
+				'failparam' => '123',
+			)
+		);
+		$this->request->set_attributes(
+			array(
+				'args' => array(
+					'failparam' => array(
+						'validate_callback' => function () {
+							return new WP_Error( 'invalid', 'Invalid.', 'mydata' );
+						},
+					),
+				),
+			)
+		);
+
+		$valid = $this->request->has_valid_params();
+		$this->assertWPError( $valid );
+
+		$this->assertEquals( 'Invalid.', $valid->get_error_message( 'invalid' ) );
+		$this->assertEquals( array( 'param' => 'failparam' ), $valid->get_error_data( 'invalid' ) );
+		$this->assertContains( 'mydata', $valid->get_all_error_data( 'invalid' ) );
 	}
 
 	public function _return_wp_error_on_validate_callback() {
