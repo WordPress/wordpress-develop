@@ -754,8 +754,8 @@ function spawn_cron( $gmt_time = 0 ) {
  * @since 2.1.0
  * @since 5.1.0 Return value added to indicate success or failure.
  *
- * @return bool|int On success an integer indicating number of events spawned (0 indicates no
- *                  events needed to be spawned), false if spawning fails for one or more events.
+ * @return int|false On success an integer indicating number of events spawned (0 indicates no
+ *                   events needed to be spawned), false if spawning fails for one or more events.
  */
 function wp_cron() {
 	// Prevent infinite loops caused by lack of wp-cron.php.
@@ -865,7 +865,7 @@ function wp_get_schedules() {
  *
  * @param string $hook Action hook to identify the event.
  * @param array  $args Optional. Arguments passed to the event's callback function.
- * @return string|false False, if no schedule. Schedule name on success.
+ * @return string|false Schedule name on success, false if no schedule.
  */
 function wp_get_schedule( $hook, $args = array() ) {
 	$schedule = false;
@@ -880,9 +880,9 @@ function wp_get_schedule( $hook, $args = array() ) {
 	 *
 	 * @since 5.1.0
 	 *
-	 * @param string|bool $schedule Schedule for the hook. False if not found.
-	 * @param string      $hook     Action hook to execute when cron is run.
-	 * @param array       $args     Optional. Arguments to pass to the hook's callback function.
+	 * @param string|false $schedule Schedule for the hook. False if not found.
+	 * @param string       $hook     Action hook to execute when cron is run.
+	 * @param array        $args     Optional. Arguments to pass to the hook's callback function.
 	 */
 	return apply_filters( 'get_schedule', $schedule, $hook, $args );
 }
@@ -947,7 +947,7 @@ function wp_get_ready_cron_jobs() {
  * @since 2.1.0
  * @access private
  *
- * @return array|false CRON info array.
+ * @return array|false Cron info array on success, false on failure.
  */
 function _get_cron_array() {
 	$cron = get_option( 'cron' );

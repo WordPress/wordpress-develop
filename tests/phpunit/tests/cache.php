@@ -115,7 +115,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		global $_wp_using_ext_object_cache;
 
 		if ( $_wp_using_ext_object_cache ) {
-			return;
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
 		$key = __FUNCTION__;

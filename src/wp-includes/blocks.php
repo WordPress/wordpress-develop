@@ -71,6 +71,14 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name ) {
+	if ( 0 === strpos( $block_name, 'core/' ) ) {
+		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
+		if ( 0 === strpos( $field_name, 'editor' ) ) {
+			$asset_handle .= '-editor';
+		}
+		return $asset_handle;
+	}
+
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
@@ -91,8 +99,8 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
- * @return string|bool Script handle provided directly or created through
- *                     script's registration, or false on failure.
+ * @return string|false Script handle provided directly or created through
+ *                      script's registration, or false on failure.
  */
 function register_block_script_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -138,8 +146,8 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @param array  $metadata Block metadata.
  * @param string $field_name Field name to pick from metadata.
- * @return string|boolean Style handle provided directly or created through
- *                        style's registration, or false on failure.
+ * @return string|false Style handle provided directly or created through
+ *                      style's registration, or false on failure.
  */
 function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -193,6 +201,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	}
 	$metadata['file'] = $metadata_file;
 
+	/**
+	 * Filters the metadata provided for registering a block type.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $metadata Metadata for registering a block type.
+	 */
+	$metadata = apply_filters( 'block_type_metadata', $metadata );
+
 	$settings          = array();
 	$property_mappings = array(
 		'title'           => 'title',
@@ -244,12 +261,26 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		);
 	}
 
-	return register_block_type(
-		$metadata['name'],
+	/**
+	 * Filters the settings determined from the block type metadata.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $settings Array of determined settings for registering a block type.
+	 * @param array $metadata Metadata provided for registering a block type.
+	 */
+	$settings = apply_filters(
+		'block_type_metadata_settings',
 		array_merge(
 			$settings,
 			$args
-		)
+		),
+		$metadata
+	);
+
+	return register_block_type(
+		$metadata['name'],
+		$settings
 	);
 }
 
