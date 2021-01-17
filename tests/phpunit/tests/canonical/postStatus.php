@@ -198,6 +198,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 				'rewrite'            => array(
 					'slug' => 'a-private-cpt',
 				),
+				'map_meta_cap'       => true,
 			)
 		);
 

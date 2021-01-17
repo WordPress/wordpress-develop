@@ -760,9 +760,11 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
 		if (
-			// Never redirect internal or protected post statuses
+			// Never redirect internal or protected post statuses.
 			$post_status_obj->internal ||
 			$post_status_obj->protected ||
+			// Never redirect non-publicly-queryable post types.
+			! is_post_type_viewable( get_post_type( $redirect_obj ) ) ||
 			(
 				// Never redirect private posts the user can't read.
 				! is_post_publicly_viewable( $redirect_obj ) &&

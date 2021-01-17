@@ -2021,6 +2021,13 @@ function is_post_status_viewable( $post_status ) {
 		}
 	}
 
+	if (
+		$post_status->internal ||
+		$post_status->protected
+	) {
+		return false;
+	}
+
 	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
 }
 
