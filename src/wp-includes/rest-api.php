@@ -2520,7 +2520,7 @@ function rest_preload_api_request( $memo, $path ) {
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server            = rest_get_server();
-		$embed_param_value = $request->get_param( '_embed' );
+		$embed_param_value = $request['_embed'];
 		$embed             = null !== $embed_param_value ? rest_parse_embed_param( $embed_param_value ) : false;
 		$data              = (array) $server->response_to_data( $response, $embed );
 
