@@ -829,7 +829,7 @@ class WP_REST_Request implements ArrayAccess {
 				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
 
 				if ( is_wp_error( $sanitized_value ) ) {
-					$invalid_params[ $key ] = $sanitized_value->get_error_message();
+					$invalid_params[ $key ] = implode( ' ', $sanitized_value->get_error_messages() );
 
 					if ( ! is_array( $sanitized_value->get_error_data() ) || ! isset( $sanitized_value->get_error_data()['param'] ) ) {
 						$sanitized_value->add_data( array( 'param' => $key ) );

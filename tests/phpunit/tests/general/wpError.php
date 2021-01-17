@@ -799,7 +799,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 		$other = new WP_Error( 'code1', 'message2', 'data2' );
 		$this->wp_error->merge_from( $other, 'bottom' );
 
-		$this->assertSame( 'data2', $this->wp_error->get_error_data( 'code1' ) );
+		$this->assertSame( 'data1', $this->wp_error->get_error_data( 'code1' ) );
 		$this->assertSame( array( 'data2', 'data1' ), $this->wp_error->get_all_error_data( 'code1' ) );
 	}
 
@@ -844,7 +844,7 @@ class Tests_WP_Error extends WP_UnitTestCase {
 
 		$this->wp_error->export_to( $other, 'bottom' );
 
-		$this->assertSame( 'data2', $other->get_error_data( 'code1' ) );
+		$this->assertSame( 'data1', $other->get_error_data( 'code1' ) );
 		$this->assertSame( array( 'data2', 'data1' ), $other->get_all_error_data( 'code1' ) );
 	}
 
