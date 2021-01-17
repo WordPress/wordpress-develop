@@ -343,14 +343,6 @@ function rest_api_loaded() {
 	 */
 	define( 'REST_REQUEST', true );
 
-	/**
-	 * As rest_api_loaded is fired later than previous wp_debug_mode() call and REST_REQUEST is not defined yet,
-	 * let's call it again here to ensure REST API requests are not displaying any errors.
-	 *
-	 * @since 5.7.0
-	 */
-	wp_debug_mode();
-
 	// Initialize the server.
 	$server = rest_get_server();
 
