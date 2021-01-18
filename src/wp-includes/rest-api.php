@@ -2512,19 +2512,18 @@ function rest_preload_api_request( $memo, $path ) {
 	}
 
 	$request = new WP_REST_Request( $method, $path_parts['path'] );
+	$embed   = false;
 	if ( ! empty( $path_parts['query'] ) ) {
+		$query_params = array();
 		parse_str( $path_parts['query'], $query_params );
+		$embed = isset( $query_params['_embed'] ) ? $query_params['_embed'] : false;
 		$request->set_query_params( $query_params );
 	}
 
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server = rest_get_server();
-		$data   = (array) $response->get_data();
-		$links  = $server::get_compact_response_links( $response );
-		if ( ! empty( $links ) ) {
-			$data['_links'] = $links;
-		}
+		$data   = $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$response = rest_send_allow_header( $response, $server, $request );
