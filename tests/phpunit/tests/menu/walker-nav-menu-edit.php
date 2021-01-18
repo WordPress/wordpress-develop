@@ -1,10 +1,10 @@
 <?php
 
 /**
- * @group navmenus
+ * @group menu
  * @group walker
  */
-class Tests_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
+class Tests_Menu_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 	protected $_wp_nav_menu_max_depth;
 
 	function setUp() {
@@ -13,7 +13,7 @@ class Tests_Walker_Nav_Menu_Edit extends WP_UnitTestCase {
 		parent::setUp();
 
 		/** Walker_Nav_Menu_Edit class */
-		require_once( ABSPATH . 'wp-admin/includes/class-walker-nav-menu-edit.php' );
+		require_once ABSPATH . 'wp-admin/includes/class-walker-nav-menu-edit.php';
 
 		$this->walker = new Walker_Nav_Menu_Edit();
 

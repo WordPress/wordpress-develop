@@ -11,7 +11,7 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -19,13 +19,15 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 		// Ensure that there is a term with ID 1.
 		if ( ! get_term( 1 ) ) {
 			$wpdb->insert(
-				$wpdb->terms, array(
+				$wpdb->terms,
+				array(
 					'term_id' => 1,
 				)
 			);
 
 			$wpdb->insert(
-				$wpdb->term_taxonomy, array(
+				$wpdb->term_taxonomy,
+				array(
 					'term_id'  => 1,
 					'taxonomy' => 'wptests_tax',
 				)
@@ -34,7 +36,7 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 			clean_term_cache( 1, 'wptests_tax' );
 		}
 
-		self::$term_id = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
+		self::$term_id = $factory->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 	}
 
 	/**

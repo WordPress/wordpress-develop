@@ -4,7 +4,7 @@
  *
  * Handles displaying Aside, Link, Status, and Quote Posts available with Twenty Eleven.
  *
- * @link https://codex.wordpress.org/Widgets_API#Developing_Widgets
+ * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
  * @package WordPress
  * @subpackage Twenty_Eleven
@@ -19,7 +19,9 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 */
 	function __construct() {
 		parent::__construct(
-			'widget_twentyeleven_ephemera', __( 'Twenty Eleven Ephemera', 'twentyeleven' ), array(
+			'widget_twentyeleven_ephemera',
+			__( 'Twenty Eleven Ephemera', 'twentyeleven' ),
+			array(
 				'classname'                   => 'widget_twentyeleven_ephemera',
 				'description'                 => __( 'Use this widget to list your recent Aside, Status, Quote, and Link posts', 'twentyeleven' ),
 				'customize_selective_refresh' => true,
@@ -36,6 +38,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * PHP4 constructor.
 	 *
 	 * @since Twenty Eleven 1.0
+	 * @deprecated Twenty Eleven 2.2
 	 */
 	function Twenty_Eleven_Ephemera_Widget() {
 		self::__construct();
@@ -66,7 +69,6 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 		}
 
 		ob_start();
-		extract( $args, EXTR_SKIP );
 
 		/** This filter is documented in wp-includes/default-widgets.php */
 		$args['title'] = apply_filters( 'widget_title', empty( $instance['title'] ) ? __( 'Ephemera', 'twentyeleven' ) : $instance['title'], $instance, $this->id_base );
@@ -75,7 +77,8 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 			$instance['number'] = '10';
 		}
 
-		if ( ! $args['number'] = absint( $instance['number'] ) ) {
+		$args['number'] = absint( $instance['number'] );
+		if ( ! $args['number'] ) {
 			$args['number'] = 10;
 		}
 
@@ -106,9 +109,9 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 			<?php
 			while ( $ephemera->have_posts() ) :
 				$ephemera->the_post();
-?>
+				?>
 
-				<?php if ( 'link' != get_post_format() ) : ?>
+				<?php if ( 'link' !== get_post_format() ) : ?>
 
 				<li class="widget-entry-title">
 					<a href="<?php echo esc_url( get_permalink() ); ?>" rel="bookmark"><?php the_title(); ?></a>
@@ -134,10 +137,10 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 
 			echo $args['after_widget'];
 
-			// Reset the post globals as this query will have stomped on it
+			// Reset the post globals as this query will have stomped on it.
 			wp_reset_postdata();
 
-			// end check for ephemeral posts
+			// End check for ephemeral posts.
 		endif;
 
 		$cache[ $args['widget_id'] ] = ob_get_flush();
@@ -188,7 +191,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	function form( $instance ) {
 		$title  = isset( $instance['title'] ) ? esc_attr( $instance['title'] ) : '';
 		$number = isset( $instance['number'] ) ? absint( $instance['number'] ) : 10;
-?>
+		?>
 			<p><label for="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>"><?php _e( 'Title:', 'twentyeleven' ); ?></label>
 			<input class="widefat" id="<?php echo esc_attr( $this->get_field_id( 'title' ) ); ?>" name="<?php echo esc_attr( $this->get_field_name( 'title' ) ); ?>" type="text" value="<?php echo esc_attr( $title ); ?>" /></p>
 

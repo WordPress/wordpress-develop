@@ -29,7 +29,7 @@ if ( ! function_exists( 'twentysixteen_entry_meta' ) ) :
 			);
 		}
 
-		if ( in_array( get_post_type(), array( 'post', 'attachment' ) ) ) {
+		if ( in_array( get_post_type(), array( 'post', 'attachment' ), true ) ) {
 			twentysixteen_entry_date();
 		}
 
@@ -49,6 +49,7 @@ if ( ! function_exists( 'twentysixteen_entry_meta' ) ) :
 
 		if ( ! is_singular() && ! post_password_required() && ( comments_open() || get_comments_number() ) ) {
 			echo '<span class="comments-link">';
+			/* translators: %s: Post title. */
 			comments_popup_link( sprintf( __( 'Leave a comment<span class="screen-reader-text"> on %s</span>', 'twentysixteen' ), get_the_title() ) );
 			echo '</span>';
 		}
@@ -133,10 +134,10 @@ if ( ! function_exists( 'twentysixteen_post_thumbnail' ) ) :
 		}
 
 		if ( is_singular() ) :
-		?>
+			?>
 
 		<div class="post-thumbnail">
-		<?php the_post_thumbnail(); ?>
+			<?php the_post_thumbnail(); ?>
 	</div><!-- .post-thumbnail -->
 
 	<?php else : ?>
@@ -145,8 +146,8 @@ if ( ! function_exists( 'twentysixteen_post_thumbnail' ) ) :
 		<?php the_post_thumbnail( 'post-thumbnail', array( 'alt' => the_title_attribute( 'echo=0' ) ) ); ?>
 	</a>
 
-	<?php
-	endif; // End is_singular()
+		<?php
+	endif; // End is_singular().
 	}
 endif;
 
@@ -166,11 +167,11 @@ if ( ! function_exists( 'twentysixteen_excerpt' ) ) :
 		$class = esc_attr( $class );
 
 		if ( has_excerpt() || is_search() ) :
-		?>
+			?>
 			<div class="<?php echo $class; ?>">
 				<?php the_excerpt(); ?>
 			</div><!-- .<?php echo $class; ?> -->
-		<?php
+			<?php
 		endif;
 	}
 endif;
@@ -190,7 +191,7 @@ if ( ! function_exists( 'twentysixteen_excerpt_more' ) && ! is_admin() ) :
 		$link = sprintf(
 			'<a href="%1$s" class="more-link">%2$s</a>',
 			esc_url( get_permalink( get_the_ID() ) ),
-			/* translators: %s: Name of current post */
+			/* translators: %s: Post title. */
 			sprintf( __( 'Continue reading<span class="screen-reader-text"> "%s"</span>', 'twentysixteen' ), get_the_title( get_the_ID() ) )
 		);
 		return ' &hellip; ' . $link;
@@ -209,7 +210,8 @@ if ( ! function_exists( 'twentysixteen_categorized_blog' ) ) :
 	 * @return bool True if there is more than one category, false otherwise.
 	 */
 	function twentysixteen_categorized_blog() {
-		if ( false === ( $all_the_cool_cats = get_transient( 'twentysixteen_categories' ) ) ) {
+		$all_the_cool_cats = get_transient( 'twentysixteen_categories' );
+		if ( false === $all_the_cool_cats ) {
 			// Create an array of all the categories that are attached to posts.
 			$all_the_cool_cats = get_categories(
 				array(
@@ -226,10 +228,10 @@ if ( ! function_exists( 'twentysixteen_categorized_blog' ) ) :
 		}
 
 		if ( $all_the_cool_cats > 1 || is_preview() ) {
-			// This blog has more than 1 category so twentysixteen_categorized_blog should return true.
+			// This blog has more than 1 category so twentysixteen_categorized_blog() should return true.
 			return true;
 		} else {
-			// This blog has only 1 category so twentysixteen_categorized_blog should return false.
+			// This blog has only 1 category so twentysixteen_categorized_blog() should return false.
 			return false;
 		}
 	}
@@ -262,5 +264,23 @@ if ( ! function_exists( 'twentysixteen_the_custom_logo' ) ) :
 		if ( function_exists( 'the_custom_logo' ) ) {
 			the_custom_logo();
 		}
+	}
+endif;
+
+if ( ! function_exists( 'wp_body_open' ) ) :
+	/**
+	 * Fire the wp_body_open action.
+	 *
+	 * Added for backward compatibility to support pre-5.2.0 WordPress versions.
+	 *
+	 * @since Twenty Sixteen 2.0
+	 */
+	function wp_body_open() {
+		/**
+		 * Triggered after the opening <body> tag.
+		 *
+		 * @since Twenty Sixteen 2.0
+		 */
+		do_action( 'wp_body_open' );
 	}
 endif;

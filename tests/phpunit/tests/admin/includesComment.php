@@ -24,7 +24,7 @@ class Tests_Admin_IncludesComment extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 
 		self::$comment_ids[] = $factory->comment->create(

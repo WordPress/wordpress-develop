@@ -9,7 +9,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'attachment' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -26,7 +28,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'attachment:image' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -43,7 +47,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'attachment:image/jpeg' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -60,7 +66,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', 'attachment:jpg' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -77,7 +85,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax', array( 'attachment', 'attachment:image/jpeg' ) );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -97,7 +107,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax2', 'attachment:image' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -119,7 +131,9 @@ class Tests_Media_GetAttachmentTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax2', array( 'attachment:image', 'attachment:image/jpeg' ) );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)

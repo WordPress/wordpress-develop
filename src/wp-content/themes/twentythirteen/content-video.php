@@ -21,9 +21,9 @@
 
 	<div class="entry-content">
 		<?php
-			/* translators: %s: Name of current post */
 			the_content(
 				sprintf(
+					/* translators: %s: Post title. */
 					__( 'Continue reading %s <span class="meta-nav">&rarr;</span>', 'twentythirteen' ),
 					the_title( '<span class="screen-reader-text">', '</span>', false )
 				)
@@ -37,7 +37,7 @@
 					'link_after'  => '</span>',
 				)
 			);
-		?>
+			?>
 	</div><!-- .entry-content -->
 
 	<footer class="entry-meta">

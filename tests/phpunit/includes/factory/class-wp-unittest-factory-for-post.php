@@ -12,7 +12,7 @@
  */
 class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 
-	function __construct( $factory = null ) {
+	public function __construct( $factory = null ) {
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
 			'post_status'  => 'publish',
@@ -23,16 +23,38 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 		);
 	}
 
-	function create_object( $args ) {
+	/**
+	 * Creates a post object.
+	 *
+	 * @param array $args Array with elements for the post.
+	 *
+	 * @return int The post ID on success. The value 0 on failure.
+	 */
+	public function create_object( $args ) {
 		return wp_insert_post( $args );
 	}
 
-	function update_object( $post_id, $fields ) {
+	/**
+	 * Updates an existing post object.
+	 *
+	 * @param int   $post_id ID of the post to update.
+	 * @param array $fields  Post data.
+	 *
+	 * @return int The post ID on success. The value 0 on failure.
+	 */
+	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
 		return wp_update_post( $fields );
 	}
 
-	function get_object_by_id( $post_id ) {
+	/**
+	 * Retrieves a post by a given ID.
+	 *
+	 * @param int $post_id ID of the post to retrieve.
+	 *
+	 * @return WP_Post|null WP_Post object on success, null on failure.
+	 */
+	public function get_object_by_id( $post_id ) {
 		return get_post( $post_id );
 	}
 }

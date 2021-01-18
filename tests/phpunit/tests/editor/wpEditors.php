@@ -10,7 +10,8 @@ if ( ! class_exists( '_WP_Editors', false ) ) {
 class Tests_WP_Editors extends WP_UnitTestCase {
 	public function wp_link_query_callback( $results ) {
 		return array_merge(
-			$results, array(
+			$results,
+			array(
 				array(
 					'ID'        => 123,
 					'title'     => 'foo',
@@ -31,7 +32,7 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 		$post   = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
 		$actual = _WP_Editors::wp_link_query( array( 's' => $post->post_title ) );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				array(
 					'ID'        => $post->ID,
@@ -39,7 +40,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => get_permalink( $post->ID ),
 					'info'      => mysql2date( __( 'Y/m/d' ), $post->post_date ),
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 
@@ -51,7 +53,7 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 		$actual = _WP_Editors::wp_link_query( array( 's' => 'foobarbaz' ) );
 		remove_filter( 'wp_link_query', array( $this, 'wp_link_query_callback' ) );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				array(
 					'ID'        => 123,
@@ -59,7 +61,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => 'bar',
 					'info'      => 'baz',
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 
@@ -70,7 +73,7 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 		$actual = _WP_Editors::wp_link_query( array( 's' => $post->post_title ) );
 		remove_filter( 'wp_link_query', array( $this, 'wp_link_query_callback' ) );
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				array(
 					'ID'        => $post->ID,
@@ -84,7 +87,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 					'permalink' => 'bar',
 					'info'      => 'baz',
 				),
-			), $actual
+			),
+			$actual
 		);
 	}
 }

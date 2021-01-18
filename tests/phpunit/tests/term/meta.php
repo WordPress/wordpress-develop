@@ -6,6 +6,13 @@
  * @ticket 10142
  */
 class Tests_Term_Meta extends WP_UnitTestCase {
+
+	private $last_register_meta_call = array(
+		'object_type' => '',
+		'meta_key'    => '',
+		'args'        => array(),
+	);
+
 	public function setUp() {
 		parent::setUp();
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -59,7 +66,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			'foo1' => array( 'baz' ),
 		);
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_with_key_should_fetch_all_for_key() {
@@ -71,7 +78,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$found    = get_term_meta( $t, 'foo' );
 		$expected = array( 'bar', 'baz' );
 
-		$this->assertEqualSets( $expected, $found );
+		$this->assertSameSets( $expected, $found );
 	}
 
 	public function test_get_should_respect_single_true() {
@@ -80,7 +87,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		add_term_meta( $t, 'foo', 'baz' );
 
 		$found = get_term_meta( $t, 'foo', true );
-		$this->assertEquals( 'bar', $found );
+		$this->assertSame( 'bar', $found );
 	}
 
 	public function test_update_should_pass_to_add_when_no_value_exists_for_key() {
@@ -108,6 +115,9 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 	public function test_term_meta_should_be_lazy_loaded_for_all_terms_in_wp_query_loop() {
 		global $wpdb;
+
+		// Clear any previous term IDs from the queue.
+		wp_metadata_lazyloader()->reset_queue( 'term' );
 
 		$p = self::factory()->post->create( array( 'post_status' => 'publish' ) );
 
@@ -148,6 +158,10 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 				$this->assertSame( $num_queries, $wpdb->num_queries );
 			}
 		}
+	}
+
+	public static function set_cache_results( $q ) {
+		$q->set( 'cache_results', true );
 	}
 
 	/**
@@ -218,7 +232,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -230,12 +245,13 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		add_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -247,7 +263,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_updating_term_meta_should_bust_get_terms_cache() {
@@ -258,7 +274,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -270,12 +287,13 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		update_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -287,7 +305,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 	}
 
 	public function test_deleting_term_meta_should_bust_get_terms_cache() {
@@ -298,7 +316,8 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		// Prime cache.
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -310,12 +329,13 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[0], $terms[1] ), $found );
 
 		delete_term_meta( $terms[1], 'foo', 'bar' );
 
 		$found = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'hide_empty' => false,
 				'fields'     => 'ids',
 				'meta_query' => array(
@@ -327,7 +347,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 	}
 
 	/**
@@ -460,7 +480,122 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$this->assertSame( array(), $meta );
 	}
 
-	public static function set_cache_results( $q ) {
-		$q->set( 'cache_results', true );
+	/**
+	 * @ticket 38323
+	 * @dataProvider data_register_term_meta
+	 */
+	public function test_register_term_meta( $taxonomy, $meta_key, $args ) {
+		add_filter( 'register_meta_args', array( $this, 'filter_register_meta_args_set_last_register_meta_call' ), 10, 4 );
+
+		register_term_meta( $taxonomy, $meta_key, $args );
+
+		$args['object_subtype'] = $taxonomy;
+
+		// Reset global so subsequent data tests do not get polluted.
+		$GLOBALS['wp_meta_keys'] = array();
+
+		$this->assertSame( 'term', $this->last_register_meta_call['object_type'] );
+		$this->assertSame( $meta_key, $this->last_register_meta_call['meta_key'] );
+		$this->assertSame( $args, $this->last_register_meta_call['args'] );
+	}
+
+	public function data_register_term_meta() {
+		return array(
+			array( 'wptests_tax', 'registered_key1', array( 'single' => true ) ),
+			array( 'category', 'registered_key2', array() ),
+			array( '', 'registered_key3', array( 'sanitize_callback' => 'absint' ) ),
+		);
+	}
+
+	public function filter_register_meta_args_set_last_register_meta_call( $args, $defaults, $object_type, $meta_key ) {
+		$this->last_register_meta_call['object_type'] = $object_type;
+		$this->last_register_meta_call['meta_key']    = $meta_key;
+		$this->last_register_meta_call['args']        = $args;
+
+		return $args;
+	}
+
+	/**
+	 * @ticket 38323
+	 * @dataProvider data_unregister_term_meta
+	 */
+	public function test_unregister_term_meta( $taxonomy, $meta_key ) {
+		global $wp_meta_keys;
+
+		register_term_meta( $taxonomy, $meta_key, array() );
+		unregister_term_meta( $taxonomy, $meta_key );
+
+		$actual = $wp_meta_keys;
+
+		// Reset global so subsequent data tests do not get polluted.
+		$wp_meta_keys = array();
+
+		$this->assertEmpty( $actual );
+	}
+
+	public function data_unregister_term_meta() {
+		return array(
+			array( 'wptests_tax', 'registered_key1' ),
+			array( 'category', 'registered_key2' ),
+			array( '', 'registered_key3' ),
+		);
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_add_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertInternalType( 'integer', add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_update_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertInternalType( 'integer', update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_delete_metadata_sets_terms_last_changed() {
+		$term_id = self::factory()->term->create();
+
+		update_metadata( 'term', $term_id, 'foo', 'bar' );
+		wp_cache_delete( 'last_changed', 'terms' );
+
+		$this->assertTrue( delete_metadata( 'term', $term_id, 'foo' ) );
+		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
+	}
+
+	/**
+	 * @ticket 44467
+	 */
+	public function test_metadata_functions_respect_term_meta_support() {
+		$term_id = self::factory()->term->create();
+
+		$meta_id = add_metadata( 'term', $term_id, 'foo', 'bar' );
+
+		// Set database version to last version before term meta support.
+		update_option( 'db_version', 34369 );
+
+		$this->assertFalse( get_metadata( 'term', $term_id, 'foo', true ) );
+		$this->assertFalse( add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertFalse( update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertFalse( delete_metadata( 'term', $term_id, 'foo' ) );
+		$this->assertFalse( get_metadata_by_mid( 'term', $meta_id ) );
+		$this->assertFalse( update_metadata_by_mid( 'term', $meta_id, 'baz' ) );
+		$this->assertFalse( delete_metadata_by_mid( 'term', $meta_id ) );
+		$this->assertFalse( update_meta_cache( 'term', array( $term_id ) ) );
 	}
 }

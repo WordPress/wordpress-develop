@@ -22,7 +22,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_2 ), $q->terms );
+		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
 	public function test_taxonomy_should_accept_taxonomy_array() {
@@ -40,7 +40,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $term_2 ), $q->terms );
+		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
 	/**
@@ -68,7 +68,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0] ), $q->terms );
+		$this->assertSameSets( array( $terms[0] ), $q->terms );
 	}
 
 	/**
@@ -102,7 +102,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $terms[0], $terms[2] ), $q->terms );
+		$this->assertSameSets( array( $terms[0], $terms[2] ), $q->terms );
 	}
 
 	/**
@@ -243,7 +243,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t ), $query->terms );
+		$this->assertSameSets( array( $t ), $query->terms );
 	}
 
 	/**
@@ -265,7 +265,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSets( array( $t ), $query->terms );
+		$this->assertSameSets( array( $t ), $query->terms );
 	}
 
 	/**
@@ -319,6 +319,41 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44221
+	 */
+	public function test_all_with_object_id_should_return_term_objects() {
+		register_taxonomy( 'wptests_tax_1', 'post' );
+		$posts = self::factory()->post->create_many( 2 );
+		$t     = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax_1' ) );
+
+		foreach ( $posts as $p ) {
+			wp_set_object_terms( $p, array( $t ), 'wptests_tax_1' );
+		}
+
+		$query = new WP_Term_Query();
+		$args  = array(
+			'taxonomy'   => 'wptests_tax_1',
+			'object_ids' => $posts,
+			'fields'     => 'all_with_object_id',
+		);
+
+		$terms = $query->query( $args );
+		$this->assertNotEmpty( $terms );
+		foreach ( $terms as $term ) {
+			$this->assertInstanceOf( 'WP_Term', $term );
+			$this->assertObjectHasAttribute( 'object_id', $term );
+		}
+
+		// Run again to check the cached response.
+		$terms = $query->query( $args );
+		$this->assertNotEmpty( $terms );
+		foreach ( $terms as $term ) {
+			$this->assertInstanceOf( 'WP_Term', $term );
+			$this->assertObjectHasAttribute( 'object_id', $term );
+		}
+	}
+
+	/**
 	 * @ticket 37198
 	 * @group cache
 	 */
@@ -339,7 +374,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$found = $query->get_terms();
 
-		$this->assertEqualSets( array( $terms[0] ), $found );
+		$this->assertSameSets( array( $terms[0] ), $found );
 
 		wp_set_object_terms( $p, array( $terms[1] ), 'wptests_tax_1' );
 
@@ -352,7 +387,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		);
 		$found = $query->get_terms();
 
-		$this->assertEqualSets( array( $terms[1] ), $found );
+		$this->assertSameSets( array( $terms[1] ), $found );
 	}
 
 	/**
@@ -427,7 +462,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 */
 	public function test_get_the_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'sort' => true,
 				'args' => array(
 					'orderby' => 'term_order',
@@ -435,18 +472,19 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$term_ids = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 		$post_id  = self::factory()->post->create();
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
-		$this->assertEquals( array( $term_ids[0], $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
-		// Flip the order
+		$this->assertSame( array( $term_ids[0], $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
+		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = get_the_terms( $post_id, 'wptests_tax' );
-		$this->assertEquals( array( $term_ids[1], $term_ids[0] ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[1], $term_ids[0] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
 	/**
@@ -454,7 +492,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 */
 	public function test_wp_get_object_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
-			'wptests_tax', 'post', array(
+			'wptests_tax',
+			'post',
+			array(
 				'sort' => true,
 				'args' => array(
 					'orderby' => 'term_order',
@@ -462,18 +502,19 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$term_ids = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
 		$post_id  = self::factory()->post->create();
 		wp_set_object_terms( $post_id, array( $term_ids[0], $term_ids[1] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
-		$this->assertEquals( array( $term_ids[0], $term_ids[1], 1 ), wp_list_pluck( $terms, 'term_id' ) );
-		// Flip the order
+		$this->assertSame( array( $term_ids[0], $term_ids[1], 1 ), wp_list_pluck( $terms, 'term_id' ) );
+		// Flip the order.
 		wp_set_object_terms( $post_id, array( $term_ids[1], $term_ids[0] ), 'wptests_tax' );
 		$terms = wp_get_object_terms( $post_id, array( 'category', 'wptests_tax' ) );
-		$this->assertEquals( array( $term_ids[1], $term_ids[0], 1 ), wp_list_pluck( $terms, 'term_id' ) );
+		$this->assertSame( array( $term_ids[1], $term_ids[0], 1 ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
 	/**
@@ -506,14 +547,18 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		wp_set_object_terms( $p, array( $t1, $t2 ), 'wptests_tax' );
 
 		$expected = wp_get_post_terms(
-			$p, 'wptests_tax', array(
+			$p,
+			'wptests_tax',
+			array(
 				'fields' => 'ids',
 			)
 		);
 
 		$found1 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>parent',
 				)
 			)
@@ -521,7 +566,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$found2 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>slug',
 				)
 			)
@@ -529,7 +576,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 		$found3 = array_keys(
 			wp_get_object_terms(
-				$p, 'wptests_tax', array(
+				$p,
+				'wptests_tax',
+				array(
 					'fields' => 'id=>name',
 				)
 			)
@@ -613,5 +662,188 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( array(), $q->terms );
+	}
+
+	/**
+	 * @ticket 42691
+	 */
+	public function test_null_term_object_should_be_discarded() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->term_id = $terms[1];
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_null' ) );
+
+		$expected = array( $terms[0], $terms[2] );
+
+		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+	}
+
+	public function filter_term_to_null( $term ) {
+		if ( $this->term_id === $term->term_id ) {
+			return null;
+		}
+
+		return $term;
+	}
+
+	/**
+	 * @ticket 42691
+	 */
+	public function test_error_term_object_should_be_discarded() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$terms = self::factory()->term->create_many(
+			3,
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$this->term_id = $terms[1];
+
+		add_filter( 'get_term', array( $this, 'filter_term_to_wp_error' ) );
+		$found = get_terms(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => false,
+			)
+		);
+		remove_filter( 'get_term', array( $this, 'filter_term_to_wp_error' ) );
+
+		$expected = array( $terms[0], $terms[2] );
+
+		$this->assertSameSets( $expected, wp_list_pluck( $found, 'term_id' ) );
+	}
+
+	public function filter_term_to_wp_error( $term ) {
+		if ( $this->term_id === $term->term_id ) {
+			return new WP_Error( 'foo' );
+		}
+
+		return $term;
+	}
+
+	/**
+	 * @ticket 41246
+	 */
+	public function test_terms_pre_query_filter_should_bypass_database_query() {
+		global $wpdb;
+
+		add_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		$num_queries = $wpdb->num_queries;
+
+		$q       = new WP_Term_Query();
+		$results = $q->query(
+			array(
+				'fields' => 'ids',
+			)
+		);
+
+		remove_filter( 'terms_pre_query', array( __CLASS__, 'filter_terms_pre_query' ), 10, 2 );
+
+		// Make sure no queries were executed.
+		$this->assertSame( $num_queries, $wpdb->num_queries );
+
+		// We manually inserted a non-existing term and overrode the results with it.
+		$this->assertSame( array( 555 ), $q->terms );
+	}
+
+	public static function filter_terms_pre_query( $terms, $query ) {
+		return array( 555 );
+	}
+
+	/**
+	 * @ticket 37728
+	 */
+	public function test_hide_empty_should_include_empty_parents_of_nonempty_children() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$p = self::factory()->post->create();
+
+		wp_set_object_terms( $p, $t2, 'wptests_tax' );
+
+		$q = new WP_Term_Query(
+			array(
+				'taxonomy'   => 'wptests_tax',
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $t1, $q->terms );
+	}
+
+	/**
+	 * @ticket 37728
+	 */
+	public function test_hide_empty_should_include_empty_parents_of_nonempty_children_when_category_is_unspecified() {
+		register_taxonomy(
+			'wptests_tax',
+			'post',
+			array(
+				'hierarchical' => true,
+			)
+		);
+
+		$t1 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+			)
+		);
+
+		$t2 = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'parent'   => $t1,
+			)
+		);
+
+		$p = self::factory()->post->create();
+
+		wp_set_object_terms( $p, $t2, 'wptests_tax' );
+
+		$q = new WP_Term_Query(
+			array(
+				'hide_empty' => true,
+				'fields'     => 'ids',
+			)
+		);
+
+		$this->assertContains( $t1, $q->terms );
 	}
 }

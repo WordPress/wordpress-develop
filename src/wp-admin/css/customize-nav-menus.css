@@ -37,7 +37,7 @@
 .customize-control-nav_menu_location .create-menu {
 	margin-left: 6px;
 	vertical-align: middle;
-	line-height: 28px;
+	line-height: 2.2;
 }
 
 #customize-controls .customize-control-nav_menu_name {
@@ -65,6 +65,7 @@
 
 .wp-customizer .menu-item-bar .menu-item-handle {
 	width: 100%;
+	max-width: 100%;
 	background: #fff;
 }
 
@@ -269,7 +270,8 @@
 
 .customize-screen-options-toggle:focus,
 #customize-controls .customize-info .customize-help-toggle:focus {
-	outline: none;
+	/* Only visible in Windows High Contrast mode */
+	outline: 1px solid transparent;
 }
 
 .customize-screen-options-toggle:before {
@@ -321,7 +323,7 @@
 	content: "\f140";
 	display: block;
 	padding: 1px 2px 1px 0px;
-	speak: none;
+	speak: never;
 	border-radius: 50%;
 	color: #72777c;
 	font: normal 20px/1 dashicons;
@@ -473,10 +475,6 @@
 	font: normal 20px/1 dashicons;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-.ie8 .menu-item-bar .item-delete:before {
-	top: -10px;
 }
 
 .menu-item-bar .item-delete:hover,
@@ -794,7 +792,7 @@ body.adding-menu-items #customize-preview iframe {
 }
 
 #accordion-section-add_menu .customize-add-menu-button {
-	font-weight: normal;
+	font-weight: 400;
 }
 
 #create-new-menu-submit {
@@ -870,17 +868,17 @@ li.assigned-to-menu-location .add-new-menu-item {
 #available-menu-items .item-add:focus:before {
 	box-shadow:
 		0 0 0 1px #5b9dd9,
-		0 0 2px 1px rgba(30, 140, 190, .8);
+		0 0 2px 1px rgba(30, 140, 190, 0.8);
 }
 
 
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	#available-menu-items #available-menu-items-search .accordion-section-content {
 		top: 63px;
 	}
 }
 
-@media screen and ( max-width: 640px ) {
+@media screen and (max-width: 640px) {
 	#available-menu-items #available-menu-items-search .accordion-section-content {
 		top: 130px;
 	}

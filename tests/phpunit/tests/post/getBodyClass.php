@@ -187,7 +187,9 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create();
 
 		$attachment_id = self::factory()->attachment->create_object(
-			'image.jpg', $post_id, array(
+			'image.jpg',
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
@@ -200,4 +202,60 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 		$this->assertContains( "attachmentid-{$attachment_id}", $class );
 		$this->assertContains( 'attachment-jpeg', $class );
 	}
+
+	/**
+	 * @ticket 38168
+	 */
+	public function test_custom_background_class_is_added_when_theme_supports_it() {
+		add_theme_support( 'custom-background', array( 'default-color', '#ffffff' ) );
+		set_theme_mod( 'background_color', '#000000' );
+
+		$class                     = get_body_class();
+		$theme_supports_background = current_theme_supports( 'custom-background' );
+
+		remove_theme_mod( 'background_color' );
+		remove_theme_support( 'custom-background' );
+
+		$this->assertTrue( $theme_supports_background );
+		$this->assertContains( 'custom-background', $class );
+	}
+
+	/**
+	 * @ticket 38168
+	 */
+	public function test_custom_background_class_is_not_added_when_theme_support_is_missing() {
+		set_theme_mod( 'background_color', '#000000' );
+
+		$class                     = get_body_class();
+		$theme_supports_background = current_theme_supports( 'custom-background' );
+
+		remove_theme_mod( 'background_color' );
+
+		$this->assertFalse( $theme_supports_background );
+		$this->assertNotContains( 'custom-background', $class );
+	}
+
+	/**
+	 * @ticket 44005
+	 * @group privacy
+	 */
+	public function test_privacy_policy_body_class() {
+		$page_id = self::factory()->post->create(
+			array(
+				'post_type'  => 'page',
+				'post_title' => 'Privacy Policy',
+			)
+		);
+		update_option( 'wp_page_for_privacy_policy', $page_id );
+
+		$this->go_to( get_permalink( $page_id ) );
+
+		$class = get_body_class();
+
+		$this->assertContains( 'privacy-policy', $class );
+		$this->assertContains( 'page-template-default', $class );
+		$this->assertContains( 'page', $class );
+		$this->assertContains( "page-id-{$page_id}", $class );
+	}
+
 }

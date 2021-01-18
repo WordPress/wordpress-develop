@@ -45,9 +45,13 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 * @since 4.1.0
 	 * @since 4.2.0 Moved from WP_Customize_Upload_Control.
 	 *
+	 * @see WP_Customize_Control::__construct()
+	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
 	 * @param string               $id      Control ID.
 	 * @param array                $args    Optional. Arguments to override class property defaults.
+	 *                                      See WP_Customize_Control::__construct() for information
+	 *                                      on accepted arguments. Default empty array.
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		parent::__construct( $manager, $id, $args );
@@ -86,13 +90,15 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			if ( $this->setting->default ) {
 				// Fake an attachment model - needs all fields used by template.
 				// Note that the default value must be a URL, NOT an attachment ID.
-				$type               = in_array( substr( $this->setting->default, -3 ), array( 'jpg', 'png', 'gif', 'bmp' ) ) ? 'image' : 'document';
+				$ext  = substr( $this->setting->default, -3 );
+				$type = in_array( $ext, array( 'jpg', 'png', 'gif', 'bmp' ), true ) ? 'image' : 'document';
+
 				$default_attachment = array(
 					'id'    => 1,
 					'url'   => $this->setting->default,
 					'type'  => $type,
 					'icon'  => wp_mime_type_icon( $type ),
-					'title' => basename( $this->setting->default ),
+					'title' => wp_basename( $this->setting->default ),
 				);
 
 				if ( 'image' === $type ) {
@@ -132,12 +138,11 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	public function content_template() {
 		?>
 		<#
-		var selectButtonId = _.uniqueId( 'customize-media-control-button-' );
 		var descriptionId = _.uniqueId( 'customize-media-control-description-' );
 		var describedByAttr = data.description ? ' aria-describedby="' + descriptionId + '" ' : '';
 		#>
 		<# if ( data.label ) { #>
-			<label class="customize-control-title" for="{{ selectButtonId }}">{{ data.label }}</label>
+			<span class="customize-control-title">{{ data.label }}</span>
 		<# } #>
 		<div class="customize-control-notifications-container"></div>
 		<# if ( data.description ) { #>
@@ -182,21 +187,18 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 				<div class="actions">
 					<# if ( data.canUpload ) { #>
 					<button type="button" class="button remove-button">{{ data.button_labels.remove }}</button>
-					<button type="button" class="button upload-button control-focus" id="{{ selectButtonId }}" {{{ describedByAttr }}}>{{ data.button_labels.change }}</button>
+					<button type="button" class="button upload-button control-focus" {{{ describedByAttr }}}>{{ data.button_labels.change }}</button>
 					<# } #>
 				</div>
 			</div>
 		<# } else { #>
 			<div class="attachment-media-view">
-				<div class="placeholder">
-						{{ data.button_labels.placeholder }}
-				</div>
+				<# if ( data.canUpload ) { #>
+					<button type="button" class="upload-button button-add-media" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
+				<# } #>
 				<div class="actions">
 					<# if ( data.defaultAttachment ) { #>
 						<button type="button" class="button default-button">{{ data.button_labels['default'] }}</button>
-					<# } #>
-					<# if ( data.canUpload ) { #>
-					<button type="button" class="button upload-button" id="{{ selectButtonId }}" {{{ describedByAttr }}}>{{ data.button_labels.select }}</button>
 					<# } #>
 				</div>
 			</div>
@@ -211,7 +213,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @return array An associative array of default button labels.
+	 * @return string[] An associative array of default button labels keyed by the button name.
 	 */
 	public function get_default_button_labels() {
 		// Get just the mime type and strip the mime subtype if present.
@@ -241,6 +243,7 @@ class WP_Customize_Media_Control extends WP_Customize_Control {
 			case 'image':
 				return array(
 					'select'       => __( 'Select image' ),
+					'site_icon'    => __( 'Select site icon' ),
 					'change'       => __( 'Change image' ),
 					'default'      => __( 'Default' ),
 					'remove'       => __( 'Remove' ),

@@ -20,6 +20,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 
 	public function add_strings() {
 		parent::add_strings();
+		/* translators: 1: Theme name, 2: Number of the theme, 3: Total number of themes being updated. */
 		$this->upgrader->strings['skin_before_update_header'] = __( 'Updating Theme %1$s (%2$d/%3$d)' );
 	}
 
@@ -42,10 +43,20 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 	 */
 	public function bulk_footer() {
 		parent::bulk_footer();
+
 		$update_actions = array(
-			'themes_page'  => '<a href="' . self_admin_url( 'themes.php' ) . '" target="_parent">' . __( 'Return to Themes page' ) . '</a>',
-			'updates_page' => '<a href="' . self_admin_url( 'update-core.php' ) . '" target="_parent">' . __( 'Return to WordPress Updates page' ) . '</a>',
+			'themes_page'  => sprintf(
+				'<a href="%s" target="_parent">%s</a>',
+				self_admin_url( 'themes.php' ),
+				__( 'Go to Themes page' )
+			),
+			'updates_page' => sprintf(
+				'<a href="%s" target="_parent">%s</a>',
+				self_admin_url( 'update-core.php' ),
+				__( 'Go to WordPress Updates page' )
+			),
 		);
+
 		if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_options' ) ) {
 			unset( $update_actions['themes_page'] );
 		}
@@ -55,7 +66,7 @@ class Bulk_Theme_Upgrader_Skin extends Bulk_Upgrader_Skin {
 		 *
 		 * @since 3.0.0
 		 *
-		 * @param array    $update_actions Array of theme action links.
+		 * @param string[] $update_actions Array of theme action links.
 		 * @param WP_Theme $theme_info     Theme object for the last-updated theme.
 		 */
 		$update_actions = apply_filters( 'update_bulk_theme_complete_actions', $update_actions, $this->theme_info );

@@ -11,14 +11,14 @@
  * functions.php file. The child theme's functions.php file is included before
  * the parent theme's file, so the child theme functions would be used.
  *
- * @link https://codex.wordpress.org/Theme_Development
- * @link https://codex.wordpress.org/Child_Themes
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ * @link https://developer.wordpress.org/themes/advanced-topics/child-themes/
  *
  * Functions that are not pluggable (not wrapped in function_exists()) are
  * instead attached to a filter or action hook.
  *
  * For more information on hooks, actions, and filters,
- * @link https://codex.wordpress.org/Plugin_API
+ * @link https://developer.wordpress.org/plugins/
  *
  * @package WordPress
  * @subpackage Twenty_Fourteen
@@ -70,6 +70,52 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// This theme styles the visual editor to resemble the theme style.
 		add_editor_style( array( 'css/editor-style.css', twentyfourteen_font_url(), 'genericons/genericons.css' ) );
 
+		// Load regular editor styles into the new block-based editor.
+		add_theme_support( 'editor-styles' );
+
+		// Load default block styles.
+		add_theme_support( 'wp-block-styles' );
+
+		// Add support for responsive embeds.
+		add_theme_support( 'responsive-embeds' );
+
+		// Add support for custom color scheme.
+		add_theme_support(
+			'editor-color-palette',
+			array(
+				array(
+					'name'  => __( 'Green', 'twentyfourteen' ),
+					'slug'  => 'green',
+					'color' => '#24890d',
+				),
+				array(
+					'name'  => __( 'Black', 'twentyfourteen' ),
+					'slug'  => 'black',
+					'color' => '#000',
+				),
+				array(
+					'name'  => __( 'Dark Gray', 'twentyfourteen' ),
+					'slug'  => 'dark-gray',
+					'color' => '#2b2b2b',
+				),
+				array(
+					'name'  => __( 'Medium Gray', 'twentyfourteen' ),
+					'slug'  => 'medium-gray',
+					'color' => '#767676',
+				),
+				array(
+					'name'  => __( 'Light Gray', 'twentyfourteen' ),
+					'slug'  => 'light-gray',
+					'color' => '#f5f5f5',
+				),
+				array(
+					'name'  => __( 'White', 'twentyfourteen' ),
+					'slug'  => 'white',
+					'color' => '#fff',
+				),
+			)
+		);
+
 		// Add RSS feed links to <head> for posts and comments.
 		add_theme_support( 'automatic-feed-links' );
 
@@ -91,21 +137,26 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		 * to output valid HTML5.
 		 */
 		add_theme_support(
-			'html5', array(
+			'html5',
+			array(
 				'search-form',
 				'comment-form',
 				'comment-list',
 				'gallery',
 				'caption',
+				'script',
+				'style',
+				'navigation-widgets',
 			)
 		);
 
 		/*
 		 * Enable support for Post Formats.
-		 * See https://codex.wordpress.org/Post_Formats
+		 * See https://wordpress.org/support/article/post-formats/
 		 */
 		add_theme_support(
-			'post-formats', array(
+			'post-formats',
+			array(
 				'aside',
 				'image',
 				'video',
@@ -118,8 +169,21 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		// This theme allows users to set a custom background.
 		add_theme_support(
-			'custom-background', apply_filters(
-				'twentyfourteen_custom_background_args', array(
+			'custom-background',
+			/**
+			 * Filters Twenty Fourteen custom-background support arguments.
+			 *
+			 * @since Twenty Fourteen 1.0
+			 *
+			 * @param array $args {
+			 *     An array of custom-background support arguments.
+			 *
+			 *     @type string $default-color Default color of the background.
+			 * }
+			 */
+			apply_filters(
+				'twentyfourteen_custom_background_args',
+				array(
 					'default-color' => 'f5f5f5',
 				)
 			)
@@ -127,7 +191,8 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 
 		// Add support for featured content.
 		add_theme_support(
-			'featured-content', array(
+			'featured-content',
+			array(
 				'featured_content_filter' => 'twentyfourteen_get_featured_posts',
 				'max_posts'               => 6,
 			)
@@ -139,7 +204,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		// Indicate widget sidebars can use selective refresh in the Customizer.
 		add_theme_support( 'customize-selective-refresh-widgets' );
 	}
-endif; // twentyfourteen_setup
+endif; // twentyfourteen_setup()
 add_action( 'after_setup_theme', 'twentyfourteen_setup' );
 
 /**
@@ -163,7 +228,7 @@ add_action( 'template_redirect', 'twentyfourteen_content_width' );
  */
 function twentyfourteen_get_featured_posts() {
 	/**
-	 * Filter the featured posts to return in Twenty Fourteen.
+	 * Filters the featured posts to return in Twenty Fourteen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -238,13 +303,14 @@ add_action( 'widgets_init', 'twentyfourteen_widgets_init' );
 function twentyfourteen_font_url() {
 	$font_url = '';
 	/*
-	 * Translators: If there are characters in your language that are not supported
+	 * translators: If there are characters in your language that are not supported
 	 * by Lato, translate this to 'off'. Do not translate into your own language.
 	 */
 	if ( 'off' !== _x( 'on', 'Lato font: on or off', 'twentyfourteen' ) ) {
 		$query_args = array(
-			'family' => urlencode( 'Lato:300,400,700,900,300italic,400italic,700italic' ),
-			'subset' => urlencode( 'latin,latin-ext' ),
+			'family'  => urlencode( 'Lato:300,400,700,900,300italic,400italic,700italic' ),
+			'subset'  => urlencode( 'latin,latin-ext' ),
+			'display' => urlencode( 'fallback' ),
 		);
 		$font_url   = add_query_arg( $query_args, 'https://fonts.googleapis.com/css' );
 	}
@@ -265,10 +331,13 @@ function twentyfourteen_scripts() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri() );
+	wp_enqueue_style( 'twentyfourteen-style', get_stylesheet_uri(), array(), '20190507' );
+
+	// Theme block stylesheet.
+	wp_enqueue_style( 'twentyfourteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfourteen-style' ), '20190102' );
 
 	// Load the Internet Explorer specific stylesheet.
-	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20131205' );
+	wp_enqueue_style( 'twentyfourteen-ie', get_template_directory_uri() . '/css/ie.css', array( 'twentyfourteen-style' ), '20140701' );
 	wp_style_add_data( 'twentyfourteen-ie', 'conditional', 'lt IE 9' );
 
 	if ( is_singular() && comments_open() && get_option( 'thread_comments' ) ) {
@@ -276,24 +345,26 @@ function twentyfourteen_scripts() {
 	}
 
 	if ( is_singular() && wp_attachment_is_image() ) {
-		wp_enqueue_script( 'twentyfourteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20130402' );
+		wp_enqueue_script( 'twentyfourteen-keyboard-image-navigation', get_template_directory_uri() . '/js/keyboard-image-navigation.js', array( 'jquery' ), '20150120' );
 	}
 
 	if ( is_active_sidebar( 'sidebar-3' ) ) {
 		wp_enqueue_script( 'jquery-masonry' );
 	}
 
-	if ( is_front_page() && 'slider' == get_theme_mod( 'featured_content_layout' ) ) {
-		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20131205', true );
+	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
+		wp_enqueue_script( 'twentyfourteen-slider', get_template_directory_uri() . '/js/slider.js', array( 'jquery' ), '20150120', true );
 		wp_localize_script(
-			'twentyfourteen-slider', 'featuredSliderDefaults', array(
+			'twentyfourteen-slider',
+			'featuredSliderDefaults',
+			array(
 				'prevText' => __( 'Previous', 'twentyfourteen' ),
 				'nextText' => __( 'Next', 'twentyfourteen' ),
 			)
 		);
 	}
 
-	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20150315', true );
+	wp_enqueue_script( 'twentyfourteen-script', get_template_directory_uri() . '/js/functions.js', array( 'jquery' ), '20171218', true );
 }
 add_action( 'wp_enqueue_scripts', 'twentyfourteen_scripts' );
 
@@ -332,6 +403,19 @@ function twentyfourteen_resource_hints( $urls, $relation_type ) {
 }
 add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
 
+/**
+ * Enqueue styles for the block-based editor.
+ *
+ * @since Twenty Fourteen 2.3
+ */
+function twentyfourteen_block_editor_styles() {
+	// Block styles.
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
+	// Add custom fonts.
+	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
+}
+add_action( 'enqueue_block_editor_assets', 'twentyfourteen_block_editor_styles' );
+
 if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	/**
 	 * Print the attached image with a link to the next attached image.
@@ -341,7 +425,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	function twentyfourteen_the_attached_image() {
 		$post = get_post();
 		/**
-		 * Filter the default Twenty Fourteen attachment size.
+		 * Filters the default Twenty Fourteen attachment size.
 		 *
 		 * @since Twenty Fourteen 1.0
 		 *
@@ -383,11 +467,11 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 				}
 			}
 
-			// get the URL of the next image attachment...
 			if ( $next_id ) {
+				// ...get the URL of the next image attachment.
 				$next_attachment_url = get_attachment_link( $next_id );
-			} // or get the URL of the first image attachment.
-			else {
+			} else {
+				// ...or get the URL of the first image attachment.
 				$next_attachment_url = get_attachment_link( reset( $attachment_ids ) );
 			}
 		}
@@ -423,7 +507,7 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 			if ( ! $post_count ) {
 				continue;
 			}
-		?>
+			?>
 
 		<div class="contributor">
 		<div class="contributor-info">
@@ -434,13 +518,16 @@ if ( ! function_exists( 'twentyfourteen_list_authors' ) ) :
 					<?php echo get_the_author_meta( 'description', $contributor_id ); ?>
 				</p>
 				<a class="button contributor-posts-link" href="<?php echo esc_url( get_author_posts_url( $contributor_id ) ); ?>">
-					<?php printf( _n( '%d Article', '%d Articles', $post_count, 'twentyfourteen' ), $post_count ); ?>
+					<?php
+					/* translators: %d: Post count. */
+					printf( _n( '%d Article', '%d Articles', $post_count, 'twentyfourteen' ), $post_count );
+					?>
 				</a>
 			</div><!-- .contributor-summary -->
 		</div><!-- .contributor-info -->
 	</div><!-- .contributor -->
 
-	<?php
+			<?php
 	endforeach;
 	}
 endif;
@@ -469,7 +556,7 @@ function twentyfourteen_body_classes( $classes ) {
 
 	if ( get_header_image() ) {
 		$classes[] = 'header-image';
-	} elseif ( ! in_array( $GLOBALS['pagenow'], array( 'wp-activate.php', 'wp-signup.php' ) ) ) {
+	} elseif ( ! in_array( $GLOBALS['pagenow'], array( 'wp-activate.php', 'wp-signup.php' ), true ) ) {
 		$classes[] = 'masthead-fixed';
 	}
 
@@ -492,7 +579,7 @@ function twentyfourteen_body_classes( $classes ) {
 		$classes[] = 'singular';
 	}
 
-	if ( is_front_page() && 'slider' == get_theme_mod( 'featured_content_layout' ) ) {
+	if ( is_front_page() && 'slider' === get_theme_mod( 'featured_content_layout' ) ) {
 		$classes[] = 'slider';
 	} elseif ( is_front_page() ) {
 		$classes[] = 'grid';
@@ -553,6 +640,7 @@ function twentyfourteen_wp_title( $title, $sep ) {
 
 	// Add a page number if necessary.
 	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
+		/* translators: %s: Page number. */
 		$title = "$title $sep " . sprintf( __( 'Page %s', 'twentyfourteen' ), max( $paged, $page ) );
 	}
 

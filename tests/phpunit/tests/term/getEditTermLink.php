@@ -20,7 +20,7 @@ class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
 
 		$actual   = get_edit_term_link( $term1, 'wptests_tax' );
 		$expected = 'http://' . WP_TESTS_DOMAIN . '/wp-admin/term.php?taxonomy=wptests_tax&tag_ID=' . $term1 . '&post_type=post';
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -74,7 +74,9 @@ class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
 	 */
 	public function test_cap_check_should_use_correct_taxonomy_when_taxonomy_is_not_specified() {
 		register_taxonomy(
-			'wptests_tax_subscriber', 'post', array(
+			'wptests_tax_subscriber',
+			'post',
+			array(
 				'capabilities' => array(
 					'edit_terms' => 'read',
 				),

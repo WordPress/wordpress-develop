@@ -80,7 +80,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'pre_get_document_title', array( $this, '_short_circuit_title' ) );
 
-		$this->assertEquals( 'A Wild Title', wp_get_document_title() );
+		$this->assertSame( 'A Wild Title', wp_get_document_title() );
 	}
 
 	function _short_circuit_title( $title ) {
@@ -90,7 +90,8 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	function test_front_page_title() {
 		update_option( 'show_on_front', 'page' );
 		update_option(
-			'page_on_front', $this->factory->post->create(
+			'page_on_front',
+			$this->factory->post->create(
 				array(
 					'post_title' => 'front-page',
 					'post_type'  => 'page',
@@ -100,12 +101,12 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 		add_filter( 'document_title_parts', array( $this, '_front_page_title_parts' ) );
 
 		$this->go_to( '/' );
-		$this->assertEquals( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
 
 		update_option( 'show_on_front', 'posts' );
 
 		$this->go_to( '/' );
-		$this->assertEquals( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _front_page_title_parts( $parts ) {
@@ -128,7 +129,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		// Show page name on home page if it's not the front page.
 		$this->go_to( get_permalink( $blog_page_id ) );
-		$this->assertEquals( sprintf( 'blog-page &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'blog-page &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_paged_title() {
@@ -136,7 +137,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'document_title_parts', array( $this, '_paged_title_parts' ) );
 
-		$this->assertEquals( sprintf( '%s &#8211; Page 4 &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s &#8211; Page 4 &#8211; Just another WordPress site', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _paged_title_parts( $parts ) {
@@ -153,7 +154,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'document_title_parts', array( $this, '_singular_title_parts' ) );
 
-		$this->assertEquals( sprintf( 'test_title &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_title &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _singular_title_parts( $parts ) {
@@ -167,24 +168,25 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 	function test_category_title() {
 		$this->go_to( '?cat=' . self::$category_id );
 
-		$this->assertEquals( sprintf( 'test_category &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_category &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_search_title() {
 		$this->go_to( '?s=test_title' );
 
-		$this->assertEquals( sprintf( 'Search Results for &#8220;test_title&#8221; &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'Search Results for &#8220;test_title&#8221; &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_author_title() {
 		$this->go_to( '?author=' . self::$author_id );
 
-		$this->assertEquals( sprintf( 'test_author &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_author &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_post_type_archive_title() {
 		register_post_type(
-			'cpt', array(
+			'cpt',
+			array(
 				'public'      => true,
 				'has_archive' => true,
 				'labels'      => array(
@@ -201,31 +203,31 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		$this->go_to( '?post_type=cpt' );
 
-		$this->assertEquals( sprintf( 'test_cpt &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_cpt &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_year_title() {
 		$this->go_to( '?year=2015' );
 
-		$this->assertEquals( sprintf( '2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_month_title() {
 		$this->go_to( '?monthnum=09' );
 
-		$this->assertEquals( sprintf( 'September 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'September 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_day_title() {
 		$this->go_to( '?day=22' );
 
-		$this->assertEquals( sprintf( 'September 22, 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'September 22, 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_404_title() {
 		$this->go_to( '?m=404' );
 
-		$this->assertEquals( sprintf( 'Page not found &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'Page not found &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function test_paged_post_title() {
@@ -233,7 +235,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'title_tag_parts', array( $this, '_paged_post_title_parts' ) );
 
-		$this->assertEquals( sprintf( 'test_title &#8211; Page 4 &#8211; %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_title &#8211; Page 4 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _paged_post_title_parts( $parts ) {
@@ -250,7 +252,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'document_title_parts', array( $this, '_rearrange_title_parts' ) );
 
-		$this->assertEquals( sprintf( '%s &#8211; test_title', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( '%s &#8211; test_title', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _rearrange_title_parts( $parts ) {
@@ -267,7 +269,7 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 
 		add_filter( 'document_title_separator', array( $this, '_change_title_separator' ) );
 
-		$this->assertEquals( sprintf( 'test_title %%%% %s', $this->blog_name ), wp_get_document_title() );
+		$this->assertSame( sprintf( 'test_title %%%% %s', $this->blog_name ), wp_get_document_title() );
 	}
 
 	function _change_title_separator( $sep ) {

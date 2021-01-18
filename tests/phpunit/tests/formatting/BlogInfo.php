@@ -15,20 +15,21 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 		$old_locale = $locale;
 
 		$locale = $test_locale;
-		$this->assertEquals( $expected, get_bloginfo( 'language' ) );
+		$this->assertSame( $expected, get_bloginfo( 'language' ) );
 
 		$locale = $old_locale;
 	}
 
 	function locales() {
 		return array(
-			//     Locale          Language code
+			// Locale, language code.
 			array( 'en_US', 'en-US' ),
 			array( 'ar', 'ar' ),
 			array( 'de_DE', 'de-DE' ),
 			array( 'de_DE_formal', 'de-DE-formal' ),
 			array( 'oci', 'oci' ),
 			array( 'pt_PT_ao1990', 'pt-PT-ao1990' ),
+			array( 'ja_JP', 'ja-JP' ),
 		);
 	}
 
@@ -53,16 +54,16 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 			$sanitized_value = sanitize_option( 'blogname', $value );
 			update_option( 'blogname', $sanitized_value );
 
-			$this->assertEquals( $expected, $sanitized_value );
-			$this->assertEquals( $expected, get_bloginfo( 'name' ) );
-			$this->assertEquals( $expected, get_bloginfo( 'name', 'display' ) );
+			$this->assertSame( $expected, $sanitized_value );
+			$this->assertSame( $expected, get_bloginfo( 'name' ) );
+			$this->assertSame( $expected, get_bloginfo( 'name', 'display' ) );
 
 			$sanitized_value = sanitize_option( 'blogdescription', $value );
 			update_option( 'blogdescription', $sanitized_value );
 
-			$this->assertEquals( $expected, $sanitized_value );
-			$this->assertEquals( $expected, get_bloginfo( 'description' ) );
-			$this->assertEquals( $expected, get_bloginfo( 'description', 'display' ) );
+			$this->assertSame( $expected, $sanitized_value );
+			$this->assertSame( $expected, get_bloginfo( 'description' ) );
+			$this->assertSame( $expected, get_bloginfo( 'description', 'display' ) );
 		}
 
 		// Restore old values.

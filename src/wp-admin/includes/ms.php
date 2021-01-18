@@ -20,7 +20,7 @@ function check_upload_size( $file ) {
 		return $file;
 	}
 
-	if ( $file['error'] != '0' ) { // there's already an error
+	if ( '0' != $file['error'] ) { // There's already an error.
 		return $file;
 	}
 
@@ -32,20 +32,20 @@ function check_upload_size( $file ) {
 
 	$file_size = filesize( $file['tmp_name'] );
 	if ( $space_left < $file_size ) {
-		/* translators: 1: Required disk space in kilobytes */
-		$file['error'] = sprintf( __( 'Not enough space to upload. %1$s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) );
+		/* translators: %s: Required disk space in kilobytes. */
+		$file['error'] = sprintf( __( 'Not enough space to upload. %s KB needed.' ), number_format( ( $file_size - $space_left ) / KB_IN_BYTES ) );
 	}
 
 	if ( $file_size > ( KB_IN_BYTES * get_site_option( 'fileupload_maxk', 1500 ) ) ) {
-		/* translators: 1: Maximum allowed file size in kilobytes */
-		$file['error'] = sprintf( __( 'This file is too big. Files must be less than %1$s KB in size.' ), get_site_option( 'fileupload_maxk', 1500 ) );
+		/* translators: %s: Maximum allowed file size in kilobytes. */
+		$file['error'] = sprintf( __( 'This file is too big. Files must be less than %s KB in size.' ), get_site_option( 'fileupload_maxk', 1500 ) );
 	}
 
 	if ( upload_is_user_over_quota( false ) ) {
 		$file['error'] = __( 'You have used your space quota. Please delete files before uploading.' );
 	}
 
-	if ( $file['error'] != '0' && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
+	if ( '0' != $file['error'] && ! isset( $_POST['html-upload'] ) && ! wp_doing_ajax() ) {
 		wp_die( $file['error'] . ' <a href="javascript:history.go(-1)">' . __( 'Back' ) . '</a>' );
 	}
 
@@ -56,11 +56,12 @@ function check_upload_size( $file ) {
  * Delete a site.
  *
  * @since 3.0.0
+ * @since 5.1.0 Use wp_delete_site() internally to delete the site row from the database.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $blog_id Site ID.
- * @param bool $drop    True if site's database tables should be dropped. Default is false.
+ * @param bool $drop    True if site's database tables should be dropped. Default false.
  */
 function wpmu_delete_blog( $blog_id, $drop = false ) {
 	global $wpdb;
@@ -72,31 +73,6 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	}
 
 	$blog = get_site( $blog_id );
-	/**
-	 * Fires before a site is deleted.
-	 *
-	 * @since MU (3.0.0)
-	 *
-	 * @param int  $blog_id The site ID.
-	 * @param bool $drop    True if site's table should be dropped. Default is false.
-	 */
-	do_action( 'delete_blog', $blog_id, $drop );
-
-	$users = get_users(
-		array(
-			'blog_id' => $blog_id,
-			'fields'  => 'ids',
-		)
-	);
-
-	// Remove users from this blog.
-	if ( ! empty( $users ) ) {
-		foreach ( $users as $user_id ) {
-			remove_user_from_blog( $user_id, $blog_id );
-		}
-	}
-
-	update_blog_status( $blog_id, 'deleted', 1 );
 
 	$current_network = get_network();
 
@@ -118,80 +94,30 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
 	}
 
 	if ( $drop ) {
-		$uploads = wp_get_upload_dir();
+		wp_delete_site( $blog_id );
+	} else {
+		/** This action is documented in wp-includes/ms-blogs.php */
+		do_action_deprecated( 'delete_blog', array( $blog_id, false ), '5.1.0' );
 
-		$tables = $wpdb->tables( 'blog' );
-		/**
-		 * Filters the tables to drop when the site is deleted.
-		 *
-		 * @since MU (3.0.0)
-		 *
-		 * @param array $tables  The site tables to be dropped.
-		 * @param int   $blog_id The ID of the site to drop tables for.
-		 */
-		$drop_tables = apply_filters( 'wpmu_drop_tables', $tables, $blog_id );
+		$users = get_users(
+			array(
+				'blog_id' => $blog_id,
+				'fields'  => 'ids',
+			)
+		);
 
-		foreach ( (array) $drop_tables as $table ) {
-			$wpdb->query( "DROP TABLE IF EXISTS `$table`" );
-		}
-
-		$wpdb->delete( $wpdb->blogs, array( 'blog_id' => $blog_id ) );
-
-		/**
-		 * Filters the upload base directory to delete when the site is deleted.
-		 *
-		 * @since MU (3.0.0)
-		 *
-		 * @param string $uploads['basedir'] Uploads path without subdirectory. @see wp_upload_dir()
-		 * @param int    $blog_id            The site ID.
-		 */
-		$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $blog_id );
-		$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );
-		$top_dir = $dir;
-		$stack   = array( $dir );
-		$index   = 0;
-
-		while ( $index < count( $stack ) ) {
-			// Get indexed directory from stack
-			$dir = $stack[ $index ];
-
-			$dh = @opendir( $dir );
-			if ( $dh ) {
-				while ( ( $file = @readdir( $dh ) ) !== false ) {
-					if ( $file == '.' || $file == '..' ) {
-						continue;
-					}
-
-					if ( @is_dir( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-						$stack[] = $dir . DIRECTORY_SEPARATOR . $file;
-					} elseif ( @is_file( $dir . DIRECTORY_SEPARATOR . $file ) ) {
-						@unlink( $dir . DIRECTORY_SEPARATOR . $file );
-					}
-				}
-				@closedir( $dh );
-			}
-			$index++;
-		}
-
-		$stack = array_reverse( $stack ); // Last added dirs are deepest
-		foreach ( (array) $stack as $dir ) {
-			if ( $dir != $top_dir ) {
-				@rmdir( $dir );
+		// Remove users from this blog.
+		if ( ! empty( $users ) ) {
+			foreach ( $users as $user_id ) {
+				remove_user_from_blog( $user_id, $blog_id );
 			}
 		}
 
-		clean_blog_cache( $blog );
+		update_blog_status( $blog_id, 'deleted', 1 );
+
+		/** This action is documented in wp-includes/ms-blogs.php */
+		do_action_deprecated( 'deleted_blog', array( $blog_id, false ), '5.1.0' );
 	}
-
-	/**
-	 * Fires after the site is deleted from the network.
-	 *
-	 * @since 4.8.0
-	 *
-	 * @param int  $blog_id The site ID.
-	 * @param bool $drop    True if site's tables should be dropped. Default is false.
-	 */
-	do_action( 'deleted_blog', $blog_id, $drop );
 
 	if ( $switch ) {
 		restore_current_blog();
@@ -203,7 +129,7 @@ function wpmu_delete_blog( $blog_id, $drop = false ) {
  *
  * @since 3.0.0
  *
- * @todo Merge with wp_delete_user() ?
+ * @todo Merge with wp_delete_user()?
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -234,10 +160,12 @@ function wpmu_delete_user( $id ) {
 	 * Fires before a user is deleted from the network.
 	 *
 	 * @since MU (3.0.0)
+	 * @since 5.5.0 Added the `$user` parameter.
 	 *
-	 * @param int $id ID of the user about to be deleted from the network.
+	 * @param int     $id   ID of the user about to be deleted from the network.
+	 * @param WP_User $user WP_User object of the user about to be deleted from the network.
 	 */
-	do_action( 'wpmu_delete_user', $id );
+	do_action( 'wpmu_delete_user', $id, $user );
 
 	$blogs = get_blogs_of_user( $id );
 
@@ -251,7 +179,7 @@ function wpmu_delete_user( $id ) {
 				wp_delete_post( $post_id );
 			}
 
-			// Clean links
+			// Clean links.
 			$link_ids = $wpdb->get_col( $wpdb->prepare( "SELECT link_id FROM $wpdb->links WHERE link_owner = %d", $id ) );
 
 			if ( $link_ids ) {
@@ -274,7 +202,7 @@ function wpmu_delete_user( $id ) {
 	clean_user_cache( $user );
 
 	/** This action is documented in wp-admin/includes/user.php */
-	do_action( 'deleted_user', $id, null );
+	do_action( 'deleted_user', $id, null, $user );
 
 	return true;
 }
@@ -294,13 +222,17 @@ function upload_is_user_over_quota( $echo = true ) {
 
 	$space_allowed = get_space_allowed();
 	if ( ! is_numeric( $space_allowed ) ) {
-		$space_allowed = 10; // Default space allowed is 10 MB
+		$space_allowed = 10; // Default space allowed is 10 MB.
 	}
 	$space_used = get_space_used();
 
 	if ( ( $space_allowed - $space_used ) < 0 ) {
 		if ( $echo ) {
-			_e( 'Sorry, you have used your space allocation. Please delete some files to upload more files.' );
+			printf(
+				/* translators: %s: Allowed space allocation. */
+				__( 'Sorry, you have used your space allocation of %s. Please delete some files to upload more files.' ),
+				size_format( $space_allowed * MB_IN_BYTES )
+			);
 		}
 		return true;
 	} else {
@@ -319,19 +251,11 @@ function display_space_usage() {
 
 	$percent_used = ( $space_used / $space_allowed ) * 100;
 
-	if ( $space_allowed > 1000 ) {
-		$space = number_format( $space_allowed / KB_IN_BYTES );
-		/* translators: Gigabytes */
-		$space .= __( 'GB' );
-	} else {
-		$space = number_format( $space_allowed );
-		/* translators: Megabytes */
-		$space .= __( 'MB' );
-	}
+	$space = size_format( $space_allowed * MB_IN_BYTES );
 	?>
 	<strong>
 	<?php
-		/* translators: Storage space that's been used. 1: Percentage of used space, 2: Total space allowed in megabytes or gigabytes */
+		/* translators: Storage space that's been used. 1: Percentage of used space, 2: Total space allowed in megabytes or gigabytes. */
 		printf( __( 'Used: %1$s%% of %2$s' ), number_format( $percent_used ), $space );
 	?>
 	</strong>
@@ -382,70 +306,18 @@ function upload_space_setting( $id ) {
 }
 
 /**
- * Update the status of a user in the database.
- *
- * Used in core to mark a user as spam or "ham" (not spam) in Multisite.
- *
- * @since 3.0.0
- *
- * @global wpdb $wpdb WordPress database abstraction object.
- *
- * @param int    $id         The user ID.
- * @param string $pref       The column in the wp_users table to update the user's status
- *                           in (presumably user_status, spam, or deleted).
- * @param int    $value      The new status for the user.
- * @param null   $deprecated Deprecated as of 3.0.2 and should not be used.
- * @return int   The initially passed $value.
- */
-function update_user_status( $id, $pref, $value, $deprecated = null ) {
-	global $wpdb;
-
-	if ( null !== $deprecated ) {
-		_deprecated_argument( __FUNCTION__, '3.0.2' );
-	}
-
-	$wpdb->update( $wpdb->users, array( sanitize_key( $pref ) => $value ), array( 'ID' => $id ) );
-
-	$user = new WP_User( $id );
-	clean_user_cache( $user );
-
-	if ( $pref == 'spam' ) {
-		if ( $value == 1 ) {
-			/**
-			 * Fires after the user is marked as a SPAM user.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param int $id ID of the user marked as SPAM.
-			 */
-			do_action( 'make_spam_user', $id );
-		} else {
-			/**
-			 * Fires after the user is marked as a HAM user. Opposite of SPAM.
-			 *
-			 * @since 3.0.0
-			 *
-			 * @param int $id ID of the user marked as HAM.
-			 */
-			do_action( 'make_ham_user', $id );
-		}
-	}
-
-	return $value;
-}
-
-/**
  * Cleans the user cache for a specific user.
  *
  * @since 3.0.0
  *
  * @param int $id The user ID.
- * @return bool|int The ID of the refreshed user or false if the user does not exist.
+ * @return int|false The ID of the refreshed user or false if the user does not exist.
  */
 function refresh_user_details( $id ) {
 	$id = (int) $id;
 
-	if ( ! $user = get_userdata( $id ) ) {
+	$user = get_userdata( $id );
+	if ( ! $user ) {
 		return false;
 	}
 
@@ -658,27 +530,27 @@ function format_code_lang( $code = '' ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param array  $lang_codes Key/value pair of language codes where key is the short version.
-	 * @param string $code       A two-letter designation of the language.
+	 * @param string[] $lang_codes Array of key/value pairs of language codes where key is the short version.
+	 * @param string   $code       A two-letter designation of the language.
 	 */
 	$lang_codes = apply_filters( 'lang_codes', $lang_codes, $code );
 	return strtr( $code, $lang_codes );
 }
 
 /**
- * Synchronize category and post tag slugs when global terms are enabled.
+ * Synchronizes category and post tag slugs when global terms are enabled.
  *
  * @since 3.0.0
  *
- * @param object $term     The term.
- * @param string $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
- *                         the only taxonomies which are processed by this function; anything else
- *                         will be returned untouched.
- * @return object|array Returns `$term`, after filtering the 'slug' field with sanitize_title()
- *                      if $taxonomy is 'category' or 'post_tag'.
+ * @param WP_Term|array $term     The term.
+ * @param string        $taxonomy The taxonomy for `$term`. Should be 'category' or 'post_tag', as these are
+ *                                the only taxonomies which are processed by this function; anything else
+ *                                will be returned untouched.
+ * @return WP_Term|array Returns `$term`, after filtering the 'slug' field with `sanitize_title()`
+ *                       if `$taxonomy` is 'category' or 'post_tag'.
  */
 function sync_category_tag_slugs( $term, $taxonomy ) {
-	if ( global_terms_enabled() && ( $taxonomy == 'category' || $taxonomy == 'post_tag' ) ) {
+	if ( global_terms_enabled() && ( 'category' === $taxonomy || 'post_tag' === $taxonomy ) ) {
 		if ( is_object( $term ) ) {
 			$term->slug = sanitize_title( $term->name );
 		} else {
@@ -709,10 +581,21 @@ function _access_denied_splash() {
 	$blog_name = get_bloginfo( 'name' );
 
 	if ( empty( $blogs ) ) {
-		wp_die( sprintf( __( 'You attempted to access the "%1$s" dashboard, but you do not currently have privileges on this site. If you believe you should be able to access the "%1$s" dashboard, please contact your network administrator.' ), $blog_name ), 403 );
+		wp_die(
+			sprintf(
+				/* translators: 1: Site title. */
+				__( 'You attempted to access the "%1$s" dashboard, but you do not currently have privileges on this site. If you believe you should be able to access the "%1$s" dashboard, please contact your network administrator.' ),
+				$blog_name
+			),
+			403
+		);
 	}
 
-	$output  = '<p>' . sprintf( __( 'You attempted to access the "%1$s" dashboard, but you do not currently have privileges on this site. If you believe you should be able to access the "%1$s" dashboard, please contact your network administrator.' ), $blog_name ) . '</p>';
+	$output = '<p>' . sprintf(
+		/* translators: 1: Site title. */
+		__( 'You attempted to access the "%1$s" dashboard, but you do not currently have privileges on this site. If you believe you should be able to access the "%1$s" dashboard, please contact your network administrator.' ),
+		$blog_name
+	) . '</p>';
 	$output .= '<p>' . __( 'If you reached this screen by accident and meant to visit one of your own sites, here are some shortcuts to help you find your way.' ) . '</p>';
 
 	$output .= '<h3>' . __( 'Your Sites' ) . '</h3>';
@@ -753,8 +636,8 @@ function check_import_new_users( $permission ) {
  *
  * @since 3.0.0
  *
- * @param array  $lang_files Optional. An array of the language files. Default empty array.
- * @param string $current    Optional. The current language code. Default empty.
+ * @param string[] $lang_files Optional. An array of the language files. Default empty array.
+ * @param string   $current    Optional. The current language code. Default empty.
  */
 function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	$flag   = false;
@@ -763,11 +646,11 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	foreach ( (array) $lang_files as $val ) {
 		$code_lang = basename( $val, '.mo' );
 
-		if ( $code_lang == 'en_US' ) { // American English
+		if ( 'en_US' === $code_lang ) { // American English.
 			$flag          = true;
 			$ae            = __( 'American English' );
 			$output[ $ae ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $ae . '</option>';
-		} elseif ( $code_lang == 'en_GB' ) { // British English
+		} elseif ( 'en_GB' === $code_lang ) { // British English.
 			$flag          = true;
 			$be            = __( 'British English' );
 			$output[ $be ] = '<option value="' . esc_attr( $code_lang ) . '"' . selected( $current, $code_lang, false ) . '> ' . $be . '</option>';
@@ -777,11 +660,11 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 		}
 	}
 
-	if ( $flag === false ) { // WordPress english
+	if ( false === $flag ) { // WordPress English.
 		$output[] = '<option value=""' . selected( $current, '', false ) . '>' . __( 'English' ) . '</option>';
 	}
 
-	// Order by name
+	// Order by name.
 	uksort( $output, 'strnatcasecmp' );
 
 	/**
@@ -789,9 +672,9 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param array $output     HTML output of the dropdown.
-	 * @param array $lang_files Available language files.
-	 * @param string $current   The current language code.
+	 * @param string[] $output     Array of HTML output for the dropdown.
+	 * @param string[] $lang_files Array of available language files.
+	 * @param string   $current    The current language code.
 	 */
 	$output = apply_filters( 'mu_dropdown_languages', $output, $lang_files, $current );
 
@@ -803,10 +686,10 @@ function mu_dropdown_languages( $lang_files = array(), $current = '' ) {
  *
  * @since 3.0.0
  *
- * @global int    $wp_db_version The version number of the database.
+ * @global int    $wp_db_version WordPress database version.
  * @global string $pagenow
  *
- * @return false False if the current user is not a super admin.
+ * @return void|false Void on success. False if the current user is not a super admin.
  */
 function site_admin_notice() {
 	global $wp_db_version, $pagenow;
@@ -815,12 +698,16 @@ function site_admin_notice() {
 		return false;
 	}
 
-	if ( 'upgrade.php' == $pagenow ) {
+	if ( 'upgrade.php' === $pagenow ) {
 		return;
 	}
 
 	if ( get_site_option( 'wpmu_upgrade_site' ) != $wp_db_version ) {
-		echo "<div class='update-nag'>" . sprintf( __( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ), esc_url( network_admin_url( 'upgrade.php' ) ) ) . '</div>';
+		echo "<div class='update-nag notice notice-warning inline'>" . sprintf(
+			/* translators: %s: URL to Upgrade Network screen. */
+			__( 'Thank you for Updating! Please visit the <a href="%s">Upgrade Network</a> page to update all your sites.' ),
+			esc_url( network_admin_url( 'upgrade.php' ) )
+		) . '</div>';
 	}
 }
 
@@ -840,10 +727,10 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
 	if ( is_subdomain_install() ) {
 		return $data;
 	}
-	if ( $data['post_type'] != 'page' ) {
+	if ( 'page' !== $data['post_type'] ) {
 		return $data;
 	}
-	if ( ! isset( $data['post_name'] ) || $data['post_name'] == '' ) {
+	if ( ! isset( $data['post_name'] ) || '' === $data['post_name'] ) {
 		return $data;
 	}
 	if ( ! is_main_site() ) {
@@ -872,9 +759,9 @@ function avoid_blog_page_permalink_collision( $data, $postarr ) {
  */
 function choose_primary_blog() {
 	?>
-	<table class="form-table">
+	<table class="form-table" role="presentation">
 	<tr>
-	<?php /* translators: My sites label */ ?>
+	<?php /* translators: My Sites label. */ ?>
 		<th scope="row"><label for="primary_blog"><?php _e( 'Primary Site' ); ?></label></th>
 		<td>
 		<?php
@@ -928,7 +815,7 @@ function choose_primary_blog() {
  * @return bool True if network can be edited, otherwise false.
  */
 function can_edit_network( $network_id ) {
-	if ( $network_id == get_current_network_id() ) {
+	if ( get_current_network_id() == $network_id ) {
 		$result = true;
 	} else {
 		$result = false;
@@ -953,11 +840,11 @@ function can_edit_network( $network_id ) {
  * @access private
  */
 function _thickbox_path_admin_subfolder() {
-?>
+	?>
 <script type="text/javascript">
-var tb_pathToImage = "<?php echo includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ); ?>";
+var tb_pathToImage = "<?php echo esc_js( includes_url( 'js/thickbox/loadingAnimation.gif', 'relative' ) ); ?>";
 </script>
-<?php
+	<?php
 }
 
 /**
@@ -971,7 +858,7 @@ function confirm_delete_users( $users ) {
 	?>
 	<h1><?php esc_html_e( 'Users' ); ?></h1>
 
-	<?php if ( 1 == count( $users ) ) : ?>
+	<?php if ( 1 === count( $users ) ) : ?>
 		<p><?php _e( 'You have chosen to delete the user from all networks and sites.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'You have chosen to delete the following users from all networks and sites.' ); ?></p>
@@ -984,18 +871,31 @@ function confirm_delete_users( $users ) {
 	$site_admins = get_super_admins();
 	$admin_out   = '<option value="' . esc_attr( $current_user->ID ) . '">' . $current_user->user_login . '</option>';
 	?>
-	<table class="form-table">
+	<table class="form-table" role="presentation">
 	<?php
-	foreach ( ( $allusers = (array) $_POST['allusers'] ) as $user_id ) {
-		if ( $user_id != '' && $user_id != '0' ) {
+	$allusers = (array) $_POST['allusers'];
+	foreach ( $allusers as $user_id ) {
+		if ( '' !== $user_id && '0' != $user_id ) {
 			$delete_user = get_userdata( $user_id );
 
 			if ( ! current_user_can( 'delete_user', $delete_user->ID ) ) {
-				wp_die( sprintf( __( 'Warning! User %s cannot be deleted.' ), $delete_user->user_login ) );
+				wp_die(
+					sprintf(
+						/* translators: %s: User login. */
+						__( 'Warning! User %s cannot be deleted.' ),
+						$delete_user->user_login
+					)
+				);
 			}
 
-			if ( in_array( $delete_user->user_login, $site_admins ) ) {
-				wp_die( sprintf( __( 'Warning! User cannot be deleted. The user %s is a network administrator.' ), '<em>' . $delete_user->user_login . '</em>' ) );
+			if ( in_array( $delete_user->user_login, $site_admins, true ) ) {
+				wp_die(
+					sprintf(
+						/* translators: %s: User login. */
+						__( 'Warning! User cannot be deleted. The user %s is a network administrator.' ),
+						'<em>' . $delete_user->user_login . '</em>'
+					)
+				);
 			}
 			?>
 			<tr>
@@ -1010,7 +910,7 @@ function confirm_delete_users( $users ) {
 				<td><fieldset><p><legend>
 				<?php
 				printf(
-					/* translators: user login */
+					/* translators: %s: User login. */
 					__( 'What should be done with content owned by %s?' ),
 					'<em>' . $delete_user->user_login . '</em>'
 				);
@@ -1024,24 +924,33 @@ function confirm_delete_users( $users ) {
 							'fields'  => array( 'ID', 'user_login' ),
 						)
 					);
+
 					if ( is_array( $blog_users ) && ! empty( $blog_users ) ) {
 						$user_site      = "<a href='" . esc_url( get_home_url( $details->userblog_id ) ) . "'>{$details->blogname}</a>";
 						$user_dropdown  = '<label for="reassign_user" class="screen-reader-text">' . __( 'Select a user' ) . '</label>';
 						$user_dropdown .= "<select name='blog[$user_id][$key]' id='reassign_user'>";
 						$user_list      = '';
+
 						foreach ( $blog_users as $user ) {
-							if ( ! in_array( $user->ID, $allusers ) ) {
+							if ( ! in_array( (int) $user->ID, $allusers, true ) ) {
 								$user_list .= "<option value='{$user->ID}'>{$user->user_login}</option>";
 							}
 						}
-						if ( '' == $user_list ) {
+
+						if ( '' === $user_list ) {
 							$user_list = $admin_out;
 						}
+
 						$user_dropdown .= $user_list;
 						$user_dropdown .= "</select>\n";
 						?>
 						<ul style="list-style:none;">
-							<li><?php printf( __( 'Site: %s' ), $user_site ); ?></li>
+							<li>
+								<?php
+								/* translators: %s: Link to user's site. */
+								printf( __( 'Site: %s' ), $user_site );
+								?>
+							</li>
 							<li><label><input type="radio" id="delete_option0" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="delete" checked="checked" />
 							<?php _e( 'Delete all content.' ); ?></label></li>
 							<li><label><input type="radio" id="delete_option1" name="delete[<?php echo $details->userblog_id . '][' . $delete_user->ID; ?>]" value="reassign" />
@@ -1054,10 +963,10 @@ function confirm_delete_users( $users ) {
 				echo '</fieldset></td></tr>';
 			} else {
 				?>
-				<td><fieldset><p><legend><?php _e( 'User has no sites or content and will be deleted.' ); ?></legend></p>
+				<td><p><?php _e( 'User has no sites or content and will be deleted.' ); ?></p></td>
 			<?php } ?>
 			</tr>
-		<?php
+			<?php
 		}
 	}
 
@@ -1067,12 +976,12 @@ function confirm_delete_users( $users ) {
 	/** This action is documented in wp-admin/users.php */
 	do_action( 'delete_user_form', $current_user, $allusers );
 
-	if ( 1 == count( $users ) ) :
-	?>
+	if ( 1 === count( $users ) ) :
+		?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, the user will be permanently removed.' ); ?></p>
 	<?php else : ?>
 		<p><?php _e( 'Once you hit &#8220;Confirm Deletion&#8221;, these users will be permanently removed.' ); ?></p>
-	<?php
+		<?php
 	endif;
 
 	submit_button( __( 'Confirm Deletion' ), 'primary' );
@@ -1088,7 +997,7 @@ function confirm_delete_users( $users ) {
  * @since 4.1.0
  */
 function network_settings_add_js() {
-?>
+	?>
 <script type="text/javascript">
 jQuery(document).ready( function($) {
 	var languageSelect = $( '#WPLANG' );
@@ -1101,7 +1010,7 @@ jQuery(document).ready( function($) {
 	});
 });
 </script>
-<?php
+	<?php
 }
 
 /**
@@ -1109,7 +1018,7 @@ jQuery(document).ready( function($) {
  *
  * @since 4.6.0
  *
- * @param $args {
+ * @param array $args {
  *     Optional. Array or string of Query parameters. Default empty array.
  *
  *     @type int    $blog_id  The site ID. Default is the current site.
@@ -1139,7 +1048,8 @@ function network_edit_site_nav( $args = array() ) {
 	 * }
 	 */
 	$links = apply_filters(
-		'network_edit_site_nav_links', array(
+		'network_edit_site_nav_links',
+		array(
 			'site-info'     => array(
 				'label' => __( 'Info' ),
 				'url'   => 'site-info.php',
@@ -1163,48 +1073,53 @@ function network_edit_site_nav( $args = array() ) {
 		)
 	);
 
-	// Parse arguments
-	$r = wp_parse_args(
-		$args, array(
+	// Parse arguments.
+	$parsed_args = wp_parse_args(
+		$args,
+		array(
 			'blog_id'  => isset( $_GET['blog_id'] ) ? (int) $_GET['blog_id'] : 0,
 			'links'    => $links,
 			'selected' => 'site-info',
 		)
 	);
 
-	// Setup the links array
+	// Setup the links array.
 	$screen_links = array();
 
-	// Loop through tabs
-	foreach ( $r['links'] as $link_id => $link ) {
+	// Loop through tabs.
+	foreach ( $parsed_args['links'] as $link_id => $link ) {
 
-		// Skip link if user can't access
-		if ( ! current_user_can( $link['cap'], $r['blog_id'] ) ) {
+		// Skip link if user can't access.
+		if ( ! current_user_can( $link['cap'], $parsed_args['blog_id'] ) ) {
 			continue;
 		}
 
-		// Link classes
+		// Link classes.
 		$classes = array( 'nav-tab' );
 
-		// Selected is set by the parent OR assumed by the $pagenow global
-		if ( $r['selected'] === $link_id || $link['url'] === $GLOBALS['pagenow'] ) {
-			$classes[] = 'nav-tab-active';
+		// Aria-current attribute.
+		$aria_current = '';
+
+		// Selected is set by the parent OR assumed by the $pagenow global.
+		if ( $parsed_args['selected'] === $link_id || $link['url'] === $GLOBALS['pagenow'] ) {
+			$classes[]    = 'nav-tab-active';
+			$aria_current = ' aria-current="page"';
 		}
 
-		// Escape each class
+		// Escape each class.
 		$esc_classes = implode( ' ', $classes );
 
-		// Get the URL for this link
-		$url = add_query_arg( array( 'id' => $r['blog_id'] ), network_admin_url( $link['url'] ) );
+		// Get the URL for this link.
+		$url = add_query_arg( array( 'id' => $parsed_args['blog_id'] ), network_admin_url( $link['url'] ) );
 
-		// Add link to nav links
-		$screen_links[ $link_id ] = '<a href="' . esc_url( $url ) . '" id="' . esc_attr( $link_id ) . '" class="' . $esc_classes . '">' . esc_html( $link['label'] ) . '</a>';
+		// Add link to nav links.
+		$screen_links[ $link_id ] = '<a href="' . esc_url( $url ) . '" id="' . esc_attr( $link_id ) . '" class="' . $esc_classes . '"' . $aria_current . '>' . esc_html( $link['label'] ) . '</a>';
 	}
 
 	// All done!
-	echo '<h2 class="nav-tab-wrapper wp-clearfix">';
+	echo '<nav class="nav-tab-wrapper wp-clearfix" aria-label="' . esc_attr__( 'Secondary menu' ) . '">';
 	echo implode( '', $screen_links );
-	echo '</h2>';
+	echo '</nav>';
 }
 
 /**
@@ -1222,7 +1137,11 @@ function get_site_screen_help_tab_args() {
 			'<p>' . __( 'The menu is for editing information specific to individual sites, particularly if the admin area of a site is unavailable.' ) . '</p>' .
 			'<p>' . __( '<strong>Info</strong> &mdash; The site URL is rarely edited as this can cause the site to not work properly. The Registered date and Last Updated date are displayed. Network admins can mark a site as archived, spam, deleted and mature, to remove from public listings or disable.' ) . '</p>' .
 			'<p>' . __( '<strong>Users</strong> &mdash; This displays the users associated with this site. You can also change their role, reset their password, or remove them from the site. Removing the user from the site does not remove the user from the network.' ) . '</p>' .
-			'<p>' . sprintf( __( '<strong>Themes</strong> &mdash; This area shows themes that are not already enabled across the network. Enabling a theme in this menu makes it accessible to this site. It does not activate the theme, but allows it to show in the site&#8217;s Appearance menu. To enable a theme for the entire network, see the <a href="%s">Network Themes</a> screen.' ), network_admin_url( 'themes.php' ) ) . '</p>' .
+			'<p>' . sprintf(
+				/* translators: %s: URL to Network Themes screen. */
+				__( '<strong>Themes</strong> &mdash; This area shows themes that are not already enabled across the network. Enabling a theme in this menu makes it accessible to this site. It does not activate the theme, but allows it to show in the site&#8217;s Appearance menu. To enable a theme for the entire network, see the <a href="%s">Network Themes</a> screen.' ),
+				network_admin_url( 'themes.php' )
+			) . '</p>' .
 			'<p>' . __( '<strong>Settings</strong> &mdash; This page shows a list of all settings associated with this site. Some are created by WordPress and others are created by plugins you activate. Note that some fields are grayed out and say Serialized Data. You cannot modify these values due to the way the setting is stored in the database.' ) . '</p>',
 	);
 }
@@ -1236,6 +1155,6 @@ function get_site_screen_help_tab_args() {
  */
 function get_site_screen_help_sidebar_content() {
 	return '<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-		'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Sites_Screen">Documentation on Site Management</a>' ) . '</p>' .
+		'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-sites-screen/">Documentation on Site Management</a>' ) . '</p>' .
 		'<p>' . __( '<a href="https://wordpress.org/support/forum/multisite/">Support Forums</a>' ) . '</p>';
 }

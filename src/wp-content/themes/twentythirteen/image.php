@@ -2,7 +2,7 @@
 /**
  * The template for displaying image attachments
  *
- * @link https://codex.wordpress.org/Template_Hierarchy
+ * @link https://developer.wordpress.org/themes/basics/template-hierarchy/
  *
  * @package WordPress
  * @subpackage Twenty_Thirteen
@@ -15,10 +15,10 @@ get_header(); ?>
 		<div id="content" class="site-content" role="main">
 
 			<?php
-				// Start the Loop.
+			// Start the loop.
 			while ( have_posts() ) :
 				the_post();
-			?>
+				?>
 
 			<article id="post-<?php the_ID(); ?>" <?php post_class( 'image-attachment' ); ?>>
 			<header class="entry-header">
@@ -26,8 +26,9 @@ get_header(); ?>
 
 				<div class="entry-meta">
 					<?php
-						$published_text = __( '<span class="attachment-meta">Published on <time class="entry-date" datetime="%1$s">%2$s</time> in <a href="%3$s" title="Return to %4$s" rel="gallery">%5$s</a></span>', 'twentythirteen' );
-						$post_title     = get_the_title( $post->post_parent );
+					/* translators: 1: Date, 2: Date, 3, Parent permalink, 4, Post title, 5: Post title. */
+					$published_text = __( '<span class="attachment-meta">Published on <time class="entry-date" datetime="%1$s">%2$s</time> in <a href="%3$s" title="Go to %4$s" rel="gallery">%5$s</a></span>', 'twentythirteen' );
+					$post_title     = get_the_title( $post->post_parent );
 					if ( empty( $post_title ) || 0 == $post->post_parent ) {
 						$published_text = '<span class="attachment-meta"><time class="entry-date" datetime="%1$s">%2$s</time></span>';
 					}
@@ -91,9 +92,9 @@ get_header(); ?>
 				</div><!-- .entry-content -->
 			</article><!-- #post -->
 
-			<?php comments_template(); ?>
+				<?php comments_template(); ?>
 
-			<?php endwhile; // End the loop. ?>
+			<?php endwhile; // End of the loop. ?>
 
 		</div><!-- #content -->
 	</div><!-- #primary -->

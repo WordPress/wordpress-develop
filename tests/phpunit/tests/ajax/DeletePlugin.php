@@ -1,8 +1,8 @@
 <?php
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
  * Testing Ajax handler for deleting a plugin.
@@ -10,11 +10,10 @@ require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
  * @group ajax
  */
 class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
-	/**
-	 * @expectedException WPAjaxDieStopException
-	 * @expectedExceptionMessage -1
-	 */
+
 	public function test_missing_nonce() {
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'delete-plugin' );
 	}
 
@@ -22,7 +21,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['slug']        = 'foo';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -41,14 +40,14 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_missing_slug() {
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['plugin']      = 'foo/bar.php';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -67,7 +66,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_missing_capability() {
@@ -75,7 +74,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 		$_POST['plugin']      = 'foo/bar.php';
 		$_POST['slug']        = 'foo';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -94,7 +93,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_invalid_file() {
@@ -104,7 +103,7 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 		$_POST['plugin']      = '../foo/bar.php';
 		$_POST['slug']        = 'foo';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -123,17 +122,18 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 
 	public function test_delete_plugin() {
+		$this->skipWithMultisite();
 		$this->_setRole( 'administrator' );
 
 		$_POST['_ajax_nonce'] = wp_create_nonce( 'updates' );
 		$_POST['plugin']      = 'foo.php';
 		$_POST['slug']        = 'foo';
 
-		// Make the request
+		// Make the request.
 		try {
 			$this->_handleAjax( 'delete-plugin' );
 		} catch ( WPAjaxDieContinueException $e ) {
@@ -153,6 +153,6 @@ class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSets( $expected, $response );
+		$this->assertSameSets( $expected, $response );
 	}
 }

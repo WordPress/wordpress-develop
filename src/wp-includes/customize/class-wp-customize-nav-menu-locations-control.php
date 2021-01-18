@@ -11,6 +11,8 @@
  * Customize Nav Menu Locations Control Class.
  *
  * @since 4.9.0
+ *
+ * @see WP_Customize_Control
  */
 class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 
@@ -47,14 +49,14 @@ class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 							<em class="new-menu-locations-widget-note">
 								<?php
 								printf(
-									/* translators: 1: Codex URL, 2: additional link attributes, 3: accessibility text */
+									/* translators: 1: Documentation URL, 2: Additional link attributes, 3: Accessibility text. */
 									_x( '(If you plan to use a menu <a href="%1$s" %2$s>widget%3$s</a>, skip this step.)', 'menu locations' ),
-									__( 'https://codex.wordpress.org/WordPress_Widgets' ),
+									__( 'https://wordpress.org/support/article/wordpress-widgets/' ),
 									' class="external-link" target="_blank"',
 									sprintf(
 										'<span class="screen-reader-text"> %s</span>',
-										/* translators: accessibility text */
-										__( '(opens in a new window)' )
+										/* translators: Accessibility text. */
+										__( '(opens in a new tab)' )
 									)
 								);
 								?>
@@ -74,8 +76,8 @@ class WP_Customize_Nav_Menu_Locations_Control extends WP_Customize_Control {
 								<?php echo $description; ?>
 								<span class="theme-location-set">
 									<?php
-									/* translators: %s: menu name */
 									printf(
+										/* translators: %s: Menu name. */
 										_x( '(Current: %s)', 'menu location' ),
 										'<span class="current-menu-location-name-' . esc_attr( $location ) . '"></span>'
 									);

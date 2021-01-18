@@ -14,15 +14,9 @@ echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>
 	<title><?php wp_title_rss(); ?></title>
 	<link><?php bloginfo_rss( 'url' ); ?></link>
 	<description><?php bloginfo_rss( 'description' ); ?></description>
-	<lastBuildDate>
-	<?php
-		$date = get_lastpostmodified( 'GMT' );
-		echo $date ? mysql2date( 'D, d M Y H:i:s +0000', $date ) : date( 'D, d M Y H:i:s +0000' );
-	?>
-	</lastBuildDate>
+	<lastBuildDate><?php echo get_feed_build_date( 'D, d M Y H:i:s +0000' ); ?></lastBuildDate>
 	<docs>http://backend.userland.com/rss092</docs>
 	<language><?php bloginfo_rss( 'language' ); ?></language>
-
 	<?php
 	/**
 	 * Fires at the end of the RSS Feed Header.
@@ -35,7 +29,7 @@ echo '<?xml version="1.0" encoding="' . get_option( 'blog_charset' ) . '"?' . '>
 <?php
 while ( have_posts() ) :
 	the_post();
-?>
+	?>
 	<item>
 		<title><?php the_title_rss(); ?></title>
 		<description><![CDATA[<?php the_excerpt_rss(); ?>]]></description>

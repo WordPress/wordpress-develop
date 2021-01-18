@@ -51,7 +51,7 @@ Backbone.ajax = function ( param ) {
 	param.success( data );
 	var deferred = jQuery.Deferred();
 
-	// Resolve the deferred with the mocked data
+	// Resolve the deferred with the mocked data.
 	deferred.resolve( data );
 
 	// Return the deferred promise that will resolve with the expected data.

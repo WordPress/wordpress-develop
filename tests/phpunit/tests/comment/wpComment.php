@@ -6,14 +6,15 @@
 class Tests_Term_WpComment extends WP_UnitTestCase {
 	protected static $comment_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		// Ensure that there is a comment with ID 1.
 		$comment_1 = WP_Comment::get_instance( 1 );
 		if ( ! $comment_1 ) {
 			$wpdb->insert(
-				$wpdb->comments, array(
+				$wpdb->comments,
+				array(
 					'comment_ID' => 1,
 				)
 			);
@@ -21,7 +22,7 @@ class Tests_Term_WpComment extends WP_UnitTestCase {
 			clean_comment_cache( 1 );
 		}
 
-		self::$comment_id = self::factory()->comment->create();
+		self::$comment_id = $factory->comment->create();
 	}
 
 	/**

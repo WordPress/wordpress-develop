@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname( __FILE__ ) . '/base.php';
+require_once __DIR__ . '/base.php';
 
 /**
  * @group import
@@ -27,12 +27,12 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 	function test_malformed_wxr() {
 		$file = DIR_TESTDATA . '/export/malformed.xml';
 
-		// regex based parser cannot detect malformed XML
+		// Regex based parser cannot detect malformed XML.
 		foreach ( array( 'WXR_Parser_SimpleXML', 'WXR_Parser_XML' ) as $p ) {
 			$parser = new $p;
 			$result = $parser->parse( $file );
 			$this->assertWPError( $result );
-			$this->assertEquals( 'There was an error when reading this WXR file', $result->get_error_message() );
+			$this->assertSame( 'There was an error when reading this WXR file', $result->get_error_message() );
 		}
 	}
 
@@ -45,7 +45,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$parser = new $p;
 				$result = $parser->parse( $file );
 				$this->assertWPError( $result );
-				$this->assertEquals( 'This does not appear to be a WXR file, missing/invalid WXR version number', $result->get_error_message() );
+				$this->assertSame( 'This does not appear to be a WXR file, missing/invalid WXR version number', $result->get_error_message() );
 			}
 		}
 	}
@@ -59,7 +59,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$result  = $parser->parse( $file );
 
 			$this->assertTrue( is_array( $result ), $message );
-			$this->assertEquals( 'http://localhost/', $result['base_url'], $message );
+			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertEquals(
 				array(
 					'author_id'           => 2,
@@ -68,7 +68,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					'author_display_name' => 'John Doe',
 					'author_first_name'   => 'John',
 					'author_last_name'    => 'Doe',
-				), $result['authors']['john'], $message
+				),
+				$result['authors']['john'],
+				$message
 			);
 			$this->assertEquals(
 				array(
@@ -77,7 +79,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					'category_parent'      => '',
 					'cat_name'             => 'alpha',
 					'category_description' => 'The alpha category',
-				), $result['categories'][0], $message
+				),
+				$result['categories'][0],
+				$message
 			);
 			$this->assertEquals(
 				array(
@@ -85,7 +89,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					'tag_slug'        => 'clippable',
 					'tag_name'        => 'Clippable',
 					'tag_description' => 'The Clippable post_tag',
-				), $result['tags'][0], $message
+				),
+				$result['tags'][0],
+				$message
 			);
 			$this->assertEquals(
 				array(
@@ -95,12 +101,14 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					'term_parent'      => '',
 					'term_name'        => 'bieup',
 					'term_description' => 'The bieup post_tax',
-				), $result['terms'][0], $message
+				),
+				$result['terms'][0],
+				$message
 			);
 
-			$this->assertEquals( 2, count( $result['posts'] ), $message );
-			$this->assertEquals( 19, count( $result['posts'][0] ), $message );
-			$this->assertEquals( 18, count( $result['posts'][1] ), $message );
+			$this->assertSame( 2, count( $result['posts'] ), $message );
+			$this->assertSame( 19, count( $result['posts'][0] ), $message );
+			$this->assertSame( 18, count( $result['posts'][1] ), $message );
 			$this->assertEquals(
 				array(
 					array(
@@ -118,15 +126,19 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						'slug'   => 'bieup',
 						'domain' => 'post_tax',
 					),
-				), $result['posts'][0]['terms'], $message
+				),
+				$result['posts'][0]['terms'],
+				$message
 			);
-			$this->assertEquals(
+			$this->assertSame(
 				array(
 					array(
 						'key'   => '_wp_page_template',
 						'value' => 'default',
 					),
-				), $result['posts'][1]['postmeta'], $message
+				),
+				$result['posts'][1]['postmeta'],
+				$message
 			);
 		}
 	}
@@ -140,17 +152,17 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$result  = $parser->parse( $file );
 
 			$this->assertTrue( is_array( $result ), $message );
-			$this->assertEquals( 'http://localhost/', $result['base_url'], $message );
-			$this->assertEquals( $result['categories'][0]['category_nicename'], 'alpha', $message );
-			$this->assertEquals( $result['categories'][0]['cat_name'], 'alpha', $message );
-			$this->assertEquals( $result['categories'][0]['category_parent'], '', $message );
-			$this->assertEquals( $result['categories'][0]['category_description'], 'The alpha category', $message );
-			$this->assertEquals( $result['tags'][0]['tag_slug'], 'chicken', $message );
-			$this->assertEquals( $result['tags'][0]['tag_name'], 'chicken', $message );
+			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
+			$this->assertSame( $result['categories'][0]['category_nicename'], 'alpha', $message );
+			$this->assertSame( $result['categories'][0]['cat_name'], 'alpha', $message );
+			$this->assertSame( $result['categories'][0]['category_parent'], '', $message );
+			$this->assertSame( $result['categories'][0]['category_description'], 'The alpha category', $message );
+			$this->assertSame( $result['tags'][0]['tag_slug'], 'chicken', $message );
+			$this->assertSame( $result['tags'][0]['tag_name'], 'chicken', $message );
 
-			$this->assertEquals( 6, count( $result['posts'] ), $message );
-			$this->assertEquals( 19, count( $result['posts'][0] ), $message );
-			$this->assertEquals( 18, count( $result['posts'][1] ), $message );
+			$this->assertSame( 6, count( $result['posts'] ), $message );
+			$this->assertSame( 19, count( $result['posts'][0] ), $message );
+			$this->assertSame( 18, count( $result['posts'][1] ), $message );
 
 			$this->assertEquals(
 				array(
@@ -159,7 +171,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						'slug'   => 'uncategorized',
 						'domain' => 'category',
 					),
-				), $result['posts'][0]['terms'], $message
+				),
+				$result['posts'][0]['terms'],
+				$message
 			);
 			$this->assertEquals(
 				array(
@@ -178,7 +192,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						'slug'   => 'roar',
 						'domain' => 'tag',
 					),
-				), $result['posts'][2]['terms'], $message
+				),
+				$result['posts'][2]['terms'],
+				$message
 			);
 			$this->assertEquals(
 				array(
@@ -197,16 +213,20 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						'slug'   => 'face',
 						'domain' => 'tag',
 					),
-				), $result['posts'][3]['terms'], $message
+				),
+				$result['posts'][3]['terms'],
+				$message
 			);
 
-			$this->assertEquals(
+			$this->assertSame(
 				array(
 					array(
 						'key'   => '_wp_page_template',
 						'value' => 'default',
 					),
-				), $result['posts'][1]['postmeta'], $message
+				),
+				$result['posts'][1]['postmeta'],
+				$message
 			);
 		}
 	}
@@ -226,7 +246,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$result  = $parser->parse( $file );
 
 			$post = $result['posts'][0];
-			$this->assertEquals( 'Content with nested <![CDATA[ tags ]]> :)', $post['post_content'], $message );
+			$this->assertSame( 'Content with nested <![CDATA[ tags ]]> :)', $post['post_content'], $message );
 			foreach ( $post['postmeta'] as $meta ) {
 				switch ( $meta['key'] ) {
 					case 'Plain string':
@@ -239,9 +259,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 						$value = 'This has <![CDATA[ opening and ]]> closing <![CDATA[ tags like this: ]]>';
 						break;
 					default:
-						$this->fail( 'Unknown postmeta (' . $meta['key'] . ') was parsed out by' . $p );
+						$this->fail( sprintf( 'Unknown postmeta (%1$s) was parsed out by %2$s.', $meta['key'], $p ) );
 				}
-				$this->assertEquals( $value, $meta['value'], $message );
+				$this->assertSame( $value, $meta['value'], $message );
 			}
 		}
 	}
@@ -257,7 +277,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 		$result = $parser->parse( $file );
 
 		$post = $result['posts'][0];
-		$this->assertEquals( 'Content with nested <![CDATA[ tags ]]> :)', $post['post_content'] );
+		$this->assertSame( 'Content with nested <![CDATA[ tags ]]> :)', $post['post_content'] );
 		foreach ( $post['postmeta'] as $meta ) {
 			switch ( $meta['key'] ) {
 				case 'Plain string':
@@ -270,11 +290,11 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 					$value = 'This has <![CDATA[ opening and ]]> closing <![CDATA[ tags like this: ]]>';
 					break;
 				default:
-					$this->fail( 'Unknown postmeta (' . $meta['key'] . ') was parsed out by' . $p );
+					$this->fail( sprintf( 'Unknown postmeta (%1$s) was parsed out by %2$s.', $meta['key'], $p ) );
 			}
-			$this->assertEquals( $value, $meta['value'] );
+			$this->assertSame( $value, $meta['value'] );
 		}
 	}
 
-	// tags in CDATA #11574
+	// Tags in CDATA #11574.
 }

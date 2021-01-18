@@ -4,7 +4,7 @@
 	font-size: 13px;
 	background: #fff;
 	border: 1px solid #ddd;
-	box-shadow: 0 3px 6px rgba(0,0,0,0.075);
+	box-shadow: 0 3px 6px rgba(0, 0, 0, 0.075);
 }
 
 .wp-pointer-content h3 {
@@ -13,7 +13,7 @@
 	padding: 15px 18px 14px 60px;
 	border: 1px solid #3592b6;
 	border-bottom: none;
-	line-height: 1.4em;
+	line-height: 1.4;
 	font-size: 14px;
 	color: #fff;
 	background: #00a0d2;
@@ -28,7 +28,7 @@
 	position: absolute;
 	top: 8px;
 	left: 15px;
-	speak: none;
+	speak: never;
 	text-align: center;
 	width: 32px;
 	height: 32px;
@@ -36,8 +36,13 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+.wp-pointer-content h4 {
+	margin: 1.33em 20px 1em;
+	font-size: 1.15em;
+}
+
 .wp-pointer-content p {
-	padding: 0 15px;
+	padding: 0 20px;
 }
 
 .wp-pointer-buttons {
@@ -63,7 +68,7 @@
 	content: "\f153";
 	display: block !important;
 	font: normal 16px/1 dashicons;
-	speak: none;
+	speak: never;
 	margin: 1px 0;
 	text-align: center;
 	-webkit-font-smoothing: antialiased !important;
@@ -202,8 +207,17 @@
 	content: " ";
 }
 
+.wp-pointer.arrow-bottom .wp-pointer-content {
+	margin-bottom: -45px;
+}
+
+.wp-pointer.arrow-bottom .wp-pointer-arrow {
+	top: 100%;
+	margin-top: -30px;
+}
+
 /* Disable pointers at responsive sizes */
-@media screen and ( max-width: 782px ) {
+@media screen and (max-width: 782px) {
 	.wp-pointer {
 		display: none;
 	}

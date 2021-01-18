@@ -38,7 +38,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 * Validate get_comments_pages_count for empty comments
 	 */
 	function test_empty() {
-		//setup post and comments
+		// Setup post and comments.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_title' => 'comment--post',
@@ -52,20 +52,20 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 
 		$comments = get_comments( array( 'post_id' => $post_id ) );
 
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 10, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 1, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 0, false ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 10, true ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments, 5 ) );
-		$this->assertEquals( 0, get_comment_pages_count( $comments ) );
-		$this->assertequals( 0, get_comment_pages_count( null, 1 ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 10, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 1, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 0, false ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 10, true ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments, 5 ) );
+		$this->assertSame( 0, get_comment_pages_count( $comments ) );
+		$this->assertSame( 0, get_comment_pages_count( null, 1 ) );
 	}
 
 	/**
 	 * Validate get_comments_pages_count for treaded comments
 	 */
 	function test_threaded_comments() {
-		//setup post and comments
+		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'comment--post',
@@ -86,7 +86,7 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 */
 	function test_option_thread_comments() {
 
-		//setup post and comments
+		// Setup post and comments.
 		$post     = self::factory()->post->create_and_get(
 			array(
 				'post_title' => 'comment--post',

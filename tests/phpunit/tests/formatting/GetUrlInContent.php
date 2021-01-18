@@ -12,30 +12,30 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 	 */
 	public function get_input_output() {
 		return array(
-			array(
+			array( // Empty content.
 				'',
 				false,
-			), //empty content
-			array(
+			),
+			array( // No URLs.
 				'<div>NO URL CONTENT</div>',
 				false,
-			), //no URLs
-			array(
+			),
+			array( // Ignore none link elements.
 				'<div href="/relative.php">NO URL CONTENT</div>',
 				false,
-			), // ignore none link elements
-			array(
+			),
+			array( // Single link.
 				'ABC<div><a href="/relative.php">LINK</a> CONTENT</div>',
 				'/relative.php',
-			), // single link
-			array(
+			),
+			array( // Multiple links.
 				'ABC<div><a href="/relative.php">LINK</a> CONTENT <a href="/suppress.php">LINK</a></div>',
 				'/relative.php',
-			), // multiple links
-			array(
+			),
+			array( // Escape link.
 				'ABC<div><a href="http://example.com/Mr%20WordPress 2">LINK</a> CONTENT </div>',
 				'http://example.com/Mr%20WordPress%202',
-			), // escape link
+			),
 		);
 	}
 
@@ -45,6 +45,6 @@ class Tests_Formatting_GetUrlInContent extends WP_UnitTestCase {
 	 * @dataProvider get_input_output
 	 */
 	function test_get_url_in_content( $in_str, $exp_str ) {
-		$this->assertEquals( $exp_str, get_url_in_content( $in_str ) );
+		$this->assertSame( $exp_str, get_url_in_content( $in_str ) );
 	}
 }

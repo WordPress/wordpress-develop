@@ -11,30 +11,32 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'test_option', $registered );
 
 		$args = $registered['test_option'];
-		$this->assertEquals( 'test_group', $args['group'] );
+		$this->assertSame( 'test_group', $args['group'] );
 
 		// Check defaults.
-		$this->assertEquals( 'string', $args['type'] );
-		$this->assertEquals( false, $args['show_in_rest'] );
-		$this->assertEquals( '', $args['description'] );
+		$this->assertSame( 'string', $args['type'] );
+		$this->assertFalse( $args['show_in_rest'] );
+		$this->assertSame( '', $args['description'] );
 	}
 
 	public function test_register_with_callback() {
 		register_setting( 'test_group', 'test_option', array( $this, 'filter_registered_setting' ) );
 
 		$filtered = apply_filters( 'sanitize_option_test_option', 'smart', 'test_option', 'smart' );
-		$this->assertEquals( 'S-M-R-T', $filtered );
+		$this->assertSame( 'S-M-R-T', $filtered );
 	}
 
 	public function test_register_with_array() {
 		register_setting(
-			'test_group', 'test_option', array(
+			'test_group',
+			'test_option',
+			array(
 				'sanitize_callback' => array( $this, 'filter_registered_setting' ),
 			)
 		);
 
 		$filtered = apply_filters( 'sanitize_option_test_option', 'smart', 'test_option', 'smart' );
-		$this->assertEquals( 'S-M-R-T', $filtered );
+		$this->assertSame( 'S-M-R-T', $filtered );
 	}
 
 	public function filter_registered_setting() {
@@ -46,12 +48,14 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_register_with_default() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
 
-		$this->assertEquals( 'Got that Viper with them rally stripes', get_option( 'test_default' ) );
+		$this->assertSame( 'Got that Viper with them rally stripes', get_option( 'test_default' ) );
 	}
 
 	/**
@@ -59,14 +63,16 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_register_with_default_override() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);
 
 		// This set of tests/references (and a previous version) are in support of Viper007Bond.
 		// His Viper doesn't have rally stripes, but for the sake of the Big Tymers, we'll go with it.
-		$this->assertEquals( 'We the #1 Stunnas', get_option( 'test_default', 'We the #1 Stunnas' ) );
+		$this->assertSame( 'We the #1 Stunnas', get_option( 'test_default', 'We the #1 Stunnas' ) );
 	}
 
 	/**
@@ -74,13 +80,15 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_add_option_with_no_options_cache() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'My Default :)',
 			)
 		);
 		wp_cache_delete( 'notoptions', 'options' );
 		$this->assertTrue( add_option( 'test_default', 'hello' ) );
-		$this->assertEquals( 'hello', get_option( 'test_default' ) );
+		$this->assertSame( 'hello', get_option( 'test_default' ) );
 	}
 
 	/**
@@ -102,7 +110,9 @@ class Tests_Option_Registration extends WP_UnitTestCase {
 	 */
 	public function test_unregister_setting_removes_default() {
 		register_setting(
-			'test_group', 'test_default', array(
+			'test_group',
+			'test_default',
+			array(
 				'default' => 'Got that Viper with them rally stripes',
 			)
 		);

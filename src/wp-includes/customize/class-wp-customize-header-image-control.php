@@ -15,8 +15,28 @@
  * @see WP_Customize_Image_Control
  */
 class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
+	/**
+	 * Customize control type.
+	 *
+	 * @since 4.2.0
+	 * @var string
+	 */
 	public $type = 'header';
+
+	/**
+	 * Uploaded header images.
+	 *
+	 * @since 3.9.0
+	 * @var string
+	 */
 	public $uploaded_headers;
+
+	/**
+	 * Default header images.
+	 *
+	 * @since 3.9.0
+	 * @var string
+	 */
 	public $default_headers;
 
 	/**
@@ -28,7 +48,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 	 */
 	public function __construct( $manager ) {
 		parent::__construct(
-			$manager, 'header_image', array(
+			$manager,
+			'header_image',
+			array(
 				'label'    => __( 'Header Image' ),
 				'settings' => array(
 					'default' => 'header_image',
@@ -51,7 +73,9 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 		$this->prepare_control();
 
 		wp_localize_script(
-			'customize-views', '_wpCustomizeHeader', array(
+			'customize-views',
+			'_wpCustomizeHeader',
+			array(
 				'data'     => array(
 					'width'         => absint( get_theme_support( 'custom-header', 'width' ) ),
 					'height'        => absint( get_theme_support( 'custom-header', 'height' ) ),
@@ -109,7 +133,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 				data-customize-image-value="{{{data.header.url}}}"
 				data-customize-header-image-data="{{JSON.stringify(data.header)}}">
 				<span class="screen-reader-text"><?php _e( 'Set image' ); ?></span>
-				<img src="{{{data.header.thumbnail_url}}}" alt="{{{data.header.alt_text || data.header.description}}}">
+				<img src="{{{data.header.thumbnail_url}}}" alt="{{{data.header.alt_text || data.header.description}}}" />
 			</button>
 
 			<# if ( data.type === 'uploaded' ) { #>
@@ -178,20 +202,20 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 				if ( current_theme_supports( 'custom-header', 'video' ) ) {
 					_e( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image that matches the size of your video &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' );
 				} elseif ( $width && $height ) {
-					/* translators: %s: header size in pixels */
 					printf(
+						/* translators: %s: Header size in pixels. */
 						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header size of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s &times; %s</strong>', $width, $height )
 					);
 				} elseif ( $width ) {
-					/* translators: %s: header width in pixels */
 					printf(
+						/* translators: %s: Header width in pixels. */
 						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header width of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s</strong>', $width )
 					);
 				} else {
-					/* translators: %s: header height in pixels */
 					printf(
+						/* translators: %s: Header height in pixels. */
 						__( 'Click &#8220;Add new image&#8221; to upload an image file from your computer. Your theme works best with an image with a header height of %s pixels &#8212; you&#8217;ll be able to crop your image once you upload it for a perfect fit.' ),
 						sprintf( '<strong>%s</strong>', $height )
 					);

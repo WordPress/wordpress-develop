@@ -22,10 +22,10 @@ class Tests_Query extends WP_UnitTestCase {
 			$second_query = new WP_Query( array( 'post__in' => array( $nested_post_id ) ) );
 			while ( $second_query->have_posts() ) {
 				$second_query->the_post();
-				$this->assertEquals( get_the_ID(), $nested_post_id );
+				$this->assertSame( get_the_ID(), $nested_post_id );
 			}
 			$first_query->reset_postdata();
-			$this->assertEquals( get_the_ID(), $post_id );
+			$this->assertSame( get_the_ID(), $post_id );
 		}
 	}
 
@@ -34,7 +34,7 @@ class Tests_Query extends WP_UnitTestCase {
 	 */
 	function test_default_query_var() {
 		$query = new WP_Query;
-		$this->assertEquals( '', $query->get( 'nonexistent' ) );
+		$this->assertSame( '', $query->get( 'nonexistent' ) );
 		$this->assertFalse( $query->get( 'nonexistent', false ) );
 		$this->assertTrue( $query->get( 'nonexistent', true ) );
 	}
@@ -49,7 +49,7 @@ class Tests_Query extends WP_UnitTestCase {
 
 		$this->go_to( get_feed_link() );
 
-		$this->assertEquals( 30, get_query_var( 'posts_per_page' ) );
+		$this->assertSame( 30, get_query_var( 'posts_per_page' ) );
 	}
 
 	function filter_posts_per_page( &$query ) {
@@ -95,7 +95,8 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_posts', array( $this, 'pre_get_posts_tax_category_tax_query' ) );
 		register_taxonomy( 'wptests_tax', 'post' );
 		$terms = self::factory()->term->create_many(
-			2, array(
+			2,
+			array(
 				'taxonomy' => 'wptests_tax',
 			)
 		);
@@ -181,14 +182,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => $c1,
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $matching_posts );
 	}
 
 	public function test_category_querystring_multiple_terms_comma_separated() {
@@ -224,14 +226,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => implode( ',', array( $c1, $c2 ) ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	/**
@@ -270,14 +273,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'cat' => array( $c1, $c2 ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 
@@ -306,14 +310,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => $t1->slug,
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2 ), $matching_posts );
 	}
 
 	public function test_tag_querystring_multiple_terms_comma_separated() {
@@ -349,14 +354,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => implode( ',', array( $c1->slug, $c2->slug ) ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	/**
@@ -395,14 +401,15 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'tag' => array( $c1->slug, $c2->slug ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
 		$matching_posts = wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), $matching_posts );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), $matching_posts );
 	}
 
 	public function test_custom_taxonomy_querystring_single_term() {
@@ -423,12 +430,13 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => 'test1',
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	public function test_custom_taxonomy_querystring_multiple_terms_comma_separated() {
@@ -451,12 +459,13 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => 'test1,test2',
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	/**
@@ -482,12 +491,13 @@ class Tests_Query extends WP_UnitTestCase {
 		$url = add_query_arg(
 			array(
 				'test_tax_cat' => array( 'test1', 'test2' ),
-			), '/'
+			),
+			'/'
 		);
 
 		$this->go_to( $url );
 
-		$this->assertEqualSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+		$this->assertSameSets( array( $p1, $p2, $p3 ), wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	/**
@@ -509,7 +519,7 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'parse_query', array( $this, 'filter_parse_query_to_modify_queried_post_id' ) );
 
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
-		$this->assertEquals( $post_id, $GLOBALS['wp_query']->post->ID );
+		$this->assertSame( $post_id, $GLOBALS['wp_query']->post->ID );
 	}
 
 	/**
@@ -519,7 +529,8 @@ class Tests_Query extends WP_UnitTestCase {
 		global $wp_rewrite;
 
 		register_post_type(
-			'guide', array(
+			'guide',
+			array(
 				'name'         => 'Guide',
 				'public'       => true,
 				'hierarchical' => true,
@@ -541,7 +552,7 @@ class Tests_Query extends WP_UnitTestCase {
 		remove_action( 'parse_query', array( $this, 'filter_parse_query_to_modify_queried_post_id' ) );
 
 		$this->assertFalse( $GLOBALS['wp_query']->is_404() );
-		$this->assertEquals( $post_id, $GLOBALS['wp_query']->post->ID );
+		$this->assertSame( $post_id, $GLOBALS['wp_query']->post->ID );
 	}
 
 	public function filter_parse_query_to_modify_queried_post_id( $query ) {

@@ -13,16 +13,16 @@ class Tests_Filters extends WP_UnitTestCase {
 		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
-		// only one event occurred for the hook, with empty args
-		$this->assertEquals( 1, $a->get_call_count() );
-		// only our hook was called
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		// Only one event occurred for the hook, with empty args.
+		$this->assertSame( 1, $a->get_call_count() );
+		// Only our hook was called.
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 		$argsvar = $a->get_args();
 		$args    = array_pop( $argsvar );
-		$this->assertEquals( array( $val ), $args );
+		$this->assertSame( array( $val ), $args );
 	}
 
 	function test_remove_filter() {
@@ -31,17 +31,17 @@ class Tests_Filters extends WP_UnitTestCase {
 		$val = __FUNCTION__ . '_val';
 
 		add_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
-		// make sure our hook was called correctly
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		// Make sure our hook was called correctly.
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
-		// now remove the filter, do it again, and make sure it's not called this time
+		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( $tag, array( $a, 'filter' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
 	}
 
@@ -52,29 +52,29 @@ class Tests_Filters extends WP_UnitTestCase {
 			$this->assertFalse( has_filter( $tag, $func ) );
 			$this->assertFalse( has_filter( $tag ) );
 			add_filter( $tag, $func );
-			$this->assertEquals( 10, has_filter( $tag, $func ) );
+			$this->assertSame( 10, has_filter( $tag, $func ) );
 			$this->assertTrue( has_filter( $tag ) );
 			remove_filter( $tag, $func );
 			$this->assertFalse( has_filter( $tag, $func ) );
 			$this->assertFalse( has_filter( $tag ) );
 	}
 
-	// one tag with multiple filters
+	// One tag with multiple filters.
 	function test_multiple_filters() {
 		$a1  = new MockAction();
 		$a2  = new MockAction();
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
-		// add both filters to the hook
+		// Add both filters to the hook.
 		add_filter( $tag, array( $a1, 'filter' ) );
 		add_filter( $tag, array( $a2, 'filter' ) );
 
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
-		// both filters called once each
-		$this->assertEquals( 1, $a1->get_call_count() );
-		$this->assertEquals( 1, $a2->get_call_count() );
+		// Both filters called once each.
+		$this->assertSame( 1, $a1->get_call_count() );
+		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
 	function test_filter_args_1() {
@@ -84,12 +84,12 @@ class Tests_Filters extends WP_UnitTestCase {
 		$arg1 = __FUNCTION__ . '_arg1';
 
 		add_filter( $tag, array( $a, 'filter' ), 10, 2 );
-		// call the filter with a single argument
-		$this->assertEquals( $val, apply_filters( $tag, $val, $arg1 ) );
+		// Call the filter with a single argument.
+		$this->assertSame( $val, apply_filters( $tag, $val, $arg1 ) );
 
-		$this->assertEquals( 1, $a->get_call_count() );
+		$this->assertSame( 1, $a->get_call_count() );
 		$argsvar = $a->get_args();
-		$this->assertEquals( array( $val, $arg1 ), array_pop( $argsvar ) );
+		$this->assertSame( array( $val, $arg1 ), array_pop( $argsvar ) );
 	}
 
 	function test_filter_args_2() {
@@ -100,21 +100,21 @@ class Tests_Filters extends WP_UnitTestCase {
 		$arg1 = __FUNCTION__ . '_arg1';
 		$arg2 = __FUNCTION__ . '_arg2';
 
-		// a1 accepts two arguments, a2 doesn't
+		// $a1 accepts two arguments, $a2 doesn't.
 		add_filter( $tag, array( $a1, 'filter' ), 10, 3 );
 		add_filter( $tag, array( $a2, 'filter' ) );
-		// call the filter with two arguments
-		$this->assertEquals( $val, apply_filters( $tag, $val, $arg1, $arg2 ) );
+		// Call the filter with two arguments.
+		$this->assertSame( $val, apply_filters( $tag, $val, $arg1, $arg2 ) );
 
-		// a1 should be called with both args
-		$this->assertEquals( 1, $a1->get_call_count() );
+		// $a1 should be called with both args.
+		$this->assertSame( 1, $a1->get_call_count() );
 		$argsvar1 = $a1->get_args();
-		$this->assertEquals( array( $val, $arg1, $arg2 ), array_pop( $argsvar1 ) );
+		$this->assertSame( array( $val, $arg1, $arg2 ), array_pop( $argsvar1 ) );
 
-		// a2 should be called with one only
-		$this->assertEquals( 1, $a2->get_call_count() );
+		// $a2 should be called with one only.
+		$this->assertSame( 1, $a2->get_call_count() );
 		$argsvar2 = $a2->get_args();
-		$this->assertEquals( array( $val ), array_pop( $argsvar2 ) );
+		$this->assertSame( array( $val ), array_pop( $argsvar2 ) );
 	}
 
 	function test_filter_priority() {
@@ -122,22 +122,22 @@ class Tests_Filters extends WP_UnitTestCase {
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
-		// make two filters with different priorities
+		// Make two filters with different priorities.
 		add_filter( $tag, array( $a, 'filter' ), 10 );
 		add_filter( $tag, array( $a, 'filter2' ), 9 );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
-		// there should be two events, one per filter
-		$this->assertEquals( 2, $a->get_call_count() );
+		// There should be two events, one per filter.
+		$this->assertSame( 2, $a->get_call_count() );
 
 		$expected = array(
-			// filter2 is called first because it has priority 9
+			// 'filter2' is called first because it has priority 9.
 			array(
 				'filter' => 'filter2',
 				'tag'    => $tag,
 				'args'   => array( $val ),
 			),
-			// filter 1 is called second
+			// 'filter' is called second.
 			array(
 				'filter' => 'filter',
 				'tag'    => $tag,
@@ -145,7 +145,7 @@ class Tests_Filters extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $a->get_events() );
+		$this->assertSame( $expected, $a->get_events() );
 	}
 
 	function test_all_filter() {
@@ -154,18 +154,18 @@ class Tests_Filters extends WP_UnitTestCase {
 		$tag2 = __FUNCTION__ . '_2';
 		$val  = __FUNCTION__ . '_val';
 
-		// add an 'all' filter
+		// Add an 'all' filter.
 		add_filter( 'all', array( $a, 'filterall' ) );
-		// do some filters
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag2, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
-		$this->assertEquals( $val, apply_filters( $tag1, $val ) );
+		// Apply some filters.
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
+		$this->assertSame( $val, apply_filters( $tag2, $val ) );
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
+		$this->assertSame( $val, apply_filters( $tag1, $val ) );
 
-		// our filter should have been called once for each apply_filters call
-		$this->assertEquals( 4, $a->get_call_count() );
-		// the right hooks should have been called in order
-		$this->assertEquals( array( $tag1, $tag2, $tag1, $tag1 ), $a->get_tags() );
+		// Our filter should have been called once for each apply_filters call.
+		$this->assertSame( 4, $a->get_call_count() );
+		// The right hooks should have been called in order.
+		$this->assertSame( array( $tag1, $tag2, $tag1, $tag1 ), $a->get_tags() );
 
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
@@ -179,21 +179,21 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		add_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertTrue( has_filter( 'all' ) );
-		$this->assertEquals( 10, has_filter( 'all', array( $a, 'filterall' ) ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
+		$this->assertSame( 10, has_filter( 'all', array( $a, 'filterall' ) ) );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
 
-		// make sure our hook was called correctly
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		// Make sure our hook was called correctly.
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 
-		// now remove the filter, do it again, and make sure it's not called this time
+		// Now remove the filter, do it again, and make sure it's not called this time.
 		remove_filter( 'all', array( $a, 'filterall' ) );
 		$this->assertFalse( has_filter( 'all', array( $a, 'filterall' ) ) );
 		$this->assertFalse( has_filter( 'all' ) );
-		$this->assertEquals( $val, apply_filters( $tag, $val ) );
-		// call cound should remain at 1
-		$this->assertEquals( 1, $a->get_call_count() );
-		$this->assertEquals( array( $tag ), $a->get_tags() );
+		$this->assertSame( $val, apply_filters( $tag, $val ) );
+		// Call cound should remain at 1.
+		$this->assertSame( 1, $a->get_call_count() );
+		$this->assertSame( array( $tag ), $a->get_tags() );
 	}
 
 	/**
@@ -229,7 +229,7 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		$args = $a->get_args();
 		$this->assertSame( $args[0][0], $obj );
-		// just in case we don't trust assertSame
+		// Just in case we don't trust assertSame().
 		$obj->foo = true;
 		$this->assertFalse( empty( $args[0][0]->foo ) );
 	}
@@ -248,17 +248,17 @@ class Tests_Filters extends WP_UnitTestCase {
 
 		$result = apply_filters_ref_array( $tag, array( 'string', &$obj ) );
 
-		$this->assertEquals( $result, 'string_append_append' );
+		$this->assertSame( $result, 'string_append_append' );
 
 		$args = $a->get_args();
 		$this->assertSame( $args[0][1], $obj );
-		// just in case we don't trust assertSame
+		// Just in case we don't trust assertSame().
 		$obj->foo = true;
 		$this->assertFalse( empty( $args[0][1]->foo ) );
 
 		$args = $b->get_args();
 		$this->assertSame( $args[0][1], $obj );
-		// just in case we don't trust assertSame
+		// Just in case we don't trust assertSame().
 		$obj->foo = true;
 		$this->assertFalse( empty( $args[0][1]->foo ) );
 
@@ -277,7 +277,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$tag = __FUNCTION__;
 		$val = __FUNCTION__ . '_val';
 
-		// No priority
+		// No priority.
 		add_filter( $tag, array( $a, 'filter' ), 11 );
 		add_filter( $tag, array( $a, 'filter' ), 12 );
 		$this->assertTrue( has_filter( $tag ) );
@@ -285,7 +285,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		remove_all_filters( $tag );
 		$this->assertFalse( has_filter( $tag ) );
 
-		// Remove priorities one at a time
+		// Remove priorities one at a time.
 		add_filter( $tag, array( $a, 'filter' ), 11 );
 		add_filter( $tag, array( $a, 'filter' ), 12 );
 		$this->assertTrue( has_filter( $tag ) );
@@ -303,7 +303,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$p = 'Foo';
 
 		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
-		$p = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p ), '4.6' );
+		$p = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p ), '4.6.0' );
 		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback' ) );
 
 		$this->assertSame( 'Bar', $p );
@@ -323,7 +323,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		$p2 = 'Foo2';
 
 		add_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
-		$p1 = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p1, $p2 ), '4.6' );
+		$p1 = apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $p1, $p2 ), '4.6.0' );
 		remove_filter( 'tests_apply_filters_deprecated', array( __CLASS__, 'deprecated_filter_callback_multiple_params' ), 10, 2 );
 
 		$this->assertSame( 'Bar1', $p1 );
@@ -345,7 +345,7 @@ class Tests_Filters extends WP_UnitTestCase {
 	public function test_apply_filters_deprecated_without_filter() {
 		$val = 'Foobar';
 
-		$this->assertSame( $val, apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $val ), '4.6' ) );
+		$this->assertSame( $val, apply_filters_deprecated( 'tests_apply_filters_deprecated', array( $val ), '4.6.0' ) );
 	}
 
 	private $current_priority;
@@ -373,7 +373,7 @@ class Tests_Filters extends WP_UnitTestCase {
 		do_action( 'test_current_priority' );
 		remove_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );
 
-		$this->assertSame( false, $this->current_priority );
+		$this->assertFalse( $this->current_priority );
 	}
 
 	public function _other_priority_action() {

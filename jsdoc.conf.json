@@ -2,37 +2,13 @@
 	"plugins": [],
 	"recurseDepth": 10,
 	"source": {
-		"include": [
-			"src/wp-includes/js",
-			"src/wp-admin/js"
-		],
-		"exclude": [
-			"src/wp-includes/js/codemirror",
-			"src/wp-includes/js/tinymce",
-			"src/wp-includes/js/crop",
-			"src/wp-includes/js/imgareaselect",
-			"src/wp-includes/js/jcrop",
-			"src/wp-includes/js/jquery",
-			"src/wp-includes/js/mediaelement/mediaelement.js",
-			"src/wp-includes/js/mediaelement/mediaelement-and-player.js",
-			"src/wp-includes/js/plupload/handlers.js",
-			"src/wp-includes/js/plupload/moxie.js",
-			"src/wp-includes/js/plupload/plupload.full.min.js",
-			"src/wp-includes/js/plupload/plupload.js",
-			"src/wp-includes/js/swfupload",
-			"src/wp-includes/js/thickbox",
-			"src/wp-includes/js/media-audiovideo.js",
-			"src/wp-includes/js/media-grid.js",
-			"src/wp-includes/js/media-models.js",
-			"src/wp-includes/js/media-views.js"
-		],
-		"includePattern": ".+\\.js(doc|x)?$",
-		"excludePattern": "(^|\\/|\\\\)_"
+		"include": [ "src/js" ],
+		"exclude": [ "src/js/_enqueues/vendor" ]
 	},
 	"sourceType": "module",
 	"tags": {
 		"allowUnknownTags": true,
-		"dictionaries": ["jsdoc","closure"]
+		"dictionaries": [ "jsdoc", "closure" ]
 	},
 	"templates": {
 		"cleverLinks": false,

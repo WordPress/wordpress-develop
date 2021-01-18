@@ -8,7 +8,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'username', 'password', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_incapable_user() {
@@ -16,7 +16,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'subscriber', 'subscriber', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_no_content() {
@@ -24,8 +24,8 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', array() ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 500, $result->code );
-		$this->assertEquals( 'Content, title, and excerpt are empty.', $result->message );
+		$this->assertSame( 500, $result->code );
+		$this->assertSame( 'Content, title, and excerpt are empty.', $result->message );
 	}
 
 	function test_basic_content() {
@@ -69,7 +69,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_private() {
@@ -92,7 +92,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_other_author() {
@@ -117,7 +117,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_invalid_author() {
@@ -129,7 +129,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 404, $result->code );
+		$this->assertSame( 404, $result->code );
 	}
 
 	function test_empty_author() {
@@ -142,7 +142,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$out = get_post( $result );
 		$this->assertEquals( $my_author_id, $out->post_author );
-		$this->assertEquals( 'Test', $out->post_title );
+		$this->assertSame( 'Test', $out->post_title );
 	}
 
 	function test_post_thumbnail() {
@@ -150,7 +150,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 
 		$this->make_user_by_role( 'author' );
 
-		// create attachment
+		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
 		$attachment_id = self::factory()->attachment->create_upload_object( $filename );
 
@@ -174,7 +174,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( 'draft', get_post_status( $result ) );
+		$this->assertSame( 'draft', get_post_status( $result ) );
 	}
 
 	function test_incapable_sticky() {
@@ -186,7 +186,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'contributor', 'contributor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_capable_sticky() {
@@ -211,7 +211,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 	}
 
 	function test_post_format() {
@@ -223,7 +223,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( 'quote', get_post_format( $result ) );
+		$this->assertSame( 'quote', get_post_format( $result ) );
 	}
 
 	function test_invalid_post_format() {
@@ -249,7 +249,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 
 		$post2   = array(
 			'post_title'  => 'Test',
@@ -259,7 +259,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result2 = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post2 ) );
 		$this->assertIXRError( $result2 );
-		$this->assertEquals( 401, $result2->code );
+		$this->assertSame( 401, $result2->code );
 	}
 
 	function test_invalid_term_id() {
@@ -273,7 +273,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_terms() {
@@ -312,7 +312,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$cat1      = wp_create_category( $cat1_name, $parent_cat );
 		$cat2_name = 'cat2';
 
-		// first a post with valid categories; one that already exists and one to be created
+		// First a post with valid categories; one that already exists and one to be created.
 		$post   = array(
 			'post_title'  => 'Test',
 			'terms_names' => array(
@@ -321,15 +321,15 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post ) );
 		$this->assertNotIXRError( $result );
-		// verify that cat2 was created
+		// Verify that cat2 was created.
 		$cat2 = get_term_by( 'name', $cat2_name, 'category' );
 		$this->assertNotEmpty( $cat2 );
-		// check that both categories were set on the post
+		// Check that both categories were set on the post.
 		$post_cats = wp_get_object_terms( $result, 'category', array( 'fields' => 'ids' ) );
 		$this->assertContains( $cat1, $post_cats );
 		$this->assertContains( $cat2->term_id, $post_cats );
 
-		// create a second post attempting to use the ambiguous name
+		// Create a second post attempting to use the ambiguous name.
 		$post2   = array(
 			'post_title'  => 'Test',
 			'terms_names' => array(
@@ -338,7 +338,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$result2 = $this->myxmlrpcserver->wp_newPost( array( 1, 'editor', 'editor', $post2 ) );
 		$this->assertIXRError( $result2 );
-		$this->assertEquals( 401, $result2->code );
+		$this->assertSame( 401, $result2->code );
 	}
 
 	/**
@@ -355,7 +355,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( '1970-01-01 00:00:00', $fetched_post->post_date );
+		$this->assertSame( current_time( 'Y-m-d' ), substr( $fetched_post->post_date, 0, 10 ) );
 	}
 
 	/**
@@ -363,7 +363,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 	 */
 	function test_invalid_post_date_gmt_does_not_fatal() {
 		$this->make_user_by_role( 'author' );
-		$date_string  = 'invalid date';
+		$date_string  = 'invalid_date';
 		$post         = array(
 			'post_title'    => 'test',
 			'post_content'  => 'test',
@@ -372,7 +372,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( '1970-01-01 00:00:00', $fetched_post->post_date_gmt );
+		$this->assertSame( '0000-00-00', substr( $fetched_post->post_date_gmt, 0, 10 ) );
 	}
 
 	/**
@@ -389,7 +389,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( $date_string, $fetched_post->post_date );
+		$this->assertSame( $date_string, $fetched_post->post_date );
 	}
 
 	/**
@@ -406,7 +406,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( $date_string, $fetched_post->post_date_gmt );
+		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
 
 	/**
@@ -423,7 +423,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( $date_string, $fetched_post->post_date );
+		$this->assertSame( $date_string, $fetched_post->post_date );
 	}
 
 	/**
@@ -440,7 +440,7 @@ class Tests_XMLRPC_wp_newPost extends WP_XMLRPC_UnitTestCase {
 		$result       = $this->myxmlrpcserver->wp_newPost( array( 1, 'author', 'author', $post ) );
 		$fetched_post = get_post( $result );
 		$this->assertStringMatchesFormat( '%d', $result );
-		$this->assertEquals( $date_string, $fetched_post->post_date_gmt );
+		$this->assertSame( $date_string, $fetched_post->post_date_gmt );
 	}
 
 }

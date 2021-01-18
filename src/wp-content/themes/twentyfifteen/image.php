@@ -13,10 +13,10 @@ get_header(); ?>
 		<main id="main" class="site-main" role="main">
 
 			<?php
-				// Start the loop.
+			// Start the loop.
 			while ( have_posts() ) :
 				the_post();
-			?>
+				?>
 
 			<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
@@ -35,7 +35,7 @@ get_header(); ?>
 					<div class="entry-attachment">
 						<?php
 							/**
-							 * Filter the default Twenty Fifteen image attachment size.
+							 * Filters the default Twenty Fifteen image attachment size.
 							 *
 							 * @since Twenty Fifteen 1.0
 							 *
@@ -66,7 +66,7 @@ get_header(); ?>
 								'separator'   => '<span class="screen-reader-text">, </span>',
 							)
 						);
-					?>
+						?>
 					</div><!-- .entry-content -->
 
 					<footer class="entry-footer">
@@ -74,10 +74,10 @@ get_header(); ?>
 						<?php edit_post_link( __( 'Edit', 'twentyfifteen' ), '<span class="edit-link">', '</span>' ); ?>
 					</footer><!-- .entry-footer -->
 
-				</article><!-- #post-## -->
+				</article><!-- #post-<?php the_ID(); ?> -->
 
 				<?php
-				// If comments are open or we have at least one comment, load up the comment template
+				// If comments are open or we have at least one comment, load up the comment template.
 				if ( comments_open() || get_comments_number() ) :
 					comments_template();
 					endif;

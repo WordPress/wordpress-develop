@@ -47,6 +47,6 @@ class Tests_Formatting_NormalizeWhitespace extends WP_UnitTestCase {
 	 * @dataProvider get_input_output
 	 */
 	function test_normalize_whitespace( $in_str, $exp_str ) {
-		$this->assertEquals( $exp_str, normalize_whitespace( $in_str ) );
+		$this->assertSame( $exp_str, normalize_whitespace( $in_str ) );
 	}
 }

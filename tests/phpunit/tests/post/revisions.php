@@ -9,7 +9,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	protected static $editor_user_id;
 	protected static $author_user_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_user_id  = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
@@ -32,7 +32,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 16215
 	 */
 	function test_revision_restore_updates_edit_last_post_meta() {
-		//create a post as Author
+		// Create a post as Author.
 		wp_set_current_user( self::$author_user_id );
 		$post    = get_default_post_to_edit( 'post', true );
 		$post_id = $post->ID;
@@ -45,7 +45,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			)
 		);
 
-		//update post as Editor
+		// Update post as Editor.
 		wp_set_current_user( self::$editor_user_id );
 		wp_update_post(
 			array(
@@ -54,20 +54,20 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			)
 		);
 
-		//restore back as Admin
+		// Restore back as Admin.
 		wp_set_current_user( self::$admin_user_id );
 		$revisions = wp_get_post_revisions( $post->ID );
 		$this->assertCount( 2, $revisions );
 
 		$lastrevision = end( $revisions );
-		$this->assertEquals( 'I cant spel werds.', $lastrevision->post_content );
+		$this->assertSame( 'I cant spel werds.', $lastrevision->post_content );
 		// #16215
 		$this->assertEquals( self::$author_user_id, $lastrevision->post_author );
 
 		wp_restore_post_revision( $lastrevision->ID );
 
-		//is post_meta correctly set to revision author
-		$this->assertEquals( self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) ); //after restoring user
+		// Is post_meta correctly set to revision author after restoring user?
+		$this->assertEquals( self::$admin_user_id, get_post_meta( $post_id, '_edit_last', true ) );
 	}
 
 	/**
@@ -89,55 +89,55 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertCount( 1, wp_get_post_revisions( $post_id ) ); // Just the initial revision
+		$this->assertCount( 1, wp_get_post_revisions( $post_id ) ); // Just the initial revision.
 
-		// First update
+		// First update.
 		wp_update_post(
 			array(
 				'post_content' => 'some updated content',
 				'ID'           => $post_id,
 			)
-		);
+		); // First revision.
 
-		$this->assertCount( 2, wp_get_post_revisions( $post_id ) ); // should be 2 revisions so far
+		$this->assertCount( 2, wp_get_post_revisions( $post_id ) ); // Should be 2 revisions so far.
 
-		//update the post
+		// Update the post.
 		wp_update_post(
 			array(
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //2nd revision
-		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); // should be 3 revision so far
+		); // Second revision.
+		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); // Should be 3 revisions so far.
 
-		//next try to save another identical update, tests for patch that prevents storing duplicates
+		// Next, try to save another identical update, tests for patch that prevents storing duplicates.
 		wp_update_post(
 			array(
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //content unchanged, shouldn't save
-		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); //should still be 3 revision
+		); // Content unchanged, shouldn't save.
+		$this->assertCount( 3, wp_get_post_revisions( $post_id ) ); // Should still be 3 revisions.
 
-		//next try to save another update, same content, but new ttile, should save revision
-		wp_update_post(
-			array(
-				'post_title'   => 'some-post-changed',
-				'post_content' => 'new update for some updated content',
-				'ID'           => $post_id,
-			)
-		);
-		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); //should  be 4 revision
-
-		//next try to save another identical update
+		// Next, try to save another update, same content, but new title, should save revision.
 		wp_update_post(
 			array(
 				'post_title'   => 'some-post-changed',
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //content unchanged, shouldn't save
-		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); //should still be 4 revision
+		);
+		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); // Should be 4 revisions.
+
+		// Next, try to save another identical update.
+		wp_update_post(
+			array(
+				'post_title'   => 'some-post-changed',
+				'post_content' => 'new update for some updated content',
+				'ID'           => $post_id,
+			)
+		); // Content unchanged, shouldn't save.
+		$this->assertCount( 4, wp_get_post_revisions( $post_id ) ); // Should still be 4 revisions.
 	}
 
 	/**
@@ -164,33 +164,34 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$this->assertCount( 1, wp_get_post_revisions( $post_id ) );
 
+		// First update.
 		wp_update_post(
 			array(
 				'post_content' => 'some updated content',
 				'ID'           => $post_id,
 			)
-		);    //1st revision
+		); // First revision.
 		$this->assertCount( 2, wp_get_post_revisions( $post_id ) );
 
-		//update the post
+		// Update the post.
 		wp_update_post(
 			array(
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //2nd revision
+		); // Second revision.
 		$this->assertCount( 3, wp_get_post_revisions( $post_id ) );
 
-		//next try to save another identical update, tests for patch that prevents storing duplicates
+		// Next, try to save another identical update, tests for patch that prevents storing duplicates.
 		wp_update_post(
 			array(
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //content unchanged, shouldn't save
+		); // Content unchanged, shouldn't save.
 		$this->assertCount( 4, wp_get_post_revisions( $post_id ) );
 
-		//next try to save another update, same content, but new ttile, should save revision
+		// Next, try to save another update, same content, but new title, should save revision.
 		wp_update_post(
 			array(
 				'post_title'   => 'some-post-changed',
@@ -200,14 +201,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 		$this->assertCount( 5, wp_get_post_revisions( $post_id ) );
 
-		//next try to save another identical update
+		// Next, try to save another identical update.
 		wp_update_post(
 			array(
 				'post_title'   => 'some-post-changed',
 				'post_content' => 'new update for some updated content',
 				'ID'           => $post_id,
 			)
-		); //content unchanged, shouldn't save
+		); // Content unchanged, shouldn't save.
 		$this->assertCount( 6, wp_get_post_revisions( $post_id ) );
 
 		remove_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
@@ -240,7 +241,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
 
-		// Author should be able to view the revisions fine
+		// Author should be able to view the revisions fine.
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
 		}
@@ -271,7 +272,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
 
-		// Author shouldn't be able to restore the revisions
+		// Author shouldn't be able to restore the revisions.
 		foreach ( $revisions as $revision ) {
 			$this->assertFalse( user_can( self::$author_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -302,14 +303,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			)
 		);
 
-		// Diff checks if you can read both left and right revisions
+		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
 		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
 
-		// Author should be able to diff the revisions fine
+		// Author should be able to diff the revisions fine.
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
 		}
@@ -322,7 +323,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_view_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),
@@ -350,7 +352,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
 
-		// Author should be able to view the revisions fine
+		// Author should be able to view the revisions fine.
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
 		}
@@ -363,7 +365,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_restore_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),
@@ -374,7 +377,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$editor_user = new WP_User( self::$editor_user_id );
 		$editor_user->add_cap( 'edit_published_events' );
 
-		//create a post as Editor
+		// Create a post as Editor.
 		$post_id = self::factory()->post->create(
 			array(
 				'post_type'   => $this->post_type,
@@ -394,7 +397,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
 
-		// Author shouldn't be able to restore the revisions
+		// Author shouldn't be able to restore the revisions.
 		wp_set_current_user( self::$author_user_id );
 		foreach ( $revisions as $revision ) {
 			$this->assertFalse( user_can( self::$author_user_id, 'edit_post', $revision->post_parent ) );
@@ -408,7 +411,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_restore_caps_before_publish() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'post',
 				'capabilities'    => array(
 					// No one can edit this post type once published.
@@ -467,7 +471,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 */
 	function test_revision_diff_caps_cpt() {
 		register_post_type(
-			$this->post_type, array(
+			$this->post_type,
+			array(
 				'capability_type' => 'event',
 				'map_meta_cap'    => true,
 				'supports'        => array( 'revisions' ),
@@ -493,14 +498,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			)
 		);
 
-		// Diff checks if you can read both left and right revisions
+		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
 		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
 
-		// Author should be able to diff the revisions fine
+		// Author should be able to diff the revisions fine.
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$author_user_id, 'read_post', $revision->ID ) );
 		}
@@ -528,7 +533,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$now          = time();
 		for ( $j = 1; $j < 3; $j++ ) {
 			// Manually modify dates to ensure they're different.
-			$date                                  = date( 'Y-m-d H:i:s', $now - ( $j * 10 ) );
+			$date                                  = gmdate( 'Y-m-d H:i:s', $now - ( $j * 10 ) );
 			$post_revision_fields['post_date']     = $date;
 			$post_revision_fields['post_date_gmt'] = $date;
 
@@ -539,7 +544,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
-		$this->assertEquals( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
+		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
 	/**
@@ -559,7 +564,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$post_revision_fields = wp_slash( $post_revision_fields );
 
 		$revision_ids = array();
-		$date         = date( 'Y-m-d H:i:s', time() - 10 );
+		$date         = gmdate( 'Y-m-d H:i:s', time() - 10 );
 		for ( $j = 1; $j < 3; $j++ ) {
 			// Manually modify dates to ensure they're the same.
 			$post_revision_fields['post_date']     = $date;
@@ -574,6 +579,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		$revisions = wp_get_post_revisions( $post['ID'] );
 
-		$this->assertEquals( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
+		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 }

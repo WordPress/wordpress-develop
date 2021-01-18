@@ -24,7 +24,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -43,7 +43,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		);
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
@@ -54,7 +56,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -71,7 +73,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_404', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -83,7 +85,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post->ID, array(
+			$file,
+			$post->ID,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_title'     => 'Hello World',
 				'post_content'   => 'Foo Bar',
@@ -96,7 +100,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_attachment', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -121,7 +125,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_404', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -145,7 +149,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_404', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -168,7 +172,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_404', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -195,7 +199,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
 
 		ob_start();
-		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
+		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
 
 		$doc = new DOMDocument();
@@ -207,7 +211,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	function test_wp_embed_excerpt_more_no_embed() {
 		$GLOBALS['wp_query'] = new WP_Query();
 
-		$this->assertEquals( 'foo bar', wp_embed_excerpt_more( 'foo bar' ) );
+		$this->assertSame( 'foo bar', wp_embed_excerpt_more( 'foo bar' ) );
 	}
 
 	function test_wp_embed_excerpt_more() {
@@ -218,7 +222,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( '', wp_embed_excerpt_more( '' ) );
+		$this->assertSame( '', wp_embed_excerpt_more( '' ) );
 
 		$this->go_to( get_post_embed_url( $post_id ) );
 
@@ -229,7 +233,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 			get_the_permalink()
 		);
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	function test_is_embed_post() {
@@ -244,7 +248,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
 		$attachment_id = self::factory()->attachment->create_object(
-			$file, $post_id, array(
+			$file,
+			$post_id,
+			array(
 				'post_mime_type' => 'image/jpeg',
 			)
 		);
@@ -303,7 +309,7 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * So this test checks for ampersands in build/wp-includes/js/wp-embed.min.js.
 	 * In many cases, this file will not exist; in those cases, we simply skip the test.
 	 *
-	 * So when would it be run? We have Travis CI run `grunt test` which then runs, in order,
+	 * So when would it be run? We have Travis CI run `npm run test` which then runs, in order,
 	 * `qunit:compiled` (which runs the build) and then `phpunit`. Thus, this test will at least be
 	 * run during continuous integration.
 	 *

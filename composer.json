@@ -1,0 +1,42 @@
+{
+	"name": "wordpress/wordpress",
+	"license": "GPL-2.0-or-later",
+	"description": "WordPress is open source software you can use to create a beautiful website, blog, or app.",
+	"homepage": "https://wordpress.org",
+	"keywords": [
+		"blog", "cms", "wordpress", "wp"
+	],
+	"support": {
+		"issues": "https://core.trac.wordpress.org/"
+	},
+	"require": {
+		"php": ">=5.6"
+	},
+	"require-dev": {
+		"dealerdirect/phpcodesniffer-composer-installer": "^0.6.2 || ^0.7.0",
+		"wp-coding-standards/wpcs": "~2.3.0",
+		"phpcompatibility/phpcompatibility-wp": "^2.1.0",
+		"phpunit/phpunit": "^7.5"
+	},
+	"autoload-dev": {
+		"files": [
+			"tests/phpunit/includes/phpunit7/MockObject/Builder/NamespaceMatch.php",
+			"tests/phpunit/includes/phpunit7/MockObject/Builder/ParametersMatch.php",
+			"tests/phpunit/includes/phpunit7/MockObject/InvocationMocker.php",
+			"tests/phpunit/includes/phpunit7/MockObject/MockMethod.php"
+		],
+		"exclude-from-classmap": [
+			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/NamespaceMatch.php",
+			"vendor/phpunit/phpunit/src/Framework/MockObject/Builder/ParametersMatch.php",
+			"vendor/phpunit/phpunit/src/Framework/MockObject/InvocationMocker.php",
+			"vendor/phpunit/phpunit/src/Framework/MockObject/MockMethod.php"
+		]
+	},
+	"scripts": {
+		"compat": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --standard=phpcompat.xml.dist --report=summary,source",
+		"format": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcbf --report=summary,source",
+		"lint": "@php ./vendor/squizlabs/php_codesniffer/bin/phpcs --report=summary,source",
+		"lint:errors": "@lint -n",
+		"test": "@php ./vendor/phpunit/phpunit/phpunit"
+	}
+}

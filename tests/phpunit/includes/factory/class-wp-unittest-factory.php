@@ -58,7 +58,7 @@ class WP_UnitTest_Factory {
 	 */
 	public $network;
 
-	function __construct() {
+	public function __construct() {
 		$this->post       = new WP_UnitTest_Factory_For_Post( $this );
 		$this->attachment = new WP_UnitTest_Factory_For_Attachment( $this );
 		$this->comment    = new WP_UnitTest_Factory_For_Comment( $this );

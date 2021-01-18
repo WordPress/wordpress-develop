@@ -1,6 +1,6 @@
 /* global wp, JSON */
 ( function( QUnit ) {
-	module( 'wpapi' );
+	QUnit.module( 'wpapi' );
 
 	QUnit.test( 'API Loaded correctly', function( assert ) {
 		var done = assert.async();
@@ -122,7 +122,7 @@
 
 	_.each( modelsWithIdsClassNames, function( className ) {
 
-		QUnit.test( 'Checking ' + className + ' model.' , function( assert ) {
+		QUnit.test( 'Checking ' + className + ' model.', function( assert ) {
 			var done = assert.async();
 
 			assert.expect( 2 );
@@ -160,7 +160,7 @@
 
 	_.each( modelsWithIndexes, function( className ) {
 
-		QUnit.test( 'Testing ' + className + ' model.' , function( assert ) {
+		QUnit.test( 'Testing ' + className + ' model.', function( assert ) {
 			var done = assert.async();
 
 			assert.expect( 2 );
@@ -296,7 +296,7 @@
 
 		// Check that we have and can get each model type.
 		_.each( customClasses, function( className ) {
-			QUnit.test( 'Checking ' + className + ' class name.' , function( assert ) {
+			QUnit.test( 'Checking ' + className + ' class name.', function( assert ) {
 				var done = assert.async();
 
 				assert.expect( 2 );
@@ -316,7 +316,7 @@
 
 	// Check connecting to a second URL.
 	wp.api.loadPromise.done( function() {
-		QUnit.test( 'Checking connecting to a remote url.' , function( assert ) {
+		QUnit.test( 'Checking connecting to a remote url.', function( assert ) {
 			var done = assert.async();
 
 			wp.api.init({
@@ -400,9 +400,13 @@
 
 					// Get the main endpoint.
 					var endpoint = theModels.at(0);
+					var expectedMetas = '{"meta_key":"meta_value"}';
+					if ( 'Tags' === modelType ) {
+						expectedMetas = '{"test_single":"","test_multi":[],"meta_key":"meta_value","test_tag_meta":""}';
+					}
 
 					// Verify the meta object returned correctly from `getMetas()`.
-					assert.equal( JSON.stringify( endpoint.getMetas() ), '{"meta_key":"meta_value"}', 'Full meta key/values object should be readable.' );
+					assert.equal( JSON.stringify( endpoint.getMetas() ), expectedMetas, 'Full meta key/values object should be readable.' );
 
 					// Verify single meta returned correctly from `getMeta()`
 					assert.equal( endpoint.getMeta( 'meta_key' ), 'meta_value', 'Single meta should be readable by key.' );

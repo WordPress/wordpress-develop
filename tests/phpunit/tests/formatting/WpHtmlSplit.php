@@ -11,7 +11,7 @@ class Tests_Formatting_WpHtmlSplit extends WP_UnitTestCase {
 	 * @dataProvider data_basic_features
 	 */
 	function test_basic_features( $input, $output ) {
-		return $this->assertEquals( $output, wp_html_split( $input ) );
+		return $this->assertSame( $output, wp_html_split( $input ) );
 	}
 
 	function data_basic_features() {
@@ -47,7 +47,7 @@ class Tests_Formatting_WpHtmlSplit extends WP_UnitTestCase {
 	}
 
 	function data_whole_posts() {
-		require_once( DIR_TESTDATA . '/formatting/whole-posts.php' );
+		require_once DIR_TESTDATA . '/formatting/whole-posts.php';
 		return data_whole_posts();
 	}
 }

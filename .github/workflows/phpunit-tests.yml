@@ -1,0 +1,298 @@
+name: PHPUnit Tests
+
+on:
+  push:
+    branches:
+      - master
+      - '*.*'
+  pull_request:
+  # Once weekly On Sundays at 00:00 UTC.
+  schedule:
+    - cron: '0 0 * * 0'
+
+env:
+  LOCAL_DIR: build
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+  COMPOSER_INSTALL: ${{ false }}
+  # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
+  PHPUNIT_SCRIPT: php
+  LOCAL_PHP_MEMCACHED: ${{ false }}
+
+jobs:
+  # Sets up WordPress for testing or development use.
+  #
+  # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
+  # - Checks out the repository.
+  # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Creates a ZIP file of compiled WordPress.
+  # - Uploads ZIP file as an artifact.
+  setup-wordpress:
+    name: Setup WordPress
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Checkout the WordPress Importer plugin
+        run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
+
+      - name: Log debug information
+        run: |
+          echo "$GITHUB_REF"
+          echo "$GITHUB_EVENT_NAME"
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          locale -a
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        run: npx install-changed --install-command="npm ci"
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Create ZIP artifact
+        uses: thedoctor0/zip-release@0.4.1
+        with:
+          filename: built-wp-${{ github.sha }}.zip
+          exclusions: '*.git* /*node_modules/* packagehash.txt'
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+          path: built-wp-${{ github.sha }}.zip
+          if-no-files-found: error
+
+  # Runs the PHPUnit tests for WordPress.
+  #
+  # Performs the following steps:
+  # - Set environment variables.
+  # - Sets up the environment variables needed for testing with memcached (if desired).
+  # - Downloads the built WordPress artifact from the previous job.
+  # - Unzips the artifact.
+  # - Installs NodeJS 14.
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Configures caching for Composer.
+  # _ Installs Composer dependencies (if desired).
+  # - Logs Docker debug information (about both the Docker installation within the runner).
+  # - Starts the WordPress Docker container.
+  # - Starts the memcached server after the Docker network has been created (if desired).
+  # - Logs WordPress Docker container debug information.
+  # - Logs debug general information.
+  # - Logs the running Docker containers.
+  # - Logs debug information about what's installed within the WordPress Docker containers.
+  # - Install WordPress within the Docker container.
+  # - Run the PHPUnit tests.
+  # - Checks out the WordPress Test reporter repository.
+  # - Reconnect the directory to the Git repository.
+  # - Submit the test results to the WordPress.org host test results.
+  # - todo: Configure Slack notifications for failing tests.
+  test-php:
+    name: ${{ matrix.php }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    needs: setup-wordpress
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        php: [ '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6.20' ]
+        os: [ ubuntu-latest ]
+        memcached: [ false ]
+        include:
+          # Include job for PHP 7.4 with memcached.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: true
+          # Report the results of the PHP 7.4 without memcached job.
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: false
+            report: true
+    env:
+      LOCAL_PHP: ${{ matrix.php }}-fpm
+      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
+
+    steps:
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Download the built WordPress artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: built-wp-${{ github.sha }}
+
+      - name: Unzip built artifact
+        run: unzip built-wp-${{ github.sha }}.zip
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Use cached Node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        run: npx install-changed --install-command="npm ci"
+
+      - name: Get composer cache directory
+        id: composer-cache
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+
+      - name: Cache Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-composer-dependencies
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-${{ matrix.php }}-composer-
+
+      - name: Install Composer dependencies
+        if: ${{ env.COMPOSER_INSTALL == true || env.LOCAL_PHP == '8.0-fpm' }}
+        run: |
+          docker-compose run --rm php composer --version
+
+          # The PHPUnit 7.x phar is not compatible with PHP 8 and won't be updated,
+          # as PHPUnit 7 is no longer supported. The Composer-installed PHPUnit should be
+          # used for PHP 8 testing instead.
+          if [ ${{ env.LOCAL_PHP }} == '8.0-fpm' ]; then
+            docker-compose run --rm php composer install --ignore-platform-reqs
+            echo "PHPUNIT_SCRIPT=php-composer" >> $GITHUB_ENV
+          else
+            docker-compose run --rm php composer install
+          fi
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      # The memcached server needs to start after the Docker network has been set up with `npm run env:start`.
+      - name: Start the Memcached server.
+        if: ${{ matrix.memcached }}
+        run: |
+          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+          docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: WordPress Docker container debug information
+        run: |
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run PHPUnit tests
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist
+
+      - name: Run AJAX tests
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group ajax
+
+      - name: Run tests as a multisite install
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml
+
+      - name: Run AJAX tests as a multisite install
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ajax
+
+      - name: Run ms-files tests as a multisite install
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ms-files
+
+      - name: Run external HTTP tests
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
+
+      - name: Run REST API tests
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient
+
+      # Xdebug supports PHP 8 only from version 3.0, which is not released yet.
+      # Once Xdebug 3.0 is released and included in the Docker image, the IF condition should be removed.
+      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
+      - name: Run (xDebug) tests
+        if: ${{ env.LOCAL_PHP != '8.0-fpm' }}
+        run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
+
+      - name: Checkout the WordPress Test Reporter
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        uses: actions/checkout@v2
+        with:
+          repository: 'WordPress/phpunit-test-runner'
+          path: 'test-runner'
+
+      - name: Set up the Git repository
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        run: |
+          git init
+          git remote add origin https://github.com/WordPress/wordpress-develop.git
+          git fetch
+          git reset origin/master
+
+      - name: Submit test results to the WordPress.org host test results
+        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
+        env:
+          WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
+        run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php

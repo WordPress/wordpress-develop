@@ -40,7 +40,7 @@ abstract class WP_Test_REST_Controller_Testcase extends WP_Test_REST_TestCase {
 	abstract public function test_get_item_schema();
 
 	public function filter_rest_url_for_leading_slash( $url, $path ) {
-		if ( is_multisite() ) {
+		if ( is_multisite() || get_option( 'permalink_structure' ) ) {
 			return $url;
 		}
 

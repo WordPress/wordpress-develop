@@ -74,7 +74,7 @@ function twentythirteen_custom_header_fonts() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 
 	// Add Genericons font.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.03' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 }
 add_action( 'admin_print_styles-appearance_page_custom-header', 'twentythirteen_custom_header_fonts' );
 
@@ -90,7 +90,7 @@ function twentythirteen_header_style() {
 	$text_color   = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail.
-	if ( empty( $header_image ) && $text_color == get_theme_support( 'custom-header', 'default-text-color' ) ) {
+	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) == $text_color ) {
 		return;
 	}
 
@@ -99,7 +99,7 @@ function twentythirteen_header_style() {
 	<style type="text/css" id="twentythirteen-header-css">
 	<?php
 	if ( ! empty( $header_image ) ) :
-	?>
+		?>
 	.site-header {
 		background: url(<?php header_image(); ?>) no-repeat scroll top;
 		background-size: 1600px auto;
@@ -114,30 +114,30 @@ function twentythirteen_header_style() {
 			background-size: 360px auto;
 		}
 	}
-	<?php
+		<?php
 		endif;
 
 		// Has the text been hidden?
 	if ( ! display_header_text() ) :
-	?>
+		?>
 	.site-title,
 	.site-description {
 		position: absolute;
 		clip: rect(1px 1px 1px 1px); /* IE7 */
 		clip: rect(1px, 1px, 1px, 1px);
 	}
-	<?php
-	if ( empty( $header_image ) ) :
-	?>
+		<?php
+		if ( empty( $header_image ) ) :
+			?>
 	.site-header .home-link {
 	min-height: 0;
 	}
-	<?php
+			<?php
 		endif;
 
 		// If the user has set a custom color for the text, use that.
-		elseif ( $text_color != get_theme_support( 'custom-header', 'default-text-color' ) ) :
-	?>
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
+			?>
 		.site-title,
 		.site-description {
 			color: #<?php echo esc_attr( $text_color ); ?>;
@@ -154,7 +154,7 @@ function twentythirteen_header_style() {
  */
 function twentythirteen_admin_header_style() {
 	$header_image = get_header_image();
-?>
+	?>
 	<style type="text/css" id="twentythirteen-admin-header-css">
 	.appearance_page_custom-header #headimg {
 		border: none;
@@ -210,7 +210,7 @@ function twentythirteen_admin_header_style() {
 		width: auto;
 	}
 	</style>
-<?php
+	<?php
 }
 
 /**
@@ -232,5 +232,5 @@ function twentythirteen_admin_header_image() {
 			<h2 id="desc" class="displaying-header-text" style="<?php echo esc_attr( $style ); ?>"><?php bloginfo( 'description' ); ?></h2>
 		</div>
 	</div>
-<?php
+	<?php
 }

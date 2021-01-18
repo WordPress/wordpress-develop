@@ -1,47 +1,79 @@
 <phpunit
 		bootstrap="includes/bootstrap.php"
-        backupGlobals="false"
-        colors="true"
-        beStrictAboutTestsThatDoNotTestAnything="true"
-        >
-    <php>
-        <const name="WP_TESTS_MULTISITE" value="1" />
-    </php>
-    <testsuites>
-        <!-- Default test suite to run all tests -->
-        <testsuite>
-            <directory suffix=".php">tests</directory>
-            <exclude>tests/phpunit/tests/actions/closures.php</exclude>
-            <exclude>tests/phpunit/tests/image/editor.php</exclude>
-            <exclude>tests/phpunit/tests/image/editorGd.php</exclude>
-            <exclude>tests/phpunit/tests/image/editorImagick.php</exclude>
-            <file phpVersion="5.3.0">tests/phpunit/tests/actions/closures.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editor.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editorGd.php</file>
-            <file phpVersion="5.3.0">tests/phpunit/tests/image/editorImagick.php</file>
-        </testsuite>
-    </testsuites>
-    <groups>
-        <exclude>
-            <group>ajax</group>
-            <group>ms-files</group>
-            <group>ms-excluded</group>
-            <group>external-http</group>
-            <group>oembed-headers</group>
-        </exclude>
-    </groups>
-    <php>
-        <const name="WP_RUN_CORE_TESTS" value="1" />
-    </php>
-    <listeners>
-        <listener class="SpeedTrapListener" file="tests/phpunit/includes/speed-trap-listener.php">
-            <arguments>
-                <array>
-                    <element key="slowThreshold">
-                        <integer>150</integer>
-                    </element>
-                </array>
-            </arguments>
-        </listener>
-    </listeners>
+		backupGlobals="false"
+		colors="true"
+		beStrictAboutTestsThatDoNotTestAnything="true"
+		>
+	<php>
+		<const name="WP_TESTS_MULTISITE" value="1" />
+		<const name="WP_RUN_CORE_TESTS" value="1" />
+	</php>
+	<testsuites>
+		<!-- Default test suite to run all tests. -->
+		<testsuite name="default">
+			<directory suffix=".php">tests</directory>
+			<exclude>tests/rest-api/rest-autosaves-controller.php</exclude>
+		</testsuite>
+		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
+		<testsuite name="restapi-autosave">
+			<file>tests/rest-api/rest-autosaves-controller.php</file>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<exclude>
+			<group>ajax</group>
+			<group>ms-files</group>
+			<group>ms-excluded</group>
+			<group>external-http</group>
+			<group>oembed-headers</group>
+		</exclude>
+	</groups>
+	<listeners>
+		<listener class="SpeedTrapListener" file="tests/phpunit/includes/listener-loader.php">
+			<arguments>
+				<array>
+					<element key="slowThreshold">
+						<integer>150</integer>
+					</element>
+				</array>
+			</arguments>
+		</listener>
+	</listeners>
+	<filter>
+		<whitelist addUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">../../build</directory>
+			<exclude>
+				<!-- Third party library exclusions. -->
+				<directory suffix=".php">../../build/wp-includes/ID3</directory>
+				<directory suffix=".php">../../build/wp-includes/IXR</directory>
+				<directory suffix=".php">../../build/wp-includes/random_compat</directory>
+				<directory suffix=".php">../../build/wp-includes/PHPMailer</directory>
+				<directory suffix=".php">../../build/wp-includes/Requests</directory>
+				<directory suffix=".php">../../build/wp-includes/SimplePie</directory>
+				<directory suffix=".php">../../build/wp-includes/sodium_compat</directory>
+				<directory suffix=".php">../../build/wp-includes/Text</directory>
+
+				<!-- Plugins and themes. -->
+				<directory suffix=".php">../../build/wp-content/</directory>
+
+				<file>../../build/wp-admin/includes/class-ftp*</file>
+				<file>../../build/wp-admin/includes/class-pclzip.php</file>
+				<file>../../build/wp-admin/includes/deprecated.php</file>
+				<file>../../build/wp-admin/includes/ms-deprecated.php</file>
+
+				<file>../../build/wp-includes/atomlib.php</file>
+				<file>../../build/wp-includes/class-IXR.php</file>
+				<file>../../build/wp-includes/class-json.php</file>
+				<file>../../build/wp-includes/class-phpass.php</file>
+				<file>../../build/wp-includes/class-pop3.php</file>
+				<file>../../build/wp-includes/class-requests.php</file>
+				<file>../../build/wp-includes/class-simplepie.php</file>
+				<file>../../build/wp-includes/class-snoopy.php</file>
+				<file>../../build/wp-includes/deprecated.php</file>
+				<file>../../build/wp-includes/ms-deprecated.php</file>
+				<file>../../build/wp-includes/pluggable-deprecated.php</file>
+				<file>../../build/wp-includes/rss.php</file>
+			</exclude>
+		</whitelist>
+	</filter>
 </phpunit>

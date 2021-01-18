@@ -12,9 +12,11 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 	 *     @type string $file        Path of the attached file.
 	 * }
 	 * @param int   $legacy_parent Deprecated.
-	 * @param array $legacy_args   Deprecated
+	 * @param array $legacy_args   Deprecated.
+	 *
+	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
 	 */
-	function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
+	public function create_object( $args, $legacy_parent = 0, $legacy_args = array() ) {
 		// Backward compatibility for legacy argument format.
 		if ( is_string( $args ) ) {
 			$file                = $args;
@@ -27,15 +29,24 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			array(
 				'file'        => '',
 				'post_parent' => 0,
-			), $args
+			),
+			$args
 		);
 
 		return wp_insert_attachment( $r, $r['file'], $r['post_parent'] );
 	}
 
-	function create_upload_object( $file, $parent = 0 ) {
+	/**
+	 * Saves an attachment.
+	 *
+	 * @param string $file   The file name to create attachment object for.
+	 * @param int    $parent ID of the post to attach the file to.
+	 *
+	 * @return int|WP_Error The attachment ID on success. The value 0 or WP_Error on failure.
+	 */
+	public function create_upload_object( $file, $parent = 0 ) {
 		$contents = file_get_contents( $file );
-		$upload   = wp_upload_bits( basename( $file ), null, $contents );
+		$upload   = wp_upload_bits( wp_basename( $file ), null, $contents );
 
 		$type = '';
 		if ( ! empty( $upload['type'] ) ) {
@@ -48,7 +59,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 		}
 
 		$attachment = array(
-			'post_title'     => basename( $upload['file'] ),
+			'post_title'     => wp_basename( $upload['file'] ),
 			'post_content'   => '',
 			'post_type'      => 'attachment',
 			'post_parent'    => $parent,
@@ -56,7 +67,7 @@ class WP_UnitTest_Factory_For_Attachment extends WP_UnitTest_Factory_For_Post {
 			'guid'           => $upload['url'],
 		);
 
-		// Save the data
+		// Save the data.
 		$id = wp_insert_attachment( $attachment, $upload['file'], $parent );
 		wp_update_attachment_metadata( $id, wp_generate_attachment_metadata( $id, $upload['file'] ) );
 

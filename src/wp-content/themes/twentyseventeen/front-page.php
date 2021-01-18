@@ -4,11 +4,11 @@
  *
  * If the user has selected a static page for their homepage, this is what will
  * appear.
- * Learn more: https://codex.wordpress.org/Template_Hierarchy
+ * Learn more: https://developer.wordpress.org/themes/basics/template-hierarchy/
  *
  * @package WordPress
  * @subpackage Twenty_Seventeen
- * @since 1.0
+ * @since Twenty Seventeen 1.0
  * @version 1.0
  */
 
@@ -34,7 +34,7 @@ get_header(); ?>
 		if ( 0 !== twentyseventeen_panel_count() || is_customize_preview() ) : // If we have pages to show.
 
 			/**
-			 * Filter number of front page sections in Twenty Seventeen.
+			 * Filters the number of front page sections in Twenty Seventeen.
 			 *
 			 * @since Twenty Seventeen 1.0
 			 *
@@ -50,7 +50,7 @@ get_header(); ?>
 			}
 
 	endif; // The if ( 0 !== twentyseventeen_panel_count() ) ends here.
-	?>
+		?>
 
 	</main><!-- #main -->
 </div><!-- #primary -->

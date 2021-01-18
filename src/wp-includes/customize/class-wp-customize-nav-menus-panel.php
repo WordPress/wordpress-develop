@@ -74,7 +74,7 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 			<div class="accordion-section-title">
 				<span class="preview-notice">
 					<?php
-					/* translators: %s: the site/panel title in the Customizer */
+					/* translators: %s: The site/panel title in the Customizer. */
 					printf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
 					?>
 				</span>
@@ -96,6 +96,6 @@ class WP_Customize_Nav_Menus_Panel extends WP_Customize_Panel {
 		// NOTE: The following is a workaround for an inability to treat (and thus label) a list of sections as a whole.
 		?>
 		<li class="customize-control-title customize-section-title-nav_menus-heading"><?php _e( 'Menus' ); ?></li>
-	<?php
+		<?php
 	}
 }

@@ -71,7 +71,7 @@ class Walker_PageDropdown extends Walker {
 
 		$title = $page->post_title;
 		if ( '' === $title ) {
-			/* translators: %d: ID of a post */
+			/* translators: %d: ID of a post. */
 			$title = sprintf( __( '#%d (no title)' ), $page->ID );
 		}
 
@@ -80,8 +80,8 @@ class Walker_PageDropdown extends Walker {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string $title Page title.
-		 * @param object $page  Page data object.
+		 * @param string  $title Page title.
+		 * @param WP_Post $page  Page data object.
 		 */
 		$title = apply_filters( 'list_pages', $title, $page );
 

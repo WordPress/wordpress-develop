@@ -7,6 +7,8 @@ wp-tests-config.php
 
 # Files and folders related to build/test tools
 /phpunit.xml
+/.phpcs.xml
+/phpcs.xml
 /tests/phpunit/data/plugins/wordpress-importer
 /tests/phpunit/data/.trac-ticket-cache*
 /tests/qunit/compiled.html
@@ -18,6 +20,15 @@ wp-tests-config.php
 /wp-cli.local.yml
 /jsdoc
 /vendor
+/src/wp-admin/css/*.min.css
+/src/wp-admin/css/*-rtl.css
+/src/wp-admin/css/colors/*/*.css
+/src/wp-admin/js
+/src/wp-includes/js
+/src/wp-includes/css/dist
+/src/wp-includes/css/*.min.css
+/src/wp-includes/css/*-rtl.css
+/packagehash.txt
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -31,7 +42,10 @@ wp-tests-config.php
 !/src/wp-content/themes/twentythirteen
 !/src/wp-content/themes/twentyfourteen
 !/src/wp-content/themes/twentyfifteen
+!/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
+!/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwentyone
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -41,9 +55,11 @@ wp-tests-config.php
 /src/wp-content/db.php
 /src/wp-content/db-error.php
 /src/wp-content/debug.log
+/src/wp-content/fatal-error-handler.php
 /src/wp-content/install.php
 /src/wp-content/maintenance.php
 /src/wp-content/object-cache.php
+/src/wp-content/php-error.php
 /src/wp-content/sunrise.php
 
 # Operating system specific files
@@ -58,3 +74,7 @@ wp-tests-config.php
 *.patch
 *.diff
 .svn
+!/src/js/_enqueues/vendor
+
+# Files for local environment config
+/docker-compose.override.yml

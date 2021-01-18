@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Admin ajax functions to be tested
+ * Admin Ajax functions to be tested.
  */
-require_once( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 /**
  * Testing Quick Edit AJAX functionality.
@@ -17,13 +17,17 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 	 */
 	public function test_dont_process_terms_if_taxonomy_does_not_allow_show_on_quick_edit() {
 		register_taxonomy(
-			'wptests_tax_1', 'post', array(
+			'wptests_tax_1',
+			'post',
+			array(
 				'show_in_quick_edit' => false,
 				'hierarchical'       => true,
 			)
 		);
 		register_taxonomy(
-			'wptests_tax_2', 'post', array(
+			'wptests_tax_2',
+			'post',
+			array(
 				'show_in_quick_edit' => true,
 				'hierarchical'       => true,
 			)
@@ -71,12 +75,12 @@ class Tests_Ajax_QuickEdit extends WP_Ajax_UnitTestCase {
 			unset( $e );
 		}
 
-		// wptests_tax_1 terms should have been refused.
+		// 'wptests_tax_1' terms should have been refused.
 		$post_terms_1 = wp_get_object_terms( $post->ID, 'wptests_tax_1' );
 		$this->assertEmpty( $post_terms_1 );
 
-		// wptests_tax_2 terms should have been added successfully.
+		// 'wptests_tax_2' terms should have been added successfully.
 		$post_terms_2 = wp_get_object_terms( $post->ID, 'wptests_tax_2' );
-		$this->assertEqualSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
+		$this->assertSameSets( array( $t2 ), wp_list_pluck( $post_terms_2, 'term_id' ) );
 	}
 }

@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -26,39 +26,43 @@ if ( ! defined( 'ABSPATH' ) ) {
 <?php
 if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_ID > 0 ) :
 	$comment_link = get_comment_link( $comment );
-?>
+	?>
 <div class="inside">
 	<div id="comment-link-box">
 		<strong><?php _ex( 'Permalink:', 'comment' ); ?></strong>
-		<span id="sample-permalink"><a href="<?php echo $comment_link; ?>"><?php echo $comment_link; ?></a></span>
+		<span id="sample-permalink">
+			<a href="<?php echo esc_url( $comment_link ); ?>">
+				<?php echo esc_html( $comment_link ); ?>
+			</a>
+		</span>
 	</div>
 </div>
 <?php endif; ?>
 <div id="namediv" class="stuffbox">
 <div class="inside">
+<h2 class="edit-comment-author"><?php _e( 'Author' ); ?></h2>
 <fieldset>
-<legend class="edit-comment-author"><?php _e( 'Author' ); ?></legend>
-<table class="form-table editcomment">
+<legend class="screen-reader-text"><?php _e( 'Comment Author' ); ?></legend>
+<table class="form-table editcomment" role="presentation">
 <tbody>
 <tr>
-	<td class="first"><label for="name"><?php _e( 'Name:' ); ?></label></td>
+	<td class="first"><label for="name"><?php _e( 'Name' ); ?></label></td>
 	<td><input type="text" name="newcomment_author" size="30" value="<?php echo esc_attr( $comment->comment_author ); ?>" id="name" /></td>
 </tr>
 <tr>
-	<td class="first"><label for="email"><?php _e( 'Email:' ); ?></label></td>
+	<td class="first"><label for="email"><?php _e( 'Email' ); ?></label></td>
 	<td>
 		<input type="text" name="newcomment_author_email" size="30" value="<?php echo $comment->comment_author_email; ?>" id="email" />
 	</td>
 </tr>
 <tr>
-	<td class="first"><label for="newcomment_author_url"><?php _e( 'URL:' ); ?></label></td>
+	<td class="first"><label for="newcomment_author_url"><?php _e( 'URL' ); ?></label></td>
 	<td>
 		<input type="text" id="newcomment_author_url" name="newcomment_author_url" size="30" class="code" value="<?php echo esc_attr( $comment->comment_author_url ); ?>" />
 	</td>
 </tr>
 </tbody>
 </table>
-<br />
 </fieldset>
 </div>
 </div>
@@ -68,7 +72,9 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 	echo '<label for="content" class="screen-reader-text">' . __( 'Comment' ) . '</label>';
 	$quicktags_settings = array( 'buttons' => 'strong,em,link,block,del,ins,img,ul,ol,li,code,close' );
 	wp_editor(
-		$comment->comment_content, 'content', array(
+		$comment->comment_content,
+		'content',
+		array(
 			'media_buttons' => false,
 			'tinymce'       => false,
 			'quicktags'     => $quicktags_settings,
@@ -81,32 +87,53 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 
 <div id="postbox-container-1" class="postbox-container">
 <div id="submitdiv" class="stuffbox" >
-<h2><?php _e( 'Status' ); ?></h2>
+<h2><?php _e( 'Save' ); ?></h2>
 <div class="inside">
 <div class="submitbox" id="submitcomment">
 <div id="minor-publishing">
 
 <div id="misc-publishing-actions">
 
-<fieldset class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
+<div class="misc-pub-section misc-pub-comment-status" id="comment-status">
+<?php _e( 'Status:' ); ?> <span id="comment-status-display">
+<?php
+switch ( $comment->comment_approved ) {
+	case '1':
+		_e( 'Approved' );
+		break;
+	case '0':
+		_e( 'Pending' );
+		break;
+	case 'spam':
+		_e( 'Spam' );
+		break;
+}
+?>
+</span>
+
+<fieldset id="comment-status-radio">
 <legend class="screen-reader-text"><?php _e( 'Comment status' ); ?></legend>
 <label><input type="radio"<?php checked( $comment->comment_approved, '1' ); ?> name="comment_status" value="1" /><?php _ex( 'Approved', 'comment status' ); ?></label><br />
 <label><input type="radio"<?php checked( $comment->comment_approved, '0' ); ?> name="comment_status" value="0" /><?php _ex( 'Pending', 'comment status' ); ?></label><br />
 <label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam" /><?php _ex( 'Spam', 'comment status' ); ?></label>
 </fieldset>
+</div><!-- .misc-pub-section -->
 
 <div class="misc-pub-section curtime misc-pub-curtime">
 <?php
-/* translators: Publish box date format, see https://secure.php.net/date */
-$datef = __( 'M j, Y @ H:i' );
+$submitted = sprintf(
+	/* translators: 1: Comment date, 2: Comment time. */
+	__( '%1$s at %2$s' ),
+	/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
+	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
+	/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
+	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
+);
 ?>
 <span id="timestamp">
 <?php
-printf(
-	/* translators: %s: comment date */
-	__( 'Submitted on: %s' ),
-	'<b>' . date_i18n( $datef, strtotime( $comment->comment_date ) ) . '</b>'
-);
+/* translators: %s: Comment date. */
+printf( __( 'Submitted on: %s' ), '<b>' . $submitted . '</b>' );
 ?>
 </span>
 <a href="#edit_timestamp" class="edit-timestamp hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text"><?php _e( 'Edit date and time' ); ?></span></a>
@@ -129,7 +156,7 @@ if ( current_user_can( 'edit_post', $post_id ) ) {
 <div class="misc-pub-section misc-pub-response-to">
 	<?php
 	printf(
-		/* translators: %s: post link */
+		/* translators: %s: Post link. */
 		__( 'In response to: %s' ),
 		'<b>' . $post_link . '</b>'
 	);
@@ -142,17 +169,17 @@ if ( $comment->comment_parent ) :
 	if ( $parent ) :
 		$parent_link = esc_url( get_comment_link( $parent ) );
 		$name        = get_comment_author( $parent );
-	?>
+		?>
 	<div class="misc-pub-section misc-pub-reply-to">
 		<?php
 		printf(
-			/* translators: %s: comment link */
+			/* translators: %s: Comment link. */
 			__( 'In reply to: %s' ),
 			'<b><a href="' . $parent_link . '">' . $name . '</a></b>'
 		);
 		?>
 	</div>
-<?php
+		<?php
 endif;
 endif;
 ?>
@@ -163,8 +190,8 @@ endif;
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param string $html    Output HTML to display miscellaneous action.
-	 * @param object $comment Current comment object.
+	 * @param string     $html    Output HTML to display miscellaneous action.
+	 * @param WP_Comment $comment Current comment object.
 	 */
 	echo apply_filters( 'edit_comment_misc_actions', '', $comment );
 ?>
@@ -189,7 +216,7 @@ endif;
 
 <div id="postbox-container-2" class="postbox-container">
 <?php
-/** This action is documented in wp-admin/edit-form-advanced.php */
+/** This action is documented in wp-admin/includes/meta-boxes.php */
 do_action( 'add_meta_boxes', 'comment', $comment );
 
 /**
@@ -222,5 +249,5 @@ $referer = wp_get_referer();
 <script type="text/javascript">
 try{document.post.name.focus();}catch(e){}
 </script>
-<?php
+	<?php
 endif;

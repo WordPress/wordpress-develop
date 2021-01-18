@@ -7,13 +7,13 @@
  * @subpackage translations
  */
 
-require_once dirname( __FILE__ ) . '/plural-forms.php';
-require_once dirname( __FILE__ ) . '/entry.php';
+require_once __DIR__ . '/plural-forms.php';
+require_once __DIR__ . '/entry.php';
 
 if ( ! class_exists( 'Translations', false ) ) :
 	class Translations {
-		var $entries = array();
-		var $headers = array();
+		public $entries = array();
+		public $headers = array();
 
 		/**
 		 * Add entry to the PO structure
@@ -113,10 +113,10 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 * Here, in the base Translations class, the common logic for English is implemented:
 		 *  0 if there is one element, 1 otherwise
 		 *
-		 * This function should be overridden by the sub-classes. For example MO/PO can derive the logic
+		 * This function should be overridden by the subclasses. For example MO/PO can derive the logic
 		 * from their headers.
 		 *
-		 * @param integer $count number of items
+		 * @param int $count number of items
 		 */
 		function select_plural_form( $count ) {
 			return 1 == $count ? 0 : 1;
@@ -268,7 +268,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 */
 		function make_headers( $translation ) {
 			$headers = array();
-			// sometimes \ns are used instead of real new lines
+			// Sometimes \n's are used instead of real new lines.
 			$translation = str_replace( '\n', "\n", $translation );
 			$lines       = explode( "\n", $translation );
 			foreach ( $lines as $line ) {
@@ -287,7 +287,7 @@ if ( ! class_exists( 'Translations', false ) ) :
 		 */
 		function set_header( $header, $value ) {
 			parent::set_header( $header, $value );
-			if ( 'Plural-Forms' == $header ) {
+			if ( 'Plural-Forms' === $header ) {
 				list( $nplurals, $expression )     = $this->nplurals_and_expression_from_header( $this->get_header( 'Plural-Forms' ) );
 				$this->_nplurals                   = $nplurals;
 				$this->_gettext_select_plural_form = $this->make_plural_form_function( $nplurals, $expression );
@@ -301,8 +301,8 @@ if ( ! class_exists( 'NOOP_Translations', false ) ) :
 	 * Provides the same interface as Translations, but doesn't do anything
 	 */
 	class NOOP_Translations {
-		var $entries = array();
-		var $headers = array();
+		public $entries = array();
+		public $headers = array();
 
 		function add_entry( $entry ) {
 			return true;

@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
@@ -18,7 +18,7 @@ if ( ! current_user_can( 'switch_themes' ) && ! current_user_can( 'edit_theme_op
 }
 
 if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
-	if ( 'activate' == $_GET['action'] ) {
+	if ( 'activate' === $_GET['action'] ) {
 		check_admin_referer( 'switch-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -33,7 +33,27 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 		switch_theme( $theme->get_stylesheet() );
 		wp_redirect( admin_url( 'themes.php?activated=true' ) );
 		exit;
-	} elseif ( 'delete' == $_GET['action'] ) {
+	} elseif ( 'resume' === $_GET['action'] ) {
+		check_admin_referer( 'resume-theme_' . $_GET['stylesheet'] );
+		$theme = wp_get_theme( $_GET['stylesheet'] );
+
+		if ( ! current_user_can( 'resume_theme', $_GET['stylesheet'] ) ) {
+			wp_die(
+				'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
+				'<p>' . __( 'Sorry, you are not allowed to resume this theme.' ) . '</p>',
+				403
+			);
+		}
+
+		$result = resume_theme( $theme->get_stylesheet(), self_admin_url( 'themes.php?error=resuming' ) );
+
+		if ( is_wp_error( $result ) ) {
+			wp_die( $result );
+		}
+
+		wp_redirect( admin_url( 'themes.php?resumed=true' ) );
+		exit;
+	} elseif ( 'delete' === $_GET['action'] ) {
 		check_admin_referer( 'delete-theme_' . $_GET['stylesheet'] );
 		$theme = wp_get_theme( $_GET['stylesheet'] );
 
@@ -61,13 +81,52 @@ if ( current_user_can( 'switch_themes' ) && isset( $_GET['action'] ) ) {
 			wp_redirect( admin_url( 'themes.php?deleted=true' ) );
 		}
 		exit;
+	} elseif ( 'enable-auto-update' === $_GET['action'] ) {
+		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+			wp_die( __( 'Sorry, you are not allowed to enable themes automatic updates.' ) );
+		}
+
+		check_admin_referer( 'updates' );
+
+		$all_items    = wp_get_themes();
+		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+		$auto_updates[] = $_GET['stylesheet'];
+		$auto_updates   = array_unique( $auto_updates );
+		// Remove themes that have been deleted since the site option was last updated.
+		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+		update_site_option( 'auto_update_themes', $auto_updates );
+
+		wp_redirect( admin_url( 'themes.php?enabled-auto-update=true' ) );
+
+		exit;
+	} elseif ( 'disable-auto-update' === $_GET['action'] ) {
+		if ( ! ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) ) {
+			wp_die( __( 'Sorry, you are not allowed to disable themes automatic updates.' ) );
+		}
+
+		check_admin_referer( 'updates' );
+
+		$all_items    = wp_get_themes();
+		$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
+
+		$auto_updates = array_diff( $auto_updates, array( $_GET['stylesheet'] ) );
+		// Remove themes that have been deleted since the site option was last updated.
+		$auto_updates = array_intersect( $auto_updates, array_keys( $all_items ) );
+
+		update_site_option( 'auto_update_themes', $auto_updates );
+
+		wp_redirect( admin_url( 'themes.php?disabled-auto-update=true' ) );
+
+		exit;
 	}
 }
 
 $title       = __( 'Manage Themes' );
 $parent_file = 'themes.php';
 
-// Help tab: Overview
+// Help tab: Overview.
 if ( current_user_can( 'switch_themes' ) ) {
 	$help_overview = '<p>' . __( 'This screen is used for managing your installed themes. Aside from the default theme(s) included with your WordPress installation, themes are designed and developed by third parties.' ) . '</p>' .
 		'<p>' . __( 'From this screen you can:' ) . '</p>' .
@@ -84,14 +143,18 @@ if ( current_user_can( 'switch_themes' ) ) {
 			'content' => $help_overview,
 		)
 	);
-} // switch_themes
+} // End if 'switch_themes'.
 
-// Help tab: Adding Themes
+// Help tab: Adding Themes.
 if ( current_user_can( 'install_themes' ) ) {
 	if ( is_multisite() ) {
 		$help_install = '<p>' . __( 'Installing themes on Multisite can only be done from the Network Admin section.' ) . '</p>';
 	} else {
-		$help_install = '<p>' . sprintf( __( 'If you would like to see more themes to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!' ), __( 'https://wordpress.org/themes/' ) ) . '</p>';
+		$help_install = '<p>' . sprintf(
+			/* translators: %s: https://wordpress.org/themes/ */
+			__( 'If you would like to see more themes to choose from, click on the &#8220;Add New&#8221; button and you will be able to browse or search for additional themes from the <a href="%s">WordPress Theme Directory</a>. Themes in the WordPress Theme Directory are designed and developed by third parties, and are compatible with the license WordPress uses. Oh, and they&#8217;re free!' ),
+			__( 'https://wordpress.org/themes/' )
+		) . '</p>';
 	}
 
 	get_current_screen()->add_help_tab(
@@ -101,13 +164,13 @@ if ( current_user_can( 'install_themes' ) ) {
 			'content' => $help_install,
 		)
 	);
-} // install_themes
+} // End if 'install_themes'.
 
-// Help tab: Previewing and Customizing
+// Help tab: Previewing and Customizing.
 if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) {
 	$help_customize =
 		'<p>' . __( 'Tap or hover on any theme then click the Live Preview button to see a live preview of that theme and change theme options in a separate, full-screen view. You can also find a Live Preview button at the bottom of the theme details screen. Any installed theme can be previewed and customized in this way.' ) . '</p>' .
-		'<p>' . __( 'The theme being previewed is fully interactive &mdash; navigate to different pages to see how the theme handles posts, archives, and other page templates. The settings may differ depending on what theme features the theme being previewed supports. To accept the new settings and activate the theme all in one step, click the Publish &amp; Activate button above the menu.' ) . '</p>' .
+		'<p>' . __( 'The theme being previewed is fully interactive &mdash; navigate to different pages to see how the theme handles posts, archives, and other page templates. The settings may differ depending on what theme features the theme being previewed supports. To accept the new settings and activate the theme all in one step, click the Activate &amp; Publish button above the menu.' ) . '</p>' .
 		'<p>' . __( 'When previewing on smaller monitors, you can use the collapse icon at the bottom of the left-hand pane. This will hide the pane, giving you more room to preview your site in the new theme. To bring the pane back, click on the collapse icon again.' ) . '</p>';
 
 	get_current_screen()->add_help_tab(
@@ -117,12 +180,32 @@ if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' )
 			'content' => $help_customize,
 		)
 	);
-} // edit_theme_options && customize
+} // End if 'edit_theme_options' && 'customize'.
+
+$help_sidebar_autoupdates = '';
+
+// Help tab: Auto-updates.
+if ( current_user_can( 'update_themes' ) && wp_is_auto_update_enabled_for_type( 'theme' ) ) {
+	$help_tab_autoupdates =
+		'<p>' . __( 'Auto-updates can be enabled or disabled for each individual theme. Themes with auto-updates enabled will display the estimated date of the next auto-update. Auto-updates depends on the WP-Cron task scheduling system.' ) . '</p>' .
+		'<p>' . __( 'Please note: Third-party themes and plugins, or custom code, may override WordPress scheduling.' ) . '</p>';
+
+	get_current_screen()->add_help_tab(
+		array(
+			'id'      => 'plugins-themes-auto-updates',
+			'title'   => __( 'Auto-updates' ),
+			'content' => $help_tab_autoupdates,
+		)
+	);
+
+	$help_sidebar_autoupdates = '<p>' . __( '<a href="https://wordpress.org/support/article/plugins-themes-auto-updates/">Learn more: Auto-updates documentation</a>' ) . '</p>';
+} // End if 'update_themes' && 'wp_is_auto_update_enabled_for_type'.
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Using_Themes">Documentation on Using Themes</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/using-themes/">Documentation on Using Themes</a>' ) . '</p>' .
+	$help_sidebar_autoupdates .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 if ( current_user_can( 'switch_themes' ) ) {
@@ -133,7 +216,9 @@ if ( current_user_can( 'switch_themes' ) ) {
 wp_reset_vars( array( 'theme', 'search' ) );
 
 wp_localize_script(
-	'theme', '_wpThemeSettings', array(
+	'theme',
+	'_wpThemeSettings',
+	array(
 		'themes'   => $themes,
 		'settings' => array(
 			'canInstall'    => ( ! is_multisite() && current_user_can( 'install_themes' ) ),
@@ -144,7 +229,8 @@ wp_localize_script(
 		'l10n'     => array(
 			'addNew'            => __( 'Add New Theme' ),
 			'search'            => __( 'Search Installed Themes' ),
-			'searchPlaceholder' => __( 'Search installed themes...' ), // placeholder (no ellipsis)
+			'searchPlaceholder' => __( 'Search installed themes...' ), // Placeholder (no ellipsis).
+			/* translators: %d: Number of themes. */
 			'themesFound'       => __( 'Number of Themes found: %d' ),
 			'noThemesFound'     => __( 'No themes found. Try a different search.' ),
 		),
@@ -155,7 +241,7 @@ add_thickbox();
 wp_enqueue_script( 'theme' );
 wp_enqueue_script( 'updates' );
 
-require_once( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap">
@@ -164,42 +250,62 @@ require_once( ABSPATH . 'wp-admin/admin-header.php' );
 	</h1>
 
 	<?php if ( ! is_multisite() && current_user_can( 'install_themes' ) ) : ?>
-		<a href="<?php echo admin_url( 'theme-install.php' ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html_x( 'Add New', 'Add new theme' ); ?></a>
+		<a href="<?php echo admin_url( 'theme-install.php' ); ?>" class="hide-if-no-js page-title-action"><?php echo esc_html_x( 'Add New', 'theme' ); ?></a>
 	<?php endif; ?>
 
 	<form class="search-form"></form>
 
 	<hr class="wp-header-end">
 <?php
-if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) :
-?>
-<div id="message1" class="updated notice is-dismissible"><p><?php _e( 'The active theme is broken. Reverting to the default theme.' ); ?></p></div>
-<?php
-elseif ( isset( $_GET['activated'] ) ) :
+if ( ! validate_current_theme() || isset( $_GET['broken'] ) ) {
+	?>
+	<div id="message1" class="updated notice is-dismissible"><p><?php _e( 'The active theme is broken. Reverting to the default theme.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['activated'] ) ) {
 	if ( isset( $_GET['previewed'] ) ) {
 		?>
 		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'Settings saved and theme activated.' ); ?> <a href="<?php echo home_url( '/' ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
-		<?php } else { ?>
-<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'New theme activated.' ); ?> <a href="<?php echo home_url( '/' ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
-																		<?php
-}
-	elseif ( isset( $_GET['deleted'] ) ) :
+		<?php
+	} else {
+		?>
+		<div id="message2" class="updated notice is-dismissible"><p><?php _e( 'New theme activated.' ); ?> <a href="<?php echo home_url( '/' ); ?>"><?php _e( 'Visit site' ); ?></a></p></div>
+		<?php
+	}
+} elseif ( isset( $_GET['deleted'] ) ) {
 	?>
-<div id="message3" class="updated notice is-dismissible"><p><?php _e( 'Theme deleted.' ); ?></p></div>
-<?php elseif ( isset( $_GET['delete-active-child'] ) ) : ?>
+	<div id="message3" class="updated notice is-dismissible"><p><?php _e( 'Theme deleted.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['delete-active-child'] ) ) {
+	?>
 	<div id="message4" class="error"><p><?php _e( 'You cannot delete a theme while it has an active child theme.' ); ?></p></div>
-<?php
-endif;
+	<?php
+} elseif ( isset( $_GET['resumed'] ) ) {
+	?>
+	<div id="message5" class="updated notice is-dismissible"><p><?php _e( 'Theme resumed.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['error'] ) && 'resuming' === $_GET['error'] ) {
+	?>
+	<div id="message6" class="error"><p><?php _e( 'Theme could not be resumed because it triggered a <strong>fatal error</strong>.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['enabled-auto-update'] ) ) {
+	?>
+	<div id="message7" class="updated notice is-dismissible"><p><?php _e( 'Theme will be auto-updated.' ); ?></p></div>
+	<?php
+} elseif ( isset( $_GET['disabled-auto-update'] ) ) {
+	?>
+	<div id="message8" class="updated notice is-dismissible"><p><?php _e( 'Theme will no longer be auto-updated.' ); ?></p></div>
+	<?php
+}
 
 $ct = wp_get_theme();
 
 if ( $ct->errors() && ( ! is_multisite() || current_user_can( 'manage_network_themes' ) ) ) {
-	echo '<div class="error"><p>' . __( 'ERROR:' ) . ' ' . $ct->errors()->get_error_message() . '</p></div>';
+	echo '<div class="error"><p>' . __( 'Error:' ) . ' ' . $ct->errors()->get_error_message() . '</p></div>';
 }
 
 /*
 // Certain error codes are less fatal than others. We can still display theme information in most cases.
-if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
+if ( ! $ct->errors() || ( 1 === count( $ct->errors()->get_error_codes() )
 	&& in_array( $ct->errors()->get_error_code(), array( 'theme_no_parent', 'theme_parent_invalid', 'theme_no_index' ) ) ) ) : ?>
 */
 
@@ -208,10 +314,10 @@ if ( ! $ct->errors() || ( 1 == count( $ct->errors()->get_error_codes() )
 if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 	foreach ( (array) $submenu['themes.php'] as $item ) {
 		$class = '';
-		if ( 'themes.php' == $item[2] || 'theme-editor.php' == $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
+		if ( 'themes.php' === $item[2] || 'theme-editor.php' === $item[2] || 0 === strpos( $item[2], 'customize.php' ) ) {
 			continue;
 		}
-		// 0 = name, 1 = capability, 2 = file
+		// 0 = name, 1 = capability, 2 = file.
 		if ( ( strcmp( $self, $item[2] ) == 0 && empty( $parent_file ) ) || ( $parent_file && ( $item[2] == $parent_file ) ) ) {
 			$class = ' current';
 		}
@@ -234,7 +340,8 @@ if ( is_array( $submenu ) && isset( $submenu['themes.php'] ) ) {
 				}
 			}
 
-			if ( false !== ( $pos = strpos( $menu_file, '?' ) ) ) {
+			$pos = strpos( $menu_file, '?' );
+			if ( false !== $pos ) {
 				$menu_file = substr( $menu_file, 0, $pos );
 			}
 
@@ -282,25 +389,141 @@ foreach ( $themes as $theme ) :
 	<?php } ?>
 
 	<?php if ( $theme['hasUpdate'] ) : ?>
-		<div class="update-message notice inline notice-warning notice-alt">
-		<?php if ( $theme['hasPackage'] ) : ?>
-			<p><?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?></p>
+		<?php if ( $theme['updateResponse']['compatibleWP'] && $theme['updateResponse']['compatiblePHP'] ) : ?>
+			<div class="update-message notice inline notice-warning notice-alt"><p>
+				<?php if ( $theme['hasPackage'] ) : ?>
+					<?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?>
+				<?php else : ?>
+					<?php _e( 'New version available.' ); ?>
+				<?php endif; ?>
+			</p></div>
 		<?php else : ?>
-			<p><?php _e( 'New version available.' ); ?></p>
+			<div class="update-message notice inline notice-error notice-alt"><p>
+				<?php
+				if ( ! $theme['updateResponse']['compatibleWP'] && ! $theme['updateResponse']['compatiblePHP'] ) {
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+						$theme['name']
+					);
+					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+							' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+							self_admin_url( 'update-core.php' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					} elseif ( current_user_can( 'update_core' ) ) {
+						printf(
+							/* translators: %s: URL to WordPress Updates screen. */
+							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+							self_admin_url( 'update-core.php' )
+						);
+					} elseif ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: URL to Update PHP page. */
+							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					}
+				} elseif ( ! $theme['updateResponse']['compatibleWP'] ) {
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+						$theme['name']
+					);
+					if ( current_user_can( 'update_core' ) ) {
+						printf(
+							/* translators: %s: URL to WordPress Updates screen. */
+							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+							self_admin_url( 'update-core.php' )
+						);
+					}
+				} elseif ( ! $theme['updateResponse']['compatiblePHP'] ) {
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+						$theme['name']
+					);
+					if ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: URL to Update PHP page. */
+							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					}
+				}
+				?>
+			</p></div>
 		<?php endif; ?>
-		</div>
 	<?php endif; ?>
 
+	<?php
+	if ( ! $theme['compatibleWP'] || ! $theme['compatiblePHP'] ) {
+		echo '<div class="notice inline notice-error notice-alt"><p>';
+		if ( ! $theme['compatibleWP'] && ! $theme['compatiblePHP'] ) {
+			_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+			if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+				printf(
+					/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+					' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+					self_admin_url( 'update-core.php' ),
+					esc_url( wp_get_update_php_url() )
+				);
+				wp_update_php_annotation( '</p><p><em>', '</em>' );
+			} elseif ( current_user_can( 'update_core' ) ) {
+				printf(
+					/* translators: %s: URL to WordPress Updates screen. */
+					' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+					self_admin_url( 'update-core.php' )
+				);
+			} elseif ( current_user_can( 'update_php' ) ) {
+				printf(
+					/* translators: %s: URL to Update PHP page. */
+					' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+					esc_url( wp_get_update_php_url() )
+				);
+				wp_update_php_annotation( '</p><p><em>', '</em>' );
+			}
+		} elseif ( ! $theme['compatibleWP'] ) {
+			_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+			if ( current_user_can( 'update_core' ) ) {
+				printf(
+					/* translators: %s: URL to WordPress Updates screen. */
+					' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+					self_admin_url( 'update-core.php' )
+				);
+			}
+		} elseif ( ! $theme['compatiblePHP'] ) {
+			_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+			if ( current_user_can( 'update_php' ) ) {
+				printf(
+					/* translators: %s: URL to Update PHP page. */
+					' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+					esc_url( wp_get_update_php_url() )
+				);
+				wp_update_php_annotation( '</p><p><em>', '</em>' );
+			}
+		}
+		echo '</p></div>';
+	}
+	?>
+
 	<span class="more-details" id="<?php echo $aria_action; ?>"><?php _e( 'Theme Details' ); ?></span>
-	<div class="theme-author"><?php printf( __( 'By %s' ), $theme['author'] ); ?></div>
+	<div class="theme-author">
+		<?php
+		/* translators: %s: Theme author name. */
+		printf( __( 'By %s' ), $theme['author'] );
+		?>
+	</div>
 
 	<div class="theme-id-container">
 		<?php if ( $theme['active'] ) { ?>
 			<h2 class="theme-name" id="<?php echo $aria_name; ?>">
-				<?php
-				/* translators: %s: theme name */
-				printf( __( '<span>Active:</span> %s' ), $theme['name'] );
-				?>
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> <?php echo $theme['name']; ?>
 			</h2>
 		<?php } else { ?>
 			<h2 class="theme-name" id="<?php echo $aria_name; ?>"><?php echo $theme['name']; ?></h2>
@@ -311,14 +534,23 @@ foreach ( $themes as $theme ) :
 			<?php if ( $theme['actions']['customize'] && current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
 				<a class="button button-primary customize load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Customize' ); ?></a>
 			<?php } ?>
-		<?php } else { ?>
+		<?php } elseif ( $theme['compatibleWP'] && $theme['compatiblePHP'] ) { ?>
 			<?php
-			/* translators: %s: Theme name */
+			/* translators: %s: Theme name. */
 			$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
 			?>
 			<a class="button activate" href="<?php echo $theme['actions']['activate']; ?>" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _e( 'Activate' ); ?></a>
 			<?php if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
 				<a class="button button-primary load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Live Preview' ); ?></a>
+			<?php } ?>
+		<?php } else { ?>
+			<?php
+			/* translators: %s: Theme name. */
+			$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+			?>
+			<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+			<?php if ( current_user_can( 'edit_theme_options' ) && current_user_can( 'customize' ) ) { ?>
+				<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 			<?php } ?>
 		<?php } ?>
 
@@ -334,21 +566,26 @@ foreach ( $themes as $theme ) :
 
 <?php
 // List broken themes, if any.
-if ( ! is_multisite() && current_user_can( 'edit_themes' ) && $broken_themes = wp_get_themes( array( 'errors' => true ) ) ) {
-?>
+$broken_themes = wp_get_themes( array( 'errors' => true ) );
+if ( ! is_multisite() && $broken_themes ) {
+	?>
 
 <div class="broken-themes">
 <h3><?php _e( 'Broken Themes' ); ?></h3>
 <p><?php _e( 'The following themes are installed but incomplete.' ); ?></p>
 
-<?php
-$can_delete  = current_user_can( 'delete_themes' );
-$can_install = current_user_can( 'install_themes' );
-?>
+	<?php
+	$can_resume  = current_user_can( 'resume_themes' );
+	$can_delete  = current_user_can( 'delete_themes' );
+	$can_install = current_user_can( 'install_themes' );
+	?>
 <table>
 	<tr>
 		<th><?php _ex( 'Name', 'theme name' ); ?></th>
 		<th><?php _e( 'Description' ); ?></th>
+		<?php if ( $can_resume ) { ?>
+			<td></td>
+		<?php } ?>
 		<?php if ( $can_delete ) { ?>
 			<td></td>
 		<?php } ?>
@@ -358,16 +595,38 @@ $can_install = current_user_can( 'install_themes' );
 	</tr>
 	<?php foreach ( $broken_themes as $broken_theme ) : ?>
 		<tr>
-			<td><?php echo $broken_theme->get( 'Name' ) ? $broken_theme->display( 'Name' ) : $broken_theme->get_stylesheet(); ?></td>
+			<td><?php echo $broken_theme->get( 'Name' ) ? $broken_theme->display( 'Name' ) : esc_html( $broken_theme->get_stylesheet() ); ?></td>
 			<td><?php echo $broken_theme->errors()->get_error_message(); ?></td>
 			<?php
+			if ( $can_resume ) {
+				if ( 'theme_paused' === $broken_theme->errors()->get_error_code() ) {
+					$stylesheet = $broken_theme->get_stylesheet();
+					$resume_url = add_query_arg(
+						array(
+							'action'     => 'resume',
+							'stylesheet' => urlencode( $stylesheet ),
+						),
+						admin_url( 'themes.php' )
+					);
+					$resume_url = wp_nonce_url( $resume_url, 'resume-theme_' . $stylesheet );
+					?>
+					<td><a href="<?php echo esc_url( $resume_url ); ?>" class="button resume-theme"><?php _e( 'Resume' ); ?></a></td>
+					<?php
+				} else {
+					?>
+					<td></td>
+					<?php
+				}
+			}
+
 			if ( $can_delete ) {
 				$stylesheet = $broken_theme->get_stylesheet();
 				$delete_url = add_query_arg(
 					array(
 						'action'     => 'delete',
 						'stylesheet' => urlencode( $stylesheet ),
-					), admin_url( 'themes.php' )
+					),
+					admin_url( 'themes.php' )
 				);
 				$delete_url = wp_nonce_url( $delete_url, 'delete-theme_' . $stylesheet );
 				?>
@@ -384,7 +643,8 @@ $can_install = current_user_can( 'install_themes' );
 						array(
 							'action' => 'install-theme',
 							'theme'  => urlencode( $parent_theme_name ),
-						), admin_url( 'update.php' )
+						),
+						admin_url( 'update.php' )
 					);
 					$install_url = wp_nonce_url( $install_url, 'install-theme_' . $parent_theme_name );
 					?>
@@ -398,12 +658,62 @@ $can_install = current_user_can( 'install_themes' );
 </table>
 </div>
 
-<?php
+	<?php
 }
 ?>
 </div><!-- .wrap -->
 
 <?php
+
+/**
+ * Returns the JavaScript template used to display the auto-update setting for a theme.
+ *
+ * @since 5.5.0
+ *
+ * @return string The template for displaying the auto-update setting link.
+ */
+function wp_theme_auto_update_setting_template() {
+	$template = '
+		<div class="theme-autoupdate">
+			<# if ( data.autoupdate.supported ) { #>
+				<# if ( data.autoupdate.forced === false ) { #>
+					' . __( 'Auto-updates disabled' ) . '
+				<# } else if ( data.autoupdate.forced ) { #>
+					' . __( 'Auto-updates enabled' ) . '
+				<# } else if ( data.autoupdate.enabled ) { #>
+					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="disable">
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Disable auto-updates' ) . '</span>
+					</button>
+				<# } else { #>
+					<button type="button" class="toggle-auto-update button-link" data-slug="{{ data.id }}" data-wp-action="enable">
+						<span class="dashicons dashicons-update spin hidden" aria-hidden="true"></span><span class="label">' . __( 'Enable auto-updates' ) . '</span>
+					</button>
+				<# } #>
+			<# } #>
+			<# if ( data.hasUpdate ) { #>
+				<# if ( data.autoupdate.supported && data.autoupdate.enabled ) { #>
+					<span class="auto-update-time">
+				<# } else { #>
+					<span class="auto-update-time hidden">
+				<# } #>
+				<br />' . wp_get_auto_update_message() . '</span>
+			<# } #>
+			<div class="notice notice-error notice-alt inline hidden"><p></p></div>
+		</div>
+	';
+
+	/**
+	 * Filters the JavaScript template used to display the auto-update setting for a theme (in the overlay).
+	 *
+	 * See {@see wp_prepare_themes_for_js()} for the properties of the `data` object.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param string $template The template for displaying the auto-update setting link.
+	 */
+	return apply_filters( 'theme_auto_update_setting_template', $template );
+}
+
 /*
  * The tmpl-theme template is synchronized with PHP above!
  */
@@ -418,17 +728,141 @@ $can_install = current_user_can( 'install_themes' );
 	<# } #>
 
 	<# if ( data.hasUpdate ) { #>
-		<# if ( data.hasPackage ) { #>
-			<div class="update-message notice inline notice-warning notice-alt"><p><?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?></p></div>
+		<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
+			<div class="update-message notice inline notice-warning notice-alt"><p>
+				<# if ( data.hasPackage ) { #>
+					<?php _e( 'New version available. <button class="button-link" type="button">Update now</button>' ); ?>
+				<# } else { #>
+					<?php _e( 'New version available.' ); ?>
+				<# } #>
+			</p></div>
 		<# } else { #>
-			<div class="update-message notice inline notice-warning notice-alt"><p><?php _e( 'New version available.' ); ?></p></div>
+			<div class="update-message notice inline notice-error notice-alt"><p>
+				<# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>
+					<?php
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+						'{{{ data.name }}}'
+					);
+					if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+							' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+							self_admin_url( 'update-core.php' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					} elseif ( current_user_can( 'update_core' ) ) {
+						printf(
+							/* translators: %s: URL to WordPress Updates screen. */
+							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+							self_admin_url( 'update-core.php' )
+						);
+					} elseif ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: URL to Update PHP page. */
+							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					}
+					?>
+				<# } else if ( ! data.updateResponse.compatibleWP ) { #>
+					<?php
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+						'{{{ data.name }}}'
+					);
+					if ( current_user_can( 'update_core' ) ) {
+						printf(
+							/* translators: %s: URL to WordPress Updates screen. */
+							' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+							self_admin_url( 'update-core.php' )
+						);
+					}
+					?>
+				<# } else if ( ! data.updateResponse.compatiblePHP ) { #>
+					<?php
+					printf(
+						/* translators: %s: Theme name. */
+						__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+						'{{{ data.name }}}'
+					);
+					if ( current_user_can( 'update_php' ) ) {
+						printf(
+							/* translators: %s: URL to Update PHP page. */
+							' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+							esc_url( wp_get_update_php_url() )
+						);
+						wp_update_php_annotation( '</p><p><em>', '</em>' );
+					}
+					?>
+				<# } #>
+			</p></div>
 		<# } #>
+	<# } #>
+
+	<# if ( ! data.compatibleWP || ! data.compatiblePHP ) { #>
+		<div class="notice notice-error notice-alt"><p>
+			<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+				if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+						' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+						self_admin_url( 'update-core.php' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				} elseif ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				} elseif ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } else if ( ! data.compatibleWP ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+				if ( current_user_can( 'update_core' ) ) {
+					printf(
+						/* translators: %s: URL to WordPress Updates screen. */
+						' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+						self_admin_url( 'update-core.php' )
+					);
+				}
+				?>
+			<# } else if ( ! data.compatiblePHP ) { #>
+				<?php
+				_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+				if ( current_user_can( 'update_php' ) ) {
+					printf(
+						/* translators: %s: URL to Update PHP page. */
+						' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+						esc_url( wp_get_update_php_url() )
+					);
+					wp_update_php_annotation( '</p><p><em>', '</em>' );
+				}
+				?>
+			<# } #>
+		</p></div>
 	<# } #>
 
 	<span class="more-details" id="{{ data.id }}-action"><?php _e( 'Theme Details' ); ?></span>
 	<div class="theme-author">
 		<?php
-		/* translators: %s: Theme author name */
+		/* translators: %s: Theme author name. */
 		printf( __( 'By %s' ), '{{{ data.author }}}' );
 		?>
 	</div>
@@ -436,10 +870,7 @@ $can_install = current_user_can( 'install_themes' );
 	<div class="theme-id-container">
 		<# if ( data.active ) { #>
 			<h2 class="theme-name" id="{{ data.id }}-name">
-				<?php
-				/* translators: %s: Theme name */
-				printf( __( '<span>Active:</span> %s' ), '{{{ data.name }}}' );
-				?>
+				<span><?php _ex( 'Active:', 'theme' ); ?></span> {{{ data.name }}}
 			</h2>
 		<# } else { #>
 			<h2 class="theme-name" id="{{ data.id }}-name">{{{ data.name }}}</h2>
@@ -451,12 +882,21 @@ $can_install = current_user_can( 'install_themes' );
 					<a class="button button-primary customize load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Customize' ); ?></a>
 				<# } #>
 			<# } else { #>
-				<?php
-				/* translators: %s: Theme name */
-				$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
-				?>
-				<a class="button activate" href="{{{ data.actions.activate }}}" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
-				<a class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
+				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button activate" href="{{{ data.actions.activate }}}" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+					<a class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
+				<# } else { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<a class="button disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
+				<# } #>
 			<# } #>
 		</div>
 	</div>
@@ -483,19 +923,164 @@ $can_install = current_user_can( 'install_themes' );
 				<# if ( data.active ) { #>
 					<span class="current-label"><?php _e( 'Current Theme' ); ?></span>
 				<# } #>
-				<h2 class="theme-name">{{{ data.name }}}<span class="theme-version"><?php printf( __( 'Version: %s' ), '{{ data.version }}' ); ?></span></h2>
-				<p class="theme-author"><?php printf( __( 'By %s' ), '{{{ data.authorAndUri }}}' ); ?></p>
+				<h2 class="theme-name">{{{ data.name }}}<span class="theme-version">
+					<?php
+					/* translators: %s: Theme version. */
+					printf( __( 'Version: %s' ), '{{ data.version }}' );
+					?>
+				</span></h2>
+				<p class="theme-author">
+					<?php
+					/* translators: %s: Theme author link. */
+					printf( __( 'By %s' ), '{{{ data.authorAndUri }}}' );
+					?>
+				</p>
+
+				<# if ( ! data.compatibleWP || ! data.compatiblePHP ) { #>
+					<div class="notice notice-error notice-alt notice-large"><p>
+						<# if ( ! data.compatibleWP && ! data.compatiblePHP ) { #>
+							<?php
+							_e( 'This theme doesn&#8217;t work with your versions of WordPress and PHP.' );
+							if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+								printf(
+									/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+									' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+									self_admin_url( 'update-core.php' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								wp_update_php_annotation( '</p><p><em>', '</em>' );
+							} elseif ( current_user_can( 'update_core' ) ) {
+								printf(
+									/* translators: %s: URL to WordPress Updates screen. */
+									' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+									self_admin_url( 'update-core.php' )
+								);
+							} elseif ( current_user_can( 'update_php' ) ) {
+								printf(
+									/* translators: %s: URL to Update PHP page. */
+									' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								wp_update_php_annotation( '</p><p><em>', '</em>' );
+							}
+							?>
+						<# } else if ( ! data.compatibleWP ) { #>
+							<?php
+							_e( 'This theme doesn&#8217;t work with your version of WordPress.' );
+							if ( current_user_can( 'update_core' ) ) {
+								printf(
+									/* translators: %s: URL to WordPress Updates screen. */
+									' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+									self_admin_url( 'update-core.php' )
+								);
+							}
+							?>
+						<# } else if ( ! data.compatiblePHP ) { #>
+							<?php
+							_e( 'This theme doesn&#8217;t work with your version of PHP.' );
+							if ( current_user_can( 'update_php' ) ) {
+								printf(
+									/* translators: %s: URL to Update PHP page. */
+									' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+									esc_url( wp_get_update_php_url() )
+								);
+								wp_update_php_annotation( '</p><p><em>', '</em>' );
+							}
+							?>
+						<# } #>
+					</p></div>
+				<# } #>
 
 				<# if ( data.hasUpdate ) { #>
-				<div class="notice notice-warning notice-alt notice-large">
-					<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
-					{{{ data.update }}}
-				</div>
+					<# if ( data.updateResponse.compatibleWP && data.updateResponse.compatiblePHP ) { #>
+						<div class="notice notice-warning notice-alt notice-large">
+							<h3 class="notice-title"><?php _e( 'Update Available' ); ?></h3>
+							{{{ data.update }}}
+						</div>
+					<# } else { #>
+						<div class="notice notice-error notice-alt notice-large">
+							<h3 class="notice-title"><?php _e( 'Update Incompatible' ); ?></h3>
+							<p>
+								<# if ( ! data.updateResponse.compatibleWP && ! data.updateResponse.compatiblePHP ) { #>
+									<?php
+									printf(
+										/* translators: %s: Theme name. */
+										__( 'There is a new version of %s available, but it doesn&#8217;t work with your versions of WordPress and PHP.' ),
+										'{{{ data.name }}}'
+									);
+									if ( current_user_can( 'update_core' ) && current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: 1: URL to WordPress Updates screen, 2: URL to Update PHP page. */
+											' ' . __( '<a href="%1$s">Please update WordPress</a>, and then <a href="%2$s">learn more about updating PHP</a>.' ),
+											self_admin_url( 'update-core.php' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									} elseif ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									} elseif ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } else if ( ! data.updateResponse.compatibleWP ) { #>
+									<?php
+									printf(
+										/* translators: %s: Theme name. */
+										__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of WordPress.' ),
+										'{{{ data.name }}}'
+									);
+									if ( current_user_can( 'update_core' ) ) {
+										printf(
+											/* translators: %s: URL to WordPress Updates screen. */
+											' ' . __( '<a href="%s">Please update WordPress</a>.' ),
+											self_admin_url( 'update-core.php' )
+										);
+									}
+									?>
+								<# } else if ( ! data.updateResponse.compatiblePHP ) { #>
+									<?php
+									printf(
+										/* translators: %s: Theme name. */
+										__( 'There is a new version of %s available, but it doesn&#8217;t work with your version of PHP.' ),
+										'{{{ data.name }}}'
+									);
+									if ( current_user_can( 'update_php' ) ) {
+										printf(
+											/* translators: %s: URL to Update PHP page. */
+											' ' . __( '<a href="%s">Learn more about updating PHP</a>.' ),
+											esc_url( wp_get_update_php_url() )
+										);
+										wp_update_php_annotation( '</p><p><em>', '</em>' );
+									}
+									?>
+								<# } #>
+							</p>
+						</div>
+					<# } #>
 				<# } #>
+
+				<# if ( data.actions.autoupdate ) { #>
+					<?php echo wp_theme_auto_update_setting_template(); ?>
+				<# } #>
+
 				<p class="theme-description">{{{ data.description }}}</p>
 
 				<# if ( data.parent ) { #>
-					<p class="parent-theme"><?php printf( __( 'This is a child theme of %s.' ), '<strong>{{{ data.parent }}}</strong>' ); ?></p>
+					<p class="parent-theme">
+						<?php
+						/* translators: %s: Theme name. */
+						printf( __( 'This is a child theme of %s.' ), '<strong>{{{ data.parent }}}</strong>' );
+						?>
+					</p>
 				<# } #>
 
 				<# if ( data.tags ) { #>
@@ -510,14 +1095,25 @@ $can_install = current_user_can( 'install_themes' );
 				<?php echo implode( ' ', $current_theme_actions ); ?>
 			</div>
 			<div class="inactive-theme">
-				<?php
-				/* translators: %s: Theme name */
-				$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
-				?>
-				<# if ( data.actions.activate ) { #>
-					<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<# if ( data.actions.activate ) { #>
+						<a href="{{{ data.actions.activate }}}" class="button activate" aria-label="<?php echo $aria_label; ?>"><?php _e( 'Activate' ); ?></a>
+					<# } #>
+					<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
+				<# } else { #>
+					<?php
+					/* translators: %s: Theme name. */
+					$aria_label = sprintf( _x( 'Cannot Activate %s', 'theme' ), '{{ data.name }}' );
+					?>
+					<# if ( data.actions.activate ) { #>
+						<a class="button disabled" aria-label="<?php echo $aria_label; ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
+					<# } #>
+					<a class="button button-primary hide-if-no-customize disabled"><?php _e( 'Live Preview' ); ?></a>
 				<# } #>
-				<a href="{{{ data.actions.customize }}}" class="button button-primary load-customize hide-if-no-customize"><?php _e( 'Live Preview' ); ?></a>
 			</div>
 
 			<# if ( ! data.active && data.actions['delete'] ) { #>
@@ -533,9 +1129,11 @@ wp_print_admin_notice_templates();
 wp_print_update_row_templates();
 
 wp_localize_script(
-	'updates', '_wpUpdatesItemCounts', array(
+	'updates',
+	'_wpUpdatesItemCounts',
+	array(
 		'totals' => wp_get_update_data(),
 	)
 );
 
-require( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

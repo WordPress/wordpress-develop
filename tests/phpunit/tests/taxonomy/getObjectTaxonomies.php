@@ -5,6 +5,7 @@
  */
 class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 	public function setUp() {
+		parent::setUp();
 		register_post_type( 'wptests_pt' );
 		register_taxonomy( 'wptests_tax', 'wptests_pt' );
 	}
@@ -53,7 +54,9 @@ class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax2', 'attachment:image' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)
@@ -72,7 +75,9 @@ class Tests_Taxonomy_GetObjectTaxonomies extends WP_UnitTestCase {
 		register_taxonomy( 'wptests_tax2', 'attachment:image' );
 
 		$a          = self::factory()->attachment->create_object(
-			'image.jpg', 0, array(
+			'image.jpg',
+			0,
+			array(
 				'post_mime_type' => 'image/jpeg',
 				'post_type'      => 'attachment',
 			)

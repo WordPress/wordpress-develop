@@ -16,24 +16,26 @@ function twentyfifteen_custom_header_setup() {
 	$color_scheme       = twentyfifteen_get_color_scheme();
 	$default_text_color = trim( $color_scheme[4], '#' );
 
-	/**
-	 * Filter Twenty Fifteen custom-header support arguments.
-	 *
-	 * @since Twenty Fifteen 1.0
-	 *
-	 * @param array $args {
-	 *     An array of custom-header support arguments.
-	 *
-	 *     @type string $default_text_color     Default color of the header text.
-	 *     @type int    $width                  Width in pixels of the custom header image. Default 954.
-	 *     @type int    $height                 Height in pixels of the custom header image. Default 1300.
-	 *     @type string $wp-head-callback       Callback function used to styles the header image and text
-	 *                                          displayed on the blog.
-	 * }
-	 */
 	add_theme_support(
-		'custom-header', apply_filters(
-			'twentyfifteen_custom_header_args', array(
+		'custom-header',
+		/**
+		 * Filters Twenty Fifteen custom-header support arguments.
+		 *
+		 * @since Twenty Fifteen 1.0
+		 *
+		 * @param array $args {
+		 *     An array of custom-header support arguments.
+		 *
+		 *     @type string $default_text_color Default color of the header text.
+		 *     @type int    $width              Width in pixels of the custom header image. Default 954.
+		 *     @type int    $height             Height in pixels of the custom header image. Default 1300.
+		 *     @type string $wp-head-callback   Callback function used to styles the header image and text
+		 *                                      displayed on the blog.
+		 * }
+		 */
+		apply_filters(
+			'twentyfifteen_custom_header_args',
+			array(
 				'default-text-color' => $default_text_color,
 				'width'              => 954,
 				'height'             => 1300,
@@ -97,7 +99,7 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 		<?php
 		// Short header for when there is no Custom Header and Header Text is hidden.
 		if ( empty( $header_image ) && ! display_header_text() ) :
-	?>
+			?>
 		.site-header {
 			padding-top: 14px;
 			padding-bottom: 14px;
@@ -134,12 +136,12 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				min-height: 0;
 			}
 		}
-	<?php
+			<?php
 		endif;
 
 		// Has a Custom Header been added?
 		if ( ! empty( $header_image ) ) :
-	?>
+			?>
 		.site-header {
 
 			/*
@@ -176,12 +178,12 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 				background: transparent;
 			}
 		}
-	<?php
+			<?php
 		endif;
 
 		// Has the text been hidden?
 		if ( ! display_header_text() ) :
-	?>
+			?>
 		.site-title,
 		.site-description {
 			clip: rect(1px, 1px, 1px, 1px);
@@ -189,9 +191,9 @@ if ( ! function_exists( 'twentyfifteen_header_style' ) ) :
 		}
 	<?php endif; ?>
 	</style>
-	<?php
+		<?php
 	}
-endif; // twentyfifteen_header_style
+endif; // twentyfifteen_header_style()
 
 /**
  * Enqueues front-end CSS for the header background color.

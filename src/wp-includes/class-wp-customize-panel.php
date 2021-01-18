@@ -69,10 +69,10 @@ class WP_Customize_Panel {
 	public $capability = 'edit_theme_options';
 
 	/**
-	 * Theme feature support for the panel.
+	 * Theme features required to support the panel.
 	 *
 	 * @since 4.0.0
-	 * @var string|array
+	 * @var string|string[]
 	 */
 	public $theme_supports = '';
 
@@ -138,8 +138,20 @@ class WP_Customize_Panel {
 	 * @since 4.0.0
 	 *
 	 * @param WP_Customize_Manager $manager Customizer bootstrap instance.
-	 * @param string               $id      An specific ID for the panel.
-	 * @param array                $args    Panel arguments.
+	 * @param string               $id      A specific ID for the panel.
+	 * @param array                $args    {
+	 *     Optional. Array of properties for the new Panel object. Default empty array.
+	 *
+	 *     @type int             $priority        Priority of the panel, defining the display order
+	 *                                            of panels and sections. Default 160.
+	 *     @type string          $capability      Capability required for the panel.
+	 *                                            Default `edit_theme_options`.
+	 *     @type string|string[] $theme_supports  Theme features required to support the panel.
+	 *     @type string          $title           Title of the panel to show in UI.
+	 *     @type string          $description     Description to show in the UI.
+	 *     @type string          $type            Type of the panel.
+	 *     @type callable        $active_callback Active callback.
+	 * }
 	 */
 	public function __construct( $manager, $id, $args = array() ) {
 		$keys = array_keys( get_object_vars( $this ) );
@@ -224,11 +236,11 @@ class WP_Customize_Panel {
 	 * @return bool False if theme doesn't support the panel or the user doesn't have the capability.
 	 */
 	final public function check_capabilities() {
-		if ( $this->capability && ! call_user_func_array( 'current_user_can', (array) $this->capability ) ) {
+		if ( $this->capability && ! current_user_can( $this->capability ) ) {
 			return false;
 		}
 
-		if ( $this->theme_supports && ! call_user_func_array( 'current_theme_supports', (array) $this->theme_supports ) ) {
+		if ( $this->theme_supports && ! current_theme_supports( ... (array) $this->theme_supports ) ) {
 			return false;
 		}
 
@@ -358,8 +370,8 @@ class WP_Customize_Panel {
 			<div class="accordion-section-title">
 				<span class="preview-notice">
 				<?php
-					/* translators: %s: the site/panel title in the Customizer */
-					echo sprintf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
+					/* translators: %s: The site/panel title in the Customizer. */
+					printf( __( 'You are customizing %s' ), '<strong class="panel-title">{{ data.title }}</strong>' );
 				?>
 				</span>
 				<# if ( data.description ) { #>
@@ -379,4 +391,4 @@ class WP_Customize_Panel {
 }
 
 /** WP_Customize_Nav_Menus_Panel class */
-require_once( ABSPATH . WPINC . '/customize/class-wp-customize-nav-menus-panel.php' );
+require_once ABSPATH . WPINC . '/customize/class-wp-customize-nav-menus-panel.php';

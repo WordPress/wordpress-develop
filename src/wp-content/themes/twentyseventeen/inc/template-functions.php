@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Seventeen
- * @since 1.0
+ * @since Twenty Seventeen 1.0
  */
 
 /**
@@ -76,7 +76,7 @@ function twentyseventeen_panel_count() {
 	$panel_count = 0;
 
 	/**
-	 * Filter number of front page sections in Twenty Seventeen.
+	 * Filters the number of front page sections in Twenty Seventeen.
 	 *
 	 * @since Twenty Seventeen 1.0
 	 *

@@ -16,7 +16,7 @@ if ( is_multisite() ) :
 
 		protected $minimum_site_name_length = 4;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$super_admin_id = $factory->user->create();
 			grant_super_admin( self::$super_admin_id );
 
@@ -34,9 +34,9 @@ if ( is_multisite() ) :
 
 			self::$existing_blog_id = $factory->blog->create(
 				array(
-					'domain'  => $domain,
-					'path'    => $path,
-					'site_id' => $network->id,
+					'domain'     => $domain,
+					'path'       => $path,
+					'network_id' => $network->id,
 				)
 			);
 		}
@@ -47,7 +47,7 @@ if ( is_multisite() ) :
 
 			wpmu_delete_user( self::$existing_user_id );
 
-			wpmu_delete_blog( self::$existing_blog_id, true );
+			wp_delete_site( self::$existing_blog_id );
 		}
 
 		/**
@@ -125,6 +125,36 @@ if ( is_multisite() ) :
 
 		public function filter_minimum_site_name_length() {
 			return $this->minimum_site_name_length;
+		}
+
+		/**
+		 * @ticket 43667
+		 */
+		public function test_signup_nonce_check() {
+			$original_php_self       = $_SERVER['PHP_SELF'];
+			$_SERVER['PHP_SELF']     = '/wp-signup.php';
+			$_POST['signup_form_id'] = 'blog-signup-form';
+			$_POST['_signup_form']   = wp_create_nonce( 'signup_form_' . $_POST['signup_form_id'] );
+
+			$valid               = wpmu_validate_blog_signup( 'my-nonce-site', 'Site Title', get_userdata( self::$super_admin_id ) );
+			$_SERVER['PHP_SELF'] = $original_php_self;
+
+			$this->assertNotContains( 'invalid_nonce', $valid['errors']->get_error_codes() );
+		}
+
+		/**
+		 * @ticket 43667
+		 */
+		public function test_signup_nonce_check_invalid() {
+			$original_php_self       = $_SERVER['PHP_SELF'];
+			$_SERVER['PHP_SELF']     = '/wp-signup.php';
+			$_POST['signup_form_id'] = 'blog-signup-form';
+			$_POST['_signup_form']   = wp_create_nonce( 'invalid' );
+
+			$valid               = wpmu_validate_blog_signup( 'my-nonce-site', 'Site Title', get_userdata( self::$super_admin_id ) );
+			$_SERVER['PHP_SELF'] = $original_php_self;
+
+			$this->assertContains( 'invalid_nonce', $valid['errors']->get_error_codes() );
 		}
 	}
 

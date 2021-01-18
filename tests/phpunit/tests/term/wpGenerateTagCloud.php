@@ -43,23 +43,17 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	 */
 	function empty_tags_data_provider() {
 		return array(
-			/**
-			 * when format => array, we should be getting an empty array back
-			 */
+			// When 'format' => 'array', we should be getting an empty array back.
 			array(
 				array(),
 				array( 'format' => 'array' ),
 			),
-			/**
-			 * List format returns an empty string
-			 */
+			// List format returns an empty string.
 			array(
 				'',
 				array( 'format' => 'list' ),
 			),
-			/**
-			 * $args can be an array or ''. Either should return an empty string
-			 */
+			// $args can be an array or ''. Either should return an empty string.
 			array(
 				'',
 				array(),
@@ -83,7 +77,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 			)
 		);
@@ -104,7 +99,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'array',
 			)
@@ -126,7 +122,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'list',
 			)
@@ -153,7 +150,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 			)
 		);
@@ -179,7 +177,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		);
 
 		$found = wp_generate_tag_cloud(
-			$tags, array(
+			$tags,
+			array(
 				'hide_empty' => false,
 				'format'     => 'list',
 			)
@@ -208,11 +207,13 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		$term_objects = $this->retrieve_terms(
 			array(
 				'include' => $term_ids,
-			), 'wptests_tax'
+			),
+			'wptests_tax'
 		);
 
 		$actual = wp_generate_tag_cloud(
-			$term_objects, array(
+			$term_objects,
+			array(
 				'format'           => 'array',
 				'topic_count_text' => array(
 					'singular' => 'Term has %s post',
@@ -242,11 +243,13 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		$term_objects = $this->retrieve_terms(
 			array(
 				'include' => $term_ids,
-			), 'wptests_tax'
+			),
+			'wptests_tax'
 		);
 
 		$actual = wp_generate_tag_cloud(
-			$term_objects, array(
+			$term_objects,
+			array(
 				'format'                    => 'array',
 				'topic_count_text_callback' => array( $this, 'topic_count_text_callback' ),
 			)
@@ -267,7 +270,8 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 		wp_set_post_terms( $p, $term_ids, 'wptests_tax' );
 
 		$term_objects = get_terms(
-			'wptests_tax', array(
+			'wptests_tax',
+			array(
 				'include' => $term_ids,
 			)
 		);
@@ -292,7 +296,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 
 		$tags = array();
 		foreach ( $terms as $term ) {
-			//add the link
+			// Add the link.
 			$term->link = get_term_link( $term );
 			$tags[]     = $term;
 

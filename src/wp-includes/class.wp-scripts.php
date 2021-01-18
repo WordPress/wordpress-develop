@@ -35,7 +35,7 @@ class WP_Scripts extends WP_Dependencies {
 	public $content_url;
 
 	/**
-	 * Default version string for stylesheets.
+	 * Default version string for scripts.
 	 *
 	 * @since 2.6.0
 	 * @var string
@@ -123,6 +123,17 @@ class WP_Scripts extends WP_Dependencies {
 	public $default_dirs;
 
 	/**
+	 * Holds a string which contains the type attribute for script tag.
+	 *
+	 * If the current theme does not declare HTML5 support for 'script',
+	 * then it initializes as `type='text/javascript'`.
+	 *
+	 * @since 5.3.0
+	 * @var string
+	 */
+	private $type_attr = '';
+
+	/**
 	 * Constructor.
 	 *
 	 * @since 2.6.0
@@ -138,6 +149,14 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.4.0
 	 */
 	public function init() {
+		if (
+			function_exists( 'is_admin' ) && ! is_admin()
+		&&
+			function_exists( 'current_theme_supports' ) && ! current_theme_supports( 'html5', 'script' )
+		) {
+			$this->type_attr = " type='text/javascript'";
+		}
+
 		/**
 		 * Fires when the WP_Scripts instance is initialized.
 		 *
@@ -156,11 +175,12 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 2.1.0
 	 * @since 2.8.0 Added the `$group` parameter.
 	 *
-	 * @param mixed $handles Optional. Scripts to be printed. (void) prints queue, (string) prints
-	 *                       that script, (array of strings) prints those scripts. Default false.
-	 * @param int   $group   Optional. If scripts were queued in groups prints this group number.
-	 *                       Default false.
-	 * @return array Scripts that have been printed.
+	 * @param string|string[]|false $handles Optional. Scripts to be printed: queue (false),
+	 *                                       single script (string), or multiple scripts (array of strings).
+	 *                                       Default false.
+	 * @param int|false             $group   Optional. Group level: level (int), no groups (false).
+	 *                                       Default false.
+	 * @return string[] Handles of scripts that have been printed.
 	 */
 	public function print_scripts( $handles = false, $group = false ) {
 		return $this->do_items( $handles, $group );
@@ -176,9 +196,10 @@ class WP_Scripts extends WP_Dependencies {
 	 * @see print_extra_script()
 	 *
 	 * @param string $handle The script's registered handle.
-	 * @param bool   $echo   Optional. Whether to echo the extra script instead of just returning it.
-	 *                       Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true, true otherwise.
+	 * @param bool   $echo   Optional. Whether to echo the extra script
+	 *                       instead of just returning it. Default true.
+	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true,
+	 *                          true otherwise.
 	 */
 	public function print_scripts_l10n( $handle, $echo = true ) {
 		_deprecated_function( __FUNCTION__, '3.3.0', 'WP_Scripts::print_extra_script()' );
@@ -191,12 +212,14 @@ class WP_Scripts extends WP_Dependencies {
 	 * @since 3.3.0
 	 *
 	 * @param string $handle The script's registered handle.
-	 * @param bool   $echo   Optional. Whether to echo the extra script instead of just returning it.
-	 *                       Default true.
-	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true, true otherwise.
+	 * @param bool   $echo   Optional. Whether to echo the extra script
+	 *                       instead of just returning it. Default true.
+	 * @return bool|string|void Void if no data exists, extra scripts if `$echo` is true,
+	 *                          true otherwise.
 	 */
 	public function print_extra_script( $handle, $echo = true ) {
-		if ( ! $output = $this->get_data( $handle, 'data' ) ) {
+		$output = $this->get_data( $handle, 'data' );
+		if ( ! $output ) {
 			return;
 		}
 
@@ -204,10 +227,19 @@ class WP_Scripts extends WP_Dependencies {
 			return $output;
 		}
 
-		echo "<script type='text/javascript'>\n"; // CDATA and type='text/javascript' is not needed for HTML 5
-		echo "/* <![CDATA[ */\n";
+		printf( "<script%s id='%s-js-extra'>\n", $this->type_attr, esc_attr( $handle ) );
+
+		// CDATA is not needed for HTML 5.
+		if ( $this->type_attr ) {
+			echo "/* <![CDATA[ */\n";
+		}
+
 		echo "$output\n";
-		echo "/* ]]> */\n";
+
+		if ( $this->type_attr ) {
+			echo "/* ]]> */\n";
+		}
+
 		echo "</script>\n";
 
 		return true;
@@ -221,8 +253,9 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::do_item()
 	 *
-	 * @param string $handle    The script's registered handle.
-	 * @param int|false $group  Optional. Group level: (int) level, (false) no groups. Default false.
+	 * @param string    $handle The script's registered handle.
+	 * @param int|false $group  Optional. Group level: level (int), no groups (false).
+	 *                          Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function do_item( $handle, $group = false ) {
@@ -252,7 +285,8 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		$src         = $obj->src;
-		$cond_before = $cond_after = '';
+		$cond_before = '';
+		$cond_after  = '';
 		$conditional = isset( $obj->extra['conditional'] ) ? $obj->extra['conditional'] : '';
 
 		if ( $conditional ) {
@@ -264,11 +298,22 @@ class WP_Scripts extends WP_Dependencies {
 		$after_handle  = $this->print_inline_script( $handle, 'after', false );
 
 		if ( $before_handle ) {
-			$before_handle = sprintf( "<script type='text/javascript'>\n%s\n</script>\n", $before_handle );
+			$before_handle = sprintf( "<script%s id='%s-js-before'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $before_handle );
 		}
 
 		if ( $after_handle ) {
-			$after_handle = sprintf( "<script type='text/javascript'>\n%s\n</script>\n", $after_handle );
+			$after_handle = sprintf( "<script%s id='%s-js-after'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $after_handle );
+		}
+
+		if ( $before_handle || $after_handle ) {
+			$inline_script_tag = $cond_before . $before_handle . $after_handle . $cond_after;
+		} else {
+			$inline_script_tag = '';
+		}
+
+		$translations = $this->print_translations( $handle, false );
+		if ( $translations ) {
+			$translations = sprintf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $translations );
 		}
 
 		if ( $this->do_concat ) {
@@ -282,7 +327,7 @@ class WP_Scripts extends WP_Dependencies {
 			 */
 			$srce = apply_filters( 'script_loader_src', $src, $handle );
 
-			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle ) ) {
+			if ( $this->in_default_dir( $srce ) && ( $before_handle || $after_handle || $translations ) ) {
 				$this->do_concat = false;
 
 				// Have to print the so-far concatenated scripts right away to maintain the right order.
@@ -312,7 +357,15 @@ class WP_Scripts extends WP_Dependencies {
 		}
 
 		// A single item may alias a set of items, by having dependencies, but no source.
-		if ( ! $obj->src ) {
+		if ( ! $src ) {
+			if ( $inline_script_tag ) {
+				if ( $this->do_concat ) {
+					$this->print_html .= $inline_script_tag;
+				} else {
+					echo $inline_script_tag;
+				}
+			}
+
 			return true;
 		}
 
@@ -331,7 +384,9 @@ class WP_Scripts extends WP_Dependencies {
 			return true;
 		}
 
-		$tag = "{$cond_before}{$before_handle}<script type='text/javascript' src='$src'></script>\n{$after_handle}{$cond_after}";
+		$tag  = $translations . $cond_before . $before_handle;
+		$tag .= sprintf( "<script%s src='%s' id='%s-js'></script>\n", $this->type_attr, $src, esc_attr( $handle ) );
+		$tag .= $after_handle . $cond_after;
 
 		/**
 		 * Filters the HTML script tag of an enqueued script.
@@ -358,10 +413,11 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to. Must be lowercase.
-	 * @param string $data     String containing the javascript to be added.
-	 * @param string $position Optional. Whether to add the inline script before the handle
-	 *                         or after. Default 'after'.
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $data     String containing the JavaScript to be added.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
 	 * @return bool True on success, false on failure.
 	 */
 	public function add_inline_script( $handle, $data, $position = 'after' ) {
@@ -384,11 +440,12 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @param string $handle   Name of the script to add the inline script to. Must be lowercase.
-	 * @param string $position Optional. Whether to add the inline script before the handle
-	 *                         or after. Default 'after'.
-	 * @param bool $echo       Optional. Whether to echo the script instead of just returning it.
-	 *                         Default true.
+	 * @param string $handle   Name of the script to add the inline script to.
+	 *                         Must be lowercase.
+	 * @param string $position Optional. Whether to add the inline script
+	 *                         before the handle or after. Default 'after'.
+	 * @param bool   $echo     Optional. Whether to echo the script
+	 *                         instead of just returning it. Default true.
 	 * @return string|false Script on success, false otherwise.
 	 */
 	public function print_inline_script( $handle, $position = 'after', $echo = true ) {
@@ -401,7 +458,7 @@ class WP_Scripts extends WP_Dependencies {
 		$output = trim( implode( "\n", $output ), "\n" );
 
 		if ( $echo ) {
-			printf( "<script type='text/javascript'>\n%s\n</script>\n", $output );
+			printf( "<script%s id='%s-js-%s'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), esc_attr( $position ), $output );
 		}
 
 		return $output;
@@ -412,17 +469,17 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param string $handle
-	 * @param string $object_name
-	 * @param array $l10n
-	 * @return bool
+	 * @param string $handle      Name of the script to attach data to.
+	 * @param string $object_name Name of the variable that will contain the data.
+	 * @param array  $l10n        Array of data to localize.
+	 * @return bool True on success, false on failure.
 	 */
 	public function localize( $handle, $object_name, $l10n ) {
-		if ( $handle === 'jquery' ) {
+		if ( 'jquery' === $handle ) {
 			$handle = 'jquery-core';
 		}
 
-		if ( is_array( $l10n ) && isset( $l10n['l10n_print_after'] ) ) { // back compat, preserve the code in 'l10n_print_after' if present
+		if ( is_array( $l10n ) && isset( $l10n['l10n_print_after'] ) ) { // back compat, preserve the code in 'l10n_print_after' if present.
 			$after = $l10n['l10n_print_after'];
 			unset( $l10n['l10n_print_after'] );
 		}
@@ -459,11 +516,12 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @param string    $handle    Name of the item. Should be unique.
 	 * @param bool      $recursion Internal flag that calling function was called recursively.
-	 * @param int|false $group     Optional. Group level: (int) level, (false) no groups. Default false.
-	 * @return bool Not already in the group or a lower group
+	 * @param int|false $group     Optional. Group level: level (int), no groups (false).
+	 *                             Default false.
+	 * @return bool Not already in the group or a lower group.
 	 */
 	public function set_group( $handle, $recursion, $group = false ) {
-		if ( isset( $this->registered[ $handle ]->args ) && $this->registered[ $handle ]->args === 1 ) {
+		if ( isset( $this->registered[ $handle ]->args ) && 1 === $this->registered[ $handle ]->args ) {
 			$grp = 1;
 		} else {
 			$grp = (int) $this->get_data( $handle, 'group' );
@@ -477,15 +535,84 @@ class WP_Scripts extends WP_Dependencies {
 	}
 
 	/**
+	 * Sets a translation textdomain.
+	 *
+	 * @since 5.0.0
+	 * @since 5.1.0 The `$domain` parameter was made optional.
+	 *
+	 * @param string $handle Name of the script to register a translation domain to.
+	 * @param string $domain Optional. Text domain. Default 'default'.
+	 * @param string $path   Optional. The full file path to the directory containing translation files.
+	 * @return bool True if the text domain was registered, false if not.
+	 */
+	public function set_translations( $handle, $domain = 'default', $path = null ) {
+		if ( ! isset( $this->registered[ $handle ] ) ) {
+			return false;
+		}
+
+		/** @var \_WP_Dependency $obj */
+		$obj = $this->registered[ $handle ];
+
+		if ( ! in_array( 'wp-i18n', $obj->deps, true ) ) {
+			$obj->deps[] = 'wp-i18n';
+		}
+
+		return $obj->set_translations( $domain, $path );
+	}
+
+	/**
+	 * Prints translations set for a specific handle.
+	 *
+	 * @since 5.0.0
+	 *
+	 * @param string $handle Name of the script to add the inline script to.
+	 *                       Must be lowercase.
+	 * @param bool   $echo   Optional. Whether to echo the script
+	 *                       instead of just returning it. Default true.
+	 * @return string|false Script on success, false otherwise.
+	 */
+	public function print_translations( $handle, $echo = true ) {
+		if ( ! isset( $this->registered[ $handle ] ) || empty( $this->registered[ $handle ]->textdomain ) ) {
+			return false;
+		}
+
+		$domain = $this->registered[ $handle ]->textdomain;
+		$path   = $this->registered[ $handle ]->translations_path;
+
+		$json_translations = load_script_textdomain( $handle, $domain, $path );
+
+		if ( ! $json_translations ) {
+			// Register empty locale data object to ensure the domain still exists.
+			$json_translations = '{ "locale_data": { "messages": { "": {} } } }';
+		}
+
+		$output = <<<JS
+( function( domain, translations ) {
+	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;
+	localeData[""].domain = domain;
+	wp.i18n.setLocaleData( localeData, domain );
+} )( "{$domain}", {$json_translations} );
+JS;
+
+		if ( $echo ) {
+			printf( "<script%s id='%s-js-translations'>\n%s\n</script>\n", $this->type_attr, esc_attr( $handle ), $output );
+		}
+
+		return $output;
+	}
+
+	/**
 	 * Determines script dependencies.
 	 *
 	 * @since 2.1.0
 	 *
 	 * @see WP_Dependencies::all_deps()
 	 *
-	 * @param mixed     $handles   Item handle and argument (string) or item handles and arguments (array of strings).
-	 * @param bool      $recursion Internal flag that function is calling itself.
-	 * @param int|false $group     Optional. Group level: (int) level, (false) no groups. Default false.
+	 * @param string|string[] $handles   Item handle (string) or item handles (array of strings).
+	 * @param bool            $recursion Optional. Internal flag that function is calling itself.
+	 *                                   Default false.
+	 * @param int|false       $group     Optional. Group level: level (int), no groups (false).
+	 *                                   Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function all_deps( $handles, $recursion = false, $group = false ) {
@@ -496,7 +623,7 @@ class WP_Scripts extends WP_Dependencies {
 			 *
 			 * @since 2.3.0
 			 *
-			 * @param array $to_do An array of script dependencies.
+			 * @param string[] $to_do An array of script dependency handles.
 			 */
 			$this->to_do = apply_filters( 'print_scripts_array', $this->to_do );
 		}
@@ -510,7 +637,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::do_items()
 	 *
-	 * @return array Handles of items that have been processed.
+	 * @return string[] Handles of items that have been processed.
 	 */
 	public function do_head_items() {
 		$this->do_items( false, 0 );
@@ -524,7 +651,7 @@ class WP_Scripts extends WP_Dependencies {
 	 *
 	 * @see WP_Dependencies::do_items()
 	 *
-	 * @return array Handles of items that have been processed.
+	 * @return string[] Handles of items that have been processed.
 	 */
 	public function do_footer_items() {
 		$this->do_items( false, 1 );

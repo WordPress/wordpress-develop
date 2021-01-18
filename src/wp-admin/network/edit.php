@@ -8,7 +8,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 $action = ( isset( $_GET['action'] ) ) ? $_GET['action'] : '';
 
@@ -38,4 +38,4 @@ do_action( 'wpmuadminedit' );
 do_action( "network_admin_edit_{$action}" );
 
 wp_redirect( network_admin_url() );
-exit();
+exit;
