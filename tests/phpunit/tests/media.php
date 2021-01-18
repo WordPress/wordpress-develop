@@ -3136,8 +3136,8 @@ EOF;
 		 */
 		$expected_url = home_url( str_replace( '%ID%', $post->ID, $expected_url ) );
 
-		$this->assertSame( $expected_url, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
+		$this->assertSame( $expected_url, get_permalink( $post ) );
 		$this->assertSame( $expected_404, is_404(), 'URL is expected to be ' . ( $expected_404 ? 'a 404.' : 'valid but returns a 404.' ) );
 		$this->assertSame( 'attachment', $post->post_type );
 	}
@@ -3157,7 +3157,7 @@ EOF;
 			array( 'publish-attachment', '/publish-post/publish-attachment', false ),
 			array( 'future-attachment', '/future-post/future-attachment', false ),
 			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
-			array( 'trash-attachment', '/trash-attachment', false ),
+			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
 		);
 	}
 }
