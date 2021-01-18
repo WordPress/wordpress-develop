@@ -68,10 +68,10 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		add_filter( 'wp_is_application_passwords_available', '__return_true' );
 	}
-	
+
 	public function tearDown() {
 		parent::tearDown();
-		
+
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
 	}
 
