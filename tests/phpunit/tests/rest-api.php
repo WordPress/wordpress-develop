@@ -957,6 +957,39 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 51722
+	 */
+	function test_rest_preload_api_request_links_embeds() {
+		$rest_server               = $GLOBALS['wp_rest_server'];
+		$GLOBALS['wp_rest_server'] = null;
+
+		$this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_date'   => '2001-02-03 04:05:06',
+			)
+		);
+
+		$preload_paths = array(
+			'/wp/v2/posts?_embed=wp:term',
+		);
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), $preload_paths );
+		$this->assertArrayHasKey( 'body', $preload_data['/wp/v2/posts?_embed=wp:term'] );
+		$body = $preload_data['/wp/v2/posts?_embed=wp:term']['body'][0];
+		$this->assertArrayHasKey( '_embedded', $body );
+		$this->assertArrayHasKey( '_links', $body );
+
+		$GLOBALS['wp_rest_server'] = $rest_server;
+	}
+
+	/**
 	 * @ticket 40614
 	 */
 	function test_rest_ensure_request_accepts_path_string() {
