@@ -98,7 +98,12 @@ function permalink_anchor( $mode = 'id' ) {
  * @return bool Whether to use and ugly permalink structure.
  */
 function wp_force_ugly_post_permalink( $post = null ) {
-	$post = get_post( $post );
+	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+		$sample = true;
+	} else {
+		$post   = get_post( $post );
+		$sample = false;
+	}
 
 	if ( ! $post ) {
 		return true;
@@ -108,7 +113,7 @@ function wp_force_ugly_post_permalink( $post = null ) {
 
 	if (
 		$post_status_obj->internal ||
-		$post_status_obj->protected
+		( $post_status_obj->protected && ! $sample )
 	) {
 		return true;
 	}
