@@ -3136,13 +3136,9 @@ EOF;
 		 */
 		$expected = home_url( str_replace( '%ID%', $post->ID, $expected ) );
 
+		$this->assertSame( $expected, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
-		echo "\n";
-		global $wp, $wp_query;
-		var_dump( $post_key, $wp->query_vars, $expected_404, is_404(), ! empty( $wp_query->post ) ? $wp_query->post->post_type : 'yeah nah' );
-
-		$this->assertSame( $expected_404, is_404(), 'Attachment 404 status expected to be: ' . ( $expected_404 ? 'true.' : 'false.' ) );
-		$this->assertSame( $expected, get_permalink( $post ), 'Attachment permalink incorrect.' );
+		$this->assertSame( $expected_404, is_404() );
 	}
 
 	/**
