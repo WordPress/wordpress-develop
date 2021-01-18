@@ -3139,6 +3139,7 @@ EOF;
 		$this->assertSame( $expected, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
 		$this->assertSame( $expected_404, is_404() );
+		$this->assertSame( 'attachment', $post->post_type );
 	}
 
 	/**
