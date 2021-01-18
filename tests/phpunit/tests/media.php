@@ -3156,7 +3156,7 @@ EOF;
 			array( 'publish-attachment', '/publish-post/publish-attachment', false ),
 			array( 'future-attachment', '/future-post/future-attachment', false ),
 			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
-			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
+			array( 'trash-attachment', '/trash-attachment', false ),
 		);
 	}
 }
