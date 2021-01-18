@@ -450,6 +450,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	global $wp_rewrite;
 
 	$link = false;
+	$force_ugly_link = wp_force_ugly_post_permalink( $post );
 
 	$post   = get_post( $post );
 	$parent = ( $post->post_parent > 0 && $post->post_parent != $post->ID ) ? get_post( $post->post_parent ) : false;
@@ -468,7 +469,9 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		}
 	}
 
-	$force_ugly_link = wp_force_ugly_post_permalink( $post ) || wp_force_ugly_post_permalink( $post->post_parent );
+	if ( $parent ) {
+		$force_ugly_link = $force_ugly_link || wp_force_ugly_post_permalink( $post->post_parent );
+	}
 
 	if (
 		$wp_rewrite->using_permalinks() &&
