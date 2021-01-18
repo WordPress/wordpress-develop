@@ -90,6 +90,40 @@ function permalink_anchor( $mode = 'id' ) {
 }
 
 /**
+ * Determine whether post should always use an ugly permalink structure.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Post|int|null $post Optional. Post ID or post object. Defaults to global $post.
+ * @return bool Whether to use and ugly permalink structure.
+ */
+function wp_force_ugly_post_permalink( $post = null ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return true;
+	}
+
+	$post_status_obj = get_post_status_object( get_post_status( $post ) );
+
+	if (
+		$post_status_obj->internal ||
+		$post_status_obj->protected
+	) {
+		return true;
+	}
+
+	if (
+		$post_status_obj->private &&
+		! current_user_can( 'read_post', $post->ID )
+	) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Retrieves the full permalink for the current post or post ID.
  *
  * This function is an alias for get_permalink().
@@ -166,7 +200,7 @@ function get_permalink( $post = 0, $leavename = false ) {
 
 	if (
 		$permalink &&
-		! in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft', 'future', 'trash' ), true )
+		! wp_force_ugly_post_permalink( $post )
 	) {
 
 		$category = '';
@@ -277,7 +311,7 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
 
 	$slug = $post->post_name;
 
-	$draft_or_pending = get_post_status( $post ) && in_array( get_post_status( $post ), array( 'draft', 'pending', 'auto-draft', 'future' ), true );
+	$force_ugly_link = wp_force_ugly_post_permalink( $post );
 
 	$post_type = get_post_type_object( $post->post_type );
 
@@ -285,13 +319,13 @@ function get_post_permalink( $id = 0, $leavename = false, $sample = false ) {
 		$slug = get_page_uri( $post );
 	}
 
-	if ( ! empty( $post_link ) && ( ! $draft_or_pending || $sample ) ) {
+	if ( ! empty( $post_link ) && ( ! $force_ugly_link || $sample ) ) {
 		if ( ! $leavename ) {
 			$post_link = str_replace( "%$post->post_type%", $slug, $post_link );
 		}
 		$post_link = home_url( user_trailingslashit( $post_link ) );
 	} else {
-		if ( $post_type->query_var && ( isset( $post->post_status ) && ! $draft_or_pending ) ) {
+		if ( $post_type->query_var && ( isset( $post->post_status ) && ! $force_ugly_link ) ) {
 			$post_link = add_query_arg( $post_type->query_var, $slug, '' );
 		} else {
 			$post_link = add_query_arg(
@@ -373,11 +407,11 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 
 	$post = get_post( $post );
 
-	$draft_or_pending = in_array( $post->post_status, array( 'draft', 'pending', 'auto-draft' ), true );
+	$force_ugly_link = wp_force_ugly_post_permalink( $post );
 
 	$link = $wp_rewrite->get_page_permastruct();
 
-	if ( ! empty( $link ) && ( ( isset( $post->post_status ) && ! $draft_or_pending ) || $sample ) ) {
+	if ( ! empty( $link ) && ( ( isset( $post->post_status ) && ! $force_ugly_link ) || $sample ) ) {
 		if ( ! $leavename ) {
 			$link = str_replace( '%pagename%', get_page_uri( $post ), $link );
 		}
@@ -434,7 +468,13 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		}
 	}
 
-	if ( $wp_rewrite->using_permalinks() && $parent ) {
+	$force_ugly_link = wp_force_ugly_post_permalink( $post ) || wp_force_ugly_post_permalink( $post->post_parent );
+
+	if (
+		$wp_rewrite->using_permalinks() &&
+		$parent &&
+		! $force_ugly_link
+	) {
 		if ( 'page' === $parent->post_type ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
 		} else {
@@ -454,7 +494,11 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		if ( ! $leavename ) {
 			$link = str_replace( '%postname%', $name, $link );
 		}
-	} elseif ( $wp_rewrite->using_permalinks() && ! $leavename ) {
+	} elseif (
+		$wp_rewrite->using_permalinks() &&
+		! $leavename &&
+		! $force_ugly_link
+	) {
 		$link = home_url( user_trailingslashit( $post->post_name ) );
 	}
 
