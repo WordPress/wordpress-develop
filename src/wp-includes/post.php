@@ -907,7 +907,13 @@ function get_post_status( $post = null ) {
 		}
 
 		// Unattached attachments are assumed to be published.
-		if ( ( 'inherit' === $post->post_status ) && ( 0 == $post->post_parent ) ) {
+		if (
+			'inherit' === $post->post_status &&
+			(
+				0 === $post->post_parent ||
+				! get_post( $post->post_parent )
+			)
+		) {
 			return 'publish';
 		}
 
