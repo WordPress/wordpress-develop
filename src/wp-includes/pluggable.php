@@ -17,14 +17,16 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 	 * actions on users who aren't signed in.
 	 *
 	 * @since 2.0.3
+	 * @since 5.3.0 `$force` param was added.
 	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
-	 * @param int    $id   User ID
-	 * @param string $name User's username
+	 * @param int    $id    User ID
+	 * @param string $name  User's username
+	 * @param bool   $force Set to true to force the re-setup of the current user object. Default false.
 	 * @return WP_User Current user User object
 	 */
-	function wp_set_current_user( $id, $name = '' ) {
+	function wp_set_current_user( $id, $name = '', $force = false ) {
 		global $current_user;
 
 		// If `$id` matches the current user, there is nothing to do.
@@ -32,6 +34,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		&& ( $current_user instanceof WP_User )
 		&& ( $id == $current_user->ID )
 		&& ( null !== $id )
+		&& ( ! $force )
 		) {
 			return $current_user;
 		}
@@ -91,16 +94,27 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
+	 * @since 5.3.0	Return the global $current_user if it's the user being fetched.
 	 *
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
 	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_user_by( $field, $value ) {
+		global $current_user;
+
 		$userdata = WP_User::get_data_by( $field, $value );
 
 		if ( ! $userdata ) {
 			return false;
+		}
+
+		if ( ! empty( $current_user )
+			&& $current_user instanceof WP_User
+			&& $current_user->ID == $userdata->ID ) {
+
+			return $current_user;
+
 		}
 
 		$user = new WP_User;
@@ -693,7 +707,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 			return false;
 		}
 
-		$user = get_user_by( 'login', $username );
+		$user = get_user_by( 'login', $username, false );
 		if ( ! $user ) {
 			/**
 			 * Fires if a bad username is entered in the user authentication process.
