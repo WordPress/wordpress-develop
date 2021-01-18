@@ -458,7 +458,7 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 function get_attachment_link( $post = null, $leavename = false ) {
 	global $wp_rewrite;
 
-	$link = false;
+	$link            = false;
 	$force_ugly_link = wp_force_ugly_post_permalink( $post );
 
 	$post   = get_post( $post );
@@ -480,6 +480,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 
 	if ( $parent ) {
 		$force_ugly_link = $force_ugly_link || wp_force_ugly_post_permalink( $post->post_parent );
+		$parent          = false;
 	}
 
 	if (
