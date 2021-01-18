@@ -592,6 +592,18 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_privacy_options':
 			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
 			break;
+		case 'view_site_health_check':
+			$caps[] = 'view_site_health_checks';
+			if ( ! wp_site_health_allow_single_health_check( $user_id, $args[0] ) ) {
+				$caps[] = 'do_not_allow';
+			}
+			break;
+		case 'view_site_health_debug_info':
+			$caps[] = 'view_site_health_checks';
+			if ( ! wp_site_health_allow_single_debug( $user_id, $args[0], $args[1] ) ) {
+				$caps[] = 'do_not_allow';
+			}
+			break;
 		default:
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
@@ -1061,6 +1073,112 @@ function wp_maybe_grant_site_health_caps( $allcaps, $caps, $args, $user ) {
 	}
 
 	return $allcaps;
+}
+
+/**
+ * Check if a given user has the capabilities to view a given Site Health check.
+ *
+ * @since 5.6.0
+ *
+ * @param int    $user_id   The ID of the user having their capability checked.
+ * @param string $test_slug The slug used to reference a Site Health Check test.
+ *
+ * @return bool
+ */
+function wp_site_health_allow_single_health_check( $user_id, $test_slug ) {
+	$restricted_checks = array(
+		'wordpress_version',
+		'plugin_version',
+		'theme_version',
+		'php_version',
+		'php_extensions',
+		'php_sessions',
+		'sql_server',
+		'utf8mb4_support',
+		'debug_enabled',
+		'background_updates',
+	);
+
+	/**
+	 * Filter which tests are restricted to the network admin screen.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $restricted_checks An array of Site Health check slugs that are only available in the network admin on multisite installs.
+	 */
+	$restricted_checks = apply_filters( 'wp_site_health_network_admin_checks', $restricted_checks );
+
+	if ( in_array( $test_slug, $restricted_checks, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
+		$can_view = false;
+	} else {
+		$can_view = true;
+	}
+
+	/**
+	 * Filter if a given user is allowed to view the given Site Health test.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $can_view  A boolean value representing if the user can view this test or not.
+	 * @param string  $test_slug A Site Health test slug being capability checked.
+	 * @param int     $user_id   The ID of the user whose capabilities are being checked.
+	 */
+	$can_view = apply_filters( 'view_site_health_check', $can_view, $test_slug, $user_id );
+
+	return $can_view;
+}
+
+/**
+ * Check if a given user has the capabilities to view a given Site Health check.
+ *
+ * @since 5.6.0
+ *
+ * @param int    $user_id       The ID of the user having their capability checked.
+ * @param string $debug_section The slug referencing a Site Health debug section.
+ * @param string $debug_slug    The slug referencing a Site Health debug section field.
+ *
+ * @return bool
+ */
+function wp_site_health_allow_single_debug( $user_id, $debug_section, $debug_slug ) {
+	$restricted_fields = array(
+		'wp-core-user_count',
+		'wp-core-site_count',
+		'wp-core-network_count',
+	);
+
+	/**
+	 * Filter which debug information fields are restricted to the network admin screen.
+	 *
+	 * To avoid collision between slugs, the section is prepended to the check name as `{$debug_section}-{$debug_slug}`.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $restricted_fields An array of Site Health debug information sections and slugs that are only available in the network admin on multisite installs.
+	 */
+	$restricted_fields = apply_filters( 'wp_site_health_network_admin_debug_fields', $restricted_fields );
+
+	// A mix of the section and slug, to avoid naming collisions between slugs in different sections.
+	$check_string = $debug_section . '-' . $debug_slug;
+
+	if ( in_array( $check_string, $restricted_fields, true ) && ( ! is_network_admin() || ! is_super_admin( $user_id ) ) ) {
+		$can_view = false;
+	} else {
+		$can_view = true;
+	}
+
+	/**
+	 * Filter if a given user is allowed to view the given Site Health debug information.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param bool    $can_view      A boolean value representing if the user can view this debug information or not.
+	 * @param string  $debug_section A Site Health debug information section that the following slug is associated with.
+	 * @param string  $debug_slug    A Site Health debug information slug being capability checked.
+	 * @param int     $user_id       The ID of the user whose capabilities are being checked.
+	 */
+	$can_view = apply_filters( 'view_site_health_debug_info', $can_view, $debug_section, $debug_slug, $user_id );
+
+	return $can_view;
 }
 
 return;
