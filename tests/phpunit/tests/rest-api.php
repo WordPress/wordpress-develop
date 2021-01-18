@@ -963,16 +963,15 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$rest_server               = $GLOBALS['wp_rest_server'];
 		$GLOBALS['wp_rest_server'] = null;
 
-		$this->factory->post->create(
+		$post_id = $this->factory->post->create(
 			array(
 				'post_status' => 'publish',
 				'post_date'   => '2001-02-03 04:05:06',
 			)
 		);
 
-		$preload_paths = array(
-			'/wp/v2/posts?_embed=wp:term',
-		);
+		$url           = sprintf( '/wp/v2/posts/%d?_embed=wp:term', $post_id );
+		$preload_paths = array( $url );
 
 		$preload_data = array_reduce(
 			$preload_paths,
@@ -981,10 +980,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( array_keys( $preload_data ), $preload_paths );
-		$this->assertArrayHasKey( 'body', $preload_data['/wp/v2/posts?_embed=wp:term'] );
-		$body = $preload_data['/wp/v2/posts?_embed=wp:term']['body'][0];
-		$this->assertArrayHasKey( '_embedded', $body );
-		$this->assertArrayHasKey( '_links', $body );
+		$this->assertArrayHasKey( 'body', $preload_data[ $url ] );
+		$this->assertArrayHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		$this->assertArrayHasKey( '_links', $preload_data[ $url ]['body'] );
 
 		$GLOBALS['wp_rest_server'] = $rest_server;
 	}
