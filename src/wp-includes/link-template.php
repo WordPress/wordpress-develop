@@ -111,6 +111,10 @@ function wp_force_ugly_post_permalink( $post = null ) {
 
 	$post_status_obj = get_post_status_object( get_post_status( $post ) );
 
+	if ( ! $post_status_obj ) {
+		return true;
+	}
+
 	if (
 		$post_status_obj->internal ||
 		( $post_status_obj->protected && ! $sample )
