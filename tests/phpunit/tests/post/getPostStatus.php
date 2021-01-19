@@ -16,16 +16,19 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	 * Create shared fixtures.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private' );
+		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete' );
 		foreach ( $post_statuses as $post_status ) {
 			$date = '';
+			$actual_status = $post_status;
 			if ( 'future' === $post_status ) {
 				$date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+			} elseif ( in_array( $post_status, array( 'trash', 'delete' ), true ) ) {
+				$actual_status = 'publish';
 			}
 
 			self::$post_ids[ $post_status ] = $factory->post->create(
 				array(
-					'post_status' => 'trash' === $post_status ? 'publish' : $post_status,
+					'post_status' => $actual_status,
 					'post_date'   => $date,
 					'post_name'   => "$post_status-post",
 				)
@@ -44,7 +47,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			// Attachments without parent or media.
 			self::$post_ids[ "$post_status-attachment-no-parent" ] = $factory->attachment->create_object(
 				array(
-					'post_status' => 'trash' === $post_status ? 'publish' : $post_status,
+					'post_status' => $actual_status,
 					'post_name'   => "$post_status-attachment-no-parent",
 					'post_date'   => $date,
 				)
@@ -64,6 +67,10 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		// Trash the trash post and attachment.
 		wp_trash_post( self::$post_ids['trash'] );
 		wp_trash_post( self::$post_ids['trash-attachment-no-parent'] );
+
+		// Delete the post been deleted.
+		wp_delete_post( self::$post_ids['delete'], true );
+		wp_delete_post( self::$post_ids['delete-attachment-no-parent'], true );
 	}
 
 	/**
@@ -95,6 +102,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'auto-draft', 'auto-draft' ),
 			array( 'trash', 'trash' ),
 			array( 'private', 'private' ),
+			array( 'delete', false ),
 
 			// Attachment with `inherit` status from parent.
 			array( 'publish-attachment', 'publish' ),
@@ -103,6 +111,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'auto-draft-attachment', 'auto-draft' ),
 			array( 'trash-attachment', 'publish' ),
 			array( 'private-attachment', 'private' ),
+			array( 'delete-attachment', 'publish' ),
 
 			// Attachment with native status (rather than inheriting from parent).
 			array( 'publish-attachment-no-parent', 'publish' ),
@@ -111,6 +120,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 			array( 'auto-draft-attachment-no-parent', 'auto-draft' ),
 			array( 'trash-attachment-no-parent', 'trash' ),
 			array( 'private-attachment-no-parent', 'private' ),
+			array( 'delete-attachment-no-parent', false ),
 
 			// Attachment attempting to inherit from an invalid parent number.
 			array( 'badly-parented-attachment', 'publish' ),
