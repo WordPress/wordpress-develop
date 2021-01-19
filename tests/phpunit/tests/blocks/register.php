@@ -269,6 +269,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$result   = register_block_style_handle( $metadata, 'style' );
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
+		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
 	}
 
 	/**
