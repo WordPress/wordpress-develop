@@ -235,8 +235,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'apiVersion'      => 'api_version',
 	);
 
-	$textdomain = isset( $metadata['textdomain'] ) ? $metadata['textdomain'] : 'default';
-
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
 			$value = $metadata[ $key ];
