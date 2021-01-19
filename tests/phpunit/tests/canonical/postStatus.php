@@ -913,21 +913,21 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"$post_key-attachment",
 					$user,
 					'/?attachment_id=%ID%',
-					'/trash-post-inherited-attachment/',
+					'/?attachment_id=%ID%',
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
 					'/trash-post/trash-post-inherited-attachment/',
-					'/trash-post-inherited-attachment/',
+					'/?attachment_id=%ID%',
 				);
 
 				$data[] = array(
-					"$post_key",
+					"$post_key-attachment",
 					$user,
 					'/trash-post__trashed/trash-post-inherited-attachment/',
-					'/trash-post-inherited-attachment/',
+					'/?attachment_id=%ID%',
 				);
 
 				$data[] = array(
