@@ -62,7 +62,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$registry = WP_Block_Type_Registry::get_instance();
 
-		foreach ( array( 'core/test-static', 'core/test-dynamic', 'my-plugin/notice' ) as $block_name ) {
+		foreach ( array( 'core/test-static', 'core/test-dynamic', 'tests/notice' ) as $block_name ) {
 			if ( $registry->is_registered( $block_name ) ) {
 				$registry->unregister( $block_name );
 			}
@@ -193,7 +193,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$metadata = array(
 			'file'   => __FILE__,
 			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./fixtures/missing-asset.js',
+			'script' => 'file:./blocks/notice/missing-asset.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
@@ -217,9 +217,9 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_success_register_block_script_handle() {
 		$metadata = array(
-			'file'   => __FILE__,
+			'file'   => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'   => 'unit-tests/test-block',
-			'script' => 'file:./fixtures/block.js',
+			'script' => 'file:./block.js',
 		);
 		$result   = register_block_script_handle( $metadata, 'script' );
 
@@ -262,9 +262,9 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_success_register_block_style_handle() {
 		$metadata = array(
-			'file'  => __FILE__,
+			'file'  => DIR_TESTDATA . '/blocks/notice/block.json',
 			'name'  => 'unit-tests/test-block',
-			'style' => 'file:./fixtures/block.css',
+			'style' => 'file:./block.css',
 		);
 		$result   = register_block_style_handle( $metadata, 'style' );
 
@@ -303,12 +303,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 */
 	function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 
 		$this->assertInstanceOf( 'WP_Block_Type', $result );
 		$this->assertSame( 2, $result->api_version );
-		$this->assertSame( 'my-plugin/notice', $result->name );
+		$this->assertSame( 'tests/notice', $result->name );
 		$this->assertSame( 'Notice', $result->title );
 		$this->assertSame( 'common', $result->category );
 		$this->assertSameSets( array( 'core/group' ), $result->parent );
@@ -327,7 +327,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		);
 		$this->assertSame(
 			array(
-				'my-plugin/message' => 'message',
+				'tests/message' => 'message',
 			),
 			$result->provides_context
 		);
@@ -361,10 +361,48 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 			),
 			$result->example
 		);
-		$this->assertSame( 'my-plugin-notice-editor-script', $result->editor_script );
-		$this->assertSame( 'my-plugin-notice-script', $result->script );
-		$this->assertSame( 'my-plugin-notice-editor-style', $result->editor_style );
-		$this->assertSame( 'my-plugin-notice-style', $result->style );
+		$this->assertSame( 'tests-notice-editor-script', $result->editor_script );
+		$this->assertSame( 'tests-notice-script', $result->script );
+		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
+		$this->assertSame( 'tests-notice-style', $result->style );
+	}
+
+	/**
+	 * @ticket 52301
+	 */
+	function test_block_registers_with_metadata_i18n_support() {
+		function filter_set_locale_to_polish() {
+			return 'pl_PL';
+		}
+		add_filter( 'locale', 'filter_set_locale_to_polish' );
+		load_textdomain( 'notice', WP_LANG_DIR . '/plugins/notice-pl_PL.mo' );
+
+		$result = register_block_type_from_metadata(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		unload_textdomain( 'notice' );
+		remove_filter( 'locale', 'filter_set_locale_to_polish' );
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 'tests/notice', $result->name );
+		$this->assertSame( 'Powiadomienie', $result->title );
+		$this->assertSame( 'Wyświetla ostrzeżenie, błąd lub powiadomienie o sukcesie…', $result->description );
+		$this->assertSameSets( array( 'ostrzeżenie', 'wiadomość' ), $result->keywords );
+		$this->assertSame(
+			array(
+				array(
+					'name'      => 'default',
+					'label'     => 'Domyślny',
+					'isDefault' => true,
+				),
+				array(
+					'name'  => 'other',
+					'label' => 'Inny',
+				),
+			),
+			$result->styles
+		);
 	}
 
 	/**
@@ -433,7 +471,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		add_filter( 'block_type_metadata', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 		remove_filter( 'block_type_metadata', $filter_metadata_registration );
 
@@ -451,7 +489,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		add_filter( 'block_type_metadata_settings', $filter_metadata_registration, 10, 2 );
 		$result = register_block_type_from_metadata(
-			__DIR__ . '/fixtures'
+			DIR_TESTDATA . '/blocks/notice'
 		);
 		remove_filter( 'block_type_metadata_settings', $filter_metadata_registration );
 
