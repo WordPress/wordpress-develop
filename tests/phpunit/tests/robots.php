@@ -74,7 +74,7 @@ class Tests_Robots extends WP_UnitTestCase {
 	/**
 	 * @ticket 51511
 	 */
-	public function test_wp_robots_includes_basic_sanitization() {
+	public function test_wp_robots_includes_basic_sanitization_follow_nofollow() {
 		// Only follow or nofollow can be present, with follow taking precedence.
 		add_filter( 'wp_robots', array( $this, 'add_follow_directive' ) );
 		add_filter( 'wp_robots', array( $this, 'add_nofollow_directive' ) );
@@ -94,6 +94,31 @@ class Tests_Robots extends WP_UnitTestCase {
 		add_filter( 'wp_robots', array( $this, 'remove_nofollow_directive' ), 12 );
 		$output = get_echo( 'wp_robots' );
 		$this->assertContains( "'follow'", $output );
+	}
+
+	/**
+	 * @ticket 51511
+	 */
+	public function test_wp_robots_includes_basic_sanitization_archive_noarchive() {
+		// Only archive or noarchive can be present, with archive taking precedence.
+		add_filter( 'wp_robots', array( $this, 'add_archive_directive' ) );
+		add_filter( 'wp_robots', array( $this, 'add_noarchive_directive' ) );
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( "'archive'", $output );
+
+		// Consider truthyness of the directive value though.
+		// Here noarchive is true, archive is false.
+		add_filter( 'wp_robots', array( $this, 'remove_archive_directive' ), 11 );
+		add_filter( 'wp_robots', array( $this, 'add_noarchive_directive' ), 11 );
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( "'noarchive'", $output );
+
+		// Consider truthyness of the directive value though.
+		// Here archive is true, noarchive is false.
+		add_filter( 'wp_robots', array( $this, 'add_archive_directive' ), 12 );
+		add_filter( 'wp_robots', array( $this, 'remove_noarchive_directive' ), 12 );
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( "'archive'", $output );
 	}
 
 	/**
@@ -139,35 +164,16 @@ class Tests_Robots extends WP_UnitTestCase {
 	/**
 	 * @ticket 51511
 	 */
-	public function test_wp_robots_media_search_engine_visibility() {
-		add_filter( 'wp_robots', 'wp_robots_media_search_engine_visibility' );
+	public function test_wp_robots_max_image_preview_large() {
+		add_filter( 'wp_robots', 'wp_robots_max_image_preview_large' );
 
 		update_option( 'blog_public', '1' );
-		update_option( 'media_search_engine_visibility', '1' );
 		$output = get_echo( 'wp_robots' );
 		$this->assertContains( "'max-image-preview:large'", $output );
 
-		// The site not being public takes precedence over the media-specific
-		// directive.
 		update_option( 'blog_public', '0' );
-		update_option( 'media_search_engine_visibility', '1' );
 		$output = get_echo( 'wp_robots' );
 		$this->assertEmpty( $output );
-
-		update_option( 'blog_public', '0' );
-		update_option( 'media_search_engine_visibility', '0' );
-		$output = get_echo( 'wp_robots' );
-		$this->assertEmpty( $output );
-	}
-
-	/**
-	 * @ticket 51511
-	 */
-	public function test_wp_robots_max_image_preview() {
-		add_filter( 'wp_robots', 'wp_robots_max_image_preview' );
-
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'max-image-preview:large'", $output );
 	}
 
 	public function add_noindex_directive( array $robots ) {
@@ -197,6 +203,26 @@ class Tests_Robots extends WP_UnitTestCase {
 
 	public function remove_nofollow_directive( array $robots ) {
 		$robots['nofollow'] = false;
+		return $robots;
+	}
+
+	public function add_archive_directive( array $robots ) {
+		$robots['archive'] = true;
+		return $robots;
+	}
+
+	public function remove_archive_directive( array $robots ) {
+		$robots['archive'] = false;
+		return $robots;
+	}
+
+	public function add_noarchive_directive( array $robots ) {
+		$robots['noarchive'] = true;
+		return $robots;
+	}
+
+	public function remove_noarchive_directive( array $robots ) {
+		$robots['noarchive'] = false;
 		return $robots;
 	}
 }
