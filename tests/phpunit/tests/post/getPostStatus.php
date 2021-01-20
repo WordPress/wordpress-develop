@@ -34,21 +34,21 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 				)
 			);
 
+			// Attachments without parent or media.
+			self::$post_ids[ "$post_status-attachment-no-parent" ] = $factory->attachment->create_object(
+				array(
+					'post_status' => $actual_status,
+					'post_name'   => "$post_status-attachment-no-parent",
+					'post_date'   => $date,
+				)
+			);
+
 			// Attachments without media.
 			self::$post_ids[ "$post_status-attachment" ] = $factory->attachment->create_object(
 				array(
 					'post_parent' => self::$post_ids[ $post_status ],
 					'post_status' => 'inherit',
 					'post_name'   => "$post_status-attachment",
-					'post_date'   => $date,
-				)
-			);
-
-			// Attachments without parent or media.
-			self::$post_ids[ "$post_status-attachment-no-parent" ] = $factory->attachment->create_object(
-				array(
-					'post_status' => $actual_status,
-					'post_name'   => "$post_status-attachment-no-parent",
 					'post_date'   => $date,
 				)
 			);
@@ -89,7 +89,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	/**
 	 * Data provider for test_get_post_status_resolves().
 	 *
-	 * @return array {
+	 * @return array[] {
 	 *     @type string $post_key The post key in self::$post_ids.
 	 *     @type string $expected The expected get_post_status() return value.
 	 * }
@@ -124,6 +124,44 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 
 			// Attachment attempting to inherit from an invalid parent number.
 			array( 'badly-parented-attachment', 'publish' ),
+		);
+	}
+
+	/**
+	 * Ensure post status resolves after trashing parent posts.
+	 *
+	 * @ticket 52326
+	 * @dataProvider data_get_post_status_after_trashing
+	 *
+	 * @param string $post_to_test  The post key in self::$post_ids.
+	 * @param string $post_to_trash The post key to trash then delete in self::$post_ids.
+	 * @param string $expected      The expected result after trashing the post.
+	 */
+	public function test_get_post_status_after_trashing( $post_to_test, $post_to_trash, $expected ) {
+		wp_trash_post( self::$post_ids[ $post_to_trash ] );
+		$this->assertSame( $expected, get_post_status( self::$post_ids[ $post_to_test ] ) );
+
+		// Now delete the post, expect publish.
+		wp_delete_post( self::$post_ids[ $post_to_trash ], true );
+		$this->assertSame( 'publish', get_post_status( self::$post_ids[ $post_to_test ] ) );
+	}
+
+	/**
+	 * Data provider for test_get_post_status_after_trashing().
+	 * @return array[] {
+	 *     @type string $post_to_test  The post key in self::$post_ids.
+	 *     @type string $post_to_trash The post key to trash then delete in self::$post_ids.
+	 *     @type string $expected      The expected result after trashing the post.
+	 * }
+	 */
+	public function data_get_post_status_after_trashing() {
+		return array(
+			array( 'publish-attachment', 'publish', 'publish' ),
+			array( 'future-attachment', 'future', 'future' ),
+			array( 'draft-attachment', 'draft', 'draft' ),
+			array( 'auto-draft-attachment', 'auto-draft', 'auto-draft' ),
+			array( 'private-attachment', 'private', 'private' ),
+			array( 'delete-attachment', 'publish', 'publish' ),
 		);
 	}
 }
