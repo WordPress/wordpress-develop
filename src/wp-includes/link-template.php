@@ -95,7 +95,7 @@ function permalink_anchor( $mode = 'id' ) {
  * @since 5.7.0
  *
  * @param WP_Post|int|null $post Optional. Post ID or post object. Defaults to global $post.
- * @return bool Whether to use and ugly permalink structure.
+ * @return bool Whether to use an ugly permalink structure.
  */
 function wp_force_ugly_post_permalink( $post = null ) {
 	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
