@@ -214,7 +214,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * Test that an index.html file can be added to the export directory.
+	 * Test that an index.php file can be added to the export directory.
 	 *
 	 * @ticket 44233
 	 */
