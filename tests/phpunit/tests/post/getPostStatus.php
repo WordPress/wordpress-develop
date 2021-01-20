@@ -68,7 +68,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 		wp_trash_post( self::$post_ids['trash'] );
 		wp_trash_post( self::$post_ids['trash-attachment-no-parent'] );
 
-		// Delete the post been deleted.
+		// Force delete parent and unattached post objects.
 		wp_delete_post( self::$post_ids['delete'], true );
 		wp_delete_post( self::$post_ids['delete-attachment-no-parent'], true );
 	}
