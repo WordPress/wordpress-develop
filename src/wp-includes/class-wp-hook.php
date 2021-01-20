@@ -95,10 +95,10 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param bool|int $new_priority     Optional. The priority of the new filter being added. Default false,
-	 *                                   for no priority being added.
-	 * @param bool     $priority_existed Optional. Flag for whether the priority already existed before the new
-	 *                                   filter was added. Default false.
+	 * @param false|int $new_priority     Optional. The priority of the new filter being added. Default false,
+	 *                                    for no priority being added.
+	 * @param bool      $priority_existed Optional. Flag for whether the priority already existed before the new
+	 *                                    filter was added. Default false.
 	 */
 	private function resort_active_iterations( $new_priority = false, $priority_existed = false ) {
 		$new_priorities = array_keys( $this->callbacks );
@@ -187,11 +187,16 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	/**
 	 * Checks if a specific action has been registered for this hook.
 	 *
+	 * When using the `$function_to_check` argument, this function may return a non-boolean value
+	 * that evaluates to false (e.g. 0), so use the `===` operator for testing the return value.
+	 *
 	 * @since 4.7.0
 	 *
-	 * @param string        $tag               Optional. The name of the filter hook. Default empty.
-	 * @param callable|bool $function_to_check Optional. The callback to check for. Default false.
-	 * @return bool|int The priority of that hook is returned, or false if the function is not attached.
+	 * @param string         $tag               Optional. The name of the filter hook. Default empty.
+	 * @param callable|false $function_to_check Optional. The callback to check for. Default false.
+	 * @return bool|int If `$function_to_check` is omitted, returns boolean for whether the hook has
+	 *                  anything registered. When checking a specific function, the priority of that
+	 *                  hook is returned, or false if the function is not attached.
 	 */
 	public function has_filter( $tag = '', $function_to_check = false ) {
 		if ( false === $function_to_check ) {
@@ -233,7 +238,7 @@ final class WP_Hook implements Iterator, ArrayAccess {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param int|bool $priority Optional. The priority number to remove. Default false.
+	 * @param int|false $priority Optional. The priority number to remove. Default false.
 	 */
 	public function remove_all_filters( $priority = false ) {
 		if ( ! $this->callbacks ) {

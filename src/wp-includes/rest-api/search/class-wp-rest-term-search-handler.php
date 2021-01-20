@@ -66,9 +66,11 @@ class WP_REST_Term_Search_Handler extends WP_REST_Search_Handler {
 		}
 
 		/**
-		 * Filters the query arguments for a search request.
+		 * Filters the query arguments for a REST API search request.
 		 *
 		 * Enables adding extra arguments or setting defaults for a term search request.
+		 *
+		 * @since 5.6.0
 		 *
 		 * @param array           $query_args Key value array of query var to query value.
 		 * @param WP_REST_Request $request    The request used.

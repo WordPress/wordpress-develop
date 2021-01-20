@@ -16,6 +16,15 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 		$this->assertSame( 403, $result->code );
 	}
 
+	function test_disabled() {
+		add_filter( 'xmlrpc_enabled', '__return_false' );
+
+		$result = $this->myxmlrpcserver->wp_getOptions( array( 1, 'username', 'password' ) );
+
+		$this->assertIXRError( $result );
+		$this->assertSame( 405, $result->code );
+	}
+
 	function test_login_pass_ok() {
 		$user_id = $this->make_user_by_role( 'subscriber' );
 

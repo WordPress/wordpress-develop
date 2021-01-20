@@ -29,7 +29,7 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @var bool|array
+	 * @var false|array
 	 */
 	protected $user_location = false;
 
@@ -39,9 +39,9 @@ class WP_Community_Events {
 	 * @since 4.8.0
 	 *
 	 * @param int        $user_id       WP user ID.
-	 * @param bool|array $user_location Stored location data for the user.
-	 *                                  false to pass no location;
-	 *                                  array to pass a location {
+	 * @param false|array $user_location {
+	 *     Stored location data for the user. false to pass no location.
+	 *
 	 *     @type string $description The name of the location
 	 *     @type string $latitude    The latitude in decimal degrees notation, without the degree
 	 *                               symbol. e.g.: 47.615200.
@@ -306,7 +306,7 @@ class WP_Community_Events {
 	 * @since 4.8.0
 	 *
 	 * @param array $location Should contain 'latitude' and 'longitude' indexes.
-	 * @return bool|string false on failure, or a string on success.
+	 * @return string|false Transient key on success, false on failure.
 	 */
 	protected function get_events_transient_key( $location ) {
 		$key = false;
@@ -325,8 +325,8 @@ class WP_Community_Events {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @param array    $events     Response body from the API request.
-	 * @param int|bool $expiration Optional. Amount of time to cache the events. Defaults to false.
+	 * @param array     $events     Response body from the API request.
+	 * @param int|false $expiration Optional. Amount of time to cache the events. Defaults to false.
 	 * @return bool true if events were cached; false if not.
 	 */
 	protected function cache_events( $events, $expiration = false ) {
