@@ -13,16 +13,15 @@
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0+",
 	"browserslist": [
-		"> 1%",
 		"ie >= 11",
-		"last 1 Android versions",
-		"last 1 ChromeAndroid versions",
-		"last 2 Chrome versions",
-		"last 2 Firefox versions",
-		"last 2 Safari versions",
-		"last 2 iOS versions",
-		"last 2 Edge versions",
-		"last 2 Opera versions"
+		"Android >= 7.0",
+		"ChromeAndroid >= 60",
+		"Chrome >= 60",
+		"Firefox >= 54",
+		"Safari >= 9",
+		"iOS >= 9",
+		"Edge >= 38",
+		"Opera >= 46"
 	],
 	"devDependencies": {
 		"autoprefixer": "9.6.2",
