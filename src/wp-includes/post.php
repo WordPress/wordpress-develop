@@ -931,12 +931,12 @@ function get_post_status( $post = null ) {
 		! in_array( $post_status, array( 'private', 'trash', 'auto-draft' ), true )
 	) {
 		/*
-		* Ensure uninherited attachments have a permitted status either 'private', 'trash', 'auto-draft'.
-		* This is to match the logic in wp_insert_post().
-		*
-		* Note: 'inherit' is excluded from this check as it is resolved to the parent post's
-		* status in the logic block above.
-		*/
+		 * Ensure uninherited attachments have a permitted status either 'private', 'trash', 'auto-draft'.
+		 * This is to match the logic in wp_insert_post().
+		 *
+		 * Note: 'inherit' is excluded from this check as it is resolved to the parent post's
+		 * status in the logic block above.
+		 */
 		$post_status = 'publish';
 	}
 
