@@ -38,7 +38,7 @@ jobs:
         with:
           php-version: '7.4'
           coverage: none
-          tools: composer, cs2pr
+          tools: composer
 
       - name: Log debug information
         run: |
@@ -56,11 +56,14 @@ jobs:
       - name: Log PHPCS debug information
         run: phpcs -i
 
-      - name: Run PHPCS on all Core files
-        run: phpcs -q -n --report=checkstyle | cs2pr
+      - name: Run PHPCBF on all Core files
+        run: composer format
 
       - name: Check test suite files for warnings
-        run: phpcs tests -q --report=checkstyle | cs2pr
+        run: composer lint:errors
+
+      - name: Check test suite files for warnings
+        run: composer lint tests
 
   # Runs the JavaScript coding standards checks.
   #
