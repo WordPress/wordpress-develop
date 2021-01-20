@@ -222,7 +222,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( self::$exports_dir . 'index.html' ) );
+		$this->assertTrue( file_exists( self::$exports_dir . 'index.php' ) );
 	}
 
 	/**
