@@ -13,7 +13,6 @@
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"browserslist": [
-		"> 1%",
 		"ie >= 11",
 		"Android >= 8.0",
 		"ChromeAndroid >= 72",
