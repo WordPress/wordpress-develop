@@ -37,6 +37,12 @@ function wp_robots() {
 	if ( ! empty( $robots['nofollow'] ) ) {
 		unset( $robots['follow'] );
 	}
+	if ( ! empty( $robots['archive'] ) ) {
+		unset( $robots['noarchive'] );
+	}
+	if ( ! empty( $robots['noarchive'] ) ) {
+		unset( $robots['archive'] );
+	}
 
 	$robots_strings = array();
 	foreach ( $robots as $directive => $value ) {
