@@ -228,7 +228,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *
 	 * @param string $username User's username.
 	 * @param string $password User's password.
-	 * @return WP_User|bool WP_User object if authentication passed, false otherwise
+	 * @return WP_User|false WP_User object if authentication passed, false otherwise
 	 */
 	public function login( $username, $password ) {
 		/*
@@ -286,8 +286,8 @@ class wp_xmlrpc_server extends IXR_Server {
 			 *
 			 * @since 3.5.0
 			 *
-			 * @param string   $error The XML-RPC error message.
-			 * @param WP_Error $user  WP_Error object.
+			 * @param IXR_Error $error The XML-RPC error message.
+			 * @param WP_Error  $user  WP_Error object.
 			 */
 			$this->error = apply_filters( 'xmlrpc_login_error', $this->error, $user );
 			return false;
@@ -766,7 +766,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		}
 
 		if ( in_array( 'menu', $fields, true ) ) {
-			$_taxonomy['show_in_menu'] = (bool) $_taxonomy->show_in_menu;
+			$_taxonomy['show_in_menu'] = (bool) $taxonomy->show_in_menu;
 		}
 
 		if ( in_array( 'object_type', $fields, true ) ) {
@@ -2231,7 +2231,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type string $taxnomy_name Taxonomy name.
 	 *     @type int    $term_id      Term ID.
 	 * }
-	 * @return bool|IXR_Error True on success, IXR_Error instance on failure.
+	 * @return true|IXR_Error True on success, IXR_Error instance on failure.
 	 */
 	public function wp_deleteTerm( $args ) {
 		if ( ! $this->minimum_args( $args, 5 ) ) {
@@ -5653,7 +5653,7 @@ class wp_xmlrpc_server extends IXR_Server {
 	 *     @type array  $content_struct
 	 *     @type int    $publish
 	 * }
-	 * @return bool|IXR_Error True on success.
+	 * @return true|IXR_Error True on success.
 	 */
 	public function mw_editPost( $args ) {
 		$this->escape( $args );

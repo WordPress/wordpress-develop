@@ -128,7 +128,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.3.0
 	 *
-	 * @return array|bool The test results. False if auto-updates are enabled.
+	 * @return array|false The test results. False if auto-updates are enabled.
 	 */
 	public function test_wp_automatic_updates_disabled() {
 		if ( ! class_exists( 'WP_Automatic_Updater' ) ) {
@@ -152,7 +152,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. False if the auto-updates failed.
+	 * @return array|false The test results. False if the auto-updates failed.
 	 */
 	function test_if_failed_update() {
 		$failed = get_site_option( 'auto_core_update_failed' );
@@ -164,7 +164,7 @@ class WP_Site_Health_Auto_Updates {
 		if ( ! empty( $failed['critical'] ) ) {
 			$description  = __( 'A previous automatic background update ended with a critical failure, so updates are now disabled.' );
 			$description .= ' ' . __( 'You would have received an email because of this.' );
-			$description .= ' ' . __( "When you've been able to update using the \"Update Now\" button on Dashboard > Updates, we'll clear this error for future update attempts." );
+			$description .= ' ' . __( "When you've been able to update using the \"Update now\" button on Dashboard > Updates, we'll clear this error for future update attempts." );
 			$description .= ' ' . sprintf(
 				/* translators: %s: Code of error shown. */
 				__( 'The error code was %s.' ),
@@ -302,7 +302,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @return array|bool The test results. False if they're not writeable.
+	 * @return array|false The test results. False if they're not writeable.
 	 */
 	function test_all_files_writable() {
 		global $wp_filesystem;
@@ -387,7 +387,7 @@ class WP_Site_Health_Auto_Updates {
 	 *
 	 * @since 5.2.0
 	 *
-	 * @return array|bool The test results. False if it isn't a development version.
+	 * @return array|false The test results. False if it isn't a development version.
 	 */
 	function test_accepts_dev_updates() {
 		require ABSPATH . WPINC . '/version.php'; // $wp_version; // x.y.z
