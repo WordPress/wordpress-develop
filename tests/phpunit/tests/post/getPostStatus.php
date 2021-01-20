@@ -18,7 +18,7 @@ class Tests_Post_GetPostStatus extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash', 'private', 'delete' );
 		foreach ( $post_statuses as $post_status ) {
-			$date = '';
+			$date          = '';
 			$actual_status = $post_status;
 			if ( 'future' === $post_status ) {
 				$date = strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
