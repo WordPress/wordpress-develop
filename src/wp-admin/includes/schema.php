@@ -542,9 +542,6 @@ function populate_options( array $options = array() ) {
 		// Default to enabled for new installs.
 		// See https://core.trac.wordpress.org/ticket/51742.
 		'auto_update_core_major'          => 'enabled',
-
-		// 5.7.0
-		'media_search_engine_visibility'  => '1',
 	);
 
 	// 3.3.0
