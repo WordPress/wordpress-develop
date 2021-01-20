@@ -127,8 +127,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			// wp-includes/pluggable.php:
 			'wp_set_current_user'             => array(
 				'id',
-				'name' => '',
-				'force' => false // ticket 28020
+				'name'  => '',
+				'force' => false, // ticket 28020
 			),
 			'wp_get_current_user'             => array(),
 			'get_userdata'                    => array( 'user_id' ),
@@ -329,11 +329,8 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 * @ticket 28020
 	 */
 	public function test_get_user_by_should_return_same_instance_as_wp_get_current_user() {
-
 		// Create a test user
-		$new_user = self::factory()->user->create( array(
-			'role' => 'subscriber'
-		) );
+		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 
 		// Set the test user as the current user
 		wp_set_current_user( $new_user );
@@ -346,8 +343,6 @@ class Tests_Pluggable extends WP_UnitTestCase {
 
 		// current_user_can() should reflect the same changes applied to the instance returned
 		// by get_user_by().
-		$this->assertTrue( current_user_can( 'administrator') );
-
+		$this->assertTrue( current_user_can( 'administrator' ) );
 	}
-
 }

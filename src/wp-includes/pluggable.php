@@ -17,7 +17,7 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 	 * actions on users who aren't signed in.
 	 *
 	 * @since 2.0.3
-	 * @since 5.3.0 `$force` param was added.
+	 * @since 5.7.0 The `$force` param was added.
 	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
@@ -94,7 +94,7 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
-	 * @since 5.3.0	Return the global $current_user if it's the user being fetched.
+	 * @since 5.7.0 Returns the global $current_user if it's the user being fetched.
 	 *
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
@@ -109,12 +109,8 @@ if ( ! function_exists( 'get_user_by' ) ) :
 			return false;
 		}
 
-		if ( ! empty( $current_user )
-			&& $current_user instanceof WP_User
-			&& $current_user->ID == $userdata->ID ) {
-
+		if ( $current_user instanceof WP_User && $current_user->ID == $userdata->ID ) {
 			return $current_user;
-
 		}
 
 		$user = new WP_User;
@@ -707,7 +703,7 @@ if ( ! function_exists( 'wp_validate_auth_cookie' ) ) :
 			return false;
 		}
 
-		$user = get_user_by( 'login', $username, false );
+		$user = get_user_by( 'login', $username );
 		if ( ! $user ) {
 			/**
 			 * Fires if a bad username is entered in the user authentication process.

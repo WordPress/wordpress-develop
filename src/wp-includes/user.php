@@ -1559,7 +1559,7 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
- * @since 5.3.0 Force re-setup if it is the current user's cache to be cleaned.
+ * @since 5.7.0 Refreshes the global user instance if cleaning the user cache for the logged in user.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
@@ -1586,12 +1586,7 @@ function clean_user_cache( $user ) {
 	 * @param WP_User $user    User object.
 	 */
 	do_action( 'clean_user_cache', $user->ID, $user );
-	
-	/**
-	 * Force re-setup of current user if it is user's cache to be cleaned.
-	 * 
-	 * @since 5.3.0
-	 */
+
 	if ( get_current_user_id() == $user->ID ) {
 		wp_set_current_user( $user->ID, '', true );
 	}
