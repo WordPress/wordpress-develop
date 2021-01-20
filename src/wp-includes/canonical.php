@@ -760,6 +760,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
 		if (
+			// Never redirect for unregistered post statuses.
+			! $post_status_obj ||
 			// Never redirect internal or protected post statuses.
 			$post_status_obj->internal ||
 			$post_status_obj->protected ||
