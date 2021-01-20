@@ -15,14 +15,14 @@
 	"browserslist": [
 		"> 1%",
 		"ie >= 11",
-		"last 1 Android versions",
-		"last 1 ChromeAndroid versions",
-		"last 2 Chrome versions",
-		"last 2 Firefox versions",
-		"last 2 Safari versions",
-		"last 2 iOS versions",
-		"last 2 Edge versions",
-		"last 2 Opera versions"
+		"Android >= 9.0",
+		"ChromeAndroid >= 81",
+		"Chrome >= 81",
+		"Firefox >= 77",
+		"Safari >= 12",
+		"iOS >= 12",
+		"Edge >= 42",
+		"Opera >= 66"
 	],
 	"devDependencies": {
 		"@wordpress/custom-templated-path-webpack-plugin": "1.7.0",
