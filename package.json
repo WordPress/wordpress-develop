@@ -74,7 +74,7 @@
 		"uuid": "8.3.2",
 		"wait-on": "5.2.1",
 		"webpack": "4.43.0",
-		"webpack-dev-server": "3.11.1",
+		"webpack-dev-server": "3.11.2",
 		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
