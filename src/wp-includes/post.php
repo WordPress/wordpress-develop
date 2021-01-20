@@ -916,10 +916,7 @@ function get_post_status( $post = null ) {
 		) {
 			// Unattached attachments with inherit status are assumed to be published.
 			$post_status = 'publish';
-		} elseif (
-			$post->post_parent &&
-			'trash' === get_post_status( $post->post_parent )
-		) {
+		} elseif ( 'trash' === get_post_status( $post->post_parent ) ) {
 			// Get parent status prior to trashing.
 			$post_status = get_post_meta( $post->post_parent, '_wp_trash_meta_status', true );
 			if ( ! $post_status ) {
