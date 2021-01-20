@@ -907,28 +907,15 @@ function get_post_status( $post = null ) {
 		}
 
 		// Unattached attachments are assumed to be published.
-		if (
-			'inherit' === $post->post_status &&
-			(
-				0 === $post->post_parent ||
-				! get_post( $post->post_parent )
-			)
-		) {
+		if ( ( 'inherit' === $post->post_status ) && ( 0 == $post->post_parent ) ) {
 			return 'publish';
 		}
 
 		// Inherit status from the parent.
 		if ( $post->post_parent && ( $post->ID != $post->post_parent ) ) {
 			$parent_post_status = get_post_status( $post->post_parent );
-			if (
-				'trash' === $parent_post_status ||
-				false === $parent_post_status
-			) {
-				$parent_pre_trash_status = get_post_meta( $post->post_parent, '_wp_trash_meta_status', true );
-				if ( $parent_pre_trash_status ) {
-					return $parent_pre_trash_status;
-				}
-				return 'publish';
+			if ( 'trash' === $parent_post_status ) {
+				return get_post_meta( $post->post_parent, '_wp_trash_meta_status', true );
 			} else {
 				return $parent_post_status;
 			}
