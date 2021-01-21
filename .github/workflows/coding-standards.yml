@@ -58,6 +58,7 @@ jobs:
 
       - name: Run PHPCS on all Core files
         run: |
+          set +e
           FAILURE=0
           trap 'FAILURE=$((FAILURE+1))' ERR
           phpcs -q -n --report=checkstyle | cs2pr
