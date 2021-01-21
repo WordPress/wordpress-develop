@@ -80,4 +80,37 @@ class WP_Test_WpApplicationPasswords_CreateNewApplicationPassword extends WP_Uni
 			),
 		);
 	}
+
+	/**
+	 * @ticket       51941
+	 * @dataProvider data_creates_new_password
+	 */
+	public function test_creates_new_password( array $args, array $names = array() ) {
+		// Create the existing passwords.
+		foreach ( $names as $name ) {
+			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
+			$this->assertTrue( WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
+		}
+
+		list( $new_password, $new_item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, $args );
+
+		$this->assertNotEmpty( $new_password );
+		$this->assertSame(
+			array( 'uuid', 'app_id', 'name', 'password', 'created', 'last_used', 'last_ip' ),
+			array_keys( $new_item )
+		);
+		$this->assertSame( $args['name'], $new_item['name'] );
+	}
+
+	public function data_creates_new_password() {
+		return array(
+			'should create new password when no passwords exists' => array(
+				'args' => array( 'name' => 'test3' ),
+			),
+			'should create new password when name is unique'      => array(
+				'args'  => array( 'name' => 'test3' ),
+				'names' => array( 'test1', 'test2' ),
+			),
+		);
+	}
 }
