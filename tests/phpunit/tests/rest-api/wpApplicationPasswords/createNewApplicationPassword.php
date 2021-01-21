@@ -56,13 +56,13 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 
 	public function data_returns_wp_error() {
 		return array(
-			'application_password_empty_name when no args'      => array(
+			'application_password_empty_name when no args' => array(
 				'expected' => array(
 					'error_code'    => 'application_password_empty_name',
 					'error_message' => 'An application name is required to create an application password.',
 				),
 			),
-			'application_password_empty_name when no name'      => array(
+			'application_password_empty_name when no name' => array(
 				'expected' => array(
 					'error_code'    => 'application_password_empty_name',
 					'error_message' => 'An application name is required to create an application password.',
