@@ -38,22 +38,25 @@ class Test_WPApplicationPasswords_UserApplicationNameExists extends WP_UnitTestC
 	}
 
 	/**
-	 * @ticket51941
+	 * @ticket 51941
+	 * @dataProvider data_test
 	 */
-	public function test_should_return_false_when_does_not_exists() {
-		foreach ( array( 'test1', 'test2', 'test3' ) as $name ) {
-			$this->assertFalse( WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
+	public function test_exists( $expected, $name ) {
+		if ( $expected ) {
+			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
 		}
+
+		$this->assertSame( $expected, WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
 	}
 
-	/**
-	 * @ticket 51941
-	 */
-	public function test_should_return_true_when_exists() {
-		foreach ( array( 'app1', 'app2', 'app3' ) as $existing_name ) {
-			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $existing_name ) );
-
-			$this->assertTrue( WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
-		}
+	public function data_test() {
+		return array(
+			array( false, 'test1' ),
+			array( false, 'baz' ),
+			array( false, 'bar' ),
+			array( true, 'App 1' ),
+			array( true, 'Some Test' ),
+			array( true, 'Baz' ),
+		);
 	}
 }
