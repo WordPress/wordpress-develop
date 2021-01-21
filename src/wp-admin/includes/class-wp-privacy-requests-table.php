@@ -491,28 +491,28 @@ abstract class WP_Privacy_Requests_Table extends WP_List_Table {
 	 */
 	public function column_default( $item, $column_name ) {
 		/**
- 		 * Fires for each custom column of a specific request type in the Requests list table.
- 		 *
+		 * Fires for each custom column of a specific request type in the Requests list table.
+		 *
 		 * Custom columns are registered using the {@see 'manage_export-personal-data_columns'}
 		 * and the {@see 'manage_erase-personal-data_columns'} filters.
- 		 *
- 		 * @since 5.7.0
- 		 *
- 		 * @param string          $column_name The name of the column to display.
- 		 * @param WP_User_Request $item        The item being shown.
-		*/
- 		do_action( "manage_{$this->screen->id}_custom_column", $column_name, $item );
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param string          $column_name The name of the column to display.
+		 * @param WP_User_Request $item        The item being shown.
+		 */
+		do_action( "manage_{$this->screen->id}_custom_column", $column_name, $item );
 	}
 
 	/**
- 	 * Created timestamp column. Overridden by children.
- 	 *
- 	 * @since 5.7.0
- 	 *
- 	 * @param WP_User_Request $item Item being shown.
- 	 * @return string Human readable date.
- 	 */
- 	public function column_created_timestamp( $item ) {
+	 * Created timestamp column. Overridden by children.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_User_Request $item Item being shown.
+	 * @return string Human readable date.
+	 */
+	public function column_created_timestamp( $item ) {
 		return $this->get_timestamp_as_date( $item->created_timestamp );
 	}
 
