@@ -45,7 +45,6 @@ class WP_Test_WpApplicationPasswords_CreateNewApplicationPassword extends WP_Uni
 		// Create the existing passwords.
 		foreach ( $names as $name ) {
 			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
-			$this->assertTrue( WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
 		}
 
 		$actual = WP_Application_Passwords::create_new_application_password( self::$user_id, $args );
@@ -89,7 +88,6 @@ class WP_Test_WpApplicationPasswords_CreateNewApplicationPassword extends WP_Uni
 		// Create the existing passwords.
 		foreach ( $names as $name ) {
 			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
-			$this->assertTrue( WP_Application_Passwords::user_application_name_exists( self::$user_id, $name ) );
 		}
 
 		list( $new_password, $new_item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, $args );
