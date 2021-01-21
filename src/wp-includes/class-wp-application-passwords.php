@@ -69,6 +69,10 @@ class WP_Application_Passwords {
 			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ) );
 		}
 
+		if ( self::user_application_name_exists( $user_id, $args['name'] ) ) {
+			return new WP_Error( 'application_password_unique_name', __( 'An application name should be unique to create an application password.' ) );
+		}
+
 		$new_password    = wp_generate_password( static::PW_LENGTH, false );
 		$hashed_password = wp_hash_password( $new_password );
 
@@ -160,6 +164,26 @@ class WP_Application_Passwords {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Check if application name exists before for this user.
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $name    Application name.
+	 *
+	 * @return bool Provided application name exists or not.
+	 */
+	public static function user_application_name_exists( $user_id, $name ) {
+		$passwords = static::get_user_application_passwords( $user_id );
+
+		foreach ( $passwords as $password ) {
+			if ( strtolower( $password['name'] ) === strtolower( $name ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
