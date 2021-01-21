@@ -14,13 +14,13 @@
 	"license": "GPL-2.0-or-later",
 	"browserslist": [
 		"ie >= 11",
-		"Android >= 9.0",
-		"ChromeAndroid >= 81",
-		"Chrome >= 81",
-		"Firefox >= 68",
+		"Android >= 10",
+		"ChromeAndroid >= 83",
+		"Chrome >= 83",
+		"Firefox >= 79",
 		"Safari >= 12",
 		"iOS >= 12",
-		"Edge >= 42",
+		"Edge >= 83",
 		"Opera >= 66"
 	],
 	"devDependencies": {
