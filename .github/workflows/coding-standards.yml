@@ -57,14 +57,10 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCS on all Core files
-        run: |
-          FAILURE=0
-          trap 'FAILURE=$((FAILURE+1))' ERR
-          phpcs -q -n --report=checkstyle | cs2pr
-          phpcs tests -q --report=checkstyle | cs2pr
-          if [ "$FAILURE" != 0 ]; then
-            exit 1;
-          fi
+        run: phpcs -q -n --report=checkstyle | cs2pr
+
+      - name: Check test suite files for warnings
+        run: phpcs tests -q --report=checkstyle | cs2pr
 
   # Runs the JavaScript coding standards checks.
   #
