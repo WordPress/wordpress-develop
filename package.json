@@ -14,14 +14,14 @@
 	"license": "GPL-2.0-or-later",
 	"browserslist": [
 		"ie >= 11",
-		"Android >= 8.0",
-		"ChromeAndroid >= 72",
-		"Chrome >= 72",
-		"Firefox >= 63",
-		"Safari >= 10",
-		"iOS >= 10",
-		"Edge >= 42",
-		"Opera >= 57"
+		"Android >= 9",
+		"ChromeAndroid >= 73",
+		"Chrome >= 73",
+		"Firefox >= 65",
+		"Safari >= 11",
+		"iOS >= 11",
+		"Edge >= 40",
+		"Opera >= 58"
 	],
 	"devDependencies": {
 		"@wordpress/custom-templated-path-webpack-plugin": "1.2.0",
