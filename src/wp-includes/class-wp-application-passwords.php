@@ -58,6 +58,7 @@ class WP_Application_Passwords {
 	 * Creates a new application password.
 	 *
 	 * @since 5.6.0
+	 * @since 5.7.0 Returns WP_Error if application name already exists.
 	 *
 	 * @param int   $user_id  User ID.
 	 * @param array $args     Information about the application password.
@@ -168,6 +169,8 @@ class WP_Application_Passwords {
 
 	/**
 	 * Check if application name exists before for this user.
+	 *
+	 * @since 5.7.0
 	 *
 	 * @param int    $user_id User ID.
 	 * @param string $name    Application name.
