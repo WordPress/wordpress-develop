@@ -120,7 +120,7 @@ if ( ! function_exists( 'get_user_object' ) ) :
 	 * @since 5.7
 	 *
 	 * @param int $user_id User ID
-	 * @return WP_User The WP_User object.
+	 * @return WP_User|false WP_User object on success, false on failure.
 	 */
 	function get_user_object( $user_id ) {
 		return get_user_object_by( 'id', $user_id );
