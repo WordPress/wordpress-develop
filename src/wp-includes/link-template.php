@@ -467,14 +467,16 @@ function get_attachment_link( $post = null, $leavename = false ) {
 
 	if ( $parent ) {
 		$parent_status_obj = get_post_status_object( get_post_status( $post->post_parent ) );
-		$force_ugly_link   = $force_ugly_link || wp_force_ugly_post_permalink( $post->post_parent );
 		if (
 			! is_post_type_viewable( get_post_type( $post->post_parent ) ) ||
-			$parent_status_obj->internal ||
-			$parent_status_obj->protected
+			$parent_status_obj->internal
 		) {
 			$parent = false;
 		}
+	}
+
+	if ( $parent ) {
+		$force_ugly_link = $force_ugly_link || wp_force_ugly_post_permalink( $post->post_parent );
 	}
 
 	if (
