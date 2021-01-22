@@ -968,7 +968,7 @@ class WP_Upgrader {
 			// Upgrade plugin/theme.
 			$slug    = $args['slug'];
 			$version = $args['version'];
-		} elseif ( !empty( $this->skin->options['api']->slug ) ) {
+		} elseif ( ! empty( $this->skin->options['api']->slug ) ) {
 			// Install plugin/theme.
 			$slug    = $this->skin->options['api']->slug;
 			$version = $this->skin->options['api']->version;
