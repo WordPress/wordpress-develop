@@ -116,7 +116,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error otherwise.
 	 */
 	public function install( $package, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 			'overwrite_package'  => false, // Do not overwrite files.
@@ -149,8 +148,13 @@ class Plugin_Upgrader extends WP_Upgrader {
 		remove_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9 );
 		remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 
-		if ( is_wp_error( $result ) ) {
-			$this->send_error_data( $result, $start_time, 'plugin_install' );
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					/* slug / version unknown, will be in the skin api data */
+				)
+			);
 		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
@@ -193,7 +197,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
 	public function upgrade( $plugin, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -246,8 +249,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'active_after' ) );
 
-		if ( is_wp_error( $result ) ) {
-			$this->send_error_data( $result, $start_time, 'plugin_upgrade' );
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'slug'    => $r->slug,
+					'version' => $r->new_version,
+				)
+			);
 		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
@@ -284,7 +293,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 	 * @return array|false An array of results indexed by plugin file, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $plugins, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -340,6 +348,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 				continue;
 			}
 
+			$start_time = time();
+
 			// Get the URL to the zip file.
 			$r = $current->response[ $plugin ];
 
@@ -360,8 +370,15 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 			$results[ $plugin ] = $this->result;
 
-			if ( is_wp_error( $result ) ) {
-				$this->send_error_data( $result, $start_time, 'plugin_bulk_upgrade' );
+			if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+				$this->send_error_data(
+					is_wp_error( $result ) ? $result : $this->result,
+					array(
+						'slug'       => $r->slug,
+						'version'    => $r->new_version,
+						'time_taken' => time() - $start_time,
+					)
+				);
 			}
 
 			// Prevent credentials auth screen from displaying multiple times.
