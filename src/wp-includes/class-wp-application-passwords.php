@@ -66,8 +66,12 @@ class WP_Application_Passwords {
 	 *                        A WP_Error instance is returned on error.
 	 */
 	public static function create_new_application_password( $user_id, $args = array() ) {
+		if ( ! empty( $args['name'] ) ) {
+			$args['name'] = trim( $args['name'] );
+		}
+
 		if ( empty( $args['name'] ) ) {
-			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ) );
+			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ), array( 'status' => 400 ) );
 		}
 
 		if ( self::user_application_name_exists( $user_id, $args['name'] ) ) {
