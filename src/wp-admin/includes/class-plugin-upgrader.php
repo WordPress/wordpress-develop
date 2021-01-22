@@ -152,7 +152,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			$this->send_error_data(
 				is_wp_error( $result ) ? $result : $this->result,
 				array(
-					/* slug / version unknown, will be in the skin api data */
+					'type' => 'plugin_install',
 				)
 			);
 		}
@@ -253,6 +253,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			$this->send_error_data(
 				is_wp_error( $result ) ? $result : $this->result,
 				array(
+					'type'    => 'plugin_update',
 					'slug'    => $r->slug,
 					'version' => $r->new_version,
 				)
@@ -374,6 +375,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 				$this->send_error_data(
 					is_wp_error( $result ) ? $result : $this->result,
 					array(
+						'type'       => 'plugin_update',
 						'slug'       => $r->slug,
 						'version'    => $r->new_version,
 						'time_taken' => time() - $start_time,

@@ -968,33 +968,29 @@ class WP_Upgrader {
 			// Upgrade plugin/theme.
 			$slug    = $args['slug'];
 			$version = $args['version'];
-		} elseif ( !empty( $this->skin->api->slug ) ) {
+		} elseif ( !empty( $this->skin->options['api']->slug ) ) {
 			// Install plugin/theme.
-			$slug    = $this->skin->api->slug;
-			$version = $this->skin->api->version;
-		} elseif ( ! empty( $this->skin->plugin ) ) {
-			// Plugin installation??? I don't think this is needed if `api` is passed or it's passed in $args.
-			$slug = $this->skin->plugin;
-		} elseif ( ! empty( $this->skin->theme ) ) {
-			$slug = $this->skin->theme;
+			$slug    = $this->skin->options['api']->slug;
+			$version = $this->skin->options['api']->version;
 		}
 
 		/*
 		 * Examples of the type field:
 		 *  - plugin_install_upload
+		 *  - plugin_install_ajax
+		 *  - plugin_install
 		 *  - plugin_upgrade
-		 *  - plugin_automatic_upgrade
+		 *  - plugin_upgrade_ajax
+		 *  - plugin_upgrade_automatic
 		 *  - theme_install_upload
 		 *  - theme_upgrade
-		 *  - theme_automatic_upgrade
+		 *  - theme_upgrade_automatic
 		 */
 		$type = '';
-		if ( $this instanceof Plugin_Upgrader ) {
-			$type = 'plugin';
-		} else if ( $this instanceOf Theme_Upgrader ) {
-			$type = 'theme';
+		if ( ! empty( $args['type'] ) ) {
+			$type = $args['type'];
 		}
-		foreach ( array( 'automatic', 'install', 'upgrade', 'upload' ) as $field ) {
+		foreach ( array( 'automatic', 'ajax', 'upload' ) as $field ) {
 			if ( false !== stripos( get_class( $this->skin ), $field ) ) {
 				$type .= '_' . $field;
 			}

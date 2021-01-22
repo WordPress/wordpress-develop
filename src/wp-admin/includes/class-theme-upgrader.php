@@ -185,6 +185,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->send_error_data(
 				$parent_result,
 				array(
+					'type'       => 'theme_install',
 					'slug'       => $api->slug,
 					'version'    => $api->version,
 					'time_taken' => time() - $start_time,
@@ -276,7 +277,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->send_error_data(
 				is_wp_error( $result ) ? $result : $this->result,
 				array(
-					/* slug / version unknown, should be in skin api field. */
+					'type' => 'theme_install',
 				)
 			);
 		}
@@ -363,8 +364,9 @@ class Theme_Upgrader extends WP_Upgrader {
 			$this->send_error_data(
 				is_wp_error( $result ) ? $result : $this->result,
 				array(
-					'slug'    => $r->slug,
-					'version' => $r->new_version,
+					'type'    => 'theme_update',
+					'slug'    => $r['theme'],
+					'version' => $r['new_version'],
 				)
 			);
 		}
@@ -485,8 +487,9 @@ class Theme_Upgrader extends WP_Upgrader {
 				$this->send_error_data(
 					is_wp_error( $result ) ? $result : $this->result,
 					array(
-						'slug'       => $r->slug,
-						'version'    => $r->new_version,
+						'type'       => 'theme_update',
+						'slug'       => $r['theme'],
+						'version'    => $r['new_version'],
 						'time_taken' => time() - $start_time,
 					)
 				);
