@@ -110,8 +110,9 @@ function wp_force_ugly_post_permalink( $post = null ) {
 	}
 
 	$post_status_obj = get_post_status_object( get_post_status( $post ) );
+	$post_type_obj   = get_post_type_object( get_post_type( $post ) );
 
-	if ( ! $post_status_obj ) {
+	if ( ! $post_status_obj || ! $post_type_obj ) {
 		return true;
 	}
 
@@ -463,9 +464,6 @@ function get_attachment_link( $post = null, $leavename = false ) {
 
 	$post   = get_post( $post );
 	$parent = ( $post->post_parent > 0 && $post->post_parent != $post->ID ) ? get_post( $post->post_parent ) : false;
-	if ( $parent && ! in_array( $parent->post_type, get_post_types(), true ) ) {
-		$parent = false;
-	}
 
 	if ( $parent ) {
 		$parent_status_obj = get_post_status_object( get_post_status( $post->post_parent ) );
