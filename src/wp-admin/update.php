@@ -280,7 +280,7 @@ if ( isset( $_GET['action'] ) ) {
 		$url   = 'update.php?action=install-theme&theme=' . urlencode( $theme );
 		$type  = 'web'; // Install theme type, From Web or an Upload.
 
-		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'title', 'url', 'nonce', 'plugin', 'api' ) ) );
+		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'title', 'url', 'nonce', 'theme', 'api' ) ) );
 		$upgrader->install( $api->download_link );
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
