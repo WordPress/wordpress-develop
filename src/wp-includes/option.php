@@ -798,7 +798,7 @@ function get_transient( $transient ) {
 			if ( ! isset( $alloptions[ $transient_option ] ) ) {
 				$transient_timeout = '_transient_timeout_' . $transient;
 				$timeout           = get_option( $transient_timeout );
-				if ( false !== $timeout && $timeout < time() ) {
+				if ( false === $timeout || ( false !== $timeout && $timeout < time() ) ) {
 					delete_option( $transient_option );
 					delete_option( $transient_timeout );
 					$value = false;
