@@ -71,7 +71,7 @@ class WP_Application_Passwords {
 		}
 
 		if ( self::user_application_name_exists( $user_id, $args['name'] ) ) {
-			return new WP_Error( 'application_password_unique_name', __( 'An application name should be unique to create an application password.' ) );
+			return new WP_Error( 'application_password_unique_name', __( 'An application name should be unique to create an application password.' ), array( 'status' => 409 ) );
 		}
 
 		$new_password    = wp_generate_password( static::PW_LENGTH, false );
