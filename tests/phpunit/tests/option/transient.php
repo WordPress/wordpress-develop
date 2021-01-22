@@ -138,7 +138,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		$this->assertSame( 'test', get_transient( $key ) );
 
 		// Delete the timeout option to simulate that saving the timeout failed
-		$timeout          = '_transient_timeout_' . $key;
+		$timeout = '_transient_timeout_' . $key;
 		delete_option( $timeout );
 
 		// Validate transient returns false
