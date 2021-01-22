@@ -157,4 +157,22 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, $a->get_events() );
 	}
+
+	/**
+	 * @ticket 30380
+	 */
+	function test_nonexistent_timeout_get_transient() {
+		// Create a transient.
+		$key = 'test_transient';
+		set_transient( $key, 'test', 60 * 10 );
+		$this->assertSame( 'test', get_transient( $key ) );
+
+		// Delete the timeout option to simulate that saving the timeout failed
+		$timeout          = '_transient_timeout_' . $key;
+		delete_option( $timeout );
+
+		// Validate transient returns false
+		$transient_value = get_transient( $key );
+		$this->assertFalse( $transient_value );
+	}
 }
