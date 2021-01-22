@@ -4050,7 +4050,7 @@ function wp_ajax_install_theme() {
 	$skin     = new WP_Ajax_Upgrader_Skin(
 		array(
 			'api'   => $api,
-			'theme' => $slug
+			'theme' => $slug,
 		)
 	);
 	$upgrader = new Theme_Upgrader( $skin );
@@ -4351,7 +4351,7 @@ function wp_ajax_install_plugin() {
 	$skin     = new WP_Ajax_Upgrader_Skin(
 		array(
 			'api'    => $api,
-			'plugin' => $slug
+			'plugin' => $slug,
 		)
 	);
 	$upgrader = new Plugin_Upgrader( $skin );
