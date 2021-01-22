@@ -76,6 +76,13 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 				),
 				'args'     => array( 'name' => '   ' ),
 			),
+			'application_password_empty_name when <script>' => array(
+				'expected' => array(
+					'error_code'    => 'application_password_empty_name',
+					'error_message' => 'An application name is required to create an application password.',
+				),
+				'args'     => array( 'name' => '<script>console.log("Hello")</script>' ),
+			),
 			'application_password_unique_name when name exists' => array(
 				'expected' => array(
 					'error_code'    => 'application_password_unique_name',

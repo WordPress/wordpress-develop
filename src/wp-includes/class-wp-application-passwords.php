@@ -67,7 +67,7 @@ class WP_Application_Passwords {
 	 */
 	public static function create_new_application_password( $user_id, $args = array() ) {
 		if ( ! empty( $args['name'] ) ) {
-			$args['name'] = trim( $args['name'] );
+			$args['name'] = sanitize_text_field( $args['name'] );
 		}
 
 		if ( empty( $args['name'] ) ) {
