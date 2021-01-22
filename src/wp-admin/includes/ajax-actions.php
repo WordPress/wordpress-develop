@@ -4172,7 +4172,12 @@ function wp_ajax_install_theme() {
 		wp_send_json_error( $status );
 	}
 
-	$skin     = new WP_Ajax_Upgrader_Skin( array( 'api' => $api, 'theme' => $slug ) );
+	$skin     = new WP_Ajax_Upgrader_Skin(
+		array(
+			'api'   => $api,
+			'theme' => $slug
+		)
+	);
 	$upgrader = new Theme_Upgrader( $skin );
 	$result   = $upgrader->install( $api->download_link );
 
@@ -4471,7 +4476,12 @@ function wp_ajax_install_plugin() {
 
 	$status['pluginName'] = $api->name;
 
-	$skin     = new WP_Ajax_Upgrader_Skin( array( 'api' => $api, 'plugin' => $slug ) );
+	$skin     = new WP_Ajax_Upgrader_Skin(
+		array(
+			'api'    => $api,
+			'plugin' => $slug
+		)
+	);
 	$upgrader = new Plugin_Upgrader( $skin );
 	$result   = $upgrader->install( $api->download_link );
 
