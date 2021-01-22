@@ -88,36 +88,6 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
-	 * If get_option( $transient_timeout ) returns false, don't bother trying to delete the transient.
-	 *
-	 * @ticket 30380
-	 */
-	function test_nonexistent_key_dont_delete_if_false() {
-		// Create a bogus a transient.
-		$key = 'test_transient';
-		set_transient( $key, 'test', 60 * 10 );
-		$this->assertSame( 'test', get_transient( $key ) );
-
-		// Useful variables for tracking.
-		$transient_timeout = '_transient_timeout_' . $key;
-
-		// Mock an action for tracking action calls.
-		$a = new MockAction();
-
-		// Make sure the timeout option returns false.
-		add_filter( 'option_' . $transient_timeout, '__return_false' );
-
-		// Add some actions to make sure options are _not_ deleted.
-		add_action( 'delete_option', array( $a, 'action' ) );
-
-		// Act.
-		get_transient( $key );
-
-		// Make sure 'delete_option' was not called for both the transient and the timeout.
-		$this->assertSame( 0, $a->get_call_count() );
-	}
-
-	/**
 	 * @ticket 30380
 	 */
 	function test_nonexistent_key_old_timeout() {
@@ -159,7 +129,7 @@ class Tests_Option_Transient extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 30380
+	 * @ticket 52345
 	 */
 	function test_nonexistent_timeout_get_transient() {
 		// Create a transient.
