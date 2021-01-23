@@ -42,7 +42,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	global $error, $interim_login, $action;
 
 	// Don't index any of these forms.
-	add_action( 'login_head', 'wp_sensitive_page_meta' );
+	add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
+	add_action( 'login_head', 'wp_strict_cross_origin_referrer' );
 
 	add_action( 'login_head', 'wp_login_viewport_meta' );
 
@@ -368,6 +369,19 @@ function retrieve_password() {
 		$login     = trim( wp_unslash( $_POST['user_login'] ) );
 		$user_data = get_user_by( 'login', $login );
 	}
+
+	/**
+	 * Filters the user data during a password reset request.
+	 *
+	 * Allows, for example, custom validation using data other than username or email address.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 */
+	$user_data = apply_filters( 'lostpassword_user_data', $user_data, $errors );
 
 	/**
 	 * Fires before errors are returned from a password reset request.

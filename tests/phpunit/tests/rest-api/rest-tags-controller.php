@@ -1233,7 +1233,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
-		$this->assertSame( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+		$this->assertSame( array( 'post_tag' ), $properties['taxonomy']['enum'] );
 	}
 
 	public function test_get_item_schema_non_hierarchical() {

@@ -403,7 +403,7 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_vb_insert_invalid_date() {
 		$post = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
 			'post_date'    => '2012-02-30 00:00:00',
@@ -785,7 +785,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$title          = rand_str();
 		$post_data      = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => $title,
 			'tax_input'    => array(
@@ -971,7 +971,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 			)
@@ -989,7 +989,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => 'page',
@@ -1010,7 +1010,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,
@@ -1032,7 +1032,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,

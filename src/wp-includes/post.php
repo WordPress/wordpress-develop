@@ -901,36 +901,53 @@ function get_post_status( $post = null ) {
 		return false;
 	}
 
-	if ( 'attachment' === $post->post_type ) {
-		if ( 'private' === $post->post_status ) {
-			return 'private';
-		}
+	$post_status = $post->post_status;
 
-		// Unattached attachments are assumed to be published.
-		if ( ( 'inherit' === $post->post_status ) && ( 0 == $post->post_parent ) ) {
-			return 'publish';
-		}
-
-		// Inherit status from the parent.
-		if ( $post->post_parent && ( $post->ID != $post->post_parent ) ) {
-			$parent_post_status = get_post_status( $post->post_parent );
-			if ( 'trash' === $parent_post_status ) {
-				return get_post_meta( $post->post_parent, '_wp_trash_meta_status', true );
-			} else {
-				return $parent_post_status;
+	if (
+		'attachment' === $post->post_type &&
+		'inherit' === $post_status
+	) {
+		if (
+			0 === $post->post_parent ||
+			! get_post( $post->post_parent ) ||
+			$post->ID === $post->post_parent
+		) {
+			// Unattached attachments with inherit status are assumed to be published.
+			$post_status = 'publish';
+		} elseif ( 'trash' === get_post_status( $post->post_parent ) ) {
+			// Get parent status prior to trashing.
+			$post_status = get_post_meta( $post->post_parent, '_wp_trash_meta_status', true );
+			if ( ! $post_status ) {
+				// Assume publish as above.
+				$post_status = 'publish';
 			}
+		} else {
+			$post_status = get_post_status( $post->post_parent );
 		}
+	} elseif (
+		'attachment' === $post->post_type &&
+		! in_array( $post_status, array( 'private', 'trash', 'auto-draft' ), true )
+	) {
+		/*
+		 * Ensure uninherited attachments have a permitted status either 'private', 'trash', 'auto-draft'.
+		 * This is to match the logic in wp_insert_post().
+		 *
+		 * Note: 'inherit' is excluded from this check as it is resolved to the parent post's
+		 * status in the logic block above.
+		 */
+		$post_status = 'publish';
 	}
 
 	/**
 	 * Filters the post status.
 	 *
 	 * @since 4.4.0
+	 * @since 5.7.0 The attachment post type is now passed through this filter.
 	 *
 	 * @param string  $post_status The post status.
 	 * @param WP_Post $post        The post object.
 	 */
-	return apply_filters( 'get_post_status', $post->post_status, $post );
+	return apply_filters( 'get_post_status', $post_status, $post );
 }
 
 /**
@@ -1476,7 +1493,7 @@ function register_post_type( $post_type, $args = array() ) {
  * @global array $wp_post_types List of post types.
  *
  * @param string $post_type Post type to unregister.
- * @return bool|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
+ * @return true|WP_Error True on success, WP_Error on failure or if the post type doesn't exist.
  */
 function unregister_post_type( $post_type ) {
 	global $wp_post_types;
@@ -5060,7 +5077,7 @@ function get_enclosed( $post_id ) {
  * @since 4.7.0 `$post_id` can be a WP_Post object.
  *
  * @param int|WP_Post $post_id Post ID or object.
- * @return bool|string[] Array of URLs already pinged for the given post, false if the post is not found.
+ * @return string[]|false Array of URLs already pinged for the given post, false if the post is not found.
  */
 function get_pung( $post_id ) {
 	$post = get_post( $post_id );
@@ -5843,7 +5860,7 @@ function is_local_attachment( $url ) {
  * @see wp_insert_post()
  *
  * @param string|array $args             Arguments for inserting an attachment.
- * @param string       $file             Optional. Filename.
+ * @param string|false $file             Optional. Filename.
  * @param int          $parent           Optional. Parent post ID.
  * @param bool         $wp_error         Optional. Whether to return a WP_Error on failure. Default false.
  * @param bool         $fire_after_hooks Optional. Whether to fire the after insert hooks. Default true.
@@ -6103,9 +6120,8 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
 	 *
 	 * @since 2.1.0
 	 *
-	 * @param array|bool $data          Array of meta data for the given attachment, or false
-	 *                                  if the object does not exist.
-	 * @param int        $attachment_id Attachment post ID.
+	 * @param array $data          Array of meta data for the given attachment.
+	 * @param int   $attachment_id Attachment post ID.
 	 */
 	return apply_filters( 'wp_get_attachment_metadata', $data, $attachment_id );
 }
@@ -6117,7 +6133,7 @@ function wp_get_attachment_metadata( $attachment_id = 0, $unfiltered = false ) {
  *
  * @param int   $attachment_id Attachment post ID.
  * @param array $data          Attachment meta data.
- * @return int|bool False if $post is invalid.
+ * @return int|false False if $post is invalid.
  */
 function wp_update_attachment_metadata( $attachment_id, $data ) {
 	$attachment_id = (int) $attachment_id;
@@ -6224,7 +6240,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
  * @since 4.6.0
  *
  * @param int $post_id Optional. Attachment ID. Default is the ID of the global `$post`.
- * @return string|false False on failure. Attachment caption on success.
+ * @return string|false Attachment caption on success, false on failure.
  */
 function wp_get_attachment_caption( $post_id = 0 ) {
 	$post_id = (int) $post_id;
@@ -6257,7 +6273,7 @@ function wp_get_attachment_caption( $post_id = 0 ) {
  * @since 2.1.0
  *
  * @param int $post_id Optional. Attachment ID. Default 0.
- * @return string|false False on failure. Thumbnail file path on success.
+ * @return string|false Thumbnail file path on success, false on failure.
  */
 function wp_get_attachment_thumb_file( $post_id = 0 ) {
 	$post_id = (int) $post_id;
@@ -6297,7 +6313,7 @@ function wp_get_attachment_thumb_file( $post_id = 0 ) {
  * @since 2.1.0
  *
  * @param int $post_id Optional. Attachment ID. Default 0.
- * @return string|false False on failure. Thumbnail URL on success.
+ * @return string|false Thumbnail URL on success, false on failure.
  */
 function wp_get_attachment_thumb_url( $post_id = 0 ) {
 	$post_id = (int) $post_id;
@@ -7344,7 +7360,7 @@ function wp_queue_posts_for_term_meta_lazyload( $posts ) {
 			$terms = get_object_term_cache( $post->ID, $taxonomy );
 			if ( false !== $terms ) {
 				foreach ( $terms as $term ) {
-					if ( ! isset( $term_ids[ $term->term_id ] ) ) {
+					if ( ! in_array( $term->term_id, $term_ids, true ) ) {
 						$term_ids[] = $term->term_id;
 					}
 				}
@@ -7416,7 +7432,7 @@ function _prime_post_caches( $ids, $update_term_cache = true, $update_meta_cache
  * @access private
  *
  * @param string $post_name Slug.
- * @param string $post_ID   Optional. Post ID that should be ignored. Default 0.
+ * @param int    $post_ID   Optional. Post ID that should be ignored. Default 0.
  */
 function wp_add_trashed_suffix_to_post_name_for_trashed_posts( $post_name, $post_ID = 0 ) {
 	$trashed_posts_with_desired_slug = get_posts(

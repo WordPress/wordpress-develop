@@ -1265,7 +1265,6 @@ p.customize-section-description {
 	padding: 4px 5px;
 	border: 2px solid #eee;
 	-webkit-user-select: none;
-	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
 }
@@ -2354,11 +2353,12 @@ body.cheatin {
 	font-size: medium;
 	height: auto;
 	background: #fff;
+	border: 1px solid #ccd0d4;
 	margin: 50px auto 2em;
 	padding: 1em 2em;
 	max-width: 700px;
 	min-width: 0;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.13);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
 }
 
 body.cheatin h1 {
@@ -2391,7 +2391,6 @@ body.cheatin p {
 	margin-left: 10px;
 	transition: all 0.2s;
 	-webkit-user-select: none;
-	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
 	outline: none;

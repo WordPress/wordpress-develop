@@ -1,13 +1,13 @@
 {
 	"apiVersion": 2,
-	"name": "my-plugin/notice",
+	"name": "tests/notice",
 	"title": "Notice",
 	"category": "common",
 	"parent": [
 		"core/group"
 	],
 	"providesContext": {
-		"my-plugin/message": "message"
+		"tests/message": "message"
 	},
 	"usesContext": [
 		"groupId"
@@ -18,7 +18,7 @@
 		"alert",
 		"message"
 	],
-	"textDomain": "my-plugin",
+	"textdomain": "notice",
 	"attributes": {
 		"message": {
 			"type": "string",
@@ -46,8 +46,8 @@
 			"message": "This is a notice!"
 		}
 	},
-	"editorScript": "my-plugin-notice-editor-script",
-	"script": "my-plugin-notice-script",
-	"editorStyle": "my-plugin-notice-editor-style",
-	"style": "my-plugin-notice-style"
+	"editorScript": "tests-notice-editor-script",
+	"script": "tests-notice-script",
+	"editorStyle": "tests-notice-editor-style",
+	"style": "tests-notice-style"
 }
