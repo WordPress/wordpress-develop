@@ -271,8 +271,12 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// First one works.
 		$this->assertTrue( wp_schedule_single_event( $ts1, $hook, $args ) );
-		// Second one is ignored.
+
+		// Subsequent ones are ignored.
 		$this->assertFalse( wp_schedule_single_event( $ts2, $hook, $args ) );
+		$subsequent = wp_schedule_single_event( $ts2, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 
 		// The next event should be at +5 minutes, not +3.
 		$this->assertSame( $ts1, wp_next_scheduled( $hook, $args ) );
@@ -617,6 +621,11 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// Third event fails.
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		// Fourth event fails.
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 	}
 
 	/**
@@ -639,6 +648,12 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		// Third event fails.
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		// Fourth event fails.
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
+
 	}
 
 	/**
@@ -659,6 +674,10 @@ class Tests_Cron extends WP_UnitTestCase {
 		// Events within ten minutes should fail.
 		$this->assertFalse( wp_schedule_single_event( $ts2, $hook, $args ) );
 		$this->assertFalse( wp_schedule_single_event( $ts3, $hook, $args ) );
+
+		$subsequent = wp_schedule_single_event( $ts3, $hook, $args, true );
+		$this->assertWPError( $subsequent );
+		$this->assertSame( 'duplicate_event', $subsequent->get_error_code() );
 	}
 
 	/**
