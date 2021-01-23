@@ -699,4 +699,26 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertTrue( wp_schedule_single_event( $ts2, $hook, $args ) );
 		$this->assertTrue( wp_schedule_single_event( $ts3, $hook, $args ) );
 	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_invalid_timestamp_for_event_returns_error() {
+		$single_event      = wp_schedule_single_event( -50, 'hook', array(), true );
+		$event             = wp_schedule_event( -50, 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( -50, 'daily', 'hook', array(), true );
+		$unscheduled_event = wp_unschedule_event( -50, 'hook', array(), true );
+
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'invalid_timestamp', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'invalid_timestamp', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'invalid_timestamp', $rescheduled_event->get_error_code() );
+
+		$this->assertWPError( $unscheduled_event );
+		$this->assertSame( 'invalid_timestamp', $unscheduled_event->get_error_code() );
+	}
 }
