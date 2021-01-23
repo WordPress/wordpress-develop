@@ -437,8 +437,8 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 	if ( 0 == $interval ) {
 		if ( $wp_error ) {
 			return new WP_Error(
-				'no_interval',
-				__( 'Event interval does not exist' )
+				'invalid_schedule',
+				__( 'Event schedule does not exist' )
 			);
 		}
 
