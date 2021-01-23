@@ -735,4 +735,39 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'invalid_schedule', $rescheduled_event->get_error_code() );
 	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_disallowed_event_returns_false() {
+		add_filter( 'schedule_event', '__return_false' );
+
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_disallowed_event_returns_error() {
+		add_filter( 'schedule_event', '__return_false' );
+
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'schedule_event_false', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'schedule_event_false', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'schedule_event_false', $rescheduled_event->get_error_code() );
+	}
 }
