@@ -465,17 +465,26 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
  * @since 2.1.0
  * @since 5.1.0 Return value modified to boolean indicating success or failure,
  *              {@see 'pre_unschedule_event'} filter added to short-circuit the function.
+ * @since x.x.x The `$wp_error` parameter was added.
  *
  * @param int    $timestamp Unix timestamp (UTC) of the event.
  * @param string $hook      Action hook of the event.
  * @param array  $args      Optional. Array containing each separate argument to pass to the hook's callback function.
  *                          Although not passed to a callback, these arguments are used to uniquely identify the
  *                          event, so they should be the same as those used when originally scheduling the event.
- * @return bool True if event successfully unscheduled. False for failure.
+ * @param bool   $wp_error  Optional. Whether to return a WP_Error on failure. Default false.
+ * @return bool|WP_Error True if event successfully unscheduled. False or WP_Error on failure.
  */
-function wp_unschedule_event( $timestamp, $hook, $args = array() ) {
+function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'invalid_timestamp',
+				__( 'Event timestamp is not a positive integer' )
+			);
+		}
+
 		return false;
 	}
 
@@ -489,14 +498,28 @@ function wp_unschedule_event( $timestamp, $hook, $args = array() ) {
 	 * unscheduled, false if not.
 	 *
 	 * @since 5.1.0
+	 * @since x.x.x The `$wp_error` parameter was added, and a `WP_Error` object can now be returned.
 	 *
-	 * @param null|bool $pre       Value to return instead. Default null to continue unscheduling the event.
-	 * @param int       $timestamp Timestamp for when to run the event.
-	 * @param string    $hook      Action hook, the execution of which will be unscheduled.
-	 * @param array     $args      Arguments to pass to the hook's callback function.
+	 * @param null|bool|WP_Error $pre       Value to return instead. Default null to continue unscheduling the event.
+	 * @param int                $timestamp Timestamp for when to run the event.
+	 * @param string             $hook      Action hook, the execution of which will be unscheduled.
+	 * @param array              $args      Arguments to pass to the hook's callback function.
+	 * @param bool               $wp_error  Whether to return a WP_Error on failure.
 	 */
-	$pre = apply_filters( 'pre_unschedule_event', null, $timestamp, $hook, $args );
+	$pre = apply_filters( 'pre_unschedule_event', null, $timestamp, $hook, $args, $wp_error );
+
 	if ( null !== $pre ) {
+		if ( $wp_error && false === $pre ) {
+			return new WP_Error(
+				'pre_unschedule_event_false',
+				__( 'A plugin prevented the event from being unscheduled' )
+			);
+		}
+
+		if ( ! $wp_error && is_wp_error( $pre ) ) {
+			return false;
+		}
+
 		return $pre;
 	}
 
@@ -509,7 +532,17 @@ function wp_unschedule_event( $timestamp, $hook, $args = array() ) {
 	if ( empty( $crons[ $timestamp ] ) ) {
 		unset( $crons[ $timestamp ] );
 	}
-	return _set_cron_array( $crons );
+
+	$set = _set_cron_array( $crons );
+
+	if ( $wp_error && ! $set ) {
+		return new WP_Error(
+			'could_not_set',
+			__( 'The cron event list could not be saved' )
+		);
+	}
+
+	return $set;
 }
 
 /**
