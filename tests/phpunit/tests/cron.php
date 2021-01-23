@@ -739,7 +739,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_disallowed_event_returns_false() {
+	public function test_disallowed_event_returns_false_with_wp_error_false() {
 		add_filter( 'schedule_event', '__return_false' );
 
 		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
@@ -754,7 +754,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_disallowed_event_returns_error() {
+	public function test_disallowed_event_returns_error_with_wp_error_true() {
 		add_filter( 'schedule_event', '__return_false' );
 
 		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
@@ -769,5 +769,105 @@ class Tests_Cron extends WP_UnitTestCase {
 
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'schedule_event_false', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_short_circuit_with_error_returns_false_with_wp_error_false() {
+		$return_error = function() {
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add filters which return a WP_Error:
+		add_filter( 'pre_schedule_event', $return_error );
+		add_filter( 'pre_reschedule_event', $return_error );
+
+		// Schedule events without the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		// Ensure boolean false is returned:
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_short_circuit_with_error_returns_error_with_wp_error_true() {
+		$return_error = function() {
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add filters which return a WP_Error:
+		add_filter( 'pre_schedule_event', $return_error );
+		add_filter( 'pre_reschedule_event', $return_error );
+
+		// Schedule events with the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure the error object is returned:
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'my_error', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'my_error', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'my_error', $rescheduled_event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_short_circuit_with_false_returns_error_with_wp_error_false() {
+		// Add filters which return false:
+		add_filter( 'pre_schedule_event', '__return_false' );
+		add_filter( 'pre_reschedule_event', '__return_false' );
+
+		// Schedule events without the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array() );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array() );
+
+		// Ensure false is returned:
+		$this->assertFalse( $single_event );
+		$this->assertFalse( $event );
+		$this->assertFalse( $rescheduled_event );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_short_circuit_with_false_returns_error_with_wp_error_true() {
+		// Add filters which return false:
+		add_filter( 'pre_schedule_event', '__return_false' );
+		add_filter( 'pre_reschedule_event', '__return_false' );
+
+		// Schedule events with the `$wp_error` parameter:
+		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
+		$event             = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+		$rescheduled_event = wp_reschedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $single_event );
+		$this->assertSame( 'pre_schedule_event_false', $single_event->get_error_code() );
+
+		$this->assertWPError( $event );
+		$this->assertSame( 'pre_schedule_event_false', $event->get_error_code() );
+
+		$this->assertWPError( $rescheduled_event );
+		$this->assertSame( 'pre_reschedule_event_false', $rescheduled_event->get_error_code() );
 	}
 }
