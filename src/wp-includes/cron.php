@@ -226,6 +226,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  * @since 2.1.0
  * @since 5.1.0 Return value modified to boolean indicating success or failure,
  *              {@see 'pre_schedule_event'} filter added to short-circuit the function.
+ * @since x.x.x The `$wp_error` parameter was added.
  *
  * @link https://developer.wordpress.org/reference/functions/wp_schedule_event/
  *
@@ -237,17 +238,32 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
  *                           hook's callback function. Each value in the array is passed
  *                           to the callback as an individual parameter. The array keys
  *                           are ignored. Default: empty array.
- * @return bool True if event successfully scheduled. False for failure.
+ * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+ * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
  */
-function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
+function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'invalid_timestamp',
+				__( 'Event timestamp is not a positive integer' )
+			);
+		}
+
 		return false;
 	}
 
 	$schedules = wp_get_schedules();
 
 	if ( ! isset( $schedules[ $recurrence ] ) ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'invalid_schedule',
+				__( 'Event schedule does not exist' )
+			);
+		}
+
 		return false;
 	}
 
@@ -260,8 +276,20 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
 	);
 
 	/** This filter is documented in wp-includes/cron.php */
-	$pre = apply_filters( 'pre_schedule_event', null, $event );
+	$pre = apply_filters( 'pre_schedule_event', null, $event, $wp_error );
+
 	if ( null !== $pre ) {
+		if ( $wp_error && false === $pre ) {
+			return new WP_Error(
+				'pre_schedule_event_false',
+				__( 'A plugin prevented the event from being scheduled' )
+			);
+		}
+
+		if ( ! $wp_error && is_wp_error( $pre ) ) {
+			return false;
+		}
+
 		return $pre;
 	}
 
@@ -270,6 +298,13 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
 
 	// A plugin disallowed this event.
 	if ( ! $event ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'schedule_event_false',
+				__( 'A plugin disallowed this event' )
+			);
+		}
+
 		return false;
 	}
 
@@ -282,7 +317,17 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array() ) {
 		'interval' => $event->interval,
 	);
 	uksort( $crons, 'strnatcasecmp' );
-	return _set_cron_array( $crons );
+
+	$set = _set_cron_array( $crons );
+
+	if ( $wp_error && ! $set ) {
+		return new WP_Error(
+			'could_not_set',
+			__( 'The cron event list could not be saved' )
+		);
+	}
+
+	return $set;
 }
 
 /**
