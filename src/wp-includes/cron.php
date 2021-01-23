@@ -23,6 +23,7 @@
  * @since 2.1.0
  * @since 5.1.0 Return value modified to boolean indicating success or failure,
  *              {@see 'pre_schedule_event'} filter added to short-circuit the function.
+ * @since x.x.x The `$wp_error` parameter was added.
  *
  * @link https://developer.wordpress.org/reference/functions/wp_schedule_single_event/
  *
@@ -32,11 +33,19 @@
  *                           hook's callback function. Each value in the array is passed
  *                           to the callback as an individual parameter. The array keys
  *                           are ignored. Default: empty array.
- * @return bool True if event successfully scheduled. False for failure.
+ * @param bool   $wp_error   Optional. Whether to return a WP_Error on failure. Default false.
+ * @return bool|WP_Error True if event successfully scheduled. False or WP_Error on failure.
  */
-function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
+function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error = false ) {
 	// Make sure timestamp is a positive integer.
 	if ( ! is_numeric( $timestamp ) || $timestamp <= 0 ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'invalid_timestamp',
+				__( 'Event timestamp is not a positive integer' )
+			);
+		}
+
 		return false;
 	}
 
@@ -62,12 +71,13 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 	 * identical event within ten minutes and apply the {@see 'schedule_event'}
 	 * filter to check if another plugin has disallowed the event before scheduling.
 	 *
-	 * Return true if the event was scheduled, false if not.
+	 * Return true if the event was scheduled, false or a WP_Error if not.
 	 *
 	 * @since 5.1.0
+	 * @since x.x.x The `$wp_error` parameter was added, and a `WP_Error` object can now be returned.
 	 *
-	 * @param null|bool $pre   Value to return instead. Default null to continue adding the event.
-	 * @param stdClass  $event {
+	 * @param null|bool|WP_Error $pre      Value to return instead. Default null to continue adding the event.
+	 * @param stdClass           $event    {
 	 *     An object containing an event's data.
 	 *
 	 *     @type string       $hook      Action hook to execute when the event is run.
@@ -76,9 +86,22 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 	 *     @type array        $args      Array containing each separate argument to pass to the hook's callback function.
 	 *     @type int          $interval  The interval time in seconds for the schedule. Only present for recurring events.
 	 * }
+	 * @param bool               $wp_error Whether to return a WP_Error on failure.
 	 */
-	$pre = apply_filters( 'pre_schedule_event', null, $event );
+	$pre = apply_filters( 'pre_schedule_event', null, $event, $wp_error );
+
 	if ( null !== $pre ) {
+		if ( $wp_error && false === $pre ) {
+			return new WP_Error(
+				'pre_schedule_event_false',
+				__( 'A plugin prevented the event from being scheduled' )
+			);
+		}
+
+		if ( ! $wp_error && is_wp_error( $pre ) ) {
+			return false;
+		}
+
 		return $pre;
 	}
 
@@ -125,6 +148,13 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 	}
 
 	if ( $duplicate ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'duplicate_event',
+				__( 'A duplicate event already exists' )
+			);
+		}
+
 		return false;
 	}
 
@@ -147,6 +177,13 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 
 	// A plugin disallowed this event.
 	if ( ! $event ) {
+		if ( $wp_error ) {
+			return new WP_Error(
+				'schedule_event_false',
+				__( 'A plugin disallowed this event' )
+			);
+		}
+
 		return false;
 	}
 
@@ -155,7 +192,17 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array() ) {
 		'args'     => $event->args,
 	);
 	uksort( $crons, 'strnatcasecmp' );
-	return _set_cron_array( $crons );
+
+	$set = _set_cron_array( $crons );
+
+	if ( $wp_error && ! $set ) {
+		return new WP_Error(
+			'could_not_set',
+			__( 'The cron event list could not be saved' )
+		);
+	}
+
+	return $set;
 }
 
 /**
