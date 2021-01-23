@@ -831,7 +831,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_short_circuit_with_false_returns_error_when_wp_error_is_set_to_false() {
+	public function test_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
 		// Add filters which return false:
 		add_filter( 'pre_schedule_event', '__return_false' );
 		add_filter( 'pre_reschedule_event', '__return_false' );
