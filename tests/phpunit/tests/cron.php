@@ -918,9 +918,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
-		add_filter( 'pre_unschedule_event', function( $pre ) {
-			return new WP_Error( 'error_code', 'error message' );
-		} );
+		add_filter(
+			'pre_unschedule_event',
+			function( $pre ) {
+				return new WP_Error( 'error_code', 'error message' );
+			}
+		);
 
 		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
 		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
