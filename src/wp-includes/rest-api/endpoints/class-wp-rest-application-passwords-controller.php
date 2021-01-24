@@ -631,7 +631,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'required'    => true,
 					'context'     => array( 'view', 'edit', 'embed' ),
-					'minLength'   => 3,
+					'minLength'   => 1,
 					'pattern'     => '.*\S.*',
 				),
 				'password'  => array(
