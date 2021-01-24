@@ -599,7 +599,7 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_clear_scheduled_hook_false',
-				__( 'A plugin prevented the scheduled hook from being cleared' )
+				__( 'A plugin prevented the hook from being cleared' )
 			);
 		}
 

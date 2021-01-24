@@ -774,7 +774,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
+	public function test_schedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
 		$return_error = function() {
 			return new WP_Error(
 				'my_error',
@@ -800,7 +800,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
+	public function test_schedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
 		$return_error = function() {
 			return new WP_Error(
 				'my_error',
@@ -831,7 +831,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
+	public function test_schedule_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
 		// Add filters which return false:
 		add_filter( 'pre_schedule_event', '__return_false' );
 		add_filter( 'pre_reschedule_event', '__return_false' );
@@ -850,7 +850,7 @@ class Tests_Cron extends WP_UnitTestCase {
 	/**
 	 * @ticket 49961
 	 */
-	public function test_short_circuit_with_false_returns_error_when_wp_error_is_set_to_true() {
+	public function test_schedule_short_circuit_with_false_returns_error_when_wp_error_is_set_to_true() {
 		// Add filters which return false:
 		add_filter( 'pre_schedule_event', '__return_false' );
 		add_filter( 'pre_reschedule_event', '__return_false' );
@@ -888,6 +888,9 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( 0, $cleared );
 	}
 
+	/**
+	 * @ticket 49961
+	 */
 	public function test_clear_scheduled_hook_returns_default_pre_filter_error_when_wp_error_is_set_to_true() {
 		add_filter( 'pre_unschedule_event', '__return_false' );
 
@@ -903,6 +906,9 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertCount( 2, $cleared->get_error_messages() );
 	}
 
+	/**
+	 * @ticket 49961
+	 */
 	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
 		add_filter( 'pre_unschedule_event', function( $pre ) {
 			return new WP_Error( 'error_code', 'error message' );
