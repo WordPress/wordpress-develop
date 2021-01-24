@@ -1507,15 +1507,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 50617
 	 */
 	public function test_get_items_valid_modified_date() {
-		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-01T00:00:00Z' ) );
-		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-02T00:00:00Z' ) );
-		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-03T00:00:00Z' ) );
-		$this->update_post_modified( $post1, '2016-01-15T00:00:00Z' );
-		$this->update_post_modified( $post2, '2016-01-16T00:00:00Z' );
-		$this->update_post_modified( $post3, '2016-01-17T00:00:00Z' );
+		$post1 = $this->factory->post->create( array( 'post_date' => '2016-01-01 00:00:00' ) );
+		$post2 = $this->factory->post->create( array( 'post_date' => '2016-01-02 00:00:00' ) );
+		$post3 = $this->factory->post->create( array( 'post_date' => '2016-01-03 00:00:00' ) );
+		$this->update_post_modified( $post1, '2016-01-15 00:00:00' );
+		$this->update_post_modified( $post2, '2016-01-16 00:00:00' );
+		$this->update_post_modified( $post3, '2016-01-17 00:00:00' );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'modified_after', '2016-01-15T00:00:00Z' );
-		$request->set_param( 'modified_before', '2016-01-17T00:00:00Z' );
+		$request->set_param( 'modified_after', '2016-01-15 00:00:00' );
+		$request->set_param( 'modified_before', '2016-01-17 00:00:00' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
