@@ -550,20 +550,21 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$response = rest_do_request( $request );
 		$this->assertSame( '', $response->get_data()['app_id'] );
 
-		$error = WP_Application_Passwords::create_new_application_password(
+		$app_id = wp_generate_uuid4();
+
+		list( , $item ) = WP_Application_Passwords::create_new_application_password(
 			self::$admin,
 			array(
-				'name'   => 'App',
-				'app_id' => wp_generate_uuid4(),
+				'name'   => 'App 2',
+				'app_id' => $app_id,
 			)
 		);
-		$this->assertInstanceOf( WP_Error::class, $error );
-		$this->assertSame( 'application_password_duplicate_name', $error->get_error_code() );
 
+		$uuid    = $item['uuid'];
 		$request = new WP_REST_Request( 'PUT', '/wp/v2/users/me/application-passwords/' . $uuid );
 		$request->set_body_params( array( 'app_id' => wp_generate_uuid4() ) );
 		$response = rest_do_request( $request );
-		$this->assertSame( '', $response->get_data()['app_id'] );
+		$this->assertSame( $app_id, $response->get_data()['app_id'] );
 	}
 
 	/**
