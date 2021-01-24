@@ -1932,6 +1932,11 @@ function rest_validate_enum( $value, $args, $param ) {
 		$encoded_enum_values[] = is_scalar( $enum_value ) ? $enum_value : wp_json_encode( $enum_value );
 	}
 
+	if ( count( $encoded_enum_values ) === 1 ) {
+		/* translators: 1: Parameter, 2: Valid values. */
+		return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not %2$s.' ), $param, $encoded_enum_values[0] ) );
+	}
+
 	/* translators: 1: Parameter, 2: List of valid values. */
 	return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not one of %2$l.' ), $param, $encoded_enum_values ) );
 }
