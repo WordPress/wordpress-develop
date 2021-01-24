@@ -80,10 +80,10 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 				),
 				'args'     => array( 'name' => '<script>console.log("Hello")</script>' ),
 			),
-			'application_password_unique_name when name exists' => array(
+			'application_password_duplicate_name when name exists' => array(
 				'expected' => array(
-					'error_code'    => 'application_password_unique_name',
-					'error_message' => 'An application name should be unique to create an application password.',
+					'error_code'    => 'application_password_duplicate_name',
+					'error_message' => 'Each application name should be unique.',
 				),
 				'args'     => array( 'name' => 'test2' ),
 				'names'    => array( 'test1', 'test2' ),
