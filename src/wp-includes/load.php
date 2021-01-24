@@ -1491,6 +1491,96 @@ function wp_doing_cron() {
 }
 
 /**
+ * Determines whether the current request is a REST API request.
+ *
+ * This function's accuracy cannot be guaranteed until the {@see 'parse_request'} hook is executing.
+ * Earlier usage uses an estimation and may not be accurate on highly customized server setups.
+ *
+ * @since 5.7.0
+ *
+ * @return bool True if it's a REST API request, false otherwise.
+ */
+function wp_doing_rest() {
+	if ( defined( 'REST_REQUEST' ) || did_action( 'parse_request' ) ) {
+		$doing_rest = defined( 'REST_REQUEST' ) && REST_REQUEST;
+
+		/** This filter is documented in wp-includes/load.php */
+		return apply_filters( 'wp_doing_rest', $doing_rest );
+	}
+
+	// This intentionally doesn't use wp_using_themes(). We are trying to check if wp() would be called for this request
+	// in a front-end context which is typically indicated by the WP_USE_THEMES constant.
+	$doing_rest = defined( 'WP_USE_THEMES' ) && WP_USE_THEMES && isset( $_GET['rest_route'] );
+
+	if ( ! get_option( 'permalink_structure' ) || $doing_rest ) {
+		/** This filter is documented in wp-includes/load.php */
+		return apply_filters( 'wp_doing_rest', $doing_rest );
+	}
+
+	if ( isset( $GLOBALS['wp_rewrite'] ) ) {
+		$index = $GLOBALS['wp_rewrite']->index;
+	} else {
+		$index = 'index.php';
+	}
+
+	$pathinfo         = isset( $_SERVER['PATH_INFO'] ) ? $_SERVER['PATH_INFO'] : '';
+	list( $pathinfo ) = explode( '?', $pathinfo );
+	$pathinfo         = str_replace( '%', '%25', $pathinfo );
+
+	list( $req_uri ) = explode( '?', $_SERVER['REQUEST_URI'] );
+	$home_path       = trim( parse_url( home_url(), PHP_URL_PATH ), '/' );
+	$home_path_regex = sprintf( '|^%s|i', preg_quote( $home_path, '|' ) );
+
+	/*
+	 * Trim path info from the end and the leading home path from the front.
+	 * For path info requests, this leaves us with the requesting filename, if any.
+	 * For 404 requests, this leaves us with the requested permalink.
+	 */
+	$req_uri  = str_replace( $pathinfo, '', $req_uri );
+	$req_uri  = trim( $req_uri, '/' );
+	$req_uri  = preg_replace( $home_path_regex, '', $req_uri );
+	$req_uri  = trim( $req_uri, '/' );
+	$pathinfo = trim( $pathinfo, '/' );
+	$pathinfo = preg_replace( $home_path_regex, '', $pathinfo );
+	$pathinfo = trim( $pathinfo, '/' );
+
+	// The requested permalink is in $pathinfo for path info requests and
+	// $req_uri for other requests.
+	if ( ! empty( $pathinfo ) && ! preg_match( '|^.*' . $index . '$|', $pathinfo ) ) {
+		$requested_path = $pathinfo;
+	} else {
+		// If the request uri is the index, blank it out so that we don't try to match it against a rule.
+		if ( $req_uri === $index ) {
+			$req_uri = '';
+		}
+		$requested_path = $req_uri;
+	}
+
+	$requested_file = $req_uri;
+	// Look for matches.
+	$request_match = $requested_path;
+
+	// If the requested file is the anchor of the match, prepend it to the path info.
+	if ( ! empty( $requested_file ) && $requested_file !== $requested_path ) {
+		$request_match = $requested_file . '/' . $requested_path;
+	}
+
+	$doing_rest = (
+		0 === strpos( trailingslashit( $request_match ), rest_get_url_prefix() . '/' ) ||
+		0 === strpos( trailingslashit( $request_match ), 'index.php/' . rest_get_url_prefix() . '/' )
+	);
+
+	/**
+	 * Filters whether the current request is a REST API request.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param bool $doing_rest Whether the current request is a REST API request.
+	 */
+	return apply_filters( 'wp_doing_rest', $doing_rest );
+}
+
+/**
  * Checks whether the given variable is a WordPress Error.
  *
  * Returns whether `$thing` is an instance of the `WP_Error` class.
