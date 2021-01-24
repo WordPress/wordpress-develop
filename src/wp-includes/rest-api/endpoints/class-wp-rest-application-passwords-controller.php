@@ -600,7 +600,6 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * Retrieves the application password's schema, conforming to JSON Schema.
 	 *
 	 * @since 5.6.0
-	 * @since 5.7.0 Adds name schema for min length and no all whitespace/empty strings.
 	 *
 	 * @return array Item schema data.
 	 */

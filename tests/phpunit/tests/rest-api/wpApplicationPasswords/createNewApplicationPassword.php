@@ -33,9 +33,6 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 		}
 	}
 
-	public static function wpTearDownAfterClass() {
-		self::delete_user( self::$user_id );
-	}
 
 	/**
 	 * @ticket       51941
