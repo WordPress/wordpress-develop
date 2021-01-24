@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @covers ::sanitize_title
  * @group formatting
  */
 class Tests_Formatting_SanitizeTitle extends WP_UnitTestCase {
