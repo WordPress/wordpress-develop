@@ -657,12 +657,14 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
  *
  * @since 4.9.0
  * @since 5.1.0 Return value added to indicate success or failure.
+ * @since x.x.x The `$wp_error` parameter was added.
  *
- * @param string $hook Action hook, the execution of which will be unscheduled.
- * @return int|false On success an integer indicating number of events unscheduled (0 indicates no
- *                   events were registered on the hook), false if unscheduling fails.
+ * @param string $hook     Action hook, the execution of which will be unscheduled.
+ * @param bool   $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @return int|false|WP_Error On success an integer indicating number of events unscheduled (0 indicates no
+ *                            events were registered on the hook), false or WP_Error if unscheduling fails.
  */
-function wp_unschedule_hook( $hook ) {
+function wp_unschedule_hook( $hook, $wp_error = false ) {
 	/**
 	 * Filter to preflight or hijack clearing all events attached to the hook.
 	 *
@@ -674,12 +676,26 @@ function wp_unschedule_hook( $hook ) {
 	 * if unscheduling one or more events fails.
 	 *
 	 * @since 5.1.0
+	 * @since x.x.x The `$wp_error` parameter was added, and a `WP_Error` object can now be returned.
 	 *
-	 * @param null|int|false $pre  Value to return instead. Default null to continue unscheduling the hook.
-	 * @param string         $hook Action hook, the execution of which will be unscheduled.
+	 * @param null|int|false|WP_Error $pre      Value to return instead. Default null to continue unscheduling the hook.
+	 * @param string                  $hook     Action hook, the execution of which will be unscheduled.
+	 * @param bool                    $wp_error Whether to return a WP_Error on failure.
 	 */
-	$pre = apply_filters( 'pre_unschedule_hook', null, $hook );
+	$pre = apply_filters( 'pre_unschedule_hook', null, $hook, $wp_error );
+
 	if ( null !== $pre ) {
+		if ( $wp_error && false === $pre ) {
+			return new WP_Error(
+				'pre_unschedule_hook_false',
+				__( 'A plugin prevented the hook from being cleared' )
+			);
+		}
+
+		if ( ! $wp_error && is_wp_error( $pre ) ) {
+			return false;
+		}
+
 		return $pre;
 	}
 
@@ -707,9 +723,18 @@ function wp_unschedule_hook( $hook ) {
 	if ( empty( $results ) ) {
 		return 0;
 	}
+
 	if ( _set_cron_array( $crons ) ) {
 		return array_sum( $results );
 	}
+
+	if ( $wp_error ) {
+		return new WP_Error(
+			'could_not_set',
+			__( 'The cron event list could not be saved' )
+		);
+	}
+
 	return false;
 }
 

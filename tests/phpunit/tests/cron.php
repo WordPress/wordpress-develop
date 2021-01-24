@@ -928,4 +928,77 @@ class Tests_Cron extends WP_UnitTestCase {
 			'error message',
 		), $cleared->get_error_messages() );
 	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
+		$return_error = function() {
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add a filter which returns a WP_Error:
+		add_filter( 'pre_unschedule_hook', $return_error );
+
+		// Unschedule a hook without the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook' );
+
+		// Ensure boolean false is returned:
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
+		$return_error = function() {
+			return new WP_Error(
+				'my_error',
+				'An error ocurred'
+			);
+		};
+
+		// Add a filter which returns a WP_Error:
+		add_filter( 'pre_unschedule_hook', $return_error );
+
+		// Unschedule a hook with the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook', true );
+
+		// Ensure the error object is returned:
+		$this->assertWPError( $result );
+		$this->assertSame( 'my_error', $result->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_false_returns_false_when_wp_error_is_set_to_false() {
+		// Add a filter which returns false:
+		add_filter( 'pre_unschedule_hook', '__return_false' );
+
+		// Unschedule a hook without the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook' );
+
+		// Ensure false is returned:
+		$this->assertFalse( $result );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_unschedule_short_circuit_with_false_returns_error_when_wp_error_is_set_to_true() {
+		// Add a filter which returns false:
+		add_filter( 'pre_unschedule_hook', '__return_false' );
+
+		// Unchedule a hook with the `$wp_error` parameter:
+		$result = wp_unschedule_hook( 'hook', true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $result );
+		$this->assertSame( 'pre_unschedule_hook_false', $result->get_error_code() );
+	}
+
 }
