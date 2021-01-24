@@ -1048,8 +1048,8 @@ function wp_user_settings() {
 
 	// The cookie is not set in the current browser or the saved value is newer.
 	$secure = ( 'https' === parse_url( admin_url(), PHP_URL_SCHEME ) );
-	setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
-	setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
+	wp_setcookie( 'wp-settings-' . $user_id, $settings, time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
+	wp_setcookie( 'wp-settings-time-' . $user_id, time(), time() + YEAR_IN_SECONDS, SITECOOKIEPATH, null, $secure );
 	$_COOKIE[ 'wp-settings-' . $user_id ] = $settings;
 }
 
@@ -1073,7 +1073,7 @@ function get_user_setting( $name, $default = false ) {
  *
  * Both $name and $value can contain only ASCII letters, numbers, hyphens, and underscores.
  *
- * This function has to be used before any output has started as it calls setcookie().
+ * This function has to be used before any output has started as it calls wp_setcookie().
  *
  * @since 2.8.0
  *
@@ -1098,7 +1098,7 @@ function set_user_setting( $name, $value ) {
  *
  * Deleting settings would reset them to the defaults.
  *
- * This function has to be used before any output has started as it calls setcookie().
+ * This function has to be used before any output has started as it calls wp_setcookie().
  *
  * @since 2.7.0
  *
@@ -1225,7 +1225,7 @@ function delete_all_user_settings() {
 	}
 
 	update_user_option( $user_id, 'user-settings', '', false );
-	setcookie( 'wp-settings-' . $user_id, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
+	wp_setcookie( 'wp-settings-' . $user_id, ' ', time() - YEAR_IN_SECONDS, SITECOOKIEPATH );
 }
 
 /**

@@ -106,8 +106,6 @@ function wp_setcookie($username, $password = '', $already_md5 = false, $home = '
 	$user = get_user_by('login', $username);
 	wp_set_auth_cookie($user->ID, $remember);
 }
-else :
-	_deprecated_function( 'wp_setcookie', '2.5.0', 'wp_set_auth_cookie()' );
 endif;
 
 if ( !function_exists('wp_clearcookie') ) :

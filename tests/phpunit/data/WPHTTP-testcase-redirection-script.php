@@ -63,7 +63,7 @@ if ( isset( $_GET['post-redirect-to-method'] ) ) {
 
 	echo $method;
 	exit;
-	
+
 }
 
 if ( isset( $_GET['location-with-200'] ) ) {
@@ -98,11 +98,11 @@ if ( isset( $_GET['multiple-location-headers'] ) ) {
 
 if ( isset( $_GET['cookie-test'] ) ) {
 	if ( 'test-cookie' != $_GET['cookie-test'] ) {
-		setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
-		setcookie( 'api_test_cookie_minimal', 'value'  );
-		setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
-		setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
-		setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
+		wp_setcookie( 'api_test_cookie', 'value', time() + 365*24*60*60, '/core/tests/1.0/', 'api.wordpress.org' );
+		wp_setcookie( 'api_test_cookie_minimal', 'value'  );
+		wp_setcookie( 'api_test_cookie_wrong_host', 'value', time() + 365*24*60*60, '/', 'example.com' );
+		wp_setcookie( 'api_test_wildcard_domain', 'value', time() + 365*24*60*60, '/', '.wordpress.org' );
+		wp_setcookie( 'api_test_cookie_expired', 'value', time() - 365*24*60*60, '/', '.wordpress.org' );
 		header( "Location: $url?cookie-test=test-cookie" );
 		exit;
 	}
