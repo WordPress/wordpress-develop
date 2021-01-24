@@ -211,6 +211,10 @@ class WP_Application_Passwords {
 				continue;
 			}
 
+			if ( ! empty( $update['name'] ) ) {
+				$update['name'] = sanitize_text_field( $update['name'] );
+			}
+
 			$save = false;
 
 			if ( ! empty( $update['name'] ) && $item['name'] !== $update['name'] ) {

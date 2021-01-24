@@ -116,7 +116,7 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
 			),
-			'should create new password when name is unique' => array(
+			'should create new password when name is unique'      => array(
 				'args'  => array( 'name' => 'test3' ),
 				'names' => array( 'test1', 'test2' ),
 			),
@@ -144,6 +144,58 @@ class Test_WP_Application_Passwords extends WP_UnitTestCase {
 			array( true, 'App 1' ),
 			array( true, 'Some Test' ),
 			array( true, 'Baz' ),
+		);
+	}
+
+	/**
+	 * @covers       WP_Application_Passwords::update_application_password
+	 * @ticket       51941x
+	 * @dataProvider data_update_application_password
+	 */
+	public function test_update_application_password( array $update, array $existing ) {
+		// Create the original item.
+		list( , $original_item ) = WP_Application_Passwords::create_new_application_password( self::$user_id, $existing );
+		$uuid                    = $original_item['uuid'];
+
+		$actual = WP_Application_Passwords::update_application_password( self::$user_id, $uuid, $update );
+
+		$this->assertTrue( $actual );
+
+		// Check updated only given values.
+		$updated_item = WP_Application_Passwords::get_user_application_password( self::$user_id, $uuid );
+		foreach ( $updated_item as $key => $update_value ) {
+			$expected_value = isset( $update[ $key ] ) ? $update[ $key ] : $original_item[ $key ];
+			$this->assertSame( $expected_value, $update_value );
+		}
+	}
+
+	/**
+	 * @covers       WP_Application_Passwords::update_application_password
+	 * @ticket       51941x
+	 * @dataProvider data_update_application_password
+	 */
+	public function test_update_application_password_when_no_password_found( array $update ) {
+		$actual = WP_Application_Passwords::update_application_password( self::$user_id, '', $update );
+
+		$this->assertInstanceOf( WP_Error::class, $actual );
+		$this->assertSame( 'application_password_not_found', $actual->get_error_code() );
+		$this->assertSame( 'Could not find an application password with that id.', $actual->get_error_message( 'application_password_not_found' ) );
+	}
+
+	public function data_update_application_password() {
+		return array(
+			'should not update when no values given to update' => array(
+				'update'   => array(),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should not update when given same name' => array(
+				'update'   => array( 'name' => 'Test' ),
+				'existing' => array( 'name' => 'Test' ),
+			),
+			'should update name'                     => array(
+				'update'   => array( 'name' => 'Test Updated' ),
+				'existing' => array( 'name' => 'Test' ),
+			),
 		);
 	}
 }
