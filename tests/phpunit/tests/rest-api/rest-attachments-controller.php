@@ -587,7 +587,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->test_file,
 			0,
 			array(
-				'post_date'      => '2016-01-01T00:00:00Z',
+				'post_date'      => '2016-01-01 00:00:00',
 				'post_mime_type' => 'image/jpeg',
 				'post_excerpt'   => 'A sample caption',
 			)
@@ -596,7 +596,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->test_file,
 			0,
 			array(
-				'post_date'      => '2016-01-02T00:00:00Z',
+				'post_date'      => '2016-01-02 00:00:00',
 				'post_mime_type' => 'image/jpeg',
 				'post_excerpt'   => 'A sample caption',
 			)
@@ -605,17 +605,17 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->test_file,
 			0,
 			array(
-				'post_date'      => '2016-01-03T00:00:00Z',
+				'post_date'      => '2016-01-03 00:00:00',
 				'post_mime_type' => 'image/jpeg',
 				'post_excerpt'   => 'A sample caption',
 			)
 		);
-		$this->update_post_modified( $id1, '2016-01-15T00:00:00Z' );
-		$this->update_post_modified( $id2, '2016-01-16T00:00:00Z' );
-		$this->update_post_modified( $id3, '2016-01-17T00:00:00Z' );
+		$this->update_post_modified( $id1, '2016-01-15 00:00:00' );
+		$this->update_post_modified( $id2, '2016-01-16 00:00:00' );
+		$this->update_post_modified( $id3, '2016-01-17 00:00:00' );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
-		$request->set_param( 'modified_after', '2016-01-15T00:00:00Z' );
-		$request->set_param( 'modified_before', '2016-01-17T00:00:00Z' );
+		$request->set_param( 'modified_after', '2016-01-15 00:00:00' );
+		$request->set_param( 'modified_before', '2016-01-17 00:00:00' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
