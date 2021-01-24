@@ -1,18 +1,16 @@
 <?php
 /**
- * Unit tests covering WP_Application_Passwords::create_new_application_password functionality.
+ * Unit tests covering WP_Application_Passwords functionality.
  *
  * @package    WordPress
  * @subpackage REST API
  */
 
 /**
- * @covers WP_Application_Passwords::create_new_application_password
- *
  * @group  restapi
  * @group  app_password
  */
-class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTestCase {
+class Test_WP_Application_Passwords extends WP_UnitTestCase {
 
 	/**
 	 * Administrator user id.
@@ -35,10 +33,11 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 
 
 	/**
+	 * @covers       WP_Application_Passwords::create_new_application_password
 	 * @ticket       51941
-	 * @dataProvider data_create_validation
+	 * @dataProvider data_test_create_new_application_password_validation
 	 */
-	public function test_create_validation( $expected, array $args = array(), array $names = array() ) {
+	public function test_test_create_new_application_password_validation( $expected, array $args = array(), array $names = array() ) {
 		// Create the existing passwords.
 		foreach ( $names as $name ) {
 			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
@@ -51,7 +50,7 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 		$this->assertSame( $expected['error_message'], $actual->get_error_message( $expected['error_code'] ) );
 	}
 
-	public function data_create_validation() {
+	public function data_test_create_new_application_password_validation() {
 		return array(
 			'application_password_empty_name when no args' => array(
 				'expected' => array(
@@ -92,10 +91,11 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 	}
 
 	/**
+	 * @covers       WP_Application_Passwords::create_new_application_password
 	 * @ticket       51941
-	 * @dataProvider data_creates_new_password
+	 * @dataProvider data_create_new_application_password
 	 */
-	public function test_creates_new_password( array $args, array $names = array() ) {
+	public function test_create_new_application_password( array $args, array $names = array() ) {
 		// Create the existing passwords.
 		foreach ( $names as $name ) {
 			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
@@ -111,15 +111,39 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 		$this->assertSame( $args['name'], $new_item['name'] );
 	}
 
-	public function data_creates_new_password() {
+	public function data_create_new_application_password() {
 		return array(
 			'should create new password when no passwords exists' => array(
 				'args' => array( 'name' => 'test3' ),
 			),
-			'should create new password when name is unique'      => array(
+			'should create new password when name is unique' => array(
 				'args'  => array( 'name' => 'test3' ),
 				'names' => array( 'test1', 'test2' ),
 			),
+		);
+	}
+
+	/**
+	 * @covers       WP_Application_Passwords::application_name_exists_for_user
+	 * @ticket       51941
+	 * @dataProvider data_application_name_exists_for_user
+	 */
+	public function test_application_name_exists_for_user( $expected, $name ) {
+		if ( $expected ) {
+			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
+		}
+
+		$this->assertSame( $expected, WP_Application_Passwords::application_name_exists_for_user( self::$user_id, $name ) );
+	}
+
+	public function data_application_name_exists_for_user() {
+		return array(
+			array( false, 'test1' ),
+			array( false, 'baz' ),
+			array( false, 'bar' ),
+			array( true, 'App 1' ),
+			array( true, 'Some Test' ),
+			array( true, 'Baz' ),
 		);
 	}
 }
