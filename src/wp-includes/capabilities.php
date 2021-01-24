@@ -598,7 +598,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'edit_app_password':
 		case 'delete_app_passwords':
 		case 'delete_app_password':
-			$caps = map_meta_cap( 'edit_user', $args[0] );
+			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
