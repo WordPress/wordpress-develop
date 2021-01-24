@@ -870,4 +870,56 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertWPError( $rescheduled_event );
 		$this->assertSame( 'pre_reschedule_event_false', $rescheduled_event->get_error_code() );
 	}
+
+	/**
+	 * @ticket 49961
+	 * @expectedDeprecated wp_clear_scheduled_hook
+	 */
+	public function test_deprecated_argument_usage_of_wp_clear_scheduled_hook() {
+		add_filter( 'pre_clear_scheduled_hook', function( $pre, $hook, $args, $wp_error ) {
+			$this->assertSame( array( 1, 2, 3 ), $args );
+			$this->assertFalse( $wp_error );
+
+			return $pre;
+		}, 10, 4 );
+
+		$cleared = wp_clear_scheduled_hook( 'hook', 1, 2, 3 );
+
+		$this->assertSame( 0, $cleared );
+	}
+
+	public function test_clear_scheduled_hook_returns_default_pre_filter_error_when_wp_error_is_set_to_true() {
+		add_filter( 'pre_unschedule_event', '__return_false' );
+
+		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
+		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
+
+		$cleared = wp_clear_scheduled_hook( 'test_hook', array(), true );
+
+		$this->assertWPError( $cleared );
+		$this->assertSame( array(
+			'pre_unschedule_event_false',
+		), $cleared->get_error_codes() );
+		$this->assertCount( 2, $cleared->get_error_messages() );
+	}
+
+	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
+		add_filter( 'pre_unschedule_event', function( $pre ) {
+			return new WP_Error( 'error_code', 'error message' );
+		} );
+
+		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
+		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
+
+		$cleared = wp_clear_scheduled_hook( 'test_hook', array(), true );
+
+		$this->assertWPError( $cleared );
+		$this->assertSame( array(
+			'error_code',
+		), $cleared->get_error_codes() );
+		$this->assertSame( array(
+			'error message',
+			'error message',
+		), $cleared->get_error_messages() );
+	}
 }
