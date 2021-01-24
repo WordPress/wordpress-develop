@@ -2173,6 +2173,24 @@ function sanitize_title( $title, $fallback_title = '', $context = 'save' ) {
 	$raw_title = $title;
 
 	if ( 'save' === $context ) {
+
+		// Change space characters in unicode to the corresponding html entity.
+		$title = str_replace(
+			array(
+				'%e2%80%af',
+				'%e2%80%87',
+				'%e2%81%a0',
+				'&#x2007;',
+				'&#8199;',
+				'&#x202F;',
+				'&#8239;',
+				'&#x2060;',
+				'&#8288;',
+			),
+			'&nbsp;',
+			$title
+		);
+
 		$title = remove_accents( $title );
 	}
 
