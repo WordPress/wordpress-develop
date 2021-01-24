@@ -1681,7 +1681,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 		$title = $error['schema']['title'];
 
 		return new WP_Error(
-			'rest_invalid_param',
+			'rest_no_matching_schema',
 			/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
 			sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
 			array( 'position' => $position )
@@ -1689,7 +1689,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 	}
 
 	return new WP_Error(
-		'rest_invalid_param',
+		'rest_no_matching_schema',
 		/* translators: 1: Parameter, 2: Reason. */
 		sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
 		array( 'position' => $position )
@@ -1758,11 +1758,11 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 
 	if ( count( $schema_titles ) === count( $errors ) ) {
 		/* translators: 1: Parameter, 2: Schema titles. */
-		return new WP_Error( 'rest_invalid_param', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
+		return new WP_Error( 'rest_no_matching_schema', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
 	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
+	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1856,7 +1856,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		// If each schema has a title, include those titles in the error message.
 		if ( count( $schema_titles ) === count( $matching_schemas ) ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_one_of_multiple_matches',
 				/* translators: 1: Parameter, 2: Schema titles. */
 				wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
 				array( 'positions' => $schema_positions )
@@ -1864,7 +1864,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		}
 
 		return new WP_Error(
-			'rest_invalid_param',
+			'rest_one_of_multiple_matches',
 			/* translators: 1: Parameter. */
 			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
