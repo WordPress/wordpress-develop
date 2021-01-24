@@ -36,9 +36,9 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 
 	/**
 	 * @ticket       51941
-	 * @dataProvider data_returns_wp_error
+	 * @dataProvider data_create_validation
 	 */
-	public function test_returns_wp_error( $expected, array $args = array(), array $names = array() ) {
+	public function test_create_validation( $expected, array $args = array(), array $names = array() ) {
 		// Create the existing passwords.
 		foreach ( $names as $name ) {
 			WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => $name ) );
@@ -51,7 +51,7 @@ class Test_WPApplicationPasswords_CreateNewApplicationPassword extends WP_UnitTe
 		$this->assertSame( $expected['error_message'], $actual->get_error_message( $expected['error_code'] ) );
 	}
 
-	public function data_returns_wp_error() {
+	public function data_create_validation() {
 		return array(
 			'application_password_empty_name when no args' => array(
 				'expected' => array(
