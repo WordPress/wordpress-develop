@@ -26,7 +26,7 @@
 	"devDependencies": {
 		"@wordpress/custom-templated-path-webpack-plugin": "1.1.5",
 		"@wordpress/library-export-default-webpack-plugin": "1.0.4",
-		"autoprefixer": "9.6.2",
+		"autoprefixer": "^9.8.6",
 		"copy-webpack-plugin": "^4.6.0",
 		"cssnano": "4.1.10",
 		"dotenv": "^8.2.0",
