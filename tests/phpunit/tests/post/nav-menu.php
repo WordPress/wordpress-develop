@@ -1022,8 +1022,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-status'    => 'publish',
 			)
 		);
-		$post = get_post( $menu_item_id );
-		$this->assertEqualsWithDelta( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
@@ -1036,7 +1036,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post = get_post( $menu_item_id );
+		$post         = get_post( $menu_item_id );
 		$this->assertEquals( get_date_from_gmt( $post_date_gmt ), $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1050,7 +1050,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post = get_post( $menu_item_id );
+		$post         = get_post( $menu_item_id );
 		$this->assertEquals( '1970-01-01 00:00:00', $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1064,7 +1064,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date' => $post_date,
 			)
 		);
-		$post = get_post( $menu_item_id );
+		$post         = get_post( $menu_item_id );
 		$this->assertEquals( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1079,7 +1079,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post = get_post( $menu_item_id );
+		$post         = get_post( $menu_item_id );
 		$this->assertEquals( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1094,7 +1094,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post = get_post( $menu_item_id );
+		$post         = get_post( $menu_item_id );
 		$this->assertEquals( $post_date, $post->post_date );
 
 		$menu_item_id = wp_update_nav_menu_item(
@@ -1108,8 +1108,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date' => $invalid_date,
 			)
 		);
-		$post = get_post( $menu_item_id );
-		$this->assertEqualsWithDelta( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
@@ -1123,8 +1123,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $post_date_gmt,
 			)
 		);
-		$post = get_post( $menu_item_id );
-		$this->assertEqualsWithDelta( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 
 		$menu_item_id = wp_update_nav_menu_item(
 			$this->menu_id,
@@ -1138,7 +1138,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 				'menu-item-post-date-gmt' => $invalid_date,
 			)
 		);
-		$post = get_post( $menu_item_id );
-		$this->assertEqualsWithDelta( strtotime( date( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
 	}
 }
