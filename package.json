@@ -20,7 +20,7 @@
 		"Firefox >= 54",
 		"Safari >= 9",
 		"iOS >= 9",
-		"Edge >= 38",
+		"Edge >= 14",
 		"Opera >= 46"
 	],
 	"devDependencies": {
