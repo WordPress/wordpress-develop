@@ -30,7 +30,7 @@
 		"@wordpress/e2e-test-utils": "4.15.0",
 		"@wordpress/library-export-default-webpack-plugin": "1.9.0",
 		"@wordpress/scripts": "12.4.0",
-		"autoprefixer": "9.6.2",
+		"autoprefixer": "^9.8.6",
 		"chalk": "4.1.0",
 		"check-node-version": "4.0.3",
 		"copy-webpack-plugin": "^5.1.2",
