@@ -540,6 +540,7 @@ twentytwenty.toggles = {
 				toggle.classList.toggle( activeClass );
 			} else {
 				// If not, toggle all toggles with this toggle target.
+				console.log( 'toggle fired' );
 				_doc.querySelector( '*[data-toggle-target="' + targetString + '"]' ).classList.toggle( activeClass );
 			}
 
@@ -676,6 +677,9 @@ twentytwentyDomReady( function() {
 /* Toggle an attribute ----------------------- */
 
 function twentytwentyToggleAttribute( element, attribute, trueVal, falseVal ) {
+	if ( element.classList.contains( 'close-search-toggle' ) ) {
+		return;
+	}
 	if ( trueVal === undefined ) {
 		trueVal = true;
 	}
