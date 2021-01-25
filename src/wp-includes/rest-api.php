@@ -1942,9 +1942,36 @@ function rest_validate_enum( $value, $args, $param ) {
 }
 
 /**
+ * Validates that the given value is equal to the JSON Schema "const".
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value  The value to validate.
+ * @param array  $args   The schema array to use.
+ * @param string $param  The parameter name, used in error messages.
+ * @return true|WP_Error True if the value is equal to the "const" or a WP_Error instance otherwise.
+ */
+function rest_validate_const( $value, $args, $param ) {
+	$sanitized_value = rest_sanitize_value_from_schema( $value, $args, $param );
+	if ( is_wp_error( $sanitized_value ) ) {
+		return $sanitized_value;
+	}
+
+	if ( rest_are_values_equal( $sanitized_value, $args['const'] ) ) {
+		return true;
+	}
+
+	$encoded_const_value = is_scalar( $args['const'] ) ? $args['const'] : wp_json_encode( $args['const'] );
+
+	/* translators: 1: Parameter, 2: Valid value. */
+	return new WP_Error( 'rest_not_equal_to_const', wp_sprintf( __( '%1$s is not %2$s.' ), $param, $encoded_const_value ) );
+}
+
+/**
  * Get all valid JSON schema properties.
  *
  * @since 5.6.0
+ * @since 5.7.0 Add the "const" property.
  *
  * @return string[] All valid JSON schema properties.
  */
@@ -1956,6 +1983,7 @@ function rest_get_allowed_schema_keywords() {
 		'type',
 		'format',
 		'enum',
+		'const',
 		'items',
 		'properties',
 		'additionalProperties',
@@ -1994,6 +2022,7 @@ function rest_get_allowed_schema_keywords() {
  *              Support the "multipleOf" keyword for numbers and integers.
  *              Support the "patternProperties" keyword for objects.
  *              Support the "anyOf" and "oneOf" keywords.
+ * @since 5.7.0 Support the "const" keyword.
  *
  * @param mixed  $value The value to validate.
  * @param array  $args  Schema array to use for validation.
@@ -2089,6 +2118,13 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		$enum_contains_value = rest_validate_enum( $value, $args, $param );
 		if ( is_wp_error( $enum_contains_value ) ) {
 			return $enum_contains_value;
+		}
+	}
+
+	if ( array_key_exists( 'const', $args ) ) {
+		$is_valid = rest_validate_const( $value, $args, $param );
+		if ( is_wp_error( $is_valid ) ) {
+			return $is_valid;
 		}
 	}
 

@@ -754,6 +754,390 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @dataProvider data_const
+	 *
+	 * @param mixed $value
+	 * @param array $args
+	 * @param bool  $expected
+	 */
+	public function test_const( $value, $args, $expected ) {
+		$is_valid = rest_validate_value_from_schema( $value, $args );
+		if ( $expected ) {
+			$this->assertTrue( $is_valid );
+		} else {
+			$this->assertWPError( $is_valid );
+		}
+	}
+
+	/**
+	 * @return array
+	 */
+	public function data_const() {
+		return array(
+			// integer const
+			array(
+				0,
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				true,
+			),
+			array(
+				0.0,
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				true,
+			),
+			array(
+				'0',
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				false,
+			),
+			array(
+				1.0,
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				false,
+			),
+			array(
+				'1',
+				array(
+					'type'  => 'integer',
+					'const' => 0,
+				),
+				false,
+			),
+
+			// float const
+			array(
+				0,
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				true,
+			),
+			array(
+				0.0,
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				true,
+			),
+			array(
+				'0',
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				false,
+			),
+			array(
+				1.0,
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				false,
+			),
+			array(
+				'1',
+				array(
+					'type'  => 'number',
+					'const' => 0.0,
+				),
+				false,
+			),
+
+			// boolean const
+			array(
+				true,
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				true,
+			),
+			array(
+				'true',
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				true,
+			),
+			array(
+				false,
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				false,
+			),
+			array(
+				0,
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				false,
+			),
+			array(
+				'false',
+				array(
+					'type'  => 'boolean',
+					'const' => true,
+				),
+				false,
+			),
+			array(
+				false,
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				true,
+			),
+			array(
+				0,
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				true,
+			),
+			array(
+				'false',
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				true,
+			),
+			array(
+				true,
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				false,
+			),
+			array(
+				1,
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				false,
+			),
+			array(
+				'true',
+				array(
+					'type'  => 'boolean',
+					'const' => false,
+				),
+				false,
+			),
+
+			// array const
+			array(
+				array( 0, 1 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				array( '0', 1 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				array( 0, '1' ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				array( '0', '1' ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				true,
+			),
+			array(
+				array( 1, 2 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				false,
+			),
+			array(
+				array( 1, 0 ),
+				array(
+					'type'  => 'array',
+					'items' => array( 'type' => 'integer' ),
+					'const' => array( 0, 1 ),
+				),
+				false,
+			),
+
+			// object const
+			array(
+				array(
+					'a' => 1,
+					'b' => 2,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => '1',
+					'b' => 2,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => 1,
+					'b' => '2',
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => '1',
+					'b' => '2',
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'b' => 2,
+					'a' => 1,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				true,
+			),
+			array(
+				array(
+					'a' => 2,
+					'b' => 3,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				false,
+			),
+			array(
+				array(
+					'c' => 3,
+					'd' => 4,
+				),
+				array(
+					'type'                 => 'object',
+					'additionalProperties' => array( 'type' => 'integer' ),
+					'const'                => array(
+						'a' => 1,
+						'b' => 2,
+					),
+				),
+				false,
+			),
+		);
+	}
+
 	public function test_type_array_is_associative() {
 		$schema = array(
 			'type'  => 'array',
