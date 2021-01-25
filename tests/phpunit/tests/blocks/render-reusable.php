@@ -88,6 +88,37 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 		$this->assertSame( '<p>Hello world!</p>', $output );
 	}
 
+	/**
+	 * Make sure that a reusable block can be rendered twice in a row.
+	 */
+	public function test_render_subsequent() {
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
+		$output     = $block_type->render( array( 'ref' => self::$block_id ) );
+		$this->assertSame( '<p>Hello world!</p>', $output );
+	}
+
+	public function test_recursive_render_warning() {
+		$previous_block = array(
+			'ID'           => self::$block_id,
+			'post_content' => get_the_content( null, false, self::$block_id ),
+		);
+
+		$recursive_reusable_block = array(
+			'ID'           => self::$block_id,
+			'post_content' => '<!-- wp:block {"ref":' . self::$block_id . '} /-->',
+		);
+		wp_update_post( $recursive_reusable_block );
+
+		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
+
+		// The block_render method for `core/block` triggers a user warning if it
+		// encounters a recursively nested block.
+		$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+		$output = $block_type->render( array( 'ref' => self::$block_id ) );
+
+		wp_update_post( $previous_block );
+	}
+
 	public function test_ref_empty() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array() );
