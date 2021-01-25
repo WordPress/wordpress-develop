@@ -540,7 +540,6 @@ twentytwenty.toggles = {
 				toggle.classList.toggle( activeClass );
 			} else {
 				// If not, toggle all toggles with this toggle target.
-				console.log( 'toggle fired' );
 				_doc.querySelector( '*[data-toggle-target="' + targetString + '"]' ).classList.toggle( activeClass );
 			}
 
