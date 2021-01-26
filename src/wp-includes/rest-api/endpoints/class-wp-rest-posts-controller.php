@@ -269,26 +269,52 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		foreach ( $taxonomies as $taxonomy ) {
-			$base        = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$tax_exclude = $base . '_exclude';
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
-			if ( ! empty( $request[ $base ] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $base ],
-					'include_children' => false,
-				);
+			$tax_include = $request[ $base ];
+			$tax_exclude = $request[ $base . '_exclude' ];
+
+			if ( $tax_include ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_include ) ) {
+					$terms = $tax_include;
+				} elseif ( rest_is_object( $tax_include ) ) {
+					$terms            = empty( $tax_include['terms'] ) ? array() : $tax_include['terms'];
+					$include_children = ! empty( $tax_include['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+					);
+				}
 			}
 
-			if ( ! empty( $request[ $tax_exclude ] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $tax_exclude ],
-					'include_children' => false,
-					'operator'         => 'NOT IN',
-				);
+			if ( $tax_exclude ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_exclude ) ) {
+					$terms = $tax_exclude;
+				} elseif ( rest_is_object( $tax_exclude ) ) {
+					$terms            = empty( $tax_exclude['terms'] ) ? array() : $tax_exclude['terms'];
+					$include_children = ! empty( $tax_exclude['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+						'operator'         => 'NOT IN',
+					);
+				}
 			}
 		}
 
@@ -2783,21 +2809,65 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$query_params[ $base ] = array(
 				/* translators: %s: Taxonomy name. */
 				'description' => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
+				'type'        => array( 'object', 'array' ),
+				'oneOf'       => array(
+					array(
+						'type'    => 'array',
+						'items'   => array(
+							'type' => 'integer',
+						),
+						'default' => array(),
+					),
+					array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'terms'            => array(
+								'type'    => 'array',
+								'items'   => array(
+									'type' => 'integer',
+								),
+								'default' => array(),
+							),
+							'include_children' => array(
+								'type'    => 'boolean',
+								'default' => false,
+							),
+						),
+						'additionalProperties' => false,
+					),
 				),
-				'default'     => array(),
 			);
 
 			$query_params[ $base . '_exclude' ] = array(
 				/* translators: %s: Taxonomy name. */
 				'description' => sprintf( __( 'Limit result set to all items except those that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
+				'type'        => array( 'object', 'array' ),
+				'oneOf'       => array(
+					array(
+						'type'    => 'array',
+						'items'   => array(
+							'type' => 'integer',
+						),
+						'default' => array(),
+					),
+					array(
+						'type'                 => 'object',
+						'properties'           => array(
+							'terms'            => array(
+								'type'    => 'array',
+								'items'   => array(
+									'type' => 'integer',
+								),
+								'default' => array(),
+							),
+							'include_children' => array(
+								'type'    => 'boolean',
+								'default' => false,
+							),
+						),
+						'additionalProperties' => false,
+					),
 				),
-				'default'     => array(),
 			);
 		}
 
