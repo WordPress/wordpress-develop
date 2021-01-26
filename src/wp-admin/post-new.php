@@ -78,6 +78,9 @@ if ( apply_filters( 'replace_editor', false, $post ) !== true ) {
 	// Flag that we're not loading the block editor.
 	$current_screen = get_current_screen();
 	$current_screen->is_block_editor( false );
+
+	/**This filter is documented in wp-admin/post-new.php */
+	do_action( 'replaced_editor', $post );
 }
 
 require_once ABSPATH . 'wp-admin/admin-footer.php';

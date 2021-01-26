@@ -180,6 +180,15 @@ switch ( $action ) {
 		 * @param WP_Post $post    Post object.
 		 */
 		if ( true === apply_filters( 'replace_editor', false, $post ) ) {
+			/**
+			 * Fires when a replacement editor is expected to load.
+			 * 
+			 * @since 5.6.0
+			 * 
+			 * @param WP_Post $post The post that is being edited.
+			 */
+			do_action( 'replaced_editor', $post );
+			
 			break;
 		}
 
