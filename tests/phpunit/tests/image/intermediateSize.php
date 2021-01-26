@@ -67,6 +67,8 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_name() {
+		printf( "\nWP_DEBUG on? %s \n", defined( 'WP_DEBUG' ) ? 'Yes' : 'No' );
+		exit;
 		add_image_size( 'test-size', 330, 220, true );
 
 		$file = DIR_TESTDATA . '/images/waffles.jpg';

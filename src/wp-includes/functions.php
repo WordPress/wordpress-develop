@@ -7796,5 +7796,15 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 		return getimagesize( $filename, $imageinfo );
 	}
 
+	/**
+	 * Silencing notice and warning is intentional.
+	 *
+	 * getimagesize() has a tendency to generate errors, such as "corrupt JPEG data: 7191 extraneous bytes before
+	 * marker", even when it's able to provide image size information.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/42480
+	 *
+	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
+	 */
 	return @getimagesize( $filename, $imageinfo );
 }
