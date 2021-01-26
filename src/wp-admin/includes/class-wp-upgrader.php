@@ -602,7 +602,7 @@ class WP_Upgrader {
 		 * @param string        $remote_destination Remote file path of plugin/theme.
 		 * @param array         $args               Array of data for plugin/theme being updated.
 		 */
-		$result = apply_filters('upgrader_post_copy', $result, $remote_destination, $args);
+		$result = apply_filters( 'upgrader_post_copy', $result, $remote_destination, $args );
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
