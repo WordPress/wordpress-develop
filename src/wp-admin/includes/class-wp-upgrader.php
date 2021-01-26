@@ -593,6 +593,16 @@ class WP_Upgrader {
 
 		// Copy new version of item into place.
 		$result = copy_dir( $source, $remote_destination );
+
+		/**
+		 * Filter result of copy_dir().
+		 *
+		 * @since 5.7.0
+		 * @param bool|WP_Error $result      Result from copy_dir().
+		 * @param string        $destination File path of plugin/theme.
+		 * @param array         $args        Array of data for plugin/theme being updated.
+		 */
+		$result = apply_filters('upgrader_install_copy', $result, $destination, $args);
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
