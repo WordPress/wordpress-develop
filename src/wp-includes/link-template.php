@@ -94,15 +94,21 @@ function permalink_anchor( $mode = 'id' ) {
  *
  * @since 5.7.0
  *
- * @param WP_Post|int|null $post Optional. Post ID or post object. Defaults to global $post.
+ * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param bool             $sample Optional. Whether to force consideration based on sample links.
  * @return bool Whether to use an ugly permalink structure.
  */
-function wp_force_ugly_post_permalink( $post = null ) {
-	if ( is_object( $post ) && isset( $post->filter ) && 'sample' === $post->filter ) {
+function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
+	if (
+		null === $sample &&
+		is_object( $post ) &&
+		isset( $post->filter ) &&
+		'sample' === $post->filter
+	) {
 		$sample = true;
 	} else {
 		$post   = get_post( $post );
-		$sample = false;
+		$sample = null !== $sample ? $sample : false;
 	}
 
 	if ( ! $post ) {
@@ -459,28 +465,49 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 function get_attachment_link( $post = null, $leavename = false ) {
 	global $wp_rewrite;
 
-	$link            = false;
-	$force_ugly_link = wp_force_ugly_post_permalink( $post );
-
-	$post   = get_post( $post );
-	$parent = ( $post->post_parent > 0 && $post->post_parent != $post->ID ) ? get_post( $post->post_parent ) : false;
-
-	if ( $parent ) {
-		$parent_status_obj = get_post_status_object( get_post_status( $post->post_parent ) );
-		if (
-			! is_post_type_viewable( get_post_type( $post->post_parent ) ) ||
-			$parent_status_obj->internal ||
-			$parent_status_obj->protected
-		) {
-			$parent = false;
-		}
+	$sample = false;
+	if (
+		is_object( $post ) &&
+		isset( $post->filter ) &&
+		'sample' === $post->filter
+	) {
+		$sample = true;
 	}
 
-	if ( $parent ) {
-		$force_ugly_link = $force_ugly_link || wp_force_ugly_post_permalink( $post->post_parent );
+	$link            = false;
+	$force_ugly_link = wp_force_ugly_post_permalink( $post, $sample );
+
+	$post   = get_post( $post );
+	$parent = $post->post_parent > 0;
+
+	if (
+		$post->post_parent !== $post->ID &&
+		get_post( $post->post_parent )
+	) {
+		$parent = get_post( $post->post_parent );
+		if (
+			! is_post_type_viewable( get_post_type( $post->post_parent ) ) ||
+			wp_force_ugly_post_permalink( $post->post_parent, $sample )
+		) {
+			$force_ugly_link = true;
+		}
+	} elseif ( false !== $parent ) {
+		// Post parent is invalid ID, requires ugly link to avoid 404 error.
+		$force_ugly_link = true;
 	}
 
 	if (
+		$parent &&
+		$wp_rewrite->using_permalinks() &&
+		(
+			$force_ugly_link ||
+			false !== strpos( get_option( 'permalink_structure' ), '%category%' )
+		)
+	) {
+		// "Ugly" link can use the attachment prefix.
+		$name = 'attachment/' . $post->post_name;
+		$link = home_url( user_trailingslashit( $name ) );
+	} elseif (
 		$wp_rewrite->using_permalinks() &&
 		$parent &&
 		! $force_ugly_link
