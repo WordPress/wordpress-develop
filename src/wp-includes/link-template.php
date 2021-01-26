@@ -501,10 +501,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		! $force_ugly_link &&
 		$parent &&
 		$wp_rewrite->using_permalinks() &&
-		(
-			$force_generic_link ||
-			false !== strpos( get_option( 'permalink_structure' ), '%category%' )
-		)
+		$force_generic_link
 	) {
 		// "Ugly" link can use the attachment prefix.
 		$name = 'attachment/' . $post->post_name;
