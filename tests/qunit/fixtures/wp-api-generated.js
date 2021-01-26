@@ -298,6 +298,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -318,6 +324,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -1476,6 +1488,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -1496,6 +1514,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -2539,6 +2563,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -2559,6 +2589,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -3188,8 +3224,20 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
