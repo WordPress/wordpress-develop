@@ -7785,7 +7785,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param string $filename The file path.
  * @param array $imageinfo Extended image information, passed by reference.
