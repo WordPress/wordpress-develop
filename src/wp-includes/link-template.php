@@ -90,6 +90,56 @@ function permalink_anchor( $mode = 'id' ) {
 }
 
 /**
+ * Determine whether post should always use an ugly permalink structure.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param bool             $sample Optional. Whether to force consideration based on sample links.
+ * @return bool Whether to use an ugly permalink structure.
+ */
+function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
+	if (
+		null === $sample &&
+		is_object( $post ) &&
+		isset( $post->filter ) &&
+		'sample' === $post->filter
+	) {
+		$sample = true;
+	} else {
+		$post   = get_post( $post );
+		$sample = null !== $sample ? $sample : false;
+	}
+
+	if ( ! $post ) {
+		return true;
+	}
+
+	$post_status_obj = get_post_status_object( get_post_status( $post ) );
+	$post_type_obj   = get_post_type_object( get_post_type( $post ) );
+
+	if ( ! $post_status_obj || ! $post_type_obj ) {
+		return true;
+	}
+
+	if (
+		$post_status_obj->internal ||
+		( $post_status_obj->protected && ! $sample )
+	) {
+		return true;
+	}
+
+	if (
+		$post_status_obj->private &&
+		! current_user_can( 'read_post', $post->ID )
+	) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
  * Retrieves the full permalink for the current post or post ID.
  *
  * This function is an alias for get_permalink().
