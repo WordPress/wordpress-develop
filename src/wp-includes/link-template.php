@@ -474,8 +474,9 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$sample = true;
 	}
 
-	$link            = false;
-	$force_ugly_link = wp_force_ugly_post_permalink( $post, $sample );
+	$link               = false;
+	$force_ugly_link    = wp_force_ugly_post_permalink( $post, $sample );
+	$force_generic_link = false;
 
 	$post   = get_post( $post );
 	$parent = $post->post_parent > 0;
@@ -489,18 +490,19 @@ function get_attachment_link( $post = null, $leavename = false ) {
 			! is_post_type_viewable( get_post_type( $post->post_parent ) ) ||
 			wp_force_ugly_post_permalink( $post->post_parent, $sample )
 		) {
-			$force_ugly_link = true;
+			$force_generic_link = true;
 		}
 	} elseif ( false !== $parent ) {
 		// Post parent is invalid ID, requires ugly link to avoid 404 error.
-		$force_ugly_link = true;
+		$force_generic_link = true;
 	}
 
 	if (
+		! $force_ugly_link &&
 		$parent &&
 		$wp_rewrite->using_permalinks() &&
 		(
-			$force_ugly_link ||
+			$force_generic_link ||
 			false !== strpos( get_option( 'permalink_structure' ), '%category%' )
 		)
 	) {
