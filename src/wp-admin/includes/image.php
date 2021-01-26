@@ -719,7 +719,13 @@ function wp_read_image_metadata( $file ) {
 		wp_getimagesize( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
-			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			if (
+				// Skip when running unit tests.
+				! defined( 'DIR_TESTDATA' )
+				&&
+				// Process without silencing errors when in debug mode.
+				defined( 'WP_DEBUG' ) && WP_DEBUG
+			) {
 				$iptc = iptcparse( $info['APP13'] );
 			} else {
 				$iptc = @iptcparse( $info['APP13'] );
@@ -783,7 +789,13 @@ function wp_read_image_metadata( $file ) {
 	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM ) );
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		if (
+			// Skip when running unit tests.
+			! defined( 'DIR_TESTDATA' )
+			&&
+			// Process without silencing errors when in debug mode.
+			defined( 'WP_DEBUG' ) && WP_DEBUG
+		) {
 			$exif = exif_read_data( $file );
 		} else {
 			$exif = @exif_read_data( $file );

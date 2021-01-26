@@ -7792,7 +7792,13 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * @return array|false Array of image information or false on failure.
  */
 function wp_getimagesize( $filename, &$imageinfo = array() ) {
-	if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+	if (
+		// Skip when running unit tests.
+		! defined( 'DIR_TESTDATA' )
+		&&
+		// Return without silencing errors when in debug mode.
+		defined( 'WP_DEBUG' ) && WP_DEBUG
+	) {
 		return getimagesize( $filename, $imageinfo );
 	}
 
