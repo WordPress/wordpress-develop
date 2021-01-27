@@ -1498,6 +1498,10 @@ class WP_Site_Health {
 	 * @return array The test results.
 	 */
 	public function get_test_https_status() {
+		// Enforce fresh HTTPS detection results. This is normally invoked by using cron, but for Site Health it should
+		// always rely on the latest results.
+		wp_update_https_detection_errors();
+
 		$result = array(
 			'label'       => __( 'Your website is using an active HTTPS connection' ),
 			'status'      => 'good',
