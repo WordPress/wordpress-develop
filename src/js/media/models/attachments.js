@@ -390,7 +390,6 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		var props;
 		if ( this.props.get('query') ) {
 			props = this.props.toJSON();
-			props.cache = ( true !== refresh );
 			this.mirror( wp.media.model.Query.get( props ) );
 		}
 	},
