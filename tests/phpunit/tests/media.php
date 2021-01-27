@@ -3138,7 +3138,11 @@ EOF;
 
 		$this->go_to( get_permalink( $post ) );
 		$this->assertSame( $expected_url, get_permalink( $post ) );
-		$this->assertSame( $expected_404, is_404(), 'URL is expected to be ' . ( $expected_404 ? 'a 404.' : 'valid but returns a 404.' ) );
+		if ( $expected_404 ) {
+			$this->assertQueryTrue( 'is_404' );
+		} else {
+			$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
+		}
 		$this->assertSame( 'attachment', $post->post_type );
 	}
 
