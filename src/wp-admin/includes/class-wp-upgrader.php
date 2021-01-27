@@ -594,14 +594,6 @@ class WP_Upgrader {
 		// Copy new version of item into place.
 		$result = copy_dir( $source, $remote_destination );
 
-		/**
-		 * Filter result of copy_dir().
-		 *
-		 * @since 5.7.0
-		 * @param bool|WP_Error $result Result from copy_dir().
-		 * @param array         $args   Array of data for plugin/theme being updated.
-		 */
-		$result = apply_filters( 'upgrader_post_copy', $result, $args );
 		if ( is_wp_error( $result ) ) {
 			if ( $args['clear_working'] ) {
 				$wp_filesystem->delete( $remote_source, true );
@@ -806,6 +798,15 @@ class WP_Upgrader {
 				'hook_extra'                  => $options['hook_extra'],
 			)
 		);
+
+		/**
+		 * Filter result of install_package().
+		 *
+		 * @since 5.7.0
+		 * @param bool|WP_Error $result  Result from install_package().
+		 * @param array         $options Array of data for plugin/theme being updated.
+		 */
+		$result = apply_filters( 'upgrader_install_complete', $result, $options );
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
