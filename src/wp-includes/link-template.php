@@ -467,13 +467,28 @@ function get_attachment_link( $post = null, $leavename = false ) {
 
 	$link = false;
 
-	$post   = get_post( $post );
-	$parent = ( $post->post_parent > 0 && $post->post_parent != $post->ID ) ? get_post( $post->post_parent ) : false;
-	if ( $parent && ! in_array( $parent->post_type, get_post_types(), true ) ) {
-		$parent = false;
+	$post            = get_post( $post );
+	$force_ugly_link = wp_force_ugly_post_permalink( $post );
+	$parent_id       = $post->post_parent;
+	$parent          = $parent_id ? get_post( $parent_id ) : false;
+	$parent_valid    = true; // Default for no parent.
+	if (
+		$parent_id &&
+		(
+			$post->post_parent === $post->ID ||
+			! get_post( $post->post_parent ) ||
+			! is_post_type_viewable( get_post_type( $parent_id ) )
+		)
+	) {
+		// Post is either its own parent or parent post unavailable.
+		$parent_valid = false;
 	}
 
-	if ( $wp_rewrite->using_permalinks() && $parent ) {
+	if ( $force_ugly_link ) {
+		$link = false;
+	} elseif ( $wp_rewrite->using_permalinks() && ! $parent_valid ) {
+		$link = home_url( "/attachment/{$post->post_name}" );
+	} elseif ( $wp_rewrite->using_permalinks() && $parent ) {
 		if ( 'page' === $parent->post_type ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
 		} else {
