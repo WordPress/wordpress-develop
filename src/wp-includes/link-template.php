@@ -465,52 +465,28 @@ function _get_page_link( $post = false, $leavename = false, $sample = false ) {
 function get_attachment_link( $post = null, $leavename = false ) {
 	global $wp_rewrite;
 
-	$sample = false;
+	$link = false;
+
+	$post            = get_post( $post );
+	$force_ugly_link = wp_force_ugly_post_permalink( $post );
+	$parent_id       = $post->post_parent;
+	$parent          = $parent_id ? get_post( $parent_id ) : false;
+	$parent_valid    = true; // Default for no parent.
 	if (
-		is_object( $post ) &&
-		isset( $post->filter ) &&
-		'sample' === $post->filter
+		$parent_id &&
+		(
+			$post->post_parent === $post->ID ||
+			! get_post( $post->post_parent ) ||
+			! is_post_type_viewable( get_post_type( $parent_id ) )
+		)
 	) {
-		$sample = true;
+		// Post is either its own parent or parent post unavailable.
+		$parent_valid = false;
 	}
 
-	$link               = false;
-	$force_ugly_link    = wp_force_ugly_post_permalink( $post, $sample );
-	$force_generic_link = false;
-
-	$post   = get_post( $post );
-	$parent = $post->post_parent > 0;
-
-	if (
-		$post->post_parent !== $post->ID &&
-		get_post( $post->post_parent )
-	) {
-		$parent = get_post( $post->post_parent );
-		if (
-			! is_post_type_viewable( get_post_type( $post->post_parent ) ) ||
-			wp_force_ugly_post_permalink( $post->post_parent, $sample )
-		) {
-			$force_generic_link = true;
-		}
-	} elseif ( false !== $parent ) {
-		// Post parent is invalid ID, requires ugly link to avoid 404 error.
-		$force_generic_link = true;
-	}
-
-	if (
-		! $force_ugly_link &&
-		$parent &&
-		$wp_rewrite->using_permalinks() &&
-		$force_generic_link
-	) {
-		// "Ugly" link can use the attachment prefix.
-		$name = 'attachment/' . $post->post_name;
-		$link = home_url( user_trailingslashit( $name ) );
-	} elseif (
-		$wp_rewrite->using_permalinks() &&
-		$parent &&
-		! $force_ugly_link
-	) {
+	if ( $force_ugly_link || ! $parent_valid ) {
+		$link = false;
+	} elseif ( $wp_rewrite->using_permalinks() && $parent ) {
 		if ( 'page' === $parent->post_type ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
 		} else {
@@ -530,11 +506,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		if ( ! $leavename ) {
 			$link = str_replace( '%postname%', $name, $link );
 		}
-	} elseif (
-		$wp_rewrite->using_permalinks() &&
-		! $leavename &&
-		! $force_ugly_link
-	) {
+	} elseif ( $wp_rewrite->using_permalinks() && ! $leavename ) {
 		$link = home_url( user_trailingslashit( $post->post_name ) );
 	}
 
