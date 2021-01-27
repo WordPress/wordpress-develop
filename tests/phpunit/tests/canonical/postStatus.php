@@ -828,7 +828,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 					"$post_key-attachment",
 					$user,
 					'/?attachment_id=%ID%',
-					"/$post_key-inherited-attachment/",
+					'/?attachment_id=%ID%',
+					// "/$post_key-inherited-attachment/",
 				);
 
 				$data[] = array(
