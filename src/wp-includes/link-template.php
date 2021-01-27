@@ -95,22 +95,9 @@ function permalink_anchor( $mode = 'id' ) {
  * @since 5.7.0
  *
  * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
- * @param bool             $sample Optional. Whether to force consideration based on sample links.
  * @return bool Whether to use an ugly permalink structure.
  */
-function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
-	if (
-		null === $sample &&
-		is_object( $post ) &&
-		isset( $post->filter ) &&
-		'sample' === $post->filter
-	) {
-		$sample = true;
-	} else {
-		$post   = get_post( $post );
-		$sample = null !== $sample ? $sample : false;
-	}
-
+function wp_force_ugly_post_permalink( $post = null ) {
 	if ( ! $post ) {
 		return true;
 	}
@@ -124,7 +111,7 @@ function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
 
 	if (
 		$post_status_obj->internal ||
-		( $post_status_obj->protected && ! $sample )
+		$post_status_obj->protected
 	) {
 		return true;
 	}
