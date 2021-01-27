@@ -1,0 +1,60 @@
+name: PHP Compatibility
+
+on:
+  push:
+    branches:
+      - master
+      # The PHP compatibility testing was introduced in WordPress 5.5.
+      - '5.[5-9]'
+      - '[6-9].*'
+  pull_request:
+
+jobs:
+
+  # Runs PHP compatibility testing.
+  #
+  # Violations are reported inline with annotations.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Sets up PHP.
+  # - Logs debug information about the runner container.
+  # - Installs Composer dependencies (use cache if possible).
+  # - Make Composer packages available globally.
+  # - Logs PHP_CodeSniffer debug information.
+  # - Runs the PHP compatibility tests.
+  # - todo: Configure Slack notifications for failing scans.
+  php-comatibility:
+    name: Check PHP compatibility
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          coverage: none
+          tools: composer, cs2pr
+
+      - name: Log debug information
+        run: |
+          php --version
+          composer --version
+
+      - name: Install Composer dependencies
+        uses: ramsey/composer-install@v1
+        with:
+          composer-options: "--no-progress --no-ansi --no-interaction"
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+
+      - name: Log PHPCS debug information
+        run: phpcs -i
+
+      - name: Run PHP compatibility tests
+        run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
