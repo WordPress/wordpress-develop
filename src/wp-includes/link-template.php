@@ -476,8 +476,8 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$parent_id &&
 		(
 			$post->post_parent === $post->ID ||
-			! get_post( $post->post_parent ) ||
-			! is_post_type_viewable( get_post_type( $parent_id ) )
+			! $parent ||
+			! is_post_type_viewable( get_post_type( $parent ) )
 		)
 	) {
 		// Post is either its own parent or parent post unavailable.
