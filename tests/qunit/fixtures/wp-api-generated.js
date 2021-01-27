@@ -4926,6 +4926,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": true
                         }
                     }
@@ -4982,6 +4984,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": false
                         }
                     }
