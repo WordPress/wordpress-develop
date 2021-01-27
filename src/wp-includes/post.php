@@ -2055,7 +2055,7 @@ function is_post_status_viewable( $post_status ) {
  * Posts are considered publicly viewable if both the post status and post type
  * are viewable.
  *
- * @since 5.7
+ * @since 5.7.0
  *
  * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
  * @return bool Whether the post is publicly viewable.
