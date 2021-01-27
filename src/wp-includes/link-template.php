@@ -487,7 +487,49 @@ function get_attachment_link( $post = null, $leavename = false ) {
 	if ( $force_ugly_link ) {
 		$link = false;
 	} elseif ( $wp_rewrite->using_permalinks() && ! $parent_valid ) {
-		$link = home_url( "/attachment/{$post->post_name}" );
+		$name = "attachment/{$post->post_name}";
+
+		$permalink = get_option( 'permalink_structure' );
+
+		$rewritecode = array(
+			'%year%',
+			'%monthnum%',
+			'%day%',
+			'%hour%',
+			'%minute%',
+			'%second%',
+			$leavename ? '' : '%postname%',
+			'%post_id%',
+			'%category%',
+			'%author%',
+			$leavename ? '' : '%pagename%',
+		);
+
+		$author = '';
+		if ( strpos( $permalink, '%author%' ) !== false ) {
+			$authordata = get_userdata( $post->post_author );
+			$author     = $authordata->user_nicename;
+		}
+
+		// This is not an API call because the permalink is based on the stored post_date value,
+		// which should be parsed as local time regardless of the default PHP timezone.
+		$date = explode( ' ', str_replace( array( '-', ':' ), ' ', $post->post_date ) );
+
+		$rewritereplace = array(
+			$date[0],
+			$date[1],
+			$date[2],
+			$date[3],
+			$date[4],
+			$date[5],
+			$name,
+			$post->ID,
+			'',
+			$author,
+			$name,
+		);
+
+		$link = home_url( str_replace( $rewritecode, $rewritereplace, $permalink ) );
 	} elseif ( $wp_rewrite->using_permalinks() && $parent ) {
 		if ( 'page' === $parent->post_type ) {
 			$parentlink = _get_page_link( $post->post_parent ); // Ignores page_on_front.
