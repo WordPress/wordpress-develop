@@ -9,28 +9,53 @@
 /**
  * Checks whether the website is using HTTPS.
  *
- * This is based on whether the home and site URL are using HTTPS.
+ * This is based on whether both the home and site URL are using HTTPS.
  *
  * @since 5.7.0
+ * @see wp_is_home_url_using_https()
+ * @see wp_is_site_url_using_https()
  *
  * @return bool True if using HTTPS, false otherwise.
  */
 function wp_is_using_https() {
-	if ( 'https' !== wp_parse_url( home_url(), PHP_URL_SCHEME ) ) {
+	if ( ! wp_is_home_url_using_https() ) {
 		return false;
 	}
 
+	return wp_is_site_url_using_https();
+}
+
+/**
+ * Checks whether the current site URL is using HTTPS.
+ *
+ * @since 5.7.0
+ * @see home_url()
+ *
+ * @return bool True if using HTTPS, false otherwise.
+ */
+function wp_is_home_url_using_https() {
+	return 'https' === wp_parse_url( home_url(), PHP_URL_SCHEME );
+}
+
+/**
+ * Checks whether the current site's URL where WordPress is stored is using HTTPS.
+ *
+ * This checks the URL where WordPress application files (e.g. wp-blog-header.php or the wp-admin/ folder) are
+ * accessible.
+ *
+ * @since 5.7.0
+ * @see site_url()
+ *
+ * @return bool True if using HTTPS, false otherwise.
+ */
+function wp_is_site_url_using_https() {
 	// Use direct option access for 'siteurl' and manually run the 'site_url'
-	// filter because site_url() will adjust the scheme based on what the
+	// filter because `site_url()` will adjust the scheme based on what the
 	// current request is using.
 	/** This filter is documented in wp-includes/link-template.php */
 	$site_url = apply_filters( 'site_url', get_option( 'siteurl' ), '', null, null );
 
-	if ( 'https' !== wp_parse_url( $site_url, PHP_URL_SCHEME ) ) {
-		return false;
-	}
-
-	return true;
+	return 'https' === wp_parse_url( $site_url, PHP_URL_SCHEME );
 }
 
 /**
