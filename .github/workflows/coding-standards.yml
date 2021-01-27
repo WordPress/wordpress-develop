@@ -36,7 +36,7 @@ jobs:
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '7.3'
+          php-version: '7.4'
           coverage: none
           tools: composer, cs2pr
 
@@ -57,7 +57,7 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCBF on all Core files
-        run: phpcbf
+        run: phpcbf -q --report=checkstyle | cs2pr
 
       - name: Run PHPCS on all Core files
         run: phpcs -q -n --report=checkstyle | cs2pr
