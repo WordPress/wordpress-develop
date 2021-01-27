@@ -132,9 +132,12 @@ jobs:
       matrix:
         php: [ '5.5' ]
         os: [ ubuntu-latest ]
+        include:
+          # Allow PHP 5.2 to fail temporarily.
+          - php: '5.2'
+            os: ubuntu-latest
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
-      LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
 
     steps:
       - name: Configure environment variables
