@@ -57,7 +57,7 @@ jobs:
         run: phpcs -i
 
       - name: Run PHPCBF on all Core files
-        run: phpcbf --report=checkstyle | cs2pr
+        run: phpcbf
 
       - name: Run PHPCS on all Core files
         run: phpcs -q -n --report=checkstyle | cs2pr
