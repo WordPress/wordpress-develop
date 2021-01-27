@@ -141,7 +141,7 @@ jobs:
           - php: '5.2'
             os: ubuntu-latest
             memcached: false
-            experimental: true
+            continue-on-error: true
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
