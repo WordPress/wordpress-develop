@@ -64,7 +64,6 @@ class Tests_Post_IsPostPubliclyViewable extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( $expected, is_post_publicly_viewable( $post_id ) );
-		$this->assertSame( $expected, is_post_publicly_viewable( $post_id ) );
 	}
 
 	/**
