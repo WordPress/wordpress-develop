@@ -756,19 +756,20 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 
 	if ( $redirect_obj instanceof WP_Post ) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
+		/*
+		 * Unset the redirect object and URL if they are not readable by the user.
+		 * This condition is a little confusing as the condition needs to pass if
+		 * the post is not readable by the user. That's why there are ! (not) conditions
+		 * rather throughout.
+		 */
 		if (
-			// Never redirect for unregistered post statuses.
-			! $post_status_obj ||
-			// Never redirect internal or protected post statuses.
-			$post_status_obj->internal ||
-			$post_status_obj->protected ||
-			// Never redirect non-publicly-queryable post types.
-			! is_post_type_viewable( get_post_type( $redirect_obj ) ) ||
-			(
-				// Never redirect private posts the user can't read.
-				! is_post_publicly_viewable( $redirect_obj ) &&
-				! current_user_can( 'read_post', $redirect_obj->ID )
-			)
+			// Private post statuses only redirect if the user can read them.
+			! (
+				$post_status_obj->private &&
+				current_user_can( 'read_post', $redirect_obj->ID )
+			) &&
+			// For other posts, only redirect if publicly viewable.
+			! is_post_publicly_viewable( $redirect_obj )
 		) {
 			$redirect_obj = false;
 			$redirect_url = false;
