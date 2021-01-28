@@ -2016,6 +2016,10 @@ function is_post_type_viewable( $post_type ) {
 		}
 	}
 
+	if ( ! is_object( $post_type ) ) {
+		return false;
+	}
+
 	return $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
 }
 
