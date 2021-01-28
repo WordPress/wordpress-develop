@@ -131,7 +131,7 @@ jobs:
     strategy:
       matrix:
         php: [ '7.2' ]
-        phpunit: [ '6-php7.2' ]
+        phpunit: [ '6-php-7.2' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         include:
