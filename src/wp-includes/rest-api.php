@@ -1055,15 +1055,15 @@ function rest_cookie_collect_status() {
  * @param WP_Error $user_or_error The authenticated user or error instance.
  * @param array    $app_password  The Application Password used to authenticate.
  */
-function rest_application_password_collect_status( $user_or_error, array $app_password = array() ) {
+function rest_application_password_collect_status( $user_or_error, $app_password = array() ) {
 	global $wp_rest_application_password_status, $wp_rest_application_password_uuid;
 
 	$wp_rest_application_password_status = $user_or_error;
 
-	if ( $app_password ) {
-		$wp_rest_application_password_uuid = $app_password['uuid'];
-	} else {
+	if ( empty( $app_password['uuid'] ) ) {
 		$wp_rest_application_password_uuid = null;
+	} else {
+		$wp_rest_application_password_uuid = $app_password['uuid'];
 	}
 }
 
