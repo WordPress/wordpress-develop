@@ -538,6 +538,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 	/**
 	 * @ticket 51583
+	 * @ticket 51941
 	 */
 	public function test_update_item_cannot_overwrite_app_id() {
 		wp_set_current_user( self::$admin );
@@ -554,7 +555,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		list( , $item ) = WP_Application_Passwords::create_new_application_password(
 			self::$admin,
 			array(
-				'name'   => 'App',
+				'name'   => 'App 2',
 				'app_id' => $app_id,
 			)
 		);
