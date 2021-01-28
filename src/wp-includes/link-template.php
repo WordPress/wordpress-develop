@@ -123,20 +123,20 @@ function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
 	}
 
 	if (
-		$post_status_obj->internal ||
-		( $post_status_obj->protected && ! $sample )
+		// Publicly viewable links never have ugly permalinks.
+		is_post_publicly_viewable( $post ) ||
+		(
+			// Private posts don't have ugly links if the user can read them.
+			$post_status_obj->private &&
+			current_user_can( 'read_post', $post->ID )
+		) ||
+		// Protected posts don't have ugly links if getting a sample URL.
+		( $post_status_obj->protected && $sample )
 	) {
-		return true;
+		return false;
 	}
 
-	if (
-		$post_status_obj->private &&
-		! current_user_can( 'read_post', $post->ID )
-	) {
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 /**
