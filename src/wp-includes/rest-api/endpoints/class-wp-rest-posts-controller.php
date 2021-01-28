@@ -262,61 +262,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $request['tax_relation'] ) ) {
-			$args['tax_query'] = array( 'relation' => $request['tax_relation'] );
-		}
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			$tax_include = $request[ $base ];
-			$tax_exclude = $request[ $base . '_exclude' ];
-
-			if ( $tax_include ) {
-				$terms            = array();
-				$include_children = false;
-
-				if ( rest_is_array( $tax_include ) ) {
-					$terms = $tax_include;
-				} elseif ( rest_is_object( $tax_include ) ) {
-					$terms            = empty( $tax_include['terms'] ) ? array() : $tax_include['terms'];
-					$include_children = ! empty( $tax_include['include_children'] );
-				}
-
-				if ( $terms ) {
-					$args['tax_query'][] = array(
-						'taxonomy'         => $taxonomy->name,
-						'field'            => 'term_id',
-						'terms'            => $terms,
-						'include_children' => $include_children,
-					);
-				}
-			}
-
-			if ( $tax_exclude ) {
-				$terms            = array();
-				$include_children = false;
-
-				if ( rest_is_array( $tax_exclude ) ) {
-					$terms = $tax_exclude;
-				} elseif ( rest_is_object( $tax_exclude ) ) {
-					$terms            = empty( $tax_exclude['terms'] ) ? array() : $tax_exclude['terms'];
-					$include_children = ! empty( $tax_exclude['include_children'] );
-				}
-
-				if ( $terms ) {
-					$args['tax_query'][] = array(
-						'taxonomy'         => $taxonomy->name,
-						'field'            => 'term_id',
-						'terms'            => $terms,
-						'include_children' => $include_children,
-						'operator'         => 'NOT IN',
-					);
-				}
-			}
-		}
+		$args = $this->prepare_tax_query( $args, $request );
 
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
@@ -2936,5 +2882,77 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Prepare the 'tax_query' for a collection of posts.
+	 *
+	 * @param array           $args    WP_Query arguments.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return array Updated query arguments.
+	 */
+	private function prepare_tax_query( array $args, WP_REST_Request $request ): array {
+		$relation = $request['tax_relation'];
+
+		if ( $relation ) {
+			$args['tax_query'] = array( 'relation' => $relation );
+		}
+
+		$taxonomies = wp_list_filter(
+			get_object_taxonomies( $this->post_type, 'objects' ),
+			array( 'show_in_rest' => true )
+		);
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			$tax_include = $request[ $base ];
+			$tax_exclude = $request[ $base . '_exclude' ];
+
+			if ( $tax_include ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_include ) ) {
+					$terms = $tax_include;
+				} elseif ( rest_is_object( $tax_include ) ) {
+					$terms            = empty( $tax_include['terms'] ) ? array() : $tax_include['terms'];
+					$include_children = ! empty( $tax_include['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+					);
+				}
+			}
+
+			if ( $tax_exclude ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_exclude ) ) {
+					$terms = $tax_exclude;
+				} elseif ( rest_is_object( $tax_exclude ) ) {
+					$terms            = empty( $tax_exclude['terms'] ) ? array() : $tax_exclude['terms'];
+					$include_children = ! empty( $tax_exclude['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+						'operator'         => 'NOT IN',
+					);
+				}
+			}
+		}
+
+		return $args;
 	}
 }
