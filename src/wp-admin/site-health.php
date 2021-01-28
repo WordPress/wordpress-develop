@@ -33,11 +33,11 @@ if ( 'update_https' === $action ) {
 	check_admin_referer( 'wp_update_https' );
 
 	if ( ! current_user_can( 'update_https' ) ) {
-		wp_die( __( 'Sorry, you are not allowed to update this site to HTTPS.' ) );
+		wp_die( __( 'Sorry, you are not allowed to update this site to HTTPS.' ), 403 );
 	}
 
 	if ( ! wp_is_https_supported() ) {
-		wp_die( __( 'It looks like HTTPS is not supported for your website at this point.' ), 403 );
+		wp_die( __( 'It looks like HTTPS is not supported for your website at this point.' ) );
 	}
 
 	$result = wp_update_urls_to_https();
