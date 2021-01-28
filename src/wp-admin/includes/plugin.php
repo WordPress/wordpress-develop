@@ -80,7 +80,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		'Network'     => 'Network',
 		'RequiresWP'  => 'Requires at least',
 		'RequiresPHP' => 'Requires PHP',
-		'UpdateID'    => 'Update ID',
+		'UpdateURI'    => 'Update URI',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'   => 'Site Wide Only',
 	);

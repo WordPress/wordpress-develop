@@ -427,11 +427,11 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	// Support updates for any plugins using the `Update ID` URI field.
 	foreach ( $plugins as $plugin_file => $plugin_data ) {
-		if ( ! $plugin_data['UpdateID'] || isset( $updates->response[ $plugin_file ] ) ) {
+		if ( ! $plugin_data['UpdateURI'] || isset( $updates->response[ $plugin_file ] ) ) {
 			continue;
 		}
 
-		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateID'] ), PHP_URL_HOST );
+		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
 		if ( 'wordpress.org' === $hostname || 'w.org' === $hostname ) {
 			continue;
 		}
