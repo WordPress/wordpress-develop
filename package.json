@@ -140,6 +140,7 @@
 		"lodash": "4.17.19",
 		"masonry-layout": "4.2.2",
 		"moment": "2.27.0",
+		"objectFitPolyfill": "2.3.4",
 		"polyfill-library": "3.42.0",
 		"react": "16.13.1",
 		"react-dom": "16.13.1",
