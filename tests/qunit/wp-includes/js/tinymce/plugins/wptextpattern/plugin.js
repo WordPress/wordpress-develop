@@ -2,12 +2,6 @@
 	var editor,
 		count = 0;
 
-	// Temporarily disadle these tests in PhantomJS.
-	// Seems editor.selection.getRng() in mceType() fails there, but works properly in the browsers.
-	if ( /PhantomJS/.test( navigator.userAgent ) ) {
-		return;
-	}
-
 	if ( tinymce.Env.ie && tinymce.Env.ie < 11 ) {
 		return;
 	}
@@ -31,12 +25,12 @@
 			editor.dom.fire(target, type, evt);
 		}
 
-		// Numeric keyCode
+		// Numeric keyCode.
 		if (typeof(chr) === 'number') {
 			charCode = chr;
 			keyCode = charCodeToKeyCode(charCode);
 		} else if (typeof(chr) === 'string') {
-			// String value
+			// String value.
 			if (chr === '\b') {
 				keyCode = 8;
 				charCode = chr.charCodeAt(0);
@@ -85,8 +79,8 @@
 						startContainer = nodes[nodes.length - 1];
 					}
 
-					// If caret is at <p>abc|</p> and after the abc text node then move it to the end of the text node
-					// Expand the range to include the last char <p>ab[c]</p> since IE 11 doesn't delete otherwise
+					// If caret is at <p>abc|</p> and after the abc text node then move it to the end of the text node.
+					// Expand the range to include the last char <p>ab[c]</p> since IE 11 doesn't delete otherwise.
 					if ( rng.collapsed && startContainer && startContainer.nodeType === 3 && startContainer.data.length > 0) {
 						rng.setStart(startContainer, startContainer.data.length - 1);
 						rng.setEnd(startContainer, startContainer.data.length);

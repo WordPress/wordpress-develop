@@ -1,4 +1,5 @@
-var l10n = wp.media.view.l10n,
+var _n = wp.i18n._n,
+	sprintf = wp.i18n.sprintf,
 	Selection;
 
 /**
@@ -60,7 +61,10 @@ Selection = wp.media.View.extend(/** @lends wp.media.view.Selection.prototype */
 		this.$el.toggleClass( 'one', 1 === collection.length );
 		this.$el.toggleClass( 'editing', editing );
 
-		this.$('.count').text( l10n.selected.replace('%d', collection.length) );
+		this.$( '.count' ).text(
+			/* translators: %s: Number of selected media attachments. */
+			sprintf( _n( '%s item selected', '%s items selected', collection.length ), collection.length )
+		);
 	},
 
 	edit: function( event ) {
@@ -74,8 +78,7 @@ Selection = wp.media.View.extend(/** @lends wp.media.view.Selection.prototype */
 		event.preventDefault();
 		this.collection.reset();
 
-		// Keep focus inside media modal
-		// after clear link is selected
+		// Move focus to the modal.
 		this.controller.modal.focusManager.focus();
 	}
 });

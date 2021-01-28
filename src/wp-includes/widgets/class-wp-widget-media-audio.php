@@ -12,6 +12,7 @@
  *
  * @since 4.8.0
  *
+ * @see WP_Widget_Media
  * @see WP_Widget
  */
 class WP_Widget_Media_Audio extends WP_Widget_Media {
@@ -19,7 +20,7 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Constructor.
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -39,11 +40,11 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 				'replace_media'              => _x( 'Replace Audio', 'label for button in the audio widget; should preferably not be longer than ~13 characters long' ),
 				'edit_media'                 => _x( 'Edit Audio', 'label for button in the audio widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
-					/* translators: %s: URL to media library */
+					/* translators: %s: URL to media library. */
 					__( 'We can&#8217;t find that audio file. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: widget count */
+				/* translators: %d: Widget count. */
 				'media_library_state_multi'  => _n_noop( 'Audio Widget (%d)', 'Audio Widget (%d)' ),
 				'media_library_state_single' => __( 'Audio Widget' ),
 				'unsupported_file_type'      => __( 'Looks like this isn&#8217;t the correct kind of file. Please link to an audio file instead.' ),
@@ -54,29 +55,27 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 	/**
 	 * Get schema for properties of a widget instance (item).
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 *
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
+	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
-		$schema = array_merge(
-			parent::get_instance_schema(),
-			array(
-				'preload' => array(
-					'type'        => 'string',
-					'enum'        => array( 'none', 'auto', 'metadata' ),
-					'default'     => 'none',
-					'description' => __( 'Preload' ),
-				),
-				'loop'    => array(
-					'type'        => 'boolean',
-					'default'     => false,
-					'description' => __( 'Loop' ),
-				),
-			)
+		$schema = array(
+			'preload' => array(
+				'type'        => 'string',
+				'enum'        => array( 'none', 'auto', 'metadata' ),
+				'default'     => 'none',
+				'description' => __( 'Preload' ),
+			),
+			'loop'    => array(
+				'type'        => 'boolean',
+				'default'     => false,
+				'description' => __( 'Loop' ),
+			),
 		);
 
 		foreach ( wp_get_audio_extensions() as $audio_extension ) {
@@ -84,21 +83,20 @@ class WP_Widget_Media_Audio extends WP_Widget_Media {
 				'type'        => 'string',
 				'default'     => '',
 				'format'      => 'uri',
-				/* translators: %s: audio extension */
+				/* translators: %s: Audio extension. */
 				'description' => sprintf( __( 'URL to the %s audio source file' ), $audio_extension ),
 			);
 		}
 
-		return $schema;
+		return array_merge( $schema, parent::get_instance_schema() );
 	}
 
 	/**
 	 * Render the media on the frontend.
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 *
 	 * @param array $instance Widget instance props.
-	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );

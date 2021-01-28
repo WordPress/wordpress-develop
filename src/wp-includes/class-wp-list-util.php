@@ -48,7 +48,8 @@ class WP_List_Util {
 	 * @param array $input Array to perform operations on.
 	 */
 	public function __construct( $input ) {
-		$this->output = $this->input = $input;
+		$this->output = $input;
+		$this->input  = $input;
 	}
 
 	/**
@@ -101,19 +102,25 @@ class WP_List_Util {
 		$filtered = array();
 
 		foreach ( $this->output as $key => $obj ) {
-			$to_match = (array) $obj;
-
 			$matched = 0;
+
 			foreach ( $args as $m_key => $m_value ) {
-				if ( array_key_exists( $m_key, $to_match ) && $m_value == $to_match[ $m_key ] ) {
-					$matched++;
+				if ( is_array( $obj ) ) {
+					// Treat object as an array.
+					if ( array_key_exists( $m_key, $obj ) && ( $m_value == $obj[ $m_key ] ) ) {
+						$matched++;
+					}
+				} elseif ( is_object( $obj ) ) {
+					// Treat object as an object.
+					if ( isset( $obj->{$m_key} ) && ( $m_value == $obj->{$m_key} ) ) {
+						$matched++;
+					}
 				}
 			}
 
-			if (
-				( 'AND' == $operator && $matched == $count ) ||
-				( 'OR' == $operator && $matched > 0 ) ||
-				( 'NOT' == $operator && 0 == $matched )
+			if ( ( 'AND' === $operator && $matched === $count )
+				|| ( 'OR' === $operator && $matched > 0 )
+				|| ( 'NOT' === $operator && 0 === $matched )
 			) {
 				$filtered[ $key ] = $obj;
 			}

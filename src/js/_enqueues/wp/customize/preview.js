@@ -28,7 +28,7 @@
 		 * @access private
 		 *
 		 * @param {string} url URL.
-		 * @returns {string} URL with customized state.
+		 * @return {string} URL with customized state.
 		 */
 		injectUrlWithState = function( url ) {
 			var urlParser, oldQueryParams, newQueryParams;
@@ -102,8 +102,8 @@
 	 */
 	api.Preview = api.Messenger.extend(/** @lends wp.customize.Preview.prototype */{
 		/**
-		 * @param {object} params  - Parameters to configure the messenger.
-		 * @param {object} options - Extend any instance parameter or method with this object.
+		 * @param {Object} params  - Parameters to configure the messenger.
+		 * @param {Object} options - Extend any instance parameter or method with this object.
 		 */
 		initialize: function( params, options ) {
 			var preview = this, urlParser = document.createElement( 'a' );
@@ -232,9 +232,9 @@
 	 *
 	 * @since 4.7.0
 	 * @access protected
-	 *
 	 * @access private
-	 * @returns {void}
+	 *
+	 * @return {void}
 	 */
 	api.addLinkPreviewing = function addLinkPreviewing() {
 		var linkSelectors = 'a[href], area[href]';
@@ -276,9 +276,9 @@
 	 * @param {string} element.search Query string.
 	 * @param {string} element.pathname Path.
 	 * @param {string} element.host Host.
-	 * @param {object} [options]
-	 * @param {object} [options.allowAdminAjax=false] Allow admin-ajax.php requests.
-	 * @returns {boolean} Is appropriate for changeset link.
+	 * @param {Object} [options]
+	 * @param {Object} [options.allowAdminAjax=false] Allow admin-ajax.php requests.
+	 * @return {boolean} Is appropriate for changeset link.
 	 */
 	api.isLinkPreviewable = function isLinkPreviewable( element, options ) {
 		var matchesAllowedUrl, parsedAllowedUrl, args, elementHost;
@@ -332,12 +332,12 @@
 	 * @param {string} element.search Query string.
 	 * @param {string} element.host Host.
 	 * @param {string} element.protocol Protocol.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	api.prepareLinkPreview = function prepareLinkPreview( element ) {
 		var queryParams, $element = $( element );
 
-        // Skip elements with no href attribute. Check first to avoid more expensive checks down the road
+        // Skip elements with no href attribute. Check first to avoid more expensive checks down the road.
         if ( ! element.hasAttribute( 'href' ) ) {
             return;
         }
@@ -357,7 +357,7 @@
 			element.protocol = 'https:';
 		}
 
-		// Ignore links with class wp-playlist-caption
+		// Ignore links with class wp-playlist-caption.
 		if ( $element.hasClass( 'wp-playlist-caption' ) ) {
 			return;
 		}
@@ -399,12 +399,12 @@
 		/**
 		 * Rewrite Ajax requests to inject customizer state.
 		 *
-		 * @param {object} options Options.
+		 * @param {Object} options Options.
 		 * @param {string} options.type Type.
 		 * @param {string} options.url URL.
-		 * @param {object} originalOptions Original options.
+		 * @param {Object} originalOptions Original options.
 		 * @param {XMLHttpRequest} xhr XHR.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		var prefilterAjax = function( options, originalOptions, xhr ) {
 			var urlParser, queryParams, requestMethod, dirtyValues = {};
@@ -470,7 +470,7 @@
 	 * @since 4.7.0
 	 * @access protected
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	api.addFormPreviewing = function addFormPreviewing() {
 
@@ -502,7 +502,7 @@
 	 * @access protected
 	 *
 	 * @param {HTMLFormElement} form Form.
-	 * @returns {void}
+	 * @return {void}
 	 */
 	api.prepareFormPreview = function prepareFormPreview( form ) {
 		var urlParser, stateParams = {};
@@ -626,7 +626,7 @@
 		 * Preview changes to custom logo.
 		 *
 		 * @param {number} attachmentId Attachment ID for custom logo.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		custom_logo: function( attachmentId ) {
 			$( 'body' ).toggleClass( 'wp-custom-logo', !! attachmentId );
@@ -636,7 +636,7 @@
 		 * Preview changes to custom css.
 		 *
 		 * @param {string} value Custom CSS..
-		 * @returns {void}
+		 * @return {void}
 		 */
 		custom_css: function( value ) {
 			$( '#wp-custom-css' ).text( value );
@@ -645,7 +645,7 @@
 		/**
 		 * Preview changes to any of the background settings.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		background: function() {
 			var css = '', settings = {};
@@ -775,7 +775,7 @@
 		 * Handle update to changeset UUID.
 		 *
 		 * @param {string} uuid - UUID.
-		 * @returns {void}
+		 * @return {void}
 		 */
 		handleUpdatedChangesetUuid = function( uuid ) {
 			api.settings.changeset.uuid = uuid;

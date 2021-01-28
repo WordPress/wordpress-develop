@@ -42,12 +42,7 @@ do_action( 'rss_tag_pre', 'rss2' );
 	<atom:link href="<?php self_link(); ?>" rel="self" type="application/rss+xml" />
 	<link><?php bloginfo_rss( 'url' ); ?></link>
 	<description><?php bloginfo_rss( 'description' ); ?></description>
-	<lastBuildDate>
-	<?php
-		$date = get_lastpostmodified( 'GMT' );
-		echo $date ? mysql2date( 'r', $date, false ) : date( 'r' );
-	?>
-	</lastBuildDate>
+	<lastBuildDate><?php echo get_feed_build_date( 'r' ); ?></lastBuildDate>
 	<language><?php bloginfo_rss( 'language' ); ?></language>
 	<sy:updatePeriod>
 	<?php
@@ -94,29 +89,33 @@ do_action( 'rss_tag_pre', 'rss2' );
 		<title><?php the_title_rss(); ?></title>
 		<link><?php the_permalink_rss(); ?></link>
 		<?php if ( get_comments_number() || comments_open() ) : ?>
-		<comments><?php comments_link_feed(); ?></comments>
+			<comments><?php comments_link_feed(); ?></comments>
 		<?php endif; ?>
-		<pubDate><?php echo mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ); ?></pubDate>
-		<dc:creator><![CDATA[<?php the_author(); ?>]]></dc:creator>
-		<?php the_category_rss( 'rss2' ); ?>
 
+		<dc:creator><![CDATA[<?php the_author(); ?>]]></dc:creator>
+		<pubDate><?php echo mysql2date( 'D, d M Y H:i:s +0000', get_post_time( 'Y-m-d H:i:s', true ), false ); ?></pubDate>
+		<?php the_category_rss( 'rss2' ); ?>
 		<guid isPermaLink="false"><?php the_guid(); ?></guid>
+
 		<?php if ( get_option( 'rss_use_excerpt' ) ) : ?>
-		<description><![CDATA[<?php the_excerpt_rss(); ?>]]></description>
+			<description><![CDATA[<?php the_excerpt_rss(); ?>]]></description>
 		<?php else : ?>
-		<description><![CDATA[<?php the_excerpt_rss(); ?>]]></description>
+			<description><![CDATA[<?php the_excerpt_rss(); ?>]]></description>
 			<?php $content = get_the_content_feed( 'rss2' ); ?>
 			<?php if ( strlen( $content ) > 0 ) : ?>
-		<content:encoded><![CDATA[<?php echo $content; ?>]]></content:encoded>
-	<?php else : ?>
-		<content:encoded><![CDATA[<?php the_excerpt_rss(); ?>]]></content:encoded>
-	<?php endif; ?>
+				<content:encoded><![CDATA[<?php echo $content; ?>]]></content:encoded>
+			<?php else : ?>
+				<content:encoded><![CDATA[<?php the_excerpt_rss(); ?>]]></content:encoded>
+			<?php endif; ?>
 		<?php endif; ?>
+
 		<?php if ( get_comments_number() || comments_open() ) : ?>
-		<wfw:commentRss><?php echo esc_url( get_post_comments_feed_link( null, 'rss2' ) ); ?></wfw:commentRss>
-		<slash:comments><?php echo get_comments_number(); ?></slash:comments>
+			<wfw:commentRss><?php echo esc_url( get_post_comments_feed_link( null, 'rss2' ) ); ?></wfw:commentRss>
+			<slash:comments><?php echo get_comments_number(); ?></slash:comments>
 		<?php endif; ?>
+
 		<?php rss_enclosure(); ?>
+
 		<?php
 		/**
 		 * Fires at the end of each RSS2 feed item.

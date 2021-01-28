@@ -1,8 +1,9 @@
 /**
  * External dependencies
  */
-const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
+const { DefinePlugin } = require( 'webpack' );
 const CopyWebpackPlugin = require( 'copy-webpack-plugin' );
+const LiveReloadPlugin = require( 'webpack-livereload-plugin' );
 const postcss = require( 'postcss' );
 const UglifyJS = require( 'uglify-js' );
 
@@ -13,7 +14,13 @@ const { get } = require( 'lodash' );
  * WordPress dependencies
  */
 const CustomTemplatedPathPlugin = require( '@wordpress/custom-templated-path-webpack-plugin' );
+const DependencyExtractionPlugin = require( '@wordpress/dependency-extraction-webpack-plugin' );
 const LibraryExportDefaultPlugin = require( '@wordpress/library-export-default-webpack-plugin' );
+
+/**
+ * Internal dependencies
+ */
+const { dependencies } = require( '../../package' );
 
 const baseDir = join( __dirname, '../../' );
 
@@ -55,45 +62,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	let buildTarget = env.buildTarget ? env.buildTarget : ( mode === 'production' ? 'build' : 'src' );
 	buildTarget = buildTarget  + '/wp-includes';
 
-	const packages = [
-		'api-fetch',
-		'a11y',
-		'annotations',
-		'autop',
-		'blob',
-		'blocks',
-		'block-library',
-		'block-serialization-default-parser',
-		'components',
-		'compose',
-		'core-data',
-		'data',
-		'date',
-		'deprecated',
-		'dom',
-		'dom-ready',
-		'edit-post',
-		'editor',
-		'element',
-		'escape-html',
-		'format-library',
-		'hooks',
-		'html-entities',
-		'i18n',
-		'is-shallow-equal',
-		'keycodes',
-		'list-reusable-blocks',
-		'notices',
-		'nux',
-		'plugins',
-		'redux-routine',
-		'rich-text',
-		'shortcode',
-		'token-list',
-		'url',
-		'viewport',
-		'wordcount',
-	];
+	const WORDPRESS_NAMESPACE = '@wordpress/';
+	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
+	const packages = Object.keys( dependencies )
+		.filter( ( packageName ) =>
+ 			! BUNDLED_PACKAGES.includes( packageName ) &&
+ 			packageName.startsWith( WORDPRESS_NAMESPACE )
+ 		)
+		.map( ( packageName ) => packageName.replace( WORDPRESS_NAMESPACE, '' ) );
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
@@ -101,7 +77,10 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
+		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -111,6 +90,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'lodash.min.js': 'lodash/lodash.min.js',
 		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
+		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
+		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
@@ -120,33 +101,69 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
 	};
 
+	const dynamicBlockFolders = [
+		'archives',
+		'block',
+		'calendar',
+		'categories',
+		'latest-comments',
+		'latest-posts',
+		'rss',
+		'search',
+		'shortcode',
+		'social-link',
+		'tag-cloud',
+	];
+	const blockFolders = [
+		'audio',
+		'button',
+		'buttons',
+		'code',
+		'column',
+		'columns',
+		'embed',
+		'file',
+		'freeform',
+		'gallery',
+		'group',
+		'heading',
+		'html',
+		'image',
+		'list',
+		'media-text',
+		'missing',
+		'more',
+		'nextpage',
+		'paragraph',
+		'preformatted',
+		'pullquote',
+		'quote',
+		'separator',
+		'social-links',
+		'spacer',
+		'subhead',
+		'table',
+		'text-columns',
+		'verse',
+		'video',
+		...dynamicBlockFolders,
+	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
-		'block-library/src/archives/index.php': 'wp-includes/blocks/archives.php',
-		'block-library/src/block/index.php': 'wp-includes/blocks/block.php',
-		'block-library/src/categories/index.php': 'wp-includes/blocks/categories.php',
-		'block-library/src/latest-comments/index.php': 'wp-includes/blocks/latest-comments.php',
-		'block-library/src/latest-posts/index.php': 'wp-includes/blocks/latest-posts.php',
-		'block-library/src/shortcode/index.php': 'wp-includes/blocks/shortcode.php',
+		...dynamicBlockFolders.reduce( ( files, blockName ) => {
+			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
+			return files;
+		} , {} ),
 	};
-
-	const externals = {
-		react: 'React',
-		'react-dom': 'ReactDOM',
-		tinymce: 'tinymce',
-		moment: 'moment',
-		jquery: 'jQuery',
-		lodash: 'lodash',
-		'lodash-es': 'lodash',
+	const blockMetadataFiles = {
+		...blockFolders.reduce( ( files, blockName ) => {
+			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
+			return files;
+		} , {} ),
 	};
-
-	packages.forEach( ( name ) => {
-		externals[ `@wordpress/${ name }` ] = {
-			this: [ 'wp', camelCaseDash( name ) ],
-		};
-	} );
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
@@ -192,6 +209,11 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ phpFiles[ filename ] }` ),
 	} ) );
 
+	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
+	} ) );
+
 	const config = {
 		mode,
 
@@ -201,6 +223,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			return memo;
 		}, {} ),
 		output: {
+			devtoolNamespace: 'wp',
 			filename: `[basename]${ suffix }.js`,
 			path: join( baseDir, `${ buildTarget }/js/dist` ),
 			library: {
@@ -208,7 +231,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			},
 			libraryTarget: 'this',
 		},
-		externals,
 		resolve: {
 			modules: [
 				baseDir,
@@ -228,12 +250,22 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			],
 		},
 		plugins: [
+			new DefinePlugin( {
+				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
+				'process.env.GUTENBERG_PHASE': 1,
+				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
+					process.env.FORCE_REDUCED_MOTION
+				),
+			} ),
 			new LibraryExportDefaultPlugin( [
 				'api-fetch',
 				'deprecated',
 				'dom-ready',
 				'redux-routine',
 				'token-list',
+				'server-side-render',
+				'shortcode',
+				'warning',
 			].map( camelCaseDash ) ),
 			new CustomTemplatedPathPlugin( {
 				basename( path, data ) {
@@ -257,11 +289,17 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					return path;
 				},
 			} ),
+			new DependencyExtractionPlugin( {
+				injectPolyfill: true,
+				combineAssets: true,
+				combinedOutputFile: '../../assets/script-loader-packages.php',
+			} ),
 			new CopyWebpackPlugin(
 				[
 					...vendorCopies,
 					...cssCopies,
 					...phpCopies,
+					...blockMetadataCopies,
 				],
 			),
 		],

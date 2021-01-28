@@ -5,13 +5,14 @@
  * @preserveGlobalState disabled
  * @group oembed
  * @group oembed-headers
+ * @group xdebug
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
-	function test_rest_pre_serve_request_headers() {
-		if ( ! function_exists( 'xdebug_get_headers' ) ) {
-			$this->markTestSkipped( 'xdebug is required for this test' );
-		}
 
+	/**
+	 * @requires function xdebug_get_headers
+	 */
+	function test_rest_pre_serve_request_headers() {
 		$post = $this->factory()->post->create_and_get(
 			array(
 				'post_title' => 'Hello World',
@@ -30,6 +31,6 @@ class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 
 		$headers = xdebug_get_headers();
 
-		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers ) );
+		$this->assertTrue( in_array( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ), $headers, true ) );
 	}
 }

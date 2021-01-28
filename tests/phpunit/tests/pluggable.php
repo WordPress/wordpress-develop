@@ -11,11 +11,11 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 * @ticket 33654
 	 * @ticket 33867
 	 *
-	 * @dataProvider getDefinedPluggableFunctions
+	 * @dataProvider get_defined_pluggable_functions
 	 */
-	public function testPluggableFunctionSignaturesMatch( $function ) {
+	public function test_pluggable_function_signatures_match( $function ) {
 
-		$signatures = $this->getPluggableFunctionSignatures();
+		$signatures = $this->get_pluggable_function_signatures();
 
 		$this->assertTrue( function_exists( $function ) );
 		$this->assertArrayHasKey( $function, $signatures );
@@ -54,10 +54,10 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 * @ticket 33654
 	 * @ticket 33867
 	 */
-	public function testAllPluggableFunctionsExist() {
+	public function test_all_pluggable_functions_exist() {
 
-		$defined  = wp_list_pluck( $this->getDefinedPluggableFunctions(), 0 );
-		$expected = $this->getPluggableFunctionSignatures();
+		$defined  = wp_list_pluck( $this->get_defined_pluggable_functions(), 0 );
+		$expected = $this->get_pluggable_function_signatures();
 
 		foreach ( $expected as $function => $sig ) {
 			$msg = 'Function: ' . $function . '()';
@@ -72,7 +72,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 *
 	 * @return array Data provider array of pluggable function names.
 	 */
-	public function getDefinedPluggableFunctions() {
+	public function get_defined_pluggable_functions() {
 
 		require_once ABSPATH . '/wp-admin/includes/upgrade.php';
 
@@ -88,7 +88,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			'wp-includes/pluggable.php',
 		);
 
-		// Pluggable function signatures are not tested when an external object cache is in use. #31491
+		// Pluggable function signatures are not tested when an external object cache is in use. See #31491.
 		if ( ! wp_using_ext_object_cache() ) {
 			$test_files[] = 'wp-includes/cache.php';
 		}
@@ -120,7 +120,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 	 *
 	 * @return array Array of signatures keyed by their function name.
 	 */
-	public function getPluggableFunctionSignatures() {
+	public function get_pluggable_function_signatures() {
 
 		$signatures = array(
 
@@ -260,7 +260,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			'install_global_terms'            => array(),
 		);
 
-		// Pluggable function signatures are not tested when an external object cache is in use. #31491
+		// Pluggable function signatures are not tested when an external object cache is in use. See #31491.
 		if ( ! wp_using_ext_object_cache() ) {
 			$signatures = array_merge(
 				$signatures,
@@ -289,6 +289,11 @@ class Tests_Pluggable extends WP_UnitTestCase {
 						'group' => '',
 						'force' => false,
 						'found' => null,
+					),
+					'wp_cache_get_multiple'              => array(
+						'keys',
+						'group' => '',
+						'force' => false,
 					),
 					'wp_cache_incr'                      => array(
 						'key',

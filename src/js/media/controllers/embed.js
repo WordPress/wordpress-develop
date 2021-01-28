@@ -63,9 +63,11 @@ Embed = wp.media.controller.State.extend(/** @lends wp.media.controller.Embed.pr
 				scanners: []
 			};
 
-		// Scan is triggered with the list of `attributes` to set on the
-		// state, useful for the 'type' attribute and 'scanners' attribute,
-		// an array of promise objects for asynchronous scan operations.
+		/*
+		 * Scan is triggered with the list of `attributes` to set on the
+		 * state, useful for the 'type' attribute and 'scanners' attribute,
+		 * an array of promise objects for asynchronous scan operations.
+		 */
 		if ( this.props.get('url') ) {
 			this.trigger( 'scan', attributes );
 		}

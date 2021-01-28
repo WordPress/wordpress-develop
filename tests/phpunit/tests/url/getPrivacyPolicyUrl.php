@@ -12,7 +12,7 @@
  *
  * @group url
  * @group privacy
- * @covers get_privacy_policy_url
+ * @covers ::get_privacy_policy_url
  *
  * @since 4.9.6
  */
@@ -38,15 +38,13 @@ class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$privacy_policy_page_id = $factory->post->create(
 			array(
 				'post_type'  => 'page',
 				'post_title' => WP_TESTS_DOMAIN . ' Privacy Policy',
 			)
 		);
-
-		self::$privacy_policy_url = get_permalink( self::$privacy_policy_page_id );
 	}
 
 	/**
@@ -60,9 +58,10 @@ class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 	 * The function should return the privacy policy URL when `wp_page_for_privacy_policy` is set.
 	 */
 	public function test_get_privacy_policy_url_should_return_valid_url_when_policy_page_set() {
+		$privacy_policy_url = get_permalink( self::$privacy_policy_page_id );
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
 
-		$this->assertSame( self::$privacy_policy_url, get_privacy_policy_url() );
+		$this->assertSame( $privacy_policy_url, get_privacy_policy_url() );
 	}
 
 	/**

@@ -40,3 +40,30 @@ msgstr "number_format_thousands_sep"
 #: wp-includes/script-loader.php:620
 msgid "Update %s now"
 msgstr "今すぐ %s を更新"
+
+#. translators: If your word count is based on single characters (e.g. East
+#. Asian characters), enter 'characters_excluding_spaces' or
+#. 'characters_including_spaces'. Otherwise, enter 'words'. Do not translate
+#. into your own language.
+#: wp-includes/formatting.php:3372 wp-includes/script-loader.php:1100
+msgctxt "Word count type. Do not translate!"
+msgid "words"
+msgstr "characters_including_spaces"
+
+#. translators: Maximum number of words used in a post excerpt.
+#: wp-includes/formatting.php:3640
+msgctxt "excerpt_length"
+msgid "55"
+msgstr "110"
+
+#. translators: Maximum number of words used in a comment excerpt.
+#: wp-includes/comment-template.ph:599
+msgctxt "comment_excerpt_length"
+msgid "20"
+msgstr "40"
+
+#. translators: Maximum number of words used in a preview of a draft on the dashboard.
+#: wp-admin/includes/dashboard.php:591
+msgctxt "draft_length"
+msgid "10"
+msgstr "40"

@@ -30,49 +30,72 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * Registers the necessary REST API routes, one for each dynamic block.
 	 *
 	 * @since 5.0.0
+	 *
+	 * @see register_rest_route()
 	 */
 	public function register_routes() {
-		$block_types = WP_Block_Type_Registry::get_instance()->get_all_registered();
-
-		foreach ( $block_types as $block_type ) {
-			if ( ! $block_type->is_dynamic() ) {
-				continue;
-			}
-
-			register_rest_route(
-				$this->namespace,
-				'/' . $this->rest_base . '/(?P<name>' . $block_type->name . ')',
+		register_rest_route(
+			$this->namespace,
+			'/' . $this->rest_base . '/(?P<name>[a-z0-9-]+/[a-z0-9-]+)',
+			array(
+				'args'   => array(
+					'name' => array(
+						'description' => __( 'Unique registered name for the block.' ),
+						'type'        => 'string',
+					),
+				),
 				array(
-					'args'   => array(
-						'name' => array(
-							'description' => __( 'Unique registered name for the block.' ),
-							'type'        => 'string',
+					'methods'             => array( WP_REST_Server::READABLE, WP_REST_Server::CREATABLE ),
+					'callback'            => array( $this, 'get_item' ),
+					'permission_callback' => array( $this, 'get_item_permissions_check' ),
+					'args'                => array(
+						'context'    => $this->get_context_param( array( 'default' => 'view' ) ),
+						'attributes' => array(
+							'description'       => __( 'Attributes for the block.' ),
+							'type'              => 'object',
+							'default'           => array(),
+							'validate_callback' => static function ( $value, $request ) {
+								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+
+								if ( ! $block ) {
+									// This will get rejected in ::get_item().
+									return true;
+								}
+
+								$schema = array(
+									'type'                 => 'object',
+									'properties'           => $block->get_attributes(),
+									'additionalProperties' => false,
+								);
+
+								return rest_validate_value_from_schema( $value, $schema );
+							},
+							'sanitize_callback' => static function ( $value, $request ) {
+								$block = WP_Block_Type_Registry::get_instance()->get_registered( $request['name'] );
+
+								if ( ! $block ) {
+									// This will get rejected in ::get_item().
+									return true;
+								}
+
+								$schema = array(
+									'type'                 => 'object',
+									'properties'           => $block->get_attributes(),
+									'additionalProperties' => false,
+								);
+
+								return rest_sanitize_value_from_schema( $value, $schema );
+							},
+						),
+						'post_id'    => array(
+							'description' => __( 'ID of the post context.' ),
+							'type'        => 'integer',
 						),
 					),
-					array(
-						'methods'             => WP_REST_Server::READABLE,
-						'callback'            => array( $this, 'get_item' ),
-						'permission_callback' => array( $this, 'get_item_permissions_check' ),
-						'args'                => array(
-							'context'    => $this->get_context_param( array( 'default' => 'view' ) ),
-							'attributes' => array(
-								/* translators: %s is the name of the block */
-								'description'          => sprintf( __( 'Attributes for %s block' ), $block_type->name ),
-								'type'                 => 'object',
-								'additionalProperties' => false,
-								'properties'           => $block_type->get_attributes(),
-								'default'              => array(),
-							),
-							'post_id'    => array(
-								'description' => __( 'ID of the post context.' ),
-								'type'        => 'integer',
-							),
-						),
-					),
-					'schema' => array( $this, 'get_public_item_schema' ),
-				)
-			);
-		}
+				),
+				'schema' => array( $this, 'get_public_item_schema' ),
+			)
+		);
 	}
 
 	/**
@@ -86,7 +109,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	public function get_item_permissions_check( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
 		if ( 0 < $post_id ) {
 			$post = get_post( $post_id );
@@ -126,7 +149,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	public function get_item( $request ) {
 		global $post;
 
-		$post_id = isset( $request['post_id'] ) ? intval( $request['post_id'] ) : 0;
+		$post_id = isset( $request['post_id'] ) ? (int) $request['post_id'] : 0;
 
 		if ( 0 < $post_id ) {
 			$post = get_post( $post_id );
@@ -134,10 +157,11 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 			// Set up postdata since this will be needed if post_id was set.
 			setup_postdata( $post );
 		}
-		$registry = WP_Block_Type_Registry::get_instance();
-		$block    = $registry->get_registered( $request['name'] );
 
-		if ( null === $block ) {
+		$registry   = WP_Block_Type_Registry::get_instance();
+		$registered = $registry->get_registered( $request['name'] );
+
+		if ( null === $registered || ! $registered->is_dynamic() ) {
 			return new WP_Error(
 				'block_invalid',
 				__( 'Invalid block.' ),
@@ -147,9 +171,21 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$data = array(
-			'rendered' => $block->render( $request->get_param( 'attributes' ) ),
+		$attributes = $request->get_param( 'attributes' );
+
+		// Create an array representation simulating the output of parse_blocks.
+		$block = array(
+			'blockName'    => $request['name'],
+			'attrs'        => $attributes,
+			'innerHTML'    => '',
+			'innerContent' => array(),
 		);
+
+		// Render using render_block to ensure all relevant filters are used.
+		$data = array(
+			'rendered' => render_block( $block ),
+		);
+
 		return rest_ensure_response( $data );
 	}
 
@@ -161,7 +197,11 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
-		return array(
+		if ( $this->schema ) {
+			return $this->schema;
+		}
+
+		$this->schema = array(
 			'$schema'    => 'http://json-schema.org/schema#',
 			'title'      => 'rendered-block',
 			'type'       => 'object',
@@ -174,5 +214,7 @@ class WP_REST_Block_Renderer_Controller extends WP_REST_Controller {
 				),
 			),
 		);
+
+		return $this->schema;
 	}
 }

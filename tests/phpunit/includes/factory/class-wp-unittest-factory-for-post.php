@@ -12,7 +12,7 @@
  */
 class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 
-	function __construct( $factory = null ) {
+	public function __construct( $factory = null ) {
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
 			'post_status'  => 'publish',
@@ -28,33 +28,33 @@ class WP_UnitTest_Factory_For_Post extends WP_UnitTest_Factory_For_Thing {
 	 *
 	 * @param array $args Array with elements for the post.
 	 *
-	 * @return int|WP_Error The post ID on success. The value 0 or WP_Error on failure.
+	 * @return int The post ID on success. The value 0 on failure.
 	 */
-	function create_object( $args ) {
+	public function create_object( $args ) {
 		return wp_insert_post( $args );
 	}
 
 	/**
 	 * Updates an existing post object.
 	 *
-	 * @param int   $post_id The post id to update.
+	 * @param int   $post_id ID of the post to update.
 	 * @param array $fields  Post data.
 	 *
-	 * @return int|WP_Error The value 0 or WP_Error on failure. The post ID on success.
+	 * @return int The post ID on success. The value 0 on failure.
 	 */
-	function update_object( $post_id, $fields ) {
+	public function update_object( $post_id, $fields ) {
 		$fields['ID'] = $post_id;
 		return wp_update_post( $fields );
 	}
 
 	/**
-	 * Retrieves a object by an id.
+	 * Retrieves a post by a given ID.
 	 *
-	 * @param int   $post_id The post id to update.
+	 * @param int $post_id ID of the post to retrieve.
 	 *
-	 * @return null|WP_Post WP_Post on success or null on failure.
+	 * @return WP_Post|null WP_Post object on success, null on failure.
 	 */
-	function get_object_by_id( $post_id ) {
+	public function get_object_by_id( $post_id ) {
 		return get_post( $post_id );
 	}
 }

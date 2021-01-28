@@ -21,7 +21,7 @@
 		<?php the_excerpt(); ?>
 	</div><!-- .entry-summary -->
 
-	<?php if ( 'post' == get_post_type() ) : ?>
+	<?php if ( 'post' === get_post_type() ) : ?>
 
 		<footer class="entry-footer">
 			<?php twentyfifteen_entry_meta(); ?>
@@ -34,4 +34,4 @@
 
 	<?php endif; ?>
 
-</article><!-- #post-## -->
+</article><!-- #post-<?php the_ID(); ?> -->

@@ -24,13 +24,12 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 *
 	 * @since 5.0.0
 	 *
-	 * @param object $post Post object that backs the block.
+	 * @param WP_Post $post Post object that backs the block.
 	 * @return bool Whether the block can be read.
 	 */
 	public function check_read_permission( $post ) {
-		// Ensure that the user is logged in and has the read_blocks capability.
-		$post_type = get_post_type_object( $post->post_type );
-		if ( ! current_user_can( $post_type->cap->read_post, $post->ID ) ) {
+		// By default the read_post capability is mapped to edit_posts.
+		if ( ! current_user_can( 'read_post', $post->ID ) ) {
 			return false;
 		}
 
@@ -68,6 +67,7 @@ class WP_REST_Blocks_Controller extends WP_REST_Posts_Controller {
 	 * @return array Item schema data.
 	 */
 	public function get_item_schema() {
+		// Do not cache this schema because all properties are derived from parent controller.
 		$schema = parent::get_item_schema();
 
 		/*

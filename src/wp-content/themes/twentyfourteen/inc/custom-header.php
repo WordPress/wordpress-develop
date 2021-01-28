@@ -17,26 +17,26 @@
  * @uses twentyfourteen_admin_header_image()
  */
 function twentyfourteen_custom_header_setup() {
-	/**
-	 * Filter Twenty Fourteen custom-header support arguments.
-	 *
-	 * @since Twenty Fourteen 1.0
-	 *
-	 * @param array $args {
-	 *     An array of custom-header support arguments.
-	 *
-	 *     @type bool   $header_text            Whether to display custom header text. Default false.
-	 *     @type int    $width                  Width in pixels of the custom header image. Default 1260.
-	 *     @type int    $height                 Height in pixels of the custom header image. Default 240.
-	 *     @type bool   $flex_height            Whether to allow flexible-height header images. Default true.
-	 *     @type string $admin_head_callback    Callback function used to style the image displayed in
-	 *                                          the Appearance > Header screen.
-	 *     @type string $admin_preview_callback Callback function used to create the custom header markup in
-	 *                                          the Appearance > Header screen.
-	 * }
-	 */
 	add_theme_support(
 		'custom-header',
+		/**
+		 * Filters Twenty Fourteen custom-header support arguments.
+		 *
+		 * @since Twenty Fourteen 1.0
+		 *
+		 * @param array $args {
+		 *     An array of custom-header support arguments.
+		 *
+		 *     @type bool   $header_text            Whether to display custom header text. Default false.
+		 *     @type int    $width                  Width in pixels of the custom header image. Default 1260.
+		 *     @type int    $height                 Height in pixels of the custom header image. Default 240.
+		 *     @type bool   $flex_height            Whether to allow flexible-height header images. Default true.
+		 *     @type string $admin_head_callback    Callback function used to style the image displayed in
+		 *                                          the Appearance > Header screen.
+		 *     @type string $admin_preview_callback Callback function used to create the custom header markup in
+		 *                                          the Appearance > Header screen.
+		 * }
+		 */
 		apply_filters(
 			'twentyfourteen_custom_header_args',
 			array(
@@ -63,7 +63,7 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 		$text_color = get_header_textcolor();
 
 		// If no custom color for text is set, let's bail.
-		if ( display_header_text() && $text_color === get_theme_support( 'custom-header', 'default-text-color' ) ) {
+		if ( display_header_text() && get_theme_support( 'custom-header', 'default-text-color' ) === $text_color ) {
 			return;
 		}
 
@@ -82,7 +82,7 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 		}
 			<?php
 			// If the user has set a custom color for the text, use that.
-		elseif ( $text_color != get_theme_support( 'custom-header', 'default-text-color' ) ) :
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
 			?>
 		.site-title a {
 			color: #<?php echo esc_attr( $text_color ); ?>;
@@ -91,7 +91,7 @@ if ( ! function_exists( 'twentyfourteen_header_style' ) ) :
 	</style>
 		<?php
 	}
-endif; // twentyfourteen_header_style
+endif; // twentyfourteen_header_style()
 
 
 if ( ! function_exists( 'twentyfourteen_admin_header_style' ) ) :
@@ -130,7 +130,7 @@ if ( ! function_exists( 'twentyfourteen_admin_header_style' ) ) :
 	</style>
 		<?php
 	}
-endif; // twentyfourteen_admin_header_style
+endif; // twentyfourteen_admin_header_style()
 
 if ( ! function_exists( 'twentyfourteen_admin_header_image' ) ) :
 	/**
@@ -150,4 +150,4 @@ if ( ! function_exists( 'twentyfourteen_admin_header_image' ) ) :
 	</div>
 		<?php
 	}
-endif; // twentyfourteen_admin_header_image
+endif; // twentyfourteen_admin_header_image()

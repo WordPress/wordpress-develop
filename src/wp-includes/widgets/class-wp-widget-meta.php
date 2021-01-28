@@ -42,7 +42,8 @@ class WP_Widget_Meta extends WP_Widget {
 	 * @param array $instance Settings for the current Meta widget instance.
 	 */
 	public function widget( $args, $instance ) {
-		$title = ! empty( $instance['title'] ) ? $instance['title'] : __( 'Meta' );
+		$default_title = __( 'Meta' );
+		$title         = ! empty( $instance['title'] ) ? $instance['title'] : $default_title;
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
@@ -52,39 +53,57 @@ class WP_Widget_Meta extends WP_Widget {
 		if ( $title ) {
 			echo $args['before_title'] . $title . $args['after_title'];
 		}
+
+		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+
+		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
+		$format = apply_filters( 'navigation_widgets_format', $format );
+
+		if ( 'html5' === $format ) {
+			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+			$title      = trim( strip_tags( $title ) );
+			$aria_label = $title ? $title : $default_title;
+			echo '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+		}
 		?>
-			<ul>
+
+		<ul>
 			<?php wp_register(); ?>
 			<li><?php wp_loginout(); ?></li>
-			<li><a href="<?php echo esc_url( get_bloginfo( 'rss2_url' ) ); ?>"><?php _e( 'Entries <abbr title="Really Simple Syndication">RSS</abbr>' ); ?></a></li>
-			<li><a href="<?php echo esc_url( get_bloginfo( 'comments_rss2_url' ) ); ?>"><?php _e( 'Comments <abbr title="Really Simple Syndication">RSS</abbr>' ); ?></a></li>
+			<li><a href="<?php echo esc_url( get_bloginfo( 'rss2_url' ) ); ?>"><?php _e( 'Entries feed' ); ?></a></li>
+			<li><a href="<?php echo esc_url( get_bloginfo( 'comments_rss2_url' ) ); ?>"><?php _e( 'Comments feed' ); ?></a></li>
+
 			<?php
 			/**
-			 * Filters the "Powered by WordPress" text in the Meta widget.
+			 * Filters the "WordPress.org" list item HTML in the Meta widget.
 			 *
 			 * @since 3.6.0
 			 * @since 4.9.0 Added the `$instance` parameter.
 			 *
-			 * @param string $title_text Default title text for the WordPress.org link.
-			 * @param array  $instance   Array of settings for the current widget.
+			 * @param string $html     Default HTML for the WordPress.org list item.
+			 * @param array  $instance Array of settings for the current widget.
 			 */
 			echo apply_filters(
 				'widget_meta_poweredby',
 				sprintf(
-					'<li><a href="%s" title="%s">%s</a></li>',
+					'<li><a href="%1$s">%2$s</a></li>',
 					esc_url( __( 'https://wordpress.org/' ) ),
-					esc_attr__( 'Powered by WordPress, state-of-the-art semantic personal publishing platform.' ),
-					_x( 'WordPress.org', 'meta widget link text' )
+					__( 'WordPress.org' )
 				),
 				$instance
 			);
 
 			wp_meta();
 			?>
-			</ul>
-			<?php
 
-			echo $args['after_widget'];
+		</ul>
+
+		<?php
+		if ( 'html5' === $format ) {
+			echo '</nav>';
+		}
+
+		echo $args['after_widget'];
 	}
 
 	/**
@@ -114,7 +133,10 @@ class WP_Widget_Meta extends WP_Widget {
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, array( 'title' => '' ) );
 		?>
-			<p><label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> <input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" /></p>
+		<p>
+			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" type="text" value="<?php echo esc_attr( $instance['title'] ); ?>" />
+		</p>
 		<?php
 	}
 }

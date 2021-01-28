@@ -1,5 +1,5 @@
 (function () {
-var image = (function () {
+var image = (function (domGlobals) {
     'use strict';
 
     var global = tinymce.util.Tools.resolve('tinymce.PluginManager');
@@ -63,12 +63,13 @@ var image = (function () {
       getUploadCredentials: getUploadCredentials
     };
 
-    var Global = typeof window !== 'undefined' ? window : Function('return this;')();
+    var Global = typeof domGlobals.window !== 'undefined' ? domGlobals.window : Function('return this;')();
 
     var path = function (parts, scope) {
       var o = scope !== undefined && scope !== null ? scope : Global;
-      for (var i = 0; i < parts.length && o !== undefined && o !== null; ++i)
+      for (var i = 0; i < parts.length && o !== undefined && o !== null; ++i) {
         o = o[parts[i]];
+      }
       return o;
     };
     var resolve = function (p, scope) {
@@ -81,8 +82,9 @@ var image = (function () {
     };
     var getOrDie = function (name, scope) {
       var actual = unsafe(name, scope);
-      if (actual === undefined || actual === null)
-        throw name + ' not available on this browser';
+      if (actual === undefined || actual === null) {
+        throw new Error(name + ' not available on this browser');
+      }
       return actual;
     };
     var Global$1 = { getOrDie: getOrDie };
@@ -102,7 +104,7 @@ var image = (function () {
       return Math.max(parseInt(val1, 10), parseInt(val2, 10));
     };
     var getImageSize = function (url, callback) {
-      var img = document.createElement('img');
+      var img = domGlobals.document.createElement('img');
       function done(width, height) {
         if (img.parentNode) {
           img.parentNode.removeChild(img);
@@ -125,7 +127,7 @@ var image = (function () {
       style.position = 'fixed';
       style.bottom = style.left = '0px';
       style.width = style.height = 'auto';
-      document.body.appendChild(img);
+      domGlobals.document.body.appendChild(img);
       img.src = url;
     };
     var buildListItems = function (inputList, itemCallback, startItems) {
@@ -255,17 +257,20 @@ var image = (function () {
     var baseMerge = function (merger) {
       return function () {
         var objects = new Array(arguments.length);
-        for (var i = 0; i < objects.length; i++)
+        for (var i = 0; i < objects.length; i++) {
           objects[i] = arguments[i];
-        if (objects.length === 0)
+        }
+        if (objects.length === 0) {
           throw new Error('Can\'t merge zero objects');
+        }
         var ret = {};
         for (var j = 0; j < objects.length; j++) {
           var curObject = objects[j];
-          for (var key in curObject)
+          for (var key in curObject) {
             if (hasOwnProperty.call(curObject, key)) {
               ret[key] = merger(ret[key], curObject[key]);
             }
+          }
         }
         return ret;
       };
@@ -294,21 +299,21 @@ var image = (function () {
         return '';
       }
     };
-    var getAttrib = function (image, name$$1) {
-      if (image.hasAttribute(name$$1)) {
-        return image.getAttribute(name$$1);
+    var getAttrib = function (image, name) {
+      if (image.hasAttribute(name)) {
+        return image.getAttribute(name);
       } else {
         return '';
       }
     };
-    var getStyle = function (image, name$$1) {
-      return image.style[name$$1] ? image.style[name$$1] : '';
+    var getStyle = function (image, name) {
+      return image.style[name] ? image.style[name] : '';
     };
     var hasCaption = function (image) {
       return image.parentNode !== null && image.parentNode.nodeName === 'FIGURE';
     };
-    var setAttrib = function (image, name$$1, value) {
-      image.setAttribute(name$$1, value);
+    var setAttrib = function (image, name, value) {
+      image.setAttribute(name, value);
     };
     var wrapInFigure = function (image) {
       var figureElm = DOM.create('figure', { class: 'image' });
@@ -339,21 +344,21 @@ var image = (function () {
         image.removeAttribute('style');
       }
     };
-    var setSize = function (name$$1, normalizeCss) {
-      return function (image, name$$1, value) {
-        if (image.style[name$$1]) {
-          image.style[name$$1] = Utils.addPixelSuffix(value);
+    var setSize = function (name, normalizeCss) {
+      return function (image, name, value) {
+        if (image.style[name]) {
+          image.style[name] = Utils.addPixelSuffix(value);
           normalizeStyle(image, normalizeCss);
         } else {
-          setAttrib(image, name$$1, value);
+          setAttrib(image, name, value);
         }
       };
     };
-    var getSize = function (image, name$$1) {
-      if (image.style[name$$1]) {
-        return Utils.removePixelSuffix(image.style[name$$1]);
+    var getSize = function (image, name) {
+      if (image.style[name]) {
+        return Utils.removePixelSuffix(image.style[name]);
       } else {
-        return getAttrib(image, name$$1);
+        return getAttrib(image, name);
       }
     };
     var setHspace = function (image, value) {
@@ -396,7 +401,7 @@ var image = (function () {
       };
     };
     var getStyleValue = function (normalizeCss, data) {
-      var image = document.createElement('img');
+      var image = domGlobals.document.createElement('img');
       setAttrib(image, 'style', data.style);
       if (getHspace(image) || data.hspace !== '') {
         setHspace(image, data.hspace);
@@ -413,7 +418,7 @@ var image = (function () {
       return normalizeCss(image.getAttribute('style'));
     };
     var create = function (normalizeCss, data) {
-      var image = document.createElement('img');
+      var image = domGlobals.document.createElement('img');
       write(normalizeCss, merge(data, { caption: false }), image);
       setAttrib(image, 'alt', data.alt);
       if (data.caption) {
@@ -442,13 +447,13 @@ var image = (function () {
         borderStyle: getStyle(image, 'borderStyle')
       };
     };
-    var updateProp = function (image, oldData, newData, name$$1, set) {
-      if (newData[name$$1] !== oldData[name$$1]) {
-        set(image, name$$1, newData[name$$1]);
+    var updateProp = function (image, oldData, newData, name, set) {
+      if (newData[name] !== oldData[name]) {
+        set(image, name, newData[name]);
       }
     };
     var normalized = function (set, normalizeCss) {
-      return function (image, name$$1, value) {
+      return function (image, name, value) {
         set(image, value);
         normalizeStyle(image, normalizeCss);
       };
@@ -952,7 +957,7 @@ var image = (function () {
           }
           success(pathJoin(settings.basePath, json.location));
         };
-        formData = new FormData();
+        formData = new domGlobals.FormData();
         formData.append('file', blobInfo.blob(), blobInfo.filename());
         xhr.send(formData);
       };
@@ -1200,5 +1205,5 @@ var image = (function () {
 
     return Plugin;
 
-}());
+}(window));
 })();

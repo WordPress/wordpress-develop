@@ -4,7 +4,7 @@
  * @output wp-admin/js/plugin-install.js
  */
 
-/* global plugininstallL10n, tb_click, tb_remove, tb_position */
+/* global tb_click, tb_remove, tb_position */
 
 jQuery( document ).ready( function( $ ) {
 
@@ -50,7 +50,7 @@ jQuery( document ).ready( function( $ ) {
 		});
 	};
 
-	$( window ).resize( function() {
+	$( window ).on( 'resize', function() {
 		tb_position();
 	});
 
@@ -150,13 +150,19 @@ jQuery( document ).ready( function( $ ) {
 
 	/*
 	 * Open the Plugin details modal. The event is delegated to get also the links
-	 * in the plugins search tab, after the AJAX search rebuilds the HTML. It's
+	 * in the plugins search tab, after the Ajax search rebuilds the HTML. It's
 	 * delegated on the closest ancestor and not on the body to avoid conflicts
 	 * with other handlers, see Trac ticket #43082.
 	 */
 	$( '.wrap' ).on( 'click', '.thickbox.open-plugin-details-modal', function( e ) {
 		// The `data-title` attribute is used only in the Plugin screens.
-		var title = $( this ).data( 'title' ) ? plugininstallL10n.plugin_information + ' ' + $( this ).data( 'title' ) : plugininstallL10n.plugin_modal_label;
+		var title = $( this ).data( 'title' ) ?
+			wp.i18n.sprintf(
+				// translators: %s: Plugin name.
+				wp.i18n.__( 'Plugin: %s' ),
+				$( this ).data( 'title' )
+			) :
+			wp.i18n.__( 'Plugin details' );
 
 		e.preventDefault();
 		e.stopPropagation();
@@ -170,7 +176,7 @@ jQuery( document ).ready( function( $ ) {
 		tbWindow
 			.attr({
 				'role': 'dialog',
-				'aria-label': plugininstallL10n.plugin_modal_label
+				'aria-label': wp.i18n.__( 'Plugin details' )
 			})
 			.addClass( 'plugin-details-modal' );
 
@@ -179,15 +185,16 @@ jQuery( document ).ready( function( $ ) {
 	});
 
 	/* Plugin install related JS */
-	$( '#plugin-information-tabs a' ).click( function( event ) {
+	$( '#plugin-information-tabs a' ).on( 'click', function( event ) {
 		var tab = $( this ).attr( 'name' );
 		event.preventDefault();
 
-		// Flip the tab
+		// Flip the tab.
 		$( '#plugin-information-tabs a.current' ).removeClass( 'current' );
 		$( this ).addClass( 'current' );
 
-		// Only show the fyi box in the description section, on smaller screen, where it's otherwise always displayed at the top.
+		// Only show the fyi box in the description section, on smaller screen,
+		// where it's otherwise always displayed at the top.
 		if ( 'description' !== tab && $( window ).width() < 772 ) {
 			$( '#plugin-information-content' ).find( '.fyi' ).hide();
 		} else {

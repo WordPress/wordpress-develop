@@ -8,7 +8,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'list_users' ) ) {
 	wp_die(
@@ -25,7 +25,7 @@ $parent_file   = 'users.php';
 
 add_screen_option( 'per_page' );
 
-// contextual help - choose Help on the top right of admin panel to preview this.
+// Contextual help - choose Help on the top right of admin panel to preview this.
 get_current_screen()->add_help_tab(
 	array(
 		'id'      => 'overview',
@@ -53,9 +53,9 @@ $help = '<p>' . __( 'Hovering over a row in the users list will display action l
 	'<li>' . __( '<strong>Edit</strong> takes you to the editable profile screen for that user. You can also reach that screen by clicking on the username.' ) . '</li>';
 
 if ( is_multisite() ) {
-	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Remove</strong> allows you to remove a user from your site. It does not delete their content. You can also remove multiple users at once by using bulk actions.' ) . '</li>';
 } else {
-	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using Bulk Actions.' ) . '</li>';
+	$help .= '<li>' . __( '<strong>Delete</strong> brings you to the Delete Users screen for confirmation, where you can permanently remove a user from your site and delete their content. You can also delete multiple users at once by using bulk actions.' ) . '</li>';
 }
 
 $help .= '</ul>';
@@ -71,9 +71,9 @@ unset( $help );
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Users_Screen">Documentation on Managing Users</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Roles_and_Capabilities">Descriptions of Roles and Capabilities</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/users-screen/">Documentation on Managing Users</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/roles-and-capabilities/">Descriptions of Roles and Capabilities</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 get_current_screen()->set_screen_reader_content(
@@ -108,16 +108,11 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		$editable_roles = get_editable_roles();
-		$role           = false;
-		if ( ! empty( $_REQUEST['new_role2'] ) ) {
-			$role = $_REQUEST['new_role2'];
-		} elseif ( ! empty( $_REQUEST['new_role'] ) ) {
-			$role = $_REQUEST['new_role'];
-		}
+		$role           = $_REQUEST['new_role'];
 
 		if ( ! $role || empty( $editable_roles[ $role ] ) ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
@@ -131,7 +126,8 @@ switch ( $wp_list_table->current_action() ) {
 			if ( ! current_user_can( 'promote_user', $id ) ) {
 				wp_die( __( 'Sorry, you are not allowed to edit this user.' ), 403 );
 			}
-			// The new role of the current user must also have the promote_users cap or be a multisite super admin
+
+			// The new role of the current user must also have the promote_users cap or be a multisite super admin.
 			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
 			&& ! ( is_multisite() && current_user_can( 'manage_network_users' ) ) ) {
 					$update = 'err_admin_role';
@@ -152,7 +148,7 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		wp_redirect( add_query_arg( 'update', $update, $redirect ) );
-		exit();
+		exit;
 
 	case 'dodelete':
 		if ( is_multisite() ) {
@@ -163,7 +159,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		$userids = array_map( 'intval', (array) $_REQUEST['users'] );
@@ -210,7 +206,7 @@ switch ( $wp_list_table->current_action() ) {
 			$redirect
 		);
 		wp_redirect( $redirect );
-		exit();
+		exit;
 
 	case 'resetpassword':
 		check_admin_referer('bulk-users');
@@ -260,7 +256,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		if ( ! current_user_can( 'delete_users' ) ) {
@@ -268,23 +264,41 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = array_map( 'intval', (array) $_REQUEST['users'] );
 		}
 
-		$users_have_content = false;
-		if ( $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_author IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
-			$users_have_content = true;
-		} elseif ( $wpdb->get_var( "SELECT link_id FROM {$wpdb->links} WHERE link_owner IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
-			$users_have_content = true;
+		$all_userids = $userids;
+
+		if ( in_array( $current_user->ID, $userids, true ) ) {
+			$userids = array_diff( $userids, array( $current_user->ID ) );
+		}
+
+		/**
+		 * Filters whether the users being deleted have additional content
+		 * associated with them outside of the `post_author` and `link_owner` relationships.
+		 *
+		 * @since 5.2.0
+		 *
+		 * @param bool  $users_have_additional_content Whether the users have additional content. Default false.
+		 * @param int[] $userids                       Array of IDs for users being deleted.
+		 */
+		$users_have_content = (bool) apply_filters( 'users_have_additional_content', false, $userids );
+
+		if ( $userids && ! $users_have_content ) {
+			if ( $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_author IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
+				$users_have_content = true;
+			} elseif ( $wpdb->get_var( "SELECT link_id FROM {$wpdb->links} WHERE link_owner IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
+				$users_have_content = true;
+			}
 		}
 
 		if ( $users_have_content ) {
 			add_action( 'admin_head', 'delete_users_add_js' );
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 	<form method="post" name="updateusers" id="updateusers">
 		<?php wp_nonce_field( 'delete-users' ); ?>
@@ -294,11 +308,11 @@ switch ( $wp_list_table->current_action() ) {
 <h1><?php _e( 'Delete Users' ); ?></h1>
 		<?php if ( isset( $_REQUEST['error'] ) ) : ?>
 	<div class="error">
-		<p><strong><?php _e( 'ERROR:' ); ?></strong> <?php _e( 'Please select an option.' ); ?></p>
+		<p><strong><?php _e( 'Error:' ); ?></strong> <?php _e( 'Please select an option.' ); ?></p>
 	</div>
 		<?php endif; ?>
 
-		<?php if ( 1 == count( $userids ) ) : ?>
+		<?php if ( 1 === count( $all_userids ) ) : ?>
 	<p><?php _e( 'You have specified this user for deletion:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for deletion:' ); ?></p>
@@ -307,13 +321,13 @@ switch ( $wp_list_table->current_action() ) {
 <ul>
 		<?php
 		$go_delete = 0;
-		foreach ( $userids as $id ) {
+		foreach ( $all_userids as $id ) {
 			$user = get_userdata( $id );
 			if ( $id == $current_user->ID ) {
-				/* translators: 1: user id, 2: user login */
+				/* translators: 1: User ID, 2: User login. */
 				echo '<li>' . sprintf( __( 'ID #%1$s: %2$s <strong>The current user will not be deleted.</strong>' ), $id, $user->user_login ) . "</li>\n";
 			} else {
-				/* translators: 1: user id, 2: user login */
+				/* translators: 1: User ID, 2: User login. */
 				echo '<li><input type="hidden" name="users[]" value="' . esc_attr( $id ) . '" />' . sprintf( __( 'ID #%1$s: %2$s' ), $id, $user->user_login ) . "</li>\n";
 				$go_delete++;
 			}
@@ -341,7 +355,7 @@ switch ( $wp_list_table->current_action() ) {
 				wp_dropdown_users(
 					array(
 						'name'    => 'reassign_user',
-						'exclude' => array_diff( $userids, array( $current_user->ID ) ),
+						'exclude' => $userids,
 						'show'    => 'display_name_with_login',
 					)
 				);
@@ -413,7 +427,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		if ( empty( $_REQUEST['users'] ) && empty( $_REQUEST['user'] ) ) {
 			wp_redirect( $redirect );
-			exit();
+			exit;
 		}
 
 		if ( ! current_user_can( 'remove_users' ) ) {
@@ -421,12 +435,12 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( empty( $_REQUEST['users'] ) ) {
-			$userids = array( intval( $_REQUEST['user'] ) );
+			$userids = array( (int) $_REQUEST['user'] );
 		} else {
 			$userids = $_REQUEST['users'];
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 		?>
 	<form method="post" name="updateusers" id="updateusers">
 		<?php wp_nonce_field( 'remove-users' ); ?>
@@ -435,7 +449,7 @@ switch ( $wp_list_table->current_action() ) {
 <div class="wrap">
 <h1><?php _e( 'Remove Users from Site' ); ?></h1>
 
-		<?php if ( 1 == count( $userids ) ) : ?>
+		<?php if ( 1 === count( $userids ) ) : ?>
 	<p><?php _e( 'You have specified this user for removal:' ); ?></p>
 		<?php else : ?>
 	<p><?php _e( 'You have specified these users for removal:' ); ?></p>
@@ -448,10 +462,10 @@ switch ( $wp_list_table->current_action() ) {
 			$id   = (int) $id;
 			$user = get_userdata( $id );
 			if ( ! current_user_can( 'remove_user', $id ) ) {
-				/* translators: 1: user id, 2: user login */
+				/* translators: 1: User ID, 2: User login. */
 				echo '<li>' . sprintf( __( 'ID #%1$s: %2$s <strong>Sorry, you are not allowed to remove this user.</strong>' ), $id, $user->user_login ) . "</li>\n";
 			} else {
-				/* translators: 1: user id, 2: user login */
+				/* translators: 1: User ID, 2: User login. */
 				echo "<li><input type=\"hidden\" name=\"users[]\" value=\"{$id}\" />" . sprintf( __( 'ID #%1$s: %2$s' ), $id, $user->user_login ) . "</li>\n";
 				$go_remove = true;
 			}
@@ -477,11 +491,12 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		if ( $wp_list_table->current_action() && ! empty( $_REQUEST['users'] ) ) {
-			$userids  = $_REQUEST['users'];
+			$screen   = get_current_screen()->id;
 			$sendback = wp_get_referer();
+			$userids  = $_REQUEST['users'];
 
-			/** This action is documented in wp-admin/edit-comments.php */
-			$sendback = apply_filters( 'handle_bulk_actions-' . get_current_screen()->id, $sendback, $wp_list_table->current_action(), $userids );
+			/** This action is documented in wp-admin/edit.php */
+			$sendback = apply_filters( "handle_bulk_actions-{$screen}", $sendback, $wp_list_table->current_action(), $userids ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
 			wp_safe_redirect( $sendback );
 			exit;
@@ -494,7 +509,7 @@ switch ( $wp_list_table->current_action() ) {
 			exit;
 		}
 
-		include( ABSPATH . 'wp-admin/admin-header.php' );
+		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		$messages = array();
 		if ( isset( $_GET['update'] ) ) :
@@ -505,26 +520,30 @@ switch ( $wp_list_table->current_action() ) {
 					if ( 1 == $delete_count ) {
 						$message = __( 'User deleted.' );
 					} else {
+						/* translators: %s: Number of users. */
 						$message = _n( '%s user deleted.', '%s users deleted.', $delete_count );
 					}
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $delete_count ) ) . '</p></div>';
 					break;
 				case 'add':
-					if ( isset( $_GET['id'] ) && ( $user_id = $_GET['id'] ) && current_user_can( 'edit_user', $user_id ) ) {
-						/* translators: %s: edit page url */
-						$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf(
-							__( 'New user created. <a href="%s">Edit user</a>' ),
+					$message = __( 'New user created.' );
+
+					$user_id = isset( $_GET['id'] ) ? $_GET['id'] : false;
+					if ( $user_id && current_user_can( 'edit_user', $user_id ) ) {
+						$message .= sprintf(
+							' <a href="%s">%s</a>',
 							esc_url(
 								add_query_arg(
 									'wp_http_referer',
 									urlencode( wp_unslash( $_SERVER['REQUEST_URI'] ) ),
 									self_admin_url( 'user-edit.php?user_id=' . $user_id )
 								)
-							)
-						) . '</p></div>';
-					} else {
-						$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'New user created.' ) . '</p></div>';
+							),
+							__( 'Edit user' )
+						);
 					}
+
+					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . $message . '</p></div>';
 					break;
 				case 'resetpassword':
 					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
@@ -594,8 +613,13 @@ switch ( $wp_list_table->current_action() ) {
 }
 
 if ( strlen( $usersearch ) ) {
-	/* translators: %s: search keywords */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $usersearch ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $usersearch ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 
@@ -614,11 +638,11 @@ if ( strlen( $usersearch ) ) {
 		<?php $wp_list_table->display(); ?>
 </form>
 
-<br class="clear" />
+<div class="clear" /></div>
 </div>
 		<?php
 		break;
 
-} // end of the $doaction switch
+} // End of the $doaction switch.
 
-include( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

@@ -58,8 +58,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *
 	 * @since 4.9.0
 	 *
-	 * @param integer $number Optional. The unique order number of this widget instance
-	 *                        compared to other instances of the same class. Default -1.
+	 * @param int $number Optional. The unique order number of this widget instance
+	 *                    compared to other instances of the same class. Default -1.
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -70,10 +70,12 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'wp.customHtmlWidgets.idBases.push( %s );', wp_json_encode( $this->id_base ) ) );
 
-		// Note that the widgets component in the customizer will also do the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
+		// Note that the widgets component in the customizer will also do
+		// the 'admin_print_scripts-widgets.php' action in WP_Customize_Widgets::print_scripts().
 		add_action( 'admin_print_scripts-widgets.php', array( $this, 'enqueue_admin_scripts' ) );
 
-		// Note that the widgets component in the customizer will also do the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
+		// Note that the widgets component in the customizer will also do
+		// the 'admin_footer-widgets.php' action in WP_Customize_Widgets::print_footer_scripts().
 		add_action( 'admin_footer-widgets.php', array( 'WP_Widget_Custom_HTML', 'render_control_template_scripts' ) );
 
 		// Note this action is used to ensure the help text is added to the end.
@@ -81,7 +83,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	}
 
 	/**
-	 * Filter gallery shortcode attributes.
+	 * Filters gallery shortcode attributes.
 	 *
 	 * Prevents all of a site's attachments from being shown in a gallery displayed on a
 	 * non-singular template where a $post context is not available.
@@ -103,7 +105,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 *
 	 * @since 4.8.1
 	 *
-	 * @global WP_Post $post
+	 * @global WP_Post $post Global post object.
+	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Custom HTML widget instance.
@@ -143,6 +146,9 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-text.php */
 		$content = apply_filters( 'widget_text', $instance['content'], $simulated_text_widget_instance, $this );
 
+		// Adds 'noopener' relationship, without duplicating values, to all HTML A elements that have a target.
+		$content = wp_targeted_link_rel( $content );
+
 		/**
 		 * Filters the content of the Custom HTML widget.
 		 *
@@ -150,7 +156,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		 *
 		 * @param string                $content  The widget content.
 		 * @param array                 $instance Array of settings for the current widget.
-		 * @param WP_Widget_Custom_HTML $this     Current Custom HTML widget instance.
+		 * @param WP_Widget_Custom_HTML $widget   Current Custom HTML widget instance.
 		 */
 		$content = apply_filters( 'widget_custom_html_content', $content, $instance, $this );
 
@@ -218,10 +224,11 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 
 		$l10n = array(
 			'errorNotice' => array(
-				/* translators: %d: error count */
+				/* translators: %d: Error count. */
 				'singular' => _n( 'There is %d error which must be fixed before you can save.', 'There are %d errors which must be fixed before you can save.', 1 ),
-				/* translators: %d: error count */
-				'plural'   => _n( 'There is %d error which must be fixed before you can save.', 'There are %d errors which must be fixed before you can save.', 2 ), // @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
+				/* translators: %d: Error count. */
+				'plural'   => _n( 'There is %d error which must be fixed before you can save.', 'There are %d errors which must be fixed before you can save.', 2 ),
+				// @todo This is lacking, as some languages have a dedicated dual form. For proper handling of plurals in JS, see #20491.
 			),
 		);
 		wp_add_inline_script( 'custom-html-widgets', sprintf( 'jQuery.extend( wp.customHtmlWidgets.l10n, %s );', wp_json_encode( $l10n ) ), 'after' );
@@ -234,8 +241,8 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 	 * @since 4.9.0 The form contains only hidden sync inputs. For the control UI, see `WP_Widget_Custom_HTML::render_control_template_scripts()`.
 	 *
 	 * @see WP_Widget_Custom_HTML::render_control_template_scripts()
+	 *
 	 * @param array $instance Current instance.
-	 * @returns void
 	 */
 	public function form( $instance ) {
 		$instance = wp_parse_args( (array) $instance, $this->default_instance );
@@ -274,7 +281,7 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 					<# if ( data.codeEditorDisabled ) { #>
 						<p>
 							<?php _e( 'Some HTML tags are not permitted, including:' ); ?>
-							<code><?php echo join( '</code>, <code>', $disallowed_html ); ?></code>
+							<code><?php echo implode( '</code>, <code>', $disallowed_html ); ?></code>
 						</p>
 					<# } #>
 				<?php endif; ?>
@@ -300,13 +307,13 @@ class WP_Widget_Custom_HTML extends WP_Widget {
 		if ( 'false' !== wp_get_current_user()->syntax_highlighting ) {
 			$content .= '<p>';
 			$content .= sprintf(
-				/* translators: 1: link to user profile, 2: additional link attributes, 3: accessibility text */
+				/* translators: 1: Link to user profile, 2: Additional link attributes, 3: Accessibility text. */
 				__( 'The edit field automatically highlights code syntax. You can disable this in your <a href="%1$s" %2$s>user profile%3$s</a> to work in plain text mode.' ),
 				esc_url( get_edit_profile_url() ),
 				'class="external-link" target="_blank"',
 				sprintf(
 					'<span class="screen-reader-text"> %s</span>',
-					/* translators: accessibility text */
+					/* translators: Accessibility text. */
 					__( '(opens in a new tab)' )
 				)
 			);

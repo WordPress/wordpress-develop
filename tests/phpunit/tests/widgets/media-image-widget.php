@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$widget = new WP_Widget_Media_Image();
 		$schema = $widget->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'alt',
 				'attachment_id',
@@ -58,9 +58,41 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test schema filtering.
+	 *
+	 * @covers WP_Widget_Media_Image::get_instance_schema
+	 *
+	 * @ticket 45029
+	 */
+	function test_get_instance_schema_filtering() {
+		$widget = new WP_Widget_Media_Image();
+		$schema = $widget->get_instance_schema();
+
+		add_filter( 'widget_media_image_instance_schema', array( $this, 'filter_instance_schema' ), 10, 2 );
+		$schema = $widget->get_instance_schema();
+
+		$this->assertSame( 'large', $schema['size']['default'] );
+	}
+
+	/**
+	 * Filters instance schema.
+	 *
+	 * @since 5.2.0
+	 *
+	 * @param array                 $schema Schema.
+	 * @param WP_Widget_Media_Image $widget Widget.
+	 * @return array
+	 */
+	public function filter_instance_schema( $schema, $widget ) {
+		// Override the default size value ('medium').
+		$schema['size']['default'] = 'large';
+		return $schema;
+	}
+
+	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Image::__construct()
+	 * @covers WP_Widget_Media_Image::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Image();
@@ -69,8 +101,8 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'image', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'image', $widget->widget_options['mime_type'] );
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',
@@ -376,11 +408,12 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	 * Test render_media method.
 	 *
 	 * @covers WP_Widget_Media_Image::render_media
+	 * @requires function imagejpeg
 	 */
 	function test_render_media() {
 		$widget = new WP_Widget_Media_Image();
 
-		$test_image = '/tmp/canola.jpg';
+		$test_image = get_temp_dir() . 'canola.jpg';
 		copy( DIR_TESTDATA . '/images/canola.jpg', $test_image );
 		$attachment_id = self::factory()->attachment->create_object(
 			array(
@@ -509,6 +542,7 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 		$this->assertContains( '<a href="https://example.org"', $output );
 		$this->assertContains( 'target="_blank"', $output );
+		$this->assertContains( 'rel="noopener"', $output );
 
 		// Populate caption in attachment.
 		wp_update_post(
@@ -552,6 +586,21 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 		$output = ob_get_clean();
 		$this->assertContains( 'class="wp-caption alignnone"', $output );
 		$this->assertContains( '<p class="wp-caption-text">Custom caption</p>', $output );
+
+		// Attachments with custom sizes can render captions.
+		ob_start();
+		$widget->render_media(
+			array(
+				'attachment_id' => $attachment_id,
+				'size'          => 'custom',
+				'width'         => '300',
+				'height'        => '200',
+				'caption'       => 'Caption for an image with custom size',
+			)
+		);
+		$output = ob_get_clean();
+		$this->assertContains( 'style="width: 310px"', $output );
+		$this->assertContains( '<p class="wp-caption-text">Caption for an image with custom size</p>', $output );
 	}
 
 	/**

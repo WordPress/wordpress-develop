@@ -1,7 +1,7 @@
 <?php
-include_once( ABSPATH . 'wp-admin/includes/admin.php' );
-include_once( ABSPATH . WPINC . '/class-IXR.php' );
-include_once( ABSPATH . WPINC . '/class-wp-xmlrpc-server.php' );
+require_once ABSPATH . 'wp-admin/includes/admin.php';
+require_once ABSPATH . WPINC . '/class-IXR.php';
+require_once ABSPATH . WPINC . '/class-wp-xmlrpc-server.php';
 
 class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 	protected $myxmlrpcserver;
@@ -22,7 +22,7 @@ class WP_XMLRPC_UnitTestCase extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	protected function make_user_by_role( $role ) {
+	protected static function make_user_by_role( $role ) {
 		return self::factory()->user->create(
 			array(
 				'user_login' => $role,

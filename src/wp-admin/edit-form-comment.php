@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 
-// don't load directly
+// Don't load directly.
 if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
@@ -43,7 +43,7 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 <h2 class="edit-comment-author"><?php _e( 'Author' ); ?></h2>
 <fieldset>
 <legend class="screen-reader-text"><?php _e( 'Comment Author' ); ?></legend>
-<table class="form-table editcomment">
+<table class="form-table editcomment" role="presentation">
 <tbody>
 <tr>
 	<td class="first"><label for="name"><?php _e( 'Name' ); ?></label></td>
@@ -87,32 +87,53 @@ if ( 'approved' === wp_get_comment_status( $comment ) && $comment->comment_post_
 
 <div id="postbox-container-1" class="postbox-container">
 <div id="submitdiv" class="stuffbox" >
-<h2><?php _e( 'Status' ); ?></h2>
+<h2><?php _e( 'Save' ); ?></h2>
 <div class="inside">
 <div class="submitbox" id="submitcomment">
 <div id="minor-publishing">
 
 <div id="misc-publishing-actions">
 
-<fieldset class="misc-pub-section misc-pub-comment-status" id="comment-status-radio">
+<div class="misc-pub-section misc-pub-comment-status" id="comment-status">
+<?php _e( 'Status:' ); ?> <span id="comment-status-display">
+<?php
+switch ( $comment->comment_approved ) {
+	case '1':
+		_e( 'Approved' );
+		break;
+	case '0':
+		_e( 'Pending' );
+		break;
+	case 'spam':
+		_e( 'Spam' );
+		break;
+}
+?>
+</span>
+
+<fieldset id="comment-status-radio">
 <legend class="screen-reader-text"><?php _e( 'Comment status' ); ?></legend>
 <label><input type="radio"<?php checked( $comment->comment_approved, '1' ); ?> name="comment_status" value="1" /><?php _ex( 'Approved', 'comment status' ); ?></label><br />
 <label><input type="radio"<?php checked( $comment->comment_approved, '0' ); ?> name="comment_status" value="0" /><?php _ex( 'Pending', 'comment status' ); ?></label><br />
 <label><input type="radio"<?php checked( $comment->comment_approved, 'spam' ); ?> name="comment_status" value="spam" /><?php _ex( 'Spam', 'comment status' ); ?></label>
 </fieldset>
+</div><!-- .misc-pub-section -->
 
 <div class="misc-pub-section curtime misc-pub-curtime">
 <?php
-/* translators: Publish box date format, see https://secure.php.net/date */
-$datef = __( 'M j, Y @ H:i' );
+$submitted = sprintf(
+	/* translators: 1: Comment date, 2: Comment time. */
+	__( '%1$s at %2$s' ),
+	/* translators: Publish box date format, see https://www.php.net/manual/datetime.format.php */
+	date_i18n( _x( 'M j, Y', 'publish box date format' ), strtotime( $comment->comment_date ) ),
+	/* translators: Publish box time format, see https://www.php.net/manual/datetime.format.php */
+	date_i18n( _x( 'H:i', 'publish box time format' ), strtotime( $comment->comment_date ) )
+);
 ?>
 <span id="timestamp">
 <?php
-printf(
-	/* translators: %s: comment date */
-	__( 'Submitted on: %s' ),
-	'<b>' . date_i18n( $datef, strtotime( $comment->comment_date ) ) . '</b>'
-);
+/* translators: %s: Comment date. */
+printf( __( 'Submitted on: %s' ), '<b>' . $submitted . '</b>' );
 ?>
 </span>
 <a href="#edit_timestamp" class="edit-timestamp hide-if-no-js"><span aria-hidden="true"><?php _e( 'Edit' ); ?></span> <span class="screen-reader-text"><?php _e( 'Edit date and time' ); ?></span></a>
@@ -135,7 +156,7 @@ if ( current_user_can( 'edit_post', $post_id ) ) {
 <div class="misc-pub-section misc-pub-response-to">
 	<?php
 	printf(
-		/* translators: %s: post link */
+		/* translators: %s: Post link. */
 		__( 'In response to: %s' ),
 		'<b>' . $post_link . '</b>'
 	);
@@ -152,7 +173,7 @@ if ( $comment->comment_parent ) :
 	<div class="misc-pub-section misc-pub-reply-to">
 		<?php
 		printf(
-			/* translators: %s: comment link */
+			/* translators: %s: Comment link. */
 			__( 'In reply to: %s' ),
 			'<b><a href="' . $parent_link . '">' . $name . '</a></b>'
 		);
@@ -169,8 +190,8 @@ endif;
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param string $html    Output HTML to display miscellaneous action.
-	 * @param object $comment Current comment object.
+	 * @param string     $html    Output HTML to display miscellaneous action.
+	 * @param WP_Comment $comment Current comment object.
 	 */
 	echo apply_filters( 'edit_comment_misc_actions', '', $comment );
 ?>

@@ -26,12 +26,7 @@ EditImage = View.extend(/** @lends wp.media.view.EditImage.prototype */{
 	},
 
 	loadEditor: function() {
-		var dfd = this.editor.open( this.model.get('id'), this.model.get('nonces').edit, this );
-		dfd.done( _.bind( this.focus, this ) );
-	},
-
-	focus: function() {
-		this.$( '.imgedit-submit .button' ).eq( 0 ).focus();
+		this.editor.open( this.model.get( 'id' ), this.model.get( 'nonces' ).edit, this );
 	},
 
 	back: function() {

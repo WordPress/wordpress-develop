@@ -102,7 +102,7 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 				}
 			}, 1000 );
 
-		// Update the URL when entering search string (at most once per second)
+		// Update the URL when entering search string (at most once per second).
 		search.on( 'input', _.bind( input, this ) );
 
 		this.gridRouter
@@ -183,7 +183,7 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 		$browser = this.$('.attachments-browser');
 		$toolbar = $browser.find('.media-toolbar');
 
-		// Offset doesn't appear to take top margin into account, hence +16
+		// Offset doesn't appear to take top margin into account, hence +16.
 		if ( ( $browser.offset().top + 16 ) < this.$window.scrollTop() + this.$adminBar.height() ) {
 			$browser.addClass( 'fixed' );
 			$toolbar.css('width', $browser.width() + 'px');
@@ -271,7 +271,7 @@ Manage = MediaFrame.extend(/** @lends wp.media.view.MediaFrame.Manage.prototype 
 	},
 
 	startHistory: function() {
-		// Verify pushState support and activate
+		// Verify pushState support and activate.
 		if ( window.history && window.history.pushState ) {
 			if ( Backbone.History.started ) {
 				Backbone.history.stop();

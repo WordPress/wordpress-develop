@@ -1,8 +1,8 @@
 === Twenty Fourteen ===
-Contributors: the WordPress team
+Contributors: wordpressdotorg
 Requires at least: WordPress 3.6
-Tested up to: WordPress 5.0
-Stable tag: 2.6
+Tested up to: 5.6
+Stable tag: 3.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, news, two-columns, three-columns, left-sidebar, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready, accessibility-ready
@@ -22,7 +22,7 @@ For more information about Twenty Fourteen please go to https://codex.wordpress.
 
 == Copyright ==
 
-Twenty Fourteen WordPress Theme, Copyright 2013-2018 WordPress.org & Automattic.com
+Twenty Fourteen WordPress Theme, Copyright 2013-2021 WordPress.org & Automattic.com
 Twenty Fourteen is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -49,6 +49,26 @@ License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
 == Changelog ==
+
+= 3.0 =
+* Released: December 8, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_3.0
+
+= 2.9 =
+* Released: August 11, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_2.9
+
+= 2.8 =
+* Released: March 31, 2020
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_2.8
+
+= 2.7 =
+* Released: May 7, 2019
+
+https://codex.wordpress.org/Twenty_Fourteen_Theme_Changelog#Version_2.7
 
 = 2.6 =
 * Released: February 21, 2019

@@ -1,41 +1,41 @@
 /* global passwordStrength, wp, jQuery */
 jQuery( function() {
-	module( 'password-strength-meter' );
+	QUnit.module( 'password-strength-meter' );
 
-	test( 'mismatched passwords should return 5', function() {
-		equal( passwordStrength( 'password1', 'username', 'password2' ), 5, 'mismatched passwords return 5' );
+	QUnit.test( 'mismatched passwords should return 5', function( assert ) {
+		assert.equal( passwordStrength( 'password1', 'username', 'password2' ), 5, 'mismatched passwords return 5' );
 	});
 
-	test( 'passwords shorter than 4 characters should return 0', function() {
-		equal( passwordStrength( 'abc', 'username', 'abc' ), 0, 'short passwords return 0' );
+	QUnit.test( 'passwords shorter than 4 characters should return 0', function( assert ) {
+		assert.equal( passwordStrength( 'abc', 'username', 'abc' ), 0, 'short passwords return 0' );
 	});
 
-	test( 'long complicated passwords should return 4', function() {
+	QUnit.test( 'long complicated passwords should return 4', function( assert ) {
 		var password = function( length ) {
 			var i, n, retVal = '',
 				possibility = 'abcdefghijklnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 			for ( i = 0, n = possibility.length; i < length; i++ ) {
 				retVal += possibility.charAt( Math.floor( Math.random() * n ) );
 			}
-			return retVal + 'aB2'; // add a lower case, uppercase and number just to make sure we always have one of each
+			return retVal + 'aB2'; // Add a lower case, uppercase and number just to make sure we always have one of each.
 		},
 		twofifty = password( 250 );
 
-		equal( passwordStrength( twofifty, 'username', twofifty ), 4, '250 character complicated password returns 4' );
+		assert.equal( passwordStrength( twofifty, 'username', twofifty ), 4, '250 character complicated password returns 4' );
 	});
 
-	test( 'short uncomplicated passwords should return 0', function() {
+	QUnit.test( 'short uncomplicated passwords should return 0', function( assert ) {
 		var letters = 'aaaa',
 			numbers = '1111',
 			password = 'password',
 			uppercase = 'AAAA';
-		equal( passwordStrength( letters, 'username', letters ), 0, 'password of `' + letters + '` returns 0' );
-		equal( passwordStrength( numbers, 'username', numbers ), 0, 'password of `' + numbers + '` returns 0' );
-		equal( passwordStrength( uppercase, 'username', uppercase ), 0, 'password of `' + uppercase + '` returns 0' );
-		equal( passwordStrength( password, 'username', password ), 0, 'password of `' + password + '` returns 0' );
+		assert.equal( passwordStrength( letters, 'username', letters ), 0, 'password of `' + letters + '` returns 0' );
+		assert.equal( passwordStrength( numbers, 'username', numbers ), 0, 'password of `' + numbers + '` returns 0' );
+		assert.equal( passwordStrength( uppercase, 'username', uppercase ), 0, 'password of `' + uppercase + '` returns 0' );
+		assert.equal( passwordStrength( password, 'username', password ), 0, 'password of `' + password + '` returns 0' );
 	});
 
-	test( 'zxcvbn password tests should return the score we expect', function() {
+	QUnit.test( 'zxcvbn password tests should return the score we expect', function( assert ) {
 		var passwords, i;
 		passwords = [
 			{ pw: 'zxcvbn', score: 0 },
@@ -76,27 +76,27 @@ jQuery( function() {
 		];
 
 		for ( i = 0; i < passwords.length; i++ ) {
-			equal( passwordStrength( passwords[i].pw, 'username', passwords[i].pw ), passwords[i].score, 'password of `' + passwords[i].pw + '` returns ' + passwords[i].score );
+			assert.equal( passwordStrength( passwords[i].pw, 'username', passwords[i].pw ), passwords[i].score, 'password of `' + passwords[i].pw + '` returns ' + passwords[i].score );
 		}
 	});
 
-	test( 'blacklisted words in password should be penalized', function() {
+	QUnit.test( 'disallowed words in password should be penalized', function( assert ) {
 		var allowedPasswordScore, penalizedPasswordScore,
 			allowedPassword   = 'a[janedoefoe]4',
 			penalizedPassword = 'a[johndoefoe]4',
-			blacklist         = [ 'extra', 'johndoefoe', 'superfluous' ];
+			disallowedList    = [ 'extra', 'johndoefoe', 'superfluous' ];
 
-		allowedPasswordScore = passwordStrength( allowedPassword, blacklist, allowedPassword );
-		penalizedPasswordScore = passwordStrength( penalizedPassword, blacklist, penalizedPassword );
+		allowedPasswordScore = passwordStrength( allowedPassword, disallowedList, allowedPassword );
+		penalizedPasswordScore = passwordStrength( penalizedPassword, disallowedList, penalizedPassword );
 
-		ok( penalizedPasswordScore < allowedPasswordScore, 'Penalized password scored ' + penalizedPasswordScore + '; allowed password scored: ' + allowedPasswordScore );
+		assert.ok( penalizedPasswordScore < allowedPasswordScore, 'Penalized password scored ' + penalizedPasswordScore + '; allowed password scored: ' + allowedPasswordScore );
 	});
 
-	test( 'user input blacklist array should contain expected words', function() {
-		var blacklist = wp.passwordStrength.userInputBlacklist();
+	QUnit.test( 'user input disallowed list array should contain expected words', function( assert ) {
+		var disallowedList = wp.passwordStrength.userInputDisallowedList();
 
-		ok( jQuery.isArray( blacklist ), 'blacklist is an array' );
-		ok( jQuery.inArray( 'WordPress', blacklist ) > -1, 'blacklist contains "WordPress" from page title' );
-		ok( jQuery.inArray( 'tests', blacklist ) > -1, 'blacklist contains "tests" from site URL' );
+		assert.ok( jQuery.isArray( disallowedList ), 'disallowed list is an array' );
+		assert.ok( jQuery.inArray( 'WordPress', disallowedList ) > -1, 'disallowed list contains "WordPress" from page title' );
+		assert.ok( jQuery.inArray( 'tests', disallowedList ) > -1, 'disallowed list contains "tests" from site URL' );
 	});
 });

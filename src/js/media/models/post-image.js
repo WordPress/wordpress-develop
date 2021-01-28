@@ -30,7 +30,7 @@ var PostImage = Backbone.Model.extend(/** @lends wp.media.model.PostImage.protot
 			this.bindAttachmentListeners();
 		}
 
-		// keep url in sync with changes to the type of link
+		// Keep URL in sync with changes to the type of link.
 		this.on( 'change:link', this.updateLinkUrl, this );
 		this.on( 'change:size', this.updateSize, this );
 
@@ -70,7 +70,7 @@ var PostImage = Backbone.Model.extend(/** @lends wp.media.model.PostImage.protot
 			return;
 		}
 
-		// default to custom if there is a linkUrl
+		// Default to custom if there is a linkUrl.
 		type = 'custom';
 
 		if ( this.attachment ) {

@@ -8,7 +8,7 @@
  */
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_sites' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to edit this site.' ) );
@@ -17,7 +17,7 @@ if ( ! current_user_can( 'manage_sites' ) ) {
 get_current_screen()->add_help_tab( get_site_screen_help_tab_args() );
 get_current_screen()->set_help_sidebar( get_site_screen_help_sidebar_content() );
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
 	wp_die( __( 'Invalid site ID.' ) );
@@ -34,7 +34,7 @@ if ( ! can_edit_network( $details->site_id ) ) {
 
 $is_main_site = is_main_site( $id );
 
-if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] && is_array( $_POST['option'] ) ) {
+if ( isset( $_REQUEST['action'] ) && 'update-site' === $_REQUEST['action'] && is_array( $_POST['option'] ) ) {
 	check_admin_referer( 'edit-site' );
 
 	switch_to_blog( $id );
@@ -43,8 +43,8 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] && is_
 	foreach ( (array) $_POST['option'] as $key => $val ) {
 		$key = wp_unslash( $key );
 		$val = wp_unslash( $val );
-		if ( $key === 0 || is_array( $val ) || in_array( $key, $skip_options ) ) {
-			continue; // Avoids "0 is a protected WP option and may not be modified" error when edit blog options
+		if ( 0 === $key || is_array( $val ) || in_array( $key, $skip_options, true ) ) {
+			continue; // Avoids "0 is a protected WP option and may not be modified" error when editing blog options.
 		}
 		update_option( $key, $val );
 	}
@@ -74,18 +74,18 @@ if ( isset( $_REQUEST['action'] ) && 'update-site' == $_REQUEST['action'] && is_
 
 if ( isset( $_GET['update'] ) ) {
 	$messages = array();
-	if ( 'updated' == $_GET['update'] ) {
+	if ( 'updated' === $_GET['update'] ) {
 		$messages[] = __( 'Site options updated.' );
 	}
 }
 
-/* translators: %s: site name */
+/* translators: %s: Site title. */
 $title = sprintf( __( 'Edit Site: %s' ), esc_html( $details->blogname ) );
 
 $parent_file  = 'sites.php';
 $submenu_file = 'sites.php';
 
-require( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 
 ?>
 
@@ -111,7 +111,7 @@ if ( ! empty( $messages ) ) {
 <form method="post" action="site-settings.php?action=update-site">
 	<?php wp_nonce_field( 'edit-site' ); ?>
 	<input type="hidden" name="id" value="<?php echo esc_attr( $id ); ?>" />
-	<table class="form-table">
+	<table class="form-table" role="presentation">
 		<?php
 		$blog_prefix = $wpdb->get_blog_prefix( $id );
 		$sql         = "SELECT * FROM {$blog_prefix}options
@@ -123,12 +123,15 @@ if ( ! empty( $messages ) ) {
 			'%' . $wpdb->esc_like( 'user_roles' )
 		);
 		$options     = $wpdb->get_results( $query );
+
 		foreach ( $options as $option ) {
-			if ( $option->option_name == 'default_role' ) {
+			if ( 'default_role' === $option->option_name ) {
 				$editblog_default_role = $option->option_value;
 			}
+
 			$disabled = false;
 			$class    = 'all-options';
+
 			if ( is_serialized( $option->option_value ) ) {
 				if ( is_serialized_string( $option->option_value ) ) {
 					$option->option_value = esc_html( maybe_unserialize( $option->option_value ) );
@@ -138,6 +141,7 @@ if ( ! empty( $messages ) ) {
 					$class                = 'all-options disabled';
 				}
 			}
+
 			if ( strpos( $option->option_value, "\n" ) !== false ) {
 				?>
 				<tr class="form-field">
@@ -149,7 +153,7 @@ if ( ! empty( $messages ) ) {
 				?>
 				<tr class="form-field">
 					<th scope="row"><label for="<?php echo esc_attr( $option->option_name ); ?>"><?php echo esc_html( ucwords( str_replace( '_', ' ', $option->option_name ) ) ); ?></label></th>
-					<?php if ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ) ) ) { ?>
+					<?php if ( $is_main_site && in_array( $option->option_name, array( 'siteurl', 'home' ), true ) ) { ?>
 					<td><code><?php echo esc_html( $option->option_value ); ?></code></td>
 					<?php } else { ?>
 					<td><input class="<?php echo $class; ?>" name="option[<?php echo esc_attr( $option->option_name ); ?>]" type="text" id="<?php echo esc_attr( $option->option_name ); ?>" value="<?php echo esc_attr( $option->option_value ); ?>" size="40" <?php disabled( $disabled ); ?> /></td>
@@ -157,7 +161,8 @@ if ( ! empty( $messages ) ) {
 				</tr>
 				<?php
 			}
-		} // End foreach
+		} // End foreach.
+
 		/**
 		 * Fires at the end of the Edit Site form, before the submit button.
 		 *
@@ -173,4 +178,4 @@ if ( ! empty( $messages ) ) {
 
 </div>
 <?php
-require( ABSPATH . 'wp-admin/admin-footer.php' );
+require_once ABSPATH . 'wp-admin/admin-footer.php';

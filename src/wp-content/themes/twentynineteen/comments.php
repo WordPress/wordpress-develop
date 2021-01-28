@@ -9,7 +9,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 /*
@@ -36,11 +36,11 @@ $discussion = twentynineteen_get_discussion_data();
 			}
 		} else {
 			if ( '1' == $discussion->responses ) {
-				/* translators: %s: post title */
+				/* translators: %s: Post title. */
 				printf( _x( 'One reply on &ldquo;%s&rdquo;', 'comments title', 'twentynineteen' ), get_the_title() );
 			} else {
 				printf(
-					/* translators: 1: number of comments, 2: post title */
+					/* translators: 1: Number of comments, 2: Post title. */
 					_nx(
 						'%1$s reply on &ldquo;%2$s&rdquo;',
 						'%1$s replies on &ldquo;%2$s&rdquo;',
@@ -56,7 +56,7 @@ $discussion = twentynineteen_get_discussion_data();
 		?>
 		</h2><!-- .comments-title -->
 		<?php
-			// Only show discussion meta information when comments are open and available.
+		// Only show discussion meta information when comments are open and available.
 		if ( have_comments() && comments_open() ) {
 			get_template_part( 'template-parts/post/discussion', 'meta' );
 		}
@@ -85,7 +85,7 @@ $discussion = twentynineteen_get_discussion_data();
 		</ol><!-- .comment-list -->
 		<?php
 
-		// Show comment navigation
+		// Show comment navigation.
 		if ( have_comments() ) :
 			$prev_icon     = twentynineteen_get_icon_svg( 'chevron_left', 22 );
 			$next_icon     = twentynineteen_get_icon_svg( 'chevron_right', 22 );

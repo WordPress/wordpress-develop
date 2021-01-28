@@ -1,0 +1,116 @@
+name: End-to-end Tests
+
+on:
+  push:
+    branches:
+      - master
+      # The end to end test suite was introduced in WordPress 5.3.
+      - '5.[3-9]'
+      - '[6-9].*'
+  pull_request:
+
+env:
+  LOCAL_DIR: build
+
+jobs:
+  # Runs the end-to-end test suite.
+  #
+  # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
+  # - Set environment variables.
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Starts the WordPress Docker container.
+  # - Logs general debug information.
+  # - Logs the running Docker containers.
+  # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
+  # - Install WordPress within the Docker container.
+  # - Run the E2E tests.
+  # - todo: Configure Slack notifications for failing tests.
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@0.5.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: Configure environment variables
+        run: |
+          echo "PHP_FPM_UID=$(id -u)" >> $GITHUB_ENV
+          echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+          php --version
+          php -i
+          locale -a
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Dependencies
+        run: npx install-changed --install-command="npm ci"
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Start Docker environment
+        run: |
+          npm run env:start
+
+      - name: General debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Log running Docker containers
+        run: docker ps -a
+
+      - name: Docker debug information
+        run: |
+          docker -v
+          docker-compose -v
+          docker-compose run --rm mysql mysql --version
+          docker-compose run --rm php php --version
+          docker-compose run --rm php php -m
+          docker-compose run --rm php php -i
+          docker-compose run --rm php locale -a
+
+      - name: Install WordPress
+        run: npm run env:install
+
+      - name: Run E2E tests
+        run: npm run test:e2e

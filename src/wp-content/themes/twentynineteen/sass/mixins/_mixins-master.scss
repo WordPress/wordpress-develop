@@ -74,6 +74,15 @@
 		margin: $size__spacing-unit 0;
 		width: 1em;
 	}
+
+	&.has-text-align-center:before {
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	&.has-text-align-right:before {
+		margin-left: auto;
+	}
 }
 
 /* If we add the border using a regular CSS border, it won't look good on non-retina devices,
@@ -82,9 +91,9 @@
 
 @mixin box-shadow( $size ) {
 	box-shadow:
-		0 0 0 $size $color__text-light inset,         	// Original border.
-		0 0 0 ($size + 1px) $color__text-light inset, 	// Antialiasing, inner edge.
-		0 0 1px 0 rgba( $color__text-light, 0.7 );  	// Antialiasing, outer edge.
+		0 0 0 $size $color__text-light inset,           // Original border.
+		0 0 0 ($size + 1px) $color__text-light inset,   // Antialiasing, inner edge.
+		0 0 1px 0 rgba( $color__text-light, 0.7 );      // Antialiasing, outer edge.
 }
 
 /* Calculates maximum width for post content */

@@ -15,8 +15,8 @@
  * @since Twenty Eleven 1.0
  */
 
-// Enqueue showcase script for the slider
-wp_enqueue_script( 'twentyeleven-showcase', get_template_directory_uri() . '/js/showcase.js', array( 'jquery' ), '2011-04-28' );
+// Enqueue showcase script for the slider.
+wp_enqueue_script( 'twentyeleven-showcase', get_template_directory_uri() . '/js/showcase.js', array( 'jquery' ), '20110429' );
 
 get_header(); ?>
 
@@ -33,7 +33,7 @@ get_header(); ?>
 					 * We are using a heading by rendering the_content
 					 * If we have content for this page, let's display it.
 					 */
-					if ( '' != get_the_content() ) {
+					if ( '' !== get_the_content() ) {
 						get_template_part( 'content', 'intro' );
 					}
 					?>
@@ -62,7 +62,7 @@ get_header(); ?>
 					// The Featured Posts query.
 					$featured = new WP_Query( $featured_args );
 
-					// Proceed only if published posts exist
+					// Proceed only if published posts exist.
 					if ( $featured->have_posts() ) :
 
 						/*
@@ -91,13 +91,13 @@ get_header(); ?>
 							$counter_slider++;
 
 							/*
-							* We're going to add a class to our featured post for featured images
-							* by default it'll have the feature-text class.
+							* We're going to add a class to our featured post for featured images.
+							* By default it will have the feature-text class.
 							*/
 							$feature_class = 'feature-text';
 
 							if ( has_post_thumbnail() ) {
-								// ... but if it has a featured image let's add some class
+								// ...but if it has a featured image let's add some class.
 								$feature_class = 'feature-image small';
 
 								// Hang on. Let's check this here image out.
@@ -124,8 +124,11 @@ get_header(); ?>
 								} else {
 									$thumbnail_size = 'small-feature';
 								}
+
+								/* translators: %s: Post title. */
+								$title = sprintf( __( 'Permalink to %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) );
 								?>
-						<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( sprintf( __( 'Permalink to %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) ) ); ?>" rel="bookmark"><?php the_post_thumbnail( $thumbnail_size ); ?></a>
+						<a href="<?php the_permalink(); ?>" title="<?php echo esc_attr( $title ); ?>" rel="bookmark"><?php the_post_thumbnail( $thumbnail_size ); ?></a>
 								<?php
 							}
 							?>
@@ -141,10 +144,10 @@ get_header(); ?>
 					<ul>
 							<?php
 
-							// Reset the counter so that we end up with matching elements
+							// Reset the counter so that we end up with matching elements.
 							$counter_slider = 0;
 
-							// Begin from zero
+							// Begin from zero.
 							rewind_posts();
 
 							// Let's roll again.
@@ -156,8 +159,11 @@ get_header(); ?>
 								} else {
 									$class = '';
 								}
+
+								/* translators: %s: Post title. */
+								$title = sprintf( __( 'Featuring: %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) );
 								?>
-					<li><a href="#featured-post-<?php echo esc_attr( $counter_slider ); ?>" title="<?php echo esc_attr( sprintf( __( 'Featuring: %s', 'twentyeleven' ), the_title_attribute( 'echo=0' ) ) ); ?>"<?php echo $class; ?>></a></li>
+					<li><a href="#featured-post-<?php echo esc_attr( $counter_slider ); ?>" title="<?php echo esc_attr( $title ); ?>"<?php echo $class; ?>></a></li>
 						<?php endwhile; ?>
 					</ul>
 					</nav>
@@ -189,7 +195,7 @@ get_header(); ?>
 					// Our new query for the Recent Posts section.
 					$recent = new WP_Query( $recent_args );
 
-					// The first Recent post is displayed normally
+					// The first Recent post is displayed normally.
 					if ( $recent->have_posts() ) :
 						$recent->the_post();
 
@@ -218,7 +224,7 @@ get_header(); ?>
 						<?php
 					endwhile;
 
-					// If we had some posts, close the <ol>
+					// If we had some posts, close the <ol>.
 					if ( $recent->post_count > 0 ) {
 						echo '</ol>';
 					}
@@ -239,7 +245,7 @@ get_header(); ?>
 						);
 						?>
 
-					<?php endif; // end sidebar widget area ?>
+					<?php endif; // End sidebar widget area. ?>
 				</div><!-- .widget-area -->
 
 			</div><!-- #content -->

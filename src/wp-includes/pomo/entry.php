@@ -18,16 +18,16 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *
 		 * @var boolean
 		 */
-		var $is_plural = false;
+		public $is_plural = false;
 
-		var $context             = null;
-		var $singular            = null;
-		var $plural              = null;
-		var $translations        = array();
-		var $translator_comments = '';
-		var $extracted_comments  = '';
-		var $references          = array();
-		var $flags               = array();
+		public $context             = null;
+		public $singular            = null;
+		public $plural              = null;
+		public $translations        = array();
+		public $translator_comments = '';
+		public $extracted_comments  = '';
+		public $references          = array();
+		public $flags               = array();
 
 		/**
 		 * @param array $args associative array, support following keys:
@@ -41,11 +41,11 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 		 *  - flags (array) -- flags like php-format
 		 */
 		function __construct( $args = array() ) {
-			// if no singular -- empty object
+			// If no singular -- empty object.
 			if ( ! isset( $args['singular'] ) ) {
 				return;
 			}
-			// get member variable values from args hash
+			// Get member variable values from args hash.
 			foreach ( $args as $varname => $value ) {
 				$this->$varname = $value;
 			}
@@ -65,8 +65,13 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 
 		/**
 		 * PHP4 constructor.
+		 *
+		 * @deprecated 5.4.0 Use __construct() instead.
+		 *
+		 * @see Translation_Entry::__construct()
 		 */
 		public function Translation_Entry( $args = array() ) {
+			_deprecated_constructor( self::class, '5.4.0', static::class );
 			self::__construct( $args );
 		}
 
@@ -80,9 +85,9 @@ if ( ! class_exists( 'Translation_Entry', false ) ) :
 				return false;
 			}
 
-			// Prepend context and EOT, like in MO files
+			// Prepend context and EOT, like in MO files.
 			$key = ! $this->context ? $this->singular : $this->context . "\4" . $this->singular;
-			// Standardize on \n line endings
+			// Standardize on \n line endings.
 			$key = str_replace( array( "\r\n", "\r" ), "\n", $key );
 
 			return $key;

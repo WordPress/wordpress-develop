@@ -74,7 +74,7 @@ function twentythirteen_custom_header_fonts() {
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 
 	// Add Genericons font.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.03' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 }
 add_action( 'admin_print_styles-appearance_page_custom-header', 'twentythirteen_custom_header_fonts' );
 
@@ -90,7 +90,7 @@ function twentythirteen_header_style() {
 	$text_color   = get_header_textcolor();
 
 	// If no custom options for text are set, let's bail.
-	if ( empty( $header_image ) && $text_color == get_theme_support( 'custom-header', 'default-text-color' ) ) {
+	if ( empty( $header_image ) && get_theme_support( 'custom-header', 'default-text-color' ) == $text_color ) {
 		return;
 	}
 
@@ -136,7 +136,7 @@ function twentythirteen_header_style() {
 		endif;
 
 		// If the user has set a custom color for the text, use that.
-		elseif ( $text_color != get_theme_support( 'custom-header', 'default-text-color' ) ) :
+		elseif ( get_theme_support( 'custom-header', 'default-text-color' ) != $text_color ) :
 			?>
 		.site-title,
 		.site-description {

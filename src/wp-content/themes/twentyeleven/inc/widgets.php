@@ -4,7 +4,7 @@
  *
  * Handles displaying Aside, Link, Status, and Quote Posts available with Twenty Eleven.
  *
- * @link https://codex.wordpress.org/Widgets_API#Developing_Widgets
+ * @link https://developer.wordpress.org/themes/functionality/widgets/#developing-widgets
  *
  * @package WordPress
  * @subpackage Twenty_Eleven
@@ -38,6 +38,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 	 * PHP4 constructor.
 	 *
 	 * @since Twenty Eleven 1.0
+	 * @deprecated Twenty Eleven 2.2
 	 */
 	function Twenty_Eleven_Ephemera_Widget() {
 		self::__construct();
@@ -76,7 +77,8 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 			$instance['number'] = '10';
 		}
 
-		if ( ! $args['number'] = absint( $instance['number'] ) ) {
+		$args['number'] = absint( $instance['number'] );
+		if ( ! $args['number'] ) {
 			$args['number'] = 10;
 		}
 
@@ -109,7 +111,7 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 				$ephemera->the_post();
 				?>
 
-				<?php if ( 'link' != get_post_format() ) : ?>
+				<?php if ( 'link' !== get_post_format() ) : ?>
 
 				<li class="widget-entry-title">
 					<a href="<?php echo esc_url( get_permalink() ); ?>" rel="bookmark"><?php the_title(); ?></a>
@@ -135,10 +137,10 @@ class Twenty_Eleven_Ephemera_Widget extends WP_Widget {
 
 			echo $args['after_widget'];
 
-			// Reset the post globals as this query will have stomped on it
+			// Reset the post globals as this query will have stomped on it.
 			wp_reset_postdata();
 
-			// end check for ephemeral posts
+			// End check for ephemeral posts.
 		endif;
 
 		$cache[ $args['widget_id'] ] = ob_get_flush();

@@ -111,9 +111,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	 */
 	public function upgrade_strings() {
 		$this->strings['starting_upgrade'] = __( 'Some of your translations need updating. Sit tight for a few more seconds while we update them as well.' );
-		$this->strings['up_to_date']       = __( 'The translations are up to date.' );
+		$this->strings['up_to_date']       = __( 'Your translations are all up to date.' );
 		$this->strings['no_package']       = __( 'Update package not available.' );
-		/* translators: %s: package URL */
+		/* translators: %s: Package URL. */
 		$this->strings['downloading_package'] = sprintf( __( 'Downloading translation from %s&#8230;' ), '<span class="code">%s</span>' );
 		$this->strings['unpack_package']      = __( 'Unpacking the update&#8230;' );
 		$this->strings['process_failed']      = __( 'Translation update failed.' );
@@ -188,11 +188,11 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			return true;
 		}
 
-		if ( 'upgrader_process_complete' == current_filter() ) {
+		if ( 'upgrader_process_complete' === current_filter() ) {
 			$this->skin->feedback( 'starting_upgrade' );
 		}
 
-		// Remove any existing upgrade filters from the plugin/theme upgraders #WP29425 & #WP29230
+		// Remove any existing upgrade filters from the plugin/theme upgraders #WP29425 & #WP29230.
 		remove_all_filters( 'upgrader_pre_install' );
 		remove_all_filters( 'upgrader_clear_destination' );
 		remove_all_filters( 'upgrader_post_install' );
@@ -202,7 +202,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 
 		$this->skin->header();
 
-		// Connect to the Filesystem first.
+		// Connect to the filesystem first.
 		$res = $this->fs_connect( array( WP_CONTENT_DIR, WP_LANG_DIR ) );
 		if ( ! $res ) {
 			$this->skin->footer();
@@ -232,9 +232,9 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 			$this->skin->language_update = $language_update;
 
 			$destination = WP_LANG_DIR;
-			if ( 'plugin' == $language_update->type ) {
+			if ( 'plugin' === $language_update->type ) {
 				$destination .= '/plugins';
-			} elseif ( 'theme' == $language_update->type ) {
+			} elseif ( 'theme' === $language_update->type ) {
 				$destination .= '/themes';
 			}
 
@@ -309,17 +309,18 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	}
 
 	/**
-	 * Check the package source to make sure there are .mo and .po files.
+	 * Checks that the package source contains .mo and .po files.
 	 *
 	 * Hooked to the {@see 'upgrader_source_selection'} filter by
 	 * Language_Pack_Upgrader::bulk_upgrade().
 	 *
 	 * @since 3.7.0
 	 *
-	 * @global WP_Filesystem_Base $wp_filesystem Subclass
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param string|WP_Error $source
-	 * @param string          $remote_source
+	 * @param string|WP_Error $source        The path to the downloaded package source.
+	 * @param string          $remote_source Remote file source location.
+	 * @return string|WP_Error The source as passed, or a WP_Error object on failure.
 	 */
 	public function check_package( $source, $remote_source ) {
 		global $wp_filesystem;
@@ -332,11 +333,12 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 		$files = $wp_filesystem->dirlist( $remote_source );
 
 		// Check to see if a .po and .mo exist in the folder.
-		$po = $mo = false;
+		$po = false;
+		$mo = false;
 		foreach ( (array) $files as $file => $filedata ) {
-			if ( '.po' == substr( $file, -3 ) ) {
+			if ( '.po' === substr( $file, -3 ) ) {
 				$po = true;
-			} elseif ( '.mo' == substr( $file, -3 ) ) {
+			} elseif ( '.mo' === substr( $file, -3 ) ) {
 				$mo = true;
 			}
 		}
@@ -368,7 +370,7 @@ class Language_Pack_Upgrader extends WP_Upgrader {
 	public function get_name_for_update( $update ) {
 		switch ( $update->type ) {
 			case 'core':
-				return 'WordPress'; // Not translated
+				return 'WordPress'; // Not translated.
 
 			case 'theme':
 				$theme = wp_get_theme( $update->slug );

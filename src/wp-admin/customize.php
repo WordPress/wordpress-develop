@@ -10,7 +10,7 @@
 define( 'IFRAME_REQUEST', true );
 
 /** Load WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'customize' ) ) {
 	wp_die(
@@ -123,7 +123,7 @@ wp_enqueue_style( 'customize-controls' );
 do_action( 'customize_controls_enqueue_scripts' );
 
 // Let's roll.
-@header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
+header( 'Content-Type: ' . get_option( 'html_type' ) . '; charset=' . get_option( 'blog_charset' ) );
 
 wp_user_settings();
 _wp_admin_html_begin();
@@ -132,10 +132,7 @@ $body_class = 'wp-core-ui wp-customizer js';
 
 if ( wp_is_mobile() ) :
 	$body_class .= ' mobile';
-
-	?>
-	<meta name="viewport" id="viewport-meta" content="width=device-width, initial-scale=1.0, minimum-scale=0.5, maximum-scale=1.2" />
-	<?php
+	add_filter( 'admin_viewport_meta', '_customizer_mobile_viewport_meta' );
 endif;
 
 if ( $wp_customize->is_ios() ) {
@@ -150,7 +147,7 @@ $body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '
 $admin_title = sprintf( $wp_customize->get_document_title_template(), __( 'Loading&hellip;' ) );
 
 ?>
-<title><?php echo $admin_title; ?></title>
+<title><?php echo esc_html( $admin_title ); ?></title>
 
 <script type="text/javascript">
 var ajaxurl = <?php echo wp_json_encode( admin_url( 'admin-ajax.php', 'relative' ) ); ?>,
@@ -171,17 +168,35 @@ do_action( 'customize_controls_print_styles' );
  * @since 3.4.0
  */
 do_action( 'customize_controls_print_scripts' );
+
+/**
+ * Fires in head section of Customizer controls.
+ *
+ * @since 5.5.0
+ */
+do_action( 'customize_controls_head' );
 ?>
 </head>
 <body class="<?php echo esc_attr( $body_class ); ?>">
 <div class="wp-full-overlay expanded">
 	<form id="customize-controls" class="wrap wp-full-overlay-sidebar">
 		<div id="customize-header-actions" class="wp-full-overlay-header">
-			<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
-			<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
-				<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
-				<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
-			</div>
+			<?php
+			$compatible_wp  = is_wp_version_compatible( $wp_customize->theme()->get( 'RequiresWP' ) );
+			$compatible_php = is_php_version_compatible( $wp_customize->theme()->get( 'RequiresPHP' ) );
+			?>
+			<?php if ( $compatible_wp && $compatible_php ) : ?>
+				<?php $save_text = $wp_customize->is_theme_active() ? __( 'Publish' ) : __( 'Activate &amp; Publish' ); ?>
+				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper" >
+					<?php submit_button( $save_text, 'primary save', 'save', false ); ?>
+					<button id="publish-settings" class="publish-settings button-primary button dashicons dashicons-admin-generic" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled></button>
+				</div>
+			<?php else : ?>
+				<?php $save_text = _x( 'Cannot Activate', 'theme' ); ?>
+				<div id="customize-save-button-wrapper" class="customize-save-button-wrapper disabled" >
+					<button class="button button-primary disabled" aria-label="<?php esc_attr_e( 'Publish Settings' ); ?>" aria-expanded="false" disabled><?php echo $save_text; ?></button>
+				</div>
+			<?php endif; ?>
 			<span class="spinner"></span>
 			<button type="button" class="customize-controls-preview-toggle">
 				<span class="controls"><?php _e( 'Customize' ); ?></span>
@@ -207,7 +222,8 @@ do_action( 'customize_controls_print_scripts' );
 					<div class="accordion-section-title">
 						<span class="preview-notice">
 						<?php
-							echo sprintf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
+							/* translators: %s: The site/panel title in the Customizer. */
+							printf( __( 'You are customizing %s' ), '<strong class="panel-title site-title">' . get_bloginfo( 'name', 'display' ) . '</strong>' );
 						?>
 						</span>
 						<button type="button" class="customize-help-toggle dashicons dashicons-editor-help" aria-expanded="false"><span class="screen-reader-text"><?php _e( 'Help' ); ?></span></button>

@@ -12,7 +12,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	 */
 	public function test_default_value_of_show_should_be_display_name() {
 
-		// create a user with a different display_name
+		// Create a user with a different display_name.
 		$u = $this->factory->user->create(
 			array(
 				'user_login'   => 'foo',
@@ -36,7 +36,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	 */
 	public function test_show_should_display_display_name_show_is_specified_as_empty() {
 
-		// create a user with a different display_name
+		// Create a user with a different display_name.
 		$u = $this->factory->user->create(
 			array(
 				'user_login'   => 'foo',
@@ -62,7 +62,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	 */
 	public function test_show_should_display_user_property_when_the_value_of_show_is_a_valid_user_property() {
 
-		// create a user with a different display_name
+		// Create a user with a different display_name.
 		$u = $this->factory->user->create(
 			array(
 				'user_login'   => 'foo',
@@ -88,7 +88,7 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 	 */
 	public function test_show_display_name_with_login() {
 
-		// create a user with a different display_name
+		// Create a user with a different display_name.
 		$u = $this->factory->user->create(
 			array(
 				'user_login'   => 'foo',
@@ -127,6 +127,22 @@ class Tests_User_WpDropdownUsers extends WP_UnitTestCase {
 
 		$user1 = get_userdata( $users[1] );
 		$this->assertContains( $user1->user_login, $found );
+	}
+
+	/**
+	 * @ticket 51370
+	 */
+	public function test_include_selected_with_non_existing_user_id() {
+		$found = wp_dropdown_users(
+			array(
+				'echo'             => false,
+				'selected'         => PHP_INT_MAX,
+				'include_selected' => true,
+				'show'             => 'user_login',
+			)
+		);
+
+		$this->assertNotContains( (string) PHP_INT_MAX, $found );
 	}
 
 	/**

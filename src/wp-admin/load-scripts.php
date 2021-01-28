@@ -9,13 +9,19 @@ error_reporting( 0 );
 
 /** Set ABSPATH for execution */
 if ( ! defined( 'ABSPATH' ) ) {
-	define( 'ABSPATH', dirname( dirname( __FILE__ ) ) . '/' );
+	define( 'ABSPATH', dirname( __DIR__ ) . '/' );
 }
 
 define( 'WPINC', 'wp-includes' );
 
+$protocol = $_SERVER['SERVER_PROTOCOL'];
+if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
+	$protocol = 'HTTP/1.0';
+}
+
 $load = $_GET['load'];
 if ( is_array( $load ) ) {
+	ksort( $load );
 	$load = implode( '', $load );
 }
 
@@ -23,14 +29,15 @@ $load = preg_replace( '/[^a-z0-9,_-]+/i', '', $load );
 $load = array_unique( explode( ',', $load ) );
 
 if ( empty( $load ) ) {
+	header( "$protocol 400 Bad Request" );
 	exit;
 }
 
-require( ABSPATH . 'wp-admin/includes/noop.php' );
-require( ABSPATH . WPINC . '/script-loader.php' );
-require( ABSPATH . WPINC . '/version.php' );
+require ABSPATH . 'wp-admin/includes/noop.php';
+require ABSPATH . WPINC . '/script-loader.php';
+require ABSPATH . WPINC . '/version.php';
 
-$expires_offset = 31536000; // 1 year
+$expires_offset = 31536000; // 1 year.
 $out            = '';
 
 $wp_scripts = new WP_Scripts();
@@ -39,12 +46,8 @@ wp_default_packages_vendor( $wp_scripts );
 wp_default_packages_scripts( $wp_scripts );
 
 if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $wp_version ) {
-	$protocol = $_SERVER['SERVER_PROTOCOL'];
-	if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ) ) ) {
-		$protocol = 'HTTP/1.0';
-	}
 	header( "$protocol 304 Not Modified" );
-	exit();
+	exit;
 }
 
 foreach ( $load as $handle ) {

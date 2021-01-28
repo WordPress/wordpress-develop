@@ -1,8 +1,7 @@
 === Twenty Twelve ===
-Contributors: the WordPress team
-Requires at least: WordPress 3.5
-Tested up to: WordPress 5.0
-Stable tag: 2.9
+Contributors: wordpressdotorg
+Tested up to: 5.6
+Stable tag: 3.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Tags: blog, one-column, two-columns, right-sidebar, custom-background, custom-header, custom-menu, editor-style, featured-images, flexible-header, footer-widgets, full-width-template, microformats, post-formats, rtl-language-support, sticky-post, theme-options, translation-ready
@@ -22,7 +21,7 @@ For more information about Twenty Twelve please go to https://codex.wordpress.or
 
 == Copyright ==
 
-Twenty Twelve WordPress Theme, Copyright 2012-2018 WordPress.org & Automattic.com
+Twenty Twelve WordPress Theme, Copyright 2012-2021 WordPress.org & Automattic.com
 Twenty Twelve is Distributed under the terms of the GNU GPL
 
 This program is free software: you can redistribute it and/or modify
@@ -42,6 +41,26 @@ Licenses: MIT/GPL2
 Source: https://github.com/aFarkas/html5shiv
 
 == Changelog ==
+
+= 3.3 =
+* Released: December 8, 2020
+
+https://codex.wordpress.org/Twenty_Twelve_Theme_Changelog#Version_3.3
+
+= 3.2 =
+* Released: August 11, 2020
+
+https://codex.wordpress.org/Twenty_Twelve_Theme_Changelog#Version_3.2
+
+= 3.1 =
+* Released: March 31, 2020
+
+https://codex.wordpress.org/Twenty_Twelve_Theme_Changelog#Version_3.1
+
+= 3.0 =
+* Released: May 7, 2019
+
+https://codex.wordpress.org/Twenty_Twelve_Theme_Changelog#Version_3.0
 
 = 2.9 =
 * Released: February 21, 2019

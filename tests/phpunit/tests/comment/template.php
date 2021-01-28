@@ -3,52 +3,86 @@
  * @group comment
  */
 class Tests_Comment_Template extends WP_UnitTestCase {
+	/**
+	 * Shared post ID.
+	 *
+	 * @var int
+	 */
+	public static $post_id;
+
+	/**
+	 * Set up shared fixtures.
+	 *
+	 * @param WP_UnitTest_Factory $factory Unit test factory.
+	 */
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = self::factory()->post->create();
+	}
 
 	function test_get_comments_number() {
-		$post_id = self::factory()->post->create();
+		$post_id = self::$post_id;
 
-		$this->assertEquals( 0, get_comments_number( 0 ) );
-		$this->assertEquals( 0, get_comments_number( $post_id ) );
-		$this->assertEquals( 0, get_comments_number( get_post( $post_id ) ) );
+		$this->assertSame( 0, get_comments_number( 0 ) );
+		$this->assertSame( '0', get_comments_number( $post_id ) );
+		$this->assertSame( '0', get_comments_number( get_post( $post_id ) ) );
 
 		self::factory()->comment->create_post_comments( $post_id, 12 );
 
-		$this->assertEquals( 12, get_comments_number( $post_id ) );
-		$this->assertEquals( 12, get_comments_number( get_post( $post_id ) ) );
+		$this->assertSame( '12', get_comments_number( $post_id ) );
+		$this->assertSame( '12', get_comments_number( get_post( $post_id ) ) );
 	}
 
 	function test_get_comments_number_without_arg() {
-		$post_id   = self::factory()->post->create();
+		$post_id   = self::$post_id;
 		$permalink = get_permalink( $post_id );
 		$this->go_to( $permalink );
 
-		$this->assertEquals( 0, get_comments_number() );
+		$this->assertSame( '0', get_comments_number() );
 
 		self::factory()->comment->create_post_comments( $post_id, 12 );
 		$this->go_to( $permalink );
 
-		$this->assertEquals( 12, get_comments_number() );
+		$this->assertSame( '12', get_comments_number() );
+	}
+
+	/**
+	 * @ticket 48772
+	 */
+	function test_get_comments_number_text_with_post_id() {
+		$post_id = self::$post_id;
+		$this->factory->comment->create_post_comments( $post_id, 6 );
+
+		$comments_number_text = get_comments_number_text( false, false, false, $post_id );
+
+		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
+
+		ob_start();
+		comments_number( false, false, false, $post_id );
+		$comments_number_text = ob_get_clean();
+
+		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 6 ), '6' ), $comments_number_text );
+
 	}
 
 	/**
 	 * @ticket 13651
 	 */
 	function test_get_comments_number_text_declension_with_default_args() {
-		$post_id   = $this->factory->post->create();
+		$post_id   = self::$post_id;
 		$permalink = get_permalink( $post_id );
 		$this->go_to( $permalink );
 
-		$this->assertEquals( __( 'No Comments' ), get_comments_number_text() );
+		$this->assertSame( __( 'No Comments' ), get_comments_number_text() );
 
 		$this->factory->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
-		$this->assertEquals( __( '1 Comment' ), get_comments_number_text() );
+		$this->assertSame( __( '1 Comment' ), get_comments_number_text() );
 
 		$this->factory->comment->create_post_comments( $post_id, 1 );
 		$this->go_to( $permalink );
 
-		$this->assertEquals( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
+		$this->assertSame( sprintf( _n( '%s Comment', '%s Comments', 2 ), '2' ), get_comments_number_text() );
 
 	}
 
@@ -57,7 +91,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 	 * @dataProvider data_get_comments_number_text_declension
 	 */
 	function test_get_comments_number_text_declension_with_custom_args( $number, $input, $output ) {
-		$post_id   = $this->factory->post->create();
+		$post_id   = self::$post_id;
 		$permalink = get_permalink( $post_id );
 
 		$this->factory->comment->create_post_comments( $post_id, $number );
@@ -65,7 +99,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 
 		add_filter( 'gettext_with_context', array( $this, '_enable_comment_number_declension' ), 10, 4 );
 
-		$this->assertEquals( $output, get_comments_number_text( false, false, $input ) );
+		$this->assertSame( $output, get_comments_number_text( false, false, $input ) );
 
 		remove_filter( 'gettext_with_context', array( $this, '_enable_comment_number_declension' ), 10, 4 );
 	}
@@ -109,7 +143,7 @@ class Tests_Comment_Template extends WP_UnitTestCase {
 			array(
 				2,
 				'2 Comments<span class="screen-reader-text"> on Hello % world!</span>',
-				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>', // See #WP37103
+				'2 Comments<span class="screen-reader-text"> on Hello 2 world!</span>', // See #WP37103.
 			),
 			array(
 				2,

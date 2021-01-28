@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Nineteen
- * @since 1.0.0
+ * @since Twenty Nineteen 1.0
  */
 
 $discussion = ! is_page() && twentynineteen_can_show_post_thumbnail() ? twentynineteen_get_discussion_data() : null; ?>
@@ -24,11 +24,11 @@ $discussion = ! is_page() && twentynineteen_can_show_post_thumbnail() ? twentyni
 		<?php twentynineteen_comment_count(); ?>
 	</span>
 	<?php
-	// Edit post link.
+		// Edit post link.
 		edit_post_link(
 			sprintf(
 				wp_kses(
-					/* translators: %s: Name of current post. Only visible to screen readers. */
+					/* translators: %s: Post title. Only visible to screen readers. */
 					__( 'Edit <span class="screen-reader-text">%s</span>', 'twentynineteen' ),
 					array(
 						'span' => array(
@@ -42,5 +42,5 @@ $discussion = ! is_page() && twentynineteen_can_show_post_thumbnail() ? twentyni
 			'</span>'
 		);
 	?>
-</div><!-- .meta-info -->
+</div><!-- .entry-meta -->
 <?php endif; ?>

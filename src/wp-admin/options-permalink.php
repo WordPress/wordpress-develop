@@ -7,7 +7,7 @@
  */
 
 /** WordPress Administration Bootstrap */
-require_once( dirname( __FILE__ ) . '/admin.php' );
+require_once __DIR__ . '/admin.php';
 
 if ( ! current_user_can( 'manage_options' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to manage options for this site.' ) );
@@ -31,8 +31,17 @@ get_current_screen()->add_help_tab(
 		'id'      => 'permalink-settings',
 		'title'   => __( 'Permalink Settings' ),
 		'content' => '<p>' . __( 'Permalinks can contain useful information, such as the post date, title, or other elements. You can choose from any of the suggested permalink formats, or you can craft your own if you select Custom Structure.' ) . '</p>' .
-			'<p>' . __( 'If you pick an option other than Plain, your general URL path with structure tags (terms surrounded by <code>%</code>) will also appear in the custom structure field and your path can be further modified there.' ) . '</p>' .
-			'<p>' . __( 'When you assign multiple categories or tags to a post, only one can show up in the permalink: the lowest numbered category. This applies if your custom structure includes <code>%category%</code> or <code>%tag%</code>.' ) . '</p>' .
+			'<p>' . sprintf(
+				/* translators: %s: Percent sign (%). */
+				__( 'If you pick an option other than Plain, your general URL path with structure tags (terms surrounded by %s) will also appear in the custom structure field and your path can be further modified there.' ),
+				'<code>%</code>'
+			) . '</p>' .
+			'<p>' . sprintf(
+				/* translators: 1: %category%, 2: %tag% */
+				__( 'When you assign multiple categories or tags to a post, only one can show up in the permalink: the lowest numbered category. This applies if your custom structure includes %1$s or %2$s.' ),
+				'<code>%category%</code>',
+				'<code>%tag%</code>'
+			) . '</p>' .
 			'<p>' . __( 'You must click the Save Changes button at the bottom of the screen for new settings to take effect.' ) . '</p>',
 	)
 );
@@ -48,21 +57,22 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Settings_Permalinks_Screen">Documentation on Permalinks Settings</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Using_Permalinks">Documentation on Using Permalinks</a>' ) . '</p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/">Support Forums</a>' ) . '</p>'
+	'<p>' . __( '<a href="https://wordpress.org/support/article/settings-permalinks-screen/">Documentation on Permalinks Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/using-permalinks/">Documentation on Using Permalinks</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
 $home_path           = get_home_path();
 $iis7_permalinks     = iis7_supports_permalinks();
 $permalink_structure = get_option( 'permalink_structure' );
 
-$prefix = $blog_prefix = '';
+$prefix      = '';
+$blog_prefix = '';
 if ( ! got_url_rewrite() ) {
 	$prefix = '/index.php';
 }
 
-/**
+/*
  * In a subdirectory configuration of multisite, the `/blog` prefix is used by
  * default on the main site to avoid collisions with other sites created on that
  * network. If the `permalink_structure` option has been changed to remove this
@@ -72,36 +82,17 @@ if ( is_multisite() && ! is_subdomain_install() && is_main_site() && 0 === strpo
 	$blog_prefix = '/blog';
 }
 
-$category_base   = get_option( 'category_base' );
-$tag_base        = get_option( 'tag_base' );
-$update_required = false;
+$category_base = get_option( 'category_base' );
+$tag_base      = get_option( 'tag_base' );
 
-if ( $iis7_permalinks ) {
-	if ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) ) {
-		$writable = true;
-	} else {
-		$writable = false;
-	}
-} elseif ( $is_nginx ) {
-	$writable = false;
-} else {
-	if ( ( ! file_exists( $home_path . '.htaccess' ) && is_writable( $home_path ) ) || is_writable( $home_path . '.htaccess' ) ) {
-		$writable = true;
-	} else {
-		$writable        = false;
-		$existing_rules  = array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
-		$new_rules       = array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
-		$update_required = ( $new_rules !== $existing_rules );
-	}
-}
-
-$using_index_permalinks = $wp_rewrite->using_index_permalinks();
+$structure_updated        = false;
+$htaccess_update_required = false;
 
 if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) ) {
 	check_admin_referer( 'update-permalink' );
 
 	if ( isset( $_POST['permalink_structure'] ) ) {
-		if ( isset( $_POST['selection'] ) && 'custom' != $_POST['selection'] ) {
+		if ( isset( $_POST['selection'] ) && 'custom' !== $_POST['selection'] ) {
 			$permalink_structure = $_POST['selection'];
 		} else {
 			$permalink_structure = $_POST['permalink_structure'];
@@ -119,38 +110,82 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 		$permalink_structure = sanitize_option( 'permalink_structure', $permalink_structure );
 
 		$wp_rewrite->set_permalink_structure( $permalink_structure );
+
+		$structure_updated = true;
 	}
 
 	if ( isset( $_POST['category_base'] ) ) {
 		$category_base = $_POST['category_base'];
+
 		if ( ! empty( $category_base ) ) {
 			$category_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $category_base ) );
 		}
+
 		$wp_rewrite->set_category_base( $category_base );
 	}
 
 	if ( isset( $_POST['tag_base'] ) ) {
 		$tag_base = $_POST['tag_base'];
+
 		if ( ! empty( $tag_base ) ) {
 			$tag_base = $blog_prefix . preg_replace( '#/+#', '/', '/' . str_replace( '#', '', $tag_base ) );
 		}
+
 		$wp_rewrite->set_tag_base( $tag_base );
 	}
+}
 
+if ( $iis7_permalinks ) {
+	if ( ( ! file_exists( $home_path . 'web.config' ) && win_is_writable( $home_path ) ) || win_is_writable( $home_path . 'web.config' ) ) {
+		$writable = true;
+	} else {
+		$writable = false;
+	}
+} elseif ( $is_nginx ) {
+	$writable = false;
+} else {
+	if ( ( ! file_exists( $home_path . '.htaccess' ) && is_writable( $home_path ) ) || is_writable( $home_path . '.htaccess' ) ) {
+		$writable = true;
+	} else {
+		$writable       = false;
+		$existing_rules = array_filter( extract_from_markers( $home_path . '.htaccess', 'WordPress' ) );
+		$new_rules      = array_filter( explode( "\n", $wp_rewrite->mod_rewrite_rules() ) );
+
+		$htaccess_update_required = ( $new_rules !== $existing_rules );
+	}
+}
+
+$using_index_permalinks = $wp_rewrite->using_index_permalinks();
+
+if ( $structure_updated ) {
 	$message = __( 'Permalink structure updated.' );
 
-	if ( $iis7_permalinks ) {
-		if ( $permalink_structure && ! $using_index_permalinks && ! $writable ) {
-			$message = __( 'You should update your web.config now.' );
-		} elseif ( $permalink_structure && ! $using_index_permalinks && $writable ) {
-			$message = __( 'Permalink structure updated. Remove write access on web.config file now!' );
+	if ( ! is_multisite() && $permalink_structure && ! $using_index_permalinks ) {
+		if ( $iis7_permalinks ) {
+			if ( ! $writable ) {
+				$message = sprintf(
+					/* translators: %s: web.config */
+					__( 'You should update your %s file now.' ),
+					'<code>web.config</code>'
+				);
+			} else {
+				$message = sprintf(
+					/* translators: %s: web.config */
+					__( 'Permalink structure updated. Remove write access on %s file now!' ),
+					'<code>web.config</code>'
+				);
+			}
+		} elseif ( ! $is_nginx && $htaccess_update_required && ! $writable ) {
+			$message = sprintf(
+				/* translators: %s: .htaccess */
+				__( 'You should update your %s file now.' ),
+				'<code>.htaccess</code>'
+			);
 		}
-	} elseif ( ! $is_nginx && $permalink_structure && ! $using_index_permalinks && ! $writable && $update_required ) {
-		$message = __( 'You should update your .htaccess now.' );
 	}
 
 	if ( ! get_settings_errors() ) {
-		add_settings_error( 'general', 'settings_updated', $message, 'updated' );
+		add_settings_error( 'general', 'settings_updated', $message, 'success' );
 	}
 
 	set_transient( 'settings_errors', get_settings_errors(), 30 );
@@ -161,7 +196,7 @@ if ( isset( $_POST['permalink_structure'] ) || isset( $_POST['category_base'] ) 
 
 flush_rewrite_rules();
 
-require( ABSPATH . 'wp-admin/admin-header.php' );
+require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap">
 <h1><?php echo esc_html( $title ); ?></h1>
@@ -172,9 +207,9 @@ require( ABSPATH . 'wp-admin/admin-header.php' );
 	<p>
 	<?php
 		printf(
-			/* translators: %s: Codex URL */
+			/* translators: %s: Documentation URL. */
 			__( 'WordPress offers you the ability to create a custom URL structure for your permalinks and archives. Custom URL structures can improve the aesthetics, usability, and forward-compatibility of your links. A <a href="%s">number of tags are available</a>, and here are some examples to get you started.' ),
-			__( 'https://codex.wordpress.org/Using_Permalinks' )
+			__( 'https://wordpress.org/support/article/using-permalinks/' )
 		);
 		?>
 	</p>
@@ -197,28 +232,28 @@ $structures = array(
 <h2 class="title"><?php _e( 'Common Settings' ); ?></h2>
 <table class="form-table permalink-structure">
 	<tr>
-		<th><label><input name="selection" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?></label></th>
+		<th scope="row"><label><input name="selection" type="radio" value="" <?php checked( '', $permalink_structure ); ?> /> <?php _e( 'Plain' ); ?></label></th>
 		<td><code><?php echo get_option( 'home' ); ?>/?p=123</code></td>
 	</tr>
 	<tr>
-		<th><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[1] ); ?>" <?php checked( $structures[1], $permalink_structure ); ?> /> <?php _e( 'Day and name' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . date( 'Y' ) . '/' . date( 'm' ) . '/' . date( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
+		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[1] ); ?>" <?php checked( $structures[1], $permalink_structure ); ?> /> <?php _e( 'Day and name' ); ?></label></th>
+		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . gmdate( 'd' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
 	</tr>
 	<tr>
-		<th><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[2] ); ?>" <?php checked( $structures[2], $permalink_structure ); ?> /> <?php _e( 'Month and name' ); ?></label></th>
-		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . date( 'Y' ) . '/' . date( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
+		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[2] ); ?>" <?php checked( $structures[2], $permalink_structure ); ?> /> <?php _e( 'Month and name' ); ?></label></th>
+		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . gmdate( 'Y' ) . '/' . gmdate( 'm' ) . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
 	</tr>
 	<tr>
-		<th><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[3] ); ?>" <?php checked( $structures[3], $permalink_structure ); ?> /> <?php _e( 'Numeric' ); ?></label></th>
+		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[3] ); ?>" <?php checked( $structures[3], $permalink_structure ); ?> /> <?php _e( 'Numeric' ); ?></label></th>
 		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'archives', 'sample permalink base' ) . '/123'; ?></code></td>
 	</tr>
 	<tr>
-		<th><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[4] ); ?>" <?php checked( $structures[4], $permalink_structure ); ?> /> <?php _e( 'Post name' ); ?></label></th>
+		<th scope="row"><label><input name="selection" type="radio" value="<?php echo esc_attr( $structures[4] ); ?>" <?php checked( $structures[4], $permalink_structure ); ?> /> <?php _e( 'Post name' ); ?></label></th>
 		<td><code><?php echo get_option( 'home' ) . $blog_prefix . $prefix . '/' . _x( 'sample-post', 'sample permalink structure' ) . '/'; ?></code></td>
 	</tr>
 	<tr>
-		<th>
-			<label><input name="selection" id="custom_selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures ) ); ?> />
+		<th scope="row">
+			<label><input name="selection" id="custom_selection" type="radio" value="custom" <?php checked( ! in_array( $permalink_structure, $structures, true ) ); ?> />
 			<?php _e( 'Custom Structure' ); ?>
 			</label>
 		</th>
@@ -229,41 +264,41 @@ $structures = array(
 				<div id="custom_selection_updated" aria-live="assertive" class="screen-reader-text"></div>
 				<?php
 				$available_tags = array(
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'year'     => __( '%s (The year of the post, four digits, for example 2004.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'monthnum' => __( '%s (Month of the year, for example 05.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'day'      => __( '%s (Day of the month, for example 28.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'hour'     => __( '%s (Hour of the day, for example 15.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'minute'   => __( '%s (Minute of the hour, for example 43.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'second'   => __( '%s (Second of the minute, for example 33.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'post_id'  => __( '%s (The unique ID of the post, for example 423.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'postname' => __( '%s (The sanitized post title (slug).)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'category' => __( '%s (Category slug. Nested sub-categories appear as nested directories in the URL.)' ),
-					/* translators: %s: permalink structure tag */
+					/* translators: %s: Permalink structure tag. */
 					'author'   => __( '%s (A sanitized version of the author name.)' ),
 				);
 
 				/**
 				 * Filters the list of available permalink structure tags on the Permalinks settings page.
 				 *
-				 * @since 4.8.0
+				 * @since 4.9.0
 				 *
 				 * @param string[] $available_tags An array of key => value pairs of available permalink structure tags.
 				 */
 				$available_tags = apply_filters( 'available_permalink_structure_tags', $available_tags );
 
-				/* translators: %s: permalink structure tag */
+				/* translators: %s: Permalink structure tag. */
 				$structure_tag_added = __( '%s added to permalink structure' );
 
-				/* translators: %s: permalink structure tag */
+				/* translators: %s: Permalink structure tag. */
 				$structure_tag_already_used = __( '%s (already used in permalink structure)' );
 
 				if ( ! empty( $available_tags ) ) :
@@ -295,14 +330,14 @@ $structures = array(
 <h2 class="title"><?php _e( 'Optional' ); ?></h2>
 <p>
 <?php
-/* translators: %s: placeholder that must come at the start of the URL */
+/* translators: %s: Placeholder that must come at the start of the URL. */
 printf( __( 'If you like, you may enter custom structures for your category and tag URLs here. For example, using <code>topics</code> as your category base would make your category links like <code>%s/topics/uncategorized/</code>. If you leave these blank the defaults will be used.' ), get_option( 'home' ) . $blog_prefix . $prefix );
 ?>
 </p>
 
-<table class="form-table">
+<table class="form-table" role="presentation">
 	<tr>
-		<th><label for="category_base"><?php /* translators: prefix for category permalinks */ _e( 'Category base' ); ?></label></th>
+		<th><label for="category_base"><?php /* translators: Prefix for category permalinks. */ _e( 'Category base' ); ?></label></th>
 		<td><?php echo $blog_prefix; ?> <input name="category_base" id="category_base" type="text" value="<?php echo esc_attr( $category_base ); ?>" class="regular-text code" /></td>
 	</tr>
 	<tr>
@@ -325,10 +360,10 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 <p>
 				<?php
 				printf(
-					/* translators: 1: web.config, 2: Codex URL, 3: CTRL + a, 4: element code */
+					/* translators: 1: web.config, 2: Documentation URL, 3: CTRL + a, 4: Element code. */
 					__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %1$s file. Click in the field and press %3$s to select all. Then insert this rule inside of the %4$s element in %1$s file.' ),
 					'<code>web.config</code>',
-					__( 'https://codex.wordpress.org/Changing_File_Permissions' ),
+					__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 					'<kbd>CTRL + a</kbd>',
 					'<code>/&lt;configuration&gt;/&lt;system.webServer&gt;/&lt;rewrite&gt;/&lt;rules&gt;</code>'
 				);
@@ -351,9 +386,9 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 <p>
 			<?php
 			printf(
-				/* translators: 1: Codex URL, 2: web.config, 3: CTRL + a */
+				/* translators: 1: Documentation URL, 2: web.config, 3: CTRL + a */
 				__( 'If the root directory of your site was <a href="%1$s">writable</a>, we could do this automatically, but it isn&#8217;t so this is the url rewrite rule you should have in your %2$s file. Create a new file, called %2$s in the root directory of your site. Click in the field and press %3$s to select all. Then insert this code into the %2$s file.' ),
-				__( 'https://codex.wordpress.org/Changing_File_Permissions' ),
+				__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 				'<code>web.config</code>',
 				'<kbd>CTRL + a</kbd>'
 			);
@@ -375,18 +410,18 @@ printf( __( 'If you like, you may enter custom structures for your category and 
 		<?php endif; ?>
 	<?php endif; ?>
 <?php elseif ( $is_nginx ) : ?>
-	<p><?php _e( '<a href="https://codex.wordpress.org/Nginx">Documentation on Nginx configuration</a>.' ); ?></p>
+	<p><?php _e( '<a href="https://wordpress.org/support/article/nginx/">Documentation on Nginx configuration</a>.' ); ?></p>
 	<?php
 else :
-	if ( $permalink_structure && ! $using_index_permalinks && ! $writable && $update_required ) :
+	if ( $permalink_structure && ! $using_index_permalinks && ! $writable && $htaccess_update_required ) :
 		?>
 <p>
 		<?php
 		printf(
-			/* translators: 1: .htaccess, 2: Codex URL, 3: CTRL + a */
+			/* translators: 1: .htaccess, 2: Documentation URL, 3: CTRL + a */
 			__( 'If your %1$s file was <a href="%2$s">writable</a>, we could do this automatically, but it isn&#8217;t so these are the mod_rewrite rules you should have in your %1$s file. Click in the field and press %3$s to select all.' ),
 			'<code>.htaccess</code>',
-			__( 'https://codex.wordpress.org/Changing_File_Permissions' ),
+			__( 'https://wordpress.org/support/article/changing-file-permissions/' ),
 			'<kbd>CTRL + a</kbd>'
 		);
 		?>
@@ -397,8 +432,8 @@ else :
 </form>
 	<?php endif; ?>
 <?php endif; ?>
-<?php } // multisite ?>
+<?php } // End if ! is_multisite(). ?>
 
 </div>
 
-<?php require( ABSPATH . 'wp-admin/admin-footer.php' ); ?>
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>

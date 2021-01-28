@@ -27,7 +27,7 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
-		require_once( ABSPATH . WPINC . '/class-wp-customize-manager.php' );
+		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->wp_customize      = $GLOBALS['wp_customize'];
 	}

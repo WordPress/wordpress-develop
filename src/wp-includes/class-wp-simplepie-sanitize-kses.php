@@ -27,7 +27,7 @@ class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 	 * @since 3.5.0
 	 *
 	 * @param mixed   $data The data that needs to be sanitized.
-	 * @param integer $type The type of data that it's supposed to be.
+	 * @param int     $type The type of data that it's supposed to be.
 	 * @param string  $base Optional. The `xml:base` value to use when converting relative
 	 *                      URLs to absolute ones. Default empty.
 	 * @return mixed Sanitized data.
@@ -46,7 +46,7 @@ class WP_SimplePie_Sanitize_KSES extends SimplePie_Sanitize {
 		}
 		if ( $type & ( SIMPLEPIE_CONSTRUCT_HTML | SIMPLEPIE_CONSTRUCT_XHTML ) ) {
 			$data = wp_kses_post( $data );
-			if ( $this->output_encoding !== 'UTF-8' ) {
+			if ( 'UTF-8' !== $this->output_encoding ) {
 				$data = $this->registry->call( 'Misc', 'change_encoding', array( $data, 'UTF-8', $this->output_encoding ) );
 			}
 			return $data;

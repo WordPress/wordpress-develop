@@ -12,6 +12,7 @@
  *
  * @since 4.8.0
  *
+ * @see WP_Widget_Media
  * @see WP_Widget
  */
 class WP_Widget_Media_Video extends WP_Widget_Media {
@@ -19,7 +20,7 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Constructor.
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 */
 	public function __construct() {
 		parent::__construct(
@@ -39,14 +40,14 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'replace_media'              => _x( 'Replace Video', 'label for button in the video widget; should preferably not be longer than ~13 characters long' ),
 				'edit_media'                 => _x( 'Edit Video', 'label for button in the video widget; should preferably not be longer than ~13 characters long' ),
 				'missing_attachment'         => sprintf(
-					/* translators: %s: URL to media library */
+					/* translators: %s: URL to media library. */
 					__( 'We can&#8217;t find that video. Check your <a href="%s">media library</a> and make sure it wasn&#8217;t deleted.' ),
 					esc_url( admin_url( 'upload.php' ) )
 				),
-				/* translators: %d: widget count */
+				/* translators: %d: Widget count. */
 				'media_library_state_multi'  => _n_noop( 'Video Widget (%d)', 'Video Widget (%d)' ),
 				'media_library_state_single' => __( 'Video Widget' ),
-				/* translators: %s: a list of valid video file extensions */
+				/* translators: %s: A list of valid video file extensions. */
 				'unsupported_file_type'      => sprintf( __( 'Sorry, we can&#8217;t load the video at the supplied URL. Please check that the URL is for a supported video file (%s) or stream (e.g. YouTube and Vimeo).' ), '<code>.' . implode( '</code>, <code>.', wp_get_video_extensions() ) . '</code>' ),
 			)
 		);
@@ -55,38 +56,37 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 	/**
 	 * Get schema for properties of a widget instance (item).
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 *
 	 * @see WP_REST_Controller::get_item_schema()
 	 * @see WP_REST_Controller::get_additional_fields()
 	 * @link https://core.trac.wordpress.org/ticket/35574
+	 *
 	 * @return array Schema for properties.
 	 */
 	public function get_instance_schema() {
-		$schema = array_merge(
-			parent::get_instance_schema(),
-			array(
-				'preload' => array(
-					'type'                  => 'string',
-					'enum'                  => array( 'none', 'auto', 'metadata' ),
-					'default'               => 'metadata',
-					'description'           => __( 'Preload' ),
-					'should_preview_update' => false,
-				),
-				'loop'    => array(
-					'type'                  => 'boolean',
-					'default'               => false,
-					'description'           => __( 'Loop' ),
-					'should_preview_update' => false,
-				),
-				'content' => array(
-					'type'                  => 'string',
-					'default'               => '',
-					'sanitize_callback'     => 'wp_kses_post',
-					'description'           => __( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ),
-					'should_preview_update' => false,
-				),
-			)
+
+		$schema = array(
+			'preload' => array(
+				'type'                  => 'string',
+				'enum'                  => array( 'none', 'auto', 'metadata' ),
+				'default'               => 'metadata',
+				'description'           => __( 'Preload' ),
+				'should_preview_update' => false,
+			),
+			'loop'    => array(
+				'type'                  => 'boolean',
+				'default'               => false,
+				'description'           => __( 'Loop' ),
+				'should_preview_update' => false,
+			),
+			'content' => array(
+				'type'                  => 'string',
+				'default'               => '',
+				'sanitize_callback'     => 'wp_kses_post',
+				'description'           => __( 'Tracks (subtitles, captions, descriptions, chapters, or metadata)' ),
+				'should_preview_update' => false,
+			),
 		);
 
 		foreach ( wp_get_video_extensions() as $video_extension ) {
@@ -94,22 +94,20 @@ class WP_Widget_Media_Video extends WP_Widget_Media {
 				'type'        => 'string',
 				'default'     => '',
 				'format'      => 'uri',
-				/* translators: %s: video extension */
+				/* translators: %s: Video extension. */
 				'description' => sprintf( __( 'URL to the %s video source file' ), $video_extension ),
 			);
 		}
 
-		return $schema;
+		return array_merge( $schema, parent::get_instance_schema() );
 	}
 
 	/**
 	 * Render the media on the frontend.
 	 *
-	 * @since  4.8.0
+	 * @since 4.8.0
 	 *
 	 * @param array $instance Widget instance props.
-	 *
-	 * @return void
 	 */
 	public function render_media( $instance ) {
 		$instance   = array_merge( wp_list_pluck( $this->get_instance_schema(), 'default' ), $instance );

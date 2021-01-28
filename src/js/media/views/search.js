@@ -1,5 +1,4 @@
-var l10n = wp.media.view.l10n,
-	Search;
+var Search;
 
 /**
  * wp.media.view.Search
@@ -17,17 +16,15 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	id:        'media-search-input',
 
 	attributes: {
-		type:        'search',
-		placeholder: l10n.searchMediaPlaceholder
+		type: 'search'
 	},
 
 	events: {
-		'input':  'search',
-		'keyup':  'search'
+		'input': 'search'
 	},
 
 	/**
-	 * @returns {wp.media.view.Search} Returns itself to allow chaining
+	 * @return {wp.media.view.Search} Returns itself to allow chaining.
 	 */
 	render: function() {
 		this.el.value = this.model.escape('search');
@@ -35,12 +32,15 @@ Search = wp.media.View.extend(/** @lends wp.media.view.Search.prototype */{
 	},
 
 	search: _.debounce( function( event ) {
-		if ( event.target.value ) {
-			this.model.set( 'search', event.target.value );
+		var searchTerm = event.target.value.trim();
+
+		// Trigger the search only after 2 ASCII characters.
+		if ( searchTerm && searchTerm.length > 1 ) {
+			this.model.set( 'search', searchTerm );
 		} else {
-			this.model.unset('search');
+			this.model.unset( 'search' );
 		}
-	}, 300 )
+	}, 500 )
 });
 
 module.exports = Search;

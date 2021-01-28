@@ -27,6 +27,8 @@ wp-tests-config.php
 /src/wp-includes/js
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
+/src/wp-includes/css/*-rtl.css
+/packagehash.txt
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
@@ -43,6 +45,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
 !/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwentyone
 /src/wp-content/upgrade
 /src/wp-content/uploads
 /src/wp-content/advanced-cache.php
@@ -52,9 +55,11 @@ wp-tests-config.php
 /src/wp-content/db.php
 /src/wp-content/db-error.php
 /src/wp-content/debug.log
+/src/wp-content/fatal-error-handler.php
 /src/wp-content/install.php
 /src/wp-content/maintenance.php
 /src/wp-content/object-cache.php
+/src/wp-content/php-error.php
 /src/wp-content/sunrise.php
 
 # Operating system specific files
@@ -70,3 +75,6 @@ wp-tests-config.php
 *.diff
 .svn
 !/src/js/_enqueues/vendor
+
+# Files for local environment config
+/docker-compose.override.yml

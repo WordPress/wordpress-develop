@@ -8,9 +8,7 @@ class Tests_File extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		$file      = tempnam( '/tmp', 'foo' );
-		$this->dir = dirname( $file );
-		unlink( $file );
+		$this->dir = untrailingslashit( get_temp_dir() );
 
 		$this->badchars = '"\'[]*&?$';
 	}
@@ -41,7 +39,7 @@ class Tests_File extends WP_UnitTestCase {
 		);
 
 		foreach ( $actual as $header => $value ) {
-			$this->assertEquals( $expected[ $header ], $value, $header );
+			$this->assertSame( $expected[ $header ], $value, $header );
 		}
 	}
 
@@ -63,7 +61,7 @@ class Tests_File extends WP_UnitTestCase {
 		);
 
 		foreach ( $actual as $header => $value ) {
-			$this->assertEquals( $expected[ $header ], $value, $header );
+			$this->assertSame( $expected[ $header ], $value, $header );
 		}
 	}
 
@@ -71,12 +69,12 @@ class Tests_File extends WP_UnitTestCase {
 		$fullpath = $path . DIRECTORY_SEPARATOR . $filename;
 
 		$fp = fopen( $fullpath, 'x' );
-		// file already exists?
+		// File already exists?
 		if ( ! $fp ) {
 			return false;
 		}
 
-		// write some random contents
+		// Write some random contents.
 		$c = rand_str();
 		fwrite( $fp, $c );
 		fclose( $fp );
@@ -91,7 +89,7 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	function test_unique_filename_is_valid() {
-		// make sure it produces a valid, writable, unique filename
+		// Make sure it produces a valid, writable, unique filename.
 		$filename = wp_unique_filename( $this->dir, __FUNCTION__ . '.txt' );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
@@ -100,7 +98,7 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	function test_unique_filename_is_unique() {
-		// make sure it produces two unique filenames
+		// Make sure it produces two unique filenames.
 		$name = __FUNCTION__;
 
 		$filename1 = wp_unique_filename( $this->dir, $name . '.txt' );
@@ -108,7 +106,7 @@ class Tests_File extends WP_UnitTestCase {
 		$filename2 = wp_unique_filename( $this->dir, $name . '.txt' );
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename2 ) );
 
-		// the two should be different
+		// The two should be different.
 		$this->assertNotEquals( $filename1, $filename2 );
 
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename1 );
@@ -119,8 +117,8 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . $this->badchars . '.txt' );
 
-		// make sure the bad characters were all stripped out
-		$this->assertEquals( $name . '.txt', $filename );
+		// Make sure the bad characters were all stripped out.
+		$this->assertSame( $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -132,8 +130,8 @@ class Tests_File extends WP_UnitTestCase {
 		// "foo/foo.txt"
 		$filename = wp_unique_filename( $this->dir, $name . '/' . $name . '.txt' );
 
-		// the slash should be removed, i.e. "foofoo.txt"
-		$this->assertEquals( $name . $name . '.txt', $filename );
+		// The slash should be removed, i.e. "foofoo.txt".
+		$this->assertSame( $name . $name . '.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -144,8 +142,8 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . '.php.txt' );
 
-		// "foo.php.txt" becomes "foo.php_.txt"
-		$this->assertEquals( $name . '.php_.txt', $filename );
+		// "foo.php.txt" becomes "foo.php_.txt".
+		$this->assertSame( $name . '.php_.txt', $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -156,7 +154,7 @@ class Tests_File extends WP_UnitTestCase {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name );
 
-		$this->assertEquals( $name, $filename );
+		$this->assertSame( $name, $filename );
 
 		$this->assertTrue( $this->is_unique_writable_file( $this->dir, $filename ) );
 
@@ -183,4 +181,63 @@ class Tests_File extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 47186
+	 */
+	function test_file_signature_functions_as_expected() {
+		$file = wp_tempnam();
+		file_put_contents( $file, 'WordPress' );
+
+		// The signature of 'WordPress' after SHA384 hashing, for verification against the key within self::filter_trust_plus85Tq_key().
+		$expected_signature = 'PmNv0b1ziwJAsVhjdpjd4+PQZidZWSlBm5b+GbbwE9m9HVKDFhEyvyRTHkRYOLypB8P2YvbW7CoOMZqGh8mEAA==';
+
+		add_filter( 'wp_trusted_keys', array( $this, 'filter_trust_plus85Tq_key' ) );
+
+		// Measure how long the call takes.
+		$timer_start = microtime( 1 );
+		$verify      = verify_file_signature( $file, $expected_signature, 'WordPress' );
+		$timer_end   = microtime( 1 );
+		$time_taken  = ( $timer_end - $timer_start );
+
+		unlink( $file );
+		remove_filter( 'wp_trusted_keys', array( $this, 'filter_trust_plus85Tq_key' ) );
+
+		// verify_file_signature() should intentionally never take more than 10s to run.
+		$this->assertLessThan( 10, $time_taken, 'verify_file_signature() took longer than 10 seconds.' );
+
+		// Check to see if the system parameters prevent signature verifications.
+		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
+			$this->markTestSkipped( 'This system does not support Signature Verification.' );
+		}
+
+		$this->assertNotWPError( $verify );
+		$this->assertTrue( $verify );
+	}
+
+	/**
+	 * @ticket 47186
+	 */
+	function test_file_signature_expected_failure() {
+		$file = wp_tempnam();
+		file_put_contents( $file, 'WordPress' );
+
+		// Test an invalid signature.
+		$expected_signature = base64_encode( str_repeat( 'A', SODIUM_CRYPTO_SIGN_PUBLICKEYBYTES ) );
+		$verify             = verify_file_signature( $file, $expected_signature, 'WordPress' );
+		unlink( $file );
+
+		if ( is_wp_error( $verify ) && 'signature_verification_unsupported' === $verify->get_error_code() ) {
+			$this->markTestSkipped( 'This system does not support Signature Verification.' );
+		}
+
+		$this->assertWPError( $verify );
+		$this->assertSame( 'signature_verification_failed', $verify->get_error_code() );
+	}
+
+	function filter_trust_plus85Tq_key( $keys ) {
+		// A static once-off key used to verify verify_file_signature() works as expected.
+		$keys[] = '+85TqMhxQVAYVW4BSCVkJQvZH4q7z8I9lePbvngvf7A=';
+
+		return $keys;
+	}
 }

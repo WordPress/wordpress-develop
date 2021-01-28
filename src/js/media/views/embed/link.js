@@ -23,11 +23,11 @@ EmbedLink = wp.media.view.Settings.extend(/** @lends wp.media.view.EmbedLink.pro
 	updateoEmbed: _.debounce( function() {
 		var url = this.model.get( 'url' );
 
-		// clear out previous results
+		// Clear out previous results.
 		this.$('.embed-container').hide().find('.embed-preview').empty();
 		this.$( '.setting' ).hide();
 
-		// only proceed with embed if the field contains more than 11 characters
+		// Only proceed with embed if the field contains more than 11 characters.
 		// Example: http://a.io is 11 chars
 		if ( url && ( url.length < 11 || ! url.match(/^http(s)?:\/\//) ) ) {
 			return;
@@ -39,7 +39,7 @@ EmbedLink = wp.media.view.Settings.extend(/** @lends wp.media.view.EmbedLink.pro
 	fetch: function() {
 		var url = this.model.get( 'url' ), re, youTubeEmbedMatch;
 
-		// check if they haven't typed in 500 ms
+		// Check if they haven't typed in 500 ms.
 		if ( $('#embed-url-field').val() !== url ) {
 			return;
 		}

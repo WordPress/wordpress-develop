@@ -12,7 +12,7 @@
  */
 class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 
-	function __construct( $factory = null ) {
+	public function __construct( $factory = null ) {
 		parent::__construct( $factory );
 		$this->default_generation_definitions = array(
 			'domain'            => WP_TESTS_DOMAIN,
@@ -23,7 +23,7 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 		);
 	}
 
-	function create_object( $args ) {
+	public function create_object( $args ) {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		if ( ! isset( $args['user'] ) ) {
@@ -33,12 +33,12 @@ class WP_UnitTest_Factory_For_Network extends WP_UnitTest_Factory_For_Thing {
 		}
 
 		populate_network( $args['network_id'], $args['domain'], $email, $args['title'], $args['path'], $args['subdomain_install'] );
-		return $args['network_id'];
+		return (int) $args['network_id'];
 	}
 
-	function update_object( $network_id, $fields ) {}
+	public function update_object( $network_id, $fields ) {}
 
-	function get_object_by_id( $network_id ) {
+	public function get_object_by_id( $network_id ) {
 		return get_network( $network_id );
 	}
 }

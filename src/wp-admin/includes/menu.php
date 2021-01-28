@@ -43,7 +43,8 @@ if ( is_network_admin() ) {
 
 // Create list of page plugin hook names.
 foreach ( $menu as $menu_page ) {
-	if ( false !== $pos = strpos( $menu_page[2], '?' ) ) {
+	$pos = strpos( $menu_page[2], '?' );
+	if ( false !== $pos ) {
 		// Handle post_type=post|page|foo pages.
 		$hook_name = substr( $menu_page[2], 0, $pos );
 		$hook_args = substr( $menu_page[2], $pos + 1 );
@@ -167,7 +168,7 @@ foreach ( $menu as $id => $data ) {
 	 * If there is only one submenu and it is has same destination as the parent,
 	 * remove the submenu.
 	 */
-	if ( ! empty( $submenu[ $data[2] ] ) && 1 == count( $submenu[ $data[2] ] ) ) {
+	if ( ! empty( $submenu[ $data[2] ] ) && 1 === count( $submenu[ $data[2] ] ) ) {
 		$subs      = $submenu[ $data[2] ];
 		$first_sub = reset( $subs );
 		if ( $data[2] == $first_sub[2] ) {
@@ -200,19 +201,20 @@ function add_cssclass( $add, $class ) {
  * @return array
  */
 function add_menu_classes( $menu ) {
-	$first = $lastorder = false;
-	$i     = 0;
-	$mc    = count( $menu );
+	$first     = false;
+	$lastorder = false;
+	$i         = 0;
+	$mc        = count( $menu );
 	foreach ( $menu as $order => $top ) {
 		$i++;
 
-		if ( 0 == $order ) { // dashboard is always shown/single
+		if ( 0 == $order ) { // Dashboard is always shown/single.
 			$menu[0][4] = add_cssclass( 'menu-top-first', $top[4] );
 			$lastorder  = 0;
 			continue;
 		}
 
-		if ( 0 === strpos( $top[2], 'separator' ) && false !== $lastorder ) { // if separator
+		if ( 0 === strpos( $top[2], 'separator' ) && false !== $lastorder ) { // If separator.
 			$first                 = true;
 			$c                     = $menu[ $lastorder ][4];
 			$menu[ $lastorder ][4] = add_cssclass( 'menu-top-last', $c );
@@ -225,7 +227,7 @@ function add_menu_classes( $menu ) {
 			$first             = false;
 		}
 
-		if ( $mc == $i ) { // last item
+		if ( $mc == $i ) { // Last item.
 			$c                 = $menu[ $order ][4];
 			$menu[ $order ][4] = add_cssclass( 'menu-top-last', $c );
 		}
@@ -243,7 +245,7 @@ function add_menu_classes( $menu ) {
 	return apply_filters( 'add_menu_classes', $menu );
 }
 
-uksort( $menu, 'strnatcasecmp' ); // make it all pretty
+uksort( $menu, 'strnatcasecmp' ); // Make it all pretty.
 
 /**
  * Filters whether to enable custom ordering of the administration menu.
@@ -308,21 +310,21 @@ if ( apply_filters( 'custom_menu_order', false ) ) {
 	unset( $menu_order, $default_menu_order );
 }
 
-// Prevent adjacent separators
+// Prevent adjacent separators.
 $prev_menu_was_separator = false;
 foreach ( $menu as $id => $data ) {
 	if ( false === stristr( $data[4], 'wp-menu-separator' ) ) {
 
-		// This item is not a separator, so falsey the toggler and do nothing
+		// This item is not a separator, so falsey the toggler and do nothing.
 		$prev_menu_was_separator = false;
 	} else {
 
-		// The previous item was a separator, so unset this one
+		// The previous item was a separator, so unset this one.
 		if ( true === $prev_menu_was_separator ) {
 			unset( $menu[ $id ] );
 		}
 
-		// This item is a separator, so truthy the toggler and move on
+		// This item is a separator, so truthy the toggler and move on.
 		$prev_menu_was_separator = true;
 	}
 }
@@ -331,7 +333,7 @@ unset( $id, $data, $prev_menu_was_separator );
 // Remove the last menu item if it is a separator.
 $last_menu_key = array_keys( $menu );
 $last_menu_key = array_pop( $last_menu_key );
-if ( ! empty( $menu ) && 'wp-menu-separator' == $menu[ $last_menu_key ][4] ) {
+if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 	unset( $menu[ $last_menu_key ] );
 }
 unset( $last_menu_key );

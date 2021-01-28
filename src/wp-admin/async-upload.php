@@ -15,17 +15,17 @@ if ( ! defined( 'WP_ADMIN' ) ) {
 }
 
 if ( defined( 'ABSPATH' ) ) {
-	require_once( ABSPATH . 'wp-load.php' );
+	require_once ABSPATH . 'wp-load.php';
 } else {
-	require_once( dirname( dirname( __FILE__ ) ) . '/wp-load.php' );
+	require_once dirname( __DIR__ ) . '/wp-load.php';
 }
 
-require_once( ABSPATH . 'wp-admin/admin.php' );
+require_once ABSPATH . 'wp-admin/admin.php';
 
-header( 'Content-Type: text/html; charset=' . get_option( 'blog_charset' ) );
+header( 'Content-Type: text/plain; charset=' . get_option( 'blog_charset' ) );
 
 if ( isset( $_REQUEST['action'] ) && 'upload-attachment' === $_REQUEST['action'] ) {
-	include( ABSPATH . 'wp-admin/includes/ajax-actions.php' );
+	require ABSPATH . 'wp-admin/includes/ajax-actions.php';
 
 	send_nosniff_header();
 	nocache_headers();
@@ -38,22 +38,25 @@ if ( ! current_user_can( 'upload_files' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to upload files.' ) );
 }
 
-// just fetch the detail form for that attachment
-if ( isset( $_REQUEST['attachment_id'] ) && ( $id = intval( $_REQUEST['attachment_id'] ) ) && $_REQUEST['fetch'] ) {
+// Just fetch the detail form for that attachment.
+if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && $_REQUEST['fetch'] ) {
+	$id   = (int) $_REQUEST['attachment_id'];
 	$post = get_post( $id );
-	if ( 'attachment' != $post->post_type ) {
+	if ( 'attachment' !== $post->post_type ) {
 		wp_die( __( 'Invalid post type.' ) );
-	}
-	if ( ! current_user_can( 'edit_post', $id ) ) {
-		wp_die( __( 'Sorry, you are not allowed to edit this item.' ) );
 	}
 
 	switch ( $_REQUEST['fetch'] ) {
 		case 3:
-			if ( $thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true ) ) {
+			$thumb_url = wp_get_attachment_image_src( $id, 'thumbnail', true );
+			if ( $thumb_url ) {
 				echo '<img class="pinkynail" src="' . esc_url( $thumb_url[0] ) . '" alt="" />';
 			}
-			echo '<a class="edit-attachment" href="' . esc_url( get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
+			if ( current_user_can( 'edit_post', $id ) ) {
+				echo '<a class="edit-attachment" href="' . esc_url( get_edit_post_link( $id ) ) . '" target="_blank">' . _x( 'Edit', 'media item' ) . '</a>';
+			} else {
+				echo '<span class="edit-attachment">' . _x( 'Success', 'media item' ) . '</span>';
+			}
 
 			// Title shouldn't ever be empty, but use filename just in case.
 			$file  = get_attached_file( $post->ID );
@@ -90,10 +93,19 @@ if ( isset( $_REQUEST['post_id'] ) ) {
 
 $id = media_handle_upload( 'async-upload', $post_id );
 if ( is_wp_error( $id ) ) {
-	echo '<div class="error-div error">
-	<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">' . __( 'Dismiss' ) . '</button>
-	<strong>' . sprintf( __( '&#8220;%s&#8221; has failed to upload.' ), esc_html( $_FILES['async-upload']['name'] ) ) . '</strong><br />' .
-	esc_html( $id->get_error_message() ) . '</div>';
+	printf(
+		'<div class="error-div error">%s <strong>%s</strong><br />%s</div>',
+		sprintf(
+			'<button type="button" class="dismiss button-link" onclick="jQuery(this).parents(\'div.media-item\').slideUp(200, function(){jQuery(this).remove();});">%s</button>',
+			__( 'Dismiss' )
+		),
+		sprintf(
+			/* translators: %s: Name of the file that failed to upload. */
+			__( '&#8220;%s&#8221; has failed to upload.' ),
+			esc_html( $_FILES['async-upload']['name'] )
+		),
+		esc_html( $id->get_error_message() )
+	);
 	exit;
 }
 
@@ -101,7 +113,7 @@ if ( $_REQUEST['short'] ) {
 	// Short form response - attachment ID only.
 	echo $id;
 } else {
-	// Long form response - big chunk of html.
+	// Long form response - big chunk of HTML.
 	$type = $_REQUEST['type'];
 
 	/**

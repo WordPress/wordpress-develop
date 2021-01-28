@@ -33,6 +33,15 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 45163
+	 */
+	function test_get_term_by_uppercase_id() {
+		$term1 = wp_insert_term( 'Foo', 'category', array( 'slug' => 'foo' ) );
+		$term2 = get_term_by( 'ID', $term1['term_id'], 'category' );
+		$this->assertEquals( get_term( $term1['term_id'], 'category' ), $term2 );
+	}
+
+	/**
 	 * @ticket 21651
 	 */
 	function test_get_term_by_tt_id() {
@@ -223,7 +232,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		get_term_by( 'name', 'burrito', 'post_tag' );
 		remove_filter( 'get_terms', array( $action, 'filter' ) );
 
-		$this->assertEquals( 0, $action->get_call_count() );
+		$this->assertSame( 0, $action->get_call_count() );
 	}
 
 	/**

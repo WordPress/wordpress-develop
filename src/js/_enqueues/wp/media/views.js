@@ -18,7 +18,7 @@ delete l10n.settings;
 // Copy the `post` setting over to the model settings.
 media.model.settings.post = media.view.settings.post;
 
-// Check if the browser supports CSS 3.0 transitions
+// Check if the browser supports CSS 3.0 transitions.
 $.support.transition = (function(){
 	var style = document.documentElement.style,
 		transitions = {
@@ -48,8 +48,8 @@ media.events = _.extend( {}, Backbone.Events );
  * Makes it easier to bind events using transitions.
  *
  * @param {string} selector
- * @param {Number} sensitivity
- * @returns {Promise}
+ * @param {number} sensitivity
+ * @return {Promise}
  */
 media.transition = function( selector, sensitivity ) {
 	var deferred = $.Deferred();
@@ -151,3 +151,4 @@ media.view.SiteIconCropper = require( '../../../media/views/site-icon-cropper.js
 media.view.SiteIconPreview = require( '../../../media/views/site-icon-preview.js' );
 media.view.EditImage = require( '../../../media/views/edit-image.js' );
 media.view.Spinner = require( '../../../media/views/spinner.js' );
+media.view.Heading = require( '../../../media/views/heading.js' );

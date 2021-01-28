@@ -35,7 +35,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertCount( 1, $q->get( 'category__in' ) );
 
 		$this->assertNotEmpty( $posts );
-		$this->assertEquals( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
+		$this->assertSame( array( $post_id ), wp_list_pluck( $posts, 'ID' ) );
 
 		$posts2 = $q->query( array( 'category__and' => array( $term_id, $term_id2 ) ) );
 		$this->assertNotEmpty( $q->get( 'category__and' ) );
@@ -95,20 +95,20 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		// Fourth post added in filter
-		$this->assertEquals( 4, count( $query->posts ) );
-		$this->assertEquals( 4, $query->post_count );
+		// Fourth post added in filter.
+		$this->assertSame( 4, count( $query->posts ) );
+		$this->assertSame( 4, $query->post_count );
 
 		foreach ( $query->posts as $post ) {
 
-			// posts are WP_Post objects
+			// Posts are WP_Post objects.
 			$this->assertTrue( is_a( $post, 'WP_Post' ) );
 
-			// filters are raw
-			$this->assertEquals( 'raw', $post->filter );
+			// Filters are raw.
+			$this->assertSame( 'raw', $post->filter );
 
-			// custom data added in the_posts filter is preserved
-			$this->assertEquals( array( $post->ID, 'custom data' ), $post->custom_data );
+			// Custom data added in the_posts filter is preserved.
+			$this->assertSame( array( $post->ID, 'custom data' ), $post->custom_data );
 		}
 
 		remove_filter( 'the_posts', array( $this, 'the_posts_filter' ) );
@@ -408,31 +408,31 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 29629
 	 */
 	function test_orderby() {
-		// 'rand' is a valid value
+		// 'rand' is a valid value.
 		$q = new WP_Query( array( 'orderby' => 'rand' ) );
 		$this->assertContains( 'ORDER BY RAND()', $q->request );
 		$this->assertNotContains( 'ASC', $q->request );
 		$this->assertNotContains( 'DESC', $q->request );
 
-		// This isn't allowed
+		// This isn't allowed.
 		$q2 = new WP_Query( array( 'order' => 'rand' ) );
 		$this->assertContains( 'ORDER BY', $q2->request );
 		$this->assertNotContains( 'RAND()', $q2->request );
 		$this->assertContains( 'DESC', $q2->request );
 
-		// 'none' is a valid value
+		// 'none' is a valid value.
 		$q3 = new WP_Query( array( 'orderby' => 'none' ) );
 		$this->assertNotContains( 'ORDER BY', $q3->request );
 		$this->assertNotContains( 'DESC', $q3->request );
 		$this->assertNotContains( 'ASC', $q3->request );
 
-		// false is a valid value
+		// False is a valid value.
 		$q4 = new WP_Query( array( 'orderby' => false ) );
 		$this->assertNotContains( 'ORDER BY', $q4->request );
 		$this->assertNotContains( 'DESC', $q4->request );
 		$this->assertNotContains( 'ASC', $q4->request );
 
-		// empty array() is a valid value
+		// Empty array() is a valid value.
 		$q5 = new WP_Query( array( 'orderby' => array() ) );
 		$this->assertNotContains( 'ORDER BY', $q5->request );
 		$this->assertNotContains( 'DESC', $q5->request );
@@ -519,7 +519,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 		$actual_posts = $q->get_posts();
-		$this->assertEqualSets( $requested, $actual_posts );
+		$this->assertSameSets( $requested, $actual_posts );
 
 		$requested = array( $post_ids[1], $post_ids[2] );
 		$q->query(
@@ -529,7 +529,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 		$actual_posts = $q->get_posts();
-		$this->assertEqualSets( $requested, $actual_posts );
+		$this->assertSameSets( $requested, $actual_posts );
 	}
 
 	/**
@@ -566,11 +566,11 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		$this->post_id = self::factory()->post->create();
 
-		// Prevent the DB query
+		// Prevent the DB query.
 		add_filter( 'posts_request', '__return_empty_string' );
 		add_filter( 'found_posts_query', '__return_empty_string' );
 
-		// Add the post and found_posts
+		// Add the post and found_posts.
 		add_filter( 'the_posts', array( $this, 'filter_the_posts' ) );
 		add_filter( 'found_posts', array( $this, 'filter_found_posts' ) );
 
@@ -613,7 +613,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -636,7 +636,7 @@ class Tests_Post_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -652,15 +652,17 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		}
 
 		add_filter( 'split_the_query', '__return_true' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_true' );
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
@@ -677,20 +679,22 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 		// ! $split_the_query
 		add_filter( 'split_the_query', '__return_false' );
+
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
 				'posts_per_page' => 1,
 			)
 		);
+
 		remove_filter( 'split_the_query', '__return_false' );
 
-		$this->assertEquals( 2, $q->found_posts );
+		$this->assertSame( 2, $q->found_posts );
 		$this->assertEquals( 2, $q->max_num_pages );
 	}
 
 	public function set_found_posts_provider() {
-		// count return 0 for null, but 1 for other data you may not expect
+		// Count return 0 for null, but 1 for other data you may not expect.
 		return array(
 			array( null, 0 ),
 			array( '', 1 ),
@@ -705,11 +709,6 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @dataProvider set_found_posts_provider
 	 */
 	public function test_set_found_posts_not_posts_as_an_array( $posts, $expected ) {
-		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
-			$this->markTestSkipped( 'ReflectionMethod::setAccessible is only available in PHP 5.3+' );
-			return;
-		}
-
 		$q = new WP_Query(
 			array(
 				'post_type'      => 'wptests_pt',
@@ -723,7 +722,40 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$methd->setAccessible( true );
 		$methd->invoke( $q, array( 'no_found_rows' => false ), array() );
 
-		$this->assertEquals( $expected, $q->found_posts );
+		$this->assertSame( $expected, $q->found_posts );
 	}
 
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_not_string() {
+		$this->post_id = self::factory()->post->create();
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
+
+	/**
+	 * @ticket 42469
+	 */
+	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
+		$this->post_id = self::factory()->post->create();
+
+		add_filter( 'found_posts', '__return_empty_string' );
+
+		$q = new WP_Query(
+			array(
+				'posts_per_page' => 1,
+			)
+		);
+
+		remove_filter( 'found_posts', '__return_empty_string' );
+
+		$this->assertInternalType( 'int', $q->found_posts );
+	}
 }

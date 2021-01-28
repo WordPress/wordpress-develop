@@ -2,7 +2,7 @@
  * @output wp-admin/js/common.js
  */
 
-/* global setUserSetting, ajaxurl, commonL10n, alert, confirm, pagenow */
+/* global setUserSetting, ajaxurl, alert, confirm, pagenow */
 /* global columns, screenMeta */
 
 /**
@@ -15,7 +15,343 @@
 ( function( $, window, undefined ) {
 	var $document = $( document ),
 		$window = $( window ),
-		$body = $( document.body );
+		$body = $( document.body ),
+		__ = wp.i18n.__,
+		sprintf = wp.i18n.sprintf;
+
+/**
+ * Throws an error for a deprecated property.
+ *
+ * @since 5.5.1
+ *
+ * @param {string} propName    The property that was used.
+ * @param {string} version     The version of WordPress that deprecated the property.
+ * @param {string} replacement The property that should have been used.
+ */
+function deprecatedProperty( propName, version, replacement ) {
+	var message;
+
+	if ( 'undefined' !== typeof replacement ) {
+		message = sprintf(
+			/* translators: 1: Deprecated property name, 2: Version number, 3: Alternative property name. */
+			__( '%1$s is deprecated since version %2$s! Use %3$s instead.' ),
+			propName,
+			version,
+			replacement
+		);
+	} else {
+		message = sprintf(
+			/* translators: 1: Deprecated property name, 2: Version number. */
+			__( '%1$s is deprecated since version %2$s with no alternative available.' ),
+			propName,
+			version
+		);
+	}
+
+	window.console.warn( message );
+}
+
+/**
+ * Deprecate all properties on an object.
+ *
+ * @since 5.5.1
+ * @since 5.6.0 Added the `version` parameter.
+ *
+ * @param {string} name       The name of the object, i.e. commonL10n.
+ * @param {object} l10nObject The object to deprecate the properties on.
+ * @param {string} version    The version of WordPress that deprecated the property.
+ *
+ * @return {object} The object with all its properties deprecated.
+ */
+function deprecateL10nObject( name, l10nObject, version ) {
+	var deprecatedObject = {};
+
+	Object.keys( l10nObject ).forEach( function( key ) {
+		var prop = l10nObject[ key ];
+		var propName = name + '.' + key;
+
+		if ( 'object' === typeof prop ) {
+			Object.defineProperty( deprecatedObject, key, { get: function() {
+				deprecatedProperty( propName, version, prop.alternative );
+				return prop.func();
+			} } );
+		} else {
+			Object.defineProperty( deprecatedObject, key, { get: function() {
+				deprecatedProperty( propName, version, 'wp.i18n' );
+				return prop;
+			} } );
+		}
+	} );
+
+	return deprecatedObject;
+}
+
+window.wp.deprecateL10nObject = deprecateL10nObject;
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.6.0
+ * @deprecated 5.5.0
+ */
+window.commonL10n = window.commonL10n || {
+	warnDelete: '',
+	dismiss: '',
+	collapseMenu: '',
+	expandMenu: ''
+};
+
+window.commonL10n = deprecateL10nObject( 'commonL10n', window.commonL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.3.0
+ * @deprecated 5.5.0
+ */
+window.wpPointerL10n = window.wpPointerL10n || {
+	dismiss: ''
+};
+
+window.wpPointerL10n = deprecateL10nObject( 'wpPointerL10n', window.wpPointerL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.3.0
+ * @deprecated 5.5.0
+ */
+window.userProfileL10n = window.userProfileL10n || {
+	warn: '',
+	warnWeak: '',
+	show: '',
+	hide: '',
+	cancel: '',
+	ariaShow: '',
+	ariaHide: ''
+};
+
+window.userProfileL10n = deprecateL10nObject( 'userProfileL10n', window.userProfileL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.9.6
+ * @deprecated 5.5.0
+ */
+window.privacyToolsL10n = window.privacyToolsL10n || {
+	noDataFound: '',
+	foundAndRemoved: '',
+	noneRemoved: '',
+	someNotRemoved: '',
+	removalError: '',
+	emailSent: '',
+	noExportFile: '',
+	exportError: ''
+};
+
+window.privacyToolsL10n = deprecateL10nObject( 'privacyToolsL10n', window.privacyToolsL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.6.0
+ * @deprecated 5.5.0
+ */
+window.authcheckL10n = {
+	beforeunload: ''
+};
+
+window.authcheckL10n = window.authcheckL10n || deprecateL10nObject( 'authcheckL10n', window.authcheckL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.8.0
+ * @deprecated 5.5.0
+ */
+window.tagsl10n = {
+	noPerm: '',
+	broken: ''
+};
+
+window.tagsl10n = window.tagsl10n || deprecateL10nObject( 'tagsl10n', window.tagsl10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.adminCommentsL10n = window.adminCommentsL10n || {
+	hotkeys_highlight_first: {
+		alternative: 'window.adminCommentsSettings.hotkeys_highlight_first',
+		func: function() { return window.adminCommentsSettings.hotkeys_highlight_first; }
+	},
+	hotkeys_highlight_last: {
+		alternative: 'window.adminCommentsSettings.hotkeys_highlight_last',
+		func: function() { return window.adminCommentsSettings.hotkeys_highlight_last; }
+	},
+	replyApprove: '',
+	reply: '',
+	warnQuickEdit: '',
+	warnCommentChanges: '',
+	docTitleComments: '',
+	docTitleCommentsCount: ''
+};
+
+window.adminCommentsL10n = deprecateL10nObject( 'adminCommentsL10n', window.adminCommentsL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.tagsSuggestL10n = window.tagsSuggestL10n || {
+	tagDelimiter: '',
+	removeTerm: '',
+	termSelected: '',
+	termAdded: '',
+	termRemoved: ''
+};
+
+window.tagsSuggestL10n = deprecateL10nObject( 'tagsSuggestL10n', window.tagsSuggestL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.5.0
+ * @deprecated 5.5.0
+ */
+window.wpColorPickerL10n = window.wpColorPickerL10n || {
+	clear: '',
+	clearAriaLabel: '',
+	defaultString: '',
+	defaultAriaLabel: '',
+	pick: '',
+	defaultLabel: ''
+};
+
+window.wpColorPickerL10n = deprecateL10nObject( 'wpColorPickerL10n', window.wpColorPickerL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.attachMediaBoxL10n = window.attachMediaBoxL10n || {
+	error: ''
+};
+
+window.attachMediaBoxL10n = deprecateL10nObject( 'attachMediaBoxL10n', window.attachMediaBoxL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.postL10n = window.postL10n || {
+	ok: '',
+	cancel: '',
+	publishOn: '',
+	publishOnFuture: '',
+	publishOnPast: '',
+	dateFormat: '',
+	showcomm: '',
+	endcomm: '',
+	publish: '',
+	schedule: '',
+	update: '',
+	savePending: '',
+	saveDraft: '',
+	'private': '',
+	'public': '',
+	publicSticky: '',
+	password: '',
+	privatelyPublished: '',
+	published: '',
+	saveAlert: '',
+	savingText: '',
+	permalinkSaved: ''
+};
+
+window.postL10n = deprecateL10nObject( 'postL10n', window.postL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.inlineEditL10n = window.inlineEditL10n || {
+	error: '',
+	ntdeltitle: '',
+	notitle: '',
+	comma: '',
+	saved: ''
+};
+
+window.inlineEditL10n = deprecateL10nObject( 'inlineEditL10n', window.inlineEditL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.7.0
+ * @deprecated 5.5.0
+ */
+window.plugininstallL10n = window.plugininstallL10n || {
+	plugin_information: '',
+	plugin_modal_label: '',
+	ays: ''
+};
+
+window.plugininstallL10n = deprecateL10nObject( 'plugininstallL10n', window.plugininstallL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 3.0.0
+ * @deprecated 5.5.0
+ */
+window.navMenuL10n = window.navMenuL10n || {
+	noResultsFound: '',
+	warnDeleteMenu: '',
+	saveAlert: '',
+	untitled: ''
+};
+
+window.navMenuL10n = deprecateL10nObject( 'navMenuL10n', window.navMenuL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.5.0
+ * @deprecated 5.5.0
+ */
+window.commentL10n = window.commentL10n || {
+	submittedOn: '',
+	dateFormat: ''
+};
+
+window.commentL10n = deprecateL10nObject( 'commentL10n', window.commentL10n, '5.5.0' );
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 2.9.0
+ * @deprecated 5.5.0
+ */
+window.setPostThumbnailL10n = window.setPostThumbnailL10n || {
+	setThumbnail: '',
+	saving: '',
+	error: '',
+	done: ''
+};
+
+window.setPostThumbnailL10n = deprecateL10nObject( 'setPostThumbnailL10n', window.setPostThumbnailL10n, '5.5.0' );
 
 /**
  * Removed in 3.3.0, needed for back-compatibility.
@@ -42,11 +378,11 @@ window.columns = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	init : function() {
 		var that = this;
-		$('.hide-column-tog', '#adv-settings').click( function() {
+		$('.hide-column-tog', '#adv-settings').on( 'click', function() {
 			var $t = $(this), column = $t.val();
 			if ( $t.prop('checked') )
 				that.checked(column);
@@ -64,7 +400,7 @@ window.columns = {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	saveManageColumnsState : function() {
 		var hidden = this.hidden();
@@ -82,7 +418,7 @@ window.columns = {
 	 * @since 3.0.0
 	 * @param {string} column The column name.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	checked : function(column) {
 		$('.column-' + column).removeClass( 'hidden' );
@@ -95,7 +431,7 @@ window.columns = {
 	 * @since 3.0.0
 	 * @param {string} column The column name.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	unchecked : function(column) {
 		$('.column-' + column).addClass( 'hidden' );
@@ -107,7 +443,7 @@ window.columns = {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @returns {string} The hidden column names separated by a comma.
+	 * @return {string} The hidden column names separated by a comma.
 	 */
 	hidden : function() {
 		return $( '.manage-column[id]' ).filter( '.hidden' ).map(function() {
@@ -120,7 +456,7 @@ window.columns = {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @returns {string} String containing the checked column names.
+	 * @return {string} String containing the checked column names.
 	 */
 	useCheckboxesForHidden : function() {
 		this.hidden = function(){
@@ -136,7 +472,7 @@ window.columns = {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @param {int} diff The modifier for the column span.
+	 * @param {number} diff The modifier for the column span.
 	 */
 	colSpanChange : function(diff) {
 		var $t = $('table').find('.colspanchange'), n;
@@ -156,7 +492,7 @@ $document.ready(function(){columns.init();});
  *
  * @param {jQuery} form The form to validate.
  *
- * @returns {boolean} Returns true if all required fields are not an empty string.
+ * @return {boolean} Returns true if all required fields are not an empty string.
  */
 window.validateForm = function( form ) {
 	return !$( form )
@@ -164,11 +500,11 @@ window.validateForm = function( form ) {
 		.filter( function() { return $( ':input:visible', this ).val() === ''; } )
 		.addClass( 'form-invalid' )
 		.find( ':input:visible' )
-		.change( function() { $( this ).closest( '.form-invalid' ).removeClass( 'form-invalid' ); } )
+		.on( 'change', function() { $( this ).closest( '.form-invalid' ).removeClass( 'form-invalid' ); } )
 		.length;
 };
 
-// stub for doing better warnings
+// Stub for doing better warnings.
 /**
  * Shows message pop-up notice or confirmation message.
  *
@@ -176,7 +512,7 @@ window.validateForm = function( form ) {
  *
  * @type {{warn: showNotice.warn, note: showNotice.note}}
  *
- * @returns {void}
+ * @return {void}
  */
 window.showNotice = {
 
@@ -185,11 +521,10 @@ window.showNotice = {
 	 *
 	 * @since 2.7.0
 	 *
-	 * @returns {boolean} Returns true if the message is confirmed.
+	 * @return {boolean} Returns true if the message is confirmed.
 	 */
 	warn : function() {
-		var msg = commonL10n.warnDelete || '';
-		if ( confirm(msg) ) {
+		if ( confirm( __( 'You are about to permanently delete these items from your site.\nThis action cannot be undone.\n\'Cancel\' to stop, \'OK\' to delete.' ) ) ) {
 			return true;
 		}
 
@@ -217,7 +552,7 @@ window.showNotice = {
  *         toggleEvent: screenMeta.toggleEvent, open: screenMeta.open,
  *         close: screenMeta.close}}
  *
- * @returns {void}
+ * @return {void}
  */
 window.screenMeta = {
 	element: null, // #screen-meta
@@ -229,14 +564,14 @@ window.screenMeta = {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	init: function() {
 		this.element = $('#screen-meta');
 		this.toggles = $( '#screen-meta-links' ).find( '.show-settings' );
 		this.page    = $('#wpcontent');
 
-		this.toggles.click( this.toggleEvent );
+		this.toggles.on( 'click', this.toggleEvent );
 	},
 
 	/**
@@ -244,7 +579,7 @@ window.screenMeta = {
 	 *
 	 * @since 3.2.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	toggleEvent: function() {
 		var panel = $( '#' + $( this ).attr( 'aria-controls' ) );
@@ -266,7 +601,7 @@ window.screenMeta = {
 	 * @param {jQuery} panel  The screen meta options panel div.
 	 * @param {jQuery} button The toggle button.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	open: function( panel, button ) {
 
@@ -279,10 +614,10 @@ window.screenMeta = {
 		 *
 		 * @since 3.2.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		panel.slideDown( 'fast', function() {
-			panel.focus();
+			panel.trigger( 'focus' );
 			button.addClass( 'screen-meta-active' ).attr( 'aria-expanded', true );
 		});
 
@@ -297,7 +632,7 @@ window.screenMeta = {
 	 * @param {jQuery} panel  The screen meta options panel div.
 	 * @param {jQuery} button The toggle button.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	close: function( panel, button ) {
 		/**
@@ -305,7 +640,7 @@ window.screenMeta = {
 		 *
 		 * @since 3.2.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		panel.slideUp( 'fast', function() {
 			button.removeClass( 'screen-meta-active' ).attr( 'aria-expanded', false );
@@ -322,9 +657,9 @@ window.screenMeta = {
  *
  * @param {Event} e The event object.
  *
- * @returns {void}
+ * @return {void}
  */
-$('.contextual-help-tabs').delegate('a', 'click', function(e) {
+$('.contextual-help-tabs').on( 'click', 'a', function(e) {
 	var link = $(this),
 		panel;
 
@@ -334,13 +669,13 @@ $('.contextual-help-tabs').delegate('a', 'click', function(e) {
 	if ( link.is('.active a') )
 		return false;
 
-	// Links
+	// Links.
 	$('.contextual-help-tabs .active').removeClass('active');
 	link.parent('li').addClass('active');
 
 	panel = $( link.attr('href') );
 
-	// Panels
+	// Panels.
 	$('.help-tab-content').not( panel ).removeClass('active').hide();
 	panel.addClass('active').show();
 });
@@ -384,7 +719,7 @@ $permalinkStructure.on( 'focus', function( event ) {
  * If the structure is already used in the custom permalink structure,
  * it will be disabled.
  *
- * @param {object} button Button jQuery object.
+ * @param {Object} button Button jQuery object.
  */
 function changeStructureTagButtonState( button ) {
 	if ( -1 !== $permalinkStructure.val().indexOf( button.text().trim() ) ) {
@@ -463,7 +798,7 @@ $availableStructureTags.on( 'click', function() {
 	if ( permalinkStructureFocused && $permalinkStructure[0].setSelectionRange ) {
 		newSelectionStart = ( permalinkStructureValue.substr( 0, selectionStart ) + textToAppend ).length;
 		$permalinkStructure[0].setSelectionRange( newSelectionStart, newSelectionStart );
-		$permalinkStructure.focus();
+		$permalinkStructure.trigger( 'focus' );
 	}
 } );
 
@@ -474,7 +809,6 @@ $document.ready( function() {
 		currentPage = pageInput.val(),
 		isIOS = /iPhone|iPad|iPod/.test( navigator.userAgent ),
 		isAndroid = navigator.userAgent.indexOf( 'Android' ) !== -1,
-		isIE8 = $( document.documentElement ).hasClass( 'ie8' ),
 		$adminMenuWrap = $( '#adminmenuwrap' ),
 		$wpwrap = $( '#wpwrap' ),
 		$adminmenu = $( '#adminmenu' ),
@@ -503,7 +837,7 @@ $document.ready( function() {
 	 *
 	 * @param {Event} e The event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$adminmenu.on('click.wp-submenu-head', '.wp-submenu-head', function(e){
 		$(e.target).parent().siblings('a').get(0).click();
@@ -512,12 +846,12 @@ $document.ready( function() {
 	/**
 	 * Collapses the admin menu.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$( '#collapse-button' ).on( 'click.collapse-menu', function() {
 		var viewportWidth = getViewportWidth() || 961;
 
-		// reset any compensation for submenus near the bottom of the screen
+		// Reset any compensation for submenus near the bottom of the screen.
 		$('#adminmenu div.wp-submenu').css('margin-top', '');
 
 		if ( viewportWidth < 960 ) {
@@ -551,7 +885,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function currentMenuItemHasPopup() {
 		var $current = $( 'a.wp-has-current-submenu' );
@@ -574,7 +908,7 @@ $document.ready( function() {
 	 *
 	 * @param {jQuery} $menuItem The parent menu item containing the submenu.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function adjustSubmenu( $menuItem ) {
 		var bottomOffset, pageHeight, adjustment, theFold, menutop, wintop, maxtop,
@@ -582,12 +916,12 @@ $document.ready( function() {
 
 		menutop = $menuItem.offset().top;
 		wintop = $window.scrollTop();
-		maxtop = menutop - wintop - 30; // max = make the top of the sub almost touch admin bar
+		maxtop = menutop - wintop - 30; // max = make the top of the sub almost touch admin bar.
 
-		bottomOffset = menutop + $submenu.height() + 1; // Bottom offset of the menu
-		pageHeight = $wpwrap.height(); // Height of the entire page
+		bottomOffset = menutop + $submenu.height() + 1; // Bottom offset of the menu.
+		pageHeight = $wpwrap.height();                  // Height of the entire page.
 		adjustment = 60 + bottomOffset - pageHeight;
-		theFold = $window.height() + wintop - 50; // The fold
+		theFold = $window.height() + wintop - 50;       // The fold.
 
 		if ( theFold < ( bottomOffset - adjustment ) ) {
 			adjustment = bottomOffset - theFold;
@@ -604,8 +938,8 @@ $document.ready( function() {
 		}
 	}
 
-	if ( 'ontouchstart' in window || /IEMobile\/[1-9]/.test(navigator.userAgent) ) { // touch screen device
-		// iOS Safari works with touchstart, the rest work with click
+	if ( 'ontouchstart' in window || /IEMobile\/[1-9]/.test(navigator.userAgent) ) { // Touch screen device.
+		// iOS Safari works with touchstart, the rest work with click.
 		mobileEvent = isIOS ? 'touchstart' : 'click';
 
 		/**
@@ -613,7 +947,7 @@ $document.ready( function() {
 		 *
 		 * @param {Event} e The event object.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$body.on( mobileEvent+'.wp-mobile-hover', function(e) {
 			if ( $adminmenu.data('wp-responsive') ) {
@@ -630,7 +964,7 @@ $document.ready( function() {
 		 *
 		 * @param {Event} event The event object.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$adminmenu.find( 'a.wp-has-submenu' ).on( mobileEvent + '.wp-mobile-hover', function( event ) {
 			var $menuItem = $(this).parent();
@@ -639,9 +973,11 @@ $document.ready( function() {
 				return;
 			}
 
-			// Show the sub instead of following the link if:
-			//	- the submenu is not open
-			//	- the submenu is not shown inline or the menu is not folded
+			/*
+			 * Show the sub instead of following the link if:
+			 * 	- the submenu is not open.
+			 * 	- the submenu is not shown inline or the menu is not folded.
+			 */
 			if ( ! $menuItem.hasClass( 'opensub' ) && ( ! $menuItem.hasClass( 'wp-menu-open' ) || $menuItem.width() < 40 ) ) {
 				event.preventDefault();
 				adjustSubmenu( $menuItem );
@@ -657,19 +993,19 @@ $document.ready( function() {
 			/**
 			 * Opens the submenu when hovered over the menu item for desktops.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 			over: function() {
 				var $menuItem = $( this ),
 					$submenu = $menuItem.find( '.wp-submenu' ),
 					top = parseInt( $submenu.css( 'top' ), 10 );
 
-				if ( isNaN( top ) || top > -5 ) { // the submenu is visible
+				if ( isNaN( top ) || top > -5 ) { // The submenu is visible.
 					return;
 				}
 
 				if ( $adminmenu.data( 'wp-responsive' ) ) {
-					// The menu is in responsive mode, bail
+					// The menu is in responsive mode, bail.
 					return;
 				}
 
@@ -681,11 +1017,11 @@ $document.ready( function() {
 			/**
 			 * Closes the submenu when no longer hovering the menu item.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 			out: function(){
 				if ( $adminmenu.data( 'wp-responsive' ) ) {
-					// The menu is in responsive mode, bail
+					// The menu is in responsive mode, bail.
 					return;
 				}
 
@@ -701,11 +1037,11 @@ $document.ready( function() {
 		 *
 		 * @param {Event} event The event object.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		$adminmenu.on( 'focus.adminmenu', '.wp-submenu a', function( event ) {
 			if ( $adminmenu.data( 'wp-responsive' ) ) {
-				// The menu is in responsive mode, bail
+				// The menu is in responsive mode, bail.
 				return;
 			}
 
@@ -716,7 +1052,7 @@ $document.ready( function() {
 			 *
 			 * @param {Event} event The event object.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 		}).on( 'blur.adminmenu', '.wp-submenu a', function( event ) {
 			if ( $adminmenu.data( 'wp-responsive' ) ) {
@@ -728,7 +1064,7 @@ $document.ready( function() {
 			/**
 			 * Adjusts the size for the submenu.
 			 *
-			 * @returns {void}
+			 * @return {void}
 			 */
 		}).find( 'li.wp-has-submenu.wp-not-current-submenu' ).on( 'focusin.adminmenu', function() {
 			adjustSubmenu( $( this ) );
@@ -751,16 +1087,19 @@ $document.ready( function() {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function makeNoticesDismissible() {
 		$( '.notice.is-dismissible' ).each( function() {
 			var $el = $( this ),
-				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' ),
-				btnText = commonL10n.dismiss || '';
+				$button = $( '<button type="button" class="notice-dismiss"><span class="screen-reader-text"></span></button>' );
 
-			// Ensure plain text
-			$button.find( '.screen-reader-text' ).text( btnText );
+			if ( $el.find( '.notice-dismiss' ).length ) {
+				return;
+			}
+
+			// Ensure plain text.
+			$button.find( '.screen-reader-text' ).text( __( 'Dismiss this notice.' ) );
 			$button.on( 'click.wp-dismiss-notice', function( event ) {
 				event.preventDefault();
 				$el.fadeTo( 100, 0, function() {
@@ -776,7 +1115,7 @@ $document.ready( function() {
 
 	$document.on( 'wp-updates-notice-added wp-plugin-install-error wp-plugin-update-error wp-plugin-delete-error wp-theme-install-error wp-theme-delete-error', makeNoticesDismissible );
 
-	// Init screen meta
+	// Init screen meta.
 	screenMeta.init();
 
 	/**
@@ -784,7 +1123,7 @@ $document.ready( function() {
 	 *
 	 * This event needs to be delegated. Ticket #37973.
 	 *
-	 * @returns {boolean} Returns whether a checkbox is checked or not.
+	 * @return {boolean} Returns whether a checkbox is checked or not.
 	 */
 	$body.on( 'click', 'tbody > tr > .check-column :checkbox', function( event ) {
 		// Shift click to select a range of checkboxes.
@@ -813,7 +1152,7 @@ $document.ready( function() {
 		/**
 		 * Determines if all checkboxes are checked.
 		 *
-		 * @returns {boolean} Returns true if there are no unchecked checkboxes.
+		 * @return {boolean} Returns true if there are no unchecked checkboxes.
 		 */
 		$(this).closest('table').children('thead, tfoot').find(':checkbox').prop('checked', function() {
 			return ( 0 === unchecked.length );
@@ -832,7 +1171,7 @@ $document.ready( function() {
 	 *
 	 * @param {Event} event The event object.
 	 *
-	 * @returns {boolean}
+	 * @return {boolean}
 	 */
 	$body.on( 'click.wp-toggle-checkboxes', 'thead .check-column :checkbox, tfoot .check-column :checkbox', function( event ) {
 		var $this = $(this),
@@ -845,7 +1184,7 @@ $document.ready( function() {
 			/**
 			 * Updates the checked state on the checkbox in the table.
 			 *
-			 * @returns {boolean} True checks the checkbox, False unchecks the checkbox.
+			 * @return {boolean} True checks the checkbox, False unchecks the checkbox.
 			 */
 			.prop('checked', function() {
 				if ( $(this).is(':hidden,:disabled') ) {
@@ -867,7 +1206,7 @@ $document.ready( function() {
 			/**
 			 * Syncs the bulk checkboxes on the top and bottom of the table.
 			 *
-			 * @returns {boolean} True checks the checkbox, False unchecks the checkbox.
+			 * @return {boolean} True checks the checkbox, False unchecks the checkbox.
 			 */
 			.prop('checked', function() {
 				if ( toggle ) {
@@ -881,9 +1220,65 @@ $document.ready( function() {
 	});
 
 	/**
+	 * Marries a secondary control to its primary control.
+	 *
+	 * @param {jQuery} topSelector    The top selector element.
+	 * @param {jQuery} topSubmit      The top submit element.
+	 * @param {jQuery} bottomSelector The bottom selector element.
+	 * @param {jQuery} bottomSubmit   The bottom submit element.
+	 * @return {void}
+	 */
+	function marryControls( topSelector, topSubmit, bottomSelector, bottomSubmit ) {
+		/**
+		 * Updates the primary selector when the secondary selector is changed.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @return {void}
+		 */
+		function updateTopSelector() {
+			topSelector.val($(this).val());
+		}
+		bottomSelector.on('change', updateTopSelector);
+
+		/**
+		 * Updates the secondary selector when the primary selector is changed.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @return {void}
+		 */
+		function updateBottomSelector() {
+			bottomSelector.val($(this).val());
+		}
+		topSelector.on('change', updateBottomSelector);
+
+		/**
+		 * Triggers the primary submit when then secondary submit is clicked.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @return {void}
+		 */
+		function triggerSubmitClick(e) {
+			e.preventDefault();
+			e.stopPropagation();
+
+			topSubmit.trigger('click');
+		}
+		bottomSubmit.on('click', triggerSubmitClick);
+	}
+
+	// Marry the secondary "Bulk actions" controls to the primary controls:
+	marryControls( $('#bulk-action-selector-top'), $('#doaction'), $('#bulk-action-selector-bottom'), $('#doaction2') );
+
+	// Marry the secondary "Change role to" controls to the primary controls:
+	marryControls( $('#new_role'), $('#changeit'), $('#new_role2'), $('#changeit2') );
+
+	/**
 	 * Shows row actions on focus of its parent container element or any other elements contained within.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$( '#wpbody-content' ).on({
 		focusin: function() {
@@ -900,14 +1295,14 @@ $document.ready( function() {
 				focusedRowActions.removeClass( 'visible' );
 			}, 30 );
 		}
-	}, '.has-row-actions' );
+	}, '.table-view-list .has-row-actions' );
 
-	// Toggle list table rows on small screens
+	// Toggle list table rows on small screens.
 	$( 'tbody' ).on( 'click', '.toggle-row', function() {
 		$( this ).closest( 'tr' ).toggleClass( 'is-expanded' );
 	});
 
-	$('#default-password-nag-no').click( function() {
+	$('#default-password-nag-no').on( 'click', function() {
 		setUserSetting('default_password_nag', 'hide');
 		$('div.default-password-nag').hide();
 		return false;
@@ -918,14 +1313,14 @@ $document.ready( function() {
 	 *
 	 * @param {Event} e The event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
-	$('#newcontent').bind('keydown.wpevent_InsertTab', function(e) {
+	$('#newcontent').on('keydown.wpevent_InsertTab', function(e) {
 		var el = e.target, selStart, selEnd, val, scroll, sel;
 
 		// After pressing escape key (keyCode: 27), the tab key should tab out of the textarea.
 		if ( e.keyCode == 27 ) {
-			// when pressing Escape: Opera 12 and 27 blur form fields, IE 8 clears them
+			// When pressing Escape: Opera 12 and 27 blur form fields, IE 8 clears them.
 			e.preventDefault();
 			$(el).data('tab-out', true);
 			return;
@@ -977,14 +1372,13 @@ $document.ready( function() {
 		 *
 		 * The form closest to the pageInput is the post-filter form.
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
-		pageInput.closest('form').submit( function() {
+		pageInput.closest('form').on( 'submit', function() {
 			/*
 			 * action = bulk action dropdown at the top of the table
-			 * action2 = bulk action dropdow at the bottom of the table
 			 */
-			if ( $('select[name="action"]').val() == -1 && $('select[name="action2"]').val() == -1 && pageInput.val() == currentPage )
+			if ( $('select[name="action"]').val() == -1 && pageInput.val() == currentPage )
 				pageInput.val('1');
 		});
 	}
@@ -992,9 +1386,9 @@ $document.ready( function() {
 	/**
 	 * Resets the bulk actions when the search button is clicked.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
-	$('.search-box input[type="search"], .search-box input[type="submit"]').mousedown(function () {
+	$('.search-box input[type="search"], .search-box input[type="submit"]').on( 'mousedown', function () {
 		$('select[name^="action"]').val('-1');
 	});
 
@@ -1003,7 +1397,7 @@ $document.ready( function() {
 	 *
 	 * @param {Event} e The event object.
 	 *
-	 * @returns {void}
+	 * @return {void}
  	 */
 	$('#contextual-help-link, #show-settings-link').on( 'focus.scroll-into-view', function(e){
 		if ( e.target.scrollIntoView )
@@ -1013,7 +1407,7 @@ $document.ready( function() {
 	/**
 	 * Disables the submit upload buttons when no data is entered.
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	(function(){
 		var button, input, form = $('form.wp-upload-form');
@@ -1030,7 +1424,7 @@ $document.ready( function() {
 		 *
 		 * @since 3.5.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		function toggleUploadButton() {
 			// When no inputs have a value, disable the upload buttons.
@@ -1052,13 +1446,13 @@ $document.ready( function() {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function pinMenu( event ) {
 		var windowPos = $window.scrollTop(),
 			resizing = ! event || event.type !== 'scroll';
 
-		if ( isIOS || isIE8 || $adminmenu.data( 'wp-responsive' ) ) {
+		if ( isIOS || $adminmenu.data( 'wp-responsive' ) ) {
 			return;
 		}
 
@@ -1195,7 +1589,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function resetHeights() {
 		height = {
@@ -1211,7 +1605,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function unpinMenu() {
 		if ( isIOS || ! menuIsPinned ) {
@@ -1231,7 +1625,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.1.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function setPinMenu() {
 		resetHeights();
@@ -1260,7 +1654,7 @@ $document.ready( function() {
 	 *
 	 * @since 3.8.0
 	 *
-	 *@returns {void}
+	 * @return {void}
 	 */
 	window.wpResponsive = {
 
@@ -1269,12 +1663,14 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		init: function() {
 			var self = this;
 
-			// Modify functionality based on custom activate/deactivate event
+			this.maybeDisableSortables = this.maybeDisableSortables.bind( this );
+
+			// Modify functionality based on custom activate/deactivate event.
 			$document.on( 'wp-responsive-activate.wp-responsive', function() {
 				self.activate();
 			}).on( 'wp-responsive-deactivate.wp-responsive', function() {
@@ -1287,13 +1683,13 @@ $document.ready( function() {
 			$( '#wp-admin-bar-menu-toggle' ).on( 'click.wp-responsive', function( event ) {
 				event.preventDefault();
 
-				// close any open toolbar submenus.
+				// Close any open toolbar submenus.
 				$adminbar.find( '.hover' ).removeClass( 'hover' );
 
 				$wpwrap.toggleClass( 'wp-responsive-open' );
 				if ( $wpwrap.hasClass( 'wp-responsive-open' ) ) {
 					$(this).find('a').attr( 'aria-expanded', 'true' );
-					$( '#adminmenu a:first' ).focus();
+					$( '#adminmenu a:first' ).trigger( 'focus' );
 				} else {
 					$(this).find('a').attr( 'aria-expanded', 'false' );
 				}
@@ -1313,13 +1709,31 @@ $document.ready( function() {
 			$document.on( 'wp-window-resized.wp-responsive', $.proxy( this.trigger, this ) );
 
 			// This needs to run later as UI Sortable may be initialized later on $(document).ready().
-			$window.on( 'load.wp-responsive', function() {
-				var width = navigator.userAgent.indexOf('AppleWebKit/') > -1 ? $window.width() : window.innerWidth;
+			$window.on( 'load.wp-responsive', this.maybeDisableSortables );
+			$document.on( 'postbox-toggled', this.maybeDisableSortables );
 
-				if ( width <= 782 ) {
-					self.disableSortables();
-				}
-			});
+			// When the screen columns are changed, potentially disable sortables.
+			$( '#screen-options-wrap input' ).on( 'click', this.maybeDisableSortables );
+		},
+
+		/**
+		 * Disable sortables if there is only one metabox, or the screen is in one column mode. Otherwise, enable sortables.
+		 *
+		 * @since 5.3.0
+		 *
+		 * @return {void}
+		 */
+		maybeDisableSortables: function() {
+			var width = navigator.userAgent.indexOf('AppleWebKit/') > -1 ? $window.width() : window.innerWidth;
+
+			if (
+				( width <= 782 ) ||
+				( 1 >= $sortables.find( '.ui-sortable-handle:visible' ).length && jQuery( '.columns-prefs-1 input' ).prop( 'checked' ) )
+			) {
+				this.disableSortables();
+			} else {
+				this.enableSortables();
+			}
 		},
 
 		/**
@@ -1330,7 +1744,7 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		activate: function() {
 			setPinMenu();
@@ -1351,12 +1765,13 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		deactivate: function() {
 			setPinMenu();
 			$adminmenu.removeData('wp-responsive');
-			this.enableSortables();
+
+			this.maybeDisableSortables();
 		},
 
 		/**
@@ -1364,7 +1779,7 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		trigger: function() {
 			var viewportWidth = getViewportWidth();
@@ -1391,6 +1806,8 @@ $document.ready( function() {
 			} else {
 				this.disableOverlay();
 			}
+
+			this.maybeDisableSortables();
 		},
 
 		/**
@@ -1398,7 +1815,7 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		enableOverlay: function() {
 			if ( $overlay.length === 0 ) {
@@ -1421,7 +1838,7 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		disableOverlay: function() {
 			$toolbarPopups.off( 'click.wp-responsive' );
@@ -1433,12 +1850,13 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		disableSortables: function() {
 			if ( $sortables.length ) {
 				try {
 					$sortables.sortable( 'disable' );
+					$sortables.find( '.ui-sortable-handle' ).addClass( 'is-non-sortable' );
 				} catch ( e ) {}
 			}
 		},
@@ -1448,12 +1866,13 @@ $document.ready( function() {
 		 *
 		 * @since 3.8.0
 		 *
-		 * @returns {void}
+		 * @return {void}
 		 */
 		enableSortables: function() {
 			if ( $sortables.length ) {
 				try {
 					$sortables.sortable( 'enable' );
+					$sortables.find( '.ui-sortable-handle' ).removeClass( 'is-non-sortable' );
 				} catch ( e ) {}
 			}
 		}
@@ -1464,7 +1883,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.5.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function aria_button_if_js() {
 		$( '.aria-button-if-js' ).attr( 'role', 'button' );
@@ -1479,8 +1898,8 @@ $document.ready( function() {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @returns {number|boolean} The current viewport width or false if the
-	 *                           browser doesn't support innerWidth (IE < 9).
+	 * @return {number|boolean} The current viewport width or false if the
+	 *                          browser doesn't support innerWidth (IE < 9).
 	 */
 	function getViewportWidth() {
 		var viewportWidth = false;
@@ -1501,7 +1920,7 @@ $document.ready( function() {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function setMenuState() {
 		var viewportWidth = getViewportWidth() || 961;
@@ -1529,16 +1948,18 @@ $document.ready( function() {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	$document.on( 'wp-menu-state-set wp-collapse-menu', function( event, eventData ) {
 		var $collapseButton = $( '#collapse-button' ),
-			ariaExpanded = 'true',
-			ariaLabelText = commonL10n.collapseMenu;
+			ariaExpanded, ariaLabelText;
 
 		if ( 'folded' === eventData.state ) {
 			ariaExpanded = 'false';
-			ariaLabelText = commonL10n.expandMenu;
+			ariaLabelText = __( 'Expand Main menu' );
+		} else {
+			ariaExpanded = 'true';
+			ariaLabelText = __( 'Collapse Main menu' );
 		}
 
 		$collapseButton.attr({
@@ -1557,7 +1978,7 @@ $document.ready( function() {
 	$document.on( 'wp-pin-menu wp-window-resized.pin-menu postboxes-columnchange.pin-menu postbox-toggled.pin-menu wp-collapse-menu.pin-menu wp-scroll-start.pin-menu', setPinMenu );
 
 	// Set initial focus on a specific element.
-	$( '.wp-initial-focus' ).focus();
+	$( '.wp-initial-focus' ).trigger( 'focus' );
 
 	// Toggle update details on update-core.php.
 	$body.on( 'click', '.js-update-details-toggle', function() {
@@ -1579,6 +2000,41 @@ $document.ready( function() {
 	});
 });
 
+/**
+ * Hides the update button for expired plugin or theme uploads.
+ *
+ * On the "Update plugin/theme from uploaded zip" screen, once the upload has expired,
+ * hides the "Replace current with uploaded" button and displays a warning.
+ *
+ * @since 5.5.0
+ */
+$document.ready( function( $ ) {
+	var $overwrite, $warning;
+
+	if ( ! $body.hasClass( 'update-php' ) ) {
+		return;
+	}
+
+	$overwrite = $( 'a.update-from-upload-overwrite' );
+	$warning   = $( '.update-from-upload-expired' );
+
+	if ( ! $overwrite.length || ! $warning.length ) {
+		return;
+	}
+
+	window.setTimeout(
+		function() {
+			$overwrite.hide();
+			$warning.removeClass( 'hidden' );
+
+			if ( window.wp && window.wp.a11y ) {
+				window.wp.a11y.speak( $warning.text() );
+			}
+		},
+		7140000 // 119 minutes. The uploaded file is deleted after 2 hours.
+	);
+} );
+
 // Fire a custom jQuery event at the end of window resize.
 ( function() {
 	var timeout;
@@ -1588,7 +2044,7 @@ $document.ready( function() {
 	 *
 	 * @since 3.8.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function triggerEvent() {
 		$document.trigger( 'wp-window-resized' );
@@ -1599,7 +2055,7 @@ $document.ready( function() {
 	 *
 	 * @since 3.8.0
 	 *
-	 * @returns {void}
+	 * @return {void}
 	 */
 	function fireOnce() {
 		window.clearTimeout( timeout );
