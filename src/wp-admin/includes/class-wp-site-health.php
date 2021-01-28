@@ -1554,7 +1554,13 @@ class WP_Site_Health {
 				if ( defined( 'WP_HOME' ) || defined( 'WP_SITEURL' ) ) {
 					$result['description'] .= sprintf(
 						'<p>%s</p>',
-						__( 'However, your WordPress Address is currently controlled by a PHP constant and therefore cannot be updated. You need to edit your <code>wp-config.php</code> and remove or update the definitions of <code>WP_HOME</code> and <code>WP_SITEURL</code>.' )
+						sprintf(
+							/* translators: 1: wp-config.php, 2: WP_HOME, 3: WP_SITEURL */
+							__( 'However, your WordPress Address is currently controlled by a PHP constant and therefore cannot be updated. You need to edit your %1$s and remove or update the definitions of %2$s and %3$s.' ),
+							'<code>wp-config.php</code>',
+							'<code>WP_HOME</code>',
+							'<code>WP_SITEURL</code>'
+						)
 					);
 				} elseif ( current_user_can( 'update_https' ) ) {
 					$default_direct_update_url = add_query_arg( 'action', 'update_https', wp_nonce_url( admin_url( 'site-health.php' ), 'wp_update_https' ) );
