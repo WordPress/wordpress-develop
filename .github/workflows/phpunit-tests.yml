@@ -130,7 +130,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        php: [ '5.5', '5.2' ]
+        php: [ '5.5', '5.4', '5.3', '5.2' ]
         os: [ ubuntu-latest ]
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
