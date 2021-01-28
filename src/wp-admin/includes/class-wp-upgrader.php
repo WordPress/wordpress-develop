@@ -805,7 +805,7 @@ class WP_Upgrader {
 		 * @param bool|WP_Error $result  Result from install_package().
 		 * @param array         $options Array of data for plugin/theme being updated.
 		 */
-		$result = apply_filters( 'upgrader_install_complete', $result, $options );
+		$result = apply_filters( 'upgrader_install_package_result', $result, $options );
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
