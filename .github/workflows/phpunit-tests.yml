@@ -135,11 +135,22 @@ jobs:
         os: [ ubuntu-latest ]
         memcached: [ false ]
         include:
-          # Include job for PHP 7.4 with memcached.
           - php: '5.6'
             phpunit: '4-php-5.6'
             os: ubuntu-latest
             memcached: true
+          - php: '5.5'
+            phpunit: '5.5'
+            os: ubuntu-latest
+            memcached: false
+          - php: '5.4'
+            phpunit: '5.4'
+            os: ubuntu-latest
+            memcached: false
+          - php: '5.3'
+            phpunit: '5.3'
+            os: ubuntu-latest
+            memcached: false
           # Allow PHP 5.2 to fail temporarily.
           - php: '5.2'
             phpunit: '5.2'
