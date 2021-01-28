@@ -294,8 +294,11 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$current = new stdClass;
 	}
 
-	$new_option               = new stdClass;
-	$new_option->last_checked = time();
+	$updates               = new stdClass;
+	$updates->last_checked = time();
+	$updates->response     = array();
+	$updates->translations = array();
+	$updates->no_update    = array();
 
 	$doing_cron = wp_doing_cron();
 
@@ -325,7 +328,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$plugin_changed = false;
 
 		foreach ( $plugins as $file => $p ) {
-			$new_option->checked[ $file ] = $p['Version'];
+			$updates->checked[ $file ] = $p['Version'];
 
 			if ( ! isset( $current->checked[ $file ] ) || (string) $current->checked[ $file ] !== (string) $p['Version'] ) {
 				$plugin_changed = true;
@@ -416,38 +419,112 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	$response = json_decode( wp_remote_retrieve_body( $raw_response ), true );
 
-	foreach ( $response['plugins'] as &$plugin ) {
-		$plugin = (object) $plugin;
+	if ( $response && is_array( $response ) ) {
+		$updates->response     = $response['plugins'];
+		$updates->translations = $response['translations'];
+		$updates->no_update    = $response['no_update'];
+	}
 
-		if ( isset( $plugin->compatibility ) ) {
-			$plugin->compatibility = (object) $plugin->compatibility;
+	// Support updates for any plugins using the `Update ID` URI field.
+	foreach ( $plugins as $plugin_file => $plugin_data ) {
+		if ( ! $plugin_data['UpdateID'] ) {
+			continue;
+		}
 
-			foreach ( $plugin->compatibility as &$data ) {
-				$data = (object) $data;
+		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateID'] ), PHP_URL_HOST );
+		if ( 'wordpress.org' === $hostname || 'w.org' === $hostname ) {
+			continue;
+		}
+
+		/**
+		 * Filters the update response for a given plugin hostname.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param bool   $update_available The plugin update data.
+		 * @param array  $plugin_data      Plugin Headers, including UpdateID.
+		 * @param string $plugin_file      Plugin filename.
+		 * @param array  $locales          Installed locales to look for translations for.
+		 *
+		 * @return array $update {
+		 *     Latest plugin details for plugin.
+		 *
+		 *     @type string $id           ID of the plugin, see UpdateID. Optional.
+		 *     @type string $slug         Slug of the plugin.
+		 *     @type string $version      The version of the plugin.
+		 *     @type string $url          The URL for details of this plugin.
+		 *     @type string $package      The update ZIP for the plugin. Optional.
+		 *     @type string $tested       The version of WordPress the plugin is tested against. Optional.
+		 *     @type string $requires_php The version of PHP which the plugin requires. Optional.
+		 *     @type bool   $autoupdate   If the plugin should automatically update. Optional.
+		 *     @type array  $icons        Array of plugin icons. Optional.
+		 *     @type array  $banners      Array of plugin banners. Optional.
+		 *     @type array  $banners_rtl  Array of plugin RTL banners. Optional.
+		 *     @type array  $translations {
+		 *         List of translation updates for the plugin. Optional.
+		 *
+		 *         @type string $language   The language the translation update is for.
+		 *         @type string $version    The version of the plugin this translation is for. This is not the version of the language file.
+		 *         @type string $updated    The updates timestamp of the translation file. Should be a Date in `YYYY-MM-DD HH:MM:SS`.
+		 *         @type string $package    The ZIP location containing the translation update.
+		 *         @type string $autoupdate If the translation should be automatically installed.
+		 *     }
+		 * }
+		 */
+		$update = apply_filters( "update_plugins_{$hostname}", false, $plugin_data, $plugin_file, $locales );
+		if ( ! $update ) {
+			continue;
+		}
+
+		$update = (object) $update;
+
+		// Is it valid? We require at least a version.
+		if ( ! isset( $update->version ) ) {
+			continue;
+		}
+
+		// These should remain constant.
+		$update->id     = $plugin_data['UpdateID'];
+		$update->plugin = $plugin_file;
+
+		// WordPress needs the version field specified as 'new_version'.
+		if ( ! isset( $update->new_version ) ) {
+			$update->new_version = $update->version;
+		}
+
+		// Handle any translation updates.
+		if ( ! empty( $update->translations ) ) {
+			foreach ( $update->translations as $translation ) {
+				if ( isset( $translation['language'], $translation['package'] ) ) {
+					$translation['type'] = 'plugin';
+					$translation['slug'] = isset( $update->slug ) ? $update->slug : $update->id;
+
+					$updates->translations[] = $translation;
+				}
 			}
+		}
+
+		unset( $updates->no_update[ $plugin_file ], $updates->response[ $plugin_file ] );
+
+		if ( version_compare( $update->new_version, $plugin_data['Version'], '>' ) ) {
+			$updates->response[ $plugin_file ] = $update;
+		} else {
+			$updates->no_update[ $plugin_file ] = $update;
 		}
 	}
 
-	unset( $plugin, $data );
+	$sanitize_plugin_update_payload = function( &$item ) {
+		$item = (object) $item;
 
-	foreach ( $response['no_update'] as &$plugin ) {
-		$plugin = (object) $plugin;
-	}
+		unset( $item->translations, $item->compatibility );
 
-	unset( $plugin );
+		return $item;
+	};
 
-	if ( is_array( $response ) ) {
-		$new_option->response     = $response['plugins'];
-		$new_option->translations = $response['translations'];
-		// TODO: Perhaps better to store no_update in a separate transient with an expiry?
-		$new_option->no_update = $response['no_update'];
-	} else {
-		$new_option->response     = array();
-		$new_option->translations = array();
-		$new_option->no_update    = array();
-	}
+	array_walk( $updates->response,  $sanitize_plugin_update_payload );
+	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
-	set_site_transient( 'update_plugins', $new_option );
+	set_site_transient( 'update_plugins', $updates );
 }
 
 /**
