@@ -7795,6 +7795,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  */
 function retrieve_password( $user_login = null ) {
 	global $wpdb, $wp_hasher;
+	error_log( json_encode( 'retrieve_password', JSON_PRETTY_PRINT ) );
 
 	$errors = new WP_Error();
 
