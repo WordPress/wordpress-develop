@@ -1048,6 +1048,7 @@ function rest_cookie_collect_status() {
  * Collects the status of authenticating with an application password.
  *
  * @since 5.6.0
+ * @since 5.7.0 Added the `$app_password` parameter.
  *
  * @global WP_User|WP_Error|null $wp_rest_application_password_status
  * @global string|null $wp_rest_application_password_uuid
@@ -1070,7 +1071,7 @@ function rest_application_password_collect_status( $user_or_error, $app_password
 /**
  * Gets the Application Password used for authenticating the request.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @global string|null $wp_rest_application_password_uuid
  *
