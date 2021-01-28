@@ -452,7 +452,7 @@ function wp_plugin_update_row( $file, $plugin_data ) {
 		array(
 			'TB_iframe' => 'true',
 			'width'     => 600,
-			'height'    => 800
+			'height'    => 800,
 		),
 		$details_url
 	);

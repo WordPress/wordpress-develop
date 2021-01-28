@@ -521,7 +521,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		return $item;
 	};
 
-	array_walk( $updates->response,  $sanitize_plugin_update_payload );
+	array_walk( $updates->response, $sanitize_plugin_update_payload );
 	array_walk( $updates->no_update, $sanitize_plugin_update_payload );
 
 	set_site_transient( 'update_plugins', $updates );
