@@ -38,6 +38,8 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->user = clone self::$_user;
 		wp_set_current_user( self::$user_id );
 		update_site_option( 'using_application_passwords', 1 );
+
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
 	}
 
 	public function tearDown() {
