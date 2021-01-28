@@ -1060,10 +1060,10 @@ function rest_application_password_collect_status( $user_or_error, $app_password
 
 	$wp_rest_application_password_status = $user_or_error;
 
-	if ( $app_password ) {
-		$wp_rest_application_password_uuid = $app_password['uuid'];
-	} else {
+	if ( empty( $app_password['uuid'] ) ) {
 		$wp_rest_application_password_uuid = null;
+	} else {
+		$wp_rest_application_password_uuid = $app_password['uuid'];
 	}
 }
 
