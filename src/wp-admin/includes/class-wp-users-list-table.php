@@ -279,7 +279,6 @@ class WP_Users_List_Table extends WP_List_Table {
 			$actions['resetpassword'] = __( 'Send password reset' );
 		}
 
-
 		return $actions;
 	}
 
@@ -456,7 +455,7 @@ class WP_Users_List_Table extends WP_List_Table {
 				$edit = "<strong>{$user_object->user_login}{$super_admin}</strong><br />";
 			}
 
-			if ( ! is_multisite() && get_current_user_id() != $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) ) {
+			if ( ! is_multisite() && get_current_user_id() !== $user_object->ID && current_user_can( 'delete_user', $user_object->ID ) ) {
 				$actions['delete'] = "<a class='submitdelete' href='" . wp_nonce_url( "users.php?action=delete&amp;user=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Delete' ) . '</a>';
 			}
 			if ( is_multisite() && current_user_can( 'remove_user', $user_object->ID ) ) {
@@ -476,9 +475,9 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 
 			// Add a link to send the user a reset password link by email.
-			if ( get_current_user_id() != $user_object->ID && current_user_can( 'edit_user', $user_object->ID ) )
-				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . "</a>";
-
+			if ( get_current_user_id() !== $user_object->ID && current_user_can( 'edit_user', $user_object->ID ) ) {
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
+			}
 
 			/**
 			 * Filters the action links displayed under each user in the Users list table.

@@ -128,7 +128,7 @@ switch ( $wp_list_table->current_action() ) {
 			}
 
 			// The new role of the current user must also have the promote_users cap or be a multisite super admin.
-			if ( $id == $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
+			if ( $id === $current_user->ID && ! $wp_roles->role_objects[ $role ]->has_cap( 'promote_users' )
 			&& ! ( is_multisite() && current_user_can( 'manage_network_users' ) ) ) {
 					$update = 'err_admin_role';
 					continue;
@@ -183,7 +183,7 @@ switch ( $wp_list_table->current_action() ) {
 				wp_die( __( 'Sorry, you are not allowed to delete that user.' ), 403 );
 			}
 
-			if ( $id == $current_user->ID ) {
+			if ( $id === $current_user->ID ) {
 				$update = 'err_admin_del';
 				continue;
 			}
@@ -209,7 +209,7 @@ switch ( $wp_list_table->current_action() ) {
 		exit;
 
 	case 'resetpassword':
-		check_admin_referer('bulk-users');
+		check_admin_referer( 'bulk-users' );
 		if ( ! current_user_can( 'edit_users' ) ) {
 			$errors = new WP_Error( 'edit_users', __( 'You can&#8217;t edit users.' ) );
 		}
@@ -222,10 +222,11 @@ switch ( $wp_list_table->current_action() ) {
 		$reset_count = 0;
 
 		foreach ( $userids as $id ) {
-			if ( ! current_user_can( 'edit_user', $id ) )
-				wp_die(__( 'You can&#8217;t edit that user.' ) );
+			if ( ! current_user_can( 'edit_user', $id ) ) {
+				wp_die( __( 'You can&#8217;t edit that user.' ) );
+			}
 
-			if ( $id == $current_user->ID ) {
+			if ( $id === $current_user->ID ) {
 				$update = 'err_admin_reset';
 				continue;
 			}
@@ -235,17 +236,17 @@ switch ( $wp_list_table->current_action() ) {
 			if ( retrieve_password( $user->user_login ) ) {
 				++$reset_count;
 			}
-
 		}
 
 		$redirect = add_query_arg(
 			array(
 				'reset_count' => $reset_count,
-				'update' => 'resetpassword',
-			), $redirect
+				'update'      => 'resetpassword',
+			),
+			$redirect
 		);
 		wp_redirect( $redirect );
-		exit();
+		exit;
 
 	case 'delete':
 		if ( is_multisite() ) {
@@ -287,9 +288,9 @@ switch ( $wp_list_table->current_action() ) {
 		$users_have_content = (bool) apply_filters( 'users_have_additional_content', false, $userids );
 
 		if ( $userids && ! $users_have_content ) {
-			if ( $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_author IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
+			if ( $wpdb->get_var( "SELECT ID FROM {$wpdb->posts} WHERE post_author IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$users_have_content = true;
-			} elseif ( $wpdb->get_var( "SELECT link_id FROM {$wpdb->links} WHERE link_owner IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) {
+			} elseif ( $wpdb->get_var( "SELECT link_id FROM {$wpdb->links} WHERE link_owner IN( " . implode( ',', $userids ) . ' ) LIMIT 1' ) ) { // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$users_have_content = true;
 			}
 		}
@@ -323,7 +324,7 @@ switch ( $wp_list_table->current_action() ) {
 		$go_delete = 0;
 		foreach ( $all_userids as $id ) {
 			$user = get_userdata( $id );
-			if ( $id == $current_user->ID ) {
+			if ( $id === $current_user->ID ) {
 				/* translators: 1: User ID, 2: User login. */
 				echo '<li>' . sprintf( __( 'ID #%1$s: %2$s <strong>The current user will not be deleted.</strong>' ), $id, $user->user_login ) . "</li>\n";
 			} else {
@@ -341,7 +342,7 @@ switch ( $wp_list_table->current_action() ) {
 				?>
 			<input type="hidden" name="delete_option" value="delete" />
 			<?php else : ?>
-				<?php if ( 1 == $go_delete ) : ?>
+				<?php if ( 1 === $go_delete ) : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by this user?' ); ?></legend></p>
 		<?php else : ?>
 			<fieldset><p><legend><?php _e( 'What should be done with content owned by these users?' ); ?></legend></p>
@@ -517,7 +518,7 @@ switch ( $wp_list_table->current_action() ) {
 				case 'del':
 				case 'del_many':
 					$delete_count = isset( $_GET['delete_count'] ) ? (int) $_GET['delete_count'] : 0;
-					if ( 1 == $delete_count ) {
+					if ( 1 === $delete_count ) {
 						$message = __( 'User deleted.' );
 					} else {
 						/* translators: %s: Number of users. */
@@ -550,6 +551,7 @@ switch ( $wp_list_table->current_action() ) {
 					if ( 1 === $reset_count ) {
 						$message = __( 'Password reset link sent.' );
 					} else {
+						/* translators: %s: Number of users. */
 						$message = sprintf( __( 'Password reset links sent to %s users.' ), $reset_count );
 					}
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . $message . '</p></div>';
