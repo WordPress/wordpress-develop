@@ -108,7 +108,7 @@ class WP_Site_Health {
 
 			// Don't run https test on development environments.
 			if ( $this->is_development_environment() ) {
-				unset( $tests['direct']['https_status'] );
+				unset( $tests['async']['https_status'] );
 			}
 
 			foreach ( $tests['direct'] as $test ) {
@@ -2260,10 +2260,6 @@ class WP_Site_Health {
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'https_status'              => array(
-					'label' => __( 'HTTPS status' ),
-					'test'  => 'https_status',
-				),
 				'ssl_support'               => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
@@ -2307,6 +2303,12 @@ class WP_Site_Health {
 					'test'              => rest_url( 'wp-site-health/v1/tests/loopback-requests' ),
 					'has_rest'          => true,
 					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_loopback_requests' ),
+				),
+				'https_status'         => array(
+					'label'             => __( 'HTTPS status' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/https-status' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_https_status' ),
 				),
 				'authorization_header' => array(
 					'label'     => __( 'Authorization header' ),
@@ -2674,7 +2676,7 @@ class WP_Site_Health {
 
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
-			unset( $tests['direct']['https_status'] );
+			unset( $tests['async']['https_status'] );
 		}
 
 		foreach ( $tests['direct'] as $test ) {
