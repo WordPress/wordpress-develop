@@ -1681,7 +1681,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 		$title = $error['schema']['title'];
 
 		return new WP_Error(
-			'rest_invalid_param',
+			'rest_no_matching_schema',
 			/* translators: 1: Parameter, 2: Schema title, 3: Reason. */
 			sprintf( __( '%1$s is not a valid %2$s. Reason: %3$s' ), $param, $title, $reason ),
 			array( 'position' => $position )
@@ -1689,7 +1689,7 @@ function rest_format_combining_operation_error( $param, $error ) {
 	}
 
 	return new WP_Error(
-		'rest_invalid_param',
+		'rest_no_matching_schema',
 		/* translators: 1: Parameter, 2: Reason. */
 		sprintf( __( '%1$s does not match the expected format. Reason: %2$s' ), $param, $reason ),
 		array( 'position' => $position )
@@ -1758,11 +1758,11 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 
 	if ( count( $schema_titles ) === count( $errors ) ) {
 		/* translators: 1: Parameter, 2: Schema titles. */
-		return new WP_Error( 'rest_invalid_param', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
+		return new WP_Error( 'rest_no_matching_schema', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
 	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
+	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1856,7 +1856,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		// If each schema has a title, include those titles in the error message.
 		if ( count( $schema_titles ) === count( $matching_schemas ) ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_one_of_multiple_matches',
 				/* translators: 1: Parameter, 2: Schema titles. */
 				wp_sprintf( __( '%1$s matches %2$l, but should match only one.' ), $param, $schema_titles ),
 				array( 'positions' => $schema_positions )
@@ -1864,7 +1864,7 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 		}
 
 		return new WP_Error(
-			'rest_invalid_param',
+			'rest_one_of_multiple_matches',
 			/* translators: 1: Parameter. */
 			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
@@ -1872,6 +1872,73 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 	}
 
 	return $matching_schemas[0]['schema_object'];
+}
+
+/**
+ * Checks the equality of two values, following JSON Schema semantics.
+ *
+ * Property order is ignored for objects.
+ *
+ * Values must have been previously sanitized/coerced to their native types.
+ *
+ * @since 5.7.0
+ *
+ * @param mixed $value1 The first value to check.
+ * @param mixed $value2 The second value to check.
+ * @return bool True if the values are equal or false otherwise.
+ */
+function rest_are_values_equal( $value1, $value2 ) {
+	if ( is_array( $value1 ) && is_array( $value2 ) ) {
+		if ( count( $value1 ) !== count( $value2 ) ) {
+			return false;
+		}
+
+		foreach ( $value1 as $index => $value ) {
+			if ( ! array_key_exists( $index, $value2 ) || ! rest_are_values_equal( $value, $value2[ $index ] ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	return $value1 === $value2;
+}
+
+/**
+ * Validates that the given value is a member of the JSON Schema "enum".
+ *
+ * @since 5.7.0
+ *
+ * @param mixed  $value  The value to validate.
+ * @param array  $args   The schema array to use.
+ * @param string $param  The parameter name, used in error messages.
+ * @return true|WP_Error True if the "enum" contains the value or a WP_Error instance otherwise.
+ */
+function rest_validate_enum( $value, $args, $param ) {
+	$sanitized_value = rest_sanitize_value_from_schema( $value, $args, $param );
+	if ( is_wp_error( $sanitized_value ) ) {
+		return $sanitized_value;
+	}
+
+	foreach ( $args['enum'] as $enum_value ) {
+		if ( rest_are_values_equal( $sanitized_value, $enum_value ) ) {
+			return true;
+		}
+	}
+
+	$encoded_enum_values = array();
+	foreach ( $args['enum'] as $enum_value ) {
+		$encoded_enum_values[] = is_scalar( $enum_value ) ? $enum_value : wp_json_encode( $enum_value );
+	}
+
+	if ( count( $encoded_enum_values ) === 1 ) {
+		/* translators: 1: Parameter, 2: Valid values. */
+		return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not %2$s.' ), $param, $encoded_enum_values[0] ) );
+	}
+
+	/* translators: 1: Parameter, 2: List of valid values. */
+	return new WP_Error( 'rest_not_in_enum', wp_sprintf( __( '%1$s is not one of %2$l.' ), $param, $encoded_enum_values ) );
 }
 
 /**
@@ -2010,7 +2077,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['minItems'] ) && count( $value ) < $args['minItems'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_too_few_items',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number. */
 					_n(
@@ -2026,7 +2093,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['maxItems'] ) && count( $value ) > $args['maxItems'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'test_too_many_items',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number. */
 					_n(
@@ -2042,7 +2109,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
 			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 		}
 	}
 
@@ -2095,7 +2162,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			if ( isset( $args['additionalProperties'] ) ) {
 				if ( false === $args['additionalProperties'] ) {
 					/* translators: %s: Property of an object. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
+					return new WP_Error( 'rest_additional_properties_forbidden', sprintf( __( '%1$s is not a valid property of Object.' ), $property ) );
 				}
 
 				if ( is_array( $args['additionalProperties'] ) ) {
@@ -2109,7 +2176,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['minProperties'] ) && count( $value ) < $args['minProperties'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_too_few_properties',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number. */
 					_n(
@@ -2125,7 +2192,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['maxProperties'] ) && count( $value ) > $args['maxProperties'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_too_many_properties',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number. */
 					_n(
@@ -2153,13 +2220,6 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		return true;
 	}
 
-	if ( ! empty( $args['enum'] ) ) {
-		if ( ! in_array( $value, $args['enum'], true ) ) {
-			/* translators: 1: Parameter, 2: List of valid values. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s is not one of %2$s.' ), $param, implode( ', ', $args['enum'] ) ) );
-		}
-	}
-
 	if ( in_array( $args['type'], array( 'integer', 'number' ), true ) ) {
 		if ( ! is_numeric( $value ) ) {
 			return new WP_Error(
@@ -2172,7 +2232,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['multipleOf'] ) && fmod( $value, $args['multipleOf'] ) !== 0.0 ) {
 			/* translators: 1: Parameter, 2: Multiplier. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] ) );
+			return new WP_Error( 'rest_invalid_multiple', sprintf( __( '%1$s must be a multiple of %2$s.' ), $param, $args['multipleOf'] ) );
 		}
 	}
 
@@ -2206,7 +2266,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['minLength'] ) && mb_strlen( $value ) < $args['minLength'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_too_short',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at least %2$s character long.', '%1$s must be at least %2$s characters long.', $args['minLength'] ),
@@ -2218,7 +2278,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( isset( $args['maxLength'] ) && mb_strlen( $value ) > $args['maxLength'] ) {
 			return new WP_Error(
-				'rest_invalid_param',
+				'rest_too_long',
 				sprintf(
 					/* translators: 1: Parameter, 2: Number of characters. */
 					_n( '%1$s must be at most %2$s character long.', '%1$s must be at most %2$s characters long.', $args['maxLength'] ),
@@ -2231,6 +2291,13 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		if ( isset( $args['pattern'] ) && ! rest_validate_json_schema_pattern( $args['pattern'], $value ) ) {
 			/* translators: 1: Parameter, 2: Pattern. */
 			return new WP_Error( 'rest_invalid_pattern', sprintf( __( '%1$s does not match pattern %2$s.' ), $param, $args['pattern'] ) );
+		}
+	}
+
+	if ( ! empty( $args['enum'] ) ) {
+		$enum_contains_value = rest_validate_enum( $value, $args, $param );
+		if ( is_wp_error( $enum_contains_value ) ) {
+			return $enum_contains_value;
 		}
 	}
 
@@ -2260,7 +2327,7 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 			case 'ip':
 				if ( ! rest_is_ip_address( $value ) ) {
 					/* translators: %s: IP address. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%s is not a valid IP address.' ), $param ) );
+					return new WP_Error( 'rest_invalid_ip', sprintf( __( '%s is not a valid IP address.' ), $param ) );
 				}
 				break;
 			case 'uuid':
@@ -2276,39 +2343,39 @@ function rest_validate_value_from_schema( $value, $args, $param = '' ) {
 		if ( isset( $args['minimum'] ) && ! isset( $args['maximum'] ) ) {
 			if ( ! empty( $args['exclusiveMinimum'] ) && $value <= $args['minimum'] ) {
 				/* translators: 1: Parameter, 2: Minimum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than %2$d' ), $param, $args['minimum'] ) );
+				return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be greater than %2$d' ), $param, $args['minimum'] ) );
 			} elseif ( empty( $args['exclusiveMinimum'] ) && $value < $args['minimum'] ) {
 				/* translators: 1: Parameter, 2: Minimum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be greater than or equal to %2$d' ), $param, $args['minimum'] ) );
+				return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be greater than or equal to %2$d' ), $param, $args['minimum'] ) );
 			}
 		} elseif ( isset( $args['maximum'] ) && ! isset( $args['minimum'] ) ) {
 			if ( ! empty( $args['exclusiveMaximum'] ) && $value >= $args['maximum'] ) {
 				/* translators: 1: Parameter, 2: Maximum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than %2$d' ), $param, $args['maximum'] ) );
+				return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be less than %2$d' ), $param, $args['maximum'] ) );
 			} elseif ( empty( $args['exclusiveMaximum'] ) && $value > $args['maximum'] ) {
 				/* translators: 1: Parameter, 2: Maximum number. */
-				return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be less than or equal to %2$d' ), $param, $args['maximum'] ) );
+				return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be less than or equal to %2$d' ), $param, $args['maximum'] ) );
 			}
 		} elseif ( isset( $args['maximum'] ) && isset( $args['minimum'] ) ) {
 			if ( ! empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 				if ( $value >= $args['maximum'] || $value <= $args['minimum'] ) {
 					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			} elseif ( empty( $args['exclusiveMinimum'] ) && ! empty( $args['exclusiveMaximum'] ) ) {
 				if ( $value >= $args['maximum'] || $value < $args['minimum'] ) {
 					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (exclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			} elseif ( ! empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 				if ( $value > $args['maximum'] || $value <= $args['minimum'] ) {
 					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be between %2$d (exclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			} elseif ( empty( $args['exclusiveMinimum'] ) && empty( $args['exclusiveMaximum'] ) ) {
 				if ( $value > $args['maximum'] || $value < $args['minimum'] ) {
 					/* translators: 1: Parameter, 2: Minimum number, 3: Maximum number. */
-					return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
+					return new WP_Error( 'rest_out_of_bounds', sprintf( __( '%1$s must be between %2$d (inclusive) and %3$d (inclusive)' ), $param, $args['minimum'], $args['maximum'] ) );
 				}
 			}
 		}
@@ -2393,7 +2460,7 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
 			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_invalid_param', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
 		}
 
 		return $value;
@@ -2520,11 +2587,8 @@ function rest_preload_api_request( $memo, $path ) {
 	$response = rest_do_request( $request );
 	if ( 200 === $response->status ) {
 		$server = rest_get_server();
-		$data   = (array) $response->get_data();
-		$links  = $server::get_compact_response_links( $response );
-		if ( ! empty( $links ) ) {
-			$data['_links'] = $links;
-		}
+		$embed  = $request->has_param( '_embed' ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+		$data   = (array) $server->response_to_data( $response, $embed );
 
 		if ( 'OPTIONS' === $method ) {
 			$response = rest_send_allow_header( $response, $server, $request );
