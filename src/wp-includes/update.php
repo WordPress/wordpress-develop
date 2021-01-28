@@ -432,9 +432,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 		}
 
 		$hostname = wp_parse_url( esc_url_raw( $plugin_data['UpdateURI'] ), PHP_URL_HOST );
-		if ( 'wordpress.org' === $hostname || 'w.org' === $hostname ) {
-			continue;
-		}
 
 		/**
 		 * Filters the update response for a given plugin hostname.
