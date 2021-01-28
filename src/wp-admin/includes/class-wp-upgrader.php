@@ -993,7 +993,7 @@ class WP_Upgrader {
 		}
 
 		$slug    = null;
-		$verison = null;
+		$version = null;
 		if ( isset( $args['slug'] ) ) {
 			// Upgrade plugin/theme.
 			$slug    = $args['slug'];
