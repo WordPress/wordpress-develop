@@ -17,12 +17,12 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		$this->force_wp_is_using_https( true );
 		$this->assertFalse( wp_should_replace_insecure_home_url() );
 
-		// Should return false because HTTPS migration flag is marked as done.
-		update_option( 'https_migrated', '1' );
+		// Should return false because HTTPS migration flag is marked as not required.
+		update_option( 'https_migration_required', '0' );
 		$this->assertFalse( wp_should_replace_insecure_home_url() );
 
-		// Should return true because HTTPS migration flag is marked as not done.
-		update_option( 'https_migrated', '0' );
+		// Should return true because HTTPS migration flag is marked as required.
+		update_option( 'https_migration_required', '1' );
 		$this->assertTrue( wp_should_replace_insecure_home_url() );
 
 		// Should be overridable via filter.
@@ -105,25 +105,25 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 	/**
 	 * @ticket 51437
 	 */
-	public function test_wp_update_https_migrated() {
+	public function test_wp_update_https_migration_required() {
 		// Changing HTTP to HTTPS on a site with content should result in flag being set, requiring migration.
 		update_option( 'fresh_site', '0' );
-		wp_update_https_migrated( 'http://example.org', 'https://example.org' );
-		$this->assertEquals( '0', get_option( 'https_migrated' ) );
+		wp_update_https_migration_required( 'http://example.org', 'https://example.org' );
+		$this->assertEquals( '1', get_option( 'https_migration_required' ) );
 
 		// Changing another part than the scheme should delete/reset the flag because changing those parts (e.g. the
 		// domain) can have further implications.
-		wp_update_https_migrated( 'http://example.org', 'https://another-example.org' );
-		$this->assertFalse( get_option( 'https_migrated' ) );
+		wp_update_https_migration_required( 'http://example.org', 'https://another-example.org' );
+		$this->assertFalse( get_option( 'https_migration_required' ) );
 
-		// Changing HTTP to HTTPS on a site without content should result in flag being set, marked as completed.
+		// Changing HTTP to HTTPS on a site without content should result in flag being set, but not requiring migration.
 		update_option( 'fresh_site', '1' );
-		wp_update_https_migrated( 'http://example.org', 'https://example.org' );
-		$this->assertEquals( '1', get_option( 'https_migrated' ) );
+		wp_update_https_migration_required( 'http://example.org', 'https://example.org' );
+		$this->assertEquals( '0', get_option( 'https_migration_required' ) );
 
 		// Changing (back) from HTTPS to HTTP should delete/reset the flag.
-		wp_update_https_migrated( 'https://example.org', 'http://example.org' );
-		$this->assertFalse( get_option( 'https_migrated' ) );
+		wp_update_https_migration_required( 'https://example.org', 'http://example.org' );
+		$this->assertFalse( get_option( 'https_migration_required' ) );
 	}
 
 	/**

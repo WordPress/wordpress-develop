@@ -22,7 +22,7 @@ function wp_should_replace_insecure_home_url() {
 		// For automatic replacement, both 'home' and 'siteurl' need to not only use HTTPS, they also need to be using
 		// the same domain.
 		&& wp_parse_url( home_url(), PHP_URL_HOST ) === wp_parse_url( site_url(), PHP_URL_HOST )
-		&& '0' === get_option( 'https_migrated' );
+		&& get_option( 'https_migration_required' );
 
 	/**
 	 * Filters whether WordPress should replace old HTTP URLs to the site with their HTTPS counterpart.
@@ -109,10 +109,9 @@ function wp_update_urls_to_https() {
 }
 
 /**
- * Updates the 'https_migrated' option if needed when the given URL has been updated from HTTP to HTTPS.
+ * Updates the 'https_migration_required' option if needed when the given URL has been updated from HTTP to HTTPS.
  *
- * If this is a fresh site, a migration will not be necessary, so the migration will be flagged as '1'. Otherwise, it
- * will be flagged as '0'.
+ * If this is a fresh site, a migration will not be required, so the option will be set as `false`.
  *
  * This is hooked into the {@see 'update_option_home'} action.
  *
@@ -122,7 +121,7 @@ function wp_update_urls_to_https() {
  * @param mixed $old_url Previous value of the URL option.
  * @param mixed $new_url New value of the URL option.
  */
-function wp_update_https_migrated( $old_url, $new_url ) {
+function wp_update_https_migration_required( $old_url, $new_url ) {
 	// Do nothing if WordPress is being installed.
 	if ( wp_installing() ) {
 		return;
@@ -130,12 +129,12 @@ function wp_update_https_migrated( $old_url, $new_url ) {
 
 	// Delete/reset the option if the new URL is not the HTTPS version of the old URL.
 	if ( untrailingslashit( (string) $old_url ) !== str_replace( 'https://', 'http://', untrailingslashit( (string) $new_url ) ) ) {
-		delete_option( 'https_migrated' );
+		delete_option( 'https_migration_required' );
 		return;
 	}
 
-	// If this is a fresh site, there is no content to migrate, so mark migration as completed.
-	$https_migrated = get_option( 'fresh_site' ) ? '1' : '0';
+	// If this is a fresh site, there is no content to migrate, so do not require migration.
+	$https_migration_required = get_option( 'fresh_site' ) ? false : true;
 
-	update_option( 'https_migrated', $https_migrated );
+	update_option( 'https_migration_required', $https_migration_required );
 }
