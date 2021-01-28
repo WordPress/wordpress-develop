@@ -427,7 +427,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 
 	// Support updates for any plugins using the `Update ID` URI field.
 	foreach ( $plugins as $plugin_file => $plugin_data ) {
-		if ( ! $plugin_data['UpdateID'] ) {
+		if ( ! $plugin_data['UpdateID'] || isset( $updates->response[ $plugin_file ] ) ) {
 			continue;
 		}
 
