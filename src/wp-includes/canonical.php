@@ -754,10 +754,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$requested_url = preg_replace_callback( '|%[a-fA-F0-9][a-fA-F0-9]|', 'lowercase_octets', $requested_url );
 	}
 
-	if (
-		$redirect_obj &&
-		is_a( $redirect_obj, 'WP_Post' )
-	) {
+	if ( $redirect_obj instanceof WP_Post ) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
 		if (
 			// Never redirect for unregistered post statuses.
