@@ -119,7 +119,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		// Changing HTTP to HTTPS on a site without content should result in flag being set, but not requiring migration.
 		update_option( 'fresh_site', '1' );
 		wp_update_https_migration_required( 'http://example.org', 'https://example.org' );
-		$this->assertEquals( '0', get_option( 'https_migration_required' ) );
+		$this->assertEquals( '', get_option( 'https_migration_required' ) );
 
 		// Changing (back) from HTTPS to HTTP should delete/reset the flag.
 		wp_update_https_migration_required( 'https://example.org', 'http://example.org' );
