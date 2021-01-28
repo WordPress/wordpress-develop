@@ -214,7 +214,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * Test that an index.html file can be added to the export directory.
+	 * Test that an index.php file can be added to the export directory.
 	 *
 	 * @ticket 44233
 	 */
@@ -222,7 +222,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( self::$exports_dir . 'index.html' ) );
+		$this->assertTrue( file_exists( self::$exports_dir . 'index.php' ) );
 	}
 
 	/**
