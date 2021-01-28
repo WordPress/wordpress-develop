@@ -1566,7 +1566,7 @@ class WP_Site_Health {
 						'<p>%s</p>',
 						sprintf(
 							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
-							__( 'Your<a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS.' ),
+							__( 'Your <a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS.' ),
 							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
 							esc_url( admin_url( 'options-general.php' ) . '#home' )
 						)
