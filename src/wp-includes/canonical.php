@@ -682,27 +682,32 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$redirect['host'] = $original['host'];
 	}
 
-	$compare_original = array( $original['host'], $original['path'] );
+	$build_redirect_url = false;
+	foreach( $original as $k => $v ) {
+		if ( ! in_array( $k, [ 'host', 'path', 'port', 'query' ] ) ) {
+			continue;
+		}
 
-	if ( ! empty( $original['port'] ) ) {
-		$compare_original[] = $original['port'];
+		if ( isset( $redirect[ $k ] ) && $v === $redirect[ $k ] ) {
+			continue;
+		}
+
+		/*
+		 * Prevent redirect if the only difference between `$original` and `$redirect`
+		 * is the 'query' part and if the urlencoded version of `$redirect['query']`
+		 * is the same as `$original['query']`.
+		 */
+		if ( isset( $redirect[ 'query' ] ) && 'query' === $k ) {
+			$encoded_equals_query_original = str_replace( '=', '%3D', $original[ $k ] );
+			if ( strtolower( $encoded_equals_query_original ) === strtolower( urlencode( $redirect[ $k ] ) ) ) {
+				continue;
+			}
+		}
+
+		$build_redirect_url = true;
 	}
 
-	if ( ! empty( $original['query'] ) ) {
-		$compare_original[] = $original['query'];
-	}
-
-	$compare_redirect = array( $redirect['host'], $redirect['path'] );
-
-	if ( ! empty( $redirect['port'] ) ) {
-		$compare_redirect[] = $redirect['port'];
-	}
-
-	if ( ! empty( $redirect['query'] ) ) {
-		$compare_redirect[] = $redirect['query'];
-	}
-
-	if ( $compare_original !== $compare_redirect ) {
+	if ( $build_redirect_url ) {
 		$redirect_url = $redirect['scheme'] . '://' . $redirect['host'];
 
 		if ( ! empty( $redirect['port'] ) ) {
