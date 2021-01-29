@@ -124,7 +124,7 @@ function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
 
 	if (
 		// Publicly viewable links never have ugly permalinks.
-		is_post_publicly_viewable( $post ) ||
+		is_post_status_viewable( $post_status_obj ) ||
 		(
 			// Private posts don't have ugly links if the user can read them.
 			$post_status_obj->private &&
