@@ -141,88 +141,88 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_rsd_link() {
+	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
 		$head_tag = get_echo( 'rsd_link' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified RSD link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include RSD link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_wlwmanifest_link() {
+	public function test_wp_is_local_html_output_via_wlwmanifest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
 
 		// HTML includes WLW manifest link.
 		$head_tag = get_echo( 'wlwmanifest_link' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified WLW manifest link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'wlwmanifest_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes WLW manifest link with alternative URL scheme.
 		$head_tag = get_echo( 'wlwmanifest_link' );
 		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include WLW manifest link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_rest_link() {
+	public function test_wp_is_local_html_output_via_rest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
 		remove_action( 'wp_head', 'wlwmanifest_link' );
 
 		// HTML includes REST API link.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified REST API link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rest_output_link_wp_head' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes REST API link with alternative URL scheme.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
 		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include REST API link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_cannot_determine() {
+	public function test_wp_is_local_html_output_cannot_determine() {
 		remove_action( 'wp_head', 'rsd_link' );
 		remove_action( 'wp_head', 'wlwmanifest_link' );
 		remove_action( 'wp_head', 'rest_output_link_wp_head' );
 
 		// The HTML here doesn't matter because all hooks are removed.
 		$html = $this->get_sample_html_string();
-		$this->assertNull( wp_is_owned_html_output( $html ) );
+		$this->assertNull( wp_is_local_html_output( $html ) );
 	}
 
 	public function record_request_url( $preempt, $parsed_args, $url ) {

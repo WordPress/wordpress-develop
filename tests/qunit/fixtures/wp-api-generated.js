@@ -4988,6 +4988,32 @@ mockedApiResponse.Schema = {
                 }
             ]
         },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/introspect": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
         "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)": {
             "namespace": "wp/v2",
             "methods": [
@@ -6161,6 +6187,27 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/loopback-requests"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/https-status": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/https-status"
                     }
                 ]
             }
