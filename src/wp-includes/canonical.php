@@ -683,8 +683,8 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 	}
 
 	$build_redirect_url = false;
-	foreach( $original as $k => $v ) {
-		if ( ! in_array( $k, [ 'host', 'path', 'port', 'query' ] ) ) {
+	foreach ( $original as $k => $v ) {
+		if ( ! in_array( $k, array( 'host', 'path', 'port', 'query' ), true ) ) {
 			continue;
 		}
 
@@ -697,7 +697,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 * is the 'query' part and if the urlencoded version of `$redirect['query']`
 		 * is the same as `$original['query']`.
 		 */
-		if ( isset( $redirect[ 'query' ] ) && 'query' === $k ) {
+		if ( isset( $redirect['query'] ) && 'query' === $k ) {
 			$encoded_equals_query_original = str_replace( '=', '%3D', $original[ $k ] );
 			if ( strtolower( $encoded_equals_query_original ) === strtolower( urlencode( $redirect[ $k ] ) ) ) {
 				continue;
