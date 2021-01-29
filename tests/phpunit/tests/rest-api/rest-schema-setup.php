@@ -137,6 +137,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
+			'/wp-site-health/v1/tests/https-status',
 			'/wp-site-health/v1/tests/dotorg-communication',
 			'/wp-site-health/v1/tests/authorization-header',
 			'/wp-site-health/v1/directory-sizes',
