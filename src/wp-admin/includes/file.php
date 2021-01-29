@@ -1763,22 +1763,20 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
  * Assumes that WP_Filesystem() has already been called and setup.
  *
  * @since 2.5.0
- * @since 5.7.0 Add $first_pass parameter.
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
  * @param string $from       Source directory.
  * @param string $to         Destination directory.
  * @param array  $skip_list  An array of files/folders to skip copying.
- * @param bool   $first_pass True on the initial call, but false on subsequent calls.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
-function copy_dir( $from, $to, $skip_list = array(), $first_pass = true ) {
+function copy_dir( $from, $to, $skip_list = array() ) {
 	global $wp_filesystem;
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
-	if ( ! $dirlist && $first_pass ) {
+	if ( false === $dirlist ) {
 		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
 	}
 
@@ -1815,7 +1813,7 @@ function copy_dir( $from, $to, $skip_list = array(), $first_pass = true ) {
 				}
 			}
 
-			$result = copy_dir( $from . $filename, $to . $filename, $sub_skip_list, false );
+			$result = copy_dir( $from . $filename, $to . $filename, $sub_skip_list );
 			if ( is_wp_error( $result ) ) {
 				return $result;
 			}
