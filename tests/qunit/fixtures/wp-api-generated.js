@@ -298,6 +298,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -318,6 +324,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -1476,6 +1488,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -1496,6 +1514,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -2539,6 +2563,12 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "author": {
                             "description": "Limit result set to posts assigned to specific authors.",
                             "type": "array",
@@ -2559,6 +2589,12 @@ mockedApiResponse.Schema = {
                         },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -3188,8 +3224,20 @@ mockedApiResponse.Schema = {
                             "format": "date-time",
                             "required": false
                         },
+                        "modified_after": {
+                            "description": "Limit response to posts modified after a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
                         "before": {
                             "description": "Limit response to posts published before a given ISO8601 compliant date.",
+                            "type": "string",
+                            "format": "date-time",
+                            "required": false
+                        },
+                        "modified_before": {
+                            "description": "Limit response to posts modified before a given ISO8601 compliant date.",
                             "type": "string",
                             "format": "date-time",
                             "required": false
@@ -4926,6 +4974,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": true
                         }
                     }
@@ -4935,6 +4985,32 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": []
+                }
+            ]
+        },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/introspect": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
                 }
             ]
         },
@@ -4982,6 +5058,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": false
                         }
                     }
