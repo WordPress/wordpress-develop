@@ -112,6 +112,37 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	/**
 	 * @ticket 47577
 	 */
+	public function test_pre_wp_update_https_detection_errors() {
+		// Override to enforce no errors being detected.
+		add_filter(
+			'pre_wp_update_https_detection_errors',
+			function() {
+				return new WP_Error();
+			}
+		);
+		wp_update_https_detection_errors();
+		$this->assertEquals( array(), get_option( 'https_detection_errors' ) );
+
+		// Override to enforce an error being detected.
+		add_filter(
+			'pre_wp_update_https_detection_errors',
+			function() {
+				return new WP_Error(
+					'ssl_verification_failed',
+					'Bad SSL certificate.'
+				);
+			}
+		);
+		wp_update_https_detection_errors();
+		$this->assertEquals(
+			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
+			get_option( 'https_detection_errors' )
+		);
+	}
+
+	/**
+	 * @ticket 47577
+	 */
 	public function test_wp_schedule_https_detection() {
 		wp_schedule_https_detection();
 		$this->assertEquals( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
