@@ -187,7 +187,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				),
 				admin_url( 'post.php' )
 			);
-				$view_href = get_permalink( $privacy_policy_page_id );
+			$view_href = get_permalink( $privacy_policy_page_id );
 			?>
 				<strong>
 				<?php

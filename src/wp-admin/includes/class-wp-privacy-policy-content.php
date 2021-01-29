@@ -384,7 +384,7 @@ final class WP_Privacy_Policy_Content {
 
 			if ( ! empty( $section['removed'] ) ) {
 				$badge_class = ' red';
-				$date  = date_i18n( $date_format, $section['removed'] );
+				$date        = date_i18n( $date_format, $section['removed'] );
 				/* translators: %s: Date of plugin deactivation. */
 				$badge_title = sprintf( __( 'Removed %s.' ), $date );
 
@@ -393,7 +393,7 @@ final class WP_Privacy_Policy_Content {
 				$removed = '<div class="notice notice-info inline"><p>' . sprintf( $removed, $date ) . '</p></div>';
 			} elseif ( ! empty( $section['updated'] ) ) {
 				$badge_class = ' blue';
-				$date  = date_i18n( $date_format, $section['updated'] );
+				$date        = date_i18n( $date_format, $section['updated'] );
 				/* translators: %s: Date of privacy policy text update. */
 				$badge_title = sprintf( __( 'Updated %s.' ), $date );
 			}
@@ -404,9 +404,9 @@ final class WP_Privacy_Policy_Content {
 			?>
 			<h4 class="privacy-settings-accordion-heading">
 			<button aria-expanded="false" class="privacy-settings-accordion-trigger" aria-controls="privacy-settings-accordion-block-<?php echo $sanitized_policy_name; ?>" type="button">
-				<span class="title"><?php echo $plugin_name ?></span>
+				<span class="title"><?php echo $plugin_name; ?></span>
 				<?php if ( ! empty( $section['removed'] ) || ! empty( $section['updated'] ) ) : ?>
-				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title ?></span>
+				<span class="badge <?php echo $badge_class; ?>"> <?php echo $badge_title; ?></span>
 				<?php endif; ?>
 				<span class="icon"></span>
 			</button>
@@ -418,7 +418,7 @@ final class WP_Privacy_Policy_Content {
 				?>
 				<?php if ( empty( $section['removed'] ) ) : ?>
 				<div class="privacy-settings-accordion-actions">
-					<span class="success" aria-hidden="true"><?php _e( 'Copied!' ) ?></span>
+					<span class="success" aria-hidden="true"><?php _e( 'Copied!' ); ?></span>
 					<button type="button" class="privacy-text-copy button">
 						<?php _e( 'Copy suggested policy text to clipboard' ); ?>
 						<span class="screen-reader-text">
