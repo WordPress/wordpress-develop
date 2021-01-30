@@ -399,7 +399,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	public function test_rest_filter_response_fields_no_request_filter() {
 		$response = new WP_REST_Response();
 		$response->set_data( array( 'a' => true ) );
-		$request = array();
+		$request = new WP_REST_Request();
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame( array( 'a' => true ), $response->get_data() );
@@ -417,9 +417,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'c' => 2,
 			)
 		);
-		$request = array(
-			'_fields' => 'b',
-		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame( array( 'b' => 1 ), $response->get_data() );
@@ -440,9 +439,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'f' => 5,
 			)
 		);
-		$request = array(
-			'_fields' => 'b,c,e',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b,c,e' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -472,9 +471,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'f' => 5,
 			)
 		);
-		$request = array(
-			'_fields' => array( 'b', 'c', 'e' ),
-		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', [ 'b', 'c', 'e' ] );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -511,9 +509,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'b,c',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b,c' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -557,9 +555,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'b.1,c,d.5',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b.1,c,d.5' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -598,9 +596,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'field.a.i,field.b.iv',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'field.a.i,field.b.iv' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -634,9 +632,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -666,9 +664,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta,meta.key1',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta,meta.key1' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
@@ -698,9 +696,9 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
-		$request = array(
-			'_fields' => 'meta.key1,meta.key2',
-		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'meta.key1,meta.key2' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
