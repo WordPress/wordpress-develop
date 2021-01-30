@@ -54,6 +54,52 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 	}
 
+	function tearDown() {
+		global $wpdb, $wp_query, $post;
+		$this->expectedDeprecated();
+		$wpdb->query( 'ROLLBACK' );
+		if ( is_multisite() ) {
+			while ( ms_is_switched() ) {
+				restore_current_blog();
+			}
+		}
+		$wp_query = new WP_Query();
+		$post = null;
+		remove_theme_support( 'html5' );
+		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
+		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
+		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
+		$this->_restore_hooks();
+		wp_set_current_user( 0 );
+	}
+
+	function clean_up_global_scope() {
+		$_GET = array();
+		$_POST = array();
+		$this->flush_cache();
+	}
+
+	/**
+	 * Allow tests to be skipped on some automated runs
+	 *
+	 * For test runs on Travis for something other than trunk/master 
+	 * we want to skip tests that only need to run for master.
+	 */
+	public function skipOnAutomatedBranches() {
+		// gentenv can be disabled
+		if ( ! function_exists( 'getenv' ) ) {
+			return false;
+		}
+
+		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
+		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
+		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
+
+		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
+			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+		}
+	}
+
 	/**
 	 * Allow tests to be skipped if the HTTP request times out.
 	 *
@@ -103,52 +149,6 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 			_unregister_taxonomy( $tax );
 		}
 		create_initial_taxonomies();
-	}
-
-	function tearDown() {
-		global $wpdb, $wp_query, $post;
-		$this->expectedDeprecated();
-		$wpdb->query( 'ROLLBACK' );
-		if ( is_multisite() ) {
-			while ( ms_is_switched() ) {
-				restore_current_blog();
-			}
-		}
-		$wp_query = new WP_Query();
-		$post = null;
-		remove_theme_support( 'html5' );
-		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
-		remove_filter( 'query', array( $this, '_drop_temporary_tables' ) );
-		remove_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
-		$this->_restore_hooks();
-		wp_set_current_user( 0 );
-	}
-
-	function clean_up_global_scope() {
-		$_GET = array();
-		$_POST = array();
-		$this->flush_cache();
-	}
-
-	/**
-	 * Allow tests to be skipped on some automated runs
-	 *
-	 * For test runs on Travis for something other than trunk/master 
-	 * we want to skip tests that only need to run for master.
-	 */
-	public function skipOnAutomatedBranches() {
-		// gentenv can be disabled
-		if ( ! function_exists( 'getenv' ) ) {
-			return false;
-		}
-
-		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
-		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
-		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
-
-		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
-			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
-		}
 	}
 
 	/**
