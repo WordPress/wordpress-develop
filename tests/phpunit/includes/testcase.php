@@ -183,6 +183,29 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
+	 * Allow tests to be skipped if the HTTP request times out.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 */
+	public function skipTestOnTimeout( $response ) {
+		if ( ! is_wp_error( $response ) ) {
+			return;
+		}
+		if ( 'connect() timed out!' === $response->get_error_message() ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+	}
+
+	/**
 	 * Unregister existing post types and register defaults.
 	 *
 	 * Run before each test in order to clean up the global scope, in case
@@ -217,29 +240,6 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 		foreach ( get_post_stati( array( '_builtin' => false ) ) as $post_status ) {
 			_unregister_post_status( $post_status );
 		}
-	}
-
-	/**
-	 * Allow tests to be skipped if the HTTP request times out.
-	 *
-	 * @param array|WP_Error $response HTTP response.
-	 */
-	public function skipTestOnTimeout( $response ) {
-		if ( ! is_wp_error( $response ) ) {
-			return;
-		}
-		if ( 'connect() timed out!' === $response->get_error_message() ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
-		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
-			$this->markTestSkipped( 'HTTP timeout' );
-		}
-
 	}
 
 	/**
