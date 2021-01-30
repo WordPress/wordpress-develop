@@ -237,6 +237,20 @@ final class WP_Taxonomy {
 	public $_builtin;
 
 	/**
+	 * default sort value
+	 * @since 5.7.0
+	 * @var array|string 
+	 */
+	public $sort = null;
+
+	/**
+	 * Array of arguments for registering a taxonomy.
+	 * @since 5.7.0
+	 * @var array|string 
+	 */
+	public $args = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * See the register_taxonomy() function for accepted arguments for `$args`.
@@ -304,6 +318,8 @@ final class WP_Taxonomy {
 			'rest_controller_class' => false,
 			'default_term'          => null,
 			'_builtin'              => false,
+			'sort'					=> null,
+			'args'					=> null,
 		);
 
 		$args = array_merge( $defaults, $args );
