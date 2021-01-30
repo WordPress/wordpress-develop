@@ -2782,7 +2782,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$query_params[ $base ] = array(
 				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
+				'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $base ),
 				'type'        => array( 'object', 'array' ),
 				'default'     => array(),
 				'oneOf'       => array(
@@ -2805,7 +2805,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 			$query_params[ $base . '_exclude' ] = array(
 				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
+				'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $base ),
 				'type'        => array( 'object', 'array' ),
 				'default'     => array(),
 				'oneOf'       => array(
