@@ -54,34 +54,6 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 		add_filter( 'wp_die_handler', array( $this, 'get_wp_die_handler' ) );
 	}
 
-	/**
-	 * Unregister existing post types and register defaults.
-	 *
-	 * Run before each test in order to clean up the global scope, in case
-	 * a test forgets to unregister a post type on its own, or fails before
-	 * it has a chance to do so.
-	 */
-	protected function reset_post_types() {
-		foreach ( get_post_types() as $pt ) {
-			_unregister_post_type( $pt );
-		}
-		create_initial_post_types();
-	}
-
-	/**
-	 * Unregister existing taxonomies and register defaults.
-	 *
-	 * Run before each test in order to clean up the global scope, in case
-	 * a test forgets to unregister a taxonomy on its own, or fails before
-	 * it has a chance to do so.
-	 */
-	protected function reset_taxonomies() {
-		foreach ( get_taxonomies() as $tax ) {
-			_unregister_taxonomy( $tax );
-		}
-		create_initial_taxonomies();
-	}
-
 	function tearDown() {
 		global $wpdb, $wp_query, $post;
 		$this->expectedDeprecated();
@@ -126,6 +98,57 @@ class WP_UnitTestCase extends PHPUnit_Framework_TestCase {
 		if ( false !== $travis_pull_request && 'master' !== $travis_branch ) {
 			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
 		}
+	}
+
+	/**
+	 * Allow tests to be skipped if the HTTP request times out.
+	 *
+	 * @param array|WP_Error $response HTTP response.
+	 */
+	public function skipTestOnTimeout( $response ) {
+		if ( ! is_wp_error( $response ) ) {
+			return;
+		}
+		if ( 'connect() timed out!' === $response->get_error_message() ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( false !== strpos( $response->get_error_message(), 'timed out after' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+		if ( 0 === strpos( $response->get_error_message(), 'stream_socket_client(): unable to connect to tcp://s.w.org:80' ) ) {
+			$this->markTestSkipped( 'HTTP timeout' );
+		}
+
+	}
+
+	/**
+	 * Unregister existing post types and register defaults.
+	 *
+	 * Run before each test in order to clean up the global scope, in case
+	 * a test forgets to unregister a post type on its own, or fails before
+	 * it has a chance to do so.
+	 */
+	protected function reset_post_types() {
+		foreach ( get_post_types() as $pt ) {
+			_unregister_post_type( $pt );
+		}
+		create_initial_post_types();
+	}
+
+	/**
+	 * Unregister existing taxonomies and register defaults.
+	 *
+	 * Run before each test in order to clean up the global scope, in case
+	 * a test forgets to unregister a taxonomy on its own, or fails before
+	 * it has a chance to do so.
+	 */
+	protected function reset_taxonomies() {
+		foreach ( get_taxonomies() as $tax ) {
+			_unregister_taxonomy( $tax );
+		}
+		create_initial_taxonomies();
 	}
 
 	/**
