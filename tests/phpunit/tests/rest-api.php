@@ -434,19 +434,19 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'a' => 0,
 				'b' => 1,
 				'c' => 2,
-				'_links' => [
-					'self' => [
-						[
-							'href' => 'd_link'
-						]
-					],
-					'author' => [
-						[
+				'_links' => array(
+					'self' => array(
+						array(
+							'href' => 'd_link',
+						),
+					),
+					'author' => array(
+						array(
 							'embeddable' => true,
-							'href' => 'author_link'
-						]
-					]
-				]
+							'href' => 'author_link',
+						),
+					),
+				),
 			)
 		);
 		$request = new WP_REST_Request();
