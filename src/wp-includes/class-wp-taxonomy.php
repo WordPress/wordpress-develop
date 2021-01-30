@@ -239,14 +239,14 @@ final class WP_Taxonomy {
 	/**
 	 * default sort value
 	 * @since 5.7.0
-	 * @var array|string 
+	 * @var array|string
 	 */
 	public $sort = null;
 
 	/**
 	 * Array of arguments for registering a taxonomy.
 	 * @since 5.7.0
-	 * @var array|string 
+	 * @var array|string
 	 */
 	public $args = null;
 
@@ -318,8 +318,8 @@ final class WP_Taxonomy {
 			'rest_controller_class' => false,
 			'default_term'          => null,
 			'_builtin'              => false,
-			'sort'					=> null,
-			'args'					=> null,
+			'sort'                  => null,
+			'args'                  => null,
 		);
 
 		$args = array_merge( $defaults, $args );
