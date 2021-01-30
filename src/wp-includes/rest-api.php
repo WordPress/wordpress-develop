@@ -819,7 +819,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 	$data = $response->get_data();
 
 	$fields = wp_parse_list( $request['_fields'] );
-	$embeds = wp_parse_list( $request['_embed'] );
+	$embeds = isset( $request['_embed'] ) ? wp_parse_list( $request['_embed'] ) : [];
 
 	if ( ! empty( $embeds ) && ! isset( $fields['_links'] ) ) {
 		foreach ( $embeds as $embed ) {
