@@ -454,17 +454,17 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$request->set_param( '_embed', 'author' );
 
 		$response = rest_filter_response_fields( $response, null, $request );
-		$expected = [
+		$expected = array(
 			'b' => 1,
-			'_links' => [
-				'author' => [
-					[
+			'_links' => array(
+				'author' => array(
+					array(
 						'embeddable' => true,
-						'href' => 'author_link'
-					]
-				]
-			]
-		];
+						'href' => 'author_link',
+					),
+				),
+			),
+		);
 		$this->assertSame( $expected, $response->get_data() );
 	}
 
