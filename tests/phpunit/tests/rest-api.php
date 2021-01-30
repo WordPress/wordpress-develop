@@ -516,7 +516,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 			)
 		);
 		$request = new WP_REST_Request();
-		$request->set_param( '_fields', [ 'b', 'c', 'e' ] );
+		$request->set_param( '_fields', array( 'b', 'c', 'e' ) );
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$this->assertSame(
