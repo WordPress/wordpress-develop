@@ -9,12 +9,18 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		$this->skipOnAutomatedBranches();
 
 		$readme = file_get_contents( ABSPATH . 'readme.html' );
+
 		preg_match( '#Recommendations.*PHP</a> version <strong>([0-9.]*)#s', $readme, $matches );
 
 		$response = wp_remote_get( 'https://secure.php.net/supported-versions.php' );
-		if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$this->markTestSkipped( 'Could not contact PHP.net to check versions.' );
+
+		$this->skipTestOnTimeout( $response );
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			$this->fail( sprintf( 'Could not contact PHP.net to check versions. Response code: %s', $response_code ) );
 		}
+
 		$php = wp_remote_retrieve_body( $response );
 
 		preg_match_all( '#<tr class="stable">\s*<td>\s*<a [^>]*>\s*([0-9.]*)#s', $php, $phpmatches );
@@ -24,9 +30,14 @@ class Tests_External_HTTP_Basic extends WP_UnitTestCase {
 		preg_match( '#Recommendations.*MySQL</a> version <strong>([0-9.]*)#s', $readme, $matches );
 
 		$response = wp_remote_get( "https://dev.mysql.com/doc/relnotes/mysql/{$matches[1]}/en/" );
-		if ( 200 != wp_remote_retrieve_response_code( $response ) ) {
-			$this->markTestSkipped( 'Could not contact dev.MySQL.com to check versions.' );
+
+		$this->skipTestOnTimeout( $response );
+
+		$response_code = wp_remote_retrieve_response_code( $response );
+		if ( 200 !== $response_code ) {
+			$this->fail( sprintf( 'Could not contact dev.MySQL.com to check versions. Response code: %s', $response_code ) );
 		}
+
 		$mysql = wp_remote_retrieve_body( $response );
 
 		preg_match( '#(\d{4}-\d{2}-\d{2}), General Availability#', $mysql, $mysqlmatches );
