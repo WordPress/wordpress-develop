@@ -416,6 +416,7 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *     }
  *     @type bool          $_builtin              This taxonomy is a "built-in" taxonomy. INTERNAL USE ONLY!
  *                                                Default false.
+ *     @type string|array  $sort                  Default sort value.
  *     @type string|array  $args                  Array of arguments for registering a taxonomy.
  * }
  * @return WP_Taxonomy|WP_Error The registered taxonomy object on success, WP_Error object on failure.
