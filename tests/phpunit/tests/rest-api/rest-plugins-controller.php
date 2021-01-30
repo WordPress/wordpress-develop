@@ -443,6 +443,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
@@ -466,6 +467,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
