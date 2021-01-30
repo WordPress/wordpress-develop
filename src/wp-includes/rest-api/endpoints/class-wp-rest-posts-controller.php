@@ -2901,7 +2901,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return array Updated query arguments.
 	 */
-	private function prepare_tax_query( array $args, WP_REST_Request $request ): array {
+	private function prepare_tax_query( array $args, WP_REST_Request $request ) {
 		$relation = $request['tax_relation'];
 
 		if ( $relation ) {
