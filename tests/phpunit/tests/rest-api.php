@@ -425,6 +425,50 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that result fields are allowed if request['_embed'] is present and request['_links'] is not present.
+	 */
+	public function test_rest_filter_response_fields_has_embed_no_links() {
+		$response = new WP_REST_Response();
+		$response->set_data(
+			array(
+				'a' => 0,
+				'b' => 1,
+				'c' => 2,
+				'_links' => [
+					'self' => [
+						[
+							'href' => 'd_link'
+						]
+					],
+					'author' => [
+						[
+							'embeddable' => true,
+							'href' => 'author_link'
+						]
+					]
+				]
+			)
+		);
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'b' );
+		$request->set_param( '_embed', 'author' );
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$expected = [
+			'b' => 1,
+			'_links' => [
+				'author' => [
+					[
+						'embeddable' => true,
+						'href' => 'author_link'
+					]
+				]
+			]
+		];
+		$this->assertSame( $expected, $response->get_data() );
+	}
+
+	/**
 	 * Ensure that multiple comma-separated fields may be allowed with request['_fields'].
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter() {
