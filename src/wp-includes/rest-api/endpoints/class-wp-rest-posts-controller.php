@@ -2784,6 +2784,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				/* translators: %s: Taxonomy name. */
 				'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
 				'type'        => array( 'object', 'array' ),
+				'default'     => array(),
 				'oneOf'       => array(
 					array_merge(
 						array(
@@ -2806,6 +2807,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				/* translators: %s: Taxonomy name. */
 				'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
 				'type'        => array( 'object', 'array' ),
+				'default'     => array(),
 				'oneOf'       => array(
 					array_merge(
 						array(
