@@ -2893,7 +2893,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Prepare the 'tax_query' for a collection of posts.
+	 * Prepares the 'tax_query' for a collection of posts.
+	 *
+	 * @since 5.7.0
 	 *
 	 * @param array           $args    WP_Query arguments.
 	 * @param WP_REST_Request $request Full details about the request.
