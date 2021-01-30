@@ -2749,69 +2749,77 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 		}
 
+		$term_id_list_schema      = array(
+			'description' => __( 'Term IDs.' ),
+			'type'        => 'array',
+			'items'       => array(
+				'type' => 'integer',
+			),
+			'default'     => array(),
+		);
+		$term_id_tax_query_schema = array(
+			'type'                 => 'object',
+			'properties'           => array(
+				'terms'            => array(
+					'description' => __( 'Term IDs.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+					'default'     => array(),
+				),
+				'include_children' => array(
+					'description' => __( 'Whether to include child terms.' ),
+					'type'        => 'boolean',
+					'default'     => false,
+				),
+			),
+			'additionalProperties' => false,
+		);
+
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
 			$query_params[ $base ] = array(
 				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
+				'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
 				'type'        => array( 'object', 'array' ),
 				'oneOf'       => array(
-					array(
-						'type'    => 'array',
-						'items'   => array(
-							'type' => 'integer',
+					array_merge(
+						array(
+							'title'       => __( 'Term ID List' ),
+							'description' => __( 'Limit result set to items with the specified terms assigned in the taxonomy.' ),
 						),
-						'default' => array(),
+						$term_id_list_schema
 					),
-					array(
-						'type'                 => 'object',
-						'properties'           => array(
-							'terms'            => array(
-								'type'    => 'array',
-								'items'   => array(
-									'type' => 'integer',
-								),
-								'default' => array(),
-							),
-							'include_children' => array(
-								'type'    => 'boolean',
-								'default' => false,
-							),
+					array_merge(
+						array(
+							'title'       => __( 'Term ID Taxonomy Query' ),
+							'description' => __( 'Limit result set to items with the specified terms or their children assigned in the taxonomy.' ),
 						),
-						'additionalProperties' => false,
+						$term_id_tax_query_schema
 					),
 				),
 			);
 
 			$query_params[ $base . '_exclude' ] = array(
 				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items except those that have the specified term assigned in the %s taxonomy.' ), $base ),
+				'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $taxonomy->name ),
 				'type'        => array( 'object', 'array' ),
 				'oneOf'       => array(
-					array(
-						'type'    => 'array',
-						'items'   => array(
-							'type' => 'integer',
+					array_merge(
+						array(
+							'title'       => __( 'Term ID List' ),
+							'description' => __( 'Limit result set to items except those with the specified terms assigned in the taxonomy.' ),
 						),
-						'default' => array(),
+						$term_id_list_schema
 					),
-					array(
-						'type'                 => 'object',
-						'properties'           => array(
-							'terms'            => array(
-								'type'    => 'array',
-								'items'   => array(
-									'type' => 'integer',
-								),
-								'default' => array(),
-							),
-							'include_children' => array(
-								'type'    => 'boolean',
-								'default' => false,
-							),
+					array_merge(
+						array(
+							'title'       => __( 'Term ID Taxonomy Query' ),
+							'description' => __( 'Limit result set to items except those with the specified terms or their children assigned in the taxonomy.' ),
 						),
-						'additionalProperties' => false,
+						$term_id_tax_query_schema
 					),
 				),
 			);
