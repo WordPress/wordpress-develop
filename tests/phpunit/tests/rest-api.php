@@ -426,6 +426,8 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 	/**
 	 * Ensure that result fields are allowed if request['_embed'] is present and request['_links'] is not present.
+	 *
+	 * @ticket 49985
 	 */
 	public function test_rest_filter_response_fields_has_embed_no_links() {
 		$response = new WP_REST_Response();
