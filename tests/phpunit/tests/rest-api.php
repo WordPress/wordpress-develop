@@ -431,11 +431,11 @@ class Tests_REST_API extends WP_UnitTestCase {
 		$response = new WP_REST_Response();
 		$response->set_data(
 			array(
-				'a' => 0,
-				'b' => 1,
-				'c' => 2,
+				'a'      => 0,
+				'b'      => 1,
+				'c'      => 2,
 				'_links' => array(
-					'self' => array(
+					'self'   => array(
 						array(
 							'href' => 'd_link',
 						),
@@ -443,7 +443,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 					'author' => array(
 						array(
 							'embeddable' => true,
-							'href' => 'author_link',
+							'href'       => 'author_link',
 						),
 					),
 				),
@@ -455,12 +455,12 @@ class Tests_REST_API extends WP_UnitTestCase {
 
 		$response = rest_filter_response_fields( $response, null, $request );
 		$expected = array(
-			'b' => 1,
+			'b'      => 1,
 			'_links' => array(
 				'author' => array(
 					array(
 						'embeddable' => true,
-						'href' => 'author_link',
+						'href'       => 'author_link',
 					),
 				),
 			),
