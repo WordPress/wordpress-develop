@@ -555,6 +555,58 @@ class Tests_Comment extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 33717
+	 */
+	public function test_wp_new_comment_notify_comment_author_once_only() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_approved'     => '0',
+				'comment_author_email' => 'foo@bar.mail',
+			)
+		);
+
+		// The comment author subscribed to receive an email once comment is approved.
+		update_comment_meta( $c, '_wp_comment_author_notification_optin', true );
+
+		// For the purpose of the test we are removing this hook to directly use the function to notify the comment author.
+		remove_action( 'comment_unapproved_to_approved', 'wp_new_comment_notify_comment_author' );
+
+		// Approve the comment.
+		wp_set_comment_status( $c, 'approve' );
+
+		$sent = wp_new_comment_notify_comment_author( $c );
+		$resent = wp_new_comment_notify_comment_author( $c );
+
+		$this->assertTrue( $sent );
+		$this->assertFalse( $resent );
+	}
+
+	/**
+	 * @ticket 33717
+	 */
+	public function test_wp_new_comment_notify_comment_author_has_not_opted_in() {
+		$c = self::factory()->comment->create(
+			array(
+				'comment_post_ID'      => self::$post_id,
+				'comment_approved'     => '0',
+				'comment_author_email' => 'bat@man.mail',
+			)
+		);
+
+		// For the purpose of the test we are removing this hook to directly use the function to notify the comment author.
+		remove_action( 'comment_unapproved_to_approved', 'wp_new_comment_notify_comment_author' );
+
+		// Approve the comment.
+		wp_set_comment_status( $c, 'approve' );
+
+		$sent = wp_new_comment_notify_comment_author( $c );
+
+		// The comment author hasn't subscribed to receive an email, no email should be sent.
+		$this->assertFalse( $sent );
+	}
+
+	/**
 	 * @ticket 12431
 	 */
 	public function test_wp_new_comment_with_meta() {
