@@ -1098,8 +1098,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		);
 
 		// Attempt to unschedule the event:
-		$time = wp_next_scheduled( 'hook' );
-		$unscheduled = wp_unschedule_event( $time, 'hook', array(), true );
+		$unscheduled = wp_unschedule_event( wp_next_scheduled( 'hook' ), 'hook', array(), true );
 
 		// Ensure an error object is returned:
 		$this->assertTrue( $event );
