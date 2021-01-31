@@ -1023,9 +1023,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	public function test_cron_array_error_is_returned_when_scheduling_single_event() {
 		// Force update_option() to fail by setting the new value to match the existing:
-		add_filter( 'pre_update_option_cron', function() {
-			return get_option( 'cron' );
-		} );
+		add_filter(
+			'pre_update_option_cron',
+			function() {
+				return get_option( 'cron' );
+			}
+		);
 
 		// Attempt to schedule a valid event:
 		$event = wp_schedule_single_event( time(), 'hook', array(), true );
@@ -1040,9 +1043,12 @@ class Tests_Cron extends WP_UnitTestCase {
 	 */
 	public function test_cron_array_error_is_returned_when_scheduling_event() {
 		// Force update_option() to fail by setting the new value to match the existing:
-		add_filter( 'pre_update_option_cron', function() {
-			return get_option( 'cron' );
-		} );
+		add_filter(
+			'pre_update_option_cron',
+			function() {
+				return get_option( 'cron' );
+			}
+		);
 
 		// Attempt to schedule a valid event:
 		$event = wp_schedule_event( time(), 'daily', 'hook', array(), true );
@@ -1060,9 +1066,12 @@ class Tests_Cron extends WP_UnitTestCase {
 		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
 
 		// Force update_option() to fail by setting the new value to match the existing:
-		add_filter( 'pre_update_option_cron', function() {
-			return get_option( 'cron' );
-		} );
+		add_filter(
+			'pre_update_option_cron',
+			function() {
+				return get_option( 'cron' );
+			}
+		);
 
 		// Attempt to unschedule the hook:
 		$unscheduled = wp_unschedule_hook( 'hook', true );
@@ -1081,9 +1090,12 @@ class Tests_Cron extends WP_UnitTestCase {
 		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
 
 		// Force update_option() to fail by setting the new value to match the existing:
-		add_filter( 'pre_update_option_cron', function() {
-			return get_option( 'cron' );
-		} );
+		add_filter(
+			'pre_update_option_cron',
+			function() {
+				return get_option( 'cron' );
+			}
+		);
 
 		// Attempt to unschedule the event:
 		$time = wp_next_scheduled( 'hook' );
