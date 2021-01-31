@@ -42,7 +42,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp must be a valid Unix timestamp' )
+				__( 'Event timestamp must be a valid Unix timestamp.' )
 			);
 		}
 
@@ -94,7 +94,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_schedule_event_false',
-				__( 'A plugin prevented the event from being scheduled' )
+				__( 'A plugin prevented the event from being scheduled.' )
 			);
 		}
 
@@ -151,7 +151,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 		if ( $wp_error ) {
 			return new WP_Error(
 				'duplicate_event',
-				__( 'A duplicate event already exists' )
+				__( 'A duplicate event already exists.' )
 			);
 		}
 
@@ -180,7 +180,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 		if ( $wp_error ) {
 			return new WP_Error(
 				'schedule_event_false',
-				__( 'A plugin disallowed this event' )
+				__( 'A plugin disallowed this event.' )
 			);
 		}
 
@@ -238,7 +238,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp must be a valid Unix timestamp' )
+				__( 'Event timestamp must be a valid Unix timestamp.' )
 			);
 		}
 
@@ -251,7 +251,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
-				__( 'Event schedule does not exist' )
+				__( 'Event schedule does not exist.' )
 			);
 		}
 
@@ -273,7 +273,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_schedule_event_false',
-				__( 'A plugin prevented the event from being scheduled' )
+				__( 'A plugin prevented the event from being scheduled.' )
 			);
 		}
 
@@ -292,7 +292,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		if ( $wp_error ) {
 			return new WP_Error(
 				'schedule_event_false',
-				__( 'A plugin disallowed this event' )
+				__( 'A plugin disallowed this event.' )
 			);
 		}
 
@@ -343,7 +343,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp must be a valid Unix timestamp' )
+				__( 'Event timestamp must be a valid Unix timestamp.' )
 			);
 		}
 
@@ -404,7 +404,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_reschedule_event_false',
-				__( 'A plugin prevented the event from being rescheduled' )
+				__( 'A plugin prevented the event from being rescheduled.' )
 			);
 		}
 
@@ -420,7 +420,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_schedule',
-				__( 'Event schedule does not exist' )
+				__( 'Event schedule does not exist.' )
 			);
 		}
 
@@ -463,7 +463,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp must be a valid Unix timestamp' )
+				__( 'Event timestamp must be a valid Unix timestamp.' )
 			);
 		}
 
@@ -494,7 +494,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_unschedule_event_false',
-				__( 'A plugin prevented the event from being unscheduled' )
+				__( 'A plugin prevented the event from being unscheduled.' )
 			);
 		}
 
@@ -572,7 +572,7 @@ function wp_clear_scheduled_hook( $hook, $args = array(), $wp_error = false ) {
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_clear_scheduled_hook_false',
-				__( 'A plugin prevented the hook from being cleared' )
+				__( 'A plugin prevented the hook from being cleared.' )
 			);
 		}
 
@@ -661,7 +661,7 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 		if ( $wp_error && false === $pre ) {
 			return new WP_Error(
 				'pre_unschedule_hook_false',
-				__( 'A plugin prevented the hook from being cleared' )
+				__( 'A plugin prevented the hook from being cleared.' )
 			);
 		}
 
@@ -1160,7 +1160,7 @@ function _set_cron_array( $cron, $wp_error = false ) {
 	if ( $wp_error && ! $result ) {
 		return new WP_Error(
 			'could_not_set',
-			__( 'The cron event list could not be saved' )
+			__( 'The cron event list could not be saved.' )
 		);
 	}
 
