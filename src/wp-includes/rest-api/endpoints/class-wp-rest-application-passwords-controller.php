@@ -461,11 +461,14 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 * Performs a permissions check for the request.
 	 *
 	 * @since 5.6.0
+	 * @deprecated 5.7.0 Use `edit_user` directly or one of the specific meta capabilities introduced in 5.7.0.
 	 *
 	 * @param WP_REST_Request $request
 	 * @return true|WP_Error
 	 */
 	protected function do_permissions_check( $request ) {
+		_deprecated_function( __METHOD__, '5.7.0' );
+		
 		$user = $this->get_user( $request );
 
 		if ( is_wp_error( $user ) ) {
