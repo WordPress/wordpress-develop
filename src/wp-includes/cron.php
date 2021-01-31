@@ -42,7 +42,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp is not a positive integer' )
+				__( 'Event timestamp must be a valid Unix timestamp' )
 			);
 		}
 
@@ -247,7 +247,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp is not a positive integer' )
+				__( 'Event timestamp must be a valid Unix timestamp' )
 			);
 		}
 
@@ -361,7 +361,7 @@ function wp_reschedule_event( $timestamp, $recurrence, $hook, $args = array(), $
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp is not a positive integer' )
+				__( 'Event timestamp must be a valid Unix timestamp' )
 			);
 		}
 
@@ -481,7 +481,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 		if ( $wp_error ) {
 			return new WP_Error(
 				'invalid_timestamp',
-				__( 'Event timestamp is not a positive integer' )
+				__( 'Event timestamp must be a valid Unix timestamp' )
 			);
 		}
 
