@@ -1018,4 +1018,81 @@ class Tests_Cron extends WP_UnitTestCase {
 		$this->assertSame( 'pre_unschedule_hook_false', $result->get_error_code() );
 	}
 
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_scheduling_single_event() {
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter( 'pre_update_option_cron', function() {
+			return get_option( 'cron' );
+		} );
+
+		// Attempt to schedule a valid event:
+		$event = wp_schedule_single_event( time(), 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $event );
+		$this->assertSame( 'could_not_set', $event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_scheduling_event() {
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter( 'pre_update_option_cron', function() {
+			return get_option( 'cron' );
+		} );
+
+		// Attempt to schedule a valid event:
+		$event = wp_schedule_event( time(), 'daily', 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertWPError( $event );
+		$this->assertSame( 'could_not_set', $event->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_unscheduling_hook() {
+		// Schedule a valid event:
+		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
+
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter( 'pre_update_option_cron', function() {
+			return get_option( 'cron' );
+		} );
+
+		// Attempt to unschedule the hook:
+		$unscheduled = wp_unschedule_hook( 'hook', true );
+
+		// Ensure an error object is returned:
+		$this->assertTrue( $event );
+		$this->assertWPError( $unscheduled );
+		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
+	/**
+	 * @ticket 49961
+	 */
+	public function test_cron_array_error_is_returned_when_unscheduling_event() {
+		// Schedule a valid event:
+		$event = wp_schedule_event( strtotime( '+1 hour' ), 'daily', 'hook', array(), true );
+
+		// Force update_option() to fail by setting the new value to match the existing:
+		add_filter( 'pre_update_option_cron', function() {
+			return get_option( 'cron' );
+		} );
+
+		// Attempt to unschedule the event:
+		$time = wp_next_scheduled( 'hook' );
+		$unscheduled = wp_unschedule_event( $time, 'hook', array(), true );
+
+		// Ensure an error object is returned:
+		$this->assertTrue( $event );
+		$this->assertWPError( $unscheduled );
+		$this->assertSame( 'could_not_set', $unscheduled->get_error_code() );
+	}
+
 }

@@ -193,16 +193,7 @@ function wp_schedule_single_event( $timestamp, $hook, $args = array(), $wp_error
 	);
 	uksort( $crons, 'strnatcasecmp' );
 
-	$set = _set_cron_array( $crons );
-
-	if ( $wp_error && ! $set ) {
-		return new WP_Error(
-			'could_not_set',
-			__( 'The cron event list could not be saved' )
-		);
-	}
-
-	return $set;
+	return _set_cron_array( $crons, $wp_error );
 }
 
 /**
@@ -318,16 +309,7 @@ function wp_schedule_event( $timestamp, $recurrence, $hook, $args = array(), $wp
 	);
 	uksort( $crons, 'strnatcasecmp' );
 
-	$set = _set_cron_array( $crons );
-
-	if ( $wp_error && ! $set ) {
-		return new WP_Error(
-			'could_not_set',
-			__( 'The cron event list could not be saved' )
-		);
-	}
-
-	return $set;
+	return _set_cron_array( $crons, $wp_error );
 }
 
 /**
@@ -533,16 +515,7 @@ function wp_unschedule_event( $timestamp, $hook, $args = array(), $wp_error = fa
 		unset( $crons[ $timestamp ] );
 	}
 
-	$set = _set_cron_array( $crons );
-
-	if ( $wp_error && ! $set ) {
-		return new WP_Error(
-			'could_not_set',
-			__( 'The cron event list could not be saved' )
-		);
-	}
-
-	return $set;
+	return _set_cron_array( $crons, $wp_error );
 }
 
 /**
@@ -724,18 +697,13 @@ function wp_unschedule_hook( $hook, $wp_error = false ) {
 		return 0;
 	}
 
-	if ( _set_cron_array( $crons ) ) {
+	$set = _set_cron_array( $crons, $wp_error );
+
+	if ( true === $set ) {
 		return array_sum( $results );
 	}
 
-	if ( $wp_error ) {
-		return new WP_Error(
-			'could_not_set',
-			__( 'The cron event list could not be saved' )
-		);
-	}
-
-	return false;
+	return $set;
 }
 
 /**
@@ -1173,19 +1141,30 @@ function _get_cron_array() {
 }
 
 /**
- * Updates the CRON option with the new CRON array.
+ * Updates the cron option with the new cron array.
  *
  * @since 2.1.0
  * @since 5.1.0 Return value modified to outcome of update_option().
+ * @since x.x.x The `$wp_error` parameter was added.
  *
  * @access private
  *
- * @param array $cron Cron info array from _get_cron_array().
- * @return bool True if cron array updated, false on failure.
+ * @param array $cron     Cron info array from _get_cron_array().
+ * @param bool  $wp_error Optional. Whether to return a WP_Error on failure. Default false.
+ * @return bool|WP_Error True if cron array updated. False or WP_Error on failure.
  */
-function _set_cron_array( $cron ) {
+function _set_cron_array( $cron, $wp_error = false ) {
 	$cron['version'] = 2;
-	return update_option( 'cron', $cron );
+	$result = update_option( 'cron', $cron );
+
+	if ( $wp_error && ! $result ) {
+		return new WP_Error(
+			'could_not_set',
+			__( 'The cron event list could not be saved' )
+		);
+	}
+
+	return $result;
 }
 
 /**
