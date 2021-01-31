@@ -468,7 +468,7 @@ class WP_REST_Application_Passwords_Controller extends WP_REST_Controller {
 	 */
 	protected function do_permissions_check( $request ) {
 		_deprecated_function( __METHOD__, '5.7.0' );
-		
+
 		$user = $this->get_user( $request );
 
 		if ( is_wp_error( $user ) ) {
