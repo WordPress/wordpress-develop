@@ -238,14 +238,14 @@ final class WP_Taxonomy {
 
 	/**
 	 * default sort value
-	 * @since 5.7.0
+	 * @since 2.5.0
 	 * @var array|string
 	 */
 	public $sort = null;
 
 	/**
 	 * Array of arguments for registering a taxonomy.
-	 * @since 5.7.0
+	 * @since 2.6.0
 	 * @var array|string
 	 */
 	public $args = null;
