@@ -190,7 +190,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		wp_set_current_user( self::$subscriber_id );
 
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_list_application_passwords', $response, 403 );
 	}
 
 	/**
@@ -272,7 +272,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$uuid     = $item['uuid'];
 		$response = rest_do_request( sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_read_application_password', $response, 403 );
 	}
 
 	/**
@@ -394,7 +394,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$request->set_body_params( array( 'name' => 'App' ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_create_application_passwords', $response, 403 );
 	}
 
 	/**
@@ -500,7 +500,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$request->set_body_params( array( 'name' => 'New App' ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_edit_application_password', $response, 403 );
 	}
 
 	/**
@@ -643,7 +643,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$uuid     = $item['uuid'];
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords/%s', self::$admin, $uuid ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete_application_password', $response, 403 );
 	}
 
 	/**
@@ -747,7 +747,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 
 		$request  = new WP_REST_Request( 'DELETE', sprintf( '/wp/v2/users/%d/application-passwords', self::$admin ) );
 		$response = rest_do_request( $request );
-		$this->assertErrorResponse( 'rest_cannot_manage_application_passwords', $response, 403 );
+		$this->assertErrorResponse( 'rest_cannot_delete_application_passwords', $response, 403 );
 	}
 
 	/**
