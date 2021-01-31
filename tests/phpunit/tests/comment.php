@@ -575,7 +575,7 @@ class Tests_Comment extends WP_UnitTestCase {
 		// Approve the comment.
 		wp_set_comment_status( $c, 'approve' );
 
-		$sent = wp_new_comment_notify_comment_author( $c );
+		$sent   = wp_new_comment_notify_comment_author( $c );
 		$resent = wp_new_comment_notify_comment_author( $c );
 
 		$this->assertTrue( $sent );
