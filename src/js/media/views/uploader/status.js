@@ -111,14 +111,14 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 	 * @param {Backbone.Model} error
 	 */
 	error: function( error ) {
+		console.log('error!');
 		var statusError = new wp.media.view.UploaderStatusError( {
 			filename: this.filename( error.get( 'file' ).name ),
 			message:  error.get( 'message' )
 		} );
 
 		// Can show additional info here while retrying to create image sub-sizes.
-		this.views.add( '.upload-errors', statusError, { at: 0 } );
-		this.$el.attr( 'tabindex', '-1' ).trigger( 'focus' );
+		this.$el.attr( 'tabindex', '-1' ).focus() };
 	},
 
 	dismiss: function() {
