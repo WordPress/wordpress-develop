@@ -2917,6 +2917,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares the collection schema for including and excluding items by terms.
 	 *
+	 * @since 5.7.0
+	 *
 	 * @param array $query_params Collection schema.
 	 * @return array Updated schema.
 	 */
@@ -3034,6 +3036,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepares the taxonomy 'include' and 'exclude' schema for nonhierarchical taxonomies.
+	 *
+	 * @since 5.7.0
 	 *
 	 * @param array $hierarchical The 'include or 'exclude' schema created for hierarchical taxonomies.
 	 * @return array The schema without elements that are unnecessary for nonhierarchical taxonomies.
