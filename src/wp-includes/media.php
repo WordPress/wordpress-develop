@@ -1193,6 +1193,7 @@ function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
  * Retrieves the value for an image attachment's 'srcset' attribute.
  *
  * @since 4.4.0
+ * @since 5.7.0 Added the '$image_attr' parameter.
  *
  * @see wp_calculate_image_srcset()
  *
@@ -1228,6 +1229,7 @@ function wp_get_attachment_image_srcset( $attachment_id, $size = 'medium', $imag
  * A helper function to calculate the image sources to include in a 'srcset' attribute.
  *
  * @since 4.4.0
+ * @since 5.7.0 Added the '$image_attr' parameter.
  *
  * @param int[]  $size_array    {
  *     An array of width and height values.
@@ -1439,6 +1441,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
  * Retrieves the value for an image attachment's 'sizes' attribute.
  *
  * @since 4.4.0
+ * @since 5.7.0 Added the '$image_attr' parameter.
  *
  * @see wp_calculate_image_sizes()
  *
@@ -1513,6 +1516,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
 	 * Filters the output of 'wp_calculate_image_sizes()'.
 	 *
 	 * @since 4.4.0
+	 * @since 5.7.0 Added the '$image_attr' parameter.
 	 *
 	 * @param string       $sizes         A source size value for use in a 'sizes' attribute.
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
