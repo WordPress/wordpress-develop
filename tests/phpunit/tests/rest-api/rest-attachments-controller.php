@@ -2079,6 +2079,49 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 	}
 
 	/**
+	 * @ticket 52192
+	 * @requires function imagejpeg
+	 */
+	public function test_batch_edit_image() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'rotate',
+					'args' => array(
+						'angle' => 60,
+					),
+				),
+				array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => 50,
+						'top'    => 10,
+						'width'  => 10,
+						'height' => 5,
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( rest_url( '/wp/v2/media/' . $item['id'] ), $response->get_headers()['Location'] );
+
+		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
+		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
+		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+	}
+
+	/**
 	 * @ticket 50565
 	 */
 	public function test_edit_image_returns_error_if_mismatched_src() {
