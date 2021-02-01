@@ -595,23 +595,24 @@ class WP_List_Table {
 			return;
 		}
 
-		$extra_checks = "AND post_status != 'auto-draft'";
-		if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
-			$extra_checks .= " AND post_status != 'trash'";
-		} elseif ( isset( $_GET['post_status'] ) ) {
-			$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
-		}
-
 		/**
-		 * Filters whether to short-circuit performing the months dropdown query.
+		 * Filters to short-circuit performing the months dropdown query.
 		 *
 		 * @since 5.7.0
 		 *
-		 * @param bool   $skip_query Whether to skip doing the query. Default false.
-		 * @param string $post_type  The post type.
+		 * @param object[]|false $months   'Months' drop-down results. Default false.
+		 * @param string         $post_type The post type.
 		 */
-		$skip_query = apply_filters( 'pre_months_dropdown_query', false, $post_type );
-		if ( ! $skip_query ) {
+		$months = apply_filters( 'pre_months_dropdown_query', false, $post_type );
+
+		if ( ! is_array( $months ) ) {
+			$extra_checks = "AND post_status != 'auto-draft'";
+			if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
+				$extra_checks .= " AND post_status != 'trash'";
+			} elseif ( isset( $_GET['post_status'] ) ) {
+				$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
+			}
+
 			$months = $wpdb->get_results(
 				$wpdb->prepare(
 					"
@@ -624,19 +625,17 @@ class WP_List_Table {
 					$post_type
 				)
 			);
-		} else {
-			$months = array();
-		}
 
-		/**
-		 * Filters the 'Months' drop-down results.
-		 *
-		 * @since 3.7.0
-		 *
-		 * @param object[] $months    Array of the months drop-down query results.
-		 * @param string   $post_type The post type.
-		 */
-		$months = apply_filters( 'months_dropdown_results', $months, $post_type );
+			/**
+			 * Filters the 'Months' drop-down results.
+			 *
+			 * @since 3.7.0
+			 *
+			 * @param object[] $months    Array of the months drop-down query results.
+			 * @param string   $post_type The post type.
+			 */
+			$months = apply_filters( 'months_dropdown_results', $months, $post_type );
+		}
 
 		$month_count = count( $months );
 
