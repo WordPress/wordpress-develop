@@ -2937,6 +2937,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$include = array(
 			'type'    => array( 'object', 'array' ),
+			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'       => __( 'Term ID List' ),
@@ -2972,6 +2973,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$exclude = array(
 			'type'    => array( 'object', 'array' ),
+			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'       => __( 'Term ID List' ),
