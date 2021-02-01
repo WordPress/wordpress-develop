@@ -2935,13 +2935,13 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'enum'        => array( 'AND', 'OR' ),
 		);
 
-		$include = array(
+		$limit_schema = array(
 			'type'    => array( 'object', 'array' ),
 			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'       => __( 'Term ID List' ),
-					'description' => __( 'Limit result set to items with the specified terms assigned in the taxonomy.' ),
+					'description' => __( 'Match terms with the listed IDs.' ),
 					'type'        => 'array',
 					'items'       => array(
 						'type' => 'integer',
@@ -2950,7 +2950,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				),
 				array(
 					'title'                => __( 'Term ID Taxonomy Query' ),
-					'description'          => __( 'Limit result set to items with the specified terms or their children assigned in the taxonomy.' ),
+					'description'          => __( 'Perform an advanced term query.' ),
 					'type'                 => 'object',
 					'properties'           => array(
 						'terms'            => array(
@@ -2971,65 +2971,35 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				),
 			),
 		);
-		$exclude = array(
-			'type'    => array( 'object', 'array' ),
-			'default' => array(),
-			'oneOf'   => array(
-				array(
-					'title'       => __( 'Term ID List' ),
-					'description' => __( 'Limit result set to items except those with the specified terms assigned in the taxonomy.' ),
-					'type'        => 'array',
-					'items'       => array(
-						'type' => 'integer',
-					),
-					'default'     => array(),
-				),
-				array(
-					'title'                => __( 'Term ID Taxonomy Query' ),
-					'description'          => __( 'Limit result set to items except those with the specified terms or their children assigned in the taxonomy.' ),
-					'type'                 => 'object',
-					'properties'           => array(
-						'terms'            => array(
-							'description' => __( 'Term IDs.' ),
-							'type'        => 'array',
-							'items'       => array(
-								'type' => 'integer',
-							),
-							'default'     => array(),
-						),
-						'include_children' => array(
-							'description' => __( 'Whether to include child terms in the terms excluded from the result set.' ),
-							'type'        => 'boolean',
-							'default'     => false,
-						),
-					),
-					'additionalProperties' => false,
-				),
+
+		$include_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ),
 			),
+			$limit_schema
+		);
+		$exclude_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ),
+			),
+			$limit_schema
 		);
 
 		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$base         = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$base_exclude = $base . '_exclude';
 
-			$query_params[ $base ] = array_merge(
-				array(
-					/* translators: %s: Taxonomy name. */
-					'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $base ),
-				),
-				$include
-			);
+			$query_params[ $base ]                = $include_schema;
+			$query_params[ $base ]['description'] = sprintf( $query_params[ $base ]['description'], $base );
 
-			$query_params[ $base . '_exclude' ] = array_merge(
-				array(
-					/* translators: %s: Taxonomy name. */
-					'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $base ),
-				),
-				$exclude
-			);
+			$query_params[ $base_exclude ]                = $exclude_schema;
+			$query_params[ $base_exclude ]['description'] = sprintf( $query_params[ $base_exclude ]['description'], $base );
 
 			if ( ! $taxonomy->hierarchical ) {
 				unset( $query_params[ $base ]['oneOf'][1]['properties']['include_children'] );
-				unset( $query_params[ $base . '_exclude' ]['oneOf'][1]['properties']['include_children'] );
+				unset( $query_params[ $base_exclude ]['oneOf'][1]['properties']['include_children'] );
 			}
 		}
 
