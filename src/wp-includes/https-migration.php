@@ -19,10 +19,10 @@
  */
 function wp_should_replace_insecure_home_url() {
 	$should_replace_insecure_home_url = wp_is_using_https()
+		&& get_option( 'https_migration_required' )
 		// For automatic replacement, both 'home' and 'siteurl' need to not only use HTTPS, they also need to be using
 		// the same domain.
-		&& wp_parse_url( home_url(), PHP_URL_HOST ) === wp_parse_url( site_url(), PHP_URL_HOST )
-		&& get_option( 'https_migration_required' );
+		&& wp_parse_url( home_url(), PHP_URL_HOST ) === wp_parse_url( site_url(), PHP_URL_HOST );
 
 	/**
 	 * Filters whether WordPress should replace old HTTP URLs to the site with their HTTPS counterpart.
