@@ -603,23 +603,15 @@ class WP_List_Table {
 		}
 
 		/**
-		* Allows overriding the list of months displayed in the admin post lists.
-		*
-		* By default (if this filter does not return an array), a query will be
-		* run to determine the months that have post items.  This query can be
-		* expensive for a large number of posts, so it may be desirable for sites to
-		* override this behavior.
-		*
-		* @since 5.7
-		*
-		* @link https://core.trac.wordpress.org/ticket/51660
-		*
-		* @param string $post_type The post type.
-		* @param string $extra_checks Filtering options for the post status.
-		*/
-		$months = apply_filters( 'edit_months_dropdown', $post_type, $extra_checks );
-
-		if ( ! is_array( $months ) ) {
+		 * Filters whether to short-circuit performing the months dropdown query.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param bool   $skip_query Whether to skip doing the query. Default false.
+		 * @param string $post_type  The post type.
+		 */
+		$skip_query = apply_filters( 'pre_months_dropdown_query', false, $post_type );
+		if ( ! $skip_query ) {
 			$months = $wpdb->get_results(
 				$wpdb->prepare(
 					"
@@ -632,6 +624,8 @@ class WP_List_Table {
 					$post_type
 				)
 			);
+		} else {
+			$months = array();
 		}
 
 		/**
