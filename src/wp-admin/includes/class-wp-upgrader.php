@@ -803,10 +803,10 @@ class WP_Upgrader {
 		 *
 		 * @since 5.7.0
 		 *
-		 * @param bool|WP_Error $result  Result from install_package().
-		 * @param array         $options Array of data for plugin/theme being updated.
+		 * @param bool|WP_Error $result                Result from install_package().
+		 * @param array         $options['hook_extra'] Extra arguments passed to hooked filters.
 		 */
-		$result = apply_filters( 'upgrader_install_package_result', $result, $options );
+		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'] );
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
