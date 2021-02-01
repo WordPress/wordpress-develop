@@ -2937,7 +2937,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$include = array(
 			'type'    => array( 'object', 'array' ),
-			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'       => __( 'Term ID List' ),
@@ -2973,7 +2972,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 		$exclude = array(
 			'type'    => array( 'object', 'array' ),
-			'default' => array(),
 			'oneOf'   => array(
 				array(
 					'title'       => __( 'Term ID List' ),
@@ -3008,9 +3006,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			),
 		);
 
-		$include_nonhier = $this->copy_hier_to_nonhier_taxonomy_schema( $include );
-		$exclude_nonhier = $this->copy_hier_to_nonhier_taxonomy_schema( $exclude );
-
 		foreach ( $taxonomies as $taxonomy ) {
 			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
 
@@ -3019,7 +3014,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					/* translators: %s: Taxonomy name. */
 					'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $base ),
 				),
-				$taxonomy->hierarchical ? $include : $include_nonhier
+				$include
 			);
 
 			$query_params[ $base . '_exclude' ] = array_merge(
@@ -3027,32 +3022,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					/* translators: %s: Taxonomy name. */
 					'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $base ),
 				),
-				$taxonomy->hierarchical ? $exclude : $exclude_nonhier
+				$exclude
 			);
+
+			if ( ! $taxonomy->hierarchical ) {
+				unset( $query_params[ $base ]['oneOf'][1]['properties']['include_children'] );
+				unset( $query_params[ $base . '_exclude' ]['oneOf'][1]['properties']['include_children'] );
+			}
 		}
 
 		return $query_params;
-	}
-
-	/**
-	 * Prepares the taxonomy 'include' and 'exclude' schema for nonhierarchical taxonomies.
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array $hierarchical The 'include or 'exclude' schema created for hierarchical taxonomies.
-	 * @return array The schema without elements that are unnecessary for nonhierarchical taxonomies.
-	 */
-	private function copy_hier_to_nonhier_taxonomy_schema( array $hierarchical ) {
-		$nonhier = $hierarchical;
-
-		if ( empty( $nonhier['oneOf'] ) ) {
-			return $nonhier;
-		}
-
-		foreach ( $nonhier['oneOf'] as &$subschema ) {
-			unset( $subschema['properties']['include_children'] );
-		}
-
-		return $nonhier;
 	}
 }
