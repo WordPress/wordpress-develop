@@ -2449,7 +2449,7 @@ EOF;
 	 */
 	public function test_return_type_when_inserting_attachment_with_error_in_data() {
 		$data = array(
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => 'Attachment content',
 			'post_title'   => 'Attachment Title',
 			'post_date'    => '2012-02-30 00:00:00',

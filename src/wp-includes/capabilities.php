@@ -592,6 +592,14 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 		case 'manage_privacy_options':
 			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
 			break;
+		case 'create_app_password':
+		case 'list_app_passwords':
+		case 'read_app_password':
+		case 'edit_app_password':
+		case 'delete_app_passwords':
+		case 'delete_app_password':
+			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
+			break;
 		default:
 			// Handle meta capabilities for custom post types.
 			global $post_type_meta_caps;
@@ -872,8 +880,8 @@ function get_super_admins() {
  *
  * @since 3.0.0
  *
- * @param int $user_id (Optional) The ID of a user. Defaults to the current user.
- * @return bool True if the user is a site admin.
+ * @param int|false $user_id Optional. The ID of a user. Defaults to false, to check the current user.
+ * @return bool Whether the user is a site admin.
  */
 function is_super_admin( $user_id = false ) {
 	if ( ! $user_id || get_current_user_id() == $user_id ) {

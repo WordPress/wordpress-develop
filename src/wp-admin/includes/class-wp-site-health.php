@@ -108,7 +108,7 @@ class WP_Site_Health {
 
 			// Don't run https test on development environments.
 			if ( $this->is_development_environment() ) {
-				unset( $tests['direct']['https_status'] );
+				unset( $tests['async']['https_status'] );
 			}
 
 			foreach ( $tests['direct'] as $test ) {
@@ -726,7 +726,7 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are faster and more secure, so staying up to date will help your site&#8217;s overall performance and security. The minimum recommended version of PHP is %s.' ),
+					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
 					$response ? $response['recommended_version'] : ''
 				)
 			),
@@ -1493,12 +1493,17 @@ class WP_Site_Health {
 	 * enabled, but only if you visit the right site address.
 	 *
 	 * @since 5.2.0
+	 * @since 5.7.0 Updated to rely on {@see wp_is_using_https()} and {@see wp_is_https_supported()}.
 	 *
 	 * @return array The test results.
 	 */
 	public function get_test_https_status() {
+		// Enforce fresh HTTPS detection results. This is normally invoked by using cron, but for Site Health it should
+		// always rely on the latest results.
+		wp_update_https_detection_errors();
+
 		$result = array(
-			'label'       => __( 'Your website is using an active HTTPS connection.' ),
+			'label'       => __( 'Your website is using an active HTTPS connection' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1519,34 +1524,103 @@ class WP_Site_Health {
 			'test'        => 'https_status',
 		);
 
-		if ( is_ssl() ) {
-			$wp_url   = get_bloginfo( 'wpurl' );
-			$site_url = get_bloginfo( 'url' );
+		if ( ! wp_is_using_https() ) {
+			// If the website is not using HTTPS, provide more information about whether it is supported and how it can
+			// be enabled.
+			$result['status'] = 'critical';
+			$result['label']  = __( 'Your website does not use HTTPS' );
 
-			if ( 'https' !== substr( $wp_url, 0, 5 ) || 'https' !== substr( $site_url, 0, 5 ) ) {
-				$result['status'] = 'recommended';
+			if ( wp_is_site_url_using_https() ) {
+				if ( is_ssl() ) {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: URL to Settings > General > Site Address. */
+							__( 'You are accessing this website using HTTPS, but your <a href="%s">Site Address</a> is not set up to use HTTPS by default.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				} else {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: URL to Settings > General > Site Address. */
+							__( 'Your <a href="%s">Site Address</a> is not set up to use HTTPS.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				}
+			} else {
+				if ( is_ssl() ) {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
+							__( 'You are accessing this website using HTTPS, but your <a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS by default.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				} else {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
+							__( 'Your <a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				}
+			}
 
-				$result['label'] = __( 'Only parts of your site are using HTTPS' );
-
-				$result['description'] = sprintf(
+			if ( wp_is_https_supported() ) {
+				$result['description'] .= sprintf(
 					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: URL to General Settings screen. */
-						__( 'You are accessing this website using HTTPS, but your <a href="%s">WordPress Address</a> is not set up to use HTTPS by default.' ),
-						esc_url( admin_url( 'options-general.php' ) )
-					)
+					__( 'HTTPS is already supported for your website.' )
 				);
 
-				$result['actions'] .= sprintf(
+				$result['actions'] = sprintf(
 					'<p><a href="%s">%s</a></p>',
 					esc_url( admin_url( 'options-general.php' ) ),
 					__( 'Update your site addresses' )
 				);
+			} else {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'Talk to your web host about supporting HTTPS for your website.' )
+				);
 			}
-		} else {
-			$result['status'] = 'recommended';
+		} elseif ( ! wp_is_https_supported() ) {
+			// If the website is using HTTPS, but HTTPS is actually not supported, inform the user about the potential
+			// problems.
+			$result['status'] = 'critical';
+			$result['label']  = __( 'There are problems with the HTTPS connection of your website' );
 
-			$result['label'] = __( 'Your site does not use HTTPS' );
+			$https_detection_errors = get_option( 'https_detection_errors' );
+			if ( ! empty( $https_detection_errors['ssl_verification_failed'] ) ) {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: %s: URL to Settings > General > WordPress Address. */
+						__( 'Your <a href="%s">WordPress Address</a> is set up to use HTTPS, but the SSL certificate appears to be invalid.' ),
+						esc_url( admin_url( 'options-general.php' ) . '#siteurl' )
+					)
+				);
+			} else {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: %s: URL to Settings > General > WordPress Address. */
+						__( 'Your <a href="%s">WordPress Address</a> is set up to use HTTPS, but your website appears to be unavailable when using an HTTPS connection.' ),
+						esc_url( admin_url( 'options-general.php' ) . '#siteurl' )
+					)
+				);
+			}
+			$result['description'] .= sprintf(
+				'<p>%s</p>',
+				__( 'Talk to your web host about resolving this HTTPS issue for your website.' )
+			);
 		}
 
 		return $result;
@@ -2186,10 +2260,6 @@ class WP_Site_Health {
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'https_status'              => array(
-					'label' => __( 'HTTPS status' ),
-					'test'  => 'https_status',
-				),
 				'ssl_support'               => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
@@ -2233,6 +2303,12 @@ class WP_Site_Health {
 					'test'              => rest_url( 'wp-site-health/v1/tests/loopback-requests' ),
 					'has_rest'          => true,
 					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_loopback_requests' ),
+				),
+				'https_status'         => array(
+					'label'             => __( 'HTTPS status' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/https-status' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_https_status' ),
 				),
 				'authorization_header' => array(
 					'label'     => __( 'Authorization header' ),
@@ -2531,7 +2607,7 @@ class WP_Site_Health {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
-		$url = admin_url();
+		$url = site_url();
 
 		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
@@ -2600,7 +2676,7 @@ class WP_Site_Health {
 
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
-			unset( $tests['direct']['https_status'] );
+			unset( $tests['async']['https_status'] );
 		}
 
 		foreach ( $tests['direct'] as $test ) {

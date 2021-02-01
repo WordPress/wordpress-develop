@@ -164,7 +164,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_not_in_enum',
 			rest_validate_request_arg( 'd', $this->request, 'someenum' )
 		);
 	}

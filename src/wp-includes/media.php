@@ -1203,7 +1203,7 @@ function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
  * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @param array        $image_attr    Optional. An array of image attributes to be passed to 'wp_calculate_image_srcset()'.
- * @return string|bool A 'srcset' value string or false.
+ * @return string|false A 'srcset' value string or false.
  */
 function wp_get_attachment_image_srcset( $attachment_id, $size = 'medium', $image_meta = null, $image_attr = array() ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size );
@@ -1451,7 +1451,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
  * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
  * @param array        $image_attr    Optional. Image attributes.
- * @return string|bool A valid source size value for use in a 'sizes' attribute or false.
+ * @return string|false A valid source size value for use in a 'sizes' attribute or false.
  */
 function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image_meta = null, $image_attr = array() ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size );
@@ -3373,7 +3373,7 @@ add_shortcode( 'video', 'wp_video_shortcode' );
  *
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param string       $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  */
 function previous_image_link( $size = 'thumbnail', $text = false ) {
 	adjacent_image_link( true, $size, $text );
@@ -3388,7 +3388,7 @@ function previous_image_link( $size = 'thumbnail', $text = false ) {
  *
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param string       $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  */
 function next_image_link( $size = 'thumbnail', $text = false ) {
 	adjacent_image_link( false, $size, $text );
@@ -3940,6 +3940,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	);
 
 	$author = new WP_User( $attachment->post_author );
+
 	if ( $author->exists() ) {
 		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
 		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );

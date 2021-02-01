@@ -813,7 +813,7 @@ function post_exists( $title, $content = '', $date = '', $type = '' ) {
  *
  * @global WP_User $current_user
  *
- * @return int|WP_Error
+ * @return int|WP_Error Post ID on success, WP_Error on failure.
  */
 function wp_write_post() {
 	if ( isset( $_POST['post_type'] ) ) {
@@ -889,7 +889,7 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|null
+ * @return int|void Post ID on success, void on failure.
  */
 function write_post() {
 	$result = wp_write_post();
@@ -1115,7 +1115,7 @@ function get_available_post_statuses( $type = 'post' ) {
  *
  * @since 2.5.0
  *
- * @param array|bool $q Array of query variables to use to build the query or false to use $_GET superglobal.
+ * @param array|false $q Array of query variables to use to build the query or false to use $_GET superglobal.
  * @return array
  */
 function wp_edit_posts_query( $q = false ) {

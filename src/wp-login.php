@@ -42,7 +42,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	global $error, $interim_login, $action;
 
 	// Don't index any of these forms.
-	add_action( 'login_head', 'wp_sensitive_page_meta' );
+	add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
+	add_action( 'login_head', 'wp_strict_cross_origin_referrer' );
 
 	add_action( 'login_head', 'wp_login_viewport_meta' );
 
@@ -281,14 +282,27 @@ function login_footer( $input_id = '' ) {
 	// Don't allow interim logins to navigate away from the page.
 	if ( ! $interim_login ) {
 		?>
-		<p id="backtoblog"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">
-		<?php
-
-		/* translators: %s: Site title. */
-		printf( _x( '&larr; Go to %s', 'site' ), get_bloginfo( 'title', 'display' ) );
-
-		?>
-		</a></p>
+		<p id="backtoblog">
+			<?php
+			$html_link = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( home_url( '/' ) ),
+				/* translators: %s: Site title. */
+				sprintf(
+					_x( '&larr; Go to %s', 'site' ),
+					get_bloginfo( 'title', 'display' )
+				)
+			);
+			/**
+			 * Filter the "Go to site" link displayed in the login page footer.
+			 *
+			 * @since 5.7.0
+			 *
+			 * @param string $link HTML link to the home URL of the current site.
+			 */
+			echo apply_filters( 'login_site_html_link', $html_link );
+			?>
+		</p>
 		<?php
 
 		the_privacy_policy_link( '<div class="privacy-policy-page-link">', '</div>' );
@@ -368,6 +382,19 @@ function retrieve_password() {
 		$login     = trim( wp_unslash( $_POST['user_login'] ) );
 		$user_data = get_user_by( 'login', $login );
 	}
+
+	/**
+	 * Filters the user data during a password reset request.
+	 *
+	 * Allows, for example, custom validation using data other than username or email address.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 */
+	$user_data = apply_filters( 'lostpassword_user_data', $user_data, $errors );
 
 	/**
 	 * Fires before errors are returned from a password reset request.
