@@ -2739,93 +2739,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'sanitize_callback' => array( $this, 'sanitize_post_statuses' ),
 		);
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $taxonomies ) ) {
-			$query_params['tax_relation'] = array(
-				'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
-				'type'        => 'string',
-				'enum'        => array( 'AND', 'OR' ),
-			);
-		}
-
-		$term_id_list_schema      = array(
-			'description' => __( 'Term IDs.' ),
-			'type'        => 'array',
-			'items'       => array(
-				'type' => 'integer',
-			),
-			'default'     => array(),
-		);
-		$term_id_tax_query_schema = array(
-			'type'                 => 'object',
-			'properties'           => array(
-				'terms'            => array(
-					'description' => __( 'Term IDs.' ),
-					'type'        => 'array',
-					'items'       => array(
-						'type' => 'integer',
-					),
-					'default'     => array(),
-				),
-				'include_children' => array(
-					'description' => __( 'Whether to include child terms.' ),
-					'type'        => 'boolean',
-					'default'     => false,
-				),
-			),
-			'additionalProperties' => false,
-		);
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			$query_params[ $base ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $base ),
-				'type'        => array( 'object', 'array' ),
-				'default'     => array(),
-				'oneOf'       => array(
-					array_merge(
-						array(
-							'title'       => __( 'Term ID List' ),
-							'description' => __( 'Limit result set to items with the specified terms assigned in the taxonomy.' ),
-						),
-						$term_id_list_schema
-					),
-					array_merge(
-						array(
-							'title'       => __( 'Term ID Taxonomy Query' ),
-							'description' => __( 'Limit result set to items with the specified terms or their children assigned in the taxonomy.' ),
-						),
-						$term_id_tax_query_schema
-					),
-				),
-			);
-
-			$query_params[ $base . '_exclude' ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $base ),
-				'type'        => array( 'object', 'array' ),
-				'default'     => array(),
-				'oneOf'       => array(
-					array_merge(
-						array(
-							'title'       => __( 'Term ID List' ),
-							'description' => __( 'Limit result set to items except those with the specified terms assigned in the taxonomy.' ),
-						),
-						$term_id_list_schema
-					),
-					array_merge(
-						array(
-							'title'       => __( 'Term ID Taxonomy Query' ),
-							'description' => __( 'Limit result set to items except those with the specified terms or their children assigned in the taxonomy.' ),
-						),
-						$term_id_tax_query_schema
-					),
-				),
-			);
-		}
+		$query_params = $this->prepare_taxonomy_limit_schema( $query_params );
 
 		if ( 'post' === $this->post_type ) {
 			$query_params['sticky'] = array(
@@ -2966,5 +2880,143 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $args;
+	}
+
+	/**
+	 * Prepares the collection schema for including and excluding items by terms.
+	 *
+	 * @param array $query_params Collection schema.
+	 * @return array Updated schema.
+	 */
+	private function prepare_taxonomy_limit_schema( array $query_params ) {
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		if ( ! $taxonomies ) {
+			return $query_params;
+		}
+
+		$query_params['tax_relation'] = array(
+			'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
+			'type'        => 'string',
+			'enum'        => array( 'AND', 'OR' ),
+		);
+
+		$include = array(
+			'type'    => array( 'object', 'array' ),
+			'default' => array(),
+			'oneOf'   => array(
+				array(
+					'title'       => __( 'Term ID List' ),
+					'description' => __( 'Limit result set to items with the specified terms assigned in the taxonomy.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+					'default'     => array(),
+				),
+				array(
+					'title'                => __( 'Term ID Taxonomy Query' ),
+					'description'          => __( 'Limit result set to items with the specified terms or their children assigned in the taxonomy.' ),
+					'type'                 => 'object',
+					'properties'           => array(
+						'terms'            => array(
+							'description' => __( 'Term IDs.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type' => 'integer',
+							),
+							'default'     => array(),
+						),
+						'include_children' => array(
+							'description' => __( 'Whether to include child terms in the terms limiting the result set.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+			),
+		);
+		$exclude = array(
+			'type'    => array( 'object', 'array' ),
+			'default' => array(),
+			'oneOf'   => array(
+				array(
+					'title'       => __( 'Term ID List' ),
+					'description' => __( 'Limit result set to items except those with the specified terms assigned in the taxonomy.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+					'default'     => array(),
+				),
+				array(
+					'title'                => __( 'Term ID Taxonomy Query' ),
+					'description'          => __( 'Limit result set to items except those with the specified terms or their children assigned in the taxonomy.' ),
+					'type'                 => 'object',
+					'properties'           => array(
+						'terms'            => array(
+							'description' => __( 'Term IDs.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type' => 'integer',
+							),
+							'default'     => array(),
+						),
+						'include_children' => array(
+							'description' => __( 'Whether to include child terms in the terms excluded from the result set.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+			),
+		);
+
+		$include_nonhier = $this->copy_hier_to_nonhier_taxonomy_schema( $include );
+		$exclude_nonhier = $this->copy_hier_to_nonhier_taxonomy_schema( $exclude );
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			$query_params[ $base ] = array_merge(
+				array(
+					/* translators: %s: Taxonomy name. */
+					'description' => sprintf( __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ), $base ),
+				),
+				$taxonomy->hierarchical ? $include : $include_nonhier
+			);
+
+			$query_params[ $base . '_exclude' ] = array_merge(
+				array(
+					/* translators: %s: Taxonomy name. */
+					'description' => sprintf( __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ), $base ),
+				),
+				$taxonomy->hierarchical ? $exclude : $exclude_nonhier
+			);
+		}
+
+		return $query_params;
+	}
+
+	/**
+	 * Prepares the taxonomy 'include' and 'exclude' schema for nonhierarchical taxonomies.
+	 *
+	 * @param array $hierarchical The 'include or 'exclude' schema created for hierarchical taxonomies.
+	 * @return array The schema without elements that are unnecessary for nonhierarchical taxonomies.
+	 */
+	private function copy_hier_to_nonhier_taxonomy_schema( array $hierarchical ) {
+		$nonhier = $hierarchical;
+
+		if ( empty( $nonhier['oneOf'] ) ) {
+			return $nonhier;
+		}
+
+		foreach ( $nonhier['oneOf'] as &$subschema ) {
+			unset( $subschema['properties']['include_children'] );
+		}
+
+		return $nonhier;
 	}
 }
