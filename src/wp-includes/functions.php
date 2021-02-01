@@ -7809,12 +7809,12 @@ function retrieve_password( $user_login = null ) {
 	if ( empty( $user_login ) ) {
 		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
 	} elseif ( strpos( $user_login, '@' ) ) {
-		$user_data = get_user_by( 'email', sanitize_email( $user_login ) );
+		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
 		if ( empty( $user_data ) ) {
 			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
 		}
 	} else {
-		$user_data = get_user_by( 'login', sanitize_user( $user_login ) );
+		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
 	}
 
 	/**
