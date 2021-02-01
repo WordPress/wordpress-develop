@@ -802,6 +802,7 @@ class WP_Upgrader {
 		 * Filters the result of install_package().
 		 *
 		 * @since 5.7.0
+		 *
 		 * @param bool|WP_Error $result  Result from install_package().
 		 * @param array         $options Array of data for plugin/theme being updated.
 		 */
