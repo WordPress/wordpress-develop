@@ -602,18 +602,37 @@ class WP_List_Table {
 			$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
 		}
 
-		$months = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s
-			$extra_checks
-			ORDER BY post_date DESC
-		",
-				$post_type
-			)
-		);
+		/**
+		* Allows overriding the list of months displayed in the admin post lists.
+		*
+		* By default (if this filter does not return an array), a query will be
+		* run to determine the months that have post items.  This query can be
+		* expensive for a large number of posts, so it may be desirable for sites to
+		* override this behavior.
+		*
+		* @since 5.7
+		*
+		* @link https://core.trac.wordpress.org/ticket/51660
+		*
+		* @param string $post_type The post type.
+		* @param string $extra_checks Filtering options for the post status.
+		*/
+		$months = apply_filters( 'edit_months_dropdown', $post_type, $extra_checks );
+
+		if ( ! is_array( $months ) ) {
+			$months = $wpdb->get_results(
+				$wpdb->prepare(
+					"
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				$extra_checks
+				ORDER BY post_date DESC
+			",
+					$post_type
+				)
+			);
+		}
 
 		/**
 		 * Filters the 'Months' drop-down results.
