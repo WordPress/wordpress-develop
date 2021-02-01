@@ -7802,16 +7802,20 @@ function retrieve_password( $user_login = null ) {
 	$errors    = new WP_Error();
 	$user_data = false;
 
-	if ( empty( $_POST['user_login'] ) || ! is_string( $_POST['user_login'] ) ) {
-		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
-	} elseif ( strpos( $_POST['user_login'], '@' ) ) {
-		$user_data = get_user_by( 'email', trim( wp_unslash( $_POST['user_login'] ) ) );
-		if ( empty( $user_data ) ) {
-			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
-		}
+
+	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
+	if ( !$user_login && !empty( $_POST['user_login'] ) ) {
+		$user_login = $_POST['user_login'];
+	}
+
+	if ( empty( $user_login ) ) {
+			$errors->add('empty_username', __('<strong>ERROR</strong>: Enter a username or email address.'));
+	} elseif ( strpos( $user_login, '@' ) ) {
+			$user_data = get_user_by( 'email', sanitize_email( $user_login ) );
+		if ( empty( $user_data ) )
+			$errors->add('invalid_email', __('<strong>ERROR</strong>: There is no user registered with that email address.'));
 	} else {
-		$login     = trim( wp_unslash( $_POST['user_login'] ) );
-		$user_data = get_user_by( 'login', $login );
+			$user_data = get_user_by('login', sanitize_user( $user_login ) );
 	}
 
 	/**
