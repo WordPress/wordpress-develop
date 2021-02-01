@@ -1766,9 +1766,9 @@ function _unzip_file_pclzip( $file, $to, $needed_dirs = array() ) {
  *
  * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
  *
- * @param string $from      Source directory.
- * @param string $to        Destination directory.
- * @param array  $skip_list An array of files/folders to skip copying.
+ * @param string   $from      Source directory.
+ * @param string   $to        Destination directory.
+ * @param string[] $skip_list An array of files/folders to skip copying.
  * @return true|WP_Error True on success, WP_Error on failure.
  */
 function copy_dir( $from, $to, $skip_list = array() ) {
