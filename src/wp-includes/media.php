@@ -1680,6 +1680,8 @@ function wp_image_add_srcset_and_sizes( $image, $image_meta, $attachment_id ) {
 		}
 	}
 
+	$srcset = wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attachment_id );
+
 	if ( $srcset ) {
 		// Check if there is already a 'sizes' attribute.
 		$sizes = strpos( $image, ' sizes=' );
