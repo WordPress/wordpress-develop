@@ -760,7 +760,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		 * Unset the redirect object and URL if they are not readable by the user.
 		 * This condition is a little confusing as the condition needs to pass if
 		 * the post is not readable by the user. That's why there are ! (not) conditions
-		 * rather throughout.
+		 * throughout.
 		 */
 		if (
 			// Private post statuses only redirect if the user can read them.

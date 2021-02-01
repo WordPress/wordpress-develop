@@ -95,7 +95,9 @@ function permalink_anchor( $mode = 'id' ) {
  * @since 5.7.0
  *
  * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
- * @param bool             $sample Optional. Whether to force consideration based on sample links.
+ * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
+ *                                 If omitted, a sample link is generated if a post object is passed
+ *                                 with the filter property set to 'sample'.
  * @return bool Whether to use an ugly permalink structure.
  */
 function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
