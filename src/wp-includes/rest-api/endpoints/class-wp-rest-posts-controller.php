@@ -2936,9 +2936,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		);
 
 		$limit_schema = array(
-			'type'    => array( 'object', 'array' ),
-			'default' => array(),
-			'oneOf'   => array(
+			'type'  => array( 'object', 'array' ),
+			'oneOf' => array(
 				array(
 					'title'       => __( 'Term ID List' ),
 					'description' => __( 'Match terms with the listed IDs.' ),
@@ -2946,7 +2945,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'items'       => array(
 						'type' => 'integer',
 					),
-					'default'     => array(),
 				),
 				array(
 					'title'                => __( 'Term ID Taxonomy Query' ),
