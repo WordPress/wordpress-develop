@@ -7788,7 +7788,7 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
  * Automatically injects type attribute if needed.
  * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param array $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String made of sanitized `<script>` tag attributes.
@@ -7818,7 +7818,7 @@ function wp_sanitize_script_attributes( $attributes ) {
  * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
  * Automatically injects type attribute if needed.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param array $attributes Key-value pairs representing `<script>` tag attributes.
  * @return string String containing `<script>` opening and closing tags.
@@ -7830,7 +7830,7 @@ function wp_get_script_tag( $attributes ) {
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
-	 * @since 5.6.0
+	 * @since 5.7.0
 	 *
 	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
 	 *                          Only the attribute name is added to the `<script>` tag for
@@ -7847,7 +7847,7 @@ function wp_get_script_tag( $attributes ) {
  * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param array $attributes Key-value pairs representing `<script>` tag attributes.
  */
@@ -7861,10 +7861,10 @@ function wp_print_script_tag( $attributes ) {
  * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param string $javascript Inline JavaScript code.
- * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ * @param array  $attributes Key-value pairs representing `<script>` tag attributes. Optional.
  * @return string String containing inline JavaScript code wrapped around `<script>` tag.
  */
 function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
@@ -7874,7 +7874,7 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	/**
 	 * Filters attributes to be added to a script tag.
 	 *
-	 * @since 5.6.0
+	 * @since 5.7.0
 	 *
 	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
 	 *                          Only the attribute name is added to the `<script>` tag for
@@ -7893,7 +7893,7 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
  * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
  * Automatically injects type attribute if needed.
  *
- * @since 5.6.0
+ * @since 5.7.0
  *
  * @param string $javascript Inline JavaScript code.
  * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
