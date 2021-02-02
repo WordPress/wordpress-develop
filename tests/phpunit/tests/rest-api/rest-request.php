@@ -500,7 +500,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	/**
 	 * @ticket 46191
 	 */
-	public function test_sanitize_params_merges_error() {
+	public function test_sanitize_params_provides_detailed_errors() {
 		$this->request->set_url_params(
 			array(
 				'failparam' => '123',
@@ -521,9 +521,17 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->sanitize_params();
 		$this->assertWPError( $valid );
 
-		$this->assertEquals( 'Invalid.', $valid->get_error_message( 'invalid' ) );
-		$this->assertEquals( array( 'param' => 'failparam' ), $valid->get_error_data( 'invalid' ) );
-		$this->assertContains( 'mydata', $valid->get_all_error_data( 'invalid' ) );
+		$data = $valid->get_error_data();
+		$this->assertArrayHasKey( 'details', $data );
+		$this->assertArrayHasKey( 'failparam', $data['details'] );
+		$this->assertEquals(
+			array(
+				'code'    => 'invalid',
+				'message' => 'Invalid',
+				'data'    => 'mydata',
+			),
+			$data['details']['failparam']
+		);
 	}
 
 	public function test_sanitize_params_with_null_callback() {
@@ -755,7 +763,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 	/**
 	 * @ticket 46191
 	 */
-	public function test_invalid_params_merges_error() {
+	public function test_invalid_params_provides_detailed_errors() {
 		$this->request->set_url_params(
 			array(
 				'failparam' => '123',
@@ -776,9 +784,17 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$valid = $this->request->has_valid_params();
 		$this->assertWPError( $valid );
 
-		$this->assertEquals( 'Invalid.', $valid->get_error_message( 'invalid' ) );
-		$this->assertEquals( array( 'param' => 'failparam' ), $valid->get_error_data( 'invalid' ) );
-		$this->assertContains( 'mydata', $valid->get_all_error_data( 'invalid' ) );
+		$data = $valid->get_error_data();
+		$this->assertArrayHasKey( 'details', $data );
+		$this->assertArrayHasKey( 'failparam', $data['details'] );
+		$this->assertEquals(
+			array(
+				'code'    => 'invalid',
+				'message' => 'Invalid',
+				'data'    => 'mydata',
+			),
+			$data['details']['failparam']
+		);
 	}
 
 	public function _return_wp_error_on_validate_callback() {

@@ -196,61 +196,13 @@ class WP_REST_Server {
 	 * list in JSON rather than an object/map.
 	 *
 	 * @since 4.4.0
+	 * @since 5.7.0 Converted to a wrapper of {@see rest_convert_error_to_response()}.
 	 *
 	 * @param WP_Error $error WP_Error instance.
 	 * @return WP_REST_Response List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
-		$status = array_reduce(
-			$error->get_all_error_data(),
-			function( $status, $error_data ) {
-				return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
-			},
-			500
-		);
-
-		$errors = array();
-
-		foreach ( (array) $error->errors as $code => $messages ) {
-			$all_data  = $error->get_all_error_data( $code );
-			$last_data = array_pop( $all_data );
-			$param     = array_reduce(
-				$error->get_all_error_data( $code ),
-				function( $param, $error_data ) {
-					return is_array( $error_data ) && isset( $error_data['param'] ) ? $error_data['param'] : $param;
-				},
-				''
-			);
-
-			foreach ( (array) $messages as $message ) {
-				$formatted = array(
-					'code'    => $code,
-					'message' => $message,
-					'data'    => $last_data,
-				);
-
-				if ( $param ) {
-					$formatted['param'] = $param;
-				}
-
-				if ( $all_data ) {
-					$formatted['additional_data'] = $all_data;
-				}
-
-				$errors[] = $formatted;
-			}
-		}
-
-		$data = $errors[0];
-		if ( count( $errors ) > 1 ) {
-			// Remove the primary error.
-			array_shift( $errors );
-			$data['additional_errors'] = $errors;
-		}
-
-		$response = new WP_REST_Response( $data, $status );
-
-		return $response;
+		return rest_convert_error_to_response( $error );
 	}
 
 	/**

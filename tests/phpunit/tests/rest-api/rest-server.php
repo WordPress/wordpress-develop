@@ -407,7 +407,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$message = 'Test error message for the API';
 		$error   = new WP_Error( $code, $message );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		// Make sure we default to a 500 error.
@@ -424,7 +424,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$message = 'Test error message for the API';
 		$error   = new WP_Error( $code, $message, array( 'status' => 400 ) );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		$this->assertSame( 400, $response->get_status() );
@@ -443,7 +443,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$error    = new WP_Error( $code, $message, array( 'status' => 400 ) );
 		$error->add( $code2, $message2, array( 'status' => 403 ) );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		$this->assertSame( 400, $response->get_status() );
@@ -463,33 +463,10 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$error = new WP_Error( 'test', 'test', array( 'status' => 400 ) );
 		$error->add_data( 'more_data' );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertSame( 400, $response->get_status() );
 		$this->assertEquals( 'more_data', $response->get_data()['data'] );
 		$this->assertEquals( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
-	}
-
-	/**
-	 * @ticket 46191
-	 */
-	public function test_error_to_response_param_flag() {
-		$error = new WP_Error( 'test', 'test', array( 'param' => 'invalid' ) );
-
-		$response = rest_get_server()->error_to_response( $error );
-		$this->assertArrayHasKey( 'param', $response->get_data() );
-		$this->assertEquals( 'invalid', $response->get_data()['param'] );
-	}
-
-	/**
-	 * @ticket 46191
-	 */
-	public function test_error_to_response_param_flag_deeply_nested() {
-		$error = new WP_Error( 'test', 'test', array( 'param' => 'invalid' ) );
-		$error->add_data( 'more_data' );
-
-		$response = rest_get_server()->error_to_response( $error );
-		$this->assertArrayHasKey( 'param', $response->get_data() );
-		$this->assertEquals( 'invalid', $response->get_data()['param'] );
 	}
 
 	public function test_rest_error() {

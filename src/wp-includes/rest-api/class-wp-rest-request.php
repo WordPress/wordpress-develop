@@ -802,8 +802,8 @@ class WP_REST_Request implements ArrayAccess {
 
 		$order = $this->get_parameter_order();
 
-		$invalid_params = array();
-		$invalid_errors = array();
+		$invalid_params  = array();
+		$invalid_details = array();
 
 		foreach ( $order as $type ) {
 			if ( empty( $this->params[ $type ] ) ) {
@@ -826,15 +826,12 @@ class WP_REST_Request implements ArrayAccess {
 					continue;
 				}
 
+				/** @var mixed|WP_Error $sanitized_value */
 				$sanitized_value = call_user_func( $param_args['sanitize_callback'], $value, $this, $key );
 
 				if ( is_wp_error( $sanitized_value ) ) {
-					$invalid_params[ $key ] = implode( ' ', $sanitized_value->get_error_messages() );
-
-					if ( ! is_array( $sanitized_value->get_error_data() ) || ! isset( $sanitized_value->get_error_data()['param'] ) ) {
-						$sanitized_value->add_data( array( 'param' => $key ) );
-					}
-					$invalid_errors[] = $sanitized_value;
+					$invalid_params[ $key ]  = implode( ' ', $sanitized_value->get_error_messages() );
+					$invalid_details[ $key ] = rest_convert_error_to_response( $sanitized_value )->get_data();
 				} else {
 					$this->params[ $type ][ $key ] = $sanitized_value;
 				}
@@ -842,21 +839,16 @@ class WP_REST_Request implements ArrayAccess {
 		}
 
 		if ( $invalid_params ) {
-			$error = new WP_Error(
+			return new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status' => 400,
-					'params' => $invalid_params,
+					'status'  => 400,
+					'params'  => $invalid_params,
+					'details' => $invalid_details,
 				)
 			);
-
-			foreach ( $invalid_errors as $invalid_error ) {
-				$error->merge_from( $invalid_error, 'bottom' );
-			}
-
-			return $error;
 		}
 
 		return true;
@@ -906,14 +898,15 @@ class WP_REST_Request implements ArrayAccess {
 		 *
 		 * This is done after required checking as required checking is cheaper.
 		 */
-		$invalid_params = array();
-		$invalid_errors = array();
+		$invalid_params  = array();
+		$invalid_details = array();
 
 		foreach ( $args as $key => $arg ) {
 
 			$param = $this->get_param( $key );
 
 			if ( null !== $param && ! empty( $arg['validate_callback'] ) ) {
+				/** @var bool|\WP_Error $valid_check */
 				$valid_check = call_user_func( $arg['validate_callback'], $param, $this, $key );
 
 				if ( false === $valid_check ) {
@@ -921,32 +914,23 @@ class WP_REST_Request implements ArrayAccess {
 				}
 
 				if ( is_wp_error( $valid_check ) ) {
-					$invalid_params[ $key ] = implode( ' ', $valid_check->get_error_messages() );
-
-					if ( ! is_array( $valid_check->get_error_data() ) || ! isset( $valid_check->get_error_data()['param'] ) ) {
-						$valid_check->add_data( array( 'param' => $key ) );
-					}
-					$invalid_errors[] = $valid_check;
+					$invalid_params[ $key ]  = implode( ' ', $valid_check->get_error_messages() );
+					$invalid_details[ $key ] = rest_convert_error_to_response( $valid_check )->get_data();
 				}
 			}
 		}
 
 		if ( $invalid_params ) {
-			$error = new WP_Error(
+			return new WP_Error(
 				'rest_invalid_param',
 				/* translators: %s: List of invalid parameters. */
 				sprintf( __( 'Invalid parameter(s): %s' ), implode( ', ', array_keys( $invalid_params ) ) ),
 				array(
-					'status' => 400,
-					'params' => $invalid_params,
+					'status'  => 400,
+					'params'  => $invalid_params,
+					'details' => $invalid_details,
 				)
 			);
-
-			foreach ( $invalid_errors as $invalid_error ) {
-				$error->merge_from( $invalid_error, 'bottom' );
-			}
-
-			return $error;
 		}
 
 		if ( isset( $attributes['validate_callback'] ) ) {
