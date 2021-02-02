@@ -1477,6 +1477,7 @@ function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image
  * Creates a 'sizes' attribute value for an image.
  *
  * @since 4.4.0
+ * @since 5.7.0 Added the '$image_attr' parameter.
  *
  * @param string|int[] $size          Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order).
@@ -1485,9 +1486,10 @@ function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image
  *                                    Default null.
  * @param int          $attachment_id Optional. Image attachment ID. Either `$image_meta` or `$attachment_id`
  *                                    is needed when using the image size name as argument for `$size`. Default 0.
+ * @param array        $image_attr    Image attributes.
  * @return string|false A valid source size value for use in a 'sizes' attribute or false.
  */
-function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null, $attachment_id = 0 ) {
+function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null, $attachment_id = 0, $image_attr = array() ) {
 	$width = 0;
 
 	if ( is_array( $size ) ) {
@@ -1523,8 +1525,8 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
 	 *                                    an array of width and height values in pixels (in that order).
 	 * @param string|null  $image_src     The URL to the image file or null.
 	 * @param array|null   $image_meta    The image meta data as returned by wp_get_attachment_metadata() or null.
-	 * @param array        $image_attr    Image attributes.
 	 * @param int          $attachment_id Image attachment ID of the original image or 0.
+	 * @param array        $image_attr    Image attributes.
 	 */
 	return apply_filters( 'wp_calculate_image_sizes', $sizes, $size, $image_src, $image_meta, $attachment_id, $image_attr );
 }
