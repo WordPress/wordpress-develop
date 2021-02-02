@@ -273,55 +273,40 @@ class WP_Error {
 	 * Merges the errors in the given error object into this one.
 	 *
 	 * @since 5.6.0
-	 * @since 5.7.0 Introduced the `$new_data_position` parameter.
 	 *
-	 * @param WP_Error $error             Error object to merge.
-	 * @param string   $new_data_position What position in the data stack the new error data should be added to.
-	 *                                    Accepts 'top' or 'bottom'. Defaults to 'top'.
+	 * @param WP_Error $error Error object to merge.
 	 */
-	public function merge_from( WP_Error $error, $new_data_position = 'top' ) {
-		static::copy_errors( $error, $this, $new_data_position );
+	public function merge_from( WP_Error $error ) {
+		static::copy_errors( $error, $this );
 	}
 
 	/**
 	 * Exports the errors in this object into the given one.
 	 *
 	 * @since 5.6.0
-	 * @since 5.7.0 Introduced the `$new_data_position` parameter.
 	 *
-	 * @param WP_Error $error             Error object to export into.
-	 * @param string   $new_data_position What position in the data stack the new error data should be added to.
-	 *                                    Accepts 'top' or 'bottom'. Defaults to 'top'.
+	 * @param WP_Error $error Error object to export into.
 	 */
-	public function export_to( WP_Error $error, $new_data_position = 'top' ) {
-		static::copy_errors( $this, $error, $new_data_position );
+	public function export_to( WP_Error $error ) {
+		static::copy_errors( $this, $error );
 	}
 
 	/**
 	 * Copies errors from one WP_Error instance to another.
 	 *
 	 * @since 5.6.0
-	 * @since 5.7.0 Introduced the `$new_data_position` parameter.
 	 *
-	 * @param WP_Error $from              The WP_Error to copy from.
-	 * @param WP_Error $to                The WP_Error to copy to.
-	 * @param string   $new_data_position What position in the data stack the new error data should be added to.
-	 *                                    Accepts 'top' or 'bottom'. Defaults to 'top'.
+	 * @param WP_Error $from The WP_Error to copy from.
+	 * @param WP_Error $to   The WP_Error to copy to.
 	 */
-	protected static function copy_errors( WP_Error $from, WP_Error $to, $new_data_position = 'top' ) {
+	protected static function copy_errors( WP_Error $from, WP_Error $to ) {
 		foreach ( $from->get_error_codes() as $code ) {
 			foreach ( $from->get_error_messages( $code ) as $error_message ) {
 				$to->add( $code, $error_message );
 			}
 
-			if ( 'bottom' === $new_data_position && $to->get_error_data( $code ) ) {
-				foreach ( $from->get_all_error_data( $code ) as $data ) {
-					$to->additional_data[ $code ][] = $data;
-				}
-			} else {
-				foreach ( $from->get_all_error_data( $code ) as $data ) {
-					$to->add_data( $data, $code );
-				}
+			foreach ( $from->get_all_error_data( $code ) as $data ) {
+				$to->add_data( $data, $code );
 			}
 		}
 	}
