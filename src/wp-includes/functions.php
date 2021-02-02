@@ -7797,7 +7797,7 @@ function wp_sanitize_script_attributes( $attributes ) {
 	$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
 	$attributes_string    = '';
 
-	// If HTML5 scirpt tag is supported, only the attribute name is added
+	// If HTML5 script tag is supported, only the attribute name is added
 	// to $attributes_string for entries with a boolean value, and that are true.
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
