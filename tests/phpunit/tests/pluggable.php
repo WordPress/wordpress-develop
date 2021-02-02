@@ -132,8 +132,6 @@ class Tests_Pluggable extends WP_UnitTestCase {
 			'wp_get_current_user'             => array(),
 			'get_userdata'                    => array( 'user_id' ),
 			'get_user_by'                     => array( 'field', 'value' ),
-			'get_user_object'                 => array( 'user_id' ),
-			'get_user_object_by'              => array( 'field', 'value' ),
 			'cache_users'                     => array( 'user_ids' ),
 			'wp_mail'                         => array(
 				'to',
