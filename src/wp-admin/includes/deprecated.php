@@ -75,6 +75,8 @@ function get_udims( $width, $height ) {
  * @deprecated 2.6.0 Use wp_category_checklist()
  * @see wp_category_checklist()
  *
+ * @global int $post_ID
+ *
  * @param int $default       Unused.
  * @param int $parent        Unused.
  * @param array $popular_ids Unused.
@@ -91,6 +93,8 @@ function dropdown_categories( $default = 0, $parent = 0, $popular_ids = array() 
  * @since 2.1.0
  * @deprecated 2.6.0 Use wp_link_category_checklist()
  * @see wp_link_category_checklist()
+ *
+ * @global int $link_id
  *
  * @param int $default Unused.
  */
@@ -128,7 +132,7 @@ function get_real_file_to_edit( $file ) {
  * @param int $parent        Optional. Parent ID to retrieve categories for. Default 0.
  * @param int $level         Optional. Number of levels deep to display. Default 0.
  * @param array $categories  Optional. Categories to include in the control. Default 0.
- * @return bool|null False if no categories were found.
+ * @return void|false Void on success, false if no categories were found.
  */
 function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $level = 0, $categories = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_dropdown_categories()' );
@@ -247,7 +251,7 @@ function get_author_user_ids() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array|bool List of editable authors. False if no editable users.
+ * @return array|false List of editable authors. False if no editable users.
  */
 function get_editable_authors( $user_id ) {
 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );

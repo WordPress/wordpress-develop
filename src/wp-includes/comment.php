@@ -454,7 +454,7 @@ function get_comment_count( $post_id = 0 ) {
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
- * @return int|bool Meta ID on success, false on failure.
+ * @return int|false Meta ID on success, false on failure.
  */
 function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false ) {
 	return add_metadata( 'comment', $comment_id, $meta_key, $meta_value, $unique );
@@ -2349,6 +2349,114 @@ function wp_new_comment_notify_postauthor( $comment_ID ) {
 }
 
 /**
+ * Notifies the comment author when their comment gets approved.
+ *
+ * This notification is only sent once when the comment status
+ * changes from unapproved to approved.
+ *
+ * @since 5.7.0
+ *
+ * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
+ * @return bool Whether the email was sent.
+ */
+function wp_new_comment_notify_comment_author( $comment_id ) {
+	$comment = get_comment( $comment_id );
+
+	if ( ! $comment ) {
+		return false;
+	}
+
+	$post = get_post( $comment->comment_post_ID );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	// Make sure the comment author can be notified by email.
+	if ( empty( $comment->comment_author_email ) ) {
+		return false;
+	}
+
+	if ( ! get_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin', true ) ) {
+		return false;
+	}
+
+	/**
+	 * The blogname option is escaped with esc_html when
+	 * saved into the database, we need to reverse this for
+	 * the plain text area of the email.
+	 */
+	$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+
+	$subject = sprintf(
+		/* translators: 1: Blog name, 2: Post title. */
+		__( '[%1$s] Your comment on "%2$s" has been approved' ),
+		$blogname,
+		$post->post_title
+	);
+
+	if ( ! empty( $comment->comment_author ) ) {
+		$notify_message = sprintf(
+			/* translators: %s: Comment author's name. */
+			__( 'Howdy %s,' ),
+			$comment->comment_author
+		) . "\r\n\r\n";
+	} else {
+		$notify_message = __( 'Howdy,' ) . "\r\n\r\n";
+	}
+
+	$notify_message .= sprintf(
+		/* translators: %s: Post title. */
+		__( 'Your comment on "%s" has been approved.' ),
+		$post->post_title
+	) . "\r\n\r\n";
+
+	$notify_message .= sprintf(
+		/* translators: %s: Comment permalink. */
+		__( 'View comment: %s' ),
+		get_comment_link( $comment )
+	) . "\r\n";
+
+	$email = array(
+		'to'      => $comment->comment_author_email,
+		'subject' => $subject,
+		'message' => $notify_message,
+		'headers' => '',
+	);
+
+	/**
+	 * Filters the contents of the email sent to notify a comment author that their comment was approved.
+	 *
+	 * Content should be formatted for transmission via wp_mail().
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array      $email   {
+	 *     Used to build wp_mail().
+	 *
+	 *     @type string $to      The email address of the comment author.
+	 *     @type string $subject The subject of the email.
+	 *     @type string $message The content of the email.
+	 *     @type string $headers Headers.
+	 * }
+	 * @param WP_Comment $comment Comment object.
+	 */
+	$email = apply_filters( 'comment_approval_notification', $email, $comment );
+
+	$sent = wp_mail(
+		$email['to'],
+		wp_specialchars_decode( $email['subject'] ),
+		$email['message'],
+		$email['headers']
+	);
+
+	// Delete the opt-in now the notification has been sent.
+	delete_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin' );
+
+	return $sent;
+}
+
+/**
  * Sets the status of a comment.
  *
  * The {@see 'wp_set_comment_status'} action is called after the comment is handled.
@@ -2406,9 +2514,9 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param int         $comment_id     Comment ID.
-	 * @param string|bool $comment_status Current comment status. Possible values include
-	 *                                    'hold', 'approve', 'spam', 'trash', or false.
+	 * @param int    $comment_id     Comment ID.
+	 * @param string $comment_status Current comment status. Possible values include
+	 *                               'hold', '0', 'approve', '1', 'spam', and 'trash'.
 	 */
 	do_action( 'wp_set_comment_status', $comment->comment_ID, $comment_status );
 
@@ -2716,7 +2824,7 @@ function wp_update_comment_count_now( $post_id ) {
  * @since 1.5.0
  *
  * @param string $url        URL to ping.
- * @param int    $deprecated Not Used.
+ * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {

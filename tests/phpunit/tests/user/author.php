@@ -15,9 +15,10 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author_id = $factory->user->create(
 			array(
-				'role'        => 'author',
-				'user_login'  => 'test_author',
-				'description' => 'test_author',
+				'role'         => 'author',
+				'user_login'   => 'test_author',
+				'display_name' => 'Test Author',
+				'description'  => 'test_author',
 			)
 		);
 
@@ -48,13 +49,13 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$user        = new WP_User( self::$author_id );
 
 		$this->assertSame( $user->display_name, $author_name );
-		$this->assertSame( 'test_author', $author_name );
+		$this->assertSame( 'Test Author', $author_name );
 	}
 
 	function test_get_the_author_meta() {
 		$this->assertSame( 'test_author', get_the_author_meta( 'login' ) );
 		$this->assertSame( 'test_author', get_the_author_meta( 'user_login' ) );
-		$this->assertSame( 'test_author', get_the_author_meta( 'display_name' ) );
+		$this->assertSame( 'Test Author', get_the_author_meta( 'display_name' ) );
 
 		$this->assertSame( 'test_author', trim( get_the_author_meta( 'description' ) ) );
 		$this->assertSame( 'test_author', get_the_author_meta( 'user_description' ) );
@@ -110,12 +111,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	 * @ticket 30355
 	 */
 	public function test_get_the_author_posts_link_no_permalinks() {
-		$author = self::factory()->user->create_and_get(
-			array(
-				'display_name'  => 'Foo',
-				'user_nicename' => 'bar',
-			)
-		);
+		$author = get_userdata( self::$author_id );
 
 		$GLOBALS['authordata'] = $author->data;
 
@@ -124,8 +120,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$url = sprintf( 'http://%1$s/?author=%2$s', WP_TESTS_DOMAIN, $author->ID );
 
 		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Foo', $link );
-		$this->assertContains( '>Foo</a>', $link );
+		$this->assertContains( 'Posts by Test Author', $link );
+		$this->assertContains( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
@@ -136,12 +132,7 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 	public function test_get_the_author_posts_link_with_permalinks() {
 		$this->set_permalink_structure( '/%postname%/' );
 
-		$author = self::factory()->user->create_and_get(
-			array(
-				'display_name'  => 'Foo',
-				'user_nicename' => 'bar',
-			)
-		);
+		$author = get_userdata( self::$author_id );
 
 		$GLOBALS['authordata'] = $author;
 
@@ -152,8 +143,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->set_permalink_structure( '' );
 
 		$this->assertContains( $url, $link );
-		$this->assertContains( 'Posts by Foo', $link );
-		$this->assertContains( '>Foo</a>', $link );
+		$this->assertContains( 'Posts by Test Author', $link );
+		$this->assertContains( '>Test Author</a>', $link );
 
 		unset( $GLOBALS['authordata'] );
 	}
