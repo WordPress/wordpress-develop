@@ -7965,7 +7965,7 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *                          Only the attribute name is added to the `<script>` tag for
 	 *                          entries with a boolean value, and that are true.
 	 */
-	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
 
 	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
