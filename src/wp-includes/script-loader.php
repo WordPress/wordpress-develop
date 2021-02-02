@@ -90,6 +90,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-url',
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
+		'wp-polyfill-object-fit',
 		'wp-polyfill',
 	);
 
@@ -104,6 +105,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-url'             => '3.6.4',
 		'wp-polyfill-dom-rect'        => '3.42.0',
 		'wp-polyfill-element-closest' => '2.0.2',
+		'wp-polyfill-object-fit'      => '2.3.4',
 		'wp-polyfill'                 => '7.4.4',
 	);
 
@@ -131,6 +133,7 @@ function wp_default_packages_vendor( $scripts ) {
 				'window.URL && window.URL.prototype && window.URLSearchParams' => 'wp-polyfill-url',
 				'window.FormData && window.FormData.prototype.keys' => 'wp-polyfill-formdata',
 				'Element.prototype.matches && Element.prototype.closest' => 'wp-polyfill-element-closest',
+				'\'objectFit\' in document.documentElement.style' => 'wp-polyfill-object-fit',
 			)
 		)
 	);
@@ -1075,6 +1078,15 @@ function wp_default_scripts( $scripts ) {
 
 	$scripts->add( 'user-profile', "/wp-admin/js/user-profile$suffix.js", array( 'jquery', 'password-strength-meter', 'wp-util' ), false, 1 );
 	$scripts->set_translations( 'user-profile' );
+	$user_id = isset( $_GET['user_id'] ) ? (int) $_GET['user_id'] : 0;
+	did_action( 'init' ) && $scripts->localize(
+		'user-profile',
+		'userProfileL10n',
+		array(
+			'user_id'  => $user_id,
+			'nonce'    => wp_create_nonce( 'reset-password-for-' . $user_id ),
+		)
+	);
 
 	$scripts->add( 'language-chooser', "/wp-admin/js/language-chooser$suffix.js", array( 'jquery' ), false, 1 );
 

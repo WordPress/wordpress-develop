@@ -24,8 +24,14 @@
  * it just returns what the required capabilities are.
  *
  * @since 2.0.0
- * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
- *              by adding it to the function signature.
+ * @since 4.9.6 Added the `export_others_personal_data`, `erase_others_personal_data`,
+ *              and `manage_privacy_options` capabilities.
+ * @since 5.1.0 Added the `update_php` capability.
+ * @since 5.2.0 Added the `resume_plugin` and `resume_theme` capabilities.
+ * @since 5.3.0 Formalized the existing and already documented `...$args` parameter by adding it
+ *              to the function signature.
+ * @since 5.7.0 Added the `create_app_password`, `list_app_passwords`, `read_app_password`,
+ *              `edit_app_password`, `delete_app_passwords`, and `delete_app_password` capabilities.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
@@ -239,10 +245,10 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			$status_obj = get_post_status_object( $post->post_status );
+			$status_obj = get_post_status_object( get_post_status( $post ) );
 			if ( ! $status_obj ) {
 				/* translators: 1: Post status, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post with that status.' ), $post->post_status, $cap ), '5.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post with that status.' ), get_post_status( $post ), $cap ), '5.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -587,10 +593,26 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'update_core';
 			}
 			break;
+		case 'update_https':
+			if ( is_multisite() && ! is_super_admin( $user_id ) ) {
+				$caps[] = 'do_not_allow';
+			} else {
+				$caps[] = 'manage_options';
+				$caps[] = 'update_core';
+			}
+			break;
 		case 'export_others_personal_data':
 		case 'erase_others_personal_data':
 		case 'manage_privacy_options':
 			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
+			break;
+		case 'create_app_password':
+		case 'list_app_passwords':
+		case 'read_app_password':
+		case 'edit_app_password':
+		case 'delete_app_passwords':
+		case 'delete_app_password':
+			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
@@ -859,8 +881,8 @@ function get_super_admins() {
  *
  * @since 3.0.0
  *
- * @param int $user_id (Optional) The ID of a user. Defaults to the current user.
- * @return bool True if the user is a site admin.
+ * @param int|false $user_id Optional. The ID of a user. Defaults to false, to check the current user.
+ * @return bool Whether the user is a site admin.
  */
 function is_super_admin( $user_id = false ) {
 	if ( ! $user_id || get_current_user_id() == $user_id ) {

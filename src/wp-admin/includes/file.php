@@ -734,7 +734,7 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *                                              @see wp_unique_filename().
  *     @type string[] $upload_error_strings     The strings that describe the error indicated in
  *                                              `$_FILES[{form field}]['error']`.
- *     @type bool     $test_form                Whether to test that the `$_POST['action]` parameter is as expected.
+ *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
  *     @type bool     $test_size                Whether to test that the file size is greater than zero bytes.
  *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
  *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
@@ -1255,7 +1255,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
  *
  * @param string       $filename            The file to validate.
  * @param string|array $signatures          A Signature provided for the file.
- * @param string       $filename_for_errors A friendly filename for errors. Optional.
+ * @param string|false $filename_for_errors Optional. A friendly filename for errors.
  * @return bool|WP_Error True on success, false if verification not attempted,
  *                       or WP_Error describing an error condition.
  */
@@ -2246,12 +2246,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<label for="password">
 		<span class="field-title"><?php echo $label_pass; ?></span>
 		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> />
-		<em>
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
 			_e( 'This password will not be stored on the server.' );}
 		?>
-</em>
 	</label>
 </div>
 <fieldset>
