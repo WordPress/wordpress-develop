@@ -527,7 +527,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'code'    => 'invalid',
-				'message' => 'Invalid',
+				'message' => 'Invalid.',
 				'data'    => 'mydata',
 			),
 			$data['details']['failparam']
@@ -790,7 +790,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertEquals(
 			array(
 				'code'    => 'invalid',
-				'message' => 'Invalid',
+				'message' => 'Invalid.',
 				'data'    => 'mydata',
 			),
 			$data['details']['failparam']
