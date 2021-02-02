@@ -4974,6 +4974,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": true
                         }
                     }
@@ -4983,6 +4985,32 @@ mockedApiResponse.Schema = {
                         "DELETE"
                     ],
                     "args": []
+                }
+            ]
+        },
+        "/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/introspect": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
                 }
             ]
         },
@@ -5030,6 +5058,8 @@ mockedApiResponse.Schema = {
                         "name": {
                             "description": "The name of the application password.",
                             "type": "string",
+                            "minLength": 1,
+                            "pattern": ".*\\S.*",
                             "required": false
                         }
                     }
@@ -6157,6 +6187,27 @@ mockedApiResponse.Schema = {
                 "self": [
                     {
                         "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/loopback-requests"
+                    }
+                ]
+            }
+        },
+        "/wp-site-health/v1/tests/https-status": {
+            "namespace": "wp-site-health/v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": []
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp-site-health/v1/tests/https-status"
                     }
                 ]
             }

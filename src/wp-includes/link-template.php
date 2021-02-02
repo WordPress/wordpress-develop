@@ -95,7 +95,9 @@ function permalink_anchor( $mode = 'id' ) {
  * @since 5.7.0
  *
  * @param WP_Post|int|null $post   Optional. Post ID or post object. Defaults to global $post.
- * @param bool             $sample Optional. Whether to force consideration based on sample links.
+ * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
+ *                                 If omitted, a sample link is generated if a post object is passed
+ *                                 with the filter property set to 'sample'.
  * @return bool Whether to use an ugly permalink structure.
  */
 function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
@@ -123,20 +125,20 @@ function wp_force_ugly_post_permalink( $post = null, $sample = null ) {
 	}
 
 	if (
-		$post_status_obj->internal ||
-		( $post_status_obj->protected && ! $sample )
+		// Publicly viewable links never have ugly permalinks.
+		is_post_status_viewable( $post_status_obj ) ||
+		(
+			// Private posts don't have ugly links if the user can read them.
+			$post_status_obj->private &&
+			current_user_can( 'read_post', $post->ID )
+		) ||
+		// Protected posts don't have ugly links if getting a sample URL.
+		( $post_status_obj->protected && $sample )
 	) {
-		return true;
+		return false;
 	}
 
-	if (
-		$post_status_obj->private &&
-		! current_user_can( 'read_post', $post->ID )
-	) {
-		return true;
-	}
-
-	return false;
+	return true;
 }
 
 /**
@@ -476,7 +478,7 @@ function get_attachment_link( $post = null, $leavename = false ) {
 		$parent_id &&
 		(
 			$post->post_parent === $post->ID ||
-			! get_post( $post->post_parent ) ||
+			! $parent ||
 			! is_post_type_viewable( get_post_type( $parent_id ) )
 		)
 	) {

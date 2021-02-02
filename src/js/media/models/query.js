@@ -213,7 +213,6 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 	 * @method
 	 *
 	 * @param {object} [props]
-	 * @param {Object} [props.cache=true]   Whether to use the query cache or not.
 	 * @param {Object} [props.order]
 	 * @param {Object} [props.orderby]
 	 * @param {Object} [props.include]
