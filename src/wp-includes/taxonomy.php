@@ -414,6 +414,10 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *         @type string $slug         Slug for default term. Default empty.
  *         @type string $description  Description for default term. Default empty.
  *     }
+ *     @type bool          $sort                  Whether terms in this taxonomy should be sorted in the order they are
+ *                                                provided to `wp_set_object_terms()`. Default null which equates to false.
+ *     @type array         $args                  Array of arguments to automatically use inside `wp_get_object_terms()`
+ *                                                for this taxonomy.
  *     @type bool          $_builtin              This taxonomy is a "built-in" taxonomy. INTERNAL USE ONLY!
  *                                                Default false.
  * }
@@ -533,6 +537,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.3.0 Added the `no_terms` label.
  * @since 4.4.0 Added the `items_list_navigation` and `items_list` labels.
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
+ * @since 5.7.0 Added the `filter_by_item` label.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -565,6 +570,8 @@ function unregister_taxonomy( $taxonomy ) {
  *                                              the meta box and taxonomy list table.
  *     @type string $no_terms                   Default 'No tags'/'No categories', used in the posts and media
  *                                              list tables.
+ *     @type string $filter_by_item             This label is only used for hierarchical taxonomies. Default
+ *                                              'Filter by category', used in the posts list table.
  *     @type string $items_list_navigation      Label for the table pagination hidden heading.
  *     @type string $items_list                 Label for the table hidden heading.
  *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
@@ -600,6 +607,7 @@ function get_taxonomy_labels( $tax ) {
 		'choose_from_most_used'      => array( __( 'Choose from the most used tags' ), null ),
 		'not_found'                  => array( __( 'No tags found.' ), __( 'No categories found.' ) ),
 		'no_terms'                   => array( __( 'No tags' ), __( 'No categories' ) ),
+		'filter_by_item'             => array( null, __( 'Filter by category' ) ),
 		'items_list_navigation'      => array( __( 'Tags list navigation' ), __( 'Categories list navigation' ) ),
 		'items_list'                 => array( __( 'Tags list' ), __( 'Categories list' ) ),
 		/* translators: Tab heading when selecting from the most used terms. */
