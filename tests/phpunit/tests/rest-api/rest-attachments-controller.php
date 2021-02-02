@@ -455,9 +455,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'status', 'publish' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 3, $data );
-		$this->assertSame( 'rest_invalid_param', $data['code'] );
+		$this->assertErrorResponse( 'rest_invalid_param', $response );
 	}
 
 	public function test_get_items_private_status() {

@@ -1116,6 +1116,185 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	/**
+	 * @ticket 39494
+	 */
+	public function test_get_items_with_category_including_children() {
+		$taxonomy = get_taxonomy( 'category' );
+
+		$cat1 = static::factory()->term->create( array( 'taxonomy' => $taxonomy->name ) );
+		$cat2 = static::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy->name,
+				'parent'   => $cat1,
+			)
+		);
+
+		$post_ids = array(
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat1 ),
+				)
+			),
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat2 ),
+				)
+			),
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param(
+			$taxonomy->rest_base,
+			array(
+				'terms'            => array( $cat1 ),
+				'include_children' => true,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEqualSets( $post_ids, array_column( $data, 'id' ) );
+	}
+
+	/**
+	 * @ticket 39494
+	 */
+	public function test_get_items_with_category_excluding_children() {
+		$taxonomy = get_taxonomy( 'category' );
+
+		$cat1 = static::factory()->term->create( array( 'taxonomy' => $taxonomy->name ) );
+		$cat2 = static::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy->name,
+				'parent'   => $cat1,
+			)
+		);
+
+		$post_ids = array(
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat1 ),
+				)
+			),
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat2 ),
+				)
+			),
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param(
+			$taxonomy->rest_base,
+			array(
+				'terms'            => array( $cat1 ),
+				'include_children' => false,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertCount( 1, $data );
+		$this->assertEquals( $post_ids[0], $data[0]['id'] );
+	}
+
+	/**
+	 * @ticket 39494
+	 */
+	public function test_get_items_without_category_or_its_children() {
+		$taxonomy = get_taxonomy( 'category' );
+
+		$cat1 = static::factory()->term->create( array( 'taxonomy' => $taxonomy->name ) );
+		$cat2 = static::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy->name,
+				'parent'   => $cat1,
+			)
+		);
+
+		$post_ids = array(
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat1 ),
+				)
+			),
+			static::factory()->post->create(
+				array(
+					'post_status'   => 'publish',
+					'post_category' => array( $cat2 ),
+				)
+			),
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param(
+			$taxonomy->rest_base . '_exclude',
+			array(
+				'terms'            => array( $cat1 ),
+				'include_children' => true,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertEmpty(
+			array_intersect(
+				$post_ids,
+				array_column( $data, 'id' )
+			)
+		);
+	}
+
+	/**
+	 * @ticket 39494
+	 */
+	public function test_get_items_without_category_but_allowing_its_children() {
+		$taxonomy = get_taxonomy( 'category' );
+
+		$cat1 = static::factory()->term->create( array( 'taxonomy' => $taxonomy->name ) );
+		$cat2 = static::factory()->term->create(
+			array(
+				'taxonomy' => $taxonomy->name,
+				'parent'   => $cat1,
+			)
+		);
+
+		$p1 = static::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_category' => array( $cat1 ),
+			)
+		);
+		$p2 = static::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_category' => array( $cat2 ),
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param(
+			$taxonomy->rest_base . '_exclude',
+			array(
+				'terms'            => array( $cat1 ),
+				'include_children' => false,
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$found_ids = array_column( $data, 'id' );
+
+		$this->assertNotContains( $p1, $found_ids );
+		$this->assertContains( $p2, $found_ids );
+	}
+
+	/**
 	 * @ticket 44326
 	 */
 	public function test_get_items_relation_with_no_tax_query() {

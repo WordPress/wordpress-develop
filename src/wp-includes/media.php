@@ -244,7 +244,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$info       = null;
 
 		if ( $thumb_file ) {
-			$info = @getimagesize( $thumb_file );
+			$info = wp_getimagesize( $thumb_file );
 		}
 
 		if ( $thumb_file && $info ) {
@@ -962,7 +962,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
 				$src_file               = $icon_dir . '/' . wp_basename( $src );
-				list( $width, $height ) = @getimagesize( $src_file );
+				list( $width, $height ) = wp_getimagesize( $src_file );
 			}
 		}
 
@@ -1628,7 +1628,7 @@ function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 
 	}
 
 	/**
-	 * Filter the 'wp_image_src_get_dimensions' value.
+	 * Filters the 'wp_image_src_get_dimensions' value.
 	 *
 	 * @since 5.7.0
 	 *
@@ -4961,4 +4961,38 @@ function _wp_add_additional_image_sizes() {
 function wp_show_heic_upload_error( $plupload_settings ) {
 	$plupload_settings['heic_upload_error'] = true;
 	return $plupload_settings;
+}
+
+/**
+ * Allows PHP's getimagesize() to be debuggable when necessary.
+ *
+ * @since 5.7.0
+ *
+ * @param string $filename  The file path.
+ * @param array  $imageinfo Extended image information, passed by reference.
+ * @return array|false Array of image information or false on failure.
+ */
+function wp_getimagesize( $filename, &$imageinfo = array() ) {
+	if (
+		// Skip when running unit tests.
+		! defined( 'DIR_TESTDATA' )
+		&&
+		// Return without silencing errors when in debug mode.
+		defined( 'WP_DEBUG' ) && WP_DEBUG
+	) {
+		return getimagesize( $filename, $imageinfo );
+	}
+
+	/*
+	 * Silencing notice and warning is intentional.
+	 *
+	 * getimagesize() has a tendency to generate errors, such as
+	 * "corrupt JPEG data: 7191 extraneous bytes before marker",
+	 * even when it's able to provide image size information.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/42480
+	 *
+	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
+	 */
+	return @getimagesize( $filename, $imageinfo );
 }
