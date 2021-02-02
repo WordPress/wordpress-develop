@@ -161,6 +161,21 @@ class Tests_Robots extends WP_UnitTestCase {
 		$this->assertContains( "'noindex, noarchive'", $output );
 	}
 
+	/**
+	 * @ticket 51511
+	 */
+	public function test_wp_robots_max_image_preview_large() {
+		add_filter( 'wp_robots', 'wp_robots_max_image_preview_large' );
+
+		update_option( 'blog_public', '1' );
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( "'max-image-preview:large'", $output );
+
+		update_option( 'blog_public', '0' );
+		$output = get_echo( 'wp_robots' );
+		$this->assertEmpty( $output );
+	}
+
 	public function add_noindex_directive( array $robots ) {
 		$robots['noindex'] = true;
 		return $robots;

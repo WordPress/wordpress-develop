@@ -789,7 +789,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
-		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
+		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
