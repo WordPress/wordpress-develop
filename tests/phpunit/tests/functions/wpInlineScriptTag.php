@@ -10,13 +10,13 @@ class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
 	private $event_handler = <<<'JS'
 document.addEventListener( 'DOMContentLoaded', function () {
 	document.getElementById( 'elementID' )
-			.addEventListener( 'click', function( event ) { 
+			.addEventListener( 'click', function( event ) {
 				event.preventDefault();
 			});
 });
 JS;
 
-	function get_inline_script_tag_type_set() {
+	public function get_inline_script_tag_type_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -46,7 +46,7 @@ JS;
 		);
 	}
 
-	function test_get_inline_script_tag_type_not_set() {
+	public function test_get_inline_script_tag_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -63,7 +63,7 @@ JS;
 		remove_theme_support( 'html5' );
 	}
 
-	function test_get_inline_script_tag_unescaped_src() {
+	public function test_get_inline_script_tag_unescaped_src() {
 		add_theme_support( 'html5', array( 'script' ) );
 
 		$this->assertSame(
@@ -74,7 +74,7 @@ JS;
 		remove_theme_support( 'html5' );
 	}
 
-	function test_print_script_tag_prints_get_inline_script_tag() {
+	public function test_print_script_tag_prints_get_inline_script_tag() {
 		add_filter(
 			'wp_script_attributes',
 			function ( $attributes ) {

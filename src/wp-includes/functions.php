@@ -7785,9 +7785,6 @@ function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 /**
  * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
  *
- * Automatically injects type attribute if needed.
- * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
- *
  * @since 5.7.0
  *
  * @param array $attributes Key-value pairs representing `<script>` tag attributes.
@@ -7802,7 +7799,7 @@ function wp_sanitize_script_attributes( $attributes ) {
 	foreach ( $attributes as $attribute_name => $attribute_value ) {
 		if ( is_bool( $attribute_value ) ) {
 			if ( $attribute_value ) {
-				$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', $attribute_name, esc_attr( $attribute_name ) ) : ' ' . $attribute_name;
+				$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) ) : ' ' . $attribute_name;
 			}
 		} else {
 			$attributes_string .= sprintf( ' %1$s="%2$s"', $attribute_name, esc_attr( $attribute_value ) );
@@ -7880,7 +7877,7 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
 	 *                          Only the attribute name is added to the `<script>` tag for
 	 *                          entries with a boolean value, and that are true.
 	 */
-	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
 
 	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
 
