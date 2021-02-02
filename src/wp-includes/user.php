@@ -748,7 +748,7 @@ function delete_user_option( $user_id, $option_name, $global = false ) {
  *
  * @since 5.7.0
  *
- * @param int $user_id User ID
+ * @param int $user_id User ID to retreive.
  * @return WP_User|false WP_User object on success, false on failure.
  */
 function get_user_object( $user_id ) {
@@ -763,7 +763,7 @@ function get_user_object( $user_id ) {
  *
  * @since 5.7.0
  *
- * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
+ * @param string     $field The field to retrieve the user with: id | ID | slug | email | login.
  * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
  * @return WP_User|false WP_User object on success, false on failure.
  */
@@ -776,13 +776,13 @@ function get_user_object_by( $field, $value ) {
 	/**
 	 * Preflight getting the user object by a given field.
 	 *
-	 * Short-circuits the get_user_object_by() for use by plugins replacing
+	 * Short-circuits the get_user_object_by() function for use by plugins replacing
 	 * the WordPress login system.
 	 *
 	 * @since 5.7.0
 	 *
 	 * @param WP_User|false|null $pre   The value to return instead. Default null to use WordPress functionality.
-	 * @param string             $field The field to retrieve the user with. id | slug | email | login.
+	 * @param string             $field The field to retrieve the user with: id | slug | email | login.
 	 * @param int|string         $value A value for $field. A user ID, slug, email address, or login name.
 	 */
 	$pre = apply_filters( 'get_user_object_by', null, $field, $value );
