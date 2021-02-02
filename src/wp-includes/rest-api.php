@@ -820,10 +820,23 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$fields = wp_parse_list( $request['_fields'] );
 
-	if ( ! empty( $request['_embed'] ) && ! isset( $fields['_links'] ) ) {
-		foreach ( wp_parse_list( $request['_embed'] ) as $embed ) {
-			$fields[] = "_links.{$embed}";
+	$embed  = isset( $request['_embed'] ) ? rest_parse_embed_param( $request['_embed'] ) : false;
+
+	if ( $embed && ! isset( $fields['_links'] ) ) {
+		if ( is_array( $embed ) ) {
+			foreach ( $embed as $embed_item ) {
+				$fields[] = "_links.{$embed_item}";
+			}
+		}else{
+			foreach ( $response->get_links() as $rel => $link ) {
+				foreach ( $link as $attributes ) {
+					if ( isset( $attributes['embeddable'] ) && $attributes['embeddable'] ) {
+						$fields[] = "_links.{$rel}";
+					}
+				}
+			}
 		}
+
 	}
 
 	if ( 0 === count( $fields ) ) {
