@@ -785,7 +785,7 @@ function get_user_object_by( $field, $value ) {
 	 * @param string             $field The field to retrieve the user with: id | slug | email | login.
 	 * @param int|string         $value A value for $field. A user ID, slug, email address, or login name.
 	 */
-	$pre = apply_filters( 'get_user_object_by', null, $field, $value );
+	$pre = apply_filters( 'pre_get_user_object_by', null, $field, $value );
 	if ( null !== $pre ) {
 		return $pre;
 	}
