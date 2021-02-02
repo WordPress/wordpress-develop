@@ -3170,20 +3170,20 @@ EOF;
 	 */
 	public function test_filter_image_srcset_and_sizes_by_image_attributes() {
 
-		$image_meta = wp_get_attachment_metadata( self::$large_id );
+		$image_meta             = wp_get_attachment_metadata( self::$large_id );
 		$class_attribute_string = 'test-class-string test-image-full';
 
 		// Add a filter to remove srcset and sizes from the generated image.
 		add_filter( 'wp_calculate_image_srcset', '__return_false' );
 		add_filter( 'wp_calculate_image_sizes', '__return_false' );
 
-		$image_with_class_attribute_no_srcset_sizes = wp_get_attachment_image(
+		$image_with_class_attribute_no_srcset_sizes    = wp_get_attachment_image(
 			self::$large_id,
 			'full',
 			false,
 			array(
 				'class' => $class_attribute_string,
-				'alt' => 'Full size test image',
+				'alt'   => 'Full size test image',
 			)
 		);
 		$image_without_class_attribute_no_srcset_sizes = wp_get_attachment_image(
@@ -3192,7 +3192,7 @@ EOF;
 			false,
 			array(
 				'class' => '',
-				'alt' => 'Full size test image',
+				'alt'   => 'Full size test image',
 			)
 		);
 
@@ -3200,13 +3200,13 @@ EOF;
 		remove_filter( 'wp_calculate_image_srcset', '__return_false' );
 		remove_filter( 'wp_calculate_image_sizes', '__return_false' );
 
-		$default_image_without_class_attribute = wp_get_attachment_image(
+		$default_image_without_class_attribute         = wp_get_attachment_image(
 			self::$large_id,
 			'full',
 			false,
 			array(
 				'class' => '',
-				'alt' => 'Full size test image',
+				'alt'   => 'Full size test image',
 			)
 		);
 		$default_srcset_string_without_class_attribute = wp_get_attachment_image_srcset(
@@ -3215,16 +3215,16 @@ EOF;
 			false,
 			array(
 				'class' => '',
-				'alt' => 'Full size test image',
+				'alt'   => 'Full size test image',
 			)
 		);
-		$default_sizes_string_without_class_attribute = wp_get_attachment_image_sizes(
+		$default_sizes_string_without_class_attribute  = wp_get_attachment_image_sizes(
 			self::$large_id,
 			'full',
 			false,
 			array(
 				'class' => '',
-				'alt' => 'Full size test image',
+				'alt'   => 'Full size test image',
 			)
 		);
 
@@ -3233,27 +3233,27 @@ EOF;
 		add_filter( 'wp_calculate_image_sizes', array( $this, '_filter_36982_sizes' ), 10, 6 );
 
 		// Generate an image with srcset and sizes values that should match the filtered image.
-		$uploads_dir_url = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
+		$uploads_dir_url     = 'http://' . WP_TESTS_DOMAIN . '/wp-content/uploads/';
 		$image_file_date_dir = preg_replace( '/(\d{4}\/\d{2}\/).+/', '$1', $image_meta['file'] );
 
 		// Set sources that will match the filtered values.
 		$expected_sources = array(
 			$image_meta['width'] => array(
-				'url' => $uploads_dir_url . $image_meta['file'],
+				'url'        => $uploads_dir_url . $image_meta['file'],
 				'descriptor' => 'w',
-				'value' => $image_meta['width'],
-				'width' => $image_meta['width'],
-				'height' => $image_meta['height'],
+				'value'      => $image_meta['width'],
+				'width'      => $image_meta['width'],
+				'height'     => $image_meta['height'],
 			),
 		);
 
 		foreach ( $image_meta['sizes'] as $size ) {
 			$expected_sources[ $size['width'] ] = array(
-				'url' => $uploads_dir_url . $image_file_date_dir . $size['file'],
+				'url'        => $uploads_dir_url . $image_file_date_dir . $size['file'],
 				'descriptor' => 'w',
-				'value' => $size['width'],
-				'width' => $size['width'],
-				'height' => $size['height'],
+				'value'      => $size['width'],
+				'width'      => $size['width'],
+				'height'     => $size['height'],
 			);
 		}
 
@@ -3287,7 +3287,7 @@ EOF;
 				false,
 				array(
 					'class' => '',
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
@@ -3303,7 +3303,7 @@ EOF;
 				false,
 				array(
 					'class' => $class_attribute_string,
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
@@ -3317,7 +3317,7 @@ EOF;
 				false,
 				array(
 					'class' => $class_attribute_string,
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
@@ -3329,7 +3329,7 @@ EOF;
 				false,
 				array(
 					'class' => $class_attribute_string,
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
@@ -3343,7 +3343,7 @@ EOF;
 				false,
 				array(
 					'class' => '',
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
@@ -3355,7 +3355,7 @@ EOF;
 				false,
 				array(
 					'class' => '',
-					'alt' => 'Full size test image',
+					'alt'   => 'Full size test image',
 				)
 			)
 		);
