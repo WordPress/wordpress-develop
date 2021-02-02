@@ -342,7 +342,7 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * @ticket 43890
 	 */
 	public function test_pending_status_with_false_send_confirmation_email() {
-		$request_data                    = array();
+		$request_data            = array();
 		$send_confirmation_email = false;
 
 		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', $request_data, $send_confirmation_email );
