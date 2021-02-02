@@ -1155,7 +1155,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertSame( $post_ids, array_column( $data, 'id' ) );
+		$this->assertEqualSets( $post_ids, array_column( $data, 'id' ) );
 	}
 
 	/**
