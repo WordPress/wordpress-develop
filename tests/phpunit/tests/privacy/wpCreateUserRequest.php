@@ -308,4 +308,46 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 		$this->assertWPError( $actual );
 		$this->assertSame( 'empty_content', $actual->get_error_code() );
 	}
+
+	/**
+	 * Test that the request has a Pending status if a confirmation email is sent.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_pending_status_with_default_wp_create_user_request_params() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data' );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-pending', $post->post_status );
+	}
+
+	/**
+	 * Test that the request has a Pending status if the $send_confirmation_email param is true.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_pending_status_with_true_send_confirmation_email() {
+		$request_data            = array();
+		$send_confirmation_email = true;
+
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', $request_data, $send_confirmation_email );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-pending', $post->post_status );
+	}
+
+	/**
+	 * Test that the request has a Completed status if the $send_confirmation_email param is false.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_pending_status_with_false_send_confirmation_email() {
+		$request_data                    = array();
+		$send_confirmation_email = false;
+
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', $request_data, $send_confirmation_email );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-completed', $post->post_status );
+	}
 }
