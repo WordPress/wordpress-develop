@@ -741,6 +741,71 @@ function delete_user_option( $user_id, $option_name, $global = false ) {
 }
 
 /**
+ * Retrieve the user object via the user ID.
+ *
+ * Similar to get_userdata() with the difference that requesting the
+ * user ID 0 will return the anonymous user's object.
+ *
+ * @since 5.7.0
+ *
+ * @param int $user_id User ID
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_user_object( $user_id ) {
+	return get_user_object_by( 'id', $user_id );
+}
+
+/**
+ * Retrieve the user object by a given field.
+ *
+ * Similar to get_user_by() with the difference that requesting the
+ * user ID 0 will return the anonymous user's object.
+ *
+ * @since 5.7.0
+ *
+ * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
+ * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
+ * @return WP_User|false WP_User object on success, false on failure.
+ */
+function get_user_object_by( $field, $value ) {
+	// 'ID' is an alias of 'id'.
+	if ( 'ID' === $field ) {
+		$field = 'id';
+	}
+
+	/**
+	 * Preflight getting the user object by a given field.
+	 *
+	 * Short-circuits the get_user_object_by() for use by plugins replacing
+	 * the WordPress login system.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_User|false|null $pre   The value to return instead. Default null to use WordPress functionality.
+	 * @param string             $field The field to retrieve the user with. id | slug | email | login.
+	 * @param int|string         $value A value for $field. A user ID, slug, email address, or login name.
+	 */
+	$pre = apply_filters( 'get_user_object_by', null, $field, $value );
+	if ( null !== $pre ) {
+		return $pre;
+	}
+
+	$user = get_user_by( $field, $value );
+
+	if ( false !== $user ) {
+		return $user;
+	}
+
+	if ( 'id' === $field && 0 === $value ) {
+		// Present the anonymous user.
+		$user = new WP_User( 0 );
+		$user->init( new stdClass );
+	}
+
+	return $user;
+}
+
+/**
  * Retrieve list of users matching criteria.
  *
  * @since 3.1.0
