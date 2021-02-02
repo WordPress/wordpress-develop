@@ -497,6 +497,21 @@ class Tests_REST_API extends WP_UnitTestCase {
 				),
 			)
 		);
+		$response->add_links(
+			array(
+				'self'   => array(
+					array(
+						'href' => 'd_link',
+					),
+				),
+				'author' => array(
+					array(
+						'embeddable' => true,
+						'href'       => 'author_link',
+					),
+				),
+			)
+		);
 		$request = new WP_REST_Request();
 		$request->set_param( '_fields', 'b' );
 		$request->set_param( '_embed', '1' );
