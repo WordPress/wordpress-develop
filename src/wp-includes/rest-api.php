@@ -830,7 +830,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 		} else {
 			foreach ( $response->get_links() as $rel => $link ) {
 				foreach ( $link as $attributes ) {
-					if ( isset( $attributes['attributes']['embeddable'] ) && $attributes['attributes']['embeddable'] ) {
+					if ( ! empty( $attributes['attributes']['embeddable'] ) ) {
 						$fields[] = "_links.{$rel}";
 						break;
 					}
