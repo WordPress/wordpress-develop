@@ -415,7 +415,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		foreach ( self::$users as $role => $user ) {
 			if ( 'anonymous' === $role ) {
 				// The anonymous role does not exist.
-				$this->assertFalse( $user->exists(), "User with {$role} role does not exist" );
+				$this->assertFalse( $user->exists(), "User with {$role} role should not exist" );
 			} else {
 				// Make sure the user is valid.
 				$this->assertTrue( $user->exists(), "User with {$role} role does not exist" );
