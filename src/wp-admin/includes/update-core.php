@@ -945,6 +945,10 @@ function update_core( $from, $to ) {
 		return new WP_Error( 'copy_failed_for_version_file', __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ), 'wp-includes/version.php' );
 	}
 
+	if ( function_exists( 'wp_opcache_invalidate' ) ) {
+		wp_opcache_invalidate( $versions_file );
+	}
+
 	$wp_filesystem->chmod( $versions_file, FS_CHMOD_FILE );
 	require WP_CONTENT_DIR . '/upgrade/version-current.php';
 	$wp_filesystem->delete( $versions_file );
@@ -1117,6 +1121,9 @@ function update_core( $from, $to ) {
 			$result = new WP_Error( 'copy_failed_for_version_file', __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ), 'wp-includes/version.php' );
 		}
 		$wp_filesystem->chmod( $to . 'wp-includes/version.php', FS_CHMOD_FILE );
+		if ( function_exists( 'wp_opcache_invalidate' ) ) {
+			wp_opcache_invalidate( $to . 'wp-includes/version.php' );
+		}
 	}
 
 	// Check to make sure everything copied correctly, ignoring the contents of wp-content.
