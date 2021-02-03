@@ -176,7 +176,7 @@ function _wp_personal_data_handle_actions() {
 						'success'
 					);
 					break;
-				} elseif ( 'confirmed' === $status) {
+				} elseif ( 'confirmed' === $status ) {
 					add_settings_error(
 						'username_or_email_for_privacy_request',
 						'username_or_email_for_privacy_request',
