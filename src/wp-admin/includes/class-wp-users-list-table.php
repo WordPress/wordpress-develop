@@ -274,6 +274,11 @@ class WP_Users_List_Table extends WP_List_Table {
 			}
 		}
 
+		// Add a password reset link to the bulk actions dropdown.
+		if ( current_user_can( 'edit_users' ) ) {
+			$actions['resetpassword'] = __( 'Send password reset' );
+		}
+
 		return $actions;
 	}
 
@@ -335,8 +340,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @return string The bulk action required.
 	 */
 	public function current_action() {
-		if ( ( isset( $_REQUEST['changeit'] ) || isset( $_REQUEST['changeit2'] ) ) &&
-			( ! empty( $_REQUEST['new_role'] ) || ! empty( $_REQUEST['new_role2'] ) ) ) {
+		if ( isset( $_REQUEST['changeit'] ) && ! empty( $_REQUEST['new_role'] ) ) {
 			return 'promote';
 		}
 
@@ -468,6 +472,11 @@ class WP_Users_List_Table extends WP_List_Table {
 					esc_attr( sprintf( __( 'View posts by %s' ), $user_object->display_name ) ),
 					__( 'View' )
 				);
+			}
+
+			// Add a link to send the user a reset password link by email.
+			if ( get_current_user_id() !== $user_object->ID && current_user_can( 'edit_user', $user_object->ID ) ) {
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
 			}
 
 			/**

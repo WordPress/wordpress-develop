@@ -270,6 +270,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'update_languages'            => array( 'administrator' ),
 			'deactivate_plugins'          => array( 'administrator' ),
 			'update_php'                  => array( 'administrator' ),
+			'update_https'                => array( 'administrator' ),
 			'export_others_personal_data' => array( 'administrator' ),
 			'erase_others_personal_data'  => array( 'administrator' ),
 			'manage_privacy_options'      => array( 'administrator' ),
@@ -305,6 +306,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			'update_languages'            => array(),
 			'deactivate_plugins'          => array(),
 			'update_php'                  => array(),
+			'update_https'                => array(),
 			'export_others_personal_data' => array( '' ),
 			'erase_others_personal_data'  => array( '' ),
 			'manage_privacy_options'      => array(),
@@ -522,7 +524,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 			$expected['delete_user'],
 			$expected['edit_user_meta'],
 			$expected['delete_user_meta'],
-			$expected['add_user_meta']
+			$expected['add_user_meta'],
+			$expected['create_app_password'],
+			$expected['list_app_passwords'],
+			$expected['read_app_password'],
+			$expected['edit_app_password'],
+			$expected['delete_app_passwords'],
+			$expected['delete_app_password']
 		);
 
 		$expected = array_keys( $expected );

@@ -342,14 +342,14 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			'<p>Test',
 			'<p>Test test</em> test</p>',
 			'</p>Test',
-			'<p>Here is a <strong class="part">Test</p>',
+			'<p>We are <strong class="wp">#WordPressStrong</p>',
 		);
 		$expected = array(
 			'<b><i>Test</i></b>',
 			'<p>Test</p>',
 			'<p>Test test test</p>',
 			'Test',
-			'<p>Here is a <strong class="part">Test</strong></p>',
+			'<p>We are <strong class="wp">#WordPressStrong</strong></p>',
 		);
 
 		foreach ( $inputs as $key => $input ) {
