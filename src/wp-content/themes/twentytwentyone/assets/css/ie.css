@@ -2218,6 +2218,10 @@ a:hover {
 	background-color: #f1f1f1;
 }
 
+.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).custom-logo-link:focus {
+	background: none;
+}
+
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) img {
 	outline: 2px dotted #28303d;
 }
@@ -5402,15 +5406,6 @@ table.wp-calendar-table caption {
 	line-height: 1.4;
 }
 
-a.custom-logo-link {
-	text-decoration: none;
-}
-
-.has-background-white a.custom-logo-link:focus,
-.is-dark-theme a.custom-logo-link:focus {
-	background: none;
-}
-
 .site-title > a {
 	text-decoration-color: #39414d;
 }
@@ -6182,7 +6177,7 @@ h1.page-title {
 	margin: 0;
 }
 
-.comment-content a {
+.comment-content {
 	word-wrap: break-word;
 }
 

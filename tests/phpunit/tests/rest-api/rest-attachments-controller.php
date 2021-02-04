@@ -455,9 +455,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$request->set_param( 'status', 'publish' );
 		$request->set_param( 'context', 'edit' );
 		$response = rest_get_server()->dispatch( $request );
-		$data     = $response->get_data();
-		$this->assertCount( 3, $data );
-		$this->assertSame( 'rest_invalid_param', $data['code'] );
+		$this->assertErrorResponse( 'rest_invalid_param', $response );
 	}
 
 	public function test_get_items_private_status() {
@@ -2062,6 +2060,49 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$params = array(
 			'rotation' => 60,
 			'src'      => wp_get_attachment_image_url( $attachment, 'full' ),
+		);
+
+		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
+		$request->set_body_params( $params );
+		$response = rest_do_request( $request );
+		$item     = $response->get_data();
+
+		$this->assertSame( 201, $response->get_status() );
+		$this->assertSame( rest_url( '/wp/v2/media/' . $item['id'] ), $response->get_headers()['Location'] );
+
+		$this->assertStringEndsWith( '-edited.jpg', $item['media_details']['file'] );
+		$this->assertArrayHasKey( 'parent_image', $item['media_details'] );
+		$this->assertEquals( $attachment, $item['media_details']['parent_image']['attachment_id'] );
+		$this->assertContains( 'canola', $item['media_details']['parent_image']['file'] );
+	}
+
+	/**
+	 * @ticket 52192
+	 * @requires function imagejpeg
+	 */
+	public function test_batch_edit_image() {
+		wp_set_current_user( self::$superadmin_id );
+		$attachment = self::factory()->attachment->create_upload_object( $this->test_file );
+
+		$params = array(
+			'modifiers' => array(
+				array(
+					'type' => 'rotate',
+					'args' => array(
+						'angle' => 60,
+					),
+				),
+				array(
+					'type' => 'crop',
+					'args' => array(
+						'left'   => 50,
+						'top'    => 10,
+						'width'  => 10,
+						'height' => 5,
+					),
+				),
+			),
+			'src'       => wp_get_attachment_image_url( $attachment, 'full' ),
 		);
 
 		$request = new WP_REST_Request( 'POST', "/wp/v2/media/{$attachment}/edit" );
