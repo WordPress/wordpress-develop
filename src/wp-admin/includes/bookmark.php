@@ -320,7 +320,7 @@ function wp_update_link( $linkdata ) {
 	}
 
 	// Merge old and new fields with new fields overwriting old ones.
-	if ( ! empty( $link) && is_array( $link ) ) {
+	if ( ! empty( $link ) && is_array( $link ) ) {
 		$linkdata = array_merge( $link, $linkdata );
 	}
 	$linkdata['link_category'] = $link_cats;
