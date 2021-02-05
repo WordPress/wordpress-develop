@@ -2,10 +2,13 @@
 module.exports = function(grunt) {
 	var path = require('path'),
 		SOURCE_DIR = 'src/',
-		BUILD_DIR = 'build/';
+		BUILD_DIR = 'build/',
+		sass = require( 'sass' );
 
 	// Load tasks.
-	require('matchdep').filterDev('grunt-*').forEach( grunt.loadNpmTasks );
+	require('matchdep').filterDev(['grunt-*', '!grunt-legacy-util']).forEach( grunt.loadNpmTasks );
+	// Load legacy utils
+	grunt.util = require('grunt-legacy-util');
 
 	// Project configuration.
 	grunt.initConfig({
@@ -84,7 +87,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
-					outputStyle: 'expanded'
+					implementation: sass
 				}
 			}
 		},
@@ -252,6 +255,11 @@ module.exports = function(grunt) {
 			}
 		},
 		uglify: {
+			options: {
+				output: {
+					ie8: true
+				}
+			},
 			core: {
 				expand: true,
 				cwd: SOURCE_DIR,
@@ -392,6 +400,9 @@ module.exports = function(grunt) {
 	// Travis CI tasks.
 	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', 'phpunit');
+
+	// Patch task.
+	grunt.renameTask('patch_wordpress', 'patch');
 
 	// Default task.
 	grunt.registerTask('default', ['build']);
