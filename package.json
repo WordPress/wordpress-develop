@@ -1,31 +1,36 @@
 {
-  "name": "WordPress",
-  "version": "4.0.32",
-  "description": "WordPress is web software you can use to create a beautiful website or blog.",
-  "repository": {
-    "type": "svn",
-    "url": "https://develop.svn.wordpress.org/trunk"
-  },
-  "author": "The WordPress Contributors",
-  "license": "GPLv2 or later",
-  "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-autoprefixer": "~0.8.2",
-    "grunt-contrib-clean": "~0.5.0",
-    "grunt-contrib-compress": "~0.10.0",
-    "grunt-contrib-concat": "~0.5.0",
-    "grunt-contrib-copy": "~0.5.0",
-    "grunt-contrib-cssmin": "~0.10.0",
-    "grunt-contrib-imagemin": "~0.4.1",
-    "grunt-contrib-jshint": "~0.10.0",
-    "grunt-contrib-qunit": "~0.5.2",
-    "grunt-contrib-uglify": "~0.5.0",
-    "grunt-contrib-watch": "~0.6.1",
-    "grunt-cssjanus": "git://github.com/ocean90/grunt-cssjanus.git#936144c11fdee00427c3ce3cb0f87ee5770149b7",
-    "grunt-jsvalidate": "~0.2.2",
-    "grunt-legacy-util": "^0.2.0",
-    "grunt-patch-wordpress": "~0.2.1",
-    "grunt-sass": "~0.16.0",
-    "matchdep": "~0.3.0"
-  }
+	"name": "WordPress",
+	"version": "4.0.32",
+	"description": "WordPress is web software you can use to create a beautiful website or blog.",
+	"repository": {
+		"type": "svn",
+		"url": "https://develop.svn.wordpress.org/trunk"
+	},
+	"engines": {
+		"node": ">=14.15.0",
+		"npm": ">=6.14.8"
+	},
+	"author": "The WordPress Contributors",
+	"license": "GPLv2 or later",
+	"devDependencies": {
+		"grunt": "~1.3.0",
+		"grunt-autoprefixer": "~3.0.0",
+		"grunt-contrib-clean": "~2.0.0",
+		"grunt-contrib-compress": "~2.0.0",
+		"grunt-contrib-concat": "1.0.1",
+		"grunt-contrib-copy": "~1.0.0",
+		"grunt-contrib-cssmin": "~3.0.0",
+		"grunt-contrib-imagemin": "~4.0.0",
+		"grunt-contrib-jshint": "3.0.0",
+		"grunt-contrib-qunit": "^4.0.0",
+		"grunt-contrib-uglify": "~5.0.0",
+		"grunt-contrib-watch": "~1.1.0",
+		"grunt-cssjanus": "~0.5.0",
+		"grunt-jsvalidate": "~0.2.2",
+		"grunt-legacy-util": "^2.0.0",
+		"grunt-patch-wordpress": "~3.0.0",
+		"grunt-sass": "~3.1.0",
+		"matchdep": "~2.0.0",
+		"sass": "^1.32.6"
+	}
 }
