@@ -3122,11 +3122,11 @@ EOF;
 	 * @ticket 51776
 	 *
 	 * @param string $post_key     Post as keyed in the shared fixture array.
-	 * @param string $expected     Expected result.
+	 * @param string $expected_url Expected permalink.
 	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
 	 *
 	 */
-	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected, $expected_404 ) {
+	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404 ) {
 		$this->set_permalink_structure( '/%postname%' );
 		$post = get_post( self::$post_ids[ $post_key ] );
 
@@ -3134,11 +3134,16 @@ EOF;
 		 * The dataProvider runs before the fixures are set up, therefore the
 		 * post object IDs are placeholders that needs to be replaced.
 		 */
-		$expected = home_url( str_replace( '%ID%', $post->ID, $expected ) );
+		$expected_url = home_url( str_replace( '%ID%', $post->ID, $expected_url ) );
 
-		$this->assertSame( $expected, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
-		$this->assertSame( $expected_404, is_404() );
+		$this->assertSame( $expected_url, get_permalink( $post ) );
+		if ( $expected_404 ) {
+			$this->assertQueryTrue( 'is_404' );
+		} else {
+			$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
+		}
+		$this->assertSame( 'attachment', $post->post_type );
 	}
 
 	/**
@@ -3146,7 +3151,7 @@ EOF;
 	 *
 	 * @return array[] {
 	 *     @type string $post_key     Post as keyed in the shared fixture array.
-	 *     @type string $expected     Expected result.
+	 *     @type string $expected_url Expected permalink.
 	 *     $type bool   $expected_404 Whether the page is expected to return a 404 result.
 	 * }
 	 */

@@ -216,14 +216,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Check for & assign any parameters which require special handling or setting.
 		$args['date_query'] = array();
 
-		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
-			$args['date_query'][0]['before'] = $request['before'];
+			$args['date_query'][] = array(
+				'before' => $request['before'],
+				'column' => 'post_date',
+			);
 		}
 
-		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
+			$args['date_query'][] = array(
+				'before' => $request['modified_before'],
+				'column' => 'post_modified',
+			);
+		}
+
 		if ( isset( $registered['after'], $request['after'] ) ) {
-			$args['date_query'][0]['after'] = $request['after'];
+			$args['date_query'][] = array(
+				'after'  => $request['after'],
+				'column' => 'post_date',
+			);
+		}
+
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
+			$args['date_query'][] = array(
+				'after'  => $request['modified_after'],
+				'column' => 'post_modified',
+			);
 		}
 
 		// Ensure our per_page parameter overrides any provided posts_per_page filter.
@@ -262,35 +280,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $request['tax_relation'] ) ) {
-			$args['tax_query'] = array( 'relation' => $request['tax_relation'] );
-		}
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base        = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$tax_exclude = $base . '_exclude';
-
-			if ( ! empty( $request[ $base ] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $base ],
-					'include_children' => false,
-				);
-			}
-
-			if ( ! empty( $request[ $tax_exclude ] ) ) {
-				$args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $tax_exclude ],
-					'include_children' => false,
-					'operator'         => 'NOT IN',
-				);
-			}
-		}
+		$args = $this->prepare_tax_query( $args, $request );
 
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
@@ -2628,6 +2618,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the posts collection.
 	 *
 	 * @since 4.7.0
+	 * @since 5.4.0 The `tax_relation` query parameter was added.
+	 * @since 5.7.0 The `modified_after` and `modified_before` query parameters were added.
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -2638,6 +2630,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['after'] = array(
 			'description' => __( 'Limit response to posts published after a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_after'] = array(
+			'description' => __( 'Limit response to posts modified after a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2663,6 +2661,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to posts published before a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_before'] = array(
+			'description' => __( 'Limit response to posts modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2767,39 +2771,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'sanitize_callback' => array( $this, 'sanitize_post_statuses' ),
 		);
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $taxonomies ) ) {
-			$query_params['tax_relation'] = array(
-				'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
-				'type'        => 'string',
-				'enum'        => array( 'AND', 'OR' ),
-			);
-		}
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			$query_params[ $base ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'default'     => array(),
-			);
-
-			$query_params[ $base . '_exclude' ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items except those that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'default'     => array(),
-			);
-		}
+		$query_params = $this->prepare_taxonomy_limit_schema( $query_params );
 
 		if ( 'post' === $this->post_type ) {
 			$query_params['sticky'] = array(
@@ -2866,5 +2838,169 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Prepares the 'tax_query' for a collection of posts.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array           $args    WP_Query arguments.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return array Updated query arguments.
+	 */
+	private function prepare_tax_query( array $args, WP_REST_Request $request ) {
+		$relation = $request['tax_relation'];
+
+		if ( $relation ) {
+			$args['tax_query'] = array( 'relation' => $relation );
+		}
+
+		$taxonomies = wp_list_filter(
+			get_object_taxonomies( $this->post_type, 'objects' ),
+			array( 'show_in_rest' => true )
+		);
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			$tax_include = $request[ $base ];
+			$tax_exclude = $request[ $base . '_exclude' ];
+
+			if ( $tax_include ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_include ) ) {
+					$terms = $tax_include;
+				} elseif ( rest_is_object( $tax_include ) ) {
+					$terms            = empty( $tax_include['terms'] ) ? array() : $tax_include['terms'];
+					$include_children = ! empty( $tax_include['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+					);
+				}
+			}
+
+			if ( $tax_exclude ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_exclude ) ) {
+					$terms = $tax_exclude;
+				} elseif ( rest_is_object( $tax_exclude ) ) {
+					$terms            = empty( $tax_exclude['terms'] ) ? array() : $tax_exclude['terms'];
+					$include_children = ! empty( $tax_exclude['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+						'operator'         => 'NOT IN',
+					);
+				}
+			}
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Prepares the collection schema for including and excluding items by terms.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $query_params Collection schema.
+	 * @return array Updated schema.
+	 */
+	private function prepare_taxonomy_limit_schema( array $query_params ) {
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		if ( ! $taxonomies ) {
+			return $query_params;
+		}
+
+		$query_params['tax_relation'] = array(
+			'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
+			'type'        => 'string',
+			'enum'        => array( 'AND', 'OR' ),
+		);
+
+		$limit_schema = array(
+			'type'  => array( 'object', 'array' ),
+			'oneOf' => array(
+				array(
+					'title'       => __( 'Term ID List' ),
+					'description' => __( 'Match terms with the listed IDs.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+				),
+				array(
+					'title'                => __( 'Term ID Taxonomy Query' ),
+					'description'          => __( 'Perform an advanced term query.' ),
+					'type'                 => 'object',
+					'properties'           => array(
+						'terms'            => array(
+							'description' => __( 'Term IDs.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type' => 'integer',
+							),
+							'default'     => array(),
+						),
+						'include_children' => array(
+							'description' => __( 'Whether to include child terms in the terms limiting the result set.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+			),
+		);
+
+		$include_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ),
+			),
+			$limit_schema
+		);
+		$exclude_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ),
+			),
+			$limit_schema
+		);
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base         = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$base_exclude = $base . '_exclude';
+
+			$query_params[ $base ]                = $include_schema;
+			$query_params[ $base ]['description'] = sprintf( $query_params[ $base ]['description'], $base );
+
+			$query_params[ $base_exclude ]                = $exclude_schema;
+			$query_params[ $base_exclude ]['description'] = sprintf( $query_params[ $base_exclude ]['description'], $base );
+
+			if ( ! $taxonomy->hierarchical ) {
+				unset( $query_params[ $base ]['oneOf'][1]['properties']['include_children'] );
+				unset( $query_params[ $base_exclude ]['oneOf'][1]['properties']['include_children'] );
+			}
+		}
+
+		return $query_params;
 	}
 }
