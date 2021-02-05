@@ -1190,7 +1190,8 @@
 	padding: 2px 8px 8px;
 }
 
-.attachments-browser .attachments,
+.attachments-browser:not(.has-load-more) .attachments,
+.attachments-browser.has-load-more .attachments-wrapper,
 .attachments-browser .uploader-inline {
 	position: absolute;
 	top: 72px;
@@ -1267,6 +1268,61 @@
 
 .attachments-browser .no-media {
 	padding: 2em 0 0 2em;
+}
+
+.load-more-wrapper {
+	clear: both;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	padding: 1em 0;
+}
+
+.load-more-wrapper .load-more-count {
+	min-width: 100%;
+	margin: 0 0 1em;
+	text-align: center;
+}
+
+.load-more-wrapper .load-more {
+	margin: 0;
+}
+
+/* Needs high specificity. */
+.media-frame .load-more-wrapper .load-more + .spinner {
+	float: none;
+	margin: 0 -30px 0 10px;
+}
+
+/* Reset spinner margin when the button is hidden to avoid horizontal scrollbar. */
+.media-frame .load-more-wrapper .load-more.hidden + .spinner {
+	margin: 0;
+}
+
+/* Force a new row within the flex container. */
+.load-more-wrapper::after {
+	content: "";
+	min-width: 100%;
+	order: 1;
+}
+
+.load-more-wrapper .load-more-jump {
+	/* Force a new row within the flex container. */
+	order: 2;
+	/* Place the button out of screen. */
+	position: relative;
+	left: -1000em;
+	margin: 1em 0 0;
+}
+
+.load-more-wrapper .load-more-jump.visually-hidden {
+	visibility: hidden;
+}
+
+.load-more-wrapper .load-more-jump:focus {
+	/* Reveal the button on focus. */
+	left: auto;
 }
 
 /**
