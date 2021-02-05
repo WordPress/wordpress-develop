@@ -313,13 +313,9 @@ function wp_update_link( $linkdata ) {
 
 	// Passed link category list overwrites existing category list if not empty.
 	$link_cats = null;
-	if ( isset( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] )
-		&& count( $linkdata['link_category'] ) > 0
-	) {
+	if ( ! empty( $linkdata['link_category'] ) && is_array( $linkdata['link_category'] ) ) {
 		$link_cats = $linkdata['link_category'];
-	} elseif ( isset( $link['link_category'] )  && is_array( $link['link_category'] )
-		&& count( $link['link_category'] ) > 0
-	) {
+	} elseif ( ! empty( $link['link_category'] )  && is_array( $link['link_category'] ) ) {
 		$link_cats = $link['link_category'];
 	}
 
