@@ -317,7 +317,9 @@ function wp_update_link( $linkdata ) {
 		&& count( $linkdata['link_category'] ) > 0
 	) {
 		$link_cats = $linkdata['link_category'];
-	} elseif ( isset( $link['link_category'] ) ) {
+	} elseif ( isset( $link['link_category'] )  && is_array( $link['link_category'] )
+		&& count( $link['link_category'] ) > 0
+	) {
 		$link_cats = $link['link_category'];
 	}
 
