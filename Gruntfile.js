@@ -12,7 +12,7 @@ module.exports = function(grunt) {
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
-		nodesass = require( 'node-sass' ),
+		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
 			'*.php',
@@ -51,18 +51,6 @@ module.exports = function(grunt) {
 			options: {
 				processors: [
 					autoprefixer({
-						browsers: [
-							'> 1%',
-							'ie >= 11',
-							'last 1 Android versions',
-							'last 1 ChromeAndroid versions',
-							'last 2 Chrome versions',
-							'last 2 Firefox versions',
-							'last 2 Safari versions',
-							'last 2 iOS versions',
-							'last 2 Edge versions',
-							'last 2 Opera versions'
-						],
 						cascade: false
 					})
 				]
@@ -394,8 +382,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
-					implementation: nodesass,
-					outputStyle: 'expanded'
+					implementation: sass
 				}
 			}
 		},
@@ -665,8 +652,9 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				ASCIIOnly: true,
-				screwIE8: false
+				output: {
+					ascii_only: true
+				}
 			},
 			core: {
 				expand: true,
@@ -706,7 +694,9 @@ module.exports = function(grunt) {
 			jqueryui: {
 				options: {
 					// Preserve comments that start with a bang.
-					preserveComments: /^!/
+					output: {
+						comments: /^!/
+					}
 				},
 				expand: true,
 				cwd: 'node_modules/jquery-ui/ui/',
