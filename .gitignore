@@ -20,3 +20,15 @@ npm-debug.log
 
 # The WordPress output directory.
 build
+
+# Operating system specific files
+.DS_Store
+
+# Ignore other .gitignore files to allow for personal customizations
+.gitignore
+
+# Files related to applying patches
+*.rej
+*.orig
+*.patch
+*.diff
