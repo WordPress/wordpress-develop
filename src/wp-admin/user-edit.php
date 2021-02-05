@@ -609,6 +609,27 @@ endif;
 	</td>
 </tr>
 <?php endif; ?>
+		<?php
+		// Allow admins to send reset password link
+		if ( ! IS_PROFILE_PAGE ) :
+			?>
+	<tr class="user-sessions-wrap hide-if-no-js">
+		<th><?php _e( 'Password Reset' ); ?></th>
+		<td>
+			<div class="generate-reset-link">
+				<button type="button" class="button button-secondary" id="generate-reset-link">
+					<?php _e( 'Send Reset Link' ); ?>
+				</button>
+			</div>
+			<p class="description">
+				<?php
+				/* translators: 1: User's display name. */
+				printf( __( 'Send %s a link to reset their password. This will not change their password, nor will it force a change.' ), esc_html( $profileuser->display_name ) );
+				?>
+			</p>
+		</td>
+	</tr>
+		<?php endif; ?>
 
 		<?php
 		/**
@@ -738,27 +759,34 @@ endif;
 					<?php
 				}
 			}
-			?>
-		<div class="create-application-password form-wrap">
-			<div class="form-field">
-				<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
-				<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
-				<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
+
+			if ( ! wp_is_site_protected_by_basic_auth( 'front' ) ) {
+				?>
+			<div class="create-application-password form-wrap">
+				<div class="form-field">
+					<label for="new_application_password_name"><?php _e( 'New Application Password Name' ); ?></label>
+					<input type="text" size="30" id="new_application_password_name" name="new_application_password_name" placeholder="<?php esc_attr_e( 'WordPress App on My Phone' ); ?>" class="input" aria-required="true" aria-describedby="new_application_password_name_desc" />
+					<p class="description" id="new_application_password_name_desc"><?php _e( 'Required to create an Application Password, but not to update the user.' ); ?></p>
+				</div>
+
+				<?php
+				/**
+				 * Fires in the create Application Passwords form.
+				 *
+				 * @since 5.6.0
+				 *
+				 * @param WP_User $profileuser The current WP_User object.
+				 */
+				do_action( 'wp_create_application_password_form', $profileuser );
+				?>
+
+				<?php submit_button( __( 'Add New Application Password' ), 'secondary', 'do_new_application_password' ); ?>
 			</div>
-
-			<?php
-			/**
-			 * Fires in the create Application Passwords form.
-			 *
-			 * @since 5.6.0
-			 *
-			 * @param WP_User $profileuser The current WP_User object.
-			 */
-			do_action( 'wp_create_application_password_form', $profileuser );
-			?>
-
-			<?php submit_button( __( 'Add New Application Password' ), 'secondary', 'do_new_application_password' ); ?>
-		</div>
+		<?php } else { ?>
+			<div class="notice notice-error inline">
+				<p><?php _e( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ); ?></p>
+			</div>
+		<?php } ?>
 
 		<div class="application-passwords-list-table-wrapper">
 			<?php

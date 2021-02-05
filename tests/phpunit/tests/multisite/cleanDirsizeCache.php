@@ -93,7 +93,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
+			$cache_key_prefix = untrailingslashit( $upload_dir['basedir'] );
 
 			// Clear the dirsize cache.
 			delete_transient( 'dirsize_cache' );
@@ -141,7 +141,7 @@ if ( is_multisite() ) :
 			}
 
 			$upload_dir       = wp_upload_dir();
-			$cache_key_prefix = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['basedir'] ) );
+			$cache_key_prefix = untrailingslashit( $upload_dir['basedir'] );
 
 			// Clear the dirsize cache.
 			delete_transient( 'dirsize_cache' );
@@ -205,7 +205,7 @@ if ( is_multisite() ) :
 			$this->assertSame( $size, $calc_size );
 
 			// `dirsize_cache` should now be filled after upload and recurse_dirsize() call.
-			$cache_path = untrailingslashit( str_replace( ABSPATH, '', $upload_dir['path'] ) );
+			$cache_path = untrailingslashit( $upload_dir['path'] );
 			$this->assertSame( true, is_array( get_transient( 'dirsize_cache' ) ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
@@ -233,15 +233,98 @@ if ( is_multisite() ) :
 		}
 
 		function _get_mock_dirsize_cache_for_site( $site_id ) {
+			$prefix = wp_upload_dir()['basedir'];
+
 			return array(
-				"wp-content/uploads/sites/$site_id/2/2" => 22,
-				"wp-content/uploads/sites/$site_id/2/1" => 21,
-				"wp-content/uploads/sites/$site_id/2"   => 2,
-				"wp-content/uploads/sites/$site_id/1/3" => 13,
-				"wp-content/uploads/sites/$site_id/1/2" => 12,
-				"wp-content/uploads/sites/$site_id/1/1" => 11,
-				"wp-content/uploads/sites/$site_id/1"   => 1,
-				"wp-content/uploads/sites/$site_id/custom_directory" => 42,
+				"$prefix/2/2"              => 22,
+				"$prefix/2/1"              => 21,
+				"$prefix/2"                => 2,
+				"$prefix/1/3"              => 13,
+				"$prefix/1/2"              => 12,
+				"$prefix/1/1"              => 11,
+				"$prefix/1"                => 1,
+				"$prefix/custom_directory" => 42,
+			);
+		}
+
+		/*
+		 * Test that 5.6+ gracefully handles the old 5.5 transient structure.
+		 *
+		 * @ticket 51913
+		 */
+		function test_5_5_transient_structure_compat() {
+			$blog_id = self::factory()->blog->create();
+			switch_to_blog( $blog_id );
+
+			/*
+			 * Our comparison of space relies on an initial value of 0. If a previous test has failed
+			 * or if the `src` directory already contains a directory with site content, then the initial
+			 * expectation will be polluted. We create sites until an empty one is available.
+			 */
+			while ( 0 !== get_space_used() ) {
+				restore_current_blog();
+				$blog_id = self::factory()->blog->create();
+				switch_to_blog( $blog_id );
+			}
+
+			// Clear the dirsize cache.
+			delete_transient( 'dirsize_cache' );
+
+			// Set the dirsize cache to our mock.
+			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+
+			$upload_dir = wp_upload_dir();
+
+			/*
+			 * The cached size should be ignored, because it's in the old format. The function
+			 * will try to fetch a live value, but in this case the folder doesn't actually
+			 * exist on disk, so the function should fail.
+			 */
+			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+
+			/*
+			 * Now that it's confirmed that old cached values aren't being returned, create the
+			 * folder on disk, so that the the rest of the function can be tested.
+			 */
+			wp_mkdir_p( $upload_dir['basedir'] . '/2/1' );
+			$filename = $upload_dir['basedir'] . '/2/1/this-needs-to-exist.txt';
+			file_put_contents( $filename, 'this file is 21 bytes' );
+
+			// Clear the dirsize cache.
+			delete_transient( 'dirsize_cache' );
+
+			// Set the dirsize cache to our mock.
+			set_transient( 'dirsize_cache', $this->_get_mock_5_5_dirsize_cache( $blog_id ) );
+
+			/*
+			 * Now that the folder exists, the old cached value should be overwritten
+			 * with the size, using the current format.
+			 */
+			$this->assertSame( 21, recurse_dirsize( $upload_dir['basedir'] . '/2/1' ) );
+			$this->assertSame( 21, get_transient( 'dirsize_cache' )[ $upload_dir['basedir'] . '/2/1' ] );
+
+			// No cache match on non existing directory should return false.
+			$this->assertSame( false, recurse_dirsize( $upload_dir['basedir'] . '/does_not_exist' ) );
+
+			// Cleanup.
+			$this->remove_added_uploads();
+			rmdir( $upload_dir['basedir'] . '/2/1' );
+
+			restore_current_blog();
+		}
+
+		function _get_mock_5_5_dirsize_cache( $site_id ) {
+			$prefix = untrailingslashit( wp_upload_dir()['basedir'] );
+
+			return array(
+				"$prefix/2/2"              => array( 'size' => 22 ),
+				"$prefix/2/1"              => array( 'size' => 21 ),
+				"$prefix/2"                => array( 'size' => 2 ),
+				"$prefix/1/3"              => array( 'size' => 13 ),
+				"$prefix/1/2"              => array( 'size' => 12 ),
+				"$prefix/1/1"              => array( 'size' => 11 ),
+				"$prefix/1"                => array( 'size' => 1 ),
+				"$prefix/custom_directory" => array( 'size' => 42 ),
 			);
 		}
 	}

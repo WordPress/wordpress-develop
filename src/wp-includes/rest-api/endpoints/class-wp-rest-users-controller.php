@@ -312,7 +312,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 * @since 4.7.0
 		 *
 		 * @param array           $prepared_args Array of arguments for WP_User_Query.
-		 * @param WP_REST_Request $request       The current request.
+		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -1073,7 +1073,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param WP_Post $user User object.
+	 * @param WP_User $user User object.
 	 * @return array Links for the given user.
 	 */
 	protected function prepare_links( $user ) {
@@ -1559,7 +1559,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filters collection parameters for the users controller.
+		 * Filters REST API collection parameters for the users controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_User_Query parameter.  Use the

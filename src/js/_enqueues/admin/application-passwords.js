@@ -15,7 +15,7 @@
 		tmplAppPassRow = wp.template( 'application-password-row' ),
 		userId = $( '#user_id' ).val();
 
-	$newAppPassButton.click( function( e ) {
+	$newAppPassButton.on( 'click', function( e ) {
 		e.preventDefault();
 
 		if ( $newAppPassButton.prop( 'aria-disabled' ) ) {
@@ -47,7 +47,7 @@
 		request = wp.hooks.applyFilters( 'wp_application_passwords_new_password_request', request, userId );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords',
+			path: '/wp/v2/users/' + userId + '/application-passwords?_locale=user',
 			method: 'POST',
 			data: request
 		} ).always( function() {
@@ -57,7 +57,7 @@
 			$newAppPassButton.prop( 'disabled', false );
 
 			$newAppPassForm.after( tmplNewAppPass( {
-				name: name,
+				name: response.name,
 				password: response.password
 			} ) );
 			$( '.new-application-password-notice' ).focus();
@@ -94,7 +94,7 @@
 		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid,
+			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid + '?_locale=user',
 			method: 'DELETE'
 		} ).always( function() {
 			$submitButton.prop( 'disabled', false );
@@ -123,7 +123,7 @@
 		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords',
+			path: '/wp/v2/users/' + userId + '/application-passwords?_locale=user',
 			method: 'DELETE'
 		} ).always( function() {
 			$submitButton.prop( 'disabled', false );

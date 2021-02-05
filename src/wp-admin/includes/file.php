@@ -130,7 +130,7 @@ function get_home_path() {
  * @param string   $folder     Optional. Full path to folder. Default empty.
  * @param int      $levels     Optional. Levels of folders to follow, Default 100 (PHP Loop limit).
  * @param string[] $exclusions Optional. List of folders and files to skip.
- * @return bool|string[] False on failure, else array of files.
+ * @return string[]|false Array of files on success, false on failure.
  */
 function list_files( $folder = '', $levels = 100, $exclusions = array() ) {
 	if ( empty( $folder ) ) {
@@ -725,8 +725,20 @@ function validate_file_to_edit( $file, $allowed_files = array() ) {
  *
  * @param string[]       $file      Reference to a single element of `$_FILES`.
  *                                  Call the function once for each uploaded file.
- * @param string[]|false $overrides An associative array of names => values
- *                                  to override default variables. Default false.
+ * @param array|false    $overrides {
+ *     An array of override parameters for this file, or boolean false if none are provided.
+ *
+ *     @type callable $upload_error_handler     Function to call when there is an error during the upload process.
+ *                                              @see wp_handle_upload_error().
+ *     @type callable $unique_filename_callback Function to call when determining a unique file name for the file.
+ *                                              @see wp_unique_filename().
+ *     @type string[] $upload_error_strings     The strings that describe the error indicated in
+ *                                              `$_FILES[{form field}]['error']`.
+ *     @type bool     $test_form                Whether to test that the `$_POST['action']` parameter is as expected.
+ *     @type bool     $test_size                Whether to test that the file size is greater than zero bytes.
+ *     @type bool     $test_type                Whether to test that the mime type of the file is as expected.
+ *     @type string[] $mimes                    Array of allowed mime types keyed by their file extension regex.
+ * }
  * @param string         $time      Time formatted in 'yyyy/mm'.
  * @param string         $action    Expected value for `$_POST['action']`.
  * @return string[] On success, returns an associative array of file attributes.
@@ -745,13 +757,34 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * Filters the data for a file before it is uploaded to WordPress.
 	 *
 	 * The dynamic portion of the hook name, `$action`, refers to the post action.
+	 * Possible filter names include:
+	 *
+	 *  - `wp_handle_sideload_prefilter`
+	 *  - `wp_handle_upload_prefilter`
 	 *
 	 * @since 2.9.0 as 'wp_handle_upload_prefilter'.
 	 * @since 4.0.0 Converted to a dynamic hook with `$action`.
 	 *
-	 * @param string[] $file An array of data for a single file.
+	 * @param string[] $file An array of data for the file. Reference to a single element of `$_FILES`.
 	 */
 	$file = apply_filters( "{$action}_prefilter", $file );
+
+	/**
+	 * Filters the override parameters for a file before it is uploaded to WordPress.
+	 *
+	 * The dynamic portion of the hook name, `$action`, refers to the post action.
+	 * Possible filter names include:
+	 *
+	 *  - `wp_handle_sideload_overrides`
+	 *  - `wp_handle_upload_overrides`
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array|false $overrides An array of override parameters for this file. Boolean false if none are
+	 *                               provided. @see _wp_handle_upload().
+	 * @param string[]    $file      An array of data for the file. Reference to a single element of `$_FILES`.
+	 */
+	$overrides = apply_filters( "{$action}_overrides", $overrides, $file );
 
 	// You may define your own function and pass the name in $overrides['upload_error_handler'].
 	$upload_error_handler = 'wp_handle_upload_error';
@@ -965,11 +998,11 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
  *
  * @see _wp_handle_upload()
  *
- * @param array      $file      Reference to a single element of `$_FILES`.
- *                              Call the function once for each uploaded file.
- * @param array|bool $overrides Optional. An associative array of names => values
- *                              to override default variables. Default false.
- * @param string     $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param array       $file      Reference to a single element of `$_FILES`.
+ *                               Call the function once for each uploaded file.
+ * @param array|false $overrides Optional. An associative array of names => values
+ *                               to override default variables. Default false.
+ * @param string      $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array On success, returns an associative array of file attributes.
  *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
  *               or `array( 'error' => $message )`.
@@ -996,11 +1029,11 @@ function wp_handle_upload( &$file, $overrides = false, $time = null ) {
  *
  * @see _wp_handle_upload()
  *
- * @param array      $file      Reference to a single element of `$_FILES`.
- *                              Call the function once for each uploaded file.
- * @param array|bool $overrides Optional. An associative array of names => values
- *                              to override default variables. Default false.
- * @param string     $time      Optional. Time formatted in 'yyyy/mm'. Default null.
+ * @param array       $file      Reference to a single element of `$_FILES`.
+ *                               Call the function once for each uploaded file.
+ * @param array|false $overrides Optional. An associative array of names => values
+ *                               to override default variables. Default false.
+ * @param string      $time      Optional. Time formatted in 'yyyy/mm'. Default null.
  * @return array On success, returns an associative array of file attributes.
  *               On failure, returns `$overrides['upload_error_handler']( &$file, $message )`
  *               or `array( 'error' => $message )`.
@@ -1222,7 +1255,7 @@ function verify_file_md5( $filename, $expected_md5 ) {
  *
  * @param string       $filename            The file to validate.
  * @param string|array $signatures          A Signature provided for the file.
- * @param string       $filename_for_errors A friendly filename for errors. Optional.
+ * @param string|false $filename_for_errors Optional. A friendly filename for errors.
  * @return bool|WP_Error True on success, false if verification not attempted,
  *                       or WP_Error describing an error condition.
  */
@@ -1743,6 +1776,10 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
+	if ( false === $dirlist ) {
+		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+	}
+
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
 
@@ -2213,12 +2250,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<label for="password">
 		<span class="field-title"><?php echo $label_pass; ?></span>
 		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> />
-		<em>
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
 			_e( 'This password will not be stored on the server.' );}
 		?>
-</em>
 	</label>
 </div>
 <fieldset>

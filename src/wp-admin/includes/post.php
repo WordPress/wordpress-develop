@@ -687,13 +687,13 @@ function get_default_post_to_edit( $post_type = 'post', $create_in_db = false ) 
 				'post_status' => 'auto-draft',
 			),
 			false,
-			true
+			false
 		);
 		$post    = get_post( $post_id );
 		if ( current_theme_supports( 'post-formats' ) && post_type_supports( $post->post_type, 'post-formats' ) && get_option( 'default_post_format' ) ) {
 			set_post_format( $post, get_option( 'default_post_format' ) );
 		}
-		wp_after_insert_post( $post, false );
+		wp_after_insert_post( $post, false, null );
 
 		// Schedule auto-draft cleanup.
 		if ( ! wp_next_scheduled( 'wp_scheduled_auto_draft_delete' ) ) {
@@ -813,7 +813,7 @@ function post_exists( $title, $content = '', $date = '', $type = '' ) {
  *
  * @global WP_User $current_user
  *
- * @return int|WP_Error
+ * @return int|WP_Error Post ID on success, WP_Error on failure.
  */
 function wp_write_post() {
 	if ( isset( $_POST['post_type'] ) ) {
@@ -889,7 +889,7 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|null
+ * @return int|void Post ID on success, void on failure.
  */
 function write_post() {
 	$result = wp_write_post();
@@ -1115,7 +1115,7 @@ function get_available_post_statuses( $type = 'post' ) {
  *
  * @since 2.5.0
  *
- * @param array|bool $q Array of query variables to use to build the query or false to use $_GET superglobal.
+ * @param array|false $q Array of query variables to use to build the query or false to use $_GET superglobal.
  * @return array
  */
 function wp_edit_posts_query( $q = false ) {

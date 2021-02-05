@@ -662,7 +662,8 @@ function wp_list_categories( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $output HTML output.
-	 * @param array  $args   An array of taxonomy-listing arguments.
+	 * @param array  $args   An array of taxonomy-listing arguments. See wp_list_categories()
+	 *                       for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
@@ -688,7 +689,7 @@ function wp_list_categories( $args = '' ) {
  *     and get_terms() for the full lists of arguments that can be passed in `$args`.
  *
  *     @type int    $number    The number of tags to display. Accepts any positive integer
- *                             or zero to return all. Default 0 (all tags).
+ *                             or zero to return all. Default 45.
  *     @type string $link      Whether to display term editing links or term permalinks.
  *                             Accepts 'edit' and 'view'. Default 'view'.
  *     @type string $post_type The post type. Used to highlight the proper post type menu
@@ -758,7 +759,8 @@ function wp_tag_cloud( $args = '' ) {
 	 * @since 2.3.0
 	 *
 	 * @param string|string[] $return Tag cloud as a string or an array, depending on 'format' argument.
-	 * @param array           $args   An array of tag cloud arguments.
+	 * @param array           $args   An array of tag cloud arguments. See wp_tag_cloud()
+	 *                                for information on accepted arguments.
 	 */
 	$return = apply_filters( 'wp_tag_cloud', $return, $args );
 
@@ -815,7 +817,7 @@ function default_topic_count_scale( $count ) {
  *     @type string   $order                      How to order the tags. Accepts 'ASC' (ascending),
  *                                                'DESC' (descending), or 'RAND' (random). Default 'ASC'.
  *     @type int|bool $filter                     Whether to enable filtering of the final output
- *                                                via {@see 'wp_generate_tag_cloud'}. Default 1|true.
+ *                                                via {@see 'wp_generate_tag_cloud'}. Default 1.
  *     @type string   $topic_count_text           Nooped plural text from _n_noop() to supply to
  *                                                tag counts. Default null.
  *     @type callable $topic_count_text_callback  Callback used to generate nooped plural text for

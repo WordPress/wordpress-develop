@@ -224,6 +224,66 @@ class Tests_Term_termCount extends WP_UnitTestCase {
 		);
 	}
 
+	function add_custom_status_to_counted_statuses( $statuses ) {
+		array_push( $statuses, 'custom' );
+		return $statuses;
+	}
+
+	/**
+	 * Term counts incremented correctly when the `update_post_term_count_statuses` filter is used.
+	 *
+	 * @covers ::wp_update_term_count
+	 * @dataProvider data_term_count_changes_for_update_post_term_count_statuses_filter
+	 * @ticket 38843
+	 *
+	 * @param string $post_status New post status.
+	 * @param int    $change      Expected change.
+	 */
+	public function test_term_count_changes_for_update_post_term_count_statuses_filter( $post_status, $change ) {
+		$term_count = get_term( self::$attachment_term )->count;
+
+		add_filter( 'update_post_term_count_statuses', array( $this, 'add_custom_status_to_counted_statuses' ) );
+
+		$post_id = $this->factory()->post->create( array( 'post_status' => $post_status ) );
+		wp_add_object_terms( $post_id, self::$attachment_term, 'wp_test_tax_counts' );
+		$attachment_id = self::factory()->attachment->create_object(
+			array(
+				'file'        => 'image.jpg',
+				'post_parent' => $post_id,
+				'post_status' => 'inherit',
+			)
+		);
+		wp_add_object_terms( $attachment_id, self::$attachment_term, 'wp_test_tax_counts' );
+
+		$expected = $term_count + $change;
+		$this->assertSame( $expected, get_term( self::$attachment_term )->count );
+
+		remove_filter( 'update_post_term_count_statuses', array( $this, 'add_custom_status_to_counted_statuses' ) );
+	}
+
+	/**
+	 * Data provider for test_term_count_changes_for_update_post_term_count_statuses_filter.
+	 *
+	 * @return array[] {
+	 *     @type string $post_status New post status.
+	 *     @type int    $change      Expected change.
+	 * }
+	 */
+	function data_term_count_changes_for_update_post_term_count_statuses_filter() {
+		return array(
+			// 0. Published post
+			array( 'publish', 2 ),
+			// 1. Auto draft
+			array( 'auto-draft', 0 ),
+			// 2. Draft
+			array( 'draft', 0 ),
+			// 3. Private post
+			array( 'private', 0 ),
+			// 4. Custom post status
+			array( 'custom', 2 ),
+		);
+	}
+
 	/**
 	 * Term counts incremented correctly for posts with attachment.
 	 *

@@ -7,11 +7,12 @@
  */
 
 /**
- * Maps meta capabilities to primitive capabilities.
+ * Maps a capability to the primitive capabilities required of the given user to
+ * satisfy the capability being checked.
  *
  * This function also accepts an ID of an object to map against if the capability is a meta capability. Meta
  * capabilities such as `edit_post` and `edit_user` are capabilities used by this function to map to primitive
- * capabilities that a user or role has, such as `edit_posts` and `edit_others_posts`.
+ * capabilities that a user or role requires, such as `edit_posts` and `edit_others_posts`.
  *
  * Example usage:
  *
@@ -19,21 +20,26 @@
  *     map_meta_cap( 'edit_post', $user->ID, $post->ID );
  *     map_meta_cap( 'edit_post_meta', $user->ID, $post->ID, $meta_key );
  *
- * This does not actually compare whether the user ID has the actual capability,
- * just what the capability or capabilities are. Meta capability list value can
- * be 'delete_user', 'edit_user', 'remove_user', 'promote_user', 'delete_post',
- * 'delete_page', 'edit_post', 'edit_page', 'read_post', or 'read_page'.
+ * This function does not check whether the user has the required capabilities,
+ * it just returns what the required capabilities are.
  *
  * @since 2.0.0
+ * @since 4.9.6 Added the `export_others_personal_data`, `erase_others_personal_data`,
+ *              and `manage_privacy_options` capabilities.
+ * @since 5.1.0 Added the `update_php` capability.
+ * @since 5.2.0 Added the `resume_plugin` and `resume_theme` capabilities.
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
+ * @since 5.7.0 Added the `create_app_password`, `list_app_passwords`, `read_app_password`,
+ *              `edit_app_password`, `delete_app_passwords`, `delete_app_password`,
+ *              and `update_https` capabilities.
  *
  * @global array $post_type_meta_caps Used to get post type meta capabilities.
  *
- * @param string $cap     Capability name.
+ * @param string $cap     Capability being checked.
  * @param int    $user_id User ID.
  * @param mixed  ...$args Optional further parameters, typically starting with an object ID.
- * @return string[] Actual capabilities for meta capability.
+ * @return string[] Primitive capabilities required of the user.
  */
 function map_meta_cap( $cap, $user_id, ...$args ) {
 	$caps = array();
@@ -240,10 +246,10 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				break;
 			}
 
-			$status_obj = get_post_status_object( $post->post_status );
+			$status_obj = get_post_status_object( get_post_status( $post ) );
 			if ( ! $status_obj ) {
 				/* translators: 1: Post status, 2: Capability name. */
-				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post with that status.' ), $post->post_status, $cap ), '5.4.0' );
+				_doing_it_wrong( __FUNCTION__, sprintf( __( 'The post status %1$s is not registered, so it may not be reliable to check the capability "%2$s" against a post with that status.' ), get_post_status( $post ), $cap ), '5.4.0' );
 				$caps[] = 'edit_others_posts';
 				break;
 			}
@@ -588,10 +594,26 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 				$caps[] = 'update_core';
 			}
 			break;
+		case 'update_https':
+			if ( is_multisite() && ! is_super_admin( $user_id ) ) {
+				$caps[] = 'do_not_allow';
+			} else {
+				$caps[] = 'manage_options';
+				$caps[] = 'update_core';
+			}
+			break;
 		case 'export_others_personal_data':
 		case 'erase_others_personal_data':
 		case 'manage_privacy_options':
 			$caps[] = is_multisite() ? 'manage_network' : 'manage_options';
+			break;
+		case 'create_app_password':
+		case 'list_app_passwords':
+		case 'read_app_password':
+		case 'edit_app_password':
+		case 'delete_app_passwords':
+		case 'delete_app_password':
+			$caps = map_meta_cap( 'edit_user', $user_id, $args[0] );
 			break;
 		default:
 			// Handle meta capabilities for custom post types.
@@ -622,14 +644,16 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
 	}
 
 	/**
-	 * Filters a user's capabilities depending on specific context and/or privilege.
+	 * Filters the primitive capabilities required of the given user to satisfy the
+	 * capability being checked.
 	 *
 	 * @since 2.8.0
 	 *
-	 * @param string[] $caps    Array of the user's capabilities.
-	 * @param string   $cap     Capability name.
+	 * @param string[] $caps    Primitive capabilities required of the user.
+	 * @param string   $cap     Capability being checked.
 	 * @param int      $user_id The user ID.
-	 * @param array    $args    Adds the context to the cap. Typically the object ID.
+	 * @param array    $args    Adds context to the capability check, typically
+	 *                          starting with an object ID.
 	 */
 	return apply_filters( 'map_meta_cap', $caps, $cap, $user_id, $args );
 }
@@ -871,8 +895,8 @@ function get_super_admins() {
  *
  * @since 3.0.0
  *
- * @param int $user_id (Optional) The ID of a user. Defaults to the current user.
- * @return bool True if the user is a site admin.
+ * @param int|false $user_id Optional. The ID of a user. Defaults to false, to check the current user.
+ * @return bool Whether the user is a site admin.
  */
 function is_super_admin( $user_id = false ) {
 	if ( ! $user_id || get_current_user_id() == $user_id ) {

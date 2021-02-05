@@ -18,23 +18,47 @@ class WP_Application_Passwords {
 	 *
 	 * @since 5.6.0
 	 *
-	 * @type string
+	 * @var string
 	 */
 	const USERMETA_KEY_APPLICATION_PASSWORDS = '_application_passwords';
+
+	/**
+	 * The option name used to store whether application passwords is in use.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @var string
+	 */
+	const OPTION_KEY_IN_USE = 'using_application_passwords';
 
 	/**
 	 * The generated application password length.
 	 *
 	 * @since 5.6.0
 	 *
-	 * @type int
+	 * @var int
 	 */
 	const PW_LENGTH = 24;
+
+	/**
+	 * Checks if Application Passwords are being used by the site.
+	 *
+	 * This returns true if at least one App Password has ever been created.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return bool
+	 */
+	public static function is_in_use() {
+		$network_id = get_main_network_id();
+		return (bool) get_network_option( $network_id, self::OPTION_KEY_IN_USE );
+	}
 
 	/**
 	 * Creates a new application password.
 	 *
 	 * @since 5.6.0
+	 * @since 5.7.0 Returns WP_Error if application name already exists.
 	 *
 	 * @param int   $user_id  User ID.
 	 * @param array $args     Information about the application password.
@@ -42,8 +66,16 @@ class WP_Application_Passwords {
 	 *                        A WP_Error instance is returned on error.
 	 */
 	public static function create_new_application_password( $user_id, $args = array() ) {
+		if ( ! empty( $args['name'] ) ) {
+			$args['name'] = sanitize_text_field( $args['name'] );
+		}
+
 		if ( empty( $args['name'] ) ) {
-			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ) );
+			return new WP_Error( 'application_password_empty_name', __( 'An application name is required to create an application password.' ), array( 'status' => 400 ) );
+		}
+
+		if ( self::application_name_exists_for_user( $user_id, $args['name'] ) ) {
+			return new WP_Error( 'application_password_duplicate_name', __( 'Each application name should be unique.' ), array( 'status' => 409 ) );
 		}
 
 		$new_password    = wp_generate_password( static::PW_LENGTH, false );
@@ -65,6 +97,11 @@ class WP_Application_Passwords {
 
 		if ( ! $saved ) {
 			return new WP_Error( 'db_error', __( 'Could not save application password.' ) );
+		}
+
+		$network_id = get_main_network_id();
+		if ( ! get_network_option( $network_id, self::OPTION_KEY_IN_USE ) ) {
+			update_network_option( $network_id, self::OPTION_KEY_IN_USE, true );
 		}
 
 		/**
@@ -135,6 +172,27 @@ class WP_Application_Passwords {
 	}
 
 	/**
+	 * Checks if application name exists for this user.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param int    $user_id User ID.
+	 * @param string $name    Application name.
+	 * @return bool Whether provided application name exists or not.
+	 */
+	public static function application_name_exists_for_user( $user_id, $name ) {
+		$passwords = static::get_user_application_passwords( $user_id );
+
+		foreach ( $passwords as $password ) {
+			if ( strtolower( $password['name'] ) === strtolower( $name ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Updates an application password.
 	 *
 	 * @since 5.6.0
@@ -150,6 +208,10 @@ class WP_Application_Passwords {
 		foreach ( $passwords as &$item ) {
 			if ( $item['uuid'] !== $uuid ) {
 				continue;
+			}
+
+			if ( ! empty( $update['name'] ) ) {
+				$update['name'] = sanitize_text_field( $update['name'] );
 			}
 
 			$save = false;
@@ -203,7 +265,7 @@ class WP_Application_Passwords {
 
 			// Only record activity once a day.
 			if ( $password['last_used'] + DAY_IN_SECONDS > time() ) {
-				continue;
+				return true;
 			}
 
 			$password['last_used'] = time();

@@ -42,7 +42,8 @@ function login_header( $title = 'Log In', $message = '', $wp_error = null ) {
 	global $error, $interim_login, $action;
 
 	// Don't index any of these forms.
-	add_action( 'login_head', 'wp_sensitive_page_meta' );
+	add_filter( 'wp_robots', 'wp_robots_sensitive_page' );
+	add_action( 'login_head', 'wp_strict_cross_origin_referrer' );
 
 	add_action( 'login_head', 'wp_login_viewport_meta' );
 
@@ -281,14 +282,27 @@ function login_footer( $input_id = '' ) {
 	// Don't allow interim logins to navigate away from the page.
 	if ( ! $interim_login ) {
 		?>
-		<p id="backtoblog"><a href="<?php echo esc_url( home_url( '/' ) ); ?>">
-		<?php
-
-		/* translators: %s: Site title. */
-		printf( _x( '&larr; Go to %s', 'site' ), get_bloginfo( 'title', 'display' ) );
-
-		?>
-		</a></p>
+		<p id="backtoblog">
+			<?php
+			$html_link = sprintf(
+				'<a href="%s">%s</a>',
+				esc_url( home_url( '/' ) ),
+				/* translators: %s: Site title. */
+				sprintf(
+					_x( '&larr; Go to %s', 'site' ),
+					get_bloginfo( 'title', 'display' )
+				)
+			);
+			/**
+			 * Filter the "Go to site" link displayed in the login page footer.
+			 *
+			 * @since 5.7.0
+			 *
+			 * @param string $link HTML link to the home URL of the current site.
+			 */
+			echo apply_filters( 'login_site_html_link', $html_link );
+			?>
+		</p>
 		<?php
 
 		the_privacy_policy_link( '<div class="privacy-policy-page-link">', '</div>' );
@@ -323,7 +337,7 @@ function login_footer( $input_id = '' ) {
 }
 
 /**
- * Outputs the Javascript to handle the form shaking on the login page.
+ * Outputs the JavaScript to handle the form shaking on the login page.
  *
  * @since 3.0.0
  */
@@ -344,150 +358,6 @@ function wp_login_viewport_meta() {
 	?>
 	<meta name="viewport" content="width=device-width" />
 	<?php
-}
-
-/**
- * Handles sending a password retrieval email to a user.
- *
- * @since 2.5.0
- *
- * @return true|WP_Error True when finished, WP_Error object on error.
- */
-function retrieve_password() {
-	$errors    = new WP_Error();
-	$user_data = false;
-
-	if ( empty( $_POST['user_login'] ) || ! is_string( $_POST['user_login'] ) ) {
-		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
-	} elseif ( strpos( $_POST['user_login'], '@' ) ) {
-		$user_data = get_user_by( 'email', trim( wp_unslash( $_POST['user_login'] ) ) );
-		if ( empty( $user_data ) ) {
-			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
-		}
-	} else {
-		$login     = trim( wp_unslash( $_POST['user_login'] ) );
-		$user_data = get_user_by( 'login', $login );
-	}
-
-	/**
-	 * Fires before errors are returned from a password reset request.
-	 *
-	 * @since 2.1.0
-	 * @since 4.4.0 Added the `$errors` parameter.
-	 * @since 5.4.0 Added the `$user_data` parameter.
-	 *
-	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
-	 *                                 by using invalid credentials.
-	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
-	 */
-	do_action( 'lostpassword_post', $errors, $user_data );
-
-	/**
-	 * Filters the errors encountered on a password reset request.
-	 *
-	 * The filtered WP_Error object may, for example, contain errors for an invalid
-	 * username or email address. A WP_Error object should always be returned,
-	 * but may or may not contain errors.
-	 *
-	 * If any errors are present in $errors, this will abort the password reset request.
-	 *
-	 * @since 5.5.0
-	 *
-	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
-	 *                                 by using invalid credentials.
-	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
-	 */
-	$errors = apply_filters( 'lostpassword_errors', $errors, $user_data );
-
-	if ( $errors->has_errors() ) {
-		return $errors;
-	}
-
-	if ( ! $user_data ) {
-		$errors->add( 'invalidcombo', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
-		return $errors;
-	}
-
-	// Redefining user_login ensures we return the right case in the email.
-	$user_login = $user_data->user_login;
-	$user_email = $user_data->user_email;
-	$key        = get_password_reset_key( $user_data );
-
-	if ( is_wp_error( $key ) ) {
-		return $key;
-	}
-
-	if ( is_multisite() ) {
-		$site_name = get_network()->site_name;
-	} else {
-		/*
-		 * The blogname option is escaped with esc_html on the way into the database
-		 * in sanitize_option. We want to reverse this for the plain text arena of emails.
-		 */
-		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-	}
-
-	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
-	/* translators: %s: Site name. */
-	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
-	/* translators: %s: User login. */
-	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
-	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
-	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
-	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n\r\n";
-
-	$requester_ip = $_SERVER['REMOTE_ADDR'];
-	if ( $requester_ip ) {
-		$message .= sprintf(
-			/* translators: %s: IP address of password reset requester. */
-			__( 'This password reset request originated from the IP address %s.' ),
-			$requester_ip
-		) . "\r\n";
-	}
-
-	/* translators: Password reset notification email subject. %s: Site title. */
-	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
-
-	/**
-	 * Filters the subject of the password reset email.
-	 *
-	 * @since 2.8.0
-	 * @since 4.4.0 Added the `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $title      Email subject.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
-	$title = apply_filters( 'retrieve_password_title', $title, $user_login, $user_data );
-
-	/**
-	 * Filters the message body of the password reset mail.
-	 *
-	 * If the filtered message is empty, the password reset email will not be sent.
-	 *
-	 * @since 2.8.0
-	 * @since 4.1.0 Added `$user_login` and `$user_data` parameters.
-	 *
-	 * @param string  $message    Email message.
-	 * @param string  $key        The activation key.
-	 * @param string  $user_login The username for the user.
-	 * @param WP_User $user_data  WP_User object.
-	 */
-	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
-
-	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
-		$errors->add(
-			'retrieve_password_email_failure',
-			sprintf(
-				/* translators: %s: Documentation URL. */
-				__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
-				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
-			)
-		);
-		return $errors;
-	}
-
-	return true;
 }
 
 //
@@ -982,7 +852,7 @@ switch ( $action ) {
 		wp_enqueue_script( 'utils' );
 		wp_enqueue_script( 'user-profile' );
 
-		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below.' ) . '</p>', $errors );
+		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below or generate one.' ) . '</p>', $errors );
 
 		?>
 		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
@@ -1028,8 +898,9 @@ switch ( $action ) {
 
 			?>
 			<input type="hidden" name="rp_key" value="<?php echo esc_attr( $rp_key ); ?>" />
-			<p class="submit">
-				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Reset Password' ); ?>" />
+			<p class="submit reset-pass-submit">
+				<button type="button" class="button wp-generate-pw hide-if-no-js" aria-expanded="true"><?php _e( 'Generate Password' ); ?></button>
+				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Save Password' ); ?>" />
 			</p>
 		</form>
 

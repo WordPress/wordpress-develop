@@ -485,7 +485,7 @@ class WP {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $headers Associative array of headers to be sent.
-		 * @param WP       $this    Current WordPress environment instance.
+		 * @param WP       $wp      Current WordPress environment instance.
 		 */
 		$headers = apply_filters( 'wp_headers', $headers, $this );
 
@@ -597,8 +597,8 @@ class WP {
 			$GLOBALS['single'] = 1;
 		}
 
-		if ( $wp_query->is_author() && isset( $wp_query->post ) ) {
-			$GLOBALS['authordata'] = get_userdata( $wp_query->post->post_author );
+		if ( $wp_query->is_author() ) {
+			$GLOBALS['authordata'] = get_userdata( get_queried_object_id() );
 		}
 	}
 

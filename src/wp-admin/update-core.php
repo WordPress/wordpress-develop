@@ -38,7 +38,7 @@ function list_core_update( $update ) {
 	static $first_pass = true;
 
 	$wp_version     = get_bloginfo( 'version' );
-	$version_string = sprintf( '%s&ndash;<strong>%s</strong>', $update->current, $update->locale );
+	$version_string = sprintf( '%s&ndash;%s', $update->current, get_locale() );
 
 	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
 		$version_string = $update->current;
@@ -55,7 +55,10 @@ function list_core_update( $update ) {
 		$current = true;
 	}
 
-	$submit        = __( 'Update Now' );
+	$is_development_version = preg_match( '/alpha|beta|RC/', $version_string );
+
+	$message       = '';
+	$submit        = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
@@ -66,8 +69,7 @@ function list_core_update( $update ) {
 	} else {
 		if ( $current ) {
 			/* translators: %s: WordPress version. */
-			$message     = sprintf( __( 'If you need to re-install version %s, you can do so here:' ), $version_string );
-			$submit      = __( 'Re-install Now' );
+			$submit      = sprintf( __( 'Re-install version %s' ), $version_string );
 			$form_action = 'update-core.php?action=do-core-reinstall';
 		} else {
 			$php_compat = version_compare( $php_version, $update->php_version, '>=' );
@@ -229,8 +231,12 @@ function dismissed_updates() {
 function core_upgrade_preamble() {
 	global $required_php_version, $required_mysql_version;
 
-	$wp_version = get_bloginfo( 'version' );
-	$updates    = get_core_updates();
+	$updates = get_core_updates();
+
+	// Include an unmodified $wp_version.
+	require ABSPATH . WPINC . '/version.php';
+
+	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
 
 	if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
 		echo '<h2 class="response">';
@@ -245,7 +251,7 @@ function core_upgrade_preamble() {
 			__( 'https://wordpress.org/support/article/updating-wordpress/' )
 		);
 		echo '</p></div>';
-	} elseif ( isset( $updates[0] ) && 'development' === $updates[0]->response ) {
+	} elseif ( $is_development_version ) {
 		echo '<h2 class="response">' . __( 'You are using a development version of WordPress.' ) . '</h2>';
 	} else {
 		echo '<h2 class="response">' . __( 'You have the latest version of WordPress.' ) . '</h2>';
@@ -300,7 +306,7 @@ function core_auto_updates_settings() {
 	$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
 
 	$can_set_update_option = true;
-	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
+	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 		if ( false === WP_AUTO_UPDATE_CORE ) {
 			// Defaults to turned off, unless a filter allows it.
@@ -308,8 +314,7 @@ function core_auto_updates_settings() {
 			$upgrade_minor = false;
 			$upgrade_major = false;
 		} elseif ( true === WP_AUTO_UPDATE_CORE
-			|| 'beta' === WP_AUTO_UPDATE_CORE
-			|| 'rc' === WP_AUTO_UPDATE_CORE
+			|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 		) {
 			// ALL updates for core.
 			$upgrade_dev   = true;
@@ -928,7 +933,7 @@ get_current_screen()->add_help_tab(
 	)
 );
 
-$updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update Now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
+$updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
 $updates_howto .= '<p>' . __( '<strong>Themes and Plugins</strong> &mdash; To update individual themes or plugins from this screen, use the checkboxes to make your selection, then <strong>click on the appropriate &#8220;Update&#8221; button</strong>. To update all of your themes or plugins at once, you can check the box at the top of the section to select all before clicking the update button.' ) . '</p>';
 
 if ( 'en_US' !== get_locale() ) {
