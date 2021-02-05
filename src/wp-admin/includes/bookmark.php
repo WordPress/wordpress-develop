@@ -126,11 +126,11 @@ function wp_delete_link( $link_id ) {
  */
 function wp_get_link_cats( $link_id = 0 ) {
 	$cats = wp_get_object_terms( $link_id, 'link_category', array( 'fields' => 'ids' ) );
-	
+
 	if ( is_array( $cats ) ) {
 		return array_unique( $cats );
 	}
-	
+
 	return array();
 }
 
@@ -324,7 +324,7 @@ function wp_update_link( $linkdata ) {
 	}
 
 	// Merge old and new fields with new fields overwriting old ones.
-	if ( is_array( $link ) ) {
+	if ( ! empty( $link) && is_array( $link ) ) {
 		$linkdata = array_merge( $link, $linkdata );
 	}
 	$linkdata['link_category'] = $link_cats;
