@@ -17,7 +17,7 @@ jobs:
   # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Installs NodeJS 14 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
@@ -45,7 +45,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Get NPM cache directory
         id: npm-cache
