@@ -5,6 +5,7 @@ module.exports = function(grunt) {
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		autoprefixer = require('autoprefixer'),
+		sass = require( 'sass' ),
 		mediaConfig = {},
 		mediaBuilds = ['audiovideo', 'grid', 'models', 'views'];
 
@@ -25,15 +26,6 @@ module.exports = function(grunt) {
 			options: {
 				processors: [
 					autoprefixer({
-						browsers: [
-							'Android >= 2.1',
-							'Chrome >= 21',
-							'Edge >= 12',
-							'Explorer >= 7',
-							'Firefox >= 17',
-							'Opera >= 12.1',
-							'Safari >= 6.0'
-						],
 						cascade: false
 					})
 				]
@@ -166,7 +158,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
-					outputStyle: 'expanded'
+					implementation: sass
 				}
 			}
 		},
@@ -447,8 +439,10 @@ module.exports = function(grunt) {
 		},
 		uglify: {
 			options: {
-				ASCIIOnly: true,
-				screwIE8: false
+				output: {
+					ascii_only: true,
+					ie8: true
+				}
 			},
 			core: {
 				expand: true,
@@ -505,7 +499,9 @@ module.exports = function(grunt) {
 			jqueryui: {
 				options: {
 					// Preserve comments that start with a bang.
-					preserveComments: /^!/
+					output: {
+						comments: /^!/
+					}
 				},
 				expand: true,
 				cwd: SOURCE_DIR,
@@ -525,7 +521,9 @@ module.exports = function(grunt) {
 			masonry: {
 				options: {
 					// Preserve comments that start with a bang.
-					preserveComments: /^!/
+					output: {
+						comments: /^!/
+					}
 				},
 				src: SOURCE_DIR + 'wp-includes/js/jquery/jquery.masonry.js',
 				dest: SOURCE_DIR + 'wp-includes/js/jquery/jquery.masonry.min.js'
