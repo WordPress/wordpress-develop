@@ -1637,4 +1637,53 @@ class Tests_Post extends WP_UnitTestCase {
 		$resolved_post_date = wp_resolve_post_date( $invalid_date, $invalid_date );
 		$this->assertFalse( $resolved_post_date );
 	}
+
+	/**
+	 * @ticket 52007
+	 */
+	function test_sticky_posts() {
+		$orig_sticky_posts_option = get_option( 'sticky_posts' );
+		delete_option( 'sticky_posts' );
+
+		stick_post( 1 );
+		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+
+		// Check if not duplicating with the same value
+		stick_post( 1 );
+		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+
+		stick_post( 2 );
+		$this->assertEquals( array( 1, 2 ), get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', $orig_sticky_posts_option );
+	}
+
+	/**
+	 * @ticket 52007
+	 */
+	function test_unsticky_posts() {
+		$orig_sticky_posts_option = get_option( 'sticky_posts' );
+
+		update_option( 'sticky_posts', array( 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( 1 );
+		$this->assertEquals( array( 2 ), get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2, 1 ) );
+		unstick_post( 1 );
+		$this->assertEquals( array( 2 ), get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2, 1 ) );
+		unstick_post( 2 );
+		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', $orig_sticky_posts_option );
+	}
 }
