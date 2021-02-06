@@ -68,6 +68,18 @@ class WP_Block_Supports {
 	}
 
 	/**
+	 * Applies the render_block filter.
+	 *
+	 * @param  string $block_content Rendered block content.
+	 * @param  array  $block         Block object.
+	 * @return string                Filtered block content.
+	 */
+	public static function render( $block_content, $block ) {
+		$instance = self::get_instance();
+		return $instance->render_block_supports( $block_content, $block );
+	}
+
+	/**
 	 * Registers a block support.
 	 *
 	 * @since 5.6.0
@@ -154,6 +166,37 @@ class WP_Block_Supports {
 				);
 			}
 		}
+	}
+
+	/**
+	 * Modify the rendered block content with additional filters.
+	 *
+	 * @param  string $block_content Rendered block content.
+	 * @param  array  $block         Block object.
+	 * @return string                Filtered block content.
+	 */
+	public function render_block_supports( $block_content, $block ) {
+		$block_type       = WP_Block_Type_Registry::get_instance()->get_registered( $block['blockName'] );
+		$block_attributes = $block['attrs'];
+
+		if ( ! $block_type ) {
+			return $block_content;
+		}
+
+		foreach ( $this->block_supports as $name => $block_support_config ) {
+			if ( ! isset( $block_support_config['render_block'] ) ) {
+				continue;
+			}
+
+			$block_content = call_user_func(
+				$block_support_config['render_block'],
+				$block_type,
+				$block_attributes,
+				$block_content
+			);
+		}
+
+		return $block_content;
 	}
 }
 
