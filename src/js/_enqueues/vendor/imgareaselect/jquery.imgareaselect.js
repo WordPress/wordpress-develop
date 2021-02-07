@@ -1,6 +1,6 @@
 /*
  * imgAreaSelect jQuery plugin
- * version 0.9.10-monkey
+ * version 0.9.10-monkey-wp
  *
  * Copyright (c) 2008-2013 Michal Wojciechowski (odyniec.net)
  *
@@ -388,7 +388,7 @@ $.imgAreaSelect = function (img, options) {
              * current handler
              */
             if ($.imgAreaSelect.onKeyPress != docKeyPress)
-                $(document).unbind($.imgAreaSelect.keyPress,
+                $(document).off($.imgAreaSelect.keyPress,
                     $.imgAreaSelect.onKeyPress);
 
             if (options.keys)
@@ -1010,7 +1010,7 @@ $.imgAreaSelect = function (img, options) {
         /* Calculate the aspect ratio factor */
         aspectRatio = (d = (options.aspectRatio || '').split(/:/))[0] / d[1];
 
-        $img.add($outer).unbind('mousedown', imgMouseDown);
+        $img.add($outer).off('mousedown', imgMouseDown);
 
         if (options.disable || options.enable === false) {
             /* Disable the plugin */
@@ -1025,7 +1025,7 @@ $.imgAreaSelect = function (img, options) {
                     $box.on({ 'mousemove touchmove': areaMouseMove,
                         'mousedown touchstart': areaMouseDown });
 
-                $(window).resize(windowResize);
+                $(window).on( 'resize', windowResize);
             }
 
             if (!options.persistent)
@@ -1162,7 +1162,7 @@ $.imgAreaSelect = function (img, options) {
     $box.add($outer).css({ visibility: 'hidden', position: position,
         overflow: 'hidden', zIndex: zIndex || '0' });
     $box.css({ zIndex: zIndex + 2 || 2 });
-    $area.add($border).css({ position: 'absolute', fontSize: 0 });
+    $area.add($border).css({ position: 'absolute', fontSize: '0' });
 
     /*
      * If the image has been fully loaded, or if it is not really an image (eg.
