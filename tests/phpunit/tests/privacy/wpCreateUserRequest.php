@@ -310,11 +310,11 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the request has a Pending status if a confirmation email is sent.
+	 * Test that the request has a Pending status by default.
 	 *
 	 * @ticket 43890
 	 */
-	public function test_pending_status_with_default_wp_create_user_request_params() {
+	public function test_wp_create_user_request_default_pending_status() {
 		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data' );
 		$post   = get_post( $actual );
 
@@ -322,32 +322,37 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test that the request has a Pending status if the $send_confirmation_email param is true.
+	 * Test that the request has a Pending status if the $status param is 'pending'.
 	 *
 	 * @ticket 43890
 	 */
-	public function test_pending_status_with_true_send_confirmation_email() {
-		$request_data            = array();
-		$send_confirmation_email = true;
-
-		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', $request_data, $send_confirmation_email );
+	public function test_wp_create_user_request_pending_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'pending' );
 		$post   = get_post( $actual );
 
 		$this->assertSame( 'request-pending', $post->post_status );
 	}
 
 	/**
-	 * Test that the request has a Completed status if the $send_confirmation_email param is false.
+	 * Test that the request has a Confirmed status if the $status param is 'confirmed'.
 	 *
 	 * @ticket 43890
 	 */
-	public function test_pending_status_with_false_send_confirmation_email() {
-		$request_data            = array();
-		$send_confirmation_email = false;
-
-		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', $request_data, $send_confirmation_email );
+	public function test_wp_create_user_request_confirmed_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'confirmed' );
 		$post   = get_post( $actual );
 
-		$this->assertSame( 'request-completed', $post->post_status );
+		$this->assertSame( 'request-confirmed', $post->post_status );
+	}
+
+	/**
+	 * Test that the request returns a WP_Error if $status isn't 'pending' or 'confirmed'.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_wp_create_user_request_wp_error_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'wrong-status' );
+
+		$this->assertWPError( $actual );
 	}
 }
