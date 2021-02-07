@@ -396,8 +396,9 @@ $.imgAreaSelect = function (img, options) {
                  * Set the document keypress event handler to this instance's
                  * docKeyPress() function
                  */
-                $(document)[$.imgAreaSelect.keyPress](
-                    $.imgAreaSelect.onKeyPress = docKeyPress);
+				$(document).on( $.imgAreaSelect.keyPress, function() {
+					$.imgAreaSelect.onKeyPress = docKeyPress;
+				} );
         }
 
         /*
@@ -931,7 +932,7 @@ $.imgAreaSelect = function (img, options) {
                  * The font-size property needs to be set to zero, otherwise
                  * Internet Explorer makes the handles too large
                  */
-                fontSize: 0,
+                fontSize: '0',
                 zIndex: zIndex + 1 || 1
             });
 
