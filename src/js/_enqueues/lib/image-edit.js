@@ -402,7 +402,7 @@
 				}
 
 				if ( $('#imgedit-history-' + postid).val() && $('#imgedit-undone-' + postid).val() === '0' ) {
-					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).removeAttr('disabled');
+					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', false);
 				} else {
 					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
