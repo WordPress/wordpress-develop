@@ -122,7 +122,7 @@
 		t.postid = postid;
 		$('#imgedit-response-' + postid).empty();
 
-		$('input[type="text"]', '#imgedit-panel-' + postid).keypress(function(e) {
+		$('#imgedit-panel-' + postid).on( 'keypress', 'input[type="text"]', function(e) {
 			var k = e.keyCode;
 
 			// Key codes 37 through 40 are the arrow keys.
