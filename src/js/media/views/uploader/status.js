@@ -118,7 +118,6 @@ UploaderStatus = View.extend(/** @lends wp.media.view.UploaderStatus.prototype *
 
 		// Can show additional info here while retrying to create image sub-sizes.
 		this.views.add( '.upload-errors', statusError, { at: 0 } );
-		this.$el.attr( 'tabindex', '-1' ).trigger( 'focus' );
 	},
 
 	dismiss: function() {
