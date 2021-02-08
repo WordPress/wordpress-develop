@@ -481,7 +481,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		}
 
 		// These should remain constant.
-		$update->id     = $plugin_data['UpdateID'];
+		$update->id     = $plugin_data['UpdateURI'];
 		$update->plugin = $plugin_file;
 
 		// WordPress needs the version field specified as 'new_version'.
