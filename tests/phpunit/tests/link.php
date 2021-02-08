@@ -166,6 +166,9 @@ class Tests_Link extends WP_UnitTestCase {
 		$attachment = get_post( $attachment_id );
 
 		$this->assertSame( home_url( user_trailingslashit( $attachment->post_name ) ), get_permalink( $attachment_id ) );
+		// Ensure the URL does not 404.
+		$this->go_to( get_permalink( $attachment_id ) );
+		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
 
 	/**
@@ -196,6 +199,9 @@ class Tests_Link extends WP_UnitTestCase {
 		$attachment = get_post( $attachment_id );
 
 		$this->assertSame( get_permalink( $post_id ) . user_trailingslashit( $attachment->post_name ), get_permalink( $attachment_id ) );
+		// Ensure the URL does not 404.
+		$this->go_to( get_permalink( $attachment_id ) );
+		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 
 		foreach ( $wp_post_types as $id => $pt ) {
 			if ( 'not_a_post_type' === $pt->name ) {
@@ -204,7 +210,8 @@ class Tests_Link extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
+		$date = explode( ' ', str_replace( array( '-', ':' ), ' ', $attachment->post_date ) );
+		$this->assertSame( home_url( user_trailingslashit( "/{$date[0]}/{$date[1]}/{$date[2]}/attachment/{$attachment->post_name}" ) ), get_permalink( $attachment_id ) );
 		// Visit permalink.
 		$this->go_to( get_permalink( $attachment_id ) );
 		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
