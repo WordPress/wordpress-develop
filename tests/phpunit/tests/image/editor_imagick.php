@@ -38,7 +38,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Check support for Image Magick compatible mime types.
-	 * 
+	 *
 	 */
 	public function test_supports_mime_type() {
 
@@ -51,7 +51,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image, not using crop
-	 * 
+	 *
 	 */
 	public function test_resize() {
 
@@ -67,7 +67,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image including cropping
-	 * 
+	 *
 	 */
 	public function test_resize_and_crop() {
 
@@ -150,14 +150,18 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$editor->load();
 		$editor->resize(5,5);
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-		
+
 		$editor->save( $save_to_file );
 
-		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
+		$im = new Imagick( $save_to_file );
+		$pixel = $im->getImagePixelColor( 0, 0 );
+		$expected = $pixel->getColorValue( imagick::COLOR_ALPHA );
+
+		$this->assertImageAlphaAtPointImagick( $save_to_file, array( 0,0 ), $expected );
 
 		unlink( $save_to_file );
 	}
-	
+
 	/**
 	 * Test the image created with WP_Image_Edior_Imagick preserves alpha with no resizing etc
 	 *
@@ -174,7 +178,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$editor->save( $save_to_file );
 
-		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
+		$im = new Imagick( $save_to_file );
+		$pixel = $im->getImagePixelColor( 0, 0 );
+		$expected = $pixel->getColorValue( imagick::COLOR_ALPHA );
+
+		$this->assertImageAlphaAtPointImagick( $save_to_file, array( 0,0 ), $expected );
 
 		unlink( $save_to_file );
 	}

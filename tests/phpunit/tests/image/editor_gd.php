@@ -32,7 +32,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Check support for GD compatible mime types.
-	 * 
+	 *
 	 */
 	public function test_supports_mime_type() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
@@ -44,7 +44,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image, not using crop
-	 * 
+	 *
 	 */
 	public function test_resize() {
 
@@ -60,7 +60,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image including cropping
-	 * 
+	 *
 	 */
 	public function test_resize_and_crop() {
 
@@ -132,7 +132,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test the image created with WP_Image_Edior_GD preserves alpha when resizing
-	 * 
+	 *
 	 * @ticket 23039
 	 */
 	public function test_image_preserves_alpha_on_resize() {
@@ -143,17 +143,17 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$editor->load();
 		$editor->resize(5,5);
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-		
+
 		$editor->save( $save_to_file );
 
-		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0,0 ), 127 );
 
 		unlink( $save_to_file );
 	}
-	
+
 	/**
 	 * Test the image created with WP_Image_Edior_GD preserves alpha with no resizing etc
-	 * 
+	 *
 	 * @ticket 23039
 	 */
 	public function test_image_preserves_alpha() {
@@ -164,10 +164,10 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$editor->load();
 
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
-		
+
 		$editor->save( $save_to_file );
 
-		$this->assertImageAlphaAtPoint( $save_to_file, array( 0,0 ), 127 );
+		$this->assertImageAlphaAtPointGD( $save_to_file, array( 0,0 ), 127 );
 
 		unlink( $save_to_file );
 	}
