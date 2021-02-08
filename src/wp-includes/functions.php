@@ -3052,7 +3052,7 @@ function wp_get_image_mime( $file ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
 		} elseif ( function_exists( 'getimagesize' ) ) {
-			$imagesize = @getimagesize( $file );
+			$imagesize = wp_getimagesize( $file );
 			$mime      = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
 		} else {
 			$mime = false;
@@ -7581,6 +7581,91 @@ function wp_direct_php_update_button() {
 }
 
 /**
+ * Gets the URL to learn more about updating the site to use HTTPS.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_HTTPS_URL` or by using the
+ * {@see 'wp_update_https_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 5.7.0
+ *
+ * @return string URL to learn more about updating to HTTPS.
+ */
+function wp_get_update_https_url() {
+	$default_url = wp_get_default_update_https_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_UPDATE_HTTPS_URL' ) ) {
+		$update_url = getenv( 'WP_UPDATE_HTTPS_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about updating the HTTPS version the site is running on.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $update_url URL to learn more about updating HTTPS.
+	 */
+	$update_url = apply_filters( 'wp_update_https_url', $update_url );
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about updating the site to use HTTPS.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_update_https_url()} when relying on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 5.7.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating to HTTPS.
+ */
+function wp_get_default_update_https_url() {
+	/* translators: Documentation explaining HTTPS and why it should be used. */
+	return __( 'https://wordpress.org/support/article/why-should-i-use-https/' );
+}
+
+/**
+ * Gets the URL for directly updating the site to use HTTPS.
+ *
+ * A URL will only be returned if the `WP_DIRECT_UPDATE_HTTPS_URL` environment variable is specified or
+ * by using the {@see 'wp_direct_update_https_url'} filter. This allows hosts to send users directly to
+ * the page where they can update their site to use HTTPS.
+ *
+ * @since 5.7.0
+ *
+ * @return string URL for directly updating to HTTPS or empty string.
+ */
+function wp_get_direct_update_https_url() {
+	$direct_update_url = '';
+
+	if ( false !== getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' ) ) {
+		$direct_update_url = getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' );
+	}
+
+	/**
+	 * Filters the URL for directly updating the PHP version the site is running on from the host.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $direct_update_url URL for directly updating PHP.
+	 */
+	$direct_update_url = apply_filters( 'wp_direct_update_https_url', $direct_update_url );
+
+	return $direct_update_url;
+}
+
+/**
  * Get the size of a directory.
  *
  * A helper function that is used primarily to check whether
@@ -7780,4 +7865,124 @@ function is_php_version_compatible( $required ) {
  */
 function wp_fuzzy_number_match( $expected, $actual, $precision = 1 ) {
 	return abs( (float) $expected - (float) $actual ) <= $precision;
+}
+
+/**
+ * Sanitizes an attributes array into an attributes string to be placed inside a `<script>` tag.
+ *
+ * Automatically injects type attribute if needed.
+ * Used by {@see wp_get_script_tag()} and {@see wp_get_inline_script_tag()}.
+ *
+ * @since 5.7.0
+ *
+ * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String made of sanitized `<script>` tag attributes.
+ */
+function wp_sanitize_script_attributes( $attributes ) {
+	$html5_script_support = ! is_admin() && ! current_theme_supports( 'html5', 'script' );
+	$attributes_string    = '';
+
+	// If HTML5 script tag is supported, only the attribute name is added
+	// to $attributes_string for entries with a boolean value, and that are true.
+	foreach ( $attributes as $attribute_name => $attribute_value ) {
+		if ( is_bool( $attribute_value ) ) {
+			if ( $attribute_value ) {
+				$attributes_string .= $html5_script_support ? sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_name ) ) : ' ' . $attribute_name;
+			}
+		} else {
+			$attributes_string .= sprintf( ' %1$s="%2$s"', esc_attr( $attribute_name ), esc_attr( $attribute_value ) );
+		}
+	}
+
+	return $attributes_string;
+}
+
+/**
+ * Formats `<script>` loader tags.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the {@see 'wp_script_attributes'} filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.7.0
+ *
+ * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ * @return string String containing `<script>` opening and closing tags.
+ */
+function wp_get_script_tag( $attributes ) {
+	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+		$attributes['type'] = 'text/javascript';
+	}
+	/**
+	 * Filters attributes to be added to a script tag.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                          Only the attribute name is added to the `<script>` tag for
+	 *                          entries with a boolean value, and that are true.
+	 */
+	$attributes = apply_filters( 'wp_script_attributes', $attributes );
+
+	return sprintf( "<script%s></script>\n", wp_sanitize_script_attributes( $attributes ) );
+}
+
+/**
+ * Prints formatted `<script>` loader tag.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.7.0
+ *
+ * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+ */
+function wp_print_script_tag( $attributes ) {
+	echo wp_get_script_tag( $attributes );
+}
+
+/**
+ * Wraps inline JavaScript in `<script>` tag.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.7.0
+ *
+ * @param string $javascript Inline JavaScript code.
+ * @param array  $attributes  Optional. Key-value pairs representing `<script>` tag attributes.
+ * @return string String containing inline JavaScript code wrapped around `<script>` tag.
+ */
+function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
+	if ( ! isset( $attributes['type'] ) && ! is_admin() && ! current_theme_supports( 'html5', 'script' ) ) {
+		$attributes['type'] = 'text/javascript';
+	}
+	/**
+	 * Filters attributes to be added to a script tag.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $attributes Key-value pairs representing `<script>` tag attributes.
+	 *                          Only the attribute name is added to the `<script>` tag for
+	 *                          entries with a boolean value, and that are true.
+	 */
+	$attributes = apply_filters( 'wp_inline_script_attributes', $attributes, $javascript );
+
+	$javascript = "\n" . trim( $javascript, "\n\r " ) . "\n";
+
+	return sprintf( "<script%s>%s</script>\n", wp_sanitize_script_attributes( $attributes ), $javascript );
+}
+
+/**
+ * Prints inline JavaScript wrapped in `<script>` tag.
+ *
+ * It is possible to inject attributes in the `<script>` tag via the  {@see 'wp_script_attributes'}  filter.
+ * Automatically injects type attribute if needed.
+ *
+ * @since 5.7.0
+ *
+ * @param string $javascript Inline JavaScript code.
+ * @param array  $attributes Optional. Key-value pairs representing `<script>` tag attributes.
+ */
+function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
+	echo wp_get_inline_script_tag( $javascript, $attributes );
 }

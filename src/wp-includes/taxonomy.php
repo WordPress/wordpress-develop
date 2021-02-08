@@ -537,6 +537,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.3.0 Added the `no_terms` label.
  * @since 4.4.0 Added the `items_list_navigation` and `items_list` labels.
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
+ * @since 5.7.0 Added the `filter_by_item` label.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -569,6 +570,8 @@ function unregister_taxonomy( $taxonomy ) {
  *                                              the meta box and taxonomy list table.
  *     @type string $no_terms                   Default 'No tags'/'No categories', used in the posts and media
  *                                              list tables.
+ *     @type string $filter_by_item             This label is only used for hierarchical taxonomies. Default
+ *                                              'Filter by category', used in the posts list table.
  *     @type string $items_list_navigation      Label for the table pagination hidden heading.
  *     @type string $items_list                 Label for the table hidden heading.
  *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
@@ -604,6 +607,7 @@ function get_taxonomy_labels( $tax ) {
 		'choose_from_most_used'      => array( __( 'Choose from the most used tags' ), null ),
 		'not_found'                  => array( __( 'No tags found.' ), __( 'No categories found.' ) ),
 		'no_terms'                   => array( __( 'No tags' ), __( 'No categories' ) ),
+		'filter_by_item'             => array( null, __( 'Filter by category' ) ),
 		'items_list_navigation'      => array( __( 'Tags list navigation' ), __( 'Categories list navigation' ) ),
 		'items_list'                 => array( __( 'Tags list' ), __( 'Categories list' ) ),
 		/* translators: Tab heading when selecting from the most used terms. */
@@ -3887,17 +3891,30 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
 	}
 
+	$post_statuses = array( 'publish' );
+
+	/**
+	 * Filters the post statuses for updating the term count.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string[]    $post_statuses List of post statuses to include in the count. Default is 'publish'.
+	 * @param WP_Taxonomy $taxonomy      Current taxonomy object.
+	 */
+	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
+
 	foreach ( (array) $terms as $term ) {
 		$count = 0;
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status = 'publish' OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) = 'publish' ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
 		}
 
 		if ( $object_types ) {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
 		}
 
 		/** This action is documented in wp-includes/taxonomy.php */

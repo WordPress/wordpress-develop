@@ -1785,8 +1785,8 @@ function rest_get_combining_operation_error( $value, $param, $errors ) {
 		return new WP_Error( 'rest_no_matching_schema', wp_sprintf( __( '%1$s is not a valid %2$l.' ), $param, $schema_titles ) );
 	}
 
-	/* translators: 1: Parameter. */
-	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%1$s does not match any of the expected formats.' ), $param ) );
+	/* translators: %s: Parameter. */
+	return new WP_Error( 'rest_no_matching_schema', sprintf( __( '%s does not match any of the expected formats.' ), $param ) );
 }
 
 /**
@@ -1889,8 +1889,8 @@ function rest_find_one_matching_schema( $value, $args, $param, $stop_after_first
 
 		return new WP_Error(
 			'rest_one_of_multiple_matches',
-			/* translators: 1: Parameter. */
-			sprintf( __( '%1$s matches more than one of the expected formats.' ), $param ),
+			/* translators: %s: Parameter. */
+			sprintf( __( '%s matches more than one of the expected formats.' ), $param ),
 			array( 'positions' => $schema_positions )
 		);
 	}
@@ -2380,8 +2380,8 @@ function rest_validate_array_value_from_schema( $value, $args, $param ) {
 	}
 
 	if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-		/* translators: 1: Parameter. */
-		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+		/* translators: %s: Parameter. */
+		return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
 	}
 
 	return true;
@@ -2682,8 +2682,8 @@ function rest_sanitize_value_from_schema( $value, $args, $param = '' ) {
 		}
 
 		if ( ! empty( $args['uniqueItems'] ) && ! rest_validate_array_contains_unique_items( $value ) ) {
-			/* translators: 1: Parameter. */
-			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%1$s has duplicate items.' ), $param ) );
+			/* translators: %s: Parameter. */
+			return new WP_Error( 'rest_duplicate_items', sprintf( __( '%s has duplicate items.' ), $param ) );
 		}
 
 		return $value;
@@ -3181,4 +3181,58 @@ function rest_get_endpoint_args_for_schema( $schema, $method = WP_REST_Server::C
 	}
 
 	return $endpoint_args;
+}
+
+
+/**
+ * Converts an error to a response object.
+ *
+ * This iterates over all error codes and messages to change it into a flat
+ * array. This enables simpler client behaviour, as it is represented as a
+ * list in JSON rather than an object/map.
+ *
+ * @since 5.7.0
+ *
+ * @param WP_Error $error WP_Error instance.
+ *
+ * @return WP_REST_Response List of associative arrays with code and message keys.
+ */
+function rest_convert_error_to_response( $error ) {
+	$status = array_reduce(
+		$error->get_all_error_data(),
+		function ( $status, $error_data ) {
+			return is_array( $error_data ) && isset( $error_data['status'] ) ? $error_data['status'] : $status;
+		},
+		500
+	);
+
+	$errors = array();
+
+	foreach ( (array) $error->errors as $code => $messages ) {
+		$all_data  = $error->get_all_error_data( $code );
+		$last_data = array_pop( $all_data );
+
+		foreach ( (array) $messages as $message ) {
+			$formatted = array(
+				'code'    => $code,
+				'message' => $message,
+				'data'    => $last_data,
+			);
+
+			if ( $all_data ) {
+				$formatted['additional_data'] = $all_data;
+			}
+
+			$errors[] = $formatted;
+		}
+	}
+
+	$data = $errors[0];
+	if ( count( $errors ) > 1 ) {
+		// Remove the primary error.
+		array_shift( $errors );
+		$data['additional_errors'] = $errors;
+	}
+
+	return new WP_REST_Response( $data, $status );
 }
