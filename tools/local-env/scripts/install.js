@@ -54,9 +54,5 @@ function wp_cli( cmd ) {
 function install_wp_importer() {
 	const test_plugin_directory = 'tests/phpunit/data/plugins/wordpress-importer';
 
-	execSync( `docker-compose exec php rm -rf wordpress-importer && git clone https://github.com/WordPress/wordpress-importer.git wordpress-importer`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec php git -C wordpress-importer checkout b34644d`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec php rm ${test_plugin_directory} -rf`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec php cp wordpress-importer/src ${test_plugin_directory} -R`, { stdio: 'inherit' } );
-	execSync( `docker-compose exec php rm wordpress-importer -rf`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec php rm -rf ${test_plugin_directory} && git clone https://github.com/WordPress/wordpress-importer.git ${test_plugin_directory} --depth 1`, { stdio: 'inherit' } );
 }
