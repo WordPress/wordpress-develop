@@ -3,6 +3,8 @@
 /**
  * @group date
  * @group datetime
+ * @covers ::wp_timezone_string
+ * @covers ::wp_timezone
  */
 class Tests_Date_WP_Timezone extends WP_UnitTestCase {
 

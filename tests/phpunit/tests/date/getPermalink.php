@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group post
+ * @covers ::get_permalink
  */
 class Tests_Date_Get_Permalink extends WP_UnitTestCase {
 

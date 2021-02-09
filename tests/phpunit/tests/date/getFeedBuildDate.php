@@ -4,6 +4,7 @@
  * @group date
  * @group datetime
  * @group feed
+ * @covers ::get_feed_build_date
  */
 class Tests_Date_Get_Feed_Build_Date extends WP_UnitTestCase {
 
