@@ -122,8 +122,6 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool
 	 */
 	public function check_parent_theme_filter( $install_result, $hook_extra, $child_result ) {
-		$start_time = time();
-
 		// Check to see if we need to install a parent theme.
 		$theme_info = $this->theme_info();
 
@@ -138,6 +136,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			// We already have the theme, fall through.
 			return $install_result;
 		}
+
+		$start_time = time();
 
 		// We don't have the parent theme, let's install it.
 		$api = themes_api(
@@ -182,7 +182,15 @@ class Theme_Upgrader extends WP_Upgrader {
 		);
 
 		if ( is_wp_error( $parent_result ) ) {
-			$this->send_error_data( $parent_result, $start_time, 'parent_theme' );
+			$this->send_error_data(
+				$parent_result,
+				array(
+					'type'       => 'theme_install',
+					'slug'       => $api->slug,
+					'version'    => $api->version,
+					'time_taken' => time() - $start_time,
+				)
+			);
 			add_filter( 'install_theme_complete_actions', array( $this, 'hide_activate_preview_actions' ) );
 		}
 
@@ -231,7 +239,6 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the installation was successful, false or a WP_Error object otherwise.
 	 */
 	public function install( $package, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 			'overwrite_package'  => false, // Do not overwrite files.
@@ -266,8 +273,13 @@ class Theme_Upgrader extends WP_Upgrader {
 		remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'check_parent_theme_filter' ) );
 
-		if ( is_wp_error( $result ) ) {
-			$this->send_error_data( $result, $start_time, 'theme_install' );
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type' => 'theme_install',
+				)
+			);
 		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
@@ -301,7 +313,6 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return bool|WP_Error True if the upgrade was successful, false or a WP_Error object otherwise.
 	 */
 	public function upgrade( $theme, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -349,8 +360,15 @@ class Theme_Upgrader extends WP_Upgrader {
 		remove_filter( 'upgrader_post_install', array( $this, 'current_after' ) );
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ) );
 
-		if ( is_wp_error( $result ) ) {
-			$this->send_error_data( $result, $start_time, 'theme_upgrade' );
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type'    => 'theme_update',
+					'slug'    => $r['theme'],
+					'version' => $r['new_version'],
+				)
+			);
 		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
@@ -387,7 +405,6 @@ class Theme_Upgrader extends WP_Upgrader {
 	 * @return array[]|false An array of results, or false if unable to connect to the filesystem.
 	 */
 	public function bulk_upgrade( $themes, $args = array() ) {
-		$start_time  = time();
 		$defaults    = array(
 			'clear_update_cache' => true,
 		);
@@ -446,6 +463,8 @@ class Theme_Upgrader extends WP_Upgrader {
 				continue;
 			}
 
+			$start_time = time();
+
 			// Get the URL to the zip file.
 			$r = $current->response[ $theme ];
 
@@ -464,8 +483,16 @@ class Theme_Upgrader extends WP_Upgrader {
 
 			$results[ $theme ] = $this->result;
 
-			if ( is_wp_error( $result ) ) {
-				$this->send_error_data( $result, $start_time, 'theme_bulk_upgrade' );
+			if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+				$this->send_error_data(
+					is_wp_error( $result ) ? $result : $this->result,
+					array(
+						'type'       => 'theme_update',
+						'slug'       => $r['theme'],
+						'version'    => $r['new_version'],
+						'time_taken' => time() - $start_time,
+					)
+				);
 			}
 
 			// Prevent credentials auth screen from displaying multiple times.
