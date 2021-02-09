@@ -684,6 +684,34 @@ JS;
 	}
 
 	/**
+	 * Gets the script URL for a given handle including version
+	 *
+	 * @param string $handle Script handle name.
+	 *
+	 * @return string|null
+	 */
+	public function get_url( $handle ) {
+		$script = $this->registered[ $handle ];
+		$src    = $script->src;
+		$ver    = $script->ver;
+
+		if ( is_bool( $src ) ) {
+			// $handle is an alias for its dependencies, has no URL of its own
+			return null;
+		}
+
+		if ( ! preg_match( '|^(https?:)?//|', $src ) && ! ( $this->content_url && 0 === strpos( $src, $this->content_url ) ) ) {
+			$src = $this->base_url . $src;
+		}
+		if ( ! empty( $ver ) ) {
+			$src = add_query_arg( 'ver', $ver, $src );
+		}
+
+		/** This filter is documented in wp-includes/class.wp-scripts.php */
+		return esc_url( apply_filters( 'script_loader_src', $src, $handle ) );
+	}
+
+	/**
 	 * Resets class properties.
 	 *
 	 * @since 2.8.0

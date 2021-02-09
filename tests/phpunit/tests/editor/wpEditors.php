@@ -91,4 +91,12 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 			$actual
 		);
 	}
+
+	public function test_print_tinymce_scripts_calls_print_tinymce_scripts_action() {
+		$this->assertEquals( 0, did_action( 'print_tinymce_scripts' ) );
+
+		_WP_Editors::print_tinymce_scripts();
+
+		$this->assertEquals( 1, did_action( 'print_tinymce_scripts' ) );
+	}
 }
