@@ -2620,14 +2620,13 @@ function stick_post( $post_id ) {
 	if ( ! is_array( $stickies ) ) {
 		$stickies = array( $post_id );
 	} else {
-		$stickies = array_values( array_unique( array_map( 'intval', $stickies ) ) );
-
-		if ( ! in_array( $post_id, $stickies, true ) ) {
-			$stickies[] = $post_id;
-		}
+		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}
 
-	$updated = update_option( 'sticky_posts', $stickies );
+	if ( ! in_array( $post_id, $stickies, true ) ) {
+		$stickies[] = $post_id;
+		$updated = update_option( 'sticky_posts', array_values( $stickies ) );
+	}
 
 	if ( $updated ) {
 		/**
