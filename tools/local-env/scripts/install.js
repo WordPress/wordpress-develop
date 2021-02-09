@@ -54,5 +54,5 @@ function wp_cli( cmd ) {
 function install_wp_importer() {
 	const test_plugin_directory = 'tests/phpunit/data/plugins/wordpress-importer';
 
-	execSync( `docker-compose exec php rm -rf ${test_plugin_directory} && git clone https://github.com/WordPress/wordpress-importer.git ${test_plugin_directory} --depth 1`, { stdio: 'inherit' } );
+	execSync( `docker-compose exec -T php rm -rf ${test_plugin_directory} && git clone https://github.com/WordPress/wordpress-importer.git ${test_plugin_directory} --depth 1`, { stdio: 'inherit' } );
 }
