@@ -225,10 +225,10 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->get_compare(
 			array(
-				'compare' => 'BETWEEN',
+				'compare' => 'NOT BETWEEN',
 			)
 		);
-		$this->assertSame( 'BETWEEN', $found );
+		$this->assertSame( 'NOT BETWEEN', $found );
 	}
 
 	public function test_validate_column_post_date() {
