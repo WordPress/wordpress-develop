@@ -465,8 +465,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 		$response = rest_convert_error_to_response( $error );
 		$this->assertSame( 400, $response->get_status() );
-		$this->assertEquals( 'more_data', $response->get_data()['data'] );
-		$this->assertEquals( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
+		$this->assertSame( 'more_data', $response->get_data()['data'] );
+		$this->assertSame( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
 	}
 
 	public function test_rest_error() {

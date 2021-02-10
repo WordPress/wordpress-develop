@@ -29,7 +29,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		// Render robots meta tag with noindex.
 		add_filter( 'wp_robots', array( $this, 'add_noindex_directive' ) );
 		$output = get_echo( 'wp_robots' );
-		$this->assertEquals( "<meta name='robots' content='noindex' />\n", $output );
+		$this->assertSame( "<meta name='robots' content='noindex' />\n", $output );
 
 		// Do not render robots meta tag when there are only false-y directives.
 		add_filter( 'wp_robots', array( $this, 'remove_noindex_directive' ), 11 );
