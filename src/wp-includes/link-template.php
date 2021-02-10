@@ -90,7 +90,7 @@ function permalink_anchor( $mode = 'id' ) {
 }
 
 /**
- * Determine whether post should always use an ugly permalink structure.
+ * Determine whether post should always use a plain permalink structure.
  *
  * @since 5.7.0
  *
@@ -98,7 +98,7 @@ function permalink_anchor( $mode = 'id' ) {
  * @param bool|null        $sample Optional. Whether to force consideration based on sample links.
  *                                 If omitted, a sample link is generated if a post object is passed
  *                                 with the filter property set to 'sample'.
- * @return bool Whether to use an ugly permalink structure.
+ * @return bool Whether to use a plain permalink structure.
  */
 function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 	if (
@@ -125,14 +125,14 @@ function wp_force_plain_post_permalink( $post = null, $sample = null ) {
 	}
 
 	if (
-		// Publicly viewable links never have ugly permalinks.
+		// Publicly viewable links never have plain permalinks.
 		is_post_status_viewable( $post_status_obj ) ||
 		(
-			// Private posts don't have ugly links if the user can read them.
+			// Private posts don't have plain permalinks if the user can read them.
 			$post_status_obj->private &&
 			current_user_can( 'read_post', $post->ID )
 		) ||
-		// Protected posts don't have ugly links if getting a sample URL.
+		// Protected posts don't have plain links if getting a sample URL.
 		( $post_status_obj->protected && $sample )
 	) {
 		return false;
