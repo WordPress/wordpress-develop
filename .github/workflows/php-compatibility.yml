@@ -7,6 +7,7 @@ on:
       # The PHP compatibility testing was introduced in WordPress 5.5.
       - '5.[5-9]'
       - '[6-9].*'
+      - '**'
   pull_request:
 
 jobs:
@@ -27,7 +28,7 @@ jobs:
   php-comatibility:
     name: Check PHP compatibility
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    # if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Checkout repository
