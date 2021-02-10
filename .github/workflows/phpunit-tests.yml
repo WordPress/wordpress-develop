@@ -24,7 +24,6 @@ jobs:
   # Performs the following steps:
   # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
-  # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
   # - Installs NodeJS 14.
   # - Sets up caching for NPM.
@@ -46,9 +45,6 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Checkout the WordPress Importer plugin
-        run: svn checkout -r 2387243 https://plugins.svn.wordpress.org/wordpress-importer/trunk/ tests/phpunit/data/plugins/wordpress-importer
 
       - name: Log debug information
         run: |
