@@ -4,7 +4,7 @@
  * @group template
  * @ticket 34292
  */
-class Tests_WP_Resource_Hints extends WP_UnitTestCase {
+class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	private $old_wp_scripts;
 	private $old_wp_styles;
 
