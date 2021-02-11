@@ -149,11 +149,15 @@
 		"whatwg-fetch": "3.0.0"
 	},
 	"scripts": {
+		"_comment:todo": "test all changes here",
+
 		"build": "grunt build",
-		"build:dev": "grunt build --dev",
-		"dev": "grunt watch --dev",
-		"test": "grunt test",
 		"watch": "grunt watch",
+		"build:dev": "echo '`build:dev` is deprecated, please run `build` instead. It will update both `src/` and `build/`.' && npm run build",
+		"watch:dev": "echo '`watch:dev` is deprecated, please run `watch` instead. It will update both `src/` and `build/`.' && npm run watch",
+		"dev": "echo '`dev` is deprecated, please run `watch` instead. It will update both `src/` and `build/`.' && npm run watch",
+
+		"test": "grunt test",
 		"grunt": "grunt",
 		"lint:jsdoc": "wp-scripts lint-js",
 		"lint:jsdoc:fix": "wp-scripts lint-js --fix",
