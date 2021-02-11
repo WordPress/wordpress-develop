@@ -2,6 +2,12 @@
 /**
  * @group dependencies
  * @group scripts
+ * @covers ::wp_enqueue_script
+ * @covers ::wp_register_script
+ * @covers ::wp_print_scripts
+ * @covers ::wp_script_add_data
+ * @covers ::wp_add_inline_script
+ * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
@@ -264,6 +270,10 @@ JS;
 	 * Test mismatch of groups in dependencies outputs all scripts in right order.
 	 *
 	 * @ticket 35873
+	 *
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
 		$scripts = new WP_Scripts;
