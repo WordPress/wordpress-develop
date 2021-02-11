@@ -342,7 +342,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 	color: #fff;
 }
 
-.is-style-outline .wp-block-button__link {
+.is-style-outline .wp-block-button__link:not(.has-text-color) {
 	border-width: 2px;
 	color: #e05d22;
 }
