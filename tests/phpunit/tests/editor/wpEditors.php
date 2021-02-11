@@ -8,26 +8,19 @@ if ( ! class_exists( '_WP_Editors', false ) ) {
  * @group editor
  */
 class Tests_WP_Editors extends WP_UnitTestCase {
-	public function wp_link_query_callback( $results ) {
-		return array_merge(
-			$results,
-			array(
-				array(
-					'ID'        => 123,
-					'title'     => 'foo',
-					'permalink' => 'bar',
-					'info'      => 'baz',
-				),
-			)
-		);
-	}
 
+	/**
+	 * @covers _WP_Editors::wp_link_query
+	 */
 	public function test_wp_link_query_returns_false_when_nothing_found() {
 		$actual = _WP_Editors::wp_link_query( array( 's' => 'foobarbaz' ) );
 
 		$this->assertFalse( $actual );
 	}
 
+	/**
+	 * @covers _WP_Editors::wp_link_query
+	 */
 	public function test_wp_link_query_returns_search_results() {
 		$post   = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
 		$actual = _WP_Editors::wp_link_query( array( 's' => $post->post_title ) );
@@ -47,6 +40,8 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41825
+	 *
+	 * @covers _WP_Editors::wp_link_query
 	 */
 	public function test_wp_link_query_returns_filtered_result_when_nothing_found() {
 		add_filter( 'wp_link_query', array( $this, 'wp_link_query_callback' ) );
@@ -66,6 +61,9 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers _WP_Editors::wp_link_query
+	 */
 	public function test_wp_link_query_returns_filtered_search_results() {
 		$post = self::factory()->post->create_and_get( array( 'post_status' => 'publish' ) );
 
@@ -89,6 +87,20 @@ class Tests_WP_Editors extends WP_UnitTestCase {
 				),
 			),
 			$actual
+		);
+	}
+
+	public function wp_link_query_callback( $results ) {
+		return array_merge(
+			$results,
+			array(
+				array(
+					'ID'        => 123,
+					'title'     => 'foo',
+					'permalink' => 'bar',
+					'info'      => 'baz',
+				),
+			)
 		);
 	}
 }
