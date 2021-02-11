@@ -393,6 +393,10 @@ body:not(.sidebar) .wp-block-table.alignfull {
 	padding: 10px 24px 11px;
 }
 
+.entry-content .wp-block-button.is-style-no-shadow .wp-block-button__link {
+	border-bottom: none;
+}
+
 /* Separator */
 
 .wp-block-separator {

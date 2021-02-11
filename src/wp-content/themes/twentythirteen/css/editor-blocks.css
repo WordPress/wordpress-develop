@@ -352,6 +352,10 @@ p.has-drop-cap:not(:focus)::first-letter {
 	background: linear-gradient(to bottom, #e05d22 0%, #d94412 100%); /* W3C */
 }
 
+.wp-block-button.is-style-no-shadow .wp-block-button__link {
+	border-bottom: none;
+}
+
 /* Separator */
 
 .editor-block-list__block hr.wp-block-separator {
