@@ -350,9 +350,9 @@ p.has-drop-cap:not(:focus)::first-letter {
 4.0 Blocks - Formatting
 --------------------------------------------------------------*/
 
-/* Code */
+/* Code (Added specficity required to override TinyMCE styles) */
 
-.wp-block-code {
+.editor-styles-wrapper .wp-block-code {
 	border: 0;
 	padding: 0;
 }
