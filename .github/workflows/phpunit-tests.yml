@@ -4,7 +4,11 @@ on:
   push:
     branches:
       - master
-      - '*.*'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[7-9]*'
+      - '[4-9].[0-9]*'
   pull_request:
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
