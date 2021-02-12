@@ -4038,7 +4038,7 @@ class WP_Query {
 		}
 
 		$page_obj = $this->get_queried_object();
-		
+
 		if ( ! isset( $page_obj->ID ) && ! isset( $page_obj->post_title ) && ! isset( $page_obj->post_name ) ) {
 			return false;
 		}
