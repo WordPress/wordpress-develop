@@ -1,4 +1,4 @@
-9/* jshint node:true */
+/* jshint node:true */
 module.exports = function(grunt) {
 	var path = require('path'),
 		SOURCE_DIR = 'src/',
