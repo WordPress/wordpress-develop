@@ -274,10 +274,6 @@ jobs:
       - name: Run REST API tests
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient
 
-      # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
-      - name: Run (xDebug) tests
-        run: LOCAL_PHP_XDEBUG=true npm run test:php -- -v --group xdebug --exclude-group __fakegroup__
-
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
         uses: actions/checkout@v2
