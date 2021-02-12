@@ -53,6 +53,12 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Block Pattern Images
+License: CC0
+Source: https://stocksnap.io/photo/purple-yellow-ACF0693B9C
+        https://stocksnap.io/photo/sky-sunset-BE7A7709D0
+        https://stocksnap.io/photo/sunset-pier-77F43EA43C
+
 == Changelog ==
 
 = 2.8 =
