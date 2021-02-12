@@ -4196,7 +4196,7 @@ class WP_Query {
 		}
 
 		$post_obj = $this->get_queried_object();
-		
+
 		if ( ! isset( $post_obj->post_type ) ) {
 			return false;
 		}
