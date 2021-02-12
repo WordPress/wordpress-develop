@@ -46,7 +46,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<hr class="wp-block-separator has-text-color has-background has-dark-gray-background-color has-dark-gray-color is-style-wide"/>
 								<!-- /wp:separator --></div>
 								<!-- /wp:column --></div>
-								<!-- /wp:columns -->'
+								<!-- /wp:columns -->',
 		)
 	);
 
@@ -81,7 +81,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<!-- /wp:paragraph --></div>
 								<!-- /wp:column --></div>
 								<!-- /wp:columns --></div></div>
-								<!-- /wp:group -->'
+								<!-- /wp:group -->',
 		)
 	);
 
@@ -114,7 +114,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<p>' . esc_html__( 'A boatload of people putting back came leaping out as I rushed past. The stones under my feet were muddy and slippery, and the river was so low.', 'twentyfifteen' ) . '</p>
 								<!-- /wp:paragraph --></div>
 								<!-- /wp:column --></div>
-								<!-- /wp:columns -->'
+								<!-- /wp:columns -->',
 		)
 	);
 
@@ -144,7 +144,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<ul><li>' . esc_html__( 'Towels', 'twentyfifteen' ) . '</li><li>' . esc_html__( 'Camera', 'twentyfifteen' ) . '</li><li>' . esc_html__( 'Water Bottle', 'twentyfifteen' ) . '</li><li>' . esc_html__( 'Swimsuit', 'twentyfifteen' ) . '</li><li>' . esc_html__( 'Snacks', 'twentyfifteen' ) . '</li></ul>
 								<!-- /wp:list --></div>
 								<!-- /wp:column --></div>
-								<!-- /wp:columns -->'
+								<!-- /wp:columns -->',
 		)
 	);
 }
