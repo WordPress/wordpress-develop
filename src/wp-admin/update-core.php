@@ -57,15 +57,14 @@ function list_core_update( $update ) {
 
 	$is_development_version = preg_match( '/alpha|beta|RC/', $version_string );
 
-	$message       = '';
-	$submit = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
+	$message = '';
+	$submit  = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
 	if ( $is_development_version ) {
-		if ( defined( 'WP_AUTO_UPDATE_CORE' ) && in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc' ), true ) ) {
-			/* translators: %s: version being updated to */
-			$submit = sprintf(__( 'Update to version %s' ), $update->current );
+		if ( ! preg_match( '/-\w+-/', $update->current ) ) {
+			/* translators: %s: version number */
+			$submit = sprintf( __( 'Update to version %s' ), $update->current );
 		}
 	}
-	$submit = apply_filters( 'pre_core_update_button', $submit, $is_development_version );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
