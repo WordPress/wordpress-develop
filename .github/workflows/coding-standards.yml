@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - master
+      # JSHint was introduced in WordPress 3.8.
       # PHPCS checking was introduced in WordPress 5.1.
-      - '5.[1-9]'
-      - '[6-9].*'
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
   pull_request:
 
 jobs:
