@@ -135,11 +135,9 @@ jobs:
         include:
           # Include job for PHP 7.3 with memcached.
           - php: '7.3'
-            os: ubuntu-latest
             memcached: true
           # Report the results of the PHP 7.3 without memcached job.
           - php: '7.3'
-            os: ubuntu-latest
             memcached: false
             report: true
     env:
