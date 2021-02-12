@@ -195,7 +195,7 @@ $styles = array(
 
 $locale_font_family = '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif';
 $styles[]           = array(
-	'css' => "body { font-family: '$locale_font_family' }",
+	'css' => "body { font-family: $locale_font_family }",
 );
 
 if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
