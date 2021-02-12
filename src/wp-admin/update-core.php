@@ -59,11 +59,9 @@ function list_core_update( $update ) {
 
 	$message = '';
 	$submit  = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
-	if ( $is_development_version ) {
-		if ( ! preg_match( '/-\w+-/', $update->current ) ) {
-			/* translators: %s: version number */
-			$submit = sprintf( __( 'Update to version %s' ), $update->current );
-		}
+	if ( ! preg_match( '/-\w+-/', $update->current ) ) {
+		/* translators: %s: version number */
+		$submit = sprintf( __( 'Update to version %s' ), $update->current );
 	}
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
