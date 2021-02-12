@@ -84,6 +84,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 		if ( 'edit' === $request['context'] ) {
 			if ( ! empty( $request['type'] ) ) {
 				$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+			} elseif ( ! empty( $request['show_in_nav_menus'] ) ) {
+				$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => (bool) $request['show_in_nav_menus'] ), 'objects' );
 			} else {
 				$taxonomies = get_taxonomies( '', 'objects' );
 			}
@@ -119,6 +121,8 @@ class WP_REST_Taxonomies_Controller extends WP_REST_Controller {
 
 		if ( isset( $registered['type'] ) && ! empty( $request['type'] ) ) {
 			$taxonomies = get_object_taxonomies( $request['type'], 'objects' );
+		} elseif ( ! empty( $request['show_in_nav_menus'] ) ) {
+			$taxonomies = get_taxonomies( array( 'show_in_nav_menus' => filter_var( $request['show_in_nav_menus'], FILTER_VALIDATE_BOOLEAN ) ), 'objects' );
 		} else {
 			$taxonomies = get_taxonomies( '', 'objects' );
 		}

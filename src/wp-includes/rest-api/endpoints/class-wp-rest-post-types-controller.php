@@ -82,8 +82,20 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 */
 	public function get_items_permissions_check( $request ) {
 		if ( 'edit' === $request['context'] ) {
-			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-
+			if ( ! empty( $request['show_in_nav_menus'] ) ) {
+				$types = get_post_types(
+					array(
+						'show_in_nav_menus' => filter_var(
+							$request['show_in_nav_menus'],
+							FILTER_VALIDATE_BOOLEAN
+						),
+						'show_in_rest'      => true,
+					),
+					'objects'
+				);
+			} else {
+				$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
+			}
 			foreach ( $types as $type ) {
 				if ( current_user_can( $type->cap->edit_posts ) ) {
 					return true;
@@ -109,9 +121,21 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
-		$data  = array();
-		$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
-
+		$data = array();
+		if ( ! empty( $request['show_in_nav_menus'] ) ) {
+			$types = get_post_types(
+				array(
+					'show_in_nav_menus' => filter_var(
+						$request['show_in_nav_menus'],
+						FILTER_VALIDATE_BOOLEAN
+					),
+					'show_in_rest'      => true,
+				),
+				'objects'
+			);
+		} else {
+			$types = get_post_types( array( 'show_in_rest' => true ), 'objects' );
+		}
 		foreach ( $types as $type ) {
 			if ( 'edit' === $request['context'] && ! current_user_can( $type->cap->edit_posts ) ) {
 				continue;
@@ -220,6 +244,13 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 
 		if ( in_array( 'rest_base', $fields, true ) ) {
 			$data['rest_base'] = $base;
+		}
+
+		if ( in_array( 'visibility', $fields, true ) ) {
+			$data['visibility'] = array(
+				'show_ui'           => (bool) $post_type->show_ui,
+				'show_in_nav_menus' => (bool) $post_type->show_in_nav_menus,
+			);
 		}
 
 		$context = ! empty( $request['context'] ) ? $request['context'] : 'view';
@@ -333,6 +364,22 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'context'     => array( 'view', 'edit', 'embed' ),
 					'readonly'    => true,
+				),
+				'visibility'   => array(
+					'description' => __( 'The visibility settings for the post type.' ),
+					'type'        => 'object',
+					'context'     => array( 'edit' ),
+					'readonly'    => true,
+					'properties'  => array(
+						'show_ui'           => array(
+							'description' => __( 'Whether to generate and allow a UI for managing this post type in the admin.' ),
+							'type'        => 'boolean',
+						),
+						'show_in_nav_menus' => array(
+							'description' => __( 'Whether to make this post type available for selection in navigation menus.' ),
+							'type'        => 'boolean',
+						),
+					),
 				),
 			),
 		);
