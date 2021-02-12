@@ -63,7 +63,7 @@
  *     @type bool   $Network     Whether the plugin can only be activated network-wide.
  *     @type string $RequiresWP  Minimum required version of WordPress.
  *     @type string $RequiresPHP Minimum required version of PHP.
- *     @type string $UpdateID    ID of the plugin for update purposes, should be a URL.
+ *     @type string $UpdateURI   ID of the plugin for update purposes, should be a URL.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {

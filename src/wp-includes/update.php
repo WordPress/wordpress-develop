@@ -439,14 +439,14 @@ function wp_update_plugins( $extra_stats = array() ) {
 		 * @since 5.7.0
 		 *
 		 * @param bool   $update_available The plugin update data.
-		 * @param array  $plugin_data      Plugin Headers, including UpdateID.
+		 * @param array  $plugin_data      Plugin Headers.
 		 * @param string $plugin_file      Plugin filename.
 		 * @param array  $locales          Installed locales to look for translations for.
 		 *
 		 * @return array $update {
 		 *     Latest plugin details for plugin.
 		 *
-		 *     @type string $id           ID of the plugin, see UpdateID. Optional.
+		 *     @type string $id           ID of the plugin, see UpdateURI. Optional.
 		 *     @type string $slug         Slug of the plugin.
 		 *     @type string $version      The version of the plugin.
 		 *     @type string $url          The URL for details of this plugin.
