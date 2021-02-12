@@ -134,7 +134,7 @@ jobs:
         os: [ ubuntu-latest ]
         memcached: [ false ]
         include:
-          # Include job for PHP 7.1 with memcached.
+          # Include job for PHP 7.0 with memcached.
           - php: '7.0'
             phpunit: '5-php-7.0'
             os: ubuntu-latest
