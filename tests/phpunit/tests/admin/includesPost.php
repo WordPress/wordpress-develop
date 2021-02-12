@@ -839,13 +839,14 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $name, $blocks );
 		$this->assertSame(
 			array(
+				'apiVersion'  => 1,
 				'title'       => '',
 				'description' => '',
 				'icon'        => 'text',
-				'category'    => 'common',
-				'keywords'    => array(),
 				'usesContext' => array(),
+				'category'    => 'common',
 				'styles'      => array(),
+				'keywords'    => array(),
 			),
 			$blocks[ $name ]
 		);
