@@ -22,6 +22,7 @@ require_once( ABSPATH . WPINC . '/load.php' );
 // Standardize $_SERVER variables across setups.
 wp_fix_server_vars();
 
+
 require_once( ABSPATH . WPINC . '/functions.php' );
 define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
 require_once( ABSPATH . WPINC . '/version.php' );
