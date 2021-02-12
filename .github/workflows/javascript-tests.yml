@@ -4,8 +4,17 @@ on:
   push:
     branches:
       - master
-      - '*.*'
+      # JavaScript testing was introduced in WordPress 3.8.
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '3.[89]'
+      - '[4-9].[0-9]'
 
 jobs:
   # Runs the QUnit tests for WordPress.

@@ -4,8 +4,16 @@ on:
   push:
     branches:
       - master
-      - '*.*'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[7-9]*'
+      - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'

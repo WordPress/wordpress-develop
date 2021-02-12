@@ -4,8 +4,13 @@ on:
   push:
     branches:
       - master
-      - '*.*'
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
   pull_request:
+    branches:
+      - master
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
