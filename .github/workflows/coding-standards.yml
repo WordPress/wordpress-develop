@@ -16,10 +16,10 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Configures caching for Composer.
   # - Sets up PHP.
   # - Logs debug information.
-  # - Installs Composer dependencies (from cache if possible).
+  # - Installs Composer dependencies (use cache if possible).
+  # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
@@ -27,23 +27,11 @@ jobs:
   phpcs:
     name: PHP coding standards
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Set up Composer caching
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
@@ -58,9 +46,12 @@ jobs:
           composer --version
 
       - name: Install Composer dependencies
-        run: |
-          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
-          echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+        uses: ramsey/composer-install@v1
+        with:
+          composer-options: "--no-progress --no-ansi --no-interaction"
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
         run: phpcs -i
@@ -73,10 +64,12 @@ jobs:
 
   # Runs the JavaScript coding standards checks.
   #
+  # JSHint violations are not currently reported inline with annotations.
+  #
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
@@ -85,8 +78,10 @@ jobs:
   jshint:
     name: JavaScript coding standards
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -101,7 +96,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2

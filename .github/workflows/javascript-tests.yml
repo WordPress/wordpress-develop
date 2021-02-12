@@ -14,7 +14,7 @@ jobs:
   # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
@@ -23,6 +23,8 @@ jobs:
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
@@ -43,7 +45,7 @@ jobs:
       - name: Install NodeJS
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
 
       - name: Cache NodeJS modules
         uses: actions/cache@v2
