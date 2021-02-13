@@ -244,7 +244,7 @@ class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group 38121
+	 * @ticket 38121
 	 */
 	function test_custom_attributes() {
 		$expected = "<link rel='dns-prefetch' href='//s.w.org' />\n" .
