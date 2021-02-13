@@ -3,8 +3,11 @@
 /**
  * A set of unit tests for functions in wp-includes/general-template.php
  *
+ * @group general
  * @group template
  * @group document-title
+ * @covers ::wp_get_document_title
+ * @covers ::_wp_render_title_tag
  */
 class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 

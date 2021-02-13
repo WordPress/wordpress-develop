@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @group general
+ * @group template
+ * @covers ::paginate_links
+ */
 class Tests_General_PaginateLinks extends WP_UnitTestCase {
 
 	private $i18n_count = 0;
