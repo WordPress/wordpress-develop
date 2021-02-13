@@ -1638,18 +1638,21 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertFalse( $resolved_post_date );
 	}
 
-	/**
-	 * @ticket 52007
-	 */
 	function test_sticky_posts() {
 		stick_post( 1 );
 		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
 
-		// Check if not duplicating with the same value
-		stick_post( 1 );
-		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
-
 		stick_post( 2 );
+		$this->assertEquals( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * @ticket 52007
+	 */
+	function test_sticky_posts_not_duplicate_with_the_same_value() {
+		update_option( 'sticky_posts', array( 1, 2 ) );
+
+		stick_post( 1 );
 		$this->assertEquals( array( 1, 2 ), get_option( 'sticky_posts' ) );
 
 		stick_post( '1' );
@@ -1659,21 +1662,35 @@ class Tests_Post extends WP_UnitTestCase {
 		$this->assertEquals( array( 1, 2 ), get_option( 'sticky_posts' ) );
 	}
 
-	/**
-	 * @ticket 52007
-	 */
+	function test_sticky_posts_remove_duplicate_ids_when_add_new_value() {
+		update_option( 'sticky_posts', array( 1, 1, 2 ) );
+
+		stick_post( 3 );
+		$this->assertEquals( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
+
+		stick_post( 3 );
+		$this->assertEquals( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
+	}
+
 	function test_unsticky_posts() {
 		update_option( 'sticky_posts', array( 1 ) );
-		unstick_post( 1 );
-		$this->assertEmpty( get_option( 'sticky_posts' ) );
-
-		update_option( 'sticky_posts', array( 1, 1 ) );
 		unstick_post( 1 );
 		$this->assertEmpty( get_option( 'sticky_posts' ) );
 
 		update_option( 'sticky_posts', array( 1, 2 ) );
 		unstick_post( 1 );
 		$this->assertEquals( array( 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * @ticket 52007
+	 */
+	function test_unsticky_posts_with_duplicate_id() {
+		update_option( 'sticky_posts', array( 1, 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
 
 		update_option( 'sticky_posts', array( 1, 2, 1 ) );
 		unstick_post( 1 );
@@ -1682,13 +1699,27 @@ class Tests_Post extends WP_UnitTestCase {
 		update_option( 'sticky_posts', array( 1, 2, 1 ) );
 		unstick_post( 2 );
 		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+	}
 
+	function test_unsticky_posts_using_numeric_string() {
 		update_option( 'sticky_posts', array( 1, 2 ) );
 		unstick_post( '1' );
 		$this->assertEquals( array( 2 ), get_option( 'sticky_posts' ) );
 
 		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( '2.0' );
+		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	function test_unsticky_posts_using_float() {
+		update_option( 'sticky_posts', array( 1, 2 ) );
 		unstick_post( 2.0 );
 		$this->assertEquals( array( 1 ), get_option( 'sticky_posts' ) );
+	}
+
+	function test_unsticky_post_id_is_not_stickied() {
+		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( 3 );
+		$this->assertEquals( array( 1, 2 ), get_option( 'sticky_posts' ) );
 	}
 }
