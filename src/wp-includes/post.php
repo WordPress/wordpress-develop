@@ -2626,7 +2626,7 @@ function stick_post( $post_id ) {
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		$stickies[] = $post_id;
-		$updated = update_option( 'sticky_posts', array_values( $stickies ) );
+		$updated    = update_option( 'sticky_posts', array_values( $stickies ) );
 	}
 
 	if ( $updated ) {
