@@ -6,7 +6,7 @@
  * @group hooks
  * @covers WP_Hook::apply_filters
  */
-class Tests_WP_Hook_Apply_Filters extends WP_UnitTestCase {
+class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 
 	public function test_apply_filters_with_callback() {
 		$a             = new MockAction();

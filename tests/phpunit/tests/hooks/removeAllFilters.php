@@ -6,7 +6,7 @@
  * @group hooks
  * @covers WP_Hook::remove_all_filters
  */
-class Tests_WP_Hook_Remove_All_Filters extends WP_UnitTestCase {
+class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 
 	public function test_remove_all_filters() {
 		$callback      = '__return_null';
