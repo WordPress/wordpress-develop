@@ -4,6 +4,7 @@
  * Test the do_all_hook method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::do_all_hook
  */
 class Tests_WP_Hook_Do_All_Hook extends WP_UnitTestCase {
 

@@ -4,6 +4,7 @@
  * Test the apply_filters method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::apply_filters
  */
 class Tests_WP_Hook_Apply_Filters extends WP_UnitTestCase {
 

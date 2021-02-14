@@ -4,6 +4,7 @@
  * Test the Iterator implementation of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::add_filter
  */
 class Tests_WP_Hook_Iterator extends WP_UnitTestCase {
 
