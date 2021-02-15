@@ -681,10 +681,11 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * equal to the method's name, e.g., wp.getUsersBlogs, wp.newPost, etc.
 		 *
 		 * @since 2.5.0
+		 * @since 5.7.0 $args and $server were added.
 		 *
-		 * @param string           $name The method name.
-		 * @param array|string     $args The escaped arguments passed to the method.
-		 * @param wp_xmlrpc_server $this The XML-RPC server instance.
+		 * @param string           $name   The method name.
+		 * @param array|string     $args   The escaped arguments passed to the method.
+		 * @param wp_xmlrpc_server $server The XML-RPC server instance.
 		 */
 		do_action( 'xmlrpc_call', 'wp.getUsersBlogs', $args, $this );
 
