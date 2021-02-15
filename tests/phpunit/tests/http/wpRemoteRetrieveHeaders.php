@@ -4,7 +4,7 @@
  * @group http
  * @covers ::wp_remote_retrieve_headers
  */
-class Tests_HTTP_RemoteRetrieveHeaders extends WP_UnitTestCase {
+class Tests_HTTP_wpRemoteRetrieveHeaders extends WP_UnitTestCase {
 
 	/**
 	 * Valid response

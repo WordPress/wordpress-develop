@@ -4,7 +4,7 @@
  * @group http
  * @covers ::wp_get_http_headers
  */
-class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
+class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 
 	/**
 	 * Set up the environment
