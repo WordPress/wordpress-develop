@@ -2,6 +2,7 @@
 
 /**
  * @group http
+ * @covers ::wp_remote_retrieve_headers
  */
 class Tests_HTTP_RemoteRetrieveHeaders extends WP_UnitTestCase {
 

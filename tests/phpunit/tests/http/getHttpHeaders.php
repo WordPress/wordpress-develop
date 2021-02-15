@@ -2,6 +2,7 @@
 
 /**
  * @group http
+ * @covers ::wp_get_http_headers
  */
 class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
 
