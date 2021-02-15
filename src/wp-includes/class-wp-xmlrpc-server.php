@@ -683,7 +683,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		 * @since 2.5.0
 		 *
 		 * @param string           $name The method name.
-		 * @param array            $args The escaped arguments passed to the method.
+		 * @param array|string     $args The escaped arguments passed to the method.
 		 * @param wp_xmlrpc_server $this The XML-RPC server instance.
 		 */
 		do_action( 'xmlrpc_call', 'wp.getUsersBlogs', $args, $this );
@@ -6686,7 +6686,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		global $wpdb;
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
-		do_action( 'xmlrpc_call', 'mt.getTrackbackPings', $args, $this );
+		do_action( 'xmlrpc_call', 'mt.getTrackbackPings', $post_ID, $this );
 
 		$actual_post = get_post( $post_ID, ARRAY_A );
 
@@ -7024,7 +7024,7 @@ class wp_xmlrpc_server extends IXR_Server {
 		global $wpdb;
 
 		/** This action is documented in wp-includes/class-wp-xmlrpc-server.php */
-		do_action( 'xmlrpc_call', 'pingback.extensions.getPingbacks', $args, $this );
+		do_action( 'xmlrpc_call', 'pingback.extensions.getPingbacks', $url, $this );
 
 		$url = $this->escape( $url );
 
