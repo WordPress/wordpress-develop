@@ -159,7 +159,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<p class="has-text-align-left has-black-color has-text-color has-large-font-size">' . esc_html__( 'GOT A QUESTION?', 'twentyfourteen' ) . '</p>
 								<!-- /wp:paragraph -->
 								<!-- wp:paragraph {"align":"left","textColor":"black","style":{"typography":{"fontSize":22}}} -->
-								<p class="has-text-align-left has-black-color has-text-color" style="font-size:22px">' . esc_html__( 'Don’t hesitate to reach out, I’m happy to catch up any time.', 'twentyfourteen' ) . '</p>
+								<p class="has-text-align-left has-black-color has-text-color" style="font-size:22px">' . esc_html__( 'Don’t hesitate to reach out.', 'twentyfourteen' ) . '</p>
 								<!-- /wp:paragraph -->
 								<!-- wp:buttons -->
 								<div class="wp-block-buttons"><!-- wp:button {"borderRadius":0} -->
