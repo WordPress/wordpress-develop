@@ -48,6 +48,14 @@ Genericons icon font, Copyright 2013-2017 Automattic.com
 License: GNU GPL, Version 2 (or later)
 Source: http://www.genericons.com
 
+Photos from Stocksnap, used in block patterns.
+License: CC0
+Source: https://stocksnap.io/photo/fog-mountain-ZKN6UKFKEO
+        https://stocksnap.io/photo/ocean-beach-AEZJXB5LL5
+        https://stocksnap.io/photo/architecture-building-BIL5D73PRC
+        https://stocksnap.io/photo/sea-ocean-G5GBM522C6
+        https://stocksnap.io/photo/guy-man-7CFLDIWXK5
+
 == Changelog ==
 
 = 3.0 =
