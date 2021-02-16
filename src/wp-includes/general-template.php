@@ -1435,9 +1435,9 @@ function single_post_title( $prefix = '', $display = true ) {
 	if ( ! isset( $_post->post_title ) ) {
 		return;
 	}
-	if ( get_post_status ( get_the_ID () ) == 'private' ) {
+	if ( get_post_status( get_the_ID() ) == 'private' ) {
 		$prefix = __( ' Private: ' ) . $prefix;
-	} elseif (get_post_status ( get_the_ID () ) == 'protected' ) {
+	} elseif ( get_post_status( get_the_ID() ) == 'protected' ) {
 		$prefix = __( ' Protected: ' ) . $prefix;
 	}
 
