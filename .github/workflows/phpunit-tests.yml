@@ -132,6 +132,7 @@ jobs:
         php: [ '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6.20' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
+        multisite: [ false, true ]
         include:
           # Include job for PHP 7.4 with memcached.
           - php: '7.4'
@@ -249,24 +250,31 @@ jobs:
         run: npm run env:install
 
       - name: Run PHPUnit tests
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist
 
       - name: Run AJAX tests
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group ajax
 
       - name: Run tests as a multisite install
+        if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml
 
       - name: Run AJAX tests as a multisite install
+        if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ajax
 
       - name: Run ms-files tests as a multisite install
+        if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --group ms-files
 
       - name: Run external HTTP tests
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
 
       - name: Run REST API tests
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient
 
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
