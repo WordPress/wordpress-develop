@@ -40,7 +40,7 @@ jobs:
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
     name: Generate a code coverage report
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
 
     steps:

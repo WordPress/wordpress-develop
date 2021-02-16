@@ -30,7 +30,7 @@ jobs:
   # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: PHP coding standards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
@@ -81,7 +81,7 @@ jobs:
   # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     env:
       PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}

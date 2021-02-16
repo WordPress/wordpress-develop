@@ -37,7 +37,7 @@ jobs:
   # - Uploads ZIP file as an artifact.
   setup-wordpress:
     name: Setup WordPress
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
@@ -130,16 +130,16 @@ jobs:
     strategy:
       matrix:
         php: [ '8.0', '7.4', '7.3', '7.2', '7.1', '7.0', '5.6.20' ]
-        os: [ ubuntu-latest ]
+        os: [ ubuntu-20.04 ]
         memcached: [ false ]
         include:
           # Include job for PHP 7.4 with memcached.
           - php: '7.4'
-            os: ubuntu-latest
+            os: ubuntu-20.04
             memcached: true
           # Report the results of the PHP 7.4 without memcached job.
           - php: '7.4'
-            os: ubuntu-latest
+            os: ubuntu-20.04
             memcached: false
             report: true
     env:
