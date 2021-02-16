@@ -407,7 +407,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$message = 'Test error message for the API';
 		$error   = new WP_Error( $code, $message );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		// Make sure we default to a 500 error.
@@ -424,7 +424,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$message = 'Test error message for the API';
 		$error   = new WP_Error( $code, $message, array( 'status' => 400 ) );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		$this->assertSame( 400, $response->get_status() );
@@ -443,7 +443,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$error    = new WP_Error( $code, $message, array( 'status' => 400 ) );
 		$error->add( $code2, $message2, array( 'status' => 403 ) );
 
-		$response = rest_get_server()->error_to_response( $error );
+		$response = rest_convert_error_to_response( $error );
 		$this->assertInstanceOf( 'WP_REST_Response', $response );
 
 		$this->assertSame( 400, $response->get_status() );
@@ -454,6 +454,19 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $message, $error->get_error_message() );
 		$this->assertSame( $message2, $error->errors[ $code2 ][0] );
 		$this->assertSame( array( 'status' => 403 ), $error->error_data[ $code2 ] );
+	}
+
+	/**
+	 * @ticket 46191
+	 */
+	public function test_error_to_response_with_additional_data() {
+		$error = new WP_Error( 'test', 'test', array( 'status' => 400 ) );
+		$error->add_data( 'more_data' );
+
+		$response = rest_convert_error_to_response( $error );
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'more_data', $response->get_data()['data'] );
+		$this->assertSame( array( array( 'status' => 400 ) ), $response->get_data()['additional_data'] );
 	}
 
 	public function test_rest_error() {
@@ -959,6 +972,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertContains( 'GET', $route['methods'] );
 		$this->assertContains( 'DELETE', $route['methods'] );
 		$this->assertArrayHasKey( '_links', $route );
+
+		$this->assertArrayHasKey( 'help', $index->get_links() );
+		$this->assertArrayNotHasKey( 'wp:active-theme', $index->get_links() );
 	}
 
 	public function test_get_namespace_index() {
@@ -1994,6 +2010,16 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$args     = $response->get_data()['endpoints'][0]['args'];
 
 		$this->assertSameSetsWithIndex( $expected, $args['param'] );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_index_includes_link_to_active_theme_if_authenticated() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+
+		$index = rest_do_request( '/' );
+		$this->assertArrayHasKey( 'https://api.w.org/active-theme', $index->get_links() );
 	}
 
 	public function _validate_as_integer_123( $value, $request, $key ) {

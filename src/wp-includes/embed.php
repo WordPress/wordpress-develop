@@ -99,7 +99,7 @@ function wp_embed_defaults( $url = '' ) {
  * @see WP_oEmbed
  *
  * @param string $url  The URL that should be embedded.
- * @param array  $args {
+ * @param array|string $args {
  *     Optional. Additional arguments for retrieving embed HTML. Default empty.
  *
  *     @type int|string $width    Optional. The `maxwidth` value passed to the provider URL.
@@ -1242,4 +1242,24 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 	}
 
 	return $result;
+}
+
+/**
+ * Adds noindex to the robots meta tag for embeds.
+ *
+ * Typical usage is as a {@see 'wp_robots'} callback:
+ *
+ *     add_filter( 'wp_robots', 'wp_embed_no_robots' );
+ *
+ * @since 5.7.0
+ *
+ * @param array $robots Associative array of robots directives.
+ * @return array Filtered robots directives.
+ */
+function wp_embed_no_robots( array $robots ) {
+	if ( ! is_embed() ) {
+		return $robots;
+	}
+
+	return wp_robots_no_robots( $robots );
 }

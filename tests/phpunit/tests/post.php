@@ -403,7 +403,7 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_vb_insert_invalid_date() {
 		$post = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
 			'post_date'    => '2012-02-30 00:00:00',
@@ -785,7 +785,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$title          = rand_str();
 		$post_data      = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => $title,
 			'tax_input'    => array(
@@ -971,7 +971,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 			)
@@ -989,7 +989,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => 'page',
@@ -1010,7 +1010,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,
@@ -1032,7 +1032,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,
@@ -1394,5 +1394,247 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
 		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_empty_post_date() {
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( get_gmt_from_date( $post->post_date ) ), 2, 'The dates should be equal' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( get_gmt_from_date( $post->post_date ) ), 2, 'The dates should be equal' );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_valid_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $post_date,
+				'post_status' => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $post_date,
+				'post_status' => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_invalid_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $invalid_date,
+				'post_status' => 'draft',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $invalid_date,
+				'post_status' => 'publish',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$this->assertSame( 0, $post_id );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	function test_wp_resolve_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		$resolved_post_date = wp_resolve_post_date();
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $resolved_post_date ), 2, 'The dates should be equal' );
+
+		$resolved_post_date = wp_resolve_post_date( '', $post_date_gmt );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( '', $invalid_date );
+		$this->assertSame( '1970-01-01 00:00:00', $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date, $post_date_gmt );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date, $invalid_date );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date );
+		$this->assertFalse( $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date, $post_date_gmt );
+		$this->assertFalse( $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date, $invalid_date );
+		$this->assertFalse( $resolved_post_date );
 	}
 }

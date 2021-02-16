@@ -17,11 +17,11 @@
 		<header class="entry-header alignwide">
 			<?php get_template_part( 'template-parts/header/entry-header' ); ?>
 			<?php twenty_twenty_one_post_thumbnail(); ?>
-		</header>
+		</header><!-- .entry-header -->
 	<?php elseif ( has_post_thumbnail() ) : ?>
 		<header class="entry-header alignwide">
 			<?php twenty_twenty_one_post_thumbnail(); ?>
-		</header>
+		</header><!-- .entry-header -->
 	<?php endif; ?>
 
 	<div class="entry-content">
@@ -32,7 +32,7 @@
 			array(
 				'before'   => '<nav class="page-links" aria-label="' . esc_attr__( 'Page', 'twentytwentyone' ) . '">',
 				'after'    => '</nav>',
-				/* translators: %: page number. */
+				/* translators: %: Page number. */
 				'pagelink' => esc_html__( 'Page %', 'twentytwentyone' ),
 			)
 		);

@@ -112,15 +112,19 @@ switch ( $wp_list_table->current_action() ) {
 		}
 
 		$editable_roles = get_editable_roles();
-		$role           = false;
-		if ( ! empty( $_REQUEST['new_role2'] ) ) {
-			$role = $_REQUEST['new_role2'];
-		} elseif ( ! empty( $_REQUEST['new_role'] ) ) {
-			$role = $_REQUEST['new_role'];
-		}
+		$role           = $_REQUEST['new_role'];
+
+		// Mocking the `none` role so we are able to save it to the database
+		$editable_roles['none'] = array(
+			'name' => __( '&mdash; No role for this site &mdash;' ),
+		);
 
 		if ( ! $role || empty( $editable_roles[ $role ] ) ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+		}
+
+		if ( 'none' === $role ) {
+			$role = '';
 		}
 
 		$userids = $_REQUEST['users'];
@@ -207,6 +211,46 @@ switch ( $wp_list_table->current_action() ) {
 			array(
 				'delete_count' => $delete_count,
 				'update'       => $update,
+			),
+			$redirect
+		);
+		wp_redirect( $redirect );
+		exit;
+
+	case 'resetpassword':
+		check_admin_referer( 'bulk-users' );
+		if ( ! current_user_can( 'edit_users' ) ) {
+			$errors = new WP_Error( 'edit_users', __( 'Sorry, you are not allowed to edit users.' ) );
+		}
+		if ( empty( $_REQUEST['users'] ) ) {
+			wp_redirect( $redirect );
+			exit();
+		}
+		$userids = array_map( 'intval', (array) $_REQUEST['users'] );
+
+		$reset_count = 0;
+
+		foreach ( $userids as $id ) {
+			if ( ! current_user_can( 'edit_user', $id ) ) {
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
+			}
+
+			if ( $id === $current_user->ID ) {
+				$update = 'err_admin_reset';
+				continue;
+			}
+
+			// Send the password reset link.
+			$user = get_userdata( $id );
+			if ( retrieve_password( $user->user_login ) ) {
+				++$reset_count;
+			}
+		}
+
+		$redirect = add_query_arg(
+			array(
+				'reset_count' => $reset_count,
+				'update'      => 'resetpassword',
 			),
 			$redirect
 		);
@@ -510,6 +554,16 @@ switch ( $wp_list_table->current_action() ) {
 					}
 
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . $message . '</p></div>';
+					break;
+				case 'resetpassword':
+					$reset_count = isset( $_GET['reset_count'] ) ? (int) $_GET['reset_count'] : 0;
+					if ( 1 === $reset_count ) {
+						$message = __( 'Password reset link sent.' );
+					} else {
+						/* translators: %s: Number of users. */
+						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
+					}
+					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
 					break;
 				case 'promote':
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';

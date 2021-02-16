@@ -7,6 +7,8 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
+	 *
+	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 */
 	public function test_validate_cookie_returns_wp_error_if_invalid_format() {
 
@@ -27,6 +29,8 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
+	 *
+	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 */
 	public function test_validate_cookie_returns_wp_error_if_expired() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
@@ -44,6 +48,8 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
+	 *
+	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 */
 	public function test_validate_cookie_returns_wp_error_if_signature_mismatch() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
@@ -60,6 +66,8 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
+	 *
+	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 */
 	public function test_validate_cookie_returns_wp_error_if_created_at_is_invalid_format() {
 		$service    = new WP_Recovery_Mode_Cookie_Service();
@@ -77,6 +85,8 @@ class Tests_Recovery_Mode_Cookie_Service extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46130
+	 *
+	 * @covers WP_Recovery_Mode_Cookie_Service::validate_cookie
 	 */
 	public function test_validate_cookie_returns_true_for_valid_cookie() {
 

@@ -65,14 +65,14 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// If initial request succeeds, all good.
 		add_filter( 'pre_http_request', array( $this, 'mock_success_with_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals( array(), get_option( 'https_detection_errors' ) );
+		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
 
 		// If initial request fails and request without SSL verification succeeds,
 		// return error with 'ssl_verification_failed' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -82,7 +82,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_ssl_certificate' => array( 'Bad SSL certificate.' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -91,7 +91,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// 'bad_response_code' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_not_found' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_response_code' => array( 'Not Found' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -100,13 +100,44 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// WordPress site, return error with 'bad_response_source' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_bad_source' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_response_source' => array( 'It looks like the response did not come from this site.' ) ),
 			get_option( 'https_detection_errors' )
 		);
 
 		// Check that the requests are made to the correct URL.
-		$this->assertEquals( 'https://example.com/', $this->last_request_url );
+		$this->assertSame( 'https://example.com/', $this->last_request_url );
+	}
+
+	/**
+	 * @ticket 47577
+	 */
+	public function test_pre_wp_update_https_detection_errors() {
+		// Override to enforce no errors being detected.
+		add_filter(
+			'pre_wp_update_https_detection_errors',
+			function() {
+				return new WP_Error();
+			}
+		);
+		wp_update_https_detection_errors();
+		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
+
+		// Override to enforce an error being detected.
+		add_filter(
+			'pre_wp_update_https_detection_errors',
+			function() {
+				return new WP_Error(
+					'ssl_verification_failed',
+					'Bad SSL certificate.'
+				);
+			}
+		);
+		wp_update_https_detection_errors();
+		$this->assertSame(
+			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
+			get_option( 'https_detection_errors' )
+		);
 	}
 
 	/**
@@ -114,7 +145,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_wp_schedule_https_detection() {
 		wp_schedule_https_detection();
-		$this->assertEquals( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
+		$this->assertSame( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
 	}
 
 	/**
@@ -126,7 +157,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 			'url'  => 'http://example.com/',
 			'args' => array( 'sslverify' => true ),
 		);
-		$this->assertEquals( $request, wp_cron_conditionally_prevent_sslverify( $request ) );
+		$this->assertSame( $request, wp_cron_conditionally_prevent_sslverify( $request ) );
 
 		// If URL is using HTTPS, set 'sslverify' to false.
 		$request                       = array(
@@ -135,94 +166,94 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		);
 		$expected                      = $request;
 		$expected['args']['sslverify'] = false;
-		$this->assertEquals( $expected, wp_cron_conditionally_prevent_sslverify( $request ) );
+		$this->assertSame( $expected, wp_cron_conditionally_prevent_sslverify( $request ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_rsd_link() {
+	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
 		$head_tag = get_echo( 'rsd_link' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified RSD link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include RSD link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_wlwmanifest_link() {
+	public function test_wp_is_local_html_output_via_wlwmanifest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
 
 		// HTML includes WLW manifest link.
 		$head_tag = get_echo( 'wlwmanifest_link' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified WLW manifest link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'wlwmanifest_link' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes WLW manifest link with alternative URL scheme.
 		$head_tag = get_echo( 'wlwmanifest_link' );
 		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include WLW manifest link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_via_rest_link() {
+	public function test_wp_is_local_html_output_via_rest_link() {
 		remove_action( 'wp_head', 'rsd_link' );
 		remove_action( 'wp_head', 'wlwmanifest_link' );
 
 		// HTML includes REST API link.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes modified REST API link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rest_output_link_wp_head' ) );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML includes REST API link with alternative URL scheme.
 		$head_tag = get_echo( 'rest_output_link_wp_head' );
 		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
-		$this->assertTrue( wp_is_owned_html_output( $html ) );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
 
 		// HTML does not include REST API link.
 		$html = $this->get_sample_html_string();
-		$this->assertFalse( wp_is_owned_html_output( $html ) );
+		$this->assertFalse( wp_is_local_html_output( $html ) );
 	}
 
 	/**
 	 * @ticket 47577
 	 */
-	public function test_wp_is_owned_html_output_cannot_determine() {
+	public function test_wp_is_local_html_output_cannot_determine() {
 		remove_action( 'wp_head', 'rsd_link' );
 		remove_action( 'wp_head', 'wlwmanifest_link' );
 		remove_action( 'wp_head', 'rest_output_link_wp_head' );
 
 		// The HTML here doesn't matter because all hooks are removed.
 		$html = $this->get_sample_html_string();
-		$this->assertNull( wp_is_owned_html_output( $html ) );
+		$this->assertNull( wp_is_local_html_output( $html ) );
 	}
 
 	public function record_request_url( $preempt, $parsed_args, $url ) {

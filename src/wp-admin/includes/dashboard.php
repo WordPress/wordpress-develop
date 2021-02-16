@@ -39,7 +39,7 @@ function wp_dashboard_setup() {
 	$response = wp_check_php_version();
 	if ( $response && isset( $response['is_acceptable'] ) && ! $response['is_acceptable'] && current_user_can( 'update_php' ) ) {
 		add_filter( 'postbox_classes_dashboard_dashboard_php_nag', 'dashboard_php_nag_class' );
-		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Required' ), 'wp_dashboard_php_nag' );
+		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Recommended' ), 'wp_dashboard_php_nag' );
 	}
 
 	// Site Health.
@@ -506,7 +506,7 @@ function wp_network_dashboard_right_now() {
  *
  * @global int $post_ID
  *
- * @param string $error_msg Optional. Error message. Default false.
+ * @param string|false $error_msg Optional. Error message. Default false.
  */
 function wp_dashboard_quick_press( $error_msg = false ) {
 	global $post_ID;
@@ -577,7 +577,7 @@ function wp_dashboard_quick_press( $error_msg = false ) {
  *
  * @since 2.7.0
  *
- * @param WP_Post[] $drafts Optional. Array of posts to display. Default false.
+ * @param WP_Post[]|false $drafts Optional. Array of posts to display. Default false.
  */
 function wp_dashboard_recent_drafts( $drafts = false ) {
 	if ( ! $drafts ) {
@@ -1151,7 +1151,7 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
  *
  * @global callable[] $wp_dashboard_control_callbacks
  *
- * @param int $widget_control_id Registered Widget ID.
+ * @param int|false $widget_control_id Optional. Registered widget ID. Default false.
  */
 function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 	global $wp_dashboard_control_callbacks;
@@ -1398,6 +1398,19 @@ function wp_print_community_events_templates() {
 				</div>
 			</li>
 		<# } ) #>
+
+		<# if ( data.events.length <= 2 ) { #>
+			<li class="event-none">
+				<?php
+				printf(
+					/* translators: %s: Localized meetup organization documentation URL. */
+					__( 'Want more events? <a href="%s">Help organize the next one</a>!' ),
+					__( 'https://make.wordpress.org/community/organize-event-landing-page/' )
+				);
+				?>
+			</li>
+		<# } #>
+
 	</script>
 
 	<script id="tmpl-community-events-no-upcoming-events" type="text/template">
@@ -1538,7 +1551,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' ) || get_site_option( 'upload_space_check_disabled' ) ) {
@@ -1680,7 +1693,7 @@ function dashboard_browser_nag_class( $classes ) {
  *
  * @since 3.2.0
  *
- * @return array|bool Array of browser data on success, false on failure.
+ * @return array|false Array of browser data on success, false on failure.
  */
 function wp_check_browser_version() {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
@@ -1747,16 +1760,31 @@ function wp_dashboard_php_nag() {
 	}
 
 	if ( isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
-		$msg = __( 'WordPress has detected that your site is running on an insecure version of PHP.' );
+		$msg = sprintf(
+			/* translators: %s: The server PHP version. */
+			__( 'Your site is running an insecure version of PHP (%s), which should be updated.' ),
+			PHP_VERSION
+		);
 	} else {
-		$msg = __( 'WordPress has detected that your site is running on an outdated version of PHP.' );
+		$msg = sprintf(
+			/* translators: %s: The server PHP version. */
+			__( 'Your site is running an outdated version of PHP (%s), which should be updated.' ),
+			PHP_VERSION
+		);
 	}
-
 	?>
 	<p><?php echo $msg; ?></p>
 
 	<h3><?php _e( 'What is PHP and how does it affect my site?' ); ?></h3>
-	<p><?php _e( 'PHP is the programming language we use to build and maintain WordPress. Newer versions of PHP are both faster and more secure, so updating will have a positive effect on your site&#8217;s performance.' ); ?></p>
+	<p>
+		<?php
+		printf(
+			/* translators: %s: The minimum recommended PHP version. */
+			__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
+			$response ? $response['recommended_version'] : ''
+		);
+		?>
+	</p>
 
 	<p class="button-container">
 		<?php

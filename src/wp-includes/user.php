@@ -449,8 +449,8 @@ function wp_authenticate_application_password( $input_user, $username, $password
  *
  * @since 5.6.0
  *
- * @param int|bool $input_user User ID if one has been determined, false otherwise.
- * @return int|bool The authenticated user ID if successful, false otherwise.
+ * @param int|false $input_user User ID if one has been determined, false otherwise.
+ * @return int|false The authenticated user ID if successful, false otherwise.
  */
 function wp_validate_application_password( $input_user ) {
 	// Don't authenticate twice.
@@ -462,8 +462,8 @@ function wp_validate_application_password( $input_user ) {
 		return $input_user;
 	}
 
-	// Check that we're trying to authenticate
-	if ( ! isset( $_SERVER['PHP_AUTH_USER'] ) ) {
+	// Both $_SERVER['PHP_AUTH_USER'] and $_SERVER['PHP_AUTH_PW'] must be set in order to attempt authentication.
+	if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
 		return $input_user;
 	}
 
@@ -515,8 +515,8 @@ function wp_authenticate_spam_check( $user ) {
  *
  * @since 3.9.0
  *
- * @param int|bool $user_id The user ID (or false) as received from
- *                          the `determine_current_user` filter.
+ * @param int|false $user_id The user ID (or false) as received from
+ *                           the `determine_current_user` filter.
  * @return int|false User ID if validated, false otherwise. If a user ID from
  *                   an earlier filter callback is received, that value is returned.
  */
@@ -1537,7 +1537,7 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
  * @since 3.0.0
  *
  * @param object|WP_User $user User object or database row to be cached
- * @return bool|null Returns false on failure.
+ * @return void|false Void on success, false on failure.
  */
 function update_user_caches( $user ) {
 	if ( $user instanceof WP_User ) {
@@ -2656,6 +2656,173 @@ function check_password_reset_key( $key, $login ) {
 }
 
 /**
+ * Handles sending a password retrieval email to a user.
+ *
+ * @since 2.5.0
+ * @since 5.7.0 Added `$user_login` parameter.
+ *
+ * @global wpdb         $wpdb       WordPress database abstraction object.
+ * @global PasswordHash $wp_hasher  Portable PHP password hashing framework.
+ *
+ * @param string $user_login Optional. Username to send a password retrieval email for.
+ *                           Defaults to `$_POST['user_login']` if not set.
+ * @return true|WP_Error True when finished, WP_Error object on error.
+ */
+function retrieve_password( $user_login = null ) {
+	$errors    = new WP_Error();
+	$user_data = false;
+
+	// Use the passed $user_login if available, otherwise use $_POST['user_login'].
+	if ( ! $user_login && ! empty( $_POST['user_login'] ) ) {
+		$user_login = $_POST['user_login'];
+	}
+
+	if ( empty( $user_login ) ) {
+		$errors->add( 'empty_username', __( '<strong>Error</strong>: Please enter a username or email address.' ) );
+	} elseif ( strpos( $user_login, '@' ) ) {
+		$user_data = get_user_by( 'email', trim( wp_unslash( $user_login ) ) );
+		if ( empty( $user_data ) ) {
+			$errors->add( 'invalid_email', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
+		}
+	} else {
+		$user_data = get_user_by( 'login', trim( wp_unslash( $user_login ) ) );
+	}
+
+	/**
+	 * Filters the user data during a password reset request.
+	 *
+	 * Allows, for example, custom validation using data other than username or email address.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 */
+	$user_data = apply_filters( 'lostpassword_user_data', $user_data, $errors );
+
+	/**
+	 * Fires before errors are returned from a password reset request.
+	 *
+	 * @since 2.1.0
+	 * @since 4.4.0 Added the `$errors` parameter.
+	 * @since 5.4.0 Added the `$user_data` parameter.
+	 *
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 */
+	do_action( 'lostpassword_post', $errors, $user_data );
+
+	/**
+	 * Filters the errors encountered on a password reset request.
+	 *
+	 * The filtered WP_Error object may, for example, contain errors for an invalid
+	 * username or email address. A WP_Error object should always be returned,
+	 * but may or may not contain errors.
+	 *
+	 * If any errors are present in $errors, this will abort the password reset request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param WP_Error      $errors    A WP_Error object containing any errors generated
+	 *                                 by using invalid credentials.
+	 * @param WP_User|false $user_data WP_User object if found, false if the user does not exist.
+	 */
+	$errors = apply_filters( 'lostpassword_errors', $errors, $user_data );
+
+	if ( $errors->has_errors() ) {
+		return $errors;
+	}
+
+	if ( ! $user_data ) {
+		$errors->add( 'invalidcombo', __( '<strong>Error</strong>: There is no account with that username or email address.' ) );
+		return $errors;
+	}
+
+	// Redefining user_login ensures we return the right case in the email.
+	$user_login = $user_data->user_login;
+	$user_email = $user_data->user_email;
+	$key        = get_password_reset_key( $user_data );
+
+	if ( is_wp_error( $key ) ) {
+		return $key;
+	}
+
+	if ( is_multisite() ) {
+		$site_name = get_network()->site_name;
+	} else {
+		/*
+		 * The blogname option is escaped with esc_html on the way into the database
+		 * in sanitize_option. We want to reverse this for the plain text arena of emails.
+		 */
+		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
+	}
+
+	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
+	/* translators: %s: Site name. */
+	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
+	/* translators: %s: User login. */
+	$message .= sprintf( __( 'Username: %s' ), $user_login ) . "\r\n\r\n";
+	$message .= __( 'If this was a mistake, ignore this email and nothing will happen.' ) . "\r\n\r\n";
+	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
+	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n\r\n";
+
+	$requester_ip = $_SERVER['REMOTE_ADDR'];
+	if ( $requester_ip ) {
+		$message .= sprintf(
+			/* translators: %s: IP address of password reset requester. */
+			__( 'This password reset request originated from the IP address %s.' ),
+			$requester_ip
+		) . "\r\n";
+	}
+
+	/* translators: Password reset notification email subject. %s: Site title. */
+	$title = sprintf( __( '[%s] Password Reset' ), $site_name );
+
+	/**
+	 * Filters the subject of the password reset email.
+	 *
+	 * @since 2.8.0
+	 * @since 4.4.0 Added the `$user_login` and `$user_data` parameters.
+	 *
+	 * @param string  $title      Email subject.
+	 * @param string  $user_login The username for the user.
+	 * @param WP_User $user_data  WP_User object.
+	 */
+	$title = apply_filters( 'retrieve_password_title', $title, $user_login, $user_data );
+
+	/**
+	 * Filters the message body of the password reset mail.
+	 *
+	 * If the filtered message is empty, the password reset email will not be sent.
+	 *
+	 * @since 2.8.0
+	 * @since 4.1.0 Added `$user_login` and `$user_data` parameters.
+	 *
+	 * @param string  $message    Email message.
+	 * @param string  $key        The activation key.
+	 * @param string  $user_login The username for the user.
+	 * @param WP_User $user_data  WP_User object.
+	 */
+	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
+
+	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
+		$errors->add(
+			'retrieve_password_email_failure',
+			sprintf(
+				/* translators: %s: Documentation URL. */
+				__( '<strong>Error</strong>: The email could not be sent. Your site may not be correctly configured to send emails. <a href="%s">Get support for resetting your password</a>.' ),
+				esc_url( __( 'https://wordpress.org/support/article/resetting-your-password/' ) )
+			)
+		);
+		return $errors;
+	}
+
+	return true;
+}
+
+/**
  * Handles resetting the user's password.
  *
  * @since 2.5.0
@@ -2978,7 +3145,7 @@ function _wp_get_current_user() {
 	 *
 	 * @since 3.9.0
 	 *
-	 * @param int|bool $user_id User ID if one has been determined, false otherwise.
+	 * @param int|false $user_id User ID if one has been determined, false otherwise.
 	 */
 	$user_id = apply_filters( 'determine_current_user', false );
 	if ( ! $user_id ) {
@@ -3123,7 +3290,7 @@ function new_user_email_admin_notice() {
 }
 
 /**
- * Get all user privacy request types.
+ * Get all personal data request types.
  *
  * @since 4.9.6
  * @access private
@@ -3769,13 +3936,17 @@ function _wp_privacy_account_request_confirmed_message( $request_id ) {
  * users on the site, or guests without a user account.
  *
  * @since 4.9.6
+ * @since 5.7.0 Added the `$status` parameter.
  *
- * @param string $email_address User email address. This can be the address of a registered or non-registered user.
- * @param string $action_name   Name of the action that is being confirmed. Required.
- * @param array  $request_data  Misc data you want to send with the verification request and pass to the actions once the request is confirmed.
- * @return int|WP_Error Returns the request ID if successful, or a WP_Error object on failure.
+ * @param string $email_address           User email address. This can be the address of a registered
+ *                                        or non-registered user.
+ * @param string $action_name             Name of the action that is being confirmed. Required.
+ * @param array  $request_data            Misc data you want to send with the verification request and pass
+ *                                        to the actions once the request is confirmed.
+ * @param string $status                  Optional request status (pending or confirmed). Default 'pending'.
+ * @return int|WP_Error                   Returns the request ID if successful, or a WP_Error object on failure.
  */
-function wp_create_user_request( $email_address = '', $action_name = '', $request_data = array() ) {
+function wp_create_user_request( $email_address = '', $action_name = '', $request_data = array(), $status = 'pending' ) {
 	$email_address = sanitize_email( $email_address );
 	$action_name   = sanitize_key( $action_name );
 
@@ -3785,6 +3956,10 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 
 	if ( ! in_array( $action_name, _wp_privacy_action_request_types(), true ) ) {
 		return new WP_Error( 'invalid_action', __( 'Invalid action name.' ) );
+	}
+
+	if ( ! in_array( $status, array( 'pending', 'confirmed' ), true ) ) {
+		return new WP_Error( 'invalid_status', __( 'Invalid request status.' ) );
 	}
 
 	$user    = get_user_by( 'email', $email_address );
@@ -3805,7 +3980,7 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 	);
 
 	if ( $requests_query->found_posts ) {
-		return new WP_Error( 'duplicate_request', __( 'An incomplete user privacy request for this email address already exists.' ) );
+		return new WP_Error( 'duplicate_request', __( 'An incomplete personal data request for this email address already exists.' ) );
 	}
 
 	$request_id = wp_insert_post(
@@ -3814,7 +3989,7 @@ function wp_create_user_request( $email_address = '', $action_name = '', $reques
 			'post_name'     => $action_name,
 			'post_title'    => $email_address,
 			'post_content'  => wp_json_encode( $request_data ),
-			'post_status'   => 'request-pending',
+			'post_status'   => 'request-' . $status,
 			'post_type'     => 'user_request',
 			'post_date'     => current_time( 'mysql', false ),
 			'post_date_gmt' => current_time( 'mysql', true ),
@@ -3866,14 +4041,14 @@ function wp_user_request_action_description( $action_name ) {
  * @since 4.9.6
  *
  * @param string $request_id ID of the request created via wp_create_user_request().
- * @return bool|WP_Error True on success, `WP_Error` on failure.
+ * @return true|WP_Error True on success, `WP_Error` on failure.
  */
 function wp_send_user_request( $request_id ) {
 	$request_id = absint( $request_id );
 	$request    = wp_get_user_request( $request_id );
 
 	if ( ! $request ) {
-		return new WP_Error( 'invalid_request', __( 'Invalid user privacy request.' ) );
+		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 
 	// Localize message content for user; fallback to site default for visitors.
@@ -4050,7 +4225,7 @@ function wp_generate_user_request_key( $request_id ) {
  *
  * @param string $request_id ID of the request being confirmed.
  * @param string $key        Provided key to validate.
- * @return bool|WP_Error True on success, WP_Error on failure.
+ * @return true|WP_Error True on success, WP_Error on failure.
  */
 function wp_validate_user_request_key( $request_id, $key ) {
 	global $wp_hasher;
@@ -4061,15 +4236,15 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$key_request_time = $request->modified_timestamp;
 
 	if ( ! $request || ! $saved_key || ! $key_request_time ) {
-		return new WP_Error( 'invalid_request', __( 'Invalid user privacy request.' ) );
+		return new WP_Error( 'invalid_request', __( 'Invalid personal data request.' ) );
 	}
 
 	if ( ! in_array( $request->status, array( 'request-pending', 'request-failed' ), true ) ) {
-		return new WP_Error( 'expired_request', __( 'This user privacy request has expired.' ) );
+		return new WP_Error( 'expired_request', __( 'This personal data request has expired.' ) );
 	}
 
 	if ( empty( $key ) ) {
-		return new WP_Error( 'missing_key', __( 'This user privacy request is missing the confirmation key.' ) );
+		return new WP_Error( 'missing_key', __( 'The confirmation key is missing from this personal data request.' ) );
 	}
 
 	if ( empty( $wp_hasher ) ) {
@@ -4088,11 +4263,11 @@ function wp_validate_user_request_key( $request_id, $key ) {
 	$expiration_time     = $key_request_time + $expiration_duration;
 
 	if ( ! $wp_hasher->CheckPassword( $key, $saved_key ) ) {
-		return new WP_Error( 'invalid_key', __( 'This user privacy request confirmation key is invalid.' ) );
+		return new WP_Error( 'invalid_key', __( 'The confirmation key is invalid for this personal data request.' ) );
 	}
 
 	if ( ! $expiration_time || time() > $expiration_time ) {
-		return new WP_Error( 'expired_key', __( 'This user privacy request confirmation key has expired.' ) );
+		return new WP_Error( 'expired_key', __( 'The confirmation key has expired for this personal data request.' ) );
 	}
 
 	return true;

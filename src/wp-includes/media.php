@@ -244,7 +244,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$info       = null;
 
 		if ( $thumb_file ) {
-			$info = @getimagesize( $thumb_file );
+			$info = wp_getimagesize( $thumb_file );
 		}
 
 		if ( $thumb_file && $info ) {
@@ -962,7 +962,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
 				$src_file               = $icon_dir . '/' . wp_basename( $src );
-				list( $width, $height ) = @getimagesize( $src_file );
+				list( $width, $height ) = wp_getimagesize( $src_file );
 			}
 		}
 
@@ -1124,7 +1124,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'thumbnail'.
  * @param bool         $icon          Optional. Whether the image should be treated as an icon. Default false.
- * @return string|false Attachment URL or false if no image is available.
+ * @return string|false Attachment URL or false if no image is available. If `$size` does not match
+ *                      any registered image size, the original image URL will be returned.
  */
 function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
@@ -1201,7 +1202,7 @@ function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
  *                                    width and height values in pixels (in that order). Default 'medium'.
  * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
- * @return string|bool A 'srcset' value string or false.
+ * @return string|false A 'srcset' value string or false.
  */
 function wp_get_attachment_image_srcset( $attachment_id, $size = 'medium', $image_meta = null ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size );
@@ -1442,7 +1443,7 @@ function wp_calculate_image_srcset( $size_array, $image_src, $image_meta, $attac
  *                                    width and height values in pixels (in that order). Default 'medium'.
  * @param array        $image_meta    Optional. The image meta data as returned by 'wp_get_attachment_metadata()'.
  *                                    Default null.
- * @return string|bool A valid source size value for use in a 'sizes' attribute or false.
+ * @return string|false A valid source size value for use in a 'sizes' attribute or false.
  */
 function wp_get_attachment_image_sizes( $attachment_id, $size = 'medium', $image_meta = null ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size );
@@ -1599,32 +1600,48 @@ function wp_image_file_matches_image_meta( $image_location, $image_meta, $attach
  *                     or false if dimensions cannot be determined.
  */
 function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 0 ) {
-	if ( ! wp_image_file_matches_image_meta( $image_src, $image_meta, $attachment_id ) ) {
-		return false;
-	}
+	$dimensions = false;
 
 	// Is it a full size image?
-	if ( strpos( $image_src, $image_meta['file'] ) !== false ) {
-		return array(
+	if (
+		isset( $image_meta['file'] ) &&
+		strpos( $image_src, wp_basename( $image_meta['file'] ) ) !== false
+	) {
+		$dimensions = array(
 			(int) $image_meta['width'],
 			(int) $image_meta['height'],
 		);
 	}
 
-	if ( ! empty( $image_meta['sizes'] ) ) {
+	if ( ! $dimensions && ! empty( $image_meta['sizes'] ) ) {
 		$src_filename = wp_basename( $image_src );
 
 		foreach ( $image_meta['sizes'] as $image_size_data ) {
 			if ( $src_filename === $image_size_data['file'] ) {
-				return array(
+				$dimensions = array(
 					(int) $image_size_data['width'],
 					(int) $image_size_data['height'],
 				);
+
+				break;
 			}
 		}
 	}
 
-	return false;
+	/**
+	 * Filters the 'wp_image_src_get_dimensions' value.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array|false $dimensions    Array with first element being the width
+	 *                                   and second element being the height, or
+	 *                                   false if dimensions could not be determined.
+	 * @param string      $image_src     The image source file.
+	 * @param array       $image_meta    The image meta data as returned by
+	 *                                   'wp_get_attachment_metadata()'.
+	 * @param int         $attachment_id The image attachment ID. Default 0.
+	 */
+	return apply_filters( 'wp_image_src_get_dimensions', $dimensions, $image_src, $image_meta, $attachment_id );
 }
 
 /**
@@ -3362,7 +3379,7 @@ add_shortcode( 'video', 'wp_video_shortcode' );
  *
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param string       $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  */
 function previous_image_link( $size = 'thumbnail', $text = false ) {
 	adjacent_image_link( true, $size, $text );
@@ -3377,7 +3394,7 @@ function previous_image_link( $size = 'thumbnail', $text = false ) {
  *
  * @param string|int[] $size Optional. Image size. Accepts any registered image size name, or an array
  *                           of width and height values in pixels (in that order). Default 'thumbnail'.
- * @param string       $text Optional. Link text. Default false.
+ * @param string|false $text Optional. Link text. Default false.
  */
 function next_image_link( $size = 'thumbnail', $text = false ) {
 	adjacent_image_link( false, $size, $text );
@@ -3424,7 +3441,8 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
 
 		if ( isset( $attachments[ $k ] ) ) {
 			$attachment_id = $attachments[ $k ]->ID;
-			$output        = wp_get_attachment_link( $attachment_id, $size, true, false, $text );
+			$attr          = array( 'alt' => get_the_title( $attachment_id ) );
+			$output        = wp_get_attachment_link( $attachment_id, $size, true, false, $text, $attr );
 		}
 	}
 
@@ -3929,6 +3947,7 @@ function wp_prepare_attachment_for_js( $attachment ) {
 	);
 
 	$author = new WP_User( $attachment->post_author );
+
 	if ( $author->exists() ) {
 		$author_name            = $author->display_name ? $author->display_name : $author->nickname;
 		$response['authorName'] = html_entity_decode( $author_name, ENT_QUOTES, get_bloginfo( 'charset' ) );
@@ -4944,4 +4963,38 @@ function _wp_add_additional_image_sizes() {
 function wp_show_heic_upload_error( $plupload_settings ) {
 	$plupload_settings['heic_upload_error'] = true;
 	return $plupload_settings;
+}
+
+/**
+ * Allows PHP's getimagesize() to be debuggable when necessary.
+ *
+ * @since 5.7.0
+ *
+ * @param string $filename  The file path.
+ * @param array  $imageinfo Extended image information, passed by reference.
+ * @return array|false Array of image information or false on failure.
+ */
+function wp_getimagesize( $filename, &$imageinfo = array() ) {
+	if (
+		// Skip when running unit tests.
+		! defined( 'WP_RUN_CORE_TESTS' )
+		&&
+		// Return without silencing errors when in debug mode.
+		defined( 'WP_DEBUG' ) && WP_DEBUG
+	) {
+		return getimagesize( $filename, $imageinfo );
+	}
+
+	/*
+	 * Silencing notice and warning is intentional.
+	 *
+	 * getimagesize() has a tendency to generate errors, such as
+	 * "corrupt JPEG data: 7191 extraneous bytes before marker",
+	 * even when it's able to provide image size information.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/42480
+	 *
+	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
+	 */
+	return @getimagesize( $filename, $imageinfo );
 }
