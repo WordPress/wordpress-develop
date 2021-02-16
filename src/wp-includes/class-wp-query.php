@@ -2524,7 +2524,7 @@ class WP_Query {
 				$where .= " AND ($where_status)";
 			}
 		} elseif ( ! $this->is_singular ) {
-			if ( 'any' == $post_type ) {
+			if ( 'any' === $post_type ) {
 				$queried_post_types = get_post_types( array( 'exclude_from_search' => false ) );
 			} elseif ( is_array( $post_type ) ) {
 				$queried_post_types = $post_type;
@@ -2566,7 +2566,7 @@ class WP_Query {
 					}
 
 					// Add private states that are visible to current user.
-					if ( is_user_logged_in() && $queried_post_type_object instanceof \WP_Post_Type ) {
+					if ( is_user_logged_in() && $queried_post_type_object instanceof WP_Post_Type ) {
 						$read_private_cap = $queried_post_type_object->cap->read_private_posts;
 						$private_statuses = get_post_stati( array( 'private' => true ) );
 						foreach ( (array) $private_statuses as $private_status ) {
