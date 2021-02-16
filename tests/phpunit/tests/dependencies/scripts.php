@@ -1463,7 +1463,6 @@ JS;
 			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
 			array( 'string', '"string"' ),
 			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
-			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
 			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
 			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
 		);
