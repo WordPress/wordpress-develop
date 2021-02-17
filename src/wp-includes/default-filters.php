@@ -238,6 +238,7 @@ add_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
 
 // Robots filters.
 add_filter( 'wp_robots', 'wp_robots_noindex' );
+add_filter( 'wp_robots', 'wp_robots_noindex_embeds' );
 add_filter( 'wp_robots', 'wp_robots_noindex_search' );
 add_filter( 'wp_robots', 'wp_robots_max_image_preview_large' );
 
@@ -477,7 +478,6 @@ add_action( 'comment_post', 'wp_new_comment_notify_postauthor' );
 add_action( 'after_password_reset', 'wp_password_change_notification' );
 add_action( 'register_new_user', 'wp_send_new_user_notifications' );
 add_action( 'edit_user_created_user', 'wp_send_new_user_notifications', 10, 2 );
-add_action( 'comment_unapproved_to_approved', 'wp_new_comment_notify_comment_author' );
 
 // REST API actions.
 add_action( 'init', 'rest_api_init' );
@@ -611,7 +611,6 @@ add_action( 'embed_footer', 'print_embed_sharing_dialog' );
 add_action( 'embed_footer', 'print_embed_scripts' );
 add_action( 'embed_footer', 'wp_print_footer_scripts', 20 );
 
-add_filter( 'wp_robots', 'wp_embed_no_robots' );
 add_filter( 'excerpt_more', 'wp_embed_excerpt_more', 20 );
 add_filter( 'the_excerpt_embed', 'wptexturize' );
 add_filter( 'the_excerpt_embed', 'convert_chars' );
