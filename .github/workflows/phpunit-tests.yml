@@ -134,10 +134,15 @@ jobs:
         memcached: [ false ]
         multisite: [ false, true ]
         include:
-          # Include job for PHP 7.4 with memcached.
+          # Include jobs for PHP 7.4 with memcached.
           - php: '7.4'
             os: ubuntu-latest
             memcached: true
+            multisite: false
+          - php: '7.4'
+            os: ubuntu-latest
+            memcached: true
+            multisite: true
           # Report the results of the PHP 7.4 without memcached job.
           - php: '7.4'
             os: ubuntu-latest
