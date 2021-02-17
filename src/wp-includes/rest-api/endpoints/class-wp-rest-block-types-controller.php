@@ -543,7 +543,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'type'        => array( 'string', 'null' ),
 								'required'    => false,
 							),
-							'isDefault'  => array(
+							'isDefault'   => array(
 								'description' => __( 'Indicates whether the current variation is the default one. Defaults to `false`' ),
 								'type'        => 'boolean',
 								'required'    => false,
