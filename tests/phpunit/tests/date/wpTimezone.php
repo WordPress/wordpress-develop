@@ -3,8 +3,10 @@
 /**
  * @group date
  * @group datetime
+ * @covers ::wp_timezone_string
+ * @covers ::wp_timezone
  */
-class Tests_Date_WP_Timezone extends WP_UnitTestCase {
+class Tests_Date_wpTimezone extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24730

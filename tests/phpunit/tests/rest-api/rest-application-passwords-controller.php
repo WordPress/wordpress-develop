@@ -891,7 +891,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$response = rest_do_request( '/wp/v2/users/me/application-passwords/introspect' );
 		$this->assertNotWPError( $response->as_error() );
 
-		$this->assertEquals( $password['uuid'], $response->get_data()['uuid'] );
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
 	}
 
 	/**
@@ -901,7 +901,7 @@ class WP_Test_REST_Application_Passwords_Controller extends WP_Test_REST_Control
 		$password = $this->setup_app_password_authenticated_request();
 		$response = rest_do_request( '/wp/v2/users/' . self::$admin . '/application-passwords/introspect' );
 
-		$this->assertEquals( $password['uuid'], $response->get_data()['uuid'] );
+		$this->assertSame( $password['uuid'], $response->get_data()['uuid'] );
 	}
 
 	/**

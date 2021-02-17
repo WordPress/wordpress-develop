@@ -494,7 +494,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
-		$this->assertEquals( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
 	}
 
 	/**
@@ -524,7 +524,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$data = $valid->get_error_data();
 		$this->assertArrayHasKey( 'details', $data );
 		$this->assertArrayHasKey( 'failparam', $data['details'] );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'code'    => 'invalid',
 				'message' => 'Invalid.',
@@ -757,7 +757,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertInternalType( 'array', $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
-		$this->assertEquals( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
+		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
 	}
 
 	/**
@@ -787,7 +787,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$data = $valid->get_error_data();
 		$this->assertArrayHasKey( 'details', $data );
 		$this->assertArrayHasKey( 'failparam', $data['details'] );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'code'    => 'invalid',
 				'message' => 'Invalid.',

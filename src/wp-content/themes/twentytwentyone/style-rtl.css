@@ -1564,9 +1564,9 @@ fieldset input[type=checkbox] + label {
 }
 
 img {
-	display: block;
 	height: auto;
 	max-width: 100%;
+	vertical-align: middle;
 }
 
 /* Classic editor images */
@@ -1718,7 +1718,6 @@ input[type=reset],
 	border: var(--button--border-width) solid transparent;
 	border-radius: var(--button--border-radius);
 	cursor: pointer;
-	display: block;
 	font-weight: var(--button--font-weight);
 	font-family: var(--button--font-family);
 	font-size: var(--button--font-size);
@@ -1909,7 +1908,6 @@ input[type=reset]:disabled,
 
 .wp-block-code code {
 	color: var(--global--color-primary);
-	font-size: var(--global--font-size-xs);
 	white-space: pre;
 	overflow-x: auto;
 	display: block;
@@ -2370,12 +2368,6 @@ h6,
 	margin-top: 0;
 }
 
-img {
-	height: auto;
-	max-width: 100%;
-	vertical-align: middle;
-}
-
 .wp-block-image.is-style-twentytwentyone-border img,
 .wp-block-image.is-style-twentytwentyone-image-frame img {
 	border: calc(3 * var(--separator--height)) solid var(--global--color-border);
@@ -2687,8 +2679,16 @@ ul {
 	list-style-type: disc;
 }
 
+ul ul {
+	list-style-type: circle;
+}
+
 ol {
 	list-style-type: decimal;
+}
+
+ol ul {
+	list-style-type: circle;
 }
 
 dt {
@@ -2857,7 +2857,7 @@ dd {
 }
 
 p {
-	line-height: var(--wp--typography--line-height, --global--line-height-body);
+	line-height: var(--wp--typography--line-height, var(--global--line-height-body));
 }
 
 p.has-background {
@@ -3406,7 +3406,8 @@ hr.wp-block-separator.is-style-dots:before {
 	color: var(--global--color-primary);
 }
 
-.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link {
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link,
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
 	background: none;
 }
 

@@ -4,7 +4,12 @@ on:
   push:
     branches:
       - master
-      - '*.*'
+      # JavaScript testing was introduced in WordPress 3.8.
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
   pull_request:
 
 jobs:
@@ -14,7 +19,7 @@ jobs:
   # - Cancels all previous workflow runs for pull requests that have not completed.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.

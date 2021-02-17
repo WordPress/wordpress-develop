@@ -468,7 +468,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			wp_validate_application_password( null ),
 			'Application passwords should be allowed for API authentication'
 		);
-		$this->assertEquals( $item['uuid'], rest_get_authenticated_app_password() );
+		$this->assertSame( $item['uuid'], rest_get_authenticated_app_password() );
 	}
 
 	/**
