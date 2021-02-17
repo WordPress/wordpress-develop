@@ -129,7 +129,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        php: [ '5.6.20', '8.0', '7.4', '7.3', '7.2', '7.1', '7.0' ]
+        php: [ '5.6.20', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         multisite: [ false, true ]
