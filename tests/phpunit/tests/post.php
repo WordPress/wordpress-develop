@@ -1637,4 +1637,158 @@ class Tests_Post extends WP_UnitTestCase {
 		$resolved_post_date = wp_resolve_post_date( $invalid_date, $invalid_date );
 		$this->assertFalse( $resolved_post_date );
 	}
+
+	/**
+	 * Ensure sticking post updates option.
+	 *
+	 * @covers ::stick_post
+	 */
+	function test_sticky_posts() {
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+
+		stick_post( 2 );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure sticking posts can not duplicate options.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 * @dataProvider data_sticky_posts_not_duplicate_with_the_same_value
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_sticky_posts_not_duplicate_with_the_same_value( $stick ) {
+		update_option( 'sticky_posts', array( 1, 2 ) );
+
+		stick_post( $stick );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_sticky_posts_not_duplicate_with_the_same_value().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type mixed $stick Value to pass to stick_post().
+	 * }
+	 */
+	function data_sticky_posts_not_duplicate_with_the_same_value() {
+		return array(
+			array( 1 ),
+			array( '1' ),
+			array( 2.0 ),
+		);
+	}
+
+	/**
+	 * Ensure sticking post removes other duplicates.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_sticky_posts_remove_duplicate_ids_when_add_new_value() {
+		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
+
+		stick_post( 3 );
+		$this->assertSameSets( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
+	}
+
+	function test_unsticky_posts() {
+		update_option( 'sticky_posts', array( 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( 1 );
+		$this->assertSameSets( array( 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure duplicates removed when unsticking posts.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 *
+	 * @dataProvider data_unstick_posts_with_duplicate_id
+	 *
+	 * @param array $starting_option Original value of `sticky_posts` option.
+	 * @param mixed $unstick         Parameter passed to `unstick_post()`
+	 * @param array $expected
+	 */
+	function test_unstick_posts_with_duplicate_id( $starting_option, $unstick, $expected ) {
+		update_option( 'sticky_posts', $starting_option );
+		unstick_post( $unstick );
+		$this->assertSameSets( $expected, get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_unstick_posts_with_duplicate_id
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type array $starting_option Original value of `sticky_posts` option.
+	 *     @type mixed $unstick         Parameter passed to `unstick_post()`
+	 *     @type array $expected
+	 * }
+	 */
+	function data_unstick_posts_with_duplicate_id() {
+		return array(
+			array(
+				array( 1, 1 ),
+				1,
+				array(),
+			),
+			array(
+				array( 1, 1 ),
+				'1',
+				array(),
+			),
+			array(
+				array( 1, 2, 1 ),
+				1,
+				array( 2 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2,
+				array( 1 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2.0,
+				array( 1 ),
+			),
+		);
+	}
+
+	/**
+	 * Ensure sticking duplicate does not trigger db update.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 */
+	function test_sticking_dupes_does_not_trigger_update() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		stick_post( 2 );
+		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking unstuck post does not trigger db update.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 */
+	function test_unsticking_unstuck_post_does_not_trigger_update() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		unstick_post( 3 );
+		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
 }
