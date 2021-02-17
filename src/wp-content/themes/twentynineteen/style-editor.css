@@ -969,6 +969,10 @@ figcaption,
   font-weight: bold;
 }
 
+.wp-block-button .wp-block-button__link:not(.has-text-color) {
+  color: white;
+}
+
 .wp-block-button:not(.is-style-outline) .wp-block-button__link {
   background: #0073aa;
 }
