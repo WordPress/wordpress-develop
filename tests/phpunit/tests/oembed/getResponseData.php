@@ -128,6 +128,57 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
 	}
 
+	/**
+	 * @ticket 47574
+	 */
+	function test_getoembed_response_data_with_public_true_custom_post_status() {
+		// Custom status with public=true.
+		register_post_status( 'public', array( 'public' => true ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'public',
+			)
+		);
+
+		$this->assertNotFalse( get_oembed_response_data( $post, 100 ) );
+
+		_unregister_post_status( 'public' );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_getoembed_response_data_with_public_false_custom_post_status() {
+		// Custom status with public=false.
+		register_post_status( 'privatfoo', array( 'public' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'privatfoo',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+
+		_unregister_post_status( 'privatfoo' );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	 function test_getoembed_response_data_with_unregistered_custom_post_status() {
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'unkownfoo',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+
+	}
+
 	function test_get_oembed_response_data_maxwidth_too_high() {
 		$post = self::factory()->post->create_and_get();
 

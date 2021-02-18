@@ -515,11 +515,7 @@ function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
 	$width = absint( $width );
 
-	if ( ! $post ) {
-		return false;
-	}
-
-	if ( 'publish' !== get_post_status( $post ) ) {
+	if ( ! is_post_publicly_viewable( $post ) ) {
 		return false;
 	}
 
