@@ -1639,11 +1639,11 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure sticking post updates option.
+	 * Ensure sticking a post updates the `sticky_posts` option.
 	 *
 	 * @covers ::stick_post
 	 */
-	function test_sticky_posts() {
+	function test_stick_post_updates_option() {
 		stick_post( 1 );
 		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
 
@@ -1652,15 +1652,15 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure sticking posts can not duplicate options.
+	 * Ensure sticking a post does not duplicate post IDs in the option.
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
-	 * @dataProvider data_sticky_posts_not_duplicate_with_the_same_value
+	 * @dataProvider data_stick_post_does_not_duplicate_post_ids
 	 *
 	 * @param mixed $stick Value to pass to stick_post().
 	 */
-	function test_sticky_posts_not_duplicate_with_the_same_value( $stick ) {
+	function test_stick_post_does_not_duplicate_post_ids( $stick ) {
 		update_option( 'sticky_posts', array( 1, 2 ) );
 
 		stick_post( $stick );
@@ -1668,7 +1668,7 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_sticky_posts_not_duplicate_with_the_same_value().
+	 * Data provider for test_stick_post_does_not_duplicate_post_ids().
 	 *
 	 * @return array[] {
 	 *     Arguments passed to test.
@@ -1676,7 +1676,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type mixed $stick Value to pass to stick_post().
 	 * }
 	 */
-	function data_sticky_posts_not_duplicate_with_the_same_value() {
+	function data_stick_post_does_not_duplicate_post_ids() {
 		return array(
 			array( 1 ),
 			array( '1' ),
@@ -1685,21 +1685,26 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure sticking post removes other duplicates.
+	 * Ensure sticking a post removes other duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
 	 *
 	 * @param mixed $stick Value to pass to stick_post().
 	 */
-	function test_sticky_posts_remove_duplicate_ids_when_add_new_value() {
+	function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
 		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
 
 		stick_post( 3 );
 		$this->assertSameSets( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
 	}
 
-	function test_unsticky_posts() {
+	/**
+	 * Ensure unsticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::unstick_post
+	 */
+	function test_unstick_post_updates_option() {
 		update_option( 'sticky_posts', array( 1 ) );
 		unstick_post( 1 );
 		$this->assertEmpty( get_option( 'sticky_posts' ) );
@@ -1710,25 +1715,25 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure duplicates removed when unsticking posts.
+	 * Ensure unsticking a post removes duplicate post IDs from the option.
 	 *
 	 * @ticket 52007
 	 * @covers ::unstick_post
 	 *
-	 * @dataProvider data_unstick_posts_with_duplicate_id
+	 * @dataProvider data_unstick_post_removes_duplicate_post_ids
 	 *
 	 * @param array $starting_option Original value of `sticky_posts` option.
 	 * @param mixed $unstick         Parameter passed to `unstick_post()`
 	 * @param array $expected
 	 */
-	function test_unstick_posts_with_duplicate_id( $starting_option, $unstick, $expected ) {
+	function test_unstick_post_removes_duplicate_post_ids( $starting_option, $unstick, $expected ) {
 		update_option( 'sticky_posts', $starting_option );
 		unstick_post( $unstick );
 		$this->assertSameSets( $expected, get_option( 'sticky_posts' ) );
 	}
 
 	/**
-	 * Data provider for test_unstick_posts_with_duplicate_id
+	 * Data provider for test_unstick_post_removes_duplicate_post_ids().
 	 *
 	 * @return array[] {
 	 *     Arguments passed to test.
@@ -1738,7 +1743,7 @@ class Tests_Post extends WP_UnitTestCase {
 	 *     @type array $expected
 	 * }
 	 */
-	function data_unstick_posts_with_duplicate_id() {
+	function data_unstick_post_removes_duplicate_post_ids() {
 		return array(
 			array(
 				array( 1, 1 ),
@@ -1769,24 +1774,24 @@ class Tests_Post extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Ensure sticking duplicate does not trigger db update.
+	 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
 	 *
 	 * @ticket 52007
 	 * @covers ::stick_post
 	 */
-	function test_sticking_dupes_does_not_trigger_update() {
+	function test_stick_post_with_duplicate_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		stick_post( 2 );
 		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 
 	/**
-	 * Ensure unsticking unstuck post does not trigger db update.
+	 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
 	 *
 	 * @ticket 52007
 	 * @covers ::unstick_post
 	 */
-	function test_unsticking_unstuck_post_does_not_trigger_update() {
+	function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		unstick_post( 3 );
 		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
