@@ -254,6 +254,45 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * Depending on configuration Imagick processing may take time.
+	 *
+	 * Multiple problems exist if PHP timeout before ImageMagick completed:
+	 * 1. Temporary files aren't cleaned by ImageMagick garbage collection
+	 * 2. No clear error is provided
+	 * 3. The cause of such timeout can be hard to pinpoint.
+	 *
+	 * This function (expected to be run before heavy image routines) resolves
+	 *  above point 1 by aligning Imagick's timeout on PHP one (assuming it's set).
+	 *
+	 * Note: Imagick resource exhaustion do not catchable issue exceptions (yet).
+	 * Note: The resource limit isn't backuped nor restored and will remain
+	 *  for subsequent image operations within the time of the HTTP request.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @return int|null Whether the new limit or null if none was set
+	 */
+	public static function setImagickTimeLimit() {
+		if ( !defined( 'Imagick::RESOURCETYPE_TIME' ) ) {
+			return null;
+		}
+
+		// returns PHP_FLOAT_MAX if unset
+		$imagick_timeout = Imagick::getResourceLimit( Imagick::RESOURCETYPE_TIME );
+		// convert to a int keeping in mind that (int)PHP_FLOAT_MAX) == 0
+		$imagick_timeout = $imagick_timeout > PHP_INT_MAX ? PHP_INT_MAX : (int)$imagick_timeout;
+		$php_timeout = intval( ini_get( 'max_execution_time' ) );
+
+		if ( $php_timeout > 1 && $php_timeout < $imagick_timeout ) {
+			// $limit = $php_timeout - 1;
+			$limit = floatval( 0.8 * $php_timeout );
+			Imagick::setResourceLimit( Imagick::RESOURCETYPE_TIME, $limit );
+
+			return $limit;
+		}
+	}
+
+	/**
 	 * Resizes current image.
 	 *
 	 * At minimum, either a height or width must be provided.
@@ -278,6 +317,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		list( $dst_x, $dst_y, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h ) = $dims;
+
+		self::setImagickTimeLimit();
 
 		if ( $crop ) {
 			return $this->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h );
@@ -548,6 +589,8 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$src_w -= $src_x;
 			$src_h -= $src_y;
 		}
+
+		self::setImagickTimeLimit();
 
 		try {
 			$this->image->cropImage( $src_w, $src_h, $src_x, $src_y );
