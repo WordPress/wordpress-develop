@@ -167,7 +167,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 	/**
 	 * @ticket 47574
 	 */
-	 function test_getoembed_response_data_with_unregistered_custom_post_status() {
+	function test_getoembed_response_data_with_unregistered_custom_post_status() {
 
 		$post = self::factory()->post->create_and_get(
 			array(
