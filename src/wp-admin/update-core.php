@@ -57,16 +57,17 @@ function list_core_update( $update ) {
 
 	$is_development_version = preg_match( '/alpha|beta|RC/', $version_string );
 
-	$message = '';
-	$submit  = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
-	if ( ! preg_match( '/-\w+-/', $update->current ) ) {
-		/* translators: %s: version number */
-		$submit = sprintf( __( 'Update to version %s' ), $update->current );
-	}
+	$message       = '';
+	$submit        = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
+
+	if ( ! preg_match( '/-\w+-/', $update->current ) ) {
+		/* translators: %s: version number */
+		$submit = sprintf( __( 'Update to version %s' ), $update->current );
+	}
 
 	if ( 'development' === $update->response ) {
 		$message = __( 'You can update to the latest nightly build manually:' );
