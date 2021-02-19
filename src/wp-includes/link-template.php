@@ -690,7 +690,7 @@ function get_feed_link( $feed = '' ) {
 
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
-	if ( $permalink ) {
+	if ( '' !== $permalink ) {
 		if ( false !== strpos( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
@@ -898,13 +898,13 @@ function get_author_feed_link( $author_id, $feed = '' ) {
  *
  * @since 2.5.0
  *
- * @param int    $cat_id Category ID.
- * @param string $feed   Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                       Default is the value of get_default_feed().
+ * @param int|WP_Term|object $cat  The ID or term object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
  * @return string Link to the feed for the category specified by $cat_id.
  */
-function get_category_feed_link( $cat_id, $feed = '' ) {
-	return get_term_feed_link( $cat_id, 'category', $feed );
+function get_category_feed_link( $cat, $feed = '' ) {
+	return get_term_feed_link( $cat, 'category', $feed );
 }
 
 /**
@@ -915,16 +915,22 @@ function get_category_feed_link( $cat_id, $feed = '' ) {
  *
  * @since 3.0.0
  *
- * @param int    $term_id  Term ID.
- * @param string $taxonomy Optional. Taxonomy of `$term_id`. Default 'category'.
- * @param string $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                         Default is the value of get_default_feed().
+ * @param int|WP_Term|object $term     The ID or term object whose feed link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy of `$term_id`.
+ *                                     Defaults to 'category' if term ID or non WP_Term object is passed.
+ * @param string             $feed     Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                     Default is the value of get_default_feed().
  * @return string|false Link to the feed for the term specified by $term_id and $taxonomy.
  */
-function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
-	$term_id = (int) $term_id;
+function get_term_feed_link( $term, $taxonomy = '', $feed = '' ) {
+	if ( ! is_object( $term ) ) {
+		$term     = (int) $term;
+		$taxonomy = 'category';
+	} elseif ( ! $term instanceof WP_Term ) {
+		$taxonomy = $term->taxonomy;
+	}
 
-	$term = get_term( $term_id, $taxonomy );
+	$term = get_term( $term, $taxonomy );
 
 	if ( empty( $term ) || is_wp_error( $term ) ) {
 		return false;
@@ -938,7 +944,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 
 	if ( ! $permalink_structure ) {
 		if ( 'category' === $taxonomy ) {
-			$link = home_url( "?feed=$feed&amp;cat=$term_id" );
+			$link = home_url( "?feed=$feed&amp;cat=$term->term_id" );
 		} elseif ( 'post_tag' === $taxonomy ) {
 			$link = home_url( "?feed=$feed&amp;tag=$term->slug" );
 		} else {
@@ -946,7 +952,7 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
 			$link = home_url( "?feed=$feed&amp;$t->query_var=$term->slug" );
 		}
 	} else {
-		$link = get_term_link( $term_id, $term->taxonomy );
+		$link = get_term_link( $term, $term->taxonomy );
 		if ( get_default_feed() == $feed ) {
 			$feed_link = 'feed';
 		} else {
@@ -997,13 +1003,13 @@ function get_term_feed_link( $term_id, $taxonomy = 'category', $feed = '' ) {
  *
  * @since 2.3.0
  *
- * @param int    $tag_id Tag ID.
- * @param string $feed   Optional. Feed type. Possible values include 'rss2', 'atom'.
- *                       Default is the value of get_default_feed().
- * @return string The feed permalink for the given tag.
+ * @param int|WP_Term|object $tag  The ID or term object whose feed link will be retrieved.
+ * @param string             $feed Optional. Feed type. Possible values include 'rss2', 'atom'.
+ *                                 Default is the value of get_default_feed().
+ * @return string                  The feed permalink for the given tag.
  */
-function get_tag_feed_link( $tag_id, $feed = '' ) {
-	return get_term_feed_link( $tag_id, 'post_tag', $feed );
+function get_tag_feed_link( $tag, $feed = '' ) {
+	return get_term_feed_link( $tag, 'post_tag', $feed );
 }
 
 /**
@@ -1011,11 +1017,11 @@ function get_tag_feed_link( $tag_id, $feed = '' ) {
  *
  * @since 2.7.0
  *
- * @param int    $tag_id   Tag ID.
- * @param string $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
+ * @param int|WP_Term|object $tag      The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy Optional. Taxonomy slug. Default 'post_tag'.
  * @return string The edit tag link URL for the given tag.
  */
-function get_edit_tag_link( $tag_id, $taxonomy = 'post_tag' ) {
+function get_edit_tag_link( $tag, $taxonomy = 'post_tag' ) {
 	/**
 	 * Filters the edit link for a tag (or term in another taxonomy).
 	 *
@@ -1023,7 +1029,7 @@ function get_edit_tag_link( $tag_id, $taxonomy = 'post_tag' ) {
 	 *
 	 * @param string $link The term edit link.
 	 */
-	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag_id, $taxonomy ) );
+	return apply_filters( 'get_edit_tag_link', get_edit_term_link( $tag, $taxonomy ) );
 }
 
 /**
@@ -1056,16 +1062,16 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
  * @since 3.1.0
  * @since 4.5.0 The `$taxonomy` parameter was made optional.
  *
- * @param int    $term_id     Term ID.
- * @param string $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
- *                            by `$term_id`.
- * @param string $object_type Optional. The object type. Used to highlight the proper post type
- *                            menu on the linked page. Defaults to the first object_type associated
- *                            with the taxonomy.
+ * @param int|WP_Term|object $term        The ID or term object whose edit link will be retrieved.
+ * @param string             $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
+ *                            	          by `$term`.
+ * @param string             $object_type Optional. The object type. Used to highlight the proper post type
+ *                            	          menu on the linked page. Defaults to the first object_type associated
+ *                            	          with the taxonomy.
  * @return string|null The edit term link URL for the given term, or null on failure.
  */
-function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
-	$term = get_term( $term_id, $taxonomy );
+function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
+	$term = get_term( $term, $taxonomy );
 	if ( ! $term || is_wp_error( $term ) ) {
 		return;
 	}
@@ -1102,7 +1108,7 @@ function get_edit_term_link( $term_id, $taxonomy = '', $object_type = '' ) {
 	 * @param string $taxonomy    Taxonomy name.
 	 * @param string $object_type The object type (eg. the post type).
 	 */
-	return apply_filters( 'get_edit_term_link', $location, $term_id, $taxonomy, $object_type );
+	return apply_filters( 'get_edit_term_link', $location, $term, $taxonomy, $object_type );
 }
 
 /**
