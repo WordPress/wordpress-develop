@@ -2,12 +2,30 @@
 
 /**
  * @group taxonomy
+ * @covers ::get_term_link
  */
 class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
+	public static $term_ids;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::_register_taxonomy();
+
+		$taxonomies = array( 'category', 'post_tag', 'wptests_tax' );
+		foreach ( $taxonomies as $taxonomy ) {
+			self::$term_ids[ $taxonomy ] = $factory->term->create( array( 'taxonomy' => $taxonomy ) );
+		}
+	}
+
 	public function setUp() {
 		parent::setUp();
+		self::_register_taxonomy();
+	}
 
+	/**
+	 * Register a custom taxonomy for use in tests.
+	 */
+	public static function _register_taxonomy() {
 		register_taxonomy( 'wptests_tax', 'post' );
 	}
 
@@ -177,4 +195,55 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 
 		$this->assertContains( '/foo/term2/', $actual );
 	}
+
+	/**
+	 * @dataProvider data_get_term_link
+	 * @ticket 50225
+	 *
+	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 */
+	public function test_get_term_link_filter_is_object_by_term_id( $taxonomy ) {
+		$term_id = self::$term_ids[ $taxonomy ];
+
+		add_filter(
+			'term_link',
+			function( $location, $term ) {
+				$this->assertInstanceOf( 'WP_Term', $term );
+			},
+			10,
+			2
+		);
+
+		get_term_link( $term_id, $taxonomy );
+	}
+
+	/**
+	 * @dataProvider data_get_term_link
+	 * @ticket 50225
+	 *
+	 * @param string $taxonomy Taxonomy been tested (used for index of term keys).
+	 */
+	public function test_get_term_link_filter_is_object_by_term_object( $taxonomy ) {
+		$term_id = self::$term_ids[ $taxonomy ];
+
+		add_filter(
+			'term_link',
+			function( $location, $term ) {
+				$this->assertInstanceOf( 'WP_Term', $term );
+			},
+			10,
+			2
+		);
+
+		get_term_link( get_term( $term_id, $taxonomy ), $taxonomy );
+	}
+
+	public function data_get_term_link() {
+		return array(
+			array( 'category' ),
+			array( 'post_tag' ),
+			array( 'wptests_tax' ),
+		);
+	}
+
 }
