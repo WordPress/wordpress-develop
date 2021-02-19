@@ -1064,10 +1064,10 @@ function edit_tag_link( $link = '', $before = '', $after = '', $tag = null ) {
  *
  * @param int|WP_Term|object $term        The ID or term object whose edit link will be retrieved.
  * @param string             $taxonomy    Optional. Taxonomy. Defaults to the taxonomy of the term identified
- *                            	          by `$term`.
+ *                                        by `$term`.
  * @param string             $object_type Optional. The object type. Used to highlight the proper post type
- *                            	          menu on the linked page. Defaults to the first object_type associated
- *                            	          with the taxonomy.
+ *                                        menu on the linked page. Defaults to the first object_type associated
+ *                                        with the taxonomy.
  * @return string|null The edit term link URL for the given term, or null on failure.
  */
 function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
@@ -1076,14 +1076,15 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
 		return;
 	}
 
-	$tax = get_taxonomy( $term->taxonomy );
-	if ( ! $tax || ! current_user_can( 'edit_term', $term->term_id ) ) {
+	$tax     = get_taxonomy( $term->taxonomy );
+	$term_id = $term->term_id;
+	if ( ! $tax || ! current_user_can( 'edit_term', $term_id ) ) {
 		return;
 	}
 
 	$args = array(
 		'taxonomy' => $taxonomy,
-		'tag_ID'   => $term->term_id,
+		'tag_ID'   => $term_id,
 	);
 
 	if ( $object_type ) {
@@ -1108,7 +1109,7 @@ function get_edit_term_link( $term, $taxonomy = '', $object_type = '' ) {
 	 * @param string $taxonomy    Taxonomy name.
 	 * @param string $object_type The object type (eg. the post type).
 	 */
-	return apply_filters( 'get_edit_term_link', $location, $term, $taxonomy, $object_type );
+	return apply_filters( 'get_edit_term_link', $location, $term_id, $taxonomy, $object_type );
 }
 
 /**
