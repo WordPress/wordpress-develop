@@ -3047,7 +3047,8 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  */
 function wp_get_image_size( $file, &$info = array() ) {
 	// Try getimagesize() first.
-	if ( false !== ( $info = @getimagesize( $file, $info ) ) ) {
+	$info = @getimagesize( $file, $info );
+	if ( false !== $info ) {
 		return $info;
 	}
 
@@ -3055,7 +3056,8 @@ function wp_get_image_size( $file, &$info = array() ) {
 	// we can pull what we need from the file headers.
 	if ( 'image/webp' === wp_get_image_mime( $file ) ) {
 		try {
-			if ( $handle = fopen( $file, 'rb' ) ) {
+			$handle = fopen( $file, 'rb' );
+			if ( $handle ) {
 				$magic = fread( $handle, 40 );
 				fclose( $handle );
 
@@ -3064,7 +3066,8 @@ function wp_get_image_size( $file, &$info = array() ) {
 					return false;
 				}
 
-				$width = $height = false;
+				$width = false;
+				$height = false;
 
 				// The headers are a little different for each of the three formats.
 				switch ( substr( $magic, 12, 4 ) ) {
@@ -3148,7 +3151,8 @@ function wp_get_image_mime( $file ) {
 
 		// WebP support took longer to land in Exif than GD.
 		if ( ! $mime ) {
-			if ( $handle = fopen( $file, 'rb' ) ) {
+			$handle = fopen( $file, 'rb' );
+			if ( $handle ) {
 				$magic = bin2hex( fread( $handle, 12 ) );
 				if (
 					// RIFF.
