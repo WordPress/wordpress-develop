@@ -1428,4 +1428,51 @@ JS;
 			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
 		}
 	}
+
+	/**
+	 * @ticket 52534
+	 * @covers ::wp_localize_script
+	 *
+	 * @dataProvider data_wp_localize_script_data_formats
+	 *
+	 * @param mixed  $l10n_data   Localization data passed to wp_localize_script().
+	 * @param string $expected    Expected transformation of localization data.
+	 * @param string $unsupported Optional. Whether the data format is unsupported. Default false.
+	 */
+	function test_wp_localize_script_data_formats( $l10n_data, $expected, $unsupported = false ) {
+		if ( $unsupported ) {
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
+		}
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', $l10n_data );
+
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+
+	}
+
+	/**
+	 * Data provider for test_wp_localize_script_data_formats().
+	 *
+	 * @return array[] {
+	 *     Array of arguments for test.
+	 *
+	 *     @type mixed  $l10n_data   Localization data passed to wp_localize_script().
+	 *     @type string $expected    Expected transformation of localization data.
+	 *     @type string $unsupported Optional. Whether the data format is unsupported.
+	 * }
+	 */
+	function data_wp_localize_script_data_formats() {
+		return array(
+			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
+			array( 'string', '"string"', true ),
+			array( 1, '"1"', true ),
+			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
+			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
+			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+		);
+	}
 }
