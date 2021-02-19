@@ -1449,6 +1449,10 @@ JS;
 			}
 		}
 
+		if ( ! is_array( $l10n_data ) ) {
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
+		}
+
 		wp_enqueue_script( 'test-example', 'example.com', array(), null );
 		wp_localize_script( 'test-example', 'testExample', $l10n_data );
 
