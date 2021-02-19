@@ -158,7 +158,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<div class="column">
 				<p>
 					<?php
-					_e( 'Half the range has a 4.5 or higher contrast ratio against black, and the other half maintains the same contrast against white.');
+					_e( 'Half the range has a 4.5 or higher contrast ratio against black, and the other half maintains the same contrast against white.' );
 					?>
 				</p>
 				<p>
