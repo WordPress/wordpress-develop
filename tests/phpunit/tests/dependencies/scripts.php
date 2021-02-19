@@ -1428,44 +1428,4 @@ JS;
 			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
 		}
 	}
-
-	/**
-	 * @covers ::wp_localize_script
-	 * @ticket 52534
-	 *
-	 * @dataProvider data_wp_localize_script_data_formats
-	 *
-	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
-	 * @param string $expected  Expected transformation of localization data.
-	 */
-	function test_wp_localize_script_data_formats( $l10n_data, $expected ) {
-		wp_enqueue_script( 'test-example', 'example.com', array(), null );
-		wp_localize_script( 'test-example', 'testExample', $l10n_data );
-
-		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
-		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-
-		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
-
-	}
-
-	/**
-	 * Data provider for test_wp_localize_script_data_formats().
-	 * @return array[] {
-	 *     Array of arguments for test.
-	 *
-	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
-	 *     @type string $expected  Expected transformation of localization data.
-	 * }
-	 */
-	function data_wp_localize_script_data_formats() {
-		return array(
-			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
-			array( 'string', '"string"' ),
-			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
-			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
-			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
-			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
-		);
-	}
 }
