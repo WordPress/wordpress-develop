@@ -317,7 +317,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--widget--spacing-menu: calc(0.66 * var(--global--spacing-unit));
 
 	/* Admin-bar height */
-	--global--admin-bar--height: 0;
+	--global--admin-bar--height: 0px;
 }
 
 .admin-bar {
@@ -3406,7 +3406,8 @@ hr.wp-block-separator.is-style-dots:before {
 	color: var(--global--color-primary);
 }
 
-.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link {
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link,
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
 	background: none;
 }
 
