@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = wp_getimagesize( $image_file );
+		$imagesize  = wp_get_image_size( $image_file );
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -224,7 +224,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
-	$imagesize = wp_getimagesize( $file );
+	$imagesize = wp_get_image_size( $file );
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
@@ -517,6 +517,9 @@ function wp_generate_attachment_metadata( $attachment_id, $file ) {
 				case 'image/png':
 					$ext = '.png';
 					break;
+				case 'image/webp':
+					$ext = '.webp';
+					break;
 			}
 			$basename = str_replace( '.', '-', wp_basename( $file ) ) . '-image' . $ext;
 			$uploaded = wp_upload_bits( $basename, '', $metadata['image']['data'] );
@@ -687,7 +690,7 @@ function wp_read_image_metadata( $file ) {
 		return false;
 	}
 
-	list( , , $image_type ) = wp_getimagesize( $file );
+	list( , , $image_type ) = wp_get_image_size( $file );
 
 	/*
 	 * EXIF contains a bunch of data we'll probably never need formatted in ways
@@ -716,7 +719,7 @@ function wp_read_image_metadata( $file ) {
 	 * as caption, description etc.
 	 */
 	if ( is_callable( 'iptcparse' ) ) {
-		wp_getimagesize( $file, $info );
+		wp_get_image_size( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
 			if (
@@ -899,7 +902,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = wp_getimagesize( $path );
+	$size = wp_get_image_size( $path );
 	return ! empty( $size );
 }
 
@@ -914,7 +917,7 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO );
 
-	$info = wp_getimagesize( $path );
+	$info = wp_get_image_size( $path );
 	if ( empty( $info ) ) {
 		$result = false;
 	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
@@ -961,6 +964,13 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 			break;
 		case 'image/gif':
 			$image = imagecreatefromgif( $filepath );
+			break;
+		case 'image/webp':
+			if ( function_exists( 'imagecreatefromwebp' ) ) {
+				$image = imagecreatefromwebp( $filepath );
+			} else {
+				$image = false;
+			}
 			break;
 		default:
 			$image = false;

@@ -380,6 +380,10 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 				$this->image->setOption( 'png:exclude-chunk', 'all' );
 			}
 
+			if ( 'image/webp' === $this->mime_type ) {
+				$this->image->setOption( 'webp:emulate-jpeg-size', true );
+			}
+
 			/*
 			 * If alpha channel is not defined, set it opaque.
 			 *

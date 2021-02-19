@@ -69,6 +69,8 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return ( $image_types & IMG_PNG ) != 0;
 			case 'image/gif':
 				return ( $image_types & IMG_GIF ) != 0;
+			case 'image/webp':
+				return ( $image_types & IMG_WEBP ) != 0;
 		}
 
 		return false;
@@ -99,13 +101,22 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
 		}
 
-		$this->image = @imagecreatefromstring( $file_contents );
+		// WebP may not work with imagecreatefromstring().
+		if (
+			function_exists( 'imagecreatefromwebp' ) &&
+			( 'image/webp' === wp_get_image_mime( $this->file ) )
+		) {
+			$this->image = @imagecreatefromwebp( $this->file );
+		}
+		else {
+			$this->image = @imagecreatefromstring( $file_contents );
+		}
 
 		if ( ! is_gd_image( $this->image ) ) {
 			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 		}
 
-		$size = wp_getimagesize( $this->file );
+		$size = wp_get_image_size( $this->file );
 
 		if ( ! $size ) {
 			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
@@ -459,6 +470,10 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			if ( ! $this->make_image( $filename, 'imagejpeg', array( $image, $filename, $this->get_quality() ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
+		} elseif ( 'image/webp' == $mime_type ) {
+			if ( ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
+				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
+			}
 		} else {
 			return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 		}
@@ -502,6 +517,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			case 'image/gif':
 				header( 'Content-Type: image/gif' );
 				return imagegif( $this->image );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					header( 'Content-Type: image/webp' );
+					return imagewebp( $this->image, null, $this->get_quality() );
+				}
 			default:
 				header( 'Content-Type: image/jpeg' );
 				return imagejpeg( $this->image, null, $this->get_quality() );

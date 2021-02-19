@@ -2880,6 +2880,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/gif'  => 'gif',
 					'image/bmp'  => 'bmp',
 					'image/tiff' => 'tif',
+					'image/webp' => 'webp',
 				)
 			);
 
@@ -3032,6 +3033,93 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 }
 
 /**
+ * Wrapper for getimagesize()
+ *
+ * The native PHP function might not support newer formats.
+ *
+ * @since 5.0
+ *
+ * @see {https://core.trac.wordpress.org/ticket/35725}
+ *
+ * @param string $file Full path to the file.
+ * @param array $info Additional metadata to pull.
+ * @return array|false An array containing width, height, type constant, attributes, and media type.
+ */
+function wp_get_image_size( $file, &$info = array() ) {
+	// Try getimagesize() first.
+	if ( false !== ( $info = @getimagesize( $file, $info ) ) ) {
+		return $info;
+	}
+
+	// Support for WebP did not land in getimagesize() until PHP 7.1. But that's OK,
+	// we can pull what we need from the file headers.
+	if ( 'image/webp' === wp_get_image_mime( $file ) ) {
+		try {
+			if ( $handle = fopen( $file, 'rb' ) ) {
+				$magic = fread( $handle, 40 );
+				fclose( $handle );
+
+				// Make sure we got enough bytes.
+				if ( strlen( $magic ) < 40 ) {
+					return false;
+				}
+
+				$width = $height = false;
+
+				// The headers are a little different for each of the three formats.
+				switch ( substr( $magic, 12, 4 ) ) {
+					// Lossy WebP.
+					case 'VP8 ':
+						$parts    = unpack( 'v2', substr( $magic, 26, 4 ) );
+						$width    = (int) ( $parts[1] & 0x3FFF );
+						$height   = (int) ( $parts[2] & 0x3FFF );
+						break;
+					// Lossless WebP.
+					case 'VP8L':
+						$parts    = unpack( 'C4', substr( $magic, 21, 4 ) );
+						$width    = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+						$height   = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
+						                ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+						break;
+					// Animated/alpha WebP.
+					case 'VP8X':
+						// Pad 24-bit int.
+						$width    = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+						$width    = (int) ( $width[1] & 0xFFFFFF ) + 1;
+
+						// Pad 24-bit int.
+						$height   = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+						$height   = (int) ( $height[1] & 0xFFFFFF ) + 1;
+						break;
+				}
+
+				// Mimic the native return format.
+				if ( $width && $height ) {
+					return array(
+						$width,
+						$height,
+						IMAGETYPE_WEBP,
+						sprintf(
+							'width="%d" height="%d"',
+							$width,
+							$height
+						),
+						'mime'=>'image/webp',
+					);
+				}
+
+				// The image could not be parsed.
+				return false;
+			}
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return false;
+	}
+}
+
+/**
  * Returns the real mime type of an image file.
  *
  * This depends on exif_imagetype() or getimagesize() to determine real mime types.
@@ -3052,10 +3140,26 @@ function wp_get_image_mime( $file ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
 		} elseif ( function_exists( 'getimagesize' ) ) {
-			$imagesize = wp_getimagesize( $file );
+			$imagesize = wp_get_image_size( $file );
 			$mime      = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
 		} else {
 			$mime = false;
+		}
+
+		// WebP support took longer to land in Exif than GD.
+		if ( ! $mime ) {
+			if ( $handle = fopen( $file, 'rb' ) ) {
+				$magic = bin2hex( fread( $handle, 12 ) );
+				if (
+					// RIFF.
+					( 0 === strpos( $magic, '52494646' ) ) &&
+					// WEBP.
+					( 16 === strpos ( $magic, '57454250' ) )
+				) {
+					$mime = 'image/webp';
+				}
+				fclose( $handle );
+			}
 		}
 	} catch ( Exception $e ) {
 		$mime = false;
@@ -3216,7 +3320,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'webp' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
