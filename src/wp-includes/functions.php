@@ -3070,26 +3070,26 @@ function wp_get_image_size( $file, &$info = array() ) {
 				switch ( substr( $magic, 12, 4 ) ) {
 					// Lossy WebP.
 					case 'VP8 ':
-						$parts    = unpack( 'v2', substr( $magic, 26, 4 ) );
-						$width    = (int) ( $parts[1] & 0x3FFF );
-						$height   = (int) ( $parts[2] & 0x3FFF );
+						$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+						$width  = (int) ( $parts[1] & 0x3FFF );
+						$height = (int) ( $parts[2] & 0x3FFF );
 						break;
 					// Lossless WebP.
 					case 'VP8L':
-						$parts    = unpack( 'C4', substr( $magic, 21, 4 ) );
-						$width    = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-						$height   = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
-						                ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+						$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+						$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
+										( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
 						break;
 					// Animated/alpha WebP.
 					case 'VP8X':
 						// Pad 24-bit int.
-						$width    = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
-						$width    = (int) ( $width[1] & 0xFFFFFF ) + 1;
+						$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+						$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
 
 						// Pad 24-bit int.
-						$height   = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
-						$height   = (int) ( $height[1] & 0xFFFFFF ) + 1;
+						$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+						$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
 						break;
 				}
 
@@ -3104,7 +3104,7 @@ function wp_get_image_size( $file, &$info = array() ) {
 							$width,
 							$height
 						),
-						'mime'=>'image/webp',
+						'mime' => 'image/webp',
 					);
 				}
 
@@ -3154,7 +3154,7 @@ function wp_get_image_mime( $file ) {
 					// RIFF.
 					( 0 === strpos( $magic, '52494646' ) ) &&
 					// WEBP.
-					( 16 === strpos ( $magic, '57454250' ) )
+					( 16 === strpos( $magic, '57454250' ) )
 				) {
 					$mime = 'image/webp';
 				}

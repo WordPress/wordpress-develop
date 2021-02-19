@@ -1239,12 +1239,11 @@ class Tests_Functions extends WP_UnitTestCase {
 		// The getimagesize() function varies in its response, so
 		// let's restrict comparison to expected keys only.
 		if ( is_array( $expected ) ) {
-			foreach ( $expected as $k=>$v ) {
+			foreach ( $expected as $k => $v ) {
 				$this->assertEquals( true, isset( $result[ $k ] ) );
 				$this->assertEquals( $expected[ $k ], $result[ $k ] );
 			}
-		}
-		else {
+		} else {
 			$this->assertEquals( $expected, $result );
 		}
 	}

@@ -107,8 +107,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			( 'image/webp' === wp_get_image_mime( $this->file ) )
 		) {
 			$this->image = @imagecreatefromwebp( $this->file );
-		}
-		else {
+		} else {
 			$this->image = @imagecreatefromstring( $file_contents );
 		}
 
