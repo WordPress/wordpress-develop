@@ -76,7 +76,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		add_filter(
 			'get_edit_term_link',
 			function( $location, $term ) {
-				$this->assertIsInt( $term );
+				$this->assertInternalType( 'int', $term );
 			},
 			10,
 			2
@@ -97,7 +97,7 @@ class Tests_Link_GetEditTermLink extends WP_UnitTestCase {
 		add_filter(
 			'get_edit_term_link',
 			function( $location, $term ) {
-				$this->assertIsInt( $term );
+				$this->assertInternalType( 'int', $term );
 			},
 			10,
 			2
