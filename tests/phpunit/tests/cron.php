@@ -775,7 +775,9 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_schedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function() {
+		$return_error = function( $pre, $event, $wp_error ) {
+			$this->assertFalse( $wp_error );
+
 			return new WP_Error(
 				'my_error',
 				'An error ocurred'
@@ -783,8 +785,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		};
 
 		// Add filters which return a WP_Error:
-		add_filter( 'pre_schedule_event', $return_error );
-		add_filter( 'pre_reschedule_event', $return_error );
+		add_filter( 'pre_schedule_event', $return_error, 10, 3 );
+		add_filter( 'pre_reschedule_event', $return_error, 10, 3 );
 
 		// Schedule events without the `$wp_error` parameter:
 		$single_event      = wp_schedule_single_event( time(), 'hook', array() );
@@ -801,7 +803,9 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_schedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function() {
+		$return_error = function( $pre, $event, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
 			return new WP_Error(
 				'my_error',
 				'An error ocurred'
@@ -809,8 +813,8 @@ class Tests_Cron extends WP_UnitTestCase {
 		};
 
 		// Add filters which return a WP_Error:
-		add_filter( 'pre_schedule_event', $return_error );
-		add_filter( 'pre_reschedule_event', $return_error );
+		add_filter( 'pre_schedule_event', $return_error, 10, 3 );
+		add_filter( 'pre_reschedule_event', $return_error, 10, 3 );
 
 		// Schedule events with the `$wp_error` parameter:
 		$single_event      = wp_schedule_single_event( time(), 'hook', array(), true );
@@ -876,17 +880,14 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @expectedDeprecated wp_clear_scheduled_hook
 	 */
 	public function test_deprecated_argument_usage_of_wp_clear_scheduled_hook() {
-		add_filter(
-			'pre_clear_scheduled_hook',
-			function( $pre, $hook, $args, $wp_error ) {
-				$this->assertSame( array( 1, 2, 3 ), $args );
-				$this->assertFalse( $wp_error );
+		$return_pre = function( $pre, $hook, $args, $wp_error ) {
+			$this->assertSame( array( 1, 2, 3 ), $args );
+			$this->assertFalse( $wp_error );
 
-				return $pre;
-			},
-			10,
-			4
-		);
+			return $pre;
+		};
+
+		add_filter( 'pre_clear_scheduled_hook', $return_pre, 10, 4 );
 
 		$cleared = wp_clear_scheduled_hook( 'hook', 1, 2, 3 );
 
@@ -918,12 +919,13 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_clear_scheduled_hook_returns_custom_pre_filter_error_when_wp_error_is_set_to_true() {
-		add_filter(
-			'pre_unschedule_event',
-			function( $pre ) {
-				return new WP_Error( 'error_code', 'error message' );
-			}
-		);
+		$return_error = function( $pre, $timestamp, $hook, $args, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
+			return new WP_Error( 'error_code', 'error message' );
+		};
+
+		add_filter( 'pre_unschedule_event', $return_error, 10, 5 );
 
 		wp_schedule_single_event( strtotime( '+1 hour' ), 'test_hook' );
 		wp_schedule_single_event( strtotime( '+2 hours' ), 'test_hook' );
@@ -950,7 +952,9 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_false_when_wp_error_is_set_to_false() {
-		$return_error = function() {
+		$return_error = function( $pre, $hook, $wp_error ) {
+			$this->assertFalse( $wp_error );
+
 			return new WP_Error(
 				'my_error',
 				'An error ocurred'
@@ -958,7 +962,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		};
 
 		// Add a filter which returns a WP_Error:
-		add_filter( 'pre_unschedule_hook', $return_error );
+		add_filter( 'pre_unschedule_hook', $return_error, 10, 3 );
 
 		// Unschedule a hook without the `$wp_error` parameter:
 		$result = wp_unschedule_hook( 'hook' );
@@ -971,7 +975,9 @@ class Tests_Cron extends WP_UnitTestCase {
 	 * @ticket 49961
 	 */
 	public function test_unschedule_short_circuit_with_error_returns_error_when_wp_error_is_set_to_true() {
-		$return_error = function() {
+		$return_error = function( $pre, $hook, $wp_error ) {
+			$this->assertTrue( $wp_error );
+
 			return new WP_Error(
 				'my_error',
 				'An error ocurred'
@@ -979,7 +985,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		};
 
 		// Add a filter which returns a WP_Error:
-		add_filter( 'pre_unschedule_hook', $return_error );
+		add_filter( 'pre_unschedule_hook', $return_error, 10, 3 );
 
 		// Unschedule a hook with the `$wp_error` parameter:
 		$result = wp_unschedule_hook( 'hook', true );
