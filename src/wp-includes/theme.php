@@ -899,10 +899,9 @@ function validate_current_theme() {
  * Uses the information from `Requires at least` and `Requires PHP` headers
  * defined in the theme's `style.css` file.
  *
- * If the headers are not present in the theme's stylesheet file,
- * `readme.txt` is also checked as a fallback.
- *
- * @since 5.5.0
+ * @since 5.5.0 Added support for reading the headers from the themes's
+ *              `style.css` file, with `readme.txt` as a fallback.
+ * @since 5.8.0 Removed support for using `readme.txt` as fallback.
  *
  * @param string $stylesheet Directory name for the theme.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
