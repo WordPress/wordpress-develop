@@ -1136,19 +1136,6 @@ function validate_plugin_requirements( $plugin ) {
 
 	$readme_file = WP_PLUGIN_DIR . '/' . dirname( $plugin ) . '/readme.txt';
 
-	if ( file_exists( $readme_file ) ) {
-		$readme_headers = get_file_data(
-			$readme_file,
-			array(
-				'requires'     => 'Requires at least',
-				'requires_php' => 'Requires PHP',
-			),
-			'plugin'
-		);
-
-		$requirements = array_merge( $readme_headers, $requirements );
-	}
-
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
 

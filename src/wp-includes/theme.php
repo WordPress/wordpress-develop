@@ -915,21 +915,6 @@ function validate_theme_requirements( $stylesheet ) {
 		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
 	);
 
-	$readme_file = $theme->theme_root . '/' . $stylesheet . '/readme.txt';
-
-	if ( file_exists( $readme_file ) ) {
-		$readme_headers = get_file_data(
-			$readme_file,
-			array(
-				'requires'     => 'Requires at least',
-				'requires_php' => 'Requires PHP',
-			),
-			'theme'
-		);
-
-		$requirements = array_merge( $readme_headers, $requirements );
-	}
-
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
 
