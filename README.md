@@ -62,6 +62,20 @@ WP-CLI has a lot of [useful commands](https://developer.wordpress.org/cli/comman
 npm run env:cli help
 ```
 
+#### Setup Tests
+
+Use [wp-tests-config-sample.php](https://github.com/WordPress/wordpress-develop/blob/master/wp-tests-config-sample.php) to create a new test config file called `wp-tests-config.php`. These tests will **DROP ALL TABLES** in the database that we point to in the test config. 
+
+To run this against the docker test environment replace the following in wp-tests-config.php using the [environment credentials](https://github.com/WordPress/wordpress-develop#credentials)
+```
+define( 'DB_NAME', 'wordpress_develop_tests' );
+define( 'DB_USER', 'root' );
+define( 'DB_PASSWORD', 'password' );
+define( 'DB_HOST', 'mysql' );
+define( 'DB_CHARSET', 'utf8' );
+define( 'DB_COLLATE', '' );
+```
+
 #### To run the tests
 
 These commands run the PHP and end-to-end test suites, respectively:
