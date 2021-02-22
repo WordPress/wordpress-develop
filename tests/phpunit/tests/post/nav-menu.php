@@ -992,4 +992,153 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 		$category_item = get_post( $category_item_id );
 		$this->assertEmpty( $category_item->post_title );
 	}
+
+	/**
+	 * Test passed post_date/post_date_gmt.
+	 *
+	 * When inserting a nav menu item, it should be possible to set the post_date
+	 * of it to ensure that this data is maintained during an import.
+	 *
+	 * @ticket 52189
+	 */
+	function test_wp_update_nav_menu_item_with_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-post-date' => $post_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $post_date,
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $post_date,
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertSame( $post_date, $post->post_date );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'      => 'post_type',
+				'menu-item-object'    => 'post',
+				'menu-item-object-id' => $post_id,
+				'menu-item-status'    => 'publish',
+				'menu-item-post-date' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $invalid_date,
+				'menu-item-post-date-gmt' => $post_date_gmt,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+
+		$menu_item_id = wp_update_nav_menu_item(
+			$this->menu_id,
+			0,
+			array(
+				'menu-item-type'          => 'post_type',
+				'menu-item-object'        => 'post',
+				'menu-item-object-id'     => $post_id,
+				'menu-item-status'        => 'publish',
+				'menu-item-post-date'     => $invalid_date,
+				'menu-item-post-date-gmt' => $invalid_date,
+			)
+		);
+		$post         = get_post( $menu_item_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+	}
 }

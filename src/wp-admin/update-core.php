@@ -38,7 +38,7 @@ function list_core_update( $update ) {
 	static $first_pass = true;
 
 	$wp_version     = get_bloginfo( 'version' );
-	$version_string = sprintf( '%s&ndash;<strong>%s</strong>', $update->current, $update->locale );
+	$version_string = sprintf( '%s&ndash;%s', $update->current, get_locale() );
 
 	if ( 'en_US' === $update->locale && 'en_US' === get_locale() ) {
 		$version_string = $update->current;
@@ -55,19 +55,21 @@ function list_core_update( $update ) {
 		$current = true;
 	}
 
-	$submit        = __( 'Update Now' );
+	$is_development_version = preg_match( '/alpha|beta|RC/', $version_string );
+
+	$message       = '';
+	$submit        = $is_development_version ? __( 'Update to latest nightly' ) : __( 'Update now' );
 	$form_action   = 'update-core.php?action=do-core-upgrade';
 	$php_version   = phpversion();
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
 	if ( 'development' === $update->response ) {
-		$message = __( 'You are using a development version of WordPress. You can update to the latest nightly build manually:' );
+		$message = __( 'You can update to the latest nightly build manually:' );
 	} else {
 		if ( $current ) {
 			/* translators: %s: WordPress version. */
-			$message     = sprintf( __( 'If you need to re-install version %s, you can do so here:' ), $version_string );
-			$submit      = __( 'Re-install Now' );
+			$submit      = sprintf( __( 'Re-install version %s' ), $version_string );
 			$form_action = 'update-core.php?action=do-core-reinstall';
 		} else {
 			$php_compat = version_compare( $php_version, $update->php_version, '>=' );
@@ -229,29 +231,12 @@ function dismissed_updates() {
 function core_upgrade_preamble() {
 	global $required_php_version, $required_mysql_version;
 
-	$wp_version = get_bloginfo( 'version' );
-	$updates    = get_core_updates();
+	$updates = get_core_updates();
 
-	if ( ! isset( $updates[0]->response ) || 'latest' === $updates[0]->response ) {
-		echo '<h2>';
-		_e( 'You have the latest version of WordPress.' );
+	// Include an unmodified $wp_version.
+	require ABSPATH . WPINC . '/version.php';
 
-		if ( wp_http_supports( array( 'ssl' ) ) ) {
-			require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-			$upgrader            = new WP_Automatic_Updater;
-			$future_minor_update = (object) array(
-				'current'       => $wp_version . '.1.next.minor',
-				'version'       => $wp_version . '.1.next.minor',
-				'php_version'   => $required_php_version,
-				'mysql_version' => $required_mysql_version,
-			);
-			$should_auto_update  = $upgrader->should_update( 'core', $future_minor_update, ABSPATH );
-			if ( $should_auto_update ) {
-				echo ' ' . __( 'Future security updates will be applied automatically.' );
-			}
-		}
-		echo '</h2>';
-	}
+	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
 
 	if ( isset( $updates[0]->version ) && version_compare( $updates[0]->version, $wp_version, '>' ) ) {
 		echo '<h2 class="response">';
@@ -266,16 +251,10 @@ function core_upgrade_preamble() {
 			__( 'https://wordpress.org/support/article/updating-wordpress/' )
 		);
 		echo '</p></div>';
-	}
-
-	if ( isset( $updates[0] ) && 'development' === $updates[0]->response ) {
-		require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
-		$upgrader = new WP_Automatic_Updater;
-		if ( wp_http_supports( 'ssl' ) && $upgrader->should_update( 'core', $updates[0], ABSPATH ) ) {
-			echo '<div class="updated inline"><p>';
-			echo '<strong>' . __( 'BETA TESTERS:' ) . '</strong> ' . __( 'This site is set up to install updates of future beta versions automatically.' );
-			echo '</p></div>';
-		}
+	} elseif ( $is_development_version ) {
+		echo '<h2 class="response">' . __( 'You are using a development version of WordPress.' ) . '</h2>';
+	} else {
+		echo '<h2 class="response">' . __( 'You have the latest version of WordPress.' ) . '</h2>';
 	}
 
 	echo '<ul class="core-updates">';
@@ -285,6 +264,7 @@ function core_upgrade_preamble() {
 		echo '</li>';
 	}
 	echo '</ul>';
+
 	// Don't show the maintenance mode notice when we are only showing a single re-install option.
 	if ( $updates && ( count( $updates ) > 1 || 'latest' !== $updates[0]->response ) ) {
 		echo '<p>' . __( 'While your site is being updated, it will be in maintenance mode. As soon as your updates are complete, this mode will be deactivated.' ) . '</p>';
@@ -297,6 +277,7 @@ function core_upgrade_preamble() {
 			$normalized_version
 		) . '</p>';
 	}
+
 	dismissed_updates();
 }
 
@@ -316,13 +297,16 @@ function core_auto_updates_settings() {
 		}
 	}
 
+	require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
+	$updater = new WP_Automatic_Updater();
+
 	// Defaults:
 	$upgrade_dev   = get_site_option( 'auto_update_core_dev', 'enabled' ) === 'enabled';
 	$upgrade_minor = get_site_option( 'auto_update_core_minor', 'enabled' ) === 'enabled';
 	$upgrade_major = get_site_option( 'auto_update_core_major', 'unset' ) === 'enabled';
 
 	$can_set_update_option = true;
-	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'minor', false.
+	// WP_AUTO_UPDATE_CORE = true (all), 'beta', 'rc', 'development', 'branch-development', 'minor', false.
 	if ( defined( 'WP_AUTO_UPDATE_CORE' ) ) {
 		if ( false === WP_AUTO_UPDATE_CORE ) {
 			// Defaults to turned off, unless a filter allows it.
@@ -330,8 +314,7 @@ function core_auto_updates_settings() {
 			$upgrade_minor = false;
 			$upgrade_major = false;
 		} elseif ( true === WP_AUTO_UPDATE_CORE
-			|| 'beta' === WP_AUTO_UPDATE_CORE
-			|| 'rc' === WP_AUTO_UPDATE_CORE
+			|| in_array( WP_AUTO_UPDATE_CORE, array( 'beta', 'rc', 'development', 'branch-development' ), true )
 		) {
 			// ALL updates for core.
 			$upgrade_dev   = true;
@@ -344,26 +327,25 @@ function core_auto_updates_settings() {
 			$upgrade_major = false;
 		}
 
-		// The UI is overridden by the WP_AUTO_UPDATE_CORE constant.
+		// The UI is overridden by the `WP_AUTO_UPDATE_CORE` constant.
 		$can_set_update_option = false;
 	}
 
-	if ( defined( 'AUTOMATIC_UPDATER_DISABLED' )
-		|| has_filter( 'automatic_updater_disabled' )
-	) {
-		if ( true === AUTOMATIC_UPDATER_DISABLED
-			/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-			|| true === apply_filters( 'automatic_updater_disabled', false )
-		) {
-			$upgrade_dev   = false;
-			$upgrade_minor = false;
-			$upgrade_major = false;
-		}
-		// The UI is overridden by the AUTOMATIC_UPDATER_DISABLED constant.
+	if ( $updater->is_disabled() ) {
+		$upgrade_dev   = false;
+		$upgrade_minor = false;
+		$upgrade_major = false;
+
+		/*
+		 * The UI is overridden by the `AUTOMATIC_UPDATER_DISABLED` constant
+		 * or the `automatic_updater_disabled` filter,
+		 * or by `wp_is_file_mod_allowed( 'automatic_updater' )`.
+		 * See `WP_Automatic_Updater::is_disabled()`.
+		 */
 		$can_set_update_option = false;
 	}
 
-	// Is the UI overridden by a plugin using the allow_major_auto_core_updates filter?
+	// Is the UI overridden by a plugin using the `allow_major_auto_core_updates` filter?
 	if ( has_filter( 'allow_major_auto_core_updates' ) ) {
 		$can_set_update_option = false;
 	}
@@ -395,24 +377,27 @@ function core_auto_updates_settings() {
 
 	<p class="auto-update-status">
 		<?php
-		if ( $upgrade_major ) {
+
+		if ( $updater->is_vcs_checkout( ABSPATH ) ) {
+			_e( 'This site appears to be under version control. Automatic updates are disabled.' );
+		} elseif ( $upgrade_major ) {
 			_e( 'This site is automatically kept up to date with each new version of WordPress.' );
 
 			if ( $can_set_update_option ) {
 				echo '<br>';
 				printf(
-					'<a href="%s">%s</a>',
+					'<a href="%s" class="core-auto-update-settings-link core-auto-update-settings-link-disable">%s</a>',
 					wp_nonce_url( add_query_arg( 'value', 'disable', $action_url ), 'core-major-auto-updates-nonce' ),
 					__( 'Switch to automatic updates for maintenance and security releases only.' )
 				);
 			}
 		} elseif ( $upgrade_minor ) {
-			_e( 'This site is automatically kept up to date with maintenance and security releases of WordPress.' );
+			_e( 'This site is automatically kept up to date with maintenance and security releases of WordPress only.' );
 
 			if ( $can_set_update_option ) {
 				echo '<br>';
 				printf(
-					'<a href="%s">%s</a>',
+					'<a href="%s" class="core-auto-update-settings-link core-auto-update-settings-link-enable">%s</a>',
 					wp_nonce_url( add_query_arg( 'value', 'enable', $action_url ), 'core-major-auto-updates-nonce' ),
 					__( 'Enable automatic updates for all new versions of WordPress.' )
 				);
@@ -545,7 +530,7 @@ function list_plugin_updates() {
 			sprintf( __( 'View version %s details.' ), $plugin_data->update->new_version )
 		);
 
-		$checkbox_id = 'checkbox_' . md5( $plugin_data->Name );
+		$checkbox_id = 'checkbox_' . md5( $plugin_file );
 		?>
 	<tr>
 		<td class="check-column">
@@ -948,7 +933,7 @@ get_current_screen()->add_help_tab(
 	)
 );
 
-$updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update Now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
+$updates_howto  = '<p>' . __( '<strong>WordPress</strong> &mdash; Updating your WordPress installation is a simple one-click procedure: just <strong>click on the &#8220;Update now&#8221; button</strong> when you are notified that a new version is available.' ) . ' ' . __( 'In most cases, WordPress will automatically apply maintenance and security updates in the background for you.' ) . '</p>';
 $updates_howto .= '<p>' . __( '<strong>Themes and Plugins</strong> &mdash; To update individual themes or plugins from this screen, use the checkboxes to make your selection, then <strong>click on the appropriate &#8220;Update&#8221; button</strong>. To update all of your themes or plugins at once, you can check the box at the top of the section to select all before clicking the update button.' ) . '</p>';
 
 if ( 'en_US' !== get_locale() ) {

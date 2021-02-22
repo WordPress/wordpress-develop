@@ -789,7 +789,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 		// Test an HTTPS URL.
 		$_SERVER['HTTPS'] = 'on';
 		$url              = get_rest_url();
-		$this->assertSame( 'http', parse_url( $url, PHP_URL_SCHEME ) );
+		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 
 		// Reset.
 		update_option( 'siteurl', $_siteurl );
@@ -2326,6 +2326,58 @@ class Tests_REST_API extends WP_UnitTestCase {
 				'hello',
 				array( 'integer', 'string' ),
 			),
+		);
+	}
+
+	/**
+	 * @ticket 51722
+	 * @dataProvider data_rest_preload_api_request_embeds_links
+	 *
+	 * @param string   $embed        The embed parameter.
+	 * @param string[] $expected     The list of link relations that should be embedded.
+	 * @param string[] $not_expected The list of link relations that should not be embedded.
+	 */
+	public function test_rest_preload_api_request_embeds_links( $embed, $expected, $not_expected ) {
+		wp_set_current_user( 1 );
+		$post_id = self::factory()->post->create();
+		self::factory()->comment->create_post_comments( $post_id );
+
+		$url           = sprintf( '/wp/v2/posts/%d?%s', $post_id, $embed );
+		$preload_paths = array( $url );
+
+		$preload_data = array_reduce(
+			$preload_paths,
+			'rest_preload_api_request',
+			array()
+		);
+
+		$this->assertSame( array_keys( $preload_data ), $preload_paths );
+		$this->assertArrayHasKey( 'body', $preload_data[ $url ] );
+		$this->assertArrayHasKey( '_links', $preload_data[ $url ]['body'] );
+
+		if ( $expected ) {
+			$this->assertArrayHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		} else {
+			$this->assertArrayNotHasKey( '_embedded', $preload_data[ $url ]['body'] );
+		}
+
+		foreach ( $expected as $rel ) {
+			$this->assertArrayHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+
+		foreach ( $not_expected as $rel ) {
+			$this->assertArrayNotHasKey( $rel, $preload_data[ $url ]['body']['_embedded'] );
+		}
+	}
+
+	public function data_rest_preload_api_request_embeds_links() {
+		return array(
+			array( '_embed=wp:term,author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed[]=wp:term&_embed[]=author', array( 'wp:term', 'author' ), array( 'replies' ) ),
+			array( '_embed', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=1', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '_embed=true', array( 'wp:term', 'author', 'replies' ), array() ),
+			array( '', array(), array() ),
 		);
 	}
 }

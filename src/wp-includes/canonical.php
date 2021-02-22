@@ -151,7 +151,7 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		if ( $redirect_post ) {
 			$post_type_obj = get_post_type_object( $redirect_post->post_type );
 
-			if ( $post_type_obj->public && 'auto-draft' !== $redirect_post->post_status ) {
+			if ( $post_type_obj && $post_type_obj->public && 'auto-draft' !== $redirect_post->post_status ) {
 				$redirect_url = get_permalink( $redirect_post );
 				$redirect_obj = get_post( $redirect_post );
 
@@ -754,26 +754,22 @@ function redirect_canonical( $requested_url = null, $do_redirect = true ) {
 		$requested_url = preg_replace_callback( '|%[a-fA-F0-9][a-fA-F0-9]|', 'lowercase_octets', $requested_url );
 	}
 
-	if (
-		$redirect_obj &&
-		is_a( $redirect_obj, 'WP_Post' )
-	) {
+	if ( $redirect_obj instanceof WP_Post ) {
 		$post_status_obj = get_post_status_object( get_post_status( $redirect_obj ) );
+		/*
+		 * Unset the redirect object and URL if they are not readable by the user.
+		 * This condition is a little confusing as the condition needs to pass if
+		 * the post is not readable by the user. That's why there are ! (not) conditions
+		 * throughout.
+		 */
 		if (
-			// Unviewable post types are never redirected.
-			! is_post_type_viewable( $redirect_obj->post_type ) ||
-			// Internal or protected posts never redirect.
-			$post_status_obj->internal ||
-			$post_status_obj->protected ||
-			(
-				// Don't redirect a non-public post...
-				! $post_status_obj->public &&
-				(
-					// ...unless it's private and the logged in user has access.
-					$post_status_obj->private &&
-					! current_user_can( 'read_post', $redirect_obj->ID )
-				)
-			)
+			// Private post statuses only redirect if the user can read them.
+			! (
+				$post_status_obj->private &&
+				current_user_can( 'read_post', $redirect_obj->ID )
+			) &&
+			// For other posts, only redirect if publicly viewable.
+			! is_post_publicly_viewable( $redirect_obj )
 		) {
 			$redirect_obj = false;
 			$redirect_url = false;

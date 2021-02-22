@@ -13,7 +13,7 @@ module.exports = function(grunt) {
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
-		nodesass = require( 'node-sass' ),
+		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
 			'*.php',
@@ -406,8 +406,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
-					implementation: nodesass,
-					outputStyle: 'expanded'
+					implementation: sass
 				}
 			}
 		},
@@ -672,6 +671,10 @@ module.exports = function(grunt) {
 			multisite: {
 				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml']
+			},
+			'ms-ajax': {
+				cmd: 'phpunit',
+				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ajax']
 			},
 			'ms-files': {
 				cmd: 'phpunit',
@@ -1513,7 +1516,7 @@ module.exports = function(grunt) {
 	} );
 
 	// Travis CI tasks.
-	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
+	grunt.registerTask('travis:js', 'Runs JavaScript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
 	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
 	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travisErrors:error', 'lint:php:travisWarnings:error' ]);
 

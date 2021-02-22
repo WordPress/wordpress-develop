@@ -50,7 +50,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$export_request_id = wp_create_user_request( 'export-requester@example.com', 'export_personal_data' );
 		update_post_meta( self::$export_request_id, '_export_data_grouped', array() );
 		self::$exports_dir = wp_privacy_exports_dir();
@@ -164,7 +164,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$request_id = wp_create_user_request( 'removal-requester@example.com', 'remove_personal_data' );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating personal data export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -175,7 +175,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 */
 	public function test_invalid_request_id() {
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating user privacy export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid request ID when generating personal data export file."}' );
 		wp_privacy_generate_personal_data_export_file( 123456789 );
 	}
 
@@ -195,7 +195,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		);
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating user privacy export file."}' );
+		$this->expectOutputString( '{"success":false,"data":"Invalid email address when generating personal data export file."}' );
 		wp_privacy_generate_personal_data_export_file( $request_id );
 	}
 
@@ -209,12 +209,12 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		touch( untrailingslashit( self::$exports_dir ) );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to create user privacy export folder."}' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to create personal data export folder."}' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
 	/**
-	 * Test that an index.html file can be added to the export directory.
+	 * Test that an index.php file can be added to the export directory.
 	 *
 	 * @ticket 44233
 	 */
@@ -222,7 +222,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->expectOutputString( '' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
-		$this->assertTrue( file_exists( self::$exports_dir . 'index.html' ) );
+		$this->assertTrue( file_exists( self::$exports_dir . 'index.php' ) );
 	}
 
 	/**

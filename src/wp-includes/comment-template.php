@@ -422,12 +422,12 @@ function comment_author_url_link( $linktext = '', $before = '', $after = '', $co
  * @since 2.7.0
  * @since 4.4.0 Added the ability for `$comment` to also accept a WP_Comment object.
  *
- * @param string|array   $class    Optional. One or more classes to add to the class list.
- *                                 Default empty.
- * @param int|WP_Comment $comment  Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post    $post_id  Post ID or WP_Post object. Default current post.
- * @param bool           $echo     Optional. Whether to echo or return the output.
- *                                 Default true.
+ * @param string|string[] $class    Optional. One or more classes to add to the class list.
+ *                                  Default empty.
+ * @param int|WP_Comment  $comment  Comment ID or WP_Comment object. Default current comment.
+ * @param int|WP_Post     $post_id  Post ID or WP_Post object. Default current post.
+ * @param bool            $echo     Optional. Whether to echo or return the output.
+ *                                  Default true.
  * @return void|string Void if `$echo` argument is true, comment classes if `$echo` is false.
  */
 function comment_class( $class = '', $comment = null, $post_id = null, $echo = true ) {
@@ -451,9 +451,9 @@ function comment_class( $class = '', $comment = null, $post_id = null, $echo = t
  * @global int $comment_depth
  * @global int $comment_thread_alt
  *
- * @param string|array   $class      Optional. One or more classes to add to the class list. Default empty.
- * @param int|WP_Comment $comment_id Comment ID or WP_Comment object. Default current comment.
- * @param int|WP_Post    $post_id    Post ID or WP_Post object. Default current post.
+ * @param string|string[] $class      Optional. One or more classes to add to the class list. Default empty.
+ * @param int|WP_Comment  $comment_id Comment ID or WP_Comment object. Default current comment.
+ * @param int|WP_Post     $post_id    Post ID or WP_Post object. Default current post.
  * @return string[] An array of classes.
  */
 function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
@@ -530,7 +530,7 @@ function get_comment_class( $class = '', $comment_id = null, $post_id = null ) {
 	 * @since 2.7.0
 	 *
 	 * @param string[]    $classes    An array of comment classes.
-	 * @param string      $class      A comma-separated list of additional classes added to the list.
+	 * @param string[]    $class      An array of additional classes added to the list.
 	 * @param int         $comment_id The comment ID.
 	 * @param WP_Comment  $comment    The comment object.
 	 * @param int|WP_Post $post_id    The post ID or WP_Post object.
@@ -878,10 +878,10 @@ function get_comments_number( $post_id = 0 ) {
  * @since 0.71
  * @since 5.4.0 The `$deprecated` parameter was changed to `$post_id`.
  *
- * @param string      $zero       Optional. Text for no comments. Default false.
- * @param string      $one        Optional. Text for one comment. Default false.
- * @param string      $more       Optional. Text for more than one comment. Default false.
- * @param int|WP_Post $post_id    Optional. Post ID or WP_Post object. Default is the global `$post`.
+ * @param string|false $zero    Optional. Text for no comments. Default false.
+ * @param string|false $one     Optional. Text for one comment. Default false.
+ * @param string|false $more    Optional. Text for more than one comment. Default false.
+ * @param int|WP_Post  $post_id Optional. Post ID or WP_Post object. Default is the global `$post`.
  */
 function comments_number( $zero = false, $one = false, $more = false, $post_id = 0 ) {
 	echo get_comments_number_text( $zero, $one, $more, $post_id );
@@ -1033,7 +1033,7 @@ function comment_text( $comment_ID = 0, $args = array() ) {
  *
  * @since 1.5.0
  *
- * @param string $format    Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param string $format    Optional. PHP time format. Defaults to the 'time_format' option.
  * @param bool   $gmt       Optional. Whether to use the GMT date. Default false.
  * @param bool   $translate Optional. Whether to translate the time (for use in feeds).
  *                          Default true.
@@ -1067,7 +1067,7 @@ function get_comment_time( $format = '', $gmt = false, $translate = true ) {
  *
  * @since 0.71
  *
- * @param string $format Optional. PHP date format. Defaults to the 'time_format' option.
+ * @param string $format Optional. PHP time format. Defaults to the 'time_format' option.
  */
 function comment_time( $format = '' ) {
 	echo get_comment_time( $format );
@@ -1108,9 +1108,9 @@ function get_comment_type( $comment_ID = 0 ) {
  *
  * @since 0.71
  *
- * @param string $commenttxt   Optional. String to display for comment type. Default false.
- * @param string $trackbacktxt Optional. String to display for trackback type. Default false.
- * @param string $pingbacktxt  Optional. String to display for pingback type. Default false.
+ * @param string|false $commenttxt   Optional. String to display for comment type. Default false.
+ * @param string|false $trackbacktxt Optional. String to display for trackback type. Default false.
+ * @param string|false $pingbacktxt  Optional. String to display for pingback type. Default false.
  */
 function comment_type( $commenttxt = false, $trackbacktxt = false, $pingbacktxt = false ) {
 	if ( false === $commenttxt ) {
@@ -1199,7 +1199,7 @@ function trackback_url( $deprecated_echo = true ) {
  *
  * @since 0.71
  *
- * @param int $deprecated Not used (Was $timezone = 0).
+ * @param int|string $deprecated Not used (Was $timezone = 0).
  */
 function trackback_rdf( $deprecated = '' ) {
 	if ( ! empty( $deprecated ) ) {
@@ -1980,13 +1980,13 @@ function comment_id_fields( $post_id = 0 ) {
  *
  * @global WP_Comment $comment Global comment object.
  *
- * @param string $no_reply_text  Optional. Text to display when not replying to a comment.
- *                               Default false.
- * @param string $reply_text     Optional. Text to display when replying to a comment.
- *                               Default false. Accepts "%s" for the author of the comment
- *                               being replied to.
- * @param string $link_to_parent Optional. Boolean to control making the author's name a link
- *                               to their comment. Default true.
+ * @param string|false $no_reply_text  Optional. Text to display when not replying to a comment.
+ *                                     Default false.
+ * @param string|false $reply_text     Optional. Text to display when replying to a comment.
+ *                                     Default false. Accepts "%s" for the author of the comment
+ *                                     being replied to.
+ * @param bool         $link_to_parent Optional. Boolean to control making the author's name a link
+ *                                     to their comment. Default true.
  */
 function comment_form_title( $no_reply_text = false, $reply_text = false, $link_to_parent = true ) {
 	global $comment;

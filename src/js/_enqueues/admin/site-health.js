@@ -24,7 +24,7 @@ jQuery( document ).ready( function( $ ) {
 		// Clear the selection and move focus back to the trigger.
 		e.clearSelection();
 		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.focus();
+		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
@@ -205,7 +205,7 @@ jQuery( document ).ready( function( $ ) {
 			val = 100;
 		}
 
-		pct = ( ( 100 - val ) / 100 ) * c;
+		pct = ( ( 100 - val ) / 100 ) * c + 'px';
 
 		$circle.css( { strokeDashoffset: pct } );
 
@@ -271,7 +271,7 @@ jQuery( document ).ready( function( $ ) {
 
 				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
 					wp.apiRequest( {
-						url: this.test,
+						url: wp.url.addQueryArgs( this.test, { _locale: 'user' } ),
 						headers: this.headers
 					} )
 						.done( function( response ) {

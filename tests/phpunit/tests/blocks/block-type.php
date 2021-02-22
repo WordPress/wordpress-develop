@@ -45,21 +45,21 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 	 *
 	 * @since 5.0.0
 	 */
-	public static function wpSetUpBeforeClass() {
-		self::$editor_user_id = self::factory()->user->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$editor_user_id = $factory->user->create(
 			array(
 				'role' => 'editor',
 			)
 		);
 
-		self::$post_with_blocks = self::factory()->post->create(
+		self::$post_with_blocks = $factory->post->create(
 			array(
 				'post_title'   => 'Example',
 				'post_content' => "<!-- wp:core/text {\"dropCap\":true} -->\n<p class=\"has-drop-cap\">Tester</p>\n<!-- /wp:core/text -->",
 			)
 		);
 
-		self::$post_without_blocks = self::factory()->post->create(
+		self::$post_without_blocks = $factory->post->create(
 			array(
 				'post_title'   => 'Example',
 				'post_content' => 'Tester',

@@ -9,7 +9,7 @@
  *
  * @param {Element} el - The element.
  * @param {boolean} withListeners - Whether we want to add/remove listeners or not.
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 function twentytwentyoneToggleAriaExpanded( el, withListeners ) {
 	if ( 'true' !== el.getAttribute( 'aria-expanded' ) ) {
@@ -41,10 +41,19 @@ function twentytwentyoneCollapseMenuOnClickOutside( event ) {
  */
 function twentytwentyoneSubmenuPosition( li ) {
 	var subMenu = li.querySelector( 'ul.sub-menu' ),
-		rect = subMenu.getBoundingClientRect(),
-		right = Math.round( rect.right ),
-		left = Math.round( rect.left ),
-		windowWidth = Math.round( window.innerWidth );
+		rect,
+		right,
+		left,
+		windowWidth;
+
+	if ( ! subMenu ) {
+		return;
+	}
+
+	rect = subMenu.getBoundingClientRect();
+	right = Math.round( rect.right );
+	left = Math.round( rect.left );
+	windowWidth = Math.round( window.innerWidth );
 
 	if ( right > windowWidth ) {
 		subMenu.classList.add( 'submenu-reposition-right' );
@@ -114,7 +123,7 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			tabKey = event.keyCode === 9;
 			shiftKey = event.shiftKey;
 			escKey = event.keyCode === 27;
-			activeEl = document.activeElement;
+			activeEl = document.activeElement; // eslint-disable-line @wordpress/no-global-active-element
 			lastEl = elements[ elements.length - 1 ];
 			firstEl = elements[0];
 
@@ -138,6 +147,23 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			// If there are no elements in the menu, don't move the focus
 			if ( tabKey && firstEl === lastEl ) {
 				event.preventDefault();
+			}
+		} );
+
+		/**
+		 * Close menu and scroll to anchor when an anchor link is clicked.
+		 * Adapted from TwentyTwenty.
+		 */
+		document.addEventListener( 'click', function( event ) {
+			// If target onclick is <a> with # within the href attribute
+			if ( event.target.hash && event.target.hash.includes( '#' ) ) {
+				wrapper.classList.remove( id + '-navigation-open', 'lock-scrolling' );
+				twentytwentyoneToggleAriaExpanded( mobileButton );
+				// Wait 550 and scroll to the anchor.
+				setTimeout(function () {
+					var anchor = document.getElementById(event.target.hash.slice(1));
+					anchor.scrollIntoView();
+				}, 550);
 			}
 		} );
 

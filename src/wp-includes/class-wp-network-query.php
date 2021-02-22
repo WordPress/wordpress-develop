@@ -89,8 +89,8 @@ class WP_Network_Query {
 	 * @param string|array $query {
 	 *     Optional. Array or query string of network query parameters. Default empty.
 	 *
-	 *     @type array        $network__in          Array of network IDs to include. Default empty.
-	 *     @type array        $network__not_in      Array of network IDs to exclude. Default empty.
+	 *     @type int[]        $network__in          Array of network IDs to include. Default empty.
+	 *     @type int[]        $network__not_in      Array of network IDs to exclude. Default empty.
 	 *     @type bool         $count                Whether to return a network count (true) or array of network objects.
 	 *                                              Default false.
 	 *     @type string       $fields               Network fields to return. Accepts 'ids' (returns an array of network IDs)
@@ -104,11 +104,11 @@ class WP_Network_Query {
 	 *                                              an empty array, or 'none' to disable `ORDER BY` clause. Default 'id'.
 	 *     @type string       $order                How to order retrieved networks. Accepts 'ASC', 'DESC'. Default 'ASC'.
 	 *     @type string       $domain               Limit results to those affiliated with a given domain. Default empty.
-	 *     @type array        $domain__in           Array of domains to include affiliated networks for. Default empty.
-	 *     @type array        $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
+	 *     @type string[]     $domain__in           Array of domains to include affiliated networks for. Default empty.
+	 *     @type string[]     $domain__not_in       Array of domains to exclude affiliated networks for. Default empty.
 	 *     @type string       $path                 Limit results to those affiliated with a given path. Default empty.
-	 *     @type array        $path__in             Array of paths to include affiliated networks for. Default empty.
-	 *     @type array        $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
+	 *     @type string[]     $path__in             Array of paths to include affiliated networks for. Default empty.
+	 *     @type string[]     $path__not_in         Array of paths to exclude affiliated networks for. Default empty.
 	 *     @type string       $search               Search term(s) to retrieve matching networks for. Default empty.
 	 *     @type bool         $update_network_cache Whether to prime the cache for found networks. Default true.
 	 * }
@@ -227,7 +227,7 @@ class WP_Network_Query {
 		 * @param array|int|null   $network_data Return an array of network data to short-circuit WP's network query,
 		 *                                       the network count as an integer if `$this->query_vars['count']` is set,
 		 *                                       or null to allow WP to run its normal queries.
-		 * @param WP_Network_Query $this         The WP_Network_Query instance, passed by reference.
+		 * @param WP_Network_Query $query        The WP_Network_Query instance, passed by reference.
 		 */
 		$network_data = apply_filters_ref_array( 'networks_pre_query', array( $network_data, &$this ) );
 
@@ -303,7 +303,7 @@ class WP_Network_Query {
 		 * @since 4.6.0
 		 *
 		 * @param WP_Network[]     $_networks An array of WP_Network objects.
-		 * @param WP_Network_Query $this      Current instance of WP_Network_Query (passed by reference).
+		 * @param WP_Network_Query $query     Current instance of WP_Network_Query (passed by reference).
 		 */
 		$_networks = apply_filters_ref_array( 'the_networks', array( $_networks, &$this ) );
 
@@ -446,7 +446,7 @@ class WP_Network_Query {
 		 * @since 4.6.0
 		 *
 		 * @param string[]         $pieces An associative array of network query clauses.
-		 * @param WP_Network_Query $this   Current instance of WP_Network_Query (passed by reference).
+		 * @param WP_Network_Query $query  Current instance of WP_Network_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'networks_clauses', array( compact( $pieces ), &$this ) );
 

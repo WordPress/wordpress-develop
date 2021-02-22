@@ -19,7 +19,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 	protected static $total_categories = 30;
 	protected static $per_page         = 50;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$administrator = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -1140,7 +1140,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
-		$this->assertSame( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+		$this->assertSame( array( 'category' ), $properties['taxonomy']['enum'] );
 	}
 
 	public function test_get_additional_field_registration() {

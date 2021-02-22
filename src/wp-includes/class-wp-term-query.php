@@ -94,7 +94,7 @@ class WP_Term_Query {
 	 *
 	 *     @type string|array $taxonomy               Taxonomy name, or array of taxonomies, to which results should
 	 *                                                be limited.
-	 *     @type int|array    $object_ids             Optional. Object ID, or array of object IDs. Results will be
+	 *     @type int|int[]    $object_ids             Optional. Object ID, or array of object IDs. Results will be
 	 *                                                limited to terms associated with these objects.
 	 *     @type string       $orderby                Field(s) to order terms by. Accepts:
 	 *                                                - term fields ('name', 'slug', 'term_group', 'term_id', 'id',
@@ -113,12 +113,12 @@ class WP_Term_Query {
 	 *                                                Default 'ASC'.
 	 *     @type bool|int     $hide_empty             Whether to hide terms not assigned to any posts. Accepts
 	 *                                                1|true or 0|false. Default 1|true.
-	 *     @type array|string $include                Array or comma/space-separated string of term IDs to include.
+	 *     @type int[]|string $include                Array or comma/space-separated string of term IDs to include.
 	 *                                                Default empty array.
-	 *     @type array|string $exclude                Array or comma/space-separated string of term IDs to exclude.
+	 *     @type int[]|string $exclude                Array or comma/space-separated string of term IDs to exclude.
 	 *                                                If $include is non-empty, $exclude is ignored.
 	 *                                                Default empty array.
-	 *     @type array|string $exclude_tree           Array or comma/space-separated string of term IDs to exclude
+	 *     @type int[]|string $exclude_tree           Array or comma/space-separated string of term IDs to exclude
 	 *                                                along with all of their descendant terms. If $include is
 	 *                                                non-empty, $exclude_tree is ignored. Default empty array.
 	 *     @type int|string   $number                 Maximum number of terms to return. Accepts ''|0 (all) or any
@@ -149,7 +149,7 @@ class WP_Term_Query {
 	 *                                                Default empty.
 	 *     @type string|array $slug                   Optional. Slug or array of slugs to return term(s) for.
 	 *                                                Default empty.
-	 *     @type int|array    $term_taxonomy_id       Optional. Term taxonomy ID, or array of term taxonomy IDs,
+	 *     @type int|int[]    $term_taxonomy_id       Optional. Term taxonomy ID, or array of term taxonomy IDs,
 	 *                                                to match when querying terms.
 	 *     @type bool         $hierarchical           Whether to include terms that have non-empty descendants
 	 *                                                (even if $hide_empty is set to true). Default true.
@@ -285,12 +285,16 @@ class WP_Term_Query {
 	}
 
 	/**
-	 * Sets up the query for retrieving terms.
+	 * Sets up the query and retrieves the results.
+	 *
+	 * The return type varies depending on the value passed to `$args['fields']`. See
+	 * WP_Term_Query::get_terms() for details.
 	 *
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of terms, or number of terms when 'count' is passed as a query var.
+	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
+	 *                                         when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -298,13 +302,41 @@ class WP_Term_Query {
 	}
 
 	/**
-	 * Get terms, based on query_vars.
+	 * Retrieves the query results.
+	 *
+	 * The return type varies depending on the value passed to `$args['fields']`.
+	 *
+	 * The following will result in an array of `WP_Term` objects being returned:
+	 *
+	 *   - 'all'
+	 *   - 'all_with_object_id'
+	 *
+	 * The following will result in a numeric string being returned:
+	 *
+	 *   - 'count'
+	 *
+	 * The following will result in an array of text strings being returned:
+	 *
+	 *   - 'id=>name'
+	 *   - 'id=>slug'
+	 *   - 'names'
+	 *   - 'slugs'
+	 *
+	 * The following will result in an array of numeric strings being returned:
+	 *
+	 *   - 'id=>parent'
+	 *
+	 * The following will result in an array of integers being returned:
+	 *
+	 *   - 'ids'
+	 *   - 'tt_ids'
 	 *
 	 * @since 4.6.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array List of terms.
+	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
+	 *                                         when 'count' is passed as a query var.
 	 */
 	public function get_terms() {
 		global $wpdb;
@@ -321,9 +353,9 @@ class WP_Term_Query {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param WP_Term_Query $this Current instance of WP_Term_Query.
+		 * @param WP_Term_Query $this Current instance of WP_Term_Query (passed by reference).
 		 */
-		do_action( 'pre_get_terms', $this );
+		do_action_ref_array( 'pre_get_terms', array( &$this ) );
 
 		$taxonomies = (array) $args['taxonomy'];
 
@@ -696,7 +728,7 @@ class WP_Term_Query {
 		 *
 		 * @param array|null    $terms Return an array of term data to short-circuit WP's term query,
 		 *                             or null to allow WP queries to run normally.
-		 * @param WP_Term_Query $this  The WP_Term_Query instance, passed by reference.
+		 * @param WP_Term_Query $query The WP_Term_Query instance, passed by reference.
 		 */
 		$this->terms = apply_filters_ref_array( 'terms_pre_query', array( $this->terms, &$this ) );
 

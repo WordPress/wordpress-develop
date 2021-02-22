@@ -14,7 +14,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	protected static $post_id;
 	protected static $cpt_post_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		register_post_type(
 			'cpt',
 			array(
@@ -1025,6 +1025,31 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		// Ensure the post content update was not processed.
 		$post_updated = get_post( self::$post_id );
 		$this->assertSame( $post_original->post_content, $post_updated->post_content );
+	}
+
+	/**
+	 * @ticket 50790
+	 */
+	public function test_remove_multi_value_with_empty_array() {
+		add_post_meta( self::$post_id, 'test_multi', 'val1' );
+		$values = get_post_meta( self::$post_id, 'test_multi', false );
+		$this->assertSame( array( 'val1' ), $values );
+
+		$this->grant_write_permission();
+
+		$data    = array(
+			'meta' => array(
+				'test_multi' => array(),
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status() );
+
+		$meta = get_post_meta( self::$post_id, 'test_multi', false );
+		$this->assertEmpty( $meta );
 	}
 
 	public function test_remove_multi_value_db_error() {

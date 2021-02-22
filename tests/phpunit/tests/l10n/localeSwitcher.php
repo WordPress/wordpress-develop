@@ -3,7 +3,7 @@
 /**
  * @group l10n
  * @group i18n
- * @group 26511
+ * @ticket 26511
  */
 class Tests_Locale_Switcher extends WP_UnitTestCase {
 	/**

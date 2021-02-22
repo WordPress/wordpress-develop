@@ -8,13 +8,43 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $large_id;
 	protected static $_sizes;
 	protected static $large_filename = 'test-image-large.jpg';
+	protected static $post_ids;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
 		$filename       = DIR_TESTDATA . '/images/' . self::$large_filename;
 		self::$large_id = $factory->attachment->create_upload_object( $filename );
+
+		$post_statuses = array( 'publish', 'future', 'draft', 'auto-draft', 'trash' );
+		foreach ( $post_statuses as $post_status ) {
+			$date = '';
+			if ( 'future' === $post_status ) {
+				strftime( '%Y-%m-%d %H:%M:%S', strtotime( '+1 year' ) );
+			}
+
+			self::$post_ids[ $post_status ] = $factory->post->create(
+				array(
+					'post_status' => 'trash' === $post_status ? 'publish' : $post_status,
+					'post_date'   => $date,
+					'post_name'   => "$post_status-post",
+				)
+			);
+
+			// Attachments without media.
+			self::$post_ids[ "$post_status-attachment" ] = $factory->attachment->create_object(
+				array(
+					'post_parent' => self::$post_ids[ $post_status ],
+					'post_status' => 'inherit',
+					'post_name'   => "$post_status-attachment",
+					'post_date'   => $date,
+				)
+			);
+		}
+
+		// Trash the trash post.
+		wp_trash_post( self::$post_ids['trash'] );
 	}
 
 	public static function wpTearDownAfterClass() {
@@ -2419,7 +2449,7 @@ EOF;
 	 */
 	public function test_return_type_when_inserting_attachment_with_error_in_data() {
 		$data = array(
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => 'Attachment content',
 			'post_title'   => 'Attachment Title',
 			'post_date'    => '2012-02-30 00:00:00',
@@ -2706,25 +2736,29 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50367
+	 * @ticket 50756
 	 * @requires function imagejpeg
 	 */
 	function test_wp_filter_content_tags_loading_lazy() {
 		$image_meta = wp_get_attachment_metadata( self::$large_id );
 		$size_array = $this->_get_image_size_array_from_meta( $image_meta, 'medium' );
 
-		$img                 = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$img_xhtml           = str_replace( ' />', '/>', $img );
-		$img_html5           = str_replace( ' />', '>', $img );
-		$img_no_width_height = str_replace( ' width="' . $size_array[0] . '"', '', $img );
-		$img_no_width_height = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
-		$iframe              = '<iframe src="https://www.example.com"></iframe>';
+		$img                    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img_xhtml              = str_replace( ' />', '/>', $img );
+		$img_html5              = str_replace( ' />', '>', $img );
+		$img_no_width_height    = str_replace( ' width="' . $size_array[0] . '"', '', $img );
+		$img_no_width_height    = str_replace( ' height="' . $size_array[1] . '"', '', $img_no_width_height );
+		$iframe                 = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$iframe_no_width_height = '<iframe src="https://www.example.com"></iframe>';
 
 		$lazy_img       = wp_img_tag_add_loading_attr( $img, 'test' );
 		$lazy_img_xhtml = wp_img_tag_add_loading_attr( $img_xhtml, 'test' );
 		$lazy_img_html5 = wp_img_tag_add_loading_attr( $img_html5, 'test' );
+		$lazy_iframe    = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		// The following should not be modified because there already is a 'loading' attribute.
-		$img_eager = str_replace( ' />', ' loading="eager" />', $img );
+		$img_eager    = str_replace( ' />', ' loading="eager" />', $img );
+		$iframe_eager = str_replace( '">', '" loading="eager">', $iframe );
 
 		$content = '
 			<p>Image, standard.</p>
@@ -2737,11 +2771,15 @@ EOF;
 			%4$s
 			<p>Image, without dimension attributes. Should not be modified.</p>
 			%5$s
-			<p>Iframe, standard. Should not be modified.</p>
-			%6$s';
+			<p>Iframe, standard.</p>
+			%6$s
+			<p>Iframe, with pre-existing "loading" attribute. Should not be modified.</p>
+			%7$s
+			<p>Iframe, without dimension attributes. Should not be modified.</p>
+			%8$s';
 
-		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe );
-		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $iframe );
+		$content_unfiltered = sprintf( $content, $img, $img_xhtml, $img_html5, $img_eager, $img_no_width_height, $iframe, $iframe_eager, $iframe_no_width_height );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_img_xhtml, $lazy_img_html5, $img_eager, $img_no_width_height, $lazy_iframe, $iframe_eager, $iframe_no_width_height );
 
 		// Do not add width, height, srcset, and sizes.
 		add_filter( 'wp_img_tag_add_width_and_height_attr', '__return_false' );
@@ -2755,17 +2793,22 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50756
 	 */
 	function test_wp_filter_content_tags_loading_lazy_opted_in() {
-		$img      = get_image_tag( self::$large_id, '', '', '', 'medium' );
-		$lazy_img = wp_img_tag_add_loading_attr( $img, 'test' );
+		$img         = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$lazy_img    = wp_img_tag_add_loading_attr( $img, 'test' );
+		$iframe      = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$lazy_iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		$content = '
 			<p>Image, standard.</p>
-			%1$s';
+			%1$s
+			<p>Iframe, standard.</p>
+			%2$s';
 
-		$content_unfiltered = sprintf( $content, $img );
-		$content_filtered   = sprintf( $content, $lazy_img );
+		$content_unfiltered = sprintf( $content, $img, $iframe );
+		$content_filtered   = sprintf( $content, $lazy_img, $lazy_iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -2780,14 +2823,18 @@ EOF;
 
 	/**
 	 * @ticket 44427
+	 * @ticket 50756
 	 */
 	function test_wp_filter_content_tags_loading_lazy_opted_out() {
-		$img = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$img    = get_image_tag( self::$large_id, '', '', '', 'medium' );
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 
 		$content = '
 			<p>Image, standard.</p>
-			%1$s';
-		$content = sprintf( $content, $img );
+			%1$s
+			<p>Iframe, standard.</p>
+			%2$s';
+		$content = sprintf( $content, $img, $iframe );
 
 		// Do not add srcset and sizes while testing.
 		add_filter( 'wp_img_tag_add_srcset_and_sizes_attr', '__return_false' );
@@ -2849,6 +2896,50 @@ EOF;
 	}
 
 	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr() {
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
+
+		$this->assertContains( ' loading="lazy"', $iframe );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_without_src() {
+		$iframe = '<iframe width="640" height="360"></iframe>';
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
+
+		$this->assertNotContains( ' loading=', $iframe );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_with_single_quotes() {
+		$iframe = "<iframe src='https://www.example.com' width='640' height='360'></iframe>";
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
+
+		$this->assertNotContains( ' loading=', $iframe );
+
+		// Test specifically that the attribute is not there with double-quotes,
+		// to avoid regressions.
+		$this->assertNotContains( ' loading="lazy"', $iframe );
+	}
+
+	/**
+	 * @ticket 50756
+	 */
+	function test_wp_iframe_tag_add_loading_attr_opt_out() {
+		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
+
+		$this->assertNotContains( ' loading=', $iframe );
+	}
+
+	/**
 	 * @ticket 44427
 	 * @ticket 50425
 	 */
@@ -2888,6 +2979,7 @@ EOF;
 	/**
 	 * @ticket 44427
 	 * @ticket 50425
+	 * @ticket 50756
 	 * @dataProvider data_wp_lazy_loading_enabled_tag_name_defaults
 	 *
 	 * @param string $tag_name Tag name.
@@ -2904,7 +2996,7 @@ EOF;
 	function data_wp_lazy_loading_enabled_tag_name_defaults() {
 		return array(
 			'img => true'            => array( 'img', true ),
-			'iframe => false'        => array( 'iframe', false ),
+			'iframe => true'         => array( 'iframe', true ),
 			'arbitrary tag => false' => array( 'blink', false ),
 		);
 	}
@@ -3023,6 +3115,55 @@ EOF;
 		$this->assertNotContains( '<a ', $actual );
 	}
 
+	/**
+	 * Test attachment permalinks based on parent post status.
+	 *
+	 * @dataProvider data_attachment_permalinks_based_on_parent_status
+	 * @ticket 51776
+	 *
+	 * @param string $post_key     Post as keyed in the shared fixture array.
+	 * @param string $expected_url Expected permalink.
+	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
+	 *
+	 */
+	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404 ) {
+		$this->set_permalink_structure( '/%postname%' );
+		$post = get_post( self::$post_ids[ $post_key ] );
+
+		/*
+		 * The dataProvider runs before the fixures are set up, therefore the
+		 * post object IDs are placeholders that needs to be replaced.
+		 */
+		$expected_url = home_url( str_replace( '%ID%', $post->ID, $expected_url ) );
+
+		$this->go_to( get_permalink( $post ) );
+		$this->assertSame( $expected_url, get_permalink( $post ) );
+		if ( $expected_404 ) {
+			$this->assertQueryTrue( 'is_404' );
+		} else {
+			$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
+		}
+		$this->assertSame( 'attachment', $post->post_type );
+	}
+
+	/**
+	 * Data provider for test_attachment_permalinks_based_on_parent_status().
+	 *
+	 * @return array[] {
+	 *     @type string $post_key     Post as keyed in the shared fixture array.
+	 *     @type string $expected_url Expected permalink.
+	 *     $type bool   $expected_404 Whether the page is expected to return a 404 result.
+	 * }
+	 */
+	function data_attachment_permalinks_based_on_parent_status() {
+		return array(
+			array( 'draft-attachment', '/?attachment_id=%ID%', true ),
+			array( 'publish-attachment', '/publish-post/publish-attachment', false ),
+			array( 'future-attachment', '/future-post/future-attachment', false ),
+			array( 'auto-draft-attachment', '/?attachment_id=%ID%', true ),
+			array( 'trash-attachment', '/?attachment_id=%ID%', false ),
+		);
+	}
 }
 
 /**

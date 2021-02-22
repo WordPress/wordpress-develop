@@ -451,8 +451,8 @@ function has_excerpt( $post = 0 ) {
  *
  * @since 2.7.0
  *
- * @param string|array $class   One or more classes to add to the class list.
- * @param int|WP_Post  $post_id Optional. Post ID or post object. Defaults to the global `$post`.
+ * @param string|string[] $class   One or more classes to add to the class list.
+ * @param int|WP_Post     $post_id Optional. Post ID or post object. Defaults to the global `$post`.
  */
 function post_class( $class = '', $post_id = null ) {
 	// Separates classes with a single space, collates classes for post DIV.
@@ -946,7 +946,8 @@ function wp_link_pages( $args = '' ) {
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param array $parsed_args An array of arguments for page links for paginated posts.
+	 * @param array $parsed_args An array of page link arguments. See wp_link_pages()
+	 *                           for information on accepted arguments.
 	 */
 	$parsed_args = apply_filters( 'wp_link_pages_args', $parsed_args );
 
@@ -1005,7 +1006,8 @@ function wp_link_pages( $args = '' ) {
 	 * @since 3.6.0
 	 *
 	 * @param string $output HTML output of paginated posts' page links.
-	 * @param array  $args   An array of arguments.
+	 * @param array  $args   An array of arguments. See wp_link_pages()
+	 *                       for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_link_pages', $output, $args );
 
@@ -1208,7 +1210,8 @@ function wp_dropdown_pages( $args = '' ) {
 	 * @since 4.4.0 `$parsed_args` and `$pages` added as arguments.
 	 *
 	 * @param string    $output      HTML output for drop down list of pages.
-	 * @param array     $parsed_args The parsed arguments array.
+	 * @param array     $parsed_args The parsed arguments array. See wp_dropdown_pages()
+	 *                               for information on accepted arguments.
 	 * @param WP_Post[] $pages       Array of the page objects.
 	 */
 	$html = apply_filters( 'wp_dropdown_pages', $output, $parsed_args, $pages );
@@ -1337,7 +1340,8 @@ function wp_list_pages( $args = '' ) {
 	 * @see wp_list_pages()
 	 *
 	 * @param string    $output      HTML output of the pages list.
-	 * @param array     $parsed_args An array of page-listing arguments.
+	 * @param array     $parsed_args An array of page-listing arguments. See wp_list_pages()
+	 *                               for information on accepted arguments.
 	 * @param WP_Post[] $pages       Array of the page objects.
 	 */
 	$html = apply_filters( 'wp_list_pages', $output, $parsed_args, $pages );
@@ -1417,7 +1421,8 @@ function wp_page_menu( $args = array() ) {
 	 *
 	 * @see wp_page_menu()
 	 *
-	 * @param array $args An array of page menu arguments.
+	 * @param array $args An array of page menu arguments. See wp_page_menu()
+	 *                    for information on accepted arguments.
 	 */
 	$args = apply_filters( 'wp_page_menu_args', $args );
 
@@ -1491,7 +1496,8 @@ function wp_page_menu( $args = array() ) {
 	 * @see wp_page_menu()
 	 *
 	 * @param string $menu The HTML output.
-	 * @param array  $args An array of arguments.
+	 * @param array  $args An array of arguments. See wp_page_menu()
+	 *                     for information on accepted arguments.
 	 */
 	$menu = apply_filters( 'wp_page_menu', $menu, $args );
 
@@ -1645,7 +1651,7 @@ function wp_get_attachment_link( $id = 0, $size = 'thumbnail', $permalink = fals
 	 *                                an array of width and height values in pixels (in that order).
 	 * @param bool         $permalink Whether to add permalink to image. Default false.
 	 * @param bool         $icon      Whether to include an icon.
-	 * @param string|bool  $text      If string, will be link text.
+	 * @param string|false $text      If string, will be link text.
 	 * @param array|string $attr      Array or string of attributes.
 	 */
 	return apply_filters( 'wp_get_attachment_link', "<a href='" . esc_url( $url ) . "'>$link_text</a>", $id, $size, $permalink, $icon, $text, $attr );
@@ -1749,7 +1755,7 @@ function get_the_password_form( $post = 0 ) {
  * @since 4.2.0 The `$template` parameter was changed to also accept an array of page templates.
  * @since 4.7.0 Now works with any post type, not just pages.
  *
- * @param string|array $template The specific template filename or array of templates to match.
+ * @param string|string[] $template The specific template filename or array of templates to match.
  * @return bool True on success, false on failure.
  */
 function is_page_template( $template = '' ) {
@@ -1956,4 +1962,29 @@ function wp_list_post_revisions( $post_id = 0, $type = 'all' ) {
 	echo "<ul class='post-revisions hide-if-no-js'>\n";
 	echo $rows;
 	echo '</ul>';
+}
+
+/**
+ * Retrieves the parent post object for the given post.
+ *
+ * @since 5.7.0
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @return WP_Post|null Parent post object, or null if there isn't one.
+ */
+function get_post_parent( $post = null ) {
+	$wp_post = get_post( $post );
+	return ! empty( $wp_post->post_parent ) ? get_post( $wp_post->post_parent ) : null;
+}
+
+/**
+ * Returns whether the given post has a parent post.
+ *
+ * @since 5.7.0
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @return bool Whether the post has a parent post.
+ */
+function has_post_parent( $post = null ) {
+	return (bool) get_post_parent( $post );
 }

@@ -15,7 +15,7 @@
 		tmplAppPassRow = wp.template( 'application-password-row' ),
 		userId = $( '#user_id' ).val();
 
-	$newAppPassButton.click( function( e ) {
+	$newAppPassButton.on( 'click', function( e ) {
 		e.preventDefault();
 
 		if ( $newAppPassButton.prop( 'aria-disabled' ) ) {
@@ -25,7 +25,7 @@
 		var name = $newAppPassField.val();
 
 		if ( 0 === name.length ) {
-			$newAppPassField.focus();
+			$newAppPassField.trigger( 'focus' );
 			return;
 		}
 
@@ -47,7 +47,7 @@
 		request = wp.hooks.applyFilters( 'wp_application_passwords_new_password_request', request, userId );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords',
+			path: '/wp/v2/users/' + userId + '/application-passwords?_locale=user',
 			method: 'POST',
 			data: request
 		} ).always( function() {
@@ -57,10 +57,10 @@
 			$newAppPassButton.prop( 'disabled', false );
 
 			$newAppPassForm.after( tmplNewAppPass( {
-				name: name,
+				name: response.name,
 				password: response.password
 			} ) );
-			$( '.new-application-password-notice' ).focus();
+			$( '.new-application-password-notice' ).trigger( 'focus' );
 
 			$appPassTbody.prepend( tmplAppPassRow( response ) );
 
@@ -94,7 +94,7 @@
 		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid,
+			path: '/wp/v2/users/' + userId + '/application-passwords/' + uuid + '?_locale=user',
 			method: 'DELETE'
 		} ).always( function() {
 			$submitButton.prop( 'disabled', false );
@@ -105,7 +105,7 @@
 				}
 				$tr.remove();
 
-				addNotice( wp.i18n.__( 'Application password revoked.' ), 'success' ).focus();
+				addNotice( wp.i18n.__( 'Application password revoked.' ), 'success' ).trigger( 'focus' );
 			}
 		} ).fail( handleErrorResponse );
 	} );
@@ -123,7 +123,7 @@
 		$submitButton.prop( 'disabled', true );
 
 		wp.apiRequest( {
-			path: '/wp/v2/users/' + userId + '/application-passwords',
+			path: '/wp/v2/users/' + userId + '/application-passwords?_locale=user',
 			method: 'DELETE'
 		} ).always( function() {
 			$submitButton.prop( 'disabled', false );
@@ -133,7 +133,7 @@
 				$appPassSection.children( '.new-application-password' ).remove();
 				$appPassTwrapper.hide();
 
-				addNotice( wp.i18n.__( 'All application passwords revoked.' ), 'success' ).focus();
+				addNotice( wp.i18n.__( 'All application passwords revoked.' ), 'success' ).trigger( 'focus' );
 			}
 		} ).fail( handleErrorResponse );
 	} );
@@ -145,7 +145,7 @@
 		$el.fadeTo( 100, 0, function () {
 			$el.slideUp( 100, function () {
 				$el.remove();
-				$newAppPassField.focus();
+				$newAppPassField.trigger( 'focus' );
 			} );
 		} );
 	} );

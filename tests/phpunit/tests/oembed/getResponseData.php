@@ -2,6 +2,7 @@
 
 /**
  * @group oembed
+ * @covers ::get_oembed_response_data
  */
 class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 	function test_get_oembed_response_data_non_existent_post() {
@@ -122,6 +123,51 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'private',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_public_true_custom_post_status() {
+		// Custom status with 'public' => true.
+		register_post_status( 'public', array( 'public' => true ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'public',
+			)
+		);
+
+		$this->assertNotFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_public_false_custom_post_status() {
+		// Custom status with 'public' => false.
+		register_post_status( 'private_foo', array( 'public' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'private_foo',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_unregistered_custom_post_status() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'unknown_foo',
 			)
 		);
 

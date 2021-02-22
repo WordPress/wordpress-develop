@@ -53,7 +53,7 @@ class WP_Test_REST_Search_Controller extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		add_theme_support( 'post-formats', array( 'aside' ) );
 
 		self::$my_title_post_ids = $factory->post->create_many(

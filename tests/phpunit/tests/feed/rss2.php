@@ -17,7 +17,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Create a user.
 		self::$user_id = $factory->user->create(
 			array(
@@ -150,7 +150,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Test that translated feeds have a valid listed date.
 	 *
-	 * @group 39141
+	 * @ticket 39141
 	 */
 	function test_channel_pubdate_element_translated() {
 		$original_locale = $GLOBALS['wp_locale'];

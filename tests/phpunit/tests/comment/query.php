@@ -9,7 +9,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	protected static $post_id;
 	protected $comment_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 	}
 

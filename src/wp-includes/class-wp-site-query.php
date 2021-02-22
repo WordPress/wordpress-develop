@@ -114,8 +114,8 @@ class WP_Site_Query {
 	 * @param string|array $query {
 	 *     Optional. Array or query string of site query parameters. Default empty.
 	 *
-	 *     @type array        $site__in               Array of site IDs to include. Default empty.
-	 *     @type array        $site__not_in           Array of site IDs to exclude. Default empty.
+	 *     @type int[]        $site__in               Array of site IDs to include. Default empty.
+	 *     @type int[]        $site__not_in           Array of site IDs to exclude. Default empty.
 	 *     @type bool         $count                  Whether to return a site count (true) or array of site objects.
 	 *                                                Default false.
 	 *     @type array        $date_query             Date query clauses to limit sites by. See WP_Date_Query.
@@ -135,22 +135,22 @@ class WP_Site_Query {
 	 *     @type string       $order                  How to order retrieved sites. Accepts 'ASC', 'DESC'. Default 'ASC'.
 	 *     @type int          $network_id             Limit results to those affiliated with a given network ID. If 0,
 	 *                                                include all networks. Default 0.
-	 *     @type array        $network__in            Array of network IDs to include affiliated sites for. Default empty.
-	 *     @type array        $network__not_in        Array of network IDs to exclude affiliated sites for. Default empty.
+	 *     @type int[]        $network__in            Array of network IDs to include affiliated sites for. Default empty.
+	 *     @type int[]        $network__not_in        Array of network IDs to exclude affiliated sites for. Default empty.
 	 *     @type string       $domain                 Limit results to those affiliated with a given domain. Default empty.
-	 *     @type array        $domain__in             Array of domains to include affiliated sites for. Default empty.
-	 *     @type array        $domain__not_in         Array of domains to exclude affiliated sites for. Default empty.
+	 *     @type string[]     $domain__in             Array of domains to include affiliated sites for. Default empty.
+	 *     @type string[]     $domain__not_in         Array of domains to exclude affiliated sites for. Default empty.
 	 *     @type string       $path                   Limit results to those affiliated with a given path. Default empty.
-	 *     @type array        $path__in               Array of paths to include affiliated sites for. Default empty.
-	 *     @type array        $path__not_in           Array of paths to exclude affiliated sites for. Default empty.
+	 *     @type string[]     $path__in               Array of paths to include affiliated sites for. Default empty.
+	 *     @type string[]     $path__not_in           Array of paths to exclude affiliated sites for. Default empty.
 	 *     @type int          $public                 Limit results to public sites. Accepts '1' or '0'. Default empty.
 	 *     @type int          $archived               Limit results to archived sites. Accepts '1' or '0'. Default empty.
 	 *     @type int          $mature                 Limit results to mature sites. Accepts '1' or '0'. Default empty.
 	 *     @type int          $spam                   Limit results to spam sites. Accepts '1' or '0'. Default empty.
 	 *     @type int          $deleted                Limit results to deleted sites. Accepts '1' or '0'. Default empty.
 	 *     @type int          $lang_id                Limit results to a language ID. Default empty.
-	 *     @type array        $lang__in               Array of language IDs to include affiliated sites for. Default empty.
-	 *     @type array        $lang__not_in           Array of language IDs to exclude affiliated sites for. Default empty.
+	 *     @type string[]     $lang__in               Array of language IDs to include affiliated sites for. Default empty.
+	 *     @type string[]     $lang__not_in           Array of language IDs to exclude affiliated sites for. Default empty.
 	 *     @type string       $search                 Search term(s) to retrieve matching sites for. Default empty.
 	 *     @type array        $search_columns         Array of column names to be searched. Accepts 'domain' and 'path'.
 	 *                                                Default empty array.
@@ -318,7 +318,7 @@ class WP_Site_Query {
 		 * @param array|int|null $site_data Return an array of site data to short-circuit WP's site query,
 		 *                                  the site count as an integer if `$this->query_vars['count']` is set,
 		 *                                  or null to run the normal queries.
-		 * @param WP_Site_Query  $this      The WP_Site_Query instance, passed by reference.
+		 * @param WP_Site_Query  $query     The WP_Site_Query instance, passed by reference.
 		 */
 		$site_data = apply_filters_ref_array( 'sites_pre_query', array( $site_data, &$this ) );
 
@@ -396,7 +396,7 @@ class WP_Site_Query {
 		 * @since 4.6.0
 		 *
 		 * @param WP_Site[]     $_sites An array of WP_Site objects.
-		 * @param WP_Site_Query $this   Current instance of WP_Site_Query (passed by reference).
+		 * @param WP_Site_Query $query  Current instance of WP_Site_Query (passed by reference).
 		 */
 		$_sites = apply_filters_ref_array( 'the_sites', array( $_sites, &$this ) );
 
@@ -600,7 +600,7 @@ class WP_Site_Query {
 			 *
 			 * @param string[]      $search_columns Array of column names to be searched.
 			 * @param string        $search         Text being searched.
-			 * @param WP_Site_Query $this           The current WP_Site_Query instance.
+			 * @param WP_Site_Query $query          The current WP_Site_Query instance.
 			 */
 			$search_columns = apply_filters( 'site_search_columns', $search_columns, $this->query_vars['search'], $this );
 
@@ -637,7 +637,7 @@ class WP_Site_Query {
 		 * @since 4.6.0
 		 *
 		 * @param string[]      $pieces An associative array of site query clauses.
-		 * @param WP_Site_Query $this   Current instance of WP_Site_Query (passed by reference).
+		 * @param WP_Site_Query $query  Current instance of WP_Site_Query (passed by reference).
 		 */
 		$clauses = apply_filters_ref_array( 'sites_clauses', array( compact( $pieces ), &$this ) );
 

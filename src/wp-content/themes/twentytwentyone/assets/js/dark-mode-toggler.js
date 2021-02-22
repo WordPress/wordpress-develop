@@ -14,9 +14,8 @@ function toggleDarkMode() { // jshint ignore:line
 	}
 }
 
-function darkModeInitialLoad() {
-	var toggler = document.getElementById( 'dark-mode-toggler' ),
-		isDarkMode = window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
+function twentytwentyoneIsDarkMode() {
+	var isDarkMode = window.matchMedia( '(prefers-color-scheme: dark)' ).matches;
 
 	if ( 'yes' === window.localStorage.getItem( 'twentytwentyoneDarkMode' ) ) {
 		isDarkMode = true;
@@ -24,12 +23,12 @@ function darkModeInitialLoad() {
 		isDarkMode = false;
 	}
 
-	if ( ! toggler ) {
-		return;
-	}
-	if ( isDarkMode ) {
-		toggler.setAttribute( 'aria-pressed', 'true' );
-	}
+	return isDarkMode;
+}
+
+function darkModeInitialLoad() {
+	var toggler = document.getElementById( 'dark-mode-toggler' ),
+		isDarkMode = twentytwentyoneIsDarkMode();
 
 	if ( isDarkMode ) {
 		document.documentElement.classList.add( 'is-dark-theme' );
@@ -38,10 +37,16 @@ function darkModeInitialLoad() {
 		document.documentElement.classList.remove( 'is-dark-theme' );
 		document.body.classList.remove( 'is-dark-theme' );
 	}
+
+	if ( toggler && isDarkMode ) {
+		toggler.setAttribute( 'aria-pressed', 'true' );
+	}
 }
 
 function darkModeRepositionTogglerOnScroll() {
-	var prevScroll = window.scrollY || document.documentElement.scrollTop,
+
+	var toggler = document.getElementById( 'dark-mode-toggler' ),
+		prevScroll = window.scrollY || document.documentElement.scrollTop,
 		currentScroll,
 
 		checkScroll = function() {
@@ -50,13 +55,16 @@ function darkModeRepositionTogglerOnScroll() {
 				currentScroll + ( window.innerHeight * 1.5 ) > document.body.clientHeight ||
 				currentScroll < prevScroll
 			) {
-				document.getElementById( 'dark-mode-toggler' ).classList.remove( 'hide' );
+				toggler.classList.remove( 'hide' );
 			} else if ( currentScroll > prevScroll && 250 < currentScroll ) {
-				document.getElementById( 'dark-mode-toggler' ).classList.add( 'hide' );
+				toggler.classList.add( 'hide' );
 			}
 			prevScroll = currentScroll;
 		};
-	window.addEventListener( 'scroll', checkScroll );
+
+	if ( toggler ) {
+		window.addEventListener( 'scroll', checkScroll );
+	}
 }
 
 darkModeInitialLoad();

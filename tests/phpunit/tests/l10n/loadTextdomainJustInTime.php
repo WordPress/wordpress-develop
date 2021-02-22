@@ -10,7 +10,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 	protected static $user_id;
 	private $locale_count;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
 				'role'   => 'administrator',

@@ -1231,7 +1231,8 @@ function is_uninstallable_plugin( $plugin ) {
  * @since 2.7.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return true True if a plugin's uninstall.php file has been found and included.
+ * @return true|void True if a plugin's uninstall.php file has been found and included.
+ *                   Void otherwise.
  */
 function uninstall_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
@@ -1763,7 +1764,7 @@ function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $
  * @global array $menu
  *
  * @param string $menu_slug The slug of the menu.
- * @return array|bool The removed menu on success, false if not found.
+ * @return array|false The removed menu on success, false if not found.
  */
 function remove_menu_page( $menu_slug ) {
 	global $menu;
@@ -1787,7 +1788,7 @@ function remove_menu_page( $menu_slug ) {
  *
  * @param string $menu_slug    The slug for the parent menu.
  * @param string $submenu_slug The slug of the submenu.
- * @return array|bool The removed submenu on success, false if not found.
+ * @return array|false The removed submenu on success, false if not found.
  */
 function remove_submenu_page( $menu_slug, $submenu_slug ) {
 	global $submenu;
@@ -2462,6 +2463,8 @@ function resume_plugin( $plugin, $redirect = '' ) {
  * Renders an admin notice in case some plugins have been paused due to errors.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
