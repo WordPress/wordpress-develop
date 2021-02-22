@@ -15,7 +15,6 @@ on:
     - cron: '0 0 * * 0'
 
 env:
-  LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   COMPOSER_INSTALL: ${{ false }}
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
@@ -32,7 +31,6 @@ jobs:
   # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Builds WordPress to run from the `build` directory.
   # - Creates a ZIP file of compiled WordPress.
   # - Uploads ZIP file as an artifact.
   setup-wordpress:
@@ -81,9 +79,6 @@ jobs:
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
-
-      - name: Build WordPress
-        run: npm run build
 
       - name: Create ZIP artifact
         uses: thedoctor0/zip-release@0.4.1
@@ -231,7 +226,7 @@ jobs:
       - name: Start the Memcached server.
         if: ${{ matrix.memcached }}
         run: |
-          cp tests/phpunit/includes/object-cache.php build/wp-content/object-cache.php
+          cp tests/phpunit/includes/object-cache.php src/wp-content/object-cache.php
           docker run --name memcached --net $(basename "$PWD")_wpdevnet -d memcached
 
       - name: General debug information
