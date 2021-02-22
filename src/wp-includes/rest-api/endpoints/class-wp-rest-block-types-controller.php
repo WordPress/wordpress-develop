@@ -274,6 +274,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'script',
 			'editor_style',
 			'style',
+			'variations',
 		);
 		foreach ( $extra_fields as $extra_field ) {
 			if ( rest_is_field_included( $extra_field, $fields ) ) {
@@ -638,7 +639,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					),
 					'readonly'    => true,
 					'context'     => array( 'embed', 'view', 'edit' ),
-					'default'     => array(),
+					'default'     => null,
 				),
 				'textdomain'       => array(
 					'description' => __( 'Public text domain.' ),

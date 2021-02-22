@@ -275,6 +275,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'render_callback'  => false,
 			'textdomain'       => false,
 			'example'          => false,
+			'variations'       => false,
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -301,6 +302,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['example'] );
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
+		$this->assertSameSets( array(), $data['variations'] );
 	}
 
 	/**
@@ -312,7 +314,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertCount( 20, $properties );
+		$this->assertCount( 21, $properties );
 		$this->assertArrayHasKey( 'api_version', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'icon', $properties );
@@ -333,6 +335,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'example', $properties );
 		$this->assertArrayHasKey( 'uses_context', $properties );
 		$this->assertArrayHasKey( 'provides_context', $properties );
+		$this->assertArrayHasKey( 'variations', $properties );
 	}
 
 	/**
