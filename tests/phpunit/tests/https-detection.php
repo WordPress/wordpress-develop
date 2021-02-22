@@ -171,6 +171,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 * @ticket 52542
 	 */
 	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
@@ -180,6 +181,12 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes modified RSD link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
+
+		// HTML includes RSD link with alternative URL scheme.
+		$head_tag = get_echo( 'rsd_link' );
+		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 
