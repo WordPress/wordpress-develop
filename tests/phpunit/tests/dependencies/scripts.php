@@ -1428,4 +1428,67 @@ JS;
 			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
 		}
 	}
+
+	/**
+	 * @ticket 52534
+	 * @covers ::wp_localize_script
+	 *
+	 * @dataProvider data_wp_localize_script_data_formats
+	 *
+	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
+	 * @param string $expected  Expected transformation of localization data.
+	 * @param string $warning   Optional. Whether a PHP native warning/error is expected. Default false.
+	 */
+	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
+		if ( $warning ) {
+			if ( PHP_VERSION_ID < 80000 ) {
+				$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+			} else {
+				// As this exception will only be set on PHP 8 in combination with PHPUnit 7, this will work (for now).
+				$this->expectException( 'Error' );
+			}
+		}
+
+		if ( ! is_array( $l10n_data ) ) {
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
+		}
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', $l10n_data );
+
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider for test_wp_localize_script_data_formats().
+	 *
+	 * @return array[] {
+	 *     Array of arguments for test.
+	 *
+	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
+	 *     @type string $expected  Expected transformation of localization data.
+	 *     @type string $warning   Optional. Whether a PHP native warning/error is expected.
+	 * }
+	 */
+	public function data_wp_localize_script_data_formats() {
+		return array(
+			// Officially supported formats.
+			array( array( 'array value, no key' ), '["array value, no key"]' ),
+			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
+			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
+			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
+			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+
+			// Unofficially supported format.
+			array( 'string', '"string"' ),
+
+			// Unsupported formats.
+			array( 1.5, '1.5', true ),
+			array( 1, '1', true ),
+			array( false, '[""]' ),
+		);
+	}
 }
