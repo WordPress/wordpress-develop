@@ -544,7 +544,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'required'    => false,
 							),
 							'isDefault'   => array(
-								'description' => __( 'Indicates whether the current variation is the default one. Defaults to `false`' ),
+								'description' => __( 'Indicates whether the current variation is the default one.' ),
 								'type'        => 'boolean',
 								'required'    => false,
 								'default'     => false,
@@ -558,7 +558,82 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 									'type' => 'object',
 								),
 							),
-							//TODO: innerBlocks, example, scope, keywords, isActive
+							'innerBlocks' => array(
+								'description' => __( 'Initial configuration of nested blocks.' ),
+								'type'        => 'array',
+								'items'       => array(
+									'type'       => 'object',
+									'properties' => array(
+										'name'        => array(
+											'description' => __( 'The name of the inner block.' ),
+											'type'        => 'string',
+										),
+										'attributes'  => array(
+											'description' => __( 'The attributes of the inner block.' ),
+											'type'        => 'object',
+										),
+										'innerBlocks' => array(
+											'description' => __( "A list of the inner block's own inner blocks. This is a recursive definition following the parent innerBlocks schema." ),
+											'type'        => 'array',
+										),
+									),
+								),
+							),
+							'example'     => array(
+								'description' => __( 'Example provides structured data for the block preview. Set this to `null` to disable the preview shown for the block type.' ),
+								'type'        => array( 'object', 'null' ),
+								'default'     => null,
+								'properties'  => array(
+									'attributes'  => array(
+										'description' => __( 'The attributes used in the example.' ),
+										'type'        => 'object',
+									),
+									'innerBlocks' => array(
+										'description' => __( 'The list of inner blocks used in the example.' ),
+										'type'        => 'array',
+										'items'       => array(
+											'type'       => 'object',
+											'properties' => array(
+												'name' => array(
+													'description' => __( 'The name of the inner block.' ),
+													'type' => 'string',
+												),
+												'attributes' => array(
+													'description' => __( 'The attributes of the inner block.' ),
+													'type' => 'object',
+												),
+												'innerBlocks' => array(
+													'description' => __( "A list of the inner block's own inner blocks. This is a recursive definition following the parent innerBlocks schema." ),
+													'type' => 'array',
+												),
+											),
+										),
+									),
+								),
+							),
+							'scope'       => array(
+								'description' => __( 'The list of scopes where the variation is applicable. When not provided, it assumes all available scopes.' ),
+								'type'        => array( 'array', 'null' ),
+								'default'     => null,
+								'items'       => array(
+									'type' => 'string',
+									'enum' => array( 'block', 'inserter', 'transform' ),
+								),
+								'readonly'    => true,
+							),
+							'keywords'    => array(
+								'description' => __( 'An array of terms (which can be translated) that help users discover the variation while searching' ),
+								'type'        => 'array',
+								'items'       => array(
+									'type' => 'string',
+								),
+								'default'     => array(),
+							),
+							'icon'        => array(
+								'description' => __( 'An icon helping to visualize the variation.' ),
+								'type'        => array( 'string', 'null' ),
+								'default'     => null,
+							),
 						),
 					),
 					'readonly'    => true,
