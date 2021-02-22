@@ -130,7 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '7.4' ]
+        php: [ '5.6.20' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
         testgroup: [ 'add_query_arg', 'admin', 'admin-bar', 'adminScreen', 'ajax', 'app_password', 'attachment', 'auth', 'author', 'avatar', 'blocks', 'blogname', 'bookmark', 'cache', 'canonical', 'capabilities', 'capTestTests', 'category.php', 'comment', 'community-events', 'compat', 'cron', 'custom_logo', 'customize', 'date', 'datequery', 'datetime', 'dbdelta', 'dependencies', 'deprecated', 'document-title', 'editor', 'emoji', 'error-protection', 'errors', 'external-http', 'feed', 'file', 'filesystem', 'formatting', 'functions.php', 'general', 'header', 'hooks', 'http', 'https-detection', 'https-migration', 'i18n', 'image', 'import', 'kses', 'l10n', 'link', 'load.php', 'mail', 'media', 'menu', 'meta', 'ms-bootstrap', 'ms-excluded', 'ms-files', 'ms-network', 'ms-network-query', 'ms-option', 'ms-required', 'ms-site', 'ms-user', 'multisite', 'network-admin', 'oembed', 'oembed-headers', 'option', 'phpunit', 'ping', 'pluggable', 'plugins', 'pomo', 'post', 'privacy', 'query', 'redirect', 'resize', 'restapi', 'restapi-autosave', 'restapi-blocks', 'restapi-jsclient', 'restapi-themes', 'revision', 'rewrite', 'robots', 'sanitize_sql_orderby', 'scripts', 'search', 'security-153', 'session', 'shortcode', 'sidebar', 'site_icon', 'site-health', 'sitemaps', 'slashes', 'ssl', 'taxonomy', 'template', 'term', 'testsuite', 'themes', 'toolbar', 'upgrade', 'upload', 'url', 'user', 'walker', 'widgets', 'wp', 'wp-filesystem', 'wp-get-site', 'wp-image-editor-gd', 'wp-image-editor-imagick', 'wp-simplepie-file', 'wpdb', 'xdebug', 'xmlrpc']
