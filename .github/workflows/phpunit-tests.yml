@@ -133,7 +133,7 @@ jobs:
         php: [ '5.6.20', '7.0', '7.1', '7.2', '7.3', '7.4', '8.0' ]
         os: [ ubuntu-latest ]
         memcached: [ false ]
-        media56: [ false ]
+        only56: [ false ]
         multisite: [ false, true ]
         include:
           # Modify jobs for PHP 5.6.
@@ -141,22 +141,22 @@ jobs:
             os: ubuntu-latest
             memcached: false
             multisite: false
-            media56: false
+            only56: false
           - php: '5.6.20'
             os: ubuntu-latest
             memcached: false
             multisite: true
-            media56: false
+            only56: false
           - php: '5.6.20'
             os: ubuntu-latest
             memcached: false
             multisite: false
-            media56: true
+            only56: true
           - php: '5.6.20'
             os: ubuntu-latest
             memcached: false
             multisite: true
-            media56: true
+            only56: true
           # Include jobs for PHP 7.4 with memcached.
           - php: '7.4'
             os: ubuntu-latest
@@ -279,17 +279,17 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Run PHPUnit tests for media on PHP 5.6
-        if: ${{ matrix.php == '5.6.20' && matrix.media56 }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group media
+      - name: Run PHPUnit tests for REST API on PHP 5.6
+        if: ${{ matrix.php == '5.6.20' && matrix.only56 }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group restapi
 
-      - name: Run PHPUnit tests for single site excluding media on PHP 5.6
-        if: ${{ matrix.php == '5.6.20' && ! matrix.media56 && ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group media,ajax,ms-files,ms-required,external-http
+      - name: Run PHPUnit tests for single site excluding REST API on PHP 5.6
+        if: ${{ matrix.php == '5.6.20' && ! matrix.only56 && ! matrix.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group restapi,ajax,ms-files,ms-required,external-http
 
-      - name: Run PHPUnit tests for Multisite excluding media on PHP 5.6
-        if: ${{ matrix.php == '5.6.20' && ! matrix.media56 && matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group media,ajax,ms-files,ms-excluded,external-http,oembed-headers
+      - name: Run PHPUnit tests for Multisite excluding REST API on PHP 5.6
+        if: ${{ matrix.php == '5.6.20' && ! matrix.only56 && matrix.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group restapi,ajax,ms-files,ms-excluded,external-http,oembed-headers
 
       - name: Run PHPUnit tests
         if: ${{ matrix.php != '5.6.20' }}
