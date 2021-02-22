@@ -279,19 +279,19 @@ jobs:
         run: npm run env:install
 
       - name: Run PHPUnit tests for media on PHP 5.6
-        if: ${{ matrix.os == '5.6.20' && matrix.media56 }}
+        if: ${{ matrix.php == '5.6.20' && matrix.media56 }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group media
 
       - name: Run PHPUnit tests for single site excluding media on PHP 5.6
-        if: ${{ matrix.os == '5.6.20' && ! matrix.media56 && ! matrix.multisite }}
+        if: ${{ matrix.php == '5.6.20' && ! matrix.media56 && ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group media,ajax,ms-files,ms-required,external-http
 
       - name: Run PHPUnit tests for Multisite excluding media on PHP 5.6
-        if: ${{ matrix.os == '5.6.20' && ! matrix.media56 && matrix.multisite }}
+        if: ${{ matrix.php == '5.6.20' && ! matrix.media56 && matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group media,ajax,ms-files,ms-excluded,external-http,oembed-headers
 
       - name: Run PHPUnit tests
-        if: ${{ matrix.os != '5.6.20' }}
+        if: ${{ matrix.php != '5.6.20' }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
