@@ -128,6 +128,7 @@ jobs:
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         php: [ '7.4' ]
         os: [ ubuntu-latest ]
