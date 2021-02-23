@@ -35,7 +35,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 			)
 		);
 
-		touch( ABSPATH . WPINC . '/js/wp-embed.js' );
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
 	public static function wpTearDownAfterClass() {

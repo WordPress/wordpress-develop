@@ -1293,4 +1293,14 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			)
 		);
 	}
+
+	public static function touch( $file ) {
+		$dir = dirname( $file );
+
+		if ( ! file_exists( $dir ) ) {
+			mkdir( $dir, 0777, true );
+		}
+
+		touch( $file );
+	}
 }
