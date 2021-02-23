@@ -100,6 +100,12 @@ class WP_Block_Type {
 	public $styles = array();
 
 	/**
+	 * Block variations.
+	 * @var array
+	 */
+	public $variations = array();
+
+	/**
 	 * Supported features.
 	 *
 	 * @since 5.5.0

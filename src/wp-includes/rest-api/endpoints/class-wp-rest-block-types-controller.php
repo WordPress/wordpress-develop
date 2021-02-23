@@ -512,6 +512,59 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
+				'variations'       => array(
+					'description' => __( 'Block variations.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type'       => 'object',
+						'properties' => array(
+							'name'        => array(
+								'description' => __( 'The unique and machine-readable name.' ),
+								'type'        => 'string',
+								'required'    => true,
+							),
+							'title'       => array(
+								'description' => __( 'A human-readable variation title.' ),
+								'type'        => 'string',
+								'required'    => true,
+							),
+							'description' => array(
+								'description' => __( 'A detailed variation description.' ),
+								'type'        => 'string',
+								'required'    => false,
+							),
+							'category'    => array(
+								'description' => __( 'Block type category classification, used in search interfaces to arrange block types by category.' ),
+								'type'        => 'string',
+								'required'    => false,
+							),
+							'icon'        => array(
+								'description' => __( 'An icon helping to visualize the variation.' ),
+								'type'        => array( 'string', 'null' ),
+								'required'    => false,
+							),
+							'isDefault'  => array(
+								'description' => __( 'Indicates whether the current variation is the default one. Defaults to `false`' ),
+								'type'        => 'boolean',
+								'required'    => false,
+								'default'     => false,
+							),
+							'attributes'  => array(
+								'description'          => __( 'Block attributes.' ),
+								'type'                 => array( 'object', 'null' ),
+								'properties'           => array(),
+								'default'              => null,
+								'additionalProperties' => array(
+									'type' => 'object',
+								),
+							),
+							//TODO: innerBlocks, example, scope, keywords, isActive
+						),
+					),
+					'readonly'    => true,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'default'     => array(),
+				),
 				'textdomain'       => array(
 					'description' => __( 'Public text domain.' ),
 					'type'        => array( 'string', 'null' ),

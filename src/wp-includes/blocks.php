@@ -230,6 +230,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		'styles'          => 'styles',
 		'example'         => 'example',
 		'apiVersion'      => 'api_version',
+		'variations'      => 'variations',
 	);
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
