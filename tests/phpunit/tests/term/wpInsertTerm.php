@@ -43,7 +43,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 		remove_filter( 'delete_term', array( $this, 'deleted_term_cb' ), 10, 5 );
 		$this->assertNull( term_exists( $term ) );
 		$this->assertNull( term_exists( $t['term_id'] ) );
-		$this->assertEquals( $initial_count, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
+		$this->assertSame( $initial_count, wp_count_terms( array( 'taxonomy' => $taxonomy ) ) );
 	}
 
 	public function test_wp_insert_term_taxonomy_does_not_exist() {

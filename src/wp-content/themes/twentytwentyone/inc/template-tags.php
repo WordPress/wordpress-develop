@@ -4,14 +4,14 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 if ( ! function_exists( 'twenty_twenty_one_posted_on' ) ) {
 	/**
 	 * Prints HTML with meta information for the current post-date/time.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -37,7 +37,7 @@ if ( ! function_exists( 'twenty_twenty_one_posted_by' ) ) {
 	/**
 	 * Prints HTML with meta information about theme author.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -59,7 +59,7 @@ if ( ! function_exists( 'twenty_twenty_one_entry_meta_footer' ) ) {
 	 * Prints HTML with meta information for the categories, tags and comments.
 	 * Footer entry meta is displayed differently in archives and single posts.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -176,7 +176,7 @@ if ( ! function_exists( 'twenty_twenty_one_post_thumbnail' ) ) {
 	 * Wraps the post thumbnail in an anchor element on index views, or a div
 	 * element when on single views.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -190,8 +190,8 @@ if ( ! function_exists( 'twenty_twenty_one_post_thumbnail' ) ) {
 
 			<figure class="post-thumbnail">
 				<?php
-				// Thumbnail is loaded eagerly because it's going to be in the viewport immediately.
-				the_post_thumbnail( 'post-thumbnail', array( 'loading' => 'eager' ) );
+				// Lazy-loading attributes should be skipped for thumbnails since they are immediately in the viewport.
+				the_post_thumbnail( 'post-thumbnail', array( 'loading' => false ) );
 				?>
 				<?php if ( wp_get_attachment_caption( get_post_thumbnail_id() ) ) : ?>
 					<figcaption class="wp-caption-text"><?php echo wp_kses_post( wp_get_attachment_caption( get_post_thumbnail_id() ) ); ?></figcaption>
@@ -218,42 +218,36 @@ if ( ! function_exists( 'twenty_twenty_one_the_posts_navigation' ) ) {
 	/**
 	 * Print the next and previous posts navigation.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
 	function twenty_twenty_one_the_posts_navigation() {
-		$post_type      = get_post_type_object( get_post_type() );
-		$post_type_name = '';
-		if (
-			is_object( $post_type ) &&
-			property_exists( $post_type, 'labels' ) &&
-			is_object( $post_type->labels ) &&
-			property_exists( $post_type->labels, 'name' )
-		) {
-			$post_type_name = $post_type->labels->name;
-		}
-
 		the_posts_pagination(
 			array(
-				/* translators: There is a space after page. */
-				'before_page_number' => esc_html__( 'Page ', 'twentytwentyone' ),
+				'before_page_number' => esc_html__( 'Page', 'twentytwentyone' ) . ' ',
 				'mid_size'           => 0,
 				'prev_text'          => sprintf(
 					'%s <span class="nav-prev-text">%s</span>',
 					is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' ),
-					sprintf(
-						/* translators: %s: The post-type name. */
-						esc_html__( 'Newer %s', 'twentytwentyone' ),
-						'<span class="nav-short">' . esc_html( $post_type_name ) . '</span>'
+					wp_kses(
+						__( 'Newer <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						array(
+							'span' => array(
+								'class' => array(),
+							),
+						)
 					)
 				),
 				'next_text'          => sprintf(
 					'<span class="nav-next-text">%s</span> %s',
-					sprintf(
-						/* translators: %s: The post-type name. */
-						esc_html__( 'Older %s', 'twentytwentyone' ),
-						'<span class="nav-short">' . esc_html( $post_type_name ) . '</span>'
+					wp_kses(
+						__( 'Older <span class="nav-short">posts</span>', 'twentytwentyone' ),
+						array(
+							'span' => array(
+								'class' => array(),
+							),
+						)
 					),
 					is_rtl() ? twenty_twenty_one_get_icon_svg( 'ui', 'arrow_left' ) : twenty_twenty_one_get_icon_svg( 'ui', 'arrow_right' )
 				),

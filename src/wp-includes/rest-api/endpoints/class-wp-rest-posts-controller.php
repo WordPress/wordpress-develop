@@ -216,14 +216,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Check for & assign any parameters which require special handling or setting.
 		$args['date_query'] = array();
 
-		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
-			$args['date_query'][0]['before'] = $request['before'];
+			$args['date_query'][] = array(
+				'before' => $request['before'],
+				'column' => 'post_date',
+			);
 		}
 
-		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
+			$args['date_query'][] = array(
+				'before' => $request['modified_before'],
+				'column' => 'post_modified',
+			);
+		}
+
 		if ( isset( $registered['after'], $request['after'] ) ) {
-			$args['date_query'][0]['after'] = $request['after'];
+			$args['date_query'][] = array(
+				'after'  => $request['after'],
+				'column' => 'post_date',
+			);
+		}
+
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
+			$args['date_query'][] = array(
+				'after'  => $request['modified_after'],
+				'column' => 'post_modified',
+			);
 		}
 
 		// Ensure our per_page parameter overrides any provided posts_per_page filter.
@@ -262,28 +280,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
-		// Force the post_type argument, since it's not a user input variable.
-		$args['post_type'] = $this->post_type;
-
-		/**
-		 * Filters the query arguments for a request.
-		 *
-		 * Enables adding extra arguments or setting defaults for a post collection request.
-		 *
-		 * @since 4.7.0
-		 *
-		 * @link https://developer.wordpress.org/reference/classes/wp_query/
-		 *
-		 * @param array           $args    Key value array of query var to query value.
-		 * @param WP_REST_Request $request The request used.
-		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
-		$query_args = $this->prepare_items_query( $args, $request );
-
 		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
 
 		if ( ! empty( $request['tax_relation'] ) ) {
-			$query_args['tax_query'] = array( 'relation' => $request['tax_relation'] );
+			$args['tax_query'] = array( 'relation' => $request['tax_relation'] );
 		}
 
 		foreach ( $taxonomies as $taxonomy ) {
@@ -291,7 +291,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			$tax_exclude = $base . '_exclude';
 
 			if ( ! empty( $request[ $base ] ) ) {
-				$query_args['tax_query'][] = array(
+				$args['tax_query'][] = array(
 					'taxonomy'         => $taxonomy->name,
 					'field'            => 'term_id',
 					'terms'            => $request[ $base ],
@@ -300,7 +300,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			if ( ! empty( $request[ $tax_exclude ] ) ) {
-				$query_args['tax_query'][] = array(
+				$args['tax_query'][] = array(
 					'taxonomy'         => $taxonomy->name,
 					'field'            => 'term_id',
 					'terms'            => $request[ $tax_exclude ],
@@ -309,6 +309,33 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				);
 			}
 		}
+
+		// Force the post_type argument, since it's not a user input variable.
+		$args['post_type'] = $this->post_type;
+
+		/**
+		 * Filters WP_Query arguments when querying users via the REST API.
+		 *
+		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_post_query`
+		 *  - `rest_page_query`
+		 *  - `rest_attachment_query`
+		 *
+		 * Enables adding extra arguments or setting defaults for a post collection request.
+		 *
+		 * @since 4.7.0
+		 * @since 5.7.0 Moved after the `tax_query` query arg is generated.
+		 *
+		 * @link https://developer.wordpress.org/reference/classes/wp_query/
+		 *
+		 * @param array           $args    Array of arguments to be passed to WP_Query.
+		 * @param WP_REST_Request $request The REST API request.
+		 */
+		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$query_args = $this->prepare_items_query( $args, $request );
 
 		$posts_query  = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -417,7 +444,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
@@ -1851,9 +1878,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters the post data for a response.
+		 * Filters the post data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_prepare_post`
+		 *  - `rest_prepare_page`
+		 *  - `rest_prepare_attachment`
 		 *
 		 * @since 4.7.0
 		 *
@@ -2613,6 +2646,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the posts collection.
 	 *
 	 * @since 4.7.0
+	 * @since 5.4.0 The `tax_relation` query parameter was added.
+	 * @since 5.7.0 The `modified_after` and `modified_before` query parameters were added.
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -2623,6 +2658,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['after'] = array(
 			'description' => __( 'Limit response to posts published after a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_after'] = array(
+			'description' => __( 'Limit response to posts modified after a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2648,6 +2689,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to posts published before a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_before'] = array(
+			'description' => __( 'Limit response to posts modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
