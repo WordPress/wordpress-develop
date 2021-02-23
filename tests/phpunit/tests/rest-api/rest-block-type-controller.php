@@ -224,6 +224,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'styles'           => 'invalid_styles',
 			'render_callback'  => 'invalid_callback',
 			'textdomain'       => true,
+			'variations'       => 'invalid_variations',
 		);
 		register_block_type( $block_type, $settings );
 		wp_set_current_user( self::$admin_id );
@@ -249,6 +250,9 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['category'] );
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
+		// TODO: this is unexpected, but it looks like we're transforming scalars to arrays in rest_sanitize_value_from_schema
+		// This actually returns array( array() ); Need to step through to see what's happening
+		$this->assertSameSets( array(), $data['variations'] );
 	}
 
 	/**
@@ -303,6 +307,45 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
 		$this->assertSameSets( array(), $data['variations'] );
+	}
+
+	public function test_get_variation() {
+		$block_type = 'fake/variations';
+		$settings   = array(
+			'title'       => 'variations block test',
+			'description' => 'a variations block test',
+			'attributes'  => array( 'kind' => array( 'type' => 'string' ) ),
+			'variations'  => array(
+				array(
+					'name'       => 'Foo',
+					'title'      => 'Foo Variation',
+					'attributes' => array( 'kind' => 'foo' ),
+				),
+			),
+		);
+		register_block_type( $block_type, $settings );
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/block-types/' . $block_type );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( $block_type, $data['name'] );
+		$this->assertArrayHasKey( 'variations', $data );
+		$this->assertSame( 1, count( $data['variations'] ) );
+		$variation = $data['variations'][0];
+		$this->assertArrayHasKey( 'attributes', $variation );
+		//TODO: this is getting wiped by:
+		// $data[ $extra_field ] = rest_sanitize_value_from_schema( $field, $schema['properties'][ $extra_field ] );
+		// in class-wp-rest-block-types-controller.php
+		$this->assertSameSets(
+			array(
+				array(
+					'name'       => 'Foo',
+					'title'      => 'Foo Variation',
+					'attributes' => array( 'kind' => 'foo' ),
+				),
+			),
+			$variation['attributes']
+		);
 	}
 
 	/**
