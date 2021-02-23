@@ -23,6 +23,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
 
+		touch( ABSPATH . WPINC . '/js/wp-embed-template.js' );
+
 		ob_start();
 		require ABSPATH . WPINC . '/theme-compat/embed.php';
 		$actual = ob_get_clean();
