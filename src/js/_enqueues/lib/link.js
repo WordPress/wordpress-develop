@@ -189,7 +189,7 @@
 				 * IE will show a flashing cursor over the dialog.
 				 */
 				window.setTimeout( function() {
-					inputs.url[0].trigger( 'select' );
+					inputs.url[0].select();
 					inputs.url.trigger( 'focus' );
 				} );
 			}
