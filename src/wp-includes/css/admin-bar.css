@@ -1,3 +1,7 @@
+.admin-bar {
+	--wp-admin-bar-height: 32px;
+}
+
 #wpadminbar * {
 	height: auto;
 	width: auto;
@@ -720,6 +724,11 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 @media screen and (max-width: 782px) {
+
+	.admin-bar {
+		--wp-admin-bar-height: 46px;
+	}
+	
 	/* Toolbar Touchification*/
 	html #wpadminbar {
 		height: 46px;
