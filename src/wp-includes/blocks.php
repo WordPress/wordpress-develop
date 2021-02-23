@@ -176,8 +176,15 @@ function register_block_style_handle( $metadata, $field_name ) {
 		array(),
 		filemtime( $style_file )
 	);
+
+	wp_style_add_data( $style_handle, 'path', $style_file );
+
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
+
+		if ( is_rtl() ) {
+			wp_style_add_data( $style_handle, 'path', str_replace( '.css', '-rtl.css', $style_file ) );
+		}
 	}
 
 	return $result ? $style_handle : false;
