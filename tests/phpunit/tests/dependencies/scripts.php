@@ -1418,6 +1418,8 @@ JS;
 	}
 
 	/**
+	 * @ticket 24994
+	 * @ticket 46218
 	 * @todo address this
 	 */
 	function test_no_source_mapping() {
