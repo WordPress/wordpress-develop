@@ -270,10 +270,6 @@ jobs:
         if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
 
-      - name: Run REST API tests
-        if: ${{ ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group restapi-jsclient
-
       # __fakegroup__ is excluded to force PHPUnit to ignore the <exclude> settings in phpunit.xml.dist.
       - name: Run (xDebug) tests
         run: LOCAL_PHP_XDEBUG=true npm run test:${{ env.PHPUNIT_SCRIPT }} -- -v --group xdebug --exclude-group __fakegroup__
