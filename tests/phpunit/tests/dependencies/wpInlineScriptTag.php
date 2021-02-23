@@ -5,6 +5,8 @@
  *
  * @group dependencies
  * @group scripts
+ * @covers ::wp_get_inline_script_tag
+ * @covers ::wp_print_inline_script_tag
  */
 class Tests_Functions_wpInlineScriptTag extends WP_UnitTestCase {
 

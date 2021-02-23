@@ -5,6 +5,7 @@
  *
  * @group dependencies
  * @group scripts
+ * @covers ::wp_sanitize_script_attributes
  */
 class Tests_Functions_wpSanitizeScriptAttributes extends WP_UnitTestCase {
 
