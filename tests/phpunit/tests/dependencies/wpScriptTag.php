@@ -3,7 +3,8 @@
 /**
  * Test wp_get_script_tag() and wp_print_script_tag().
  *
- * @group functions.php
+ * @group dependencies
+ * @group scripts
  */
 class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 
