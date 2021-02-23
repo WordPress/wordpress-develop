@@ -1,4 +1,3 @@
-/* global jQuery */
 ( function( QUnit ) {
 	QUnit.module( 'jQuery' );
 
