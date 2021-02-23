@@ -2,6 +2,10 @@
 
 For the in-depth documentation, please visit the [Contributor Handbook](https://make.wordpress.org/core/handbook/contribute/).
 
+**Core WordPress Development does not occur on GitHub; however, pull requests are accepted as long there is a corresponding [Trac](https://core.trac.wordpress.org) ticket.**
+
+For WordPress Block Editor development, please see the [Gutenberg GitHub repository](https://github.com/wordpress/gutenberg/).
+
 ## First Time?
 If this is your first time contributing, you may also find reviewing these guides first to be helpful:
 - FAQs for New Contributors: https://make.wordpress.org/core/handbook/tutorials/faq-for-new-contributors/
