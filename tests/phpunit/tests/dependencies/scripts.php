@@ -1417,6 +1417,9 @@ JS;
 		);
 	}
 
+	/**
+	 * @todo address this
+	 */
 	function test_no_source_mapping() {
 		$all_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( dirname( ABSPATH ) . '/build/' ) );
 		$js_files  = new RegexIterator( $all_files, '/\.js$/' );

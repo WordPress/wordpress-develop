@@ -323,6 +323,8 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	 * of wp-embed.min.js. If the Grunt tasks are significantly refactored later, it could indicate
 	 * that wp-embed.min.js doesn't exist anymore. We wouldn't want the test to silently become one
 	 * that is always skipped, and thus useless.
+	 *
+	 * @todo address this
 	 */
 	function test_js_no_ampersands_in_compiled() {
 		$gruntfile = file_get_contents( dirname( ABSPATH ) . '/Gruntfile.js' );
