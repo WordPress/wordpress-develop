@@ -26,11 +26,6 @@ jobs:
   #
   # Performs the following steps:
   # - Cancels all previous workflow runs for pull requests that have not completed.
-  # - Checks out the repository.
-  # - Logs debug information about the runner container.
-  # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   setup-wordpress:
     name: Setup WordPress
     runs-on: ubuntu-latest
@@ -68,7 +63,6 @@ jobs:
   # - todo: Configure Slack notifications for failing tests.
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
-    needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
