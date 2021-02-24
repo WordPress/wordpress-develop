@@ -7,6 +7,7 @@ var installChanged = require( 'install-changed' );
 module.exports = function(grunt) {
 	var path = require('path'),
 		fs = require( 'fs' ),
+		assert = require( 'assert' ).strict,
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
@@ -1431,6 +1432,36 @@ module.exports = function(grunt) {
 		'copy:version',
 	] );
 
+	/**
+	 * Build verification tasks.
+	 */
+	grunt.registerTask( 'verify:build', [
+		'verify:wp-embed',
+	] );
+
+	/**
+	 * Build assertions for wp-embed.min.js.
+	 *
+	 * @ticket 34698
+	 */
+	grunt.registerTask( 'verify:wp-embed', function() {
+		const file = `${ BUILD_DIR }/wp-includes/js/wp-embed.min.js`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-includes/js/wp-embed.min.js file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			false === contents.includes( '&' ),
+			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
+		);
+	} );
+
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
@@ -1444,7 +1475,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText'
+				'replace:emojiBannerText',
+				'verify:build'
 			] );
 		}
 	} );
