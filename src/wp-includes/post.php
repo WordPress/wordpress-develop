@@ -22,7 +22,9 @@ function create_initial_post_types() {
 		'post',
 		array(
 			'labels'                => array(
-				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
+				'name_admin_bar'        => _x( 'Post', 'add new from admin bar' ),
+				'item_link'             => _x( 'Post Link', 'navigation link block title' ),
+				'item_link_description' => _x( 'A link to a post.', 'navigation link block description' ),
 			),
 			'public'                => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -46,7 +48,9 @@ function create_initial_post_types() {
 		'page',
 		array(
 			'labels'                => array(
-				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
+				'name_admin_bar'        => _x( 'Page', 'add new from admin bar' ),
+				'item_link'             => _x( 'Page Link', 'navigation link block title' ),
+				'item_link_description' => _x( 'A link to a page.', 'navigation link block description' ),
 			),
 			'public'                => true,
 			'publicly_queryable'    => false,
@@ -1703,6 +1707,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
+ * - `item_link` - Title for a navigation link block variation. Default null/null.
+ * - `item_link_description` - Description for a navigation link block variation. Default null/null.
  *
  * Above, the first default value is for non-hierarchical post types (like posts)
  * and the second one is for hierarchical post types (like pages).
@@ -1757,6 +1763,8 @@ function get_post_type_labels( $post_type_object ) {
 		'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
 		'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 		'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
+		'item_link'                => array( null, null ),
+		'item_link_description'    => array( null, null ),
 	);
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
