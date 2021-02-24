@@ -1,17 +1,21 @@
 name: Coding Standards
 
 on:
+  # JSHint was introduced in WordPress 3.8.
+  # PHPCS checking was introduced in WordPress 5.1.
   push:
     branches:
       - master
-      # JSHint was introduced in WordPress 3.8.
-      # PHPCS checking was introduced in WordPress 5.1.
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '3.[89]'
+      - '[4-9].[0-9]'
 
 jobs:
   # Runs PHP coding standards checks.
