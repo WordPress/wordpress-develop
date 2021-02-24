@@ -21,6 +21,7 @@ env:
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
   LOCAL_PHP_MEMCACHED: ${{ false }}
+  SLOW_TESTS: 'external-http,media,restapi'
 
 jobs:
   # Sets up WordPress for testing or development use.
@@ -281,15 +282,15 @@ jobs:
 
       - name: Run slow PHPUnit tests on PHP 5.6
         if: ${{ matrix.php == '5.6.20' && matrix.slow56 }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group external-http,media,restapi
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests on PHP 5.6
         if: ${{ matrix.php == '5.6.20' && ! matrix.slow56 && ! matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group external-http,media,restapi,ajax,ms-files,ms-required
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
 
       - name: Run PHPUnit tests for Multisite excluding slow tests on PHP 5.6
         if: ${{ matrix.php == '5.6.20' && ! matrix.slow56 && matrix.multisite }}
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group external-http,media,restapi,ajax,ms-files,ms-excluded,oembed-headers
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
       - name: Run PHPUnit tests
         if: ${{ matrix.php != '5.6.20' }}
