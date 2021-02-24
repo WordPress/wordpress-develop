@@ -551,13 +551,8 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'default'     => false,
 							),
 							'attributes'  => array(
-								'description'          => __( 'Block attributes.' ),
-								'type'                 => array( 'object', 'null' ),
-								'properties'           => array(),
-								'default'              => null,
-								'additionalProperties' => array(
-									'type' => 'object',
-								),
+								'description' => __( 'The attributes of the variation' ),
+								'type'        => 'object',
 							),
 							'innerBlocks' => array(
 								'description' => __( 'Initial configuration of nested blocks.' ),

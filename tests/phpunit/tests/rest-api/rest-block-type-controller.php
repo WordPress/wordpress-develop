@@ -333,17 +333,8 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 1, count( $data['variations'] ) );
 		$variation = $data['variations'][0];
 		$this->assertArrayHasKey( 'attributes', $variation );
-		//TODO: this is getting wiped by:
-		// $data[ $extra_field ] = rest_sanitize_value_from_schema( $field, $schema['properties'][ $extra_field ] );
-		// in class-wp-rest-block-types-controller.php
 		$this->assertSameSets(
-			array(
-				array(
-					'name'       => 'Foo',
-					'title'      => 'Foo Variation',
-					'attributes' => array( 'kind' => 'foo' ),
-				),
-			),
+			array( 'kind' => 'foo' ),
 			$variation['attributes']
 		);
 	}
