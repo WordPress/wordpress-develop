@@ -1295,6 +1295,10 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	public static function touch( $file ) {
+		if ( file_exists( $file ) ) {
+			return;
+		}
+
 		$dir = dirname( $file );
 
 		if ( ! file_exists( $dir ) ) {

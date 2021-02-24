@@ -5,6 +5,12 @@
  * @covers ::get_oembed_response_data
  */
 class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
+	public function setUp() {
+		parent::setUp();
+
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
+	}
+
 	function test_get_oembed_response_data_non_existent_post() {
 		$this->assertFalse( get_oembed_response_data( 0, 100 ) );
 	}
