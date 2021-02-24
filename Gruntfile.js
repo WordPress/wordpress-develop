@@ -7,6 +7,7 @@ var installChanged = require( 'install-changed' );
 module.exports = function(grunt) {
 	var path = require('path'),
 		fs = require( 'fs' ),
+		glob = require( 'glob' ),
 		assert = require( 'assert' ).strict,
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
@@ -1438,6 +1439,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'verify:build', [
 		'verify:wp-embed',
 		'verify:old-files',
+		'verify:source-maps',
 	] );
 
 	/**
@@ -1520,6 +1522,34 @@ module.exports = function(grunt) {
 				`${ search } should not be present in the $_old_files array.`
 			);
 		});
+	} );
+
+	/**
+	 * Build assertions for the lack of source maps in JabaScript files.
+	 *
+	 * @ticket 24994
+	 * @ticket 46218
+	 */
+	grunt.registerTask( 'verify:source-maps', function() {
+		const path = `${ BUILD_DIR }**/*.js`;
+		const files = glob.sync( path );
+
+		assert(
+			files.length > 0,
+			'No JavaScript files found in the build directory.'
+		);
+
+		files.forEach( function( file ) {
+			const contents = fs.readFileSync( file, {
+				encoding: 'utf8',
+			} );
+			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+
+			assert(
+				match === null,
+				`The ${ file } file must not contain a sourceMappingURL.`
+			);
+		} );
 	} );
 
 	grunt.registerTask( 'build', function() {
