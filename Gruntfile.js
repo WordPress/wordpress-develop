@@ -1437,6 +1437,7 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:build', [
 		'verify:wp-embed',
+		'verify:old-files',
 	] );
 
 	/**
@@ -1464,6 +1465,61 @@ module.exports = function(grunt) {
 			false === contents.includes( '&' ),
 			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
 		);
+	} );
+
+	/**
+	 * Ensure no project files are inside `$_old_files` in the build directory.
+	 *
+	 * @ticket 36083
+	 */
+	grunt.registerTask( 'verify:old-files', function() {
+		const file = `${ BUILD_DIR }wp-admin/includes/update-core.php`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-admin/includes/update-core.php file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			contents.length > 0,
+			'The build/wp-admin/includes/update-core.php file must not be empty.'
+		);
+
+		const match = contents.match( /\$_old_files = array\(([^\)]+)\);/ );
+
+		assert(
+			match.length > 0,
+			'The build/wp-admin/includes/update-core.php file does not include an `$_old_files` array.'
+		);
+
+		const files = match[1].split( '\n\t' ).filter( function( file ) {
+			// Filter out empty lines
+			if ( '' === file ) {
+				return false;
+			}
+
+			// Filter out commented out lines
+			if ( 0 === file.indexOf( '/' ) ) {
+				return false;
+			}
+
+			return true;
+		} ).map( function( file ) {
+			// Strip leading and trailing single quotes and commas
+			return file.replace( /^\'|\',$/g, '' );
+		} );
+
+		files.forEach(function( file ){
+			const search = `${ BUILD_DIR }${ file }`;
+			assert(
+				false === fs.existsSync( search ),
+				`${ search } should not be present in the $_old_files array.`
+			);
+		});
 	} );
 
 	grunt.registerTask( 'build', function() {
