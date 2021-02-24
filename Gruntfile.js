@@ -1470,7 +1470,7 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Ensure no project files are inside `$_old_files` in the build directory.
+	 * Build assertions to ensure no project files are inside `$_old_files` in the build directory.
 	 *
 	 * @ticket 36083
 	 */
@@ -1525,7 +1525,7 @@ module.exports = function(grunt) {
 	} );
 
 	/**
-	 * Build assertions for the lack of source maps in JabaScript files.
+	 * Build assertions for the lack of source maps in JavaScript files.
 	 *
 	 * @ticket 24994
 	 * @ticket 46218
@@ -1543,6 +1543,7 @@ module.exports = function(grunt) {
 			const contents = fs.readFileSync( file, {
 				encoding: 'utf8',
 			} );
+			// `data:` URLs are allowed:
 			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
 
 			assert(
