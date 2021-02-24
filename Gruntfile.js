@@ -1457,6 +1457,10 @@ module.exports = function(grunt) {
 		} );
 
 		assert(
+			contents.length > 0,
+			'The build/wp-includes/js/wp-embed.min.js file must not be empty.'
+		);
+		assert(
 			false === contents.includes( '&' ),
 			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
 		);
