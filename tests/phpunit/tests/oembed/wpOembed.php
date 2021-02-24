@@ -18,6 +18,8 @@ class Tests_WP_oEmbed extends WP_UnitTestCase {
 		$this->oembed = _wp_oembed_get_object();
 
 		$this->pre_oembed_result_filtered = false;
+
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
 	public function _filter_pre_oembed_result( $result ) {
