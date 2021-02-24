@@ -2759,6 +2759,11 @@ function retrieve_password( $user_login = null ) {
 		$site_name = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
 	}
 
+	// Localize password reset message content for user.
+	$locale = get_user_locale( $user_data );
+
+	$switched_locale = switch_to_locale( $locale );
+
 	$message = __( 'Someone has requested a password reset for the following account:' ) . "\r\n\r\n";
 	/* translators: %s: Site name. */
 	$message .= sprintf( __( 'Site Name: %s' ), $site_name ) . "\r\n\r\n";
@@ -2768,13 +2773,15 @@ function retrieve_password( $user_login = null ) {
 	$message .= __( 'To reset your password, visit the following address:' ) . "\r\n\r\n";
 	$message .= network_site_url( "wp-login.php?action=rp&key=$key&login=" . rawurlencode( $user_login ), 'login' ) . "\r\n\r\n";
 
-	$requester_ip = $_SERVER['REMOTE_ADDR'];
-	if ( $requester_ip ) {
-		$message .= sprintf(
-			/* translators: %s: IP address of password reset requester. */
-			__( 'This password reset request originated from the IP address %s.' ),
-			$requester_ip
-		) . "\r\n";
+	if ( ! is_user_logged_in() ) {
+		$requester_ip = $_SERVER['REMOTE_ADDR'];
+		if ( $requester_ip ) {
+			$message .= sprintf(
+				/* translators: %s: IP address of password reset requester. */
+				__( 'This password reset request originated from the IP address %s.' ),
+				$requester_ip
+			) . "\r\n";
+		}
 	}
 
 	/* translators: Password reset notification email subject. %s: Site title. */
@@ -2806,6 +2813,10 @@ function retrieve_password( $user_login = null ) {
 	 * @param WP_User $user_data  WP_User object.
 	 */
 	$message = apply_filters( 'retrieve_password_message', $message, $key, $user_login, $user_data );
+
+	if ( $switched_locale ) {
+		restore_previous_locale();
+	}
 
 	if ( $message && ! wp_mail( $user_email, wp_specialchars_decode( $title ), $message ) ) {
 		$errors->add(
