@@ -270,7 +270,7 @@ jobs:
         run: npm run env:install
 
       - name: Run slow PHPUnit tests on PHP 5.6
-        if: ${{ matrix.php == '5.6.20' && matrix.split_slow }}
+        if: ${{ matrix.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
       - name: Run PHPUnit tests for single site excluding slow tests on PHP 5.6
