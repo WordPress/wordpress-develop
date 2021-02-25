@@ -71,6 +71,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
+        # Hello
         run: npm ci
 
   # Runs the PHPUnit tests for WordPress.
