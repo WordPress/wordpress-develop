@@ -516,7 +516,7 @@ foreach ( $themes as $theme ) :
 	/* translators: %s: Theme name. */
 	$details_aria_label = sprintf( _x( 'View Theme Details for %s', 'theme' ), $theme['name'] );
 	?>
-	<span role="button" tabindex="0" aria-label="<?php esc_attr_e( $details_aria_label ); ?>" class="more-details" id="<?php echo $aria_action; ?>"><?php _e( 'Theme Details' ); ?></span>
+	<span role="button" tabindex="0" aria-label="<?php echo esc_attr( $details_aria_label ); ?>" class="more-details" id="<?php echo $aria_action; ?>"><?php _e( 'Theme Details' ); ?></span>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
@@ -539,7 +539,7 @@ foreach ( $themes as $theme ) :
 				/* translators: %s: Theme name. */
 				$customize_aria_label = sprintf( _x( 'Customize %s', 'theme' ), $theme['name'] );
 				?>
-				<a aria-label="<?php esc_attr_e( $customize_aria_label ); ?>" class="button button-primary customize load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Customize' ); ?></a>
+				<a aria-label="<?php echo esc_attr( $customize_aria_label ); ?>" class="button button-primary customize load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Customize' ); ?></a>
 			<?php } ?>
 		<?php } elseif ( $theme['compatibleWP'] && $theme['compatiblePHP'] ) { ?>
 			<?php
@@ -551,7 +551,7 @@ foreach ( $themes as $theme ) :
 				/* translators: %s: Theme name. */
 				$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 				?>
-				<a aria-label="<?php esc_attr_e( $live_preview_aria_label ); ?>" class="button button-primary load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Live Preview' ); ?></a>
+				<a aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>" class="button button-primary load-customize hide-if-no-customize" href="<?php echo $theme['actions']['customize']; ?>"><?php _e( 'Live Preview' ); ?></a>
 			<?php } ?>
 		<?php } else { ?>
 			<?php
@@ -873,7 +873,7 @@ function wp_theme_auto_update_setting_template() {
 	/* translators: %s: Theme name. */
 	$details_aria_label = sprintf( _x( 'View Theme Details for %s', 'theme' ), '{{ data.name }}' );
 	?>
-	<span role="button" tabindex="0" aria-label="<?php esc_attr_e( $details_aria_label ); ?>" class="more-details" id="{{ data.id }}-action"><?php _e( 'Theme Details' ); ?></span>
+	<span role="button" tabindex="0" aria-label="<?php echo esc_attr( $details_aria_label ); ?>" class="more-details" id="{{ data.id }}-action"><?php _e( 'Theme Details' ); ?></span>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
@@ -897,7 +897,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$customize_aria_label = sprintf( _x( 'Customize %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a aria-label="<?php echo esc_attr_e( $customize_aria_label ); ?>" class="button button-primary customize load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Customize' ); ?></a>
+					<a aria-label="<?php echo esc_attr( $customize_aria_label ); ?>" class="button button-primary customize load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Customize' ); ?></a>
 				<# } #>
 			<# } else { #>
 				<# if ( data.compatibleWP && data.compatiblePHP ) { #>
@@ -910,7 +910,7 @@ function wp_theme_auto_update_setting_template() {
 					/* translators: %s: Theme name. */
 					$live_preview_aria_label = sprintf( _x( 'Live Preview %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a aria-label="<?php esc_attr_e( $live_preview_aria_label ); ?>" class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
+					<a aria-label="<?php echo esc_attr( $live_preview_aria_label ); ?>" class="button button-primary load-customize hide-if-no-customize" href="{{{ data.actions.customize }}}"><?php _e( 'Live Preview' ); ?></a>
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
