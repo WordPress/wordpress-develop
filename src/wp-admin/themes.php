@@ -512,7 +512,7 @@ foreach ( $themes as $theme ) :
 	}
 	?>
 
-	<span class="more-details" id="<?php echo $aria_action; ?>"><?php _e( 'Theme Details' ); ?></span>
+	<span role="button" tabindex="0" class="more-details" id="<?php echo $aria_action; ?>"><?php _e( 'Theme Details' ); ?></span>
 	<div class="theme-author">
 		<?php
 		/* translators: %s: Theme author name. */
