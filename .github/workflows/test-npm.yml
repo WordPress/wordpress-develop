@@ -45,6 +45,7 @@ jobs:
     name: Tests NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    needs: prepare-workflow
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
@@ -68,6 +69,7 @@ jobs:
 
       - name: Cache NodeJS modules (Ubuntu & MacOS)
         uses: actions/cache@v2
+        if: ${{ matrix.os != 'windows-latest' }}
         with:
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
