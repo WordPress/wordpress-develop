@@ -575,29 +575,25 @@
 }
 
 .about__container .about__image-comparison-resize {
-	position: absolute;
+	position: absolute !important; /* Needed to override inline style on ResizableBox */
 	top: 0;
 	bottom: 0;
 	left: 0;
 	width: 50%;
 	max-width: 100%;
-	overflow: hidden;
-	resize: horizontal;
-	border-right: 2px solid white;
 }
 
-.about__container .about__image-comparison-resize:after {
-	content: "";
-	display: block;
-	position: absolute;
-	right: 0;
-	bottom: 0;
-	width: 20px;
-	height: 20px;
-	font-family: dashicons;
-	font-size: 20px;
-	line-height: 1;
+.about__container .about__image-comparison.no-js .about__image-comparison-resize {
 	overflow: hidden;
+	border-right: 2px solid var(--wp-admin-theme-color);
+}
+
+.about__container .about__image-comparison-resize .components-resizable-box__side-handle::before {
+	width: 4px;
+	right: calc(50% - 2px);
+	transition: none;
+	animation: none;
+	opacity: 1;
 }
 
 .about__container .about__image + h3 {

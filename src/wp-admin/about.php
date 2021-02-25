@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+wp_enqueue_script( 'wp-components' );
+wp_enqueue_style( 'wp-components' );
+
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -130,12 +133,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-subtle-background-color">
-			<div class="column about__image">
-				<div class="about__image-comparison">
+			<div class="column about__image" id="about-image-comparison">
+				<div class="about__image-comparison no-js">
+					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" />
 					<div class="about__image-comparison-resize">
 						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" />
 					</div>
-					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" />
 				</div>
 			</div>
 		</div>
@@ -234,9 +237,80 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>
 		</div>
 	</div>
-<?php
 
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+
+<script>
+	wp.domReady( function() {
+		var createElement = wp.element.createElement;
+		var render = wp.element.render;
+		var useState = wp.element.useState;
+		var ResizableBox = wp.components.ResizableBox;
+
+		var container = document.getElementById( 'about-image-comparison' );
+		var images = container ? container.querySelectorAll( 'img' ) : [];
+		if ( ! images.length ) {
+			// Something's wrong, return early.
+			return;
+		}
+
+		var beforeImage = images.item( 0 );
+		var afterImage = images.item( 1 );
+
+		function ImageComparison( props ) {
+			var stateHelper = useState( props.width );
+			var width = stateHelper[0];
+			var setWidth = stateHelper[1];
+
+			return createElement(
+				'div',
+				{
+					className: 'about__image-comparison'
+				},
+				createElement( 'img', { src: beforeImage.src, alt: '' } ),
+				createElement(
+					ResizableBox,
+					{
+						size: {
+							width: width,
+							height: props.height
+						},
+						onResizeStop: function( event, direction, elt, delta ) {
+							setWidth( parseInt( width + delta.width, 10 ) );
+						},
+						showHandle: true,
+						enable: {
+							top: false,
+							right: true,
+							bottom: false,
+							left: false
+						},
+						className: 'about__image-comparison-resize'
+					},
+					createElement(
+						'div',
+						{
+							style: { width: '100%', height: '100%', overflow: 'hidden' }
+						},
+						createElement('img', { src: afterImage.src, alt: '' } )
+					)
+				)
+			);
+		}
+
+		render(
+			createElement(
+				ImageComparison,
+				{
+					width: beforeImage.clientWidth / 2,
+					height: beforeImage.clientHeight
+				}
+			),
+			container
+		);
+	} );
+</script>
+<?php
 
 // These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
 return;
