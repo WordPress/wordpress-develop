@@ -26,8 +26,6 @@ jobs:
   #
   # Performs the following steps:
   # - Cancels all previous workflow runs for pull requests that have not completed.
-  # - Checks out the repository.
-  # - Logs debug information about the runner container.
   setup-workflow:
     name: Setup Workflow
     runs-on: ubuntu-latest
@@ -39,16 +37,6 @@ jobs:
         uses: styfle/cancel-workflow-action@0.8.0
         with:
           access_token: ${{ github.token }}
-
-      - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Log debug information
-        run: |
-          echo "$GITHUB_REF"
-          echo "$GITHUB_EVENT_NAME"
-          npm --version
-          node --version
 
   # Runs the PHPUnit tests for WordPress.
   #
