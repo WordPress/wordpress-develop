@@ -45,7 +45,7 @@ jobs:
   # - Sets up the environment variables needed for testing with memcached (if desired).
   # - Installs NodeJS 14.
   # - Sets up caching for NPM.
-  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # _ Installs NPM dependencies
   # - Configures caching for Composer.
   # _ Installs Composer dependencies (if desired).
   # - Logs Docker debug information (about both the Docker installation within the runner).
