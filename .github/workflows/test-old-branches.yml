@@ -1,0 +1,60 @@
+name: Test old branches
+
+on:
+  workflow_dispatch:
+  # Once weekly On Sundays at 00:00 UTC.
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  coding-standards-and-js-tests:
+    name: Coding Standards & JavaScript Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workflows: [ 'Coding Standards', 'JavaScript Tests' ]
+        branch: [
+            '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
+            '3.9', '3.8'
+        ]
+    steps:
+      - name: ${{ matrix.workflow }} for ${{ matrix.branch }}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{ matrix.workflow }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          ref: ${{ branch }}
+
+  php-compatibility:
+    name: PHP Compatibility testing
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        branch: [ '5.7', '5.6', '5.5' ]
+    steps:
+      - name: PHP Compatibility for ${{ matrix.branch }}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{ matrix.workflow }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          ref: ${{ branch }}
+
+  unit-tests-and-npm-check:
+    name: PHPUnit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        workflow: [ 'PHPUnit Tests', 'Test NPM on Windows' ]
+        branch: [
+            '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
+            '3.9', '3.8', '3.7'
+        ]
+    steps:
+      - name: ${{ matrix.workflow }} for ${{ matrix.branch }}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{ matrix.workflow }}
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          ref: ${{ branch }}

@@ -11,6 +11,7 @@ on:
       - master
       - '3.[7-9]'
       - '[4-9].[0-9]'
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}

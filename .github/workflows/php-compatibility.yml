@@ -15,6 +15,7 @@ on:
       - master
       - '5.[5-9]'
       - '[6-9].[0-9]'
+  workflow_dispatch:
 
 jobs:
 

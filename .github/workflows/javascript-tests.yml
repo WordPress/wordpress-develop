@@ -15,6 +15,7 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
+  workflow_dispatch:
 
 jobs:
   # Runs the QUnit tests for WordPress.
