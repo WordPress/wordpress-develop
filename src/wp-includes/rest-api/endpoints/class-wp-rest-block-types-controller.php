@@ -419,6 +419,14 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'readonly'    => true,
 		);
 
+		$category_definition = array(
+			'description' => __( 'Block category.' ),
+			'type'        => array( 'string', 'null' ),
+			'default'     => null,
+			'context'     => array( 'embed', 'view', 'edit' ),
+			'readonly'    => true,
+		);
+
 		$schema = array(
 			'$schema'    => 'http://json-schema.org/draft-04/schema#',
 			'title'      => 'block-type',
@@ -493,13 +501,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
-				'category'         => array(
-					'description' => __( 'Block category.' ),
-					'type'        => array( 'string', 'null' ),
-					'default'     => null,
-					'context'     => array( 'embed', 'view', 'edit' ),
-					'readonly'    => true,
-				),
+				'category'         => $category_definition,
 				'is_dynamic'       => array(
 					'description' => __( 'Is the block dynamically rendered.' ),
 					'type'        => 'boolean',
@@ -585,11 +587,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'type'        => 'string',
 								'required'    => false,
 							),
-							'category'    => array(
-								'description' => __( 'Block type category classification, used in search interfaces to arrange block types by category.' ),
-								'type'        => 'string',
-								'required'    => false,
-							),
+							'category'    => $category_definition,
 							'icon'        => $icon_definition,
 							'isDefault'   => array(
 								'description' => __( 'Indicates whether the current variation is the default one.' ),
@@ -598,7 +596,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								'default'     => false,
 							),
 							'attributes'  => array(
-								'description' => __( 'The attributes of the variation' ),
+								'description' => __( 'The initial values for attributes.' ),
 								'type'        => 'object',
 							),
 							'innerBlocks' => $inner_blocks_definition,
