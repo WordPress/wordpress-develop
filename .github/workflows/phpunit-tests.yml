@@ -22,12 +22,12 @@ env:
   LOCAL_PHP_MEMCACHED: ${{ false }}
 
 jobs:
-  # Sets up WordPress for testing or development use.
+  # Sets up the workflow for testing.
   #
   # Performs the following steps:
   # - Cancels all previous workflow runs for pull requests that have not completed.
-  setup-wordpress:
-    name: Setup WordPress
+  setup-workflow:
+    name: Setup Workflow
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
