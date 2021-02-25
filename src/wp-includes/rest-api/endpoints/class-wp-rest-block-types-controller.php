@@ -625,11 +625,6 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 								),
 								'default'     => array(),
 							),
-							'icon'        => array(
-								'description' => __( 'An icon helping to visualize the variation.' ),
-								'type'        => array( 'string', 'null' ),
-								'default'     => null,
-							),
 						),
 					),
 					'readonly'    => true,

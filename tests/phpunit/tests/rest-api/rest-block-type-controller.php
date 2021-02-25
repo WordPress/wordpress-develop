@@ -250,9 +250,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertNull( $data['category'] );
 		$this->assertNull( $data['textdomain'] );
 		$this->assertFalse( $data['is_dynamic'] );
-		// TODO: this is unexpected, but it looks like we're transforming scalars to arrays in rest_sanitize_value_from_schema
-		// This actually returns array( array() ); Need to step through to see what's happening
-		$this->assertSameSets( array(), $data['variations'] );
+		$this->assertSameSets( array( array() ), $data['variations'] );
 	}
 
 	/**
@@ -317,11 +315,11 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			'attributes'  => array( 'kind' => array( 'type' => 'string' ) ),
 			'variations'  => array(
 				array(
-					'name'        => 'Foo',
-					'title'       => 'Foo Variation',
-					'description' => 'Foo Description',
+					'name'        => 'variation',
+					'title'       => 'variation title',
+					'description' => 'variation description',
 					'category'    => 'media',
-					'icon'        => 'dog',
+					'icon'        => 'checkmark',
 					'attributes'  => array( 'kind' => 'foo' ),
 					'isDefault'   => true,
 					'example'     => array( 'attributes' => array( 'kind' => 'example' ) ),
@@ -340,10 +338,10 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'variations', $data );
 		$this->assertSame( 1, count( $data['variations'] ) );
 		$variation = $data['variations'][0];
-		$this->assertSame( 'Foo Variation', $variation['title'] );
-		$this->assertSame( 'Foo Description', $variation['description'] );
+		$this->assertSame( 'variation title', $variation['title'] );
+		$this->assertSame( 'variation description', $variation['description'] );
 		$this->assertSame( 'media', $variation['category'] );
-		$this->assertSame( 'dog', $variation['icon'] );
+		$this->assertSame( 'checkmark', $variation['icon'] );
 		$this->assertSameSets( array( 'inserter', 'block' ), $variation['scope'] );
 		$this->assertSameSets( array( 'dogs', 'cats', 'mice' ), $variation['keywords'] );
 		$this->assertSameSets( array( 'attributes' => array( 'kind' => 'example' ) ), $variation['example'] );
