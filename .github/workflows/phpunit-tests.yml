@@ -63,7 +63,6 @@ jobs:
   # - todo: Configure Slack notifications for failing tests.
   test-php:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
-    needs: setup-workflow
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
