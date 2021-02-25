@@ -65,8 +65,6 @@ jobs:
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
