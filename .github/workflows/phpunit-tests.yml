@@ -269,15 +269,15 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
-      - name: Run slow PHPUnit tests on PHP ${{ matrix.php }}
+      - name: Run slow PHPUnit tests
         if: ${{ matrix.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
 
-      - name: Run PHPUnit tests for single site excluding slow tests on PHP ${{ matrix.php }}
+      - name: Run PHPUnit tests for single site excluding slow tests
         if: ${{ matrix.php < '7.0' && ! matrix.split_slow && ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
 
-      - name: Run PHPUnit tests for Multisite excluding slow tests on PHP ${{ matrix.php }}
+      - name: Run PHPUnit tests for Multisite excluding slow tests
         if: ${{ matrix.php < '7.0' && ! matrix.split_slow && matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
 
