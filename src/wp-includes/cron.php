@@ -811,7 +811,7 @@ function wp_next_scheduled( $hook, $args = array() ) {
 		return false;
 	}
 
-	return $next_event->timestamp;
+	return apply_filters( 'wp_next_scheduled', $next_event->timestamp, $next_event, $hook, $args );
 }
 
 /**
