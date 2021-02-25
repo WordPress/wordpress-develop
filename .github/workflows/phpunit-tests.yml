@@ -71,7 +71,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
   # Runs the PHPUnit tests for WordPress.
   #
