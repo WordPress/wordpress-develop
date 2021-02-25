@@ -52,6 +52,7 @@ jobs:
           echo "$GITHUB_EVENT_NAME"
           npm --version
           node --version
+          npm config get cache
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
