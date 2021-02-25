@@ -23,12 +23,12 @@ env:
   SLOW_TESTS: 'external-http,media,restapi'
 
 jobs:
-  # Sets up WordPress for testing or development use.
+  # Sets up the workflow for testing.
   #
   # Performs the following steps:
   # - Cancels all previous workflow runs for pull requests that have not completed.
-  setup-wordpress:
-    name: Setup WordPress
+  setup-workflow:
+    name: Setup Workflow
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
@@ -131,7 +131,7 @@ jobs:
             ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Get composer cache directory
         id: composer-cache
