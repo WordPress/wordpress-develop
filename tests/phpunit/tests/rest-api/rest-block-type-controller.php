@@ -325,7 +325,12 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 					'example'     => array( 'attributes' => array( 'kind' => 'example' ) ),
 					'scope'       => array( 'inserter', 'block' ),
 					'keywords'    => array( 'dogs', 'cats', 'mice' ),
-					'innerBlocks' => array( array( 'name' => 'fake/bar', 'attributes' => array( 'label' => 'hi' ) ) ),
+					'innerBlocks' => array(
+						array(
+							'name'       => 'fake/bar',
+							'attributes' => array( 'label' => 'hi' ),
+						),
+					),
 				),
 			),
 		);
@@ -345,7 +350,15 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$this->assertSameSets( array( 'inserter', 'block' ), $variation['scope'] );
 		$this->assertSameSets( array( 'dogs', 'cats', 'mice' ), $variation['keywords'] );
 		$this->assertSameSets( array( 'attributes' => array( 'kind' => 'example' ) ), $variation['example'] );
-		$this->assertSameSets( array( array( 'name' => 'fake/bar', 'attributes' => array( 'label' => 'hi' ) ) ), $variation['innerBlocks'] );
+		$this->assertSameSets(
+			array(
+				array(
+					'name'       => 'fake/bar',
+					'attributes' => array( 'label' => 'hi' ),
+				),
+			),
+			$variation['innerBlocks']
+		);
 		$this->assertSameSets(
 			array( 'kind' => 'foo' ),
 			$variation['attributes']
