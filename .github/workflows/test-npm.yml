@@ -73,13 +73,13 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Get NPM cache directory (Windows only)
-        if: ${{ matrix.os == windows-latest }}
+        if: ${{ matrix.os == 'windows-latest' }}
         id: npm-cache
         run: echo "::set-output name=dir::$(npm config get cache)"
 
       - name: Cache NodeJS modules (Windows only)
         uses: actions/cache@v2
-        if: ${{ matrix.os == windows-latest }}
+        if: ${{ matrix.os == 'windows-latest' }}
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
