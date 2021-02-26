@@ -573,6 +573,7 @@ class WP_Query {
 			'title',
 			'fields',
 			'menu_order',
+			'query_context',
 			'embed',
 		);
 
@@ -1924,6 +1925,9 @@ class WP_Query {
 			case 'id=>parent':
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
+			case 'count':
+				$fields = "COUNT(*)";
+				break;
 			default:
 				$fields = "{$wpdb->posts}.*";
 		}
@@ -2982,6 +2986,12 @@ class WP_Query {
 		}
 
 		if ( null === $this->posts ) {
+			if ( 'count' == $q['fields'] ) {
+				$this->posts = array();
+				$this->post_count = $wpdb->get_var( $this->request );
+				return $this->post_count;
+			}
+
 			$split_the_query = ( $old_request == $this->request && "{$wpdb->posts}.*" === $fields && ! empty( $limits ) && $q['posts_per_page'] < 500 );
 
 			/**

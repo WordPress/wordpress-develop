@@ -42,7 +42,6 @@ function media_upload_tabs() {
  * @return array $tabs with gallery if post has image attachment
  */
 function update_gallery_tab( $tabs ) {
-	global $wpdb;
 
 	if ( ! isset( $_REQUEST['post_id'] ) ) {
 		unset( $tabs['gallery'] );
@@ -52,7 +51,15 @@ function update_gallery_tab( $tabs ) {
 	$post_id = intval( $_REQUEST['post_id'] );
 
 	if ( $post_id ) {
-		$attachments = intval( $wpdb->get_var( $wpdb->prepare( "SELECT count(*) FROM $wpdb->posts WHERE post_type = 'attachment' AND post_status != 'trash' AND post_parent = %d", $post_id ) ) );
+		$args = array(
+			'fields' => 'count',
+			'post_type' => 'attachment',
+			'post_status' => 'any',
+			'post_parent' => $post_id,
+			'suppress_filters' => false,
+			'query_context' => 'gallery_attachment_count',
+		);
+		$attachments = (int) get_posts( $args );
 	}
 
 	if ( empty( $attachments ) ) {
