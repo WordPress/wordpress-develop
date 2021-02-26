@@ -25,7 +25,7 @@ jobs:
         with:
           workflow: ${{ matrix.workflow }}
           token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ branch }}
+          ref: ${{ matrix.branch }}
 
   php-compatibility:
     name: PHP Compatibility testing
@@ -39,7 +39,7 @@ jobs:
         with:
           workflow: ${{ matrix.workflow }}
           token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ branch }}
+          ref: ${{ matrix.branch }}
 
   unit-tests-and-npm-check:
     name: PHPUnit Tests
@@ -58,4 +58,4 @@ jobs:
         with:
           workflow: ${{ matrix.workflow }}
           token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ branch }}
+          ref: ${{ matrix.branch }}
