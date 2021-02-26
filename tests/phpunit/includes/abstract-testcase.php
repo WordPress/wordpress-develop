@@ -1293,4 +1293,26 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 			)
 		);
 	}
+
+	/**
+	 * Touches the given file and its directory if it doesn't already exist.
+	 *
+	 * This can be used to ensure a file that is implictly relied on in a test exists
+	 * without it having to be built.
+	 *
+	 * @param string $file The file name.
+	 */
+	public static function touch( $file ) {
+		if ( file_exists( $file ) ) {
+			return;
+		}
+
+		$dir = dirname( $file );
+
+		if ( ! file_exists( $dir ) ) {
+			mkdir( $dir, 0777, true );
+		}
+
+		touch( $file );
+	}
 }

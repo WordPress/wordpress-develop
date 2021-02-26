@@ -728,7 +728,7 @@ JS;
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill{$suffix}.js' id='wp-polyfill-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-polyfill-js-after'>\n";
-		$expected .= "( 'fetch' in window ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-fetch{$suffix}.js\"></scr' + 'ipt>' );( document.contains ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-node-contains{$suffix}.js\"></scr' + 'ipt>' );( window.DOMRect ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-dom-rect{$suffix}.js\"></scr' + 'ipt>' );( window.URL && window.URL.prototype && window.URLSearchParams ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-url{$suffix}.js\"></scr' + 'ipt>' );( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata{$suffix}.js\"></scr' + 'ipt>' );( Element.prototype.matches && Element.prototype.closest ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-element-closest{$suffix}.js\"></scr' + 'ipt>' );( 'objectFit' in document.documentElement.style ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-object-fit.min.js\"></scr' + 'ipt>' );\n";
+		$expected .= "( 'fetch' in window ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-fetch{$suffix}.js\"></scr' + 'ipt>' );( document.contains ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-node-contains{$suffix}.js\"></scr' + 'ipt>' );( window.DOMRect ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-dom-rect{$suffix}.js\"></scr' + 'ipt>' );( window.URL && window.URL.prototype && window.URLSearchParams ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-url{$suffix}.js\"></scr' + 'ipt>' );( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata{$suffix}.js\"></scr' + 'ipt>' );( Element.prototype.matches && Element.prototype.closest ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-element-closest{$suffix}.js\"></scr' + 'ipt>' );( 'objectFit' in document.documentElement.style ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-object-fit{$suffix}.js\"></scr' + 'ipt>' );\n";
 		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready{$suffix}.js' id='wp-dom-ready-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/hooks{$suffix}.js' id='wp-hooks-js'></script>\n";
@@ -1415,18 +1415,6 @@ JS;
 			),
 			array_keys( $wp_enqueue_code_editor['htmlhint'] )
 		);
-	}
-
-	function test_no_source_mapping() {
-		$all_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( dirname( ABSPATH ) . '/build/' ) );
-		$js_files  = new RegexIterator( $all_files, '/\.js$/' );
-		foreach ( $js_files as $js_file ) {
-			$contents = trim( file_get_contents( $js_file ) );
-
-			// We allow data: URLs.
-			$found = preg_match( '/sourceMappingURL=((?!data:).)/', $contents );
-			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
-		}
 	}
 
 	/**
