@@ -2,10 +2,23 @@
 
 // Misc help functions and utilities.
 
+/**
+ * Returns a string of the required length containing random characters. Note that
+ * the maximum possible string length is 32.
+ *
+ * @param int $len Optional. The required length. Default 32.
+ * @return string The string.
+ */
 function rand_str( $len = 32 ) {
 	return substr( md5( uniqid( rand() ) ), 0, $len );
 }
 
+/**
+ * Returns a string of the required length containing random characters.
+ *
+ * @param int $len The required length.
+ * @return string The string.
+ */
 function rand_long_str( $length ) {
 	$chars  = 'abcdefghijklmnopqrstuvwxyz';
 	$string = '';
@@ -18,7 +31,12 @@ function rand_long_str( $length ) {
 	return $string;
 }
 
-// Strip leading and trailing whitespace from each line in the string.
+/**
+ * Strips leading and trailing whitespace from each line in the string.
+ *
+ * @param string $txt The text.
+ * @return string Text with line-leading and line-trailing whitespace stripped.
+ */
 function strip_ws( $txt ) {
 	$lines  = explode( "\n", $txt );
 	$result = array();
@@ -28,18 +46,20 @@ function strip_ws( $txt ) {
 		}
 	}
 
-	return trim( join( "\n", $result ) );
+	return trim( implode( "\n", $result ) );
 }
 
 /*
  * Helper class for testing code that involves actions and filters.
+ *
  * Typical use:
- * $ma = new MockAction();
- * add_action( 'foo', array( &$ma, 'action' ) );
+ *
+ *     $ma = new MockAction();
+ *     add_action( 'foo', array( &$ma, 'action' ) );
  */
 class MockAction {
-	var $events;
-	var $debug;
+	public $events;
+	public $debug;
 
 	/**
 	 * PHP5 constructor.
@@ -184,8 +204,8 @@ class MockAction {
 // Convert valid XML to an array tree structure.
 // Kinda lame, but it works with a default PHP 4 installation.
 class TestXMLParser {
-	var $xml;
-	var $data = array();
+	public $xml;
+	public $data = array();
 
 	/**
 	 * PHP5 constructor.
@@ -240,11 +260,31 @@ class TestXMLParser {
 	}
 }
 
+/**
+ * Converts an XML string into an array tree structure.
+ *
+ * The output of this function can be passed to xml_find() to find nodes by their path.
+ *
+ * @param string $in The XML string.
+ * @return array XML as an array.
+ */
 function xml_to_array( $in ) {
 	$p = new TestXMLParser( $in );
 	return $p->data;
 }
 
+/**
+ * Finds XML nodes by a given "path".
+ *
+ * Example usage:
+ *
+ *     $tree = xml_to_array( $rss );
+ *     $items = xml_find( $tree, 'rss', 'channel', 'item' );
+ *
+ * @param array     $tree     An array tree structure of XML, typically from xml_to_array().
+ * @param string ...$elements Names of XML nodes to create a "path" to find within the XML.
+ * @return array Array of matching XML node information.
+ */
 function xml_find( $tree, ...$elements ) {
 	$n   = count( $elements );
 	$out = array();
@@ -275,7 +315,7 @@ function xml_join_atts( $atts ) {
 	foreach ( $atts as $k => $v ) {
 		$a[] = $k . '="' . $v . '"';
 	}
-	return join( ' ', $a );
+	return implode( ' ', $a );
 }
 
 function xml_array_dumbdown( &$data ) {
@@ -299,7 +339,7 @@ function xml_array_dumbdown( &$data ) {
 
 function dmp( ...$args ) {
 	foreach ( $args as $thing ) {
-		echo ( is_scalar( $thing ) ? strval( $thing ) : var_export( $thing, true ) ), "\n";
+		echo ( is_scalar( $thing ) ? (string) $thing : var_export( $thing, true ) ), "\n";
 	}
 }
 
@@ -319,7 +359,7 @@ function gen_tests_array( $name, $array ) {
 	$out = array();
 	foreach ( $array as $k => $v ) {
 		if ( is_numeric( $k ) ) {
-			$index = strval( $k );
+			$index = (string) $k;
 		} else {
 			$index = "'" . addcslashes( $k, "\n\r\t'\\" ) . "'";
 		}
@@ -332,7 +372,7 @@ function gen_tests_array( $name, $array ) {
 			$out[] = gen_tests_array( "{$name}[{$index}]", $v );
 		}
 	}
-	return join( "\n", $out ) . "\n";
+	return implode( "\n", $out ) . "\n";
 }
 
 /**

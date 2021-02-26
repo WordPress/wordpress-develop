@@ -2,8 +2,16 @@
 
 /**
  * @group oembed
+ * @covers ::get_oembed_response_data
  */
 class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
+	public function setUp() {
+		parent::setUp();
+
+		// `get_post_embed_html()` assumes `wp-includes/js/wp-embed.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
+	}
+
 	function test_get_oembed_response_data_non_existent_post() {
 		$this->assertFalse( get_oembed_response_data( 0, 100 ) );
 	}
@@ -122,6 +130,51 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$post = self::factory()->post->create_and_get(
 			array(
 				'post_status' => 'private',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_public_true_custom_post_status() {
+		// Custom status with 'public' => true.
+		register_post_status( 'public', array( 'public' => true ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'public',
+			)
+		);
+
+		$this->assertNotFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_public_false_custom_post_status() {
+		// Custom status with 'public' => false.
+		register_post_status( 'private_foo', array( 'public' => false ) );
+
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'private_foo',
+			)
+		);
+
+		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
+	}
+
+	/**
+	 * @ticket 47574
+	 */
+	function test_get_oembed_response_data_with_unregistered_custom_post_status() {
+		$post = self::factory()->post->create_and_get(
+			array(
+				'post_status' => 'unknown_foo',
 			)
 		);
 

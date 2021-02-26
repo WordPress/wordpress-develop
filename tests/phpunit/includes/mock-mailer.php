@@ -3,7 +3,7 @@ require_once ABSPATH . 'wp-includes/PHPMailer/PHPMailer.php';
 require_once ABSPATH . 'wp-includes/PHPMailer/Exception.php';
 
 class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
-	var $mock_sent = array();
+	public $mock_sent = array();
 
 	function preSend() {
 		$this->Encoding = '8bit';
@@ -76,7 +76,7 @@ class MockPHPMailer extends PHPMailer\PHPMailer\PHPMailer {
  *
  * @since 4.4.0
  *
- * @return object|bool
+ * @return MockPHPMailer|false
  */
 function tests_retrieve_phpmailer_instance() {
 	$mailer = false;

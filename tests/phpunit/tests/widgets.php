@@ -247,6 +247,49 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @group sidebar
+	 * @ticket 19709
+	 */
+	public function test_register_sidebar_with_after_and_before_sidebar() {
+		global $wp_registered_sidebars;
+
+		$sidebar_id = 'test-sidebar';
+		register_sidebar(
+			array(
+				'id'             => $sidebar_id,
+				'before_sidebar' => '<div id="%1$s" class="before-sidebar %2$s">',
+				'after_sidebar'  => '</div> <!-- .before-sidebar -->',
+				'class'          => 'test-sidebar',
+			)
+		);
+
+		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
+		$this->assertContains( '<div id="%1$s" class="before-sidebar %2$s">', $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
+		$this->assertContains( '</div> <!-- .before-sidebar -->', $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+
+	}
+
+	/**
+	 * @group sidebar
+	 * @ticket 19709
+	 */
+	public function test_register_sidebar_without_after_and_before_sidebar() {
+		global $wp_registered_sidebars;
+
+		$sidebar_id = 'test-sidebar-2';
+		register_sidebar(
+			array(
+				'id' => $sidebar_id,
+			)
+		);
+
+		$this->assertArrayHasKey( $sidebar_id, $wp_registered_sidebars );
+		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['before_sidebar'] );
+		$this->assertEmpty( $wp_registered_sidebars[ $sidebar_id ]['after_sidebar'] );
+
+	}
+
+	/**
 	 * Utility hook callback used to store a sidebar ID mid-function.
 	 */
 	function retrieve_sidebar_id( $index, $valid_sidebar ) {

@@ -4,11 +4,14 @@
  * @group date
  * @group datetime
  * @group xmlrpc
+ * @covers IXR_Date
  */
 class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::mw_newPost
 	 */
 	public function test_date_new_post() {
 		$timezone = 'Europe/Kiev';
@@ -127,6 +130,8 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::mw_editPost
 	 */
 	public function test_date_edit_post() {
 		$timezone = 'Europe/Kiev';
@@ -194,6 +199,8 @@ class Tests_Date_XMLRPC extends WP_XMLRPC_UnitTestCase {
 
 	/**
 	 * @ticket 30429
+	 *
+	 * @covers wp_xmlrpc_server::wp_editComment
 	 */
 	function test_date_edit_comment() {
 		$timezone = 'Europe/Kiev';

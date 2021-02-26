@@ -15,7 +15,7 @@
  *
  * @global array $wp_registered_widgets
  * @global array $wp_registered_widget_controls
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  */
 function wp_dashboard_setup() {
 	global $wp_registered_widgets, $wp_registered_widget_controls, $wp_dashboard_control_callbacks;
@@ -39,7 +39,7 @@ function wp_dashboard_setup() {
 	$response = wp_check_php_version();
 	if ( $response && isset( $response['is_acceptable'] ) && ! $response['is_acceptable'] && current_user_can( 'update_php' ) ) {
 		add_filter( 'postbox_classes_dashboard_dashboard_php_nag', 'dashboard_php_nag_class' );
-		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Required' ), 'wp_dashboard_php_nag' );
+		wp_add_dashboard_widget( 'dashboard_php_nag', __( 'PHP Update Recommended' ), 'wp_dashboard_php_nag' );
 	}
 
 	// Site Health.
@@ -157,8 +157,9 @@ function wp_dashboard_setup() {
  * Adds a new dashboard widget.
  *
  * @since 2.7.0
+ * @since 5.6.0 The `$context` and `$priority` parameters were added.
  *
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  *
  * @param string   $widget_id        Widget ID  (used in the 'id' attribute for the widget).
  * @param string   $widget_name      Title of the widget.
@@ -167,8 +168,12 @@ function wp_dashboard_setup() {
  * @param callable $control_callback Optional. Function that outputs controls for the widget. Default null.
  * @param array    $callback_args    Optional. Data that should be set as the $args property of the widget array
  *                                   (which is the second parameter passed to your callback). Default null.
+ * @param string   $context          Optional. The context within the screen where the box should display.
+ *                                   Accepts 'normal', 'side', 'column3', or 'column4'. Default 'normal'.
+ * @param string   $priority         Optional. The priority within the context where the box should show.
+ *                                   Accepts 'high', 'core', 'default', or 'low'. Default 'core'.
  */
-function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null ) {
+function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_callback = null, $callback_args = null, $context = 'normal', $priority = 'core' ) {
 	$screen = get_current_screen();
 	global $wp_dashboard_control_callbacks;
 
@@ -194,19 +199,24 @@ function wp_add_dashboard_widget( $widget_id, $widget_name, $callback, $control_
 
 	$side_widgets = array( 'dashboard_quick_press', 'dashboard_primary' );
 
-	$location = 'normal';
 	if ( in_array( $widget_id, $side_widgets, true ) ) {
-		$location = 'side';
+		$context = 'side';
 	}
 
 	$high_priority_widgets = array( 'dashboard_browser_nag', 'dashboard_php_nag' );
 
-	$priority = 'core';
 	if ( in_array( $widget_id, $high_priority_widgets, true ) ) {
 		$priority = 'high';
 	}
 
-	add_meta_box( $widget_id, $widget_name, $callback, $screen, $location, $priority, $callback_args );
+	if ( empty( $context ) ) {
+		$context = 'normal';
+	}
+	if ( empty( $priority ) ) {
+		$priority = 'core';
+	}
+
+	add_meta_box( $widget_id, $widget_name, $callback, $screen, $context, $priority, $callback_args );
 }
 
 /**
@@ -496,7 +506,7 @@ function wp_network_dashboard_right_now() {
  *
  * @global int $post_ID
  *
- * @param string $error_msg Optional. Error message. Default false.
+ * @param string|false $error_msg Optional. Error message. Default false.
  */
 function wp_dashboard_quick_press( $error_msg = false ) {
 	global $post_ID;
@@ -567,7 +577,7 @@ function wp_dashboard_quick_press( $error_msg = false ) {
  *
  * @since 2.7.0
  *
- * @param WP_Post[] $drafts Optional. Array of posts to display. Default false.
+ * @param WP_Post[]|false $drafts Optional. Array of posts to display. Default false.
  */
 function wp_dashboard_recent_drafts( $drafts = false ) {
 	if ( ! $drafts ) {
@@ -606,7 +616,7 @@ function wp_dashboard_recent_drafts( $drafts = false ) {
 	echo '<h2 class="hide-if-no-js">' . __( 'Your Recent Drafts' ) . "</h2>\n<ul>";
 
 	/* translators: Maximum number of words used in a preview of a draft on the dashboard. */
-	$draft_length = intval( _x( '10', 'draft_length' ) );
+	$draft_length = (int) _x( '10', 'draft_length' );
 
 	$drafts = array_slice( $drafts, 0, 3 );
 	foreach ( $drafts as $draft ) {
@@ -928,7 +938,7 @@ function wp_dashboard_recent_posts( $args ) {
 		'post_status'    => $args['status'],
 		'orderby'        => 'date',
 		'order'          => $args['order'],
-		'posts_per_page' => intval( $args['max'] ),
+		'posts_per_page' => (int) $args['max'],
 		'no_found_rows'  => true,
 		'cache_results'  => false,
 		'perm'           => ( 'future' === $args['status'] ) ? 'editable' : 'readable',
@@ -965,10 +975,10 @@ function wp_dashboard_recent_posts( $args ) {
 			} elseif ( gmdate( 'Y-m-d', $time ) == $tomorrow ) {
 				$relative = __( 'Tomorrow' );
 			} elseif ( gmdate( 'Y', $time ) !== $year ) {
-				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, from a different calendar year, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS Y' ), $time );
 			} else {
-				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/date */
+				/* translators: Date and time format for recent posts on the dashboard, see https://www.php.net/manual/datetime.format.php */
 				$relative = date_i18n( __( 'M jS' ), $time );
 			}
 
@@ -1037,7 +1047,7 @@ function wp_dashboard_recent_comments( $total_items = 5 ) {
 	}
 
 	if ( $comments ) {
-		echo '<div id="latest-comments" class="activity-block">';
+		echo '<div id="latest-comments" class="activity-block table-view-list">';
 		echo '<h3>' . __( 'Recent Comments' ) . '</h3>';
 
 		echo '<ul id="the-comment-list" data-wp-lists="list:comment">';
@@ -1139,9 +1149,9 @@ function wp_dashboard_cached_rss_widget( $widget_id, $callback, $check_urls = ar
  *
  * @since 2.5.0
  *
- * @global array $wp_dashboard_control_callbacks
+ * @global callable[] $wp_dashboard_control_callbacks
  *
- * @param int $widget_control_id Registered Widget ID.
+ * @param int|false $widget_control_id Optional. Registered widget ID. Default false.
  */
 function wp_dashboard_trigger_widget_control( $widget_control_id = false ) {
 	global $wp_dashboard_control_callbacks;
@@ -1379,13 +1389,28 @@ function wp_print_community_events_templates() {
 				</div>
 
 				<div class="event-date-time">
-					<span class="event-date">{{ event.formatted_date }}</span>
+					<span class="event-date">{{ event.user_formatted_date }}</span>
 					<# if ( 'meetup' === event.type ) { #>
-						<span class="event-time">{{ event.formatted_time }}</span>
+						<span class="event-time">
+							{{ event.user_formatted_time }} {{ event.timeZoneAbbreviation }}
+						</span>
 					<# } #>
 				</div>
 			</li>
 		<# } ) #>
+
+		<# if ( data.events.length <= 2 ) { #>
+			<li class="event-none">
+				<?php
+				printf(
+					/* translators: %s: Localized meetup organization documentation URL. */
+					__( 'Want more events? <a href="%s">Help organize the next one</a>!' ),
+					__( 'https://make.wordpress.org/community/organize-event-landing-page/' )
+				);
+				?>
+			</li>
+		<# } #>
+
 	</script>
 
 	<script id="tmpl-community-events-no-upcoming-events" type="text/template">
@@ -1450,7 +1475,7 @@ function wp_dashboard_primary() {
 			 * @param string $title Title attribute for the widget's primary link.
 			 */
 			'title'        => apply_filters( 'dashboard_primary_title', __( 'WordPress Blog' ) ),
-			'items'        => 1,
+			'items'        => 2,
 			'show_summary' => 0,
 			'show_author'  => 0,
 			'show_date'    => 0,
@@ -1526,7 +1551,7 @@ function wp_dashboard_primary_output( $widget_id, $feeds ) {
  *
  * @since 3.0.0
  *
- * @return bool|null True if not multisite, user can't upload files, or the space check option is disabled.
+ * @return true|void True if not multisite, user can't upload files, or the space check option is disabled.
  */
 function wp_dashboard_quota() {
 	if ( ! is_multisite() || ! current_user_can( 'upload_files' ) || get_site_option( 'upload_space_check_disabled' ) ) {
@@ -1668,7 +1693,7 @@ function dashboard_browser_nag_class( $classes ) {
  *
  * @since 3.2.0
  *
- * @return array|bool Array of browser data on success, false on failure.
+ * @return array|false Array of browser data on success, false on failure.
  */
 function wp_check_browser_version() {
 	if ( empty( $_SERVER['HTTP_USER_AGENT'] ) ) {
@@ -1735,21 +1760,36 @@ function wp_dashboard_php_nag() {
 	}
 
 	if ( isset( $response['is_secure'] ) && ! $response['is_secure'] ) {
-		$msg = __( 'WordPress has detected that your site is running on an insecure version of PHP.' );
+		$msg = sprintf(
+			/* translators: %s: The server PHP version. */
+			__( 'Your site is running an insecure version of PHP (%s), which should be updated.' ),
+			PHP_VERSION
+		);
 	} else {
-		$msg = __( 'WordPress has detected that your site is running on an outdated version of PHP.' );
+		$msg = sprintf(
+			/* translators: %s: The server PHP version. */
+			__( 'Your site is running an outdated version of PHP (%s), which should be updated.' ),
+			PHP_VERSION
+		);
 	}
-
 	?>
 	<p><?php echo $msg; ?></p>
 
 	<h3><?php _e( 'What is PHP and how does it affect my site?' ); ?></h3>
-	<p><?php _e( 'PHP is the programming language we use to build and maintain WordPress. Newer versions of PHP are both faster and more secure, so updating will have a positive effect on your site&#8217;s performance.' ); ?></p>
+	<p>
+		<?php
+		printf(
+			/* translators: %s: The minimum recommended PHP version. */
+			__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
+			$response ? $response['recommended_version'] : ''
+		);
+		?>
+	</p>
 
 	<p class="button-container">
 		<?php
 		printf(
-			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
+			'<a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s <span class="screen-reader-text">%3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a>',
 			esc_url( wp_get_update_php_url() ),
 			__( 'Learn more about updating PHP' ),
 			/* translators: Accessibility text. */

@@ -161,12 +161,12 @@ if ( ! function_exists( 'wp_mail' ) ) :
 	 *
 	 * @global PHPMailer\PHPMailer\PHPMailer $phpmailer
 	 *
-	 * @param string|array $to          Array or comma-separated list of email addresses to send message.
-	 * @param string       $subject     Email subject
-	 * @param string       $message     Message contents
-	 * @param string|array $headers     Optional. Additional headers.
-	 * @param string|array $attachments Optional. Files to attach.
-	 * @return bool Whether the email contents were sent successfully.
+	 * @param string|string[] $to          Array or comma-separated list of email addresses to send message.
+	 * @param string          $subject     Email subject.
+	 * @param string          $message     Message contents.
+	 * @param string|string[] $headers     Optional. Additional headers.
+	 * @param string|string[] $attachments Optional. Paths to files to attach.
+	 * @return bool Whether the email was sent successfully.
 	 */
 	function wp_mail( $to, $subject, $message, $headers = '', $attachments = array() ) {
 		// Compact the input, apply the filters, and extract them back out.
@@ -176,10 +176,43 @@ if ( ! function_exists( 'wp_mail' ) ) :
 		 *
 		 * @since 2.2.0
 		 *
-		 * @param array $args A compacted array of wp_mail() arguments, including the "to" email,
-		 *                    subject, message, headers, and attachments values.
+		 * @param array $args {
+		 *     Array of the `wp_mail()` arguments.
+		 *
+		 *     @type string|string[] $to          Array or comma-separated list of email addresses to send message.
+		 *     @type string          $subject     Email subject.
+		 *     @type string          $message     Message contents.
+		 *     @type string|string[] $headers     Additional headers.
+		 *     @type string|string[] $attachments Paths to files to attach.
+		 * }
 		 */
 		$atts = apply_filters( 'wp_mail', compact( 'to', 'subject', 'message', 'headers', 'attachments' ) );
+
+		/**
+		 * Filters whether to preempt sending an email.
+		 *
+		 * Returning a non-null value will short-circuit {@see wp_mail()}, returning
+		 * that value instead. A boolean return value should be used to indicate whether
+		 * the email was successfully sent.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param null|bool $return Short-circuit return value.
+		 * @param array     $atts {
+		 *     Array of the `wp_mail()` arguments.
+		 *
+		 *     @type string|string[] $to          Array or comma-separated list of email addresses to send message.
+		 *     @type string          $subject     Email subject.
+		 *     @type string          $message     Message contents.
+		 *     @type string|string[] $headers     Additional headers.
+		 *     @type string|string[] $attachments Paths to files to attach.
+		 * }
+		 */
+		$pre_wp_mail = apply_filters( 'pre_wp_mail', null, $atts );
+
+		if ( null !== $pre_wp_mail ) {
+			return $pre_wp_mail;
+		}
 
 		if ( isset( $atts['to'] ) ) {
 			$to = $atts['to'];
@@ -2540,7 +2573,7 @@ if ( ! function_exists( 'wp_rand' ) ) :
 			$value = $min + ( $max - $min + 1 ) * $value / ( $max_random_number + 1 );
 		}
 
-		return abs( intval( $value ) );
+		return abs( (int) $value );
 	}
 endif;
 
@@ -2723,7 +2756,7 @@ if ( ! function_exists( 'get_avatar' ) ) :
 			esc_attr( $args['alt'] ),
 			esc_url( $url ),
 			esc_url( $url2x ) . ' 2x',
-			esc_attr( join( ' ', $class ) ),
+			esc_attr( implode( ' ', $class ) ),
 			(int) $args['height'],
 			(int) $args['width'],
 			$extra_attr
@@ -2805,27 +2838,32 @@ if ( ! function_exists( 'wp_text_diff' ) ) :
 			return '';
 		}
 
-		$r = "<table class='diff'>\n";
+		$is_split_view       = ! empty( $args['show_split_view'] );
+		$is_split_view_class = $is_split_view ? ' is-split-view' : '';
 
-		if ( ! empty( $args['show_split_view'] ) ) {
-			$r .= "<col class='content diffsplit left' /><col class='content diffsplit middle' /><col class='content diffsplit right' />";
-		} else {
-			$r .= "<col class='content' />";
+		$r = "<table class='diff$is_split_view_class'>\n";
+
+		if ( $args['title'] ) {
+			$r .= "<caption class='diff-title'>$args[title]</caption>\n";
 		}
 
-		if ( $args['title'] || $args['title_left'] || $args['title_right'] ) {
+		if ( $args['title_left'] || $args['title_right'] ) {
 			$r .= '<thead>';
 		}
-		if ( $args['title'] ) {
-			$r .= "<tr class='diff-title'><th colspan='4'>$args[title]</th></tr>\n";
-		}
+
 		if ( $args['title_left'] || $args['title_right'] ) {
+			$th_or_td_left  = empty( $args['title_left'] ) ? 'td' : 'th';
+			$th_or_td_right = empty( $args['title_right'] ) ? 'td' : 'th';
+
 			$r .= "<tr class='diff-sub-title'>\n";
-			$r .= "\t<td></td><th>$args[title_left]</th>\n";
-			$r .= "\t<td></td><th>$args[title_right]</th>\n";
+			$r .= "\t<$th_or_td_left>$args[title_left]</$th_or_td_left>\n";
+			if ( $is_split_view ) {
+				$r .= "\t<$th_or_td_right>$args[title_right]</$th_or_td_right>\n";
+			}
 			$r .= "</tr>\n";
 		}
-		if ( $args['title'] || $args['title_left'] || $args['title_right'] ) {
+
+		if ( $args['title_left'] || $args['title_right'] ) {
 			$r .= "</thead>\n";
 		}
 

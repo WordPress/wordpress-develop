@@ -48,12 +48,14 @@ class WP_Debug_Data {
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
 
-		foreach ( $core_updates as $core => $update ) {
-			if ( 'upgrade' === $update->response ) {
-				/* translators: %s: Latest WordPress version number. */
-				$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
-			} else {
-				$core_update_needed = '';
+		if ( is_array( $core_updates ) ) {
+			foreach ( $core_updates as $core => $update ) {
+				if ( 'upgrade' === $update->response ) {
+					/* translators: %s: Latest WordPress version number. */
+					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
+				} else {
+					$core_update_needed = '';
+				}
 			}
 		}
 
@@ -267,6 +269,10 @@ class WP_Debug_Data {
 				'WP_PLUGIN_DIR'       => array(
 					'label' => 'WP_PLUGIN_DIR',
 					'value' => WP_PLUGIN_DIR,
+				),
+				'WP_MEMORY_LIMIT'     => array(
+					'label' => 'WP_MEMORY_LIMIT',
+					'value' => WP_MEMORY_LIMIT,
 				),
 				'WP_MAX_MEMORY_LIMIT' => array(
 					'label' => 'WP_MAX_MEMORY_LIMIT',
@@ -974,12 +980,10 @@ class WP_Debug_Data {
 						'requires_php'  => '',
 						'compatibility' => new stdClass(),
 					);
-					$item = array_merge( $item, array_intersect_key( $plugin, $item ) );
+					$item = wp_parse_args( $plugin, $item );
 				}
 
-				$type = 'plugin';
-				/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-				$auto_update_forced = apply_filters( "auto_update_{$type}", null, (object) $item );
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );
 
 				if ( ! is_null( $auto_update_forced ) ) {
 					$enabled = $auto_update_forced;
@@ -1121,9 +1125,7 @@ class WP_Debug_Data {
 				);
 			}
 
-			$type = 'theme';
-			/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-			$auto_update_forced = apply_filters( "auto_update_{$type}", null, (object) $item );
+			$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
 			if ( ! is_null( $auto_update_forced ) ) {
 				$enabled = $auto_update_forced;
@@ -1209,9 +1211,7 @@ class WP_Debug_Data {
 					);
 				}
 
-				$type = 'theme';
-				/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-				$auto_update_forced = apply_filters( "auto_update_{$type}", null, (object) $item );
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
 				if ( ! is_null( $auto_update_forced ) ) {
 					$enabled = $auto_update_forced;
@@ -1299,9 +1299,7 @@ class WP_Debug_Data {
 					);
 				}
 
-				$type = 'theme';
-				/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-				$auto_update_forced = apply_filters( "auto_update_{$type}", null, (object) $item );
+				$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, (object) $item );
 
 				if ( ! is_null( $auto_update_forced ) ) {
 					$enabled = $auto_update_forced;
@@ -1327,7 +1325,7 @@ class WP_Debug_Data {
 				$auto_updates_string = apply_filters( 'theme_auto_update_debug_string', $auto_updates_string, $theme, $enabled );
 
 				$theme_version_string       .= ' | ' . $auto_updates_string;
-				$theme_version_string_debug .= ',' . $auto_updates_string;
+				$theme_version_string_debug .= ', ' . $auto_updates_string;
 			}
 
 			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(

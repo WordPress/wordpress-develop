@@ -216,14 +216,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		// Check for & assign any parameters which require special handling or setting.
 		$args['date_query'] = array();
 
-		// Set before into date query. Date query must be specified as an array of an array.
 		if ( isset( $registered['before'], $request['before'] ) ) {
-			$args['date_query'][0]['before'] = $request['before'];
+			$args['date_query'][] = array(
+				'before' => $request['before'],
+				'column' => 'post_date',
+			);
 		}
 
-		// Set after into date query. Date query must be specified as an array of an array.
+		if ( isset( $registered['modified_before'], $request['modified_before'] ) ) {
+			$args['date_query'][] = array(
+				'before' => $request['modified_before'],
+				'column' => 'post_modified',
+			);
+		}
+
 		if ( isset( $registered['after'], $request['after'] ) ) {
-			$args['date_query'][0]['after'] = $request['after'];
+			$args['date_query'][] = array(
+				'after'  => $request['after'],
+				'column' => 'post_date',
+			);
+		}
+
+		if ( isset( $registered['modified_after'], $request['modified_after'] ) ) {
+			$args['date_query'][] = array(
+				'after'  => $request['modified_after'],
+				'column' => 'post_modified',
+			);
 		}
 
 		// Ensure our per_page parameter overrides any provided posts_per_page filter.
@@ -262,53 +280,34 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		$args = $this->prepare_tax_query( $args, $request );
+
 		// Force the post_type argument, since it's not a user input variable.
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Filters the query arguments for a request.
+		 * Filters WP_Query arguments when querying users via the REST API.
+		 *
+		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_post_query`
+		 *  - `rest_page_query`
+		 *  - `rest_attachment_query`
 		 *
 		 * Enables adding extra arguments or setting defaults for a post collection request.
 		 *
 		 * @since 4.7.0
+		 * @since 5.7.0 Moved after the `tax_query` query arg is generated.
 		 *
 		 * @link https://developer.wordpress.org/reference/classes/wp_query/
 		 *
-		 * @param array           $args    Key value array of query var to query value.
-		 * @param WP_REST_Request $request The request used.
+		 * @param array           $args    Array of arguments to be passed to WP_Query.
+		 * @param WP_REST_Request $request The REST API request.
 		 */
 		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
 		$query_args = $this->prepare_items_query( $args, $request );
-
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $request['tax_relation'] ) ) {
-			$query_args['tax_query'] = array( 'relation' => $request['tax_relation'] );
-		}
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base        = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-			$tax_exclude = $base . '_exclude';
-
-			if ( ! empty( $request[ $base ] ) ) {
-				$query_args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $base ],
-					'include_children' => false,
-				);
-			}
-
-			if ( ! empty( $request[ $tax_exclude ] ) ) {
-				$query_args['tax_query'][] = array(
-					'taxonomy'         => $taxonomy->name,
-					'field'            => 'term_id',
-					'terms'            => $request[ $tax_exclude ],
-					'include_children' => false,
-					'operator'         => 'NOT IN',
-				);
-			}
-		}
 
 		$posts_query  = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
@@ -417,7 +416,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$post = $this->get_post( $request['id'] );
@@ -591,7 +590,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$prepared_post->post_type = $this->post_type;
 
-		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true );
+		$post_id = wp_insert_post( wp_slash( (array) $prepared_post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 
@@ -677,6 +676,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, true );
 
+		wp_after_insert_post( $post, false, null );
+
 		$response = $this->prepare_item_for_response( $post, $request );
 		$response = rest_ensure_response( $response );
 
@@ -751,14 +752,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $valid_check;
 		}
 
-		$post = $this->prepare_item_for_database( $request );
+		$post_before = get_post( $request['id'] );
+		$post        = $this->prepare_item_for_database( $request );
 
 		if ( is_wp_error( $post ) ) {
 			return $post;
 		}
 
 		// Convert the post object to an array, otherwise wp_update_post() will expect non-escaped input.
-		$post_id = wp_update_post( wp_slash( (array) $post ), true );
+		$post_id = wp_update_post( wp_slash( (array) $post ), true, false );
 
 		if ( is_wp_error( $post_id ) ) {
 			if ( 'db_update_error' === $post_id->get_error_code() ) {
@@ -827,6 +829,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		/** This action is documented in wp-includes/rest-api/endpoints/class-wp-rest-posts-controller.php */
 		do_action( "rest_after_insert_{$this->post_type}", $post, $request, false );
+
+		wp_after_insert_post( $post, true, $post_before );
 
 		$response = $this->prepare_item_for_response( $post, $request );
 
@@ -1048,7 +1052,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @return stdClass|WP_Error Post object or WP_Error.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$prepared_post = new stdClass();
+		$prepared_post  = new stdClass();
+		$current_status = '';
 
 		// Post ID.
 		if ( isset( $request['id'] ) ) {
@@ -1058,6 +1063,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 
 			$prepared_post->ID = $existing_post->ID;
+			$current_status    = $existing_post->post_status;
 		}
 
 		$schema = $this->get_item_schema();
@@ -1101,7 +1107,11 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$post_type = get_post_type_object( $prepared_post->post_type );
 
 		// Post status.
-		if ( ! empty( $schema['properties']['status'] ) && isset( $request['status'] ) ) {
+		if (
+			! empty( $schema['properties']['status'] ) &&
+			isset( $request['status'] ) &&
+			( ! $current_status || $current_status !== $request['status'] )
+		) {
 			$status = $this->handle_status_param( $request['status'], $post_type );
 
 			if ( is_wp_error( $status ) ) {
@@ -1252,6 +1262,32 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Checks whether the status is valid for the given post.
+	 *
+	 * Allows for sending an update request with the current status, even if that status would not be acceptable.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string          $status  The provided status.
+	 * @param WP_REST_Request $request The request object.
+	 * @param string          $param   The parameter name.
+	 * @return true|WP_Error True if the status is valid, or WP_Error if not.
+	 */
+	public function check_status( $status, $request, $param ) {
+		if ( $request['id'] ) {
+			$post = $this->get_post( $request['id'] );
+
+			if ( ! is_wp_error( $post ) && $post->post_status === $status ) {
+				return true;
+			}
+		}
+
+		$args = $request->get_attributes()['args'][ $param ];
+
+		return rest_validate_value_from_schema( $status, $args, $param );
+	}
+
+	/**
 	 * Determines validity and normalizes the given status parameter.
 	 *
 	 * @since 4.7.0
@@ -1340,8 +1376,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		if ( $request['id'] ) {
+			$post             = get_post( $request['id'] );
 			$current_template = get_page_template_slug( $request['id'] );
 		} else {
+			$post             = null;
 			$current_template = '';
 		}
 
@@ -1351,7 +1389,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// If this is a create request, get_post() will return null and wp theme will fallback to the passed post type.
-		$allowed_templates = wp_get_theme()->get_page_templates( get_post( $request['id'] ), $this->post_type );
+		$allowed_templates = wp_get_theme()->get_page_templates( $post, $this->post_type );
 
 		if ( isset( $allowed_templates[ $template ] ) ) {
 			return true;
@@ -1370,9 +1408,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 * @since 4.9.0 Added the `$validate` parameter.
 	 *
-	 * @param string  $template Page template filename.
-	 * @param integer $post_id  Post ID.
-	 * @param bool    $validate Whether to validate that the template selected is valid.
+	 * @param string $template Page template filename.
+	 * @param int    $post_id  Post ID.
+	 * @param bool   $validate Whether to validate that the template selected is valid.
 	 */
 	public function handle_template( $template, $post_id, $validate = false ) {
 
@@ -1812,9 +1850,15 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters the post data for a response.
+		 * Filters the post data for a REST API response.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
+		 *
+		 * Possible filter names include:
+		 *
+		 *  - `rest_prepare_post`
+		 *  - `rest_prepare_page`
+		 *  - `rest_prepare_attachment`
 		 *
 		 * @since 4.7.0
 		 *
@@ -2109,6 +2153,9 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					'type'        => 'string',
 					'enum'        => array_keys( get_post_stati( array( 'internal' => false ) ) ),
 					'context'     => array( 'view', 'edit' ),
+					'arg_options' => array(
+						'validate_callback' => array( $this, 'check_status' ),
+					),
 				),
 				'type'         => array(
 					'description' => __( 'Type of Post for the object.' ),
@@ -2571,6 +2618,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 * Retrieves the query params for the posts collection.
 	 *
 	 * @since 4.7.0
+	 * @since 5.4.0 The `tax_relation` query parameter was added.
+	 * @since 5.7.0 The `modified_after` and `modified_before` query parameters were added.
 	 *
 	 * @return array Collection parameters.
 	 */
@@ -2581,6 +2630,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['after'] = array(
 			'description' => __( 'Limit response to posts published after a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_after'] = array(
+			'description' => __( 'Limit response to posts modified after a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2606,6 +2661,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['before'] = array(
 			'description' => __( 'Limit response to posts published before a given ISO8601 compliant date.' ),
+			'type'        => 'string',
+			'format'      => 'date-time',
+		);
+
+		$query_params['modified_before'] = array(
+			'description' => __( 'Limit response to posts modified before a given ISO8601 compliant date.' ),
 			'type'        => 'string',
 			'format'      => 'date-time',
 		);
@@ -2710,39 +2771,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			'sanitize_callback' => array( $this, 'sanitize_post_statuses' ),
 		);
 
-		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
-
-		if ( ! empty( $taxonomies ) ) {
-			$query_params['tax_relation'] = array(
-				'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
-				'type'        => 'string',
-				'enum'        => array( 'AND', 'OR' ),
-			);
-		}
-
-		foreach ( $taxonomies as $taxonomy ) {
-			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
-
-			$query_params[ $base ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'default'     => array(),
-			);
-
-			$query_params[ $base . '_exclude' ] = array(
-				/* translators: %s: Taxonomy name. */
-				'description' => sprintf( __( 'Limit result set to all items except those that have the specified term assigned in the %s taxonomy.' ), $base ),
-				'type'        => 'array',
-				'items'       => array(
-					'type' => 'integer',
-				),
-				'default'     => array(),
-			);
-		}
+		$query_params = $this->prepare_taxonomy_limit_schema( $query_params );
 
 		if ( 'post' === $this->post_type ) {
 			$query_params['sticky'] = array(
@@ -2809,5 +2838,169 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Prepares the 'tax_query' for a collection of posts.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array           $args    WP_Query arguments.
+	 * @param WP_REST_Request $request Full details about the request.
+	 * @return array Updated query arguments.
+	 */
+	private function prepare_tax_query( array $args, WP_REST_Request $request ) {
+		$relation = $request['tax_relation'];
+
+		if ( $relation ) {
+			$args['tax_query'] = array( 'relation' => $relation );
+		}
+
+		$taxonomies = wp_list_filter(
+			get_object_taxonomies( $this->post_type, 'objects' ),
+			array( 'show_in_rest' => true )
+		);
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+
+			$tax_include = $request[ $base ];
+			$tax_exclude = $request[ $base . '_exclude' ];
+
+			if ( $tax_include ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_include ) ) {
+					$terms = $tax_include;
+				} elseif ( rest_is_object( $tax_include ) ) {
+					$terms            = empty( $tax_include['terms'] ) ? array() : $tax_include['terms'];
+					$include_children = ! empty( $tax_include['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+					);
+				}
+			}
+
+			if ( $tax_exclude ) {
+				$terms            = array();
+				$include_children = false;
+
+				if ( rest_is_array( $tax_exclude ) ) {
+					$terms = $tax_exclude;
+				} elseif ( rest_is_object( $tax_exclude ) ) {
+					$terms            = empty( $tax_exclude['terms'] ) ? array() : $tax_exclude['terms'];
+					$include_children = ! empty( $tax_exclude['include_children'] );
+				}
+
+				if ( $terms ) {
+					$args['tax_query'][] = array(
+						'taxonomy'         => $taxonomy->name,
+						'field'            => 'term_id',
+						'terms'            => $terms,
+						'include_children' => $include_children,
+						'operator'         => 'NOT IN',
+					);
+				}
+			}
+		}
+
+		return $args;
+	}
+
+	/**
+	 * Prepares the collection schema for including and excluding items by terms.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $query_params Collection schema.
+	 * @return array Updated schema.
+	 */
+	private function prepare_taxonomy_limit_schema( array $query_params ) {
+		$taxonomies = wp_list_filter( get_object_taxonomies( $this->post_type, 'objects' ), array( 'show_in_rest' => true ) );
+
+		if ( ! $taxonomies ) {
+			return $query_params;
+		}
+
+		$query_params['tax_relation'] = array(
+			'description' => __( 'Limit result set based on relationship between multiple taxonomies.' ),
+			'type'        => 'string',
+			'enum'        => array( 'AND', 'OR' ),
+		);
+
+		$limit_schema = array(
+			'type'  => array( 'object', 'array' ),
+			'oneOf' => array(
+				array(
+					'title'       => __( 'Term ID List' ),
+					'description' => __( 'Match terms with the listed IDs.' ),
+					'type'        => 'array',
+					'items'       => array(
+						'type' => 'integer',
+					),
+				),
+				array(
+					'title'                => __( 'Term ID Taxonomy Query' ),
+					'description'          => __( 'Perform an advanced term query.' ),
+					'type'                 => 'object',
+					'properties'           => array(
+						'terms'            => array(
+							'description' => __( 'Term IDs.' ),
+							'type'        => 'array',
+							'items'       => array(
+								'type' => 'integer',
+							),
+							'default'     => array(),
+						),
+						'include_children' => array(
+							'description' => __( 'Whether to include child terms in the terms limiting the result set.' ),
+							'type'        => 'boolean',
+							'default'     => false,
+						),
+					),
+					'additionalProperties' => false,
+				),
+			),
+		);
+
+		$include_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items with specific terms assigned in the %s taxonomy.' ),
+			),
+			$limit_schema
+		);
+		$exclude_schema = array_merge(
+			array(
+				/* translators: %s: Taxonomy name. */
+				'description' => __( 'Limit result set to items except those with specific terms assigned in the %s taxonomy.' ),
+			),
+			$limit_schema
+		);
+
+		foreach ( $taxonomies as $taxonomy ) {
+			$base         = ! empty( $taxonomy->rest_base ) ? $taxonomy->rest_base : $taxonomy->name;
+			$base_exclude = $base . '_exclude';
+
+			$query_params[ $base ]                = $include_schema;
+			$query_params[ $base ]['description'] = sprintf( $query_params[ $base ]['description'], $base );
+
+			$query_params[ $base_exclude ]                = $exclude_schema;
+			$query_params[ $base_exclude ]['description'] = sprintf( $query_params[ $base_exclude ]['description'], $base );
+
+			if ( ! $taxonomy->hierarchical ) {
+				unset( $query_params[ $base ]['oneOf'][1]['properties']['include_children'] );
+				unset( $query_params[ $base_exclude ]['oneOf'][1]['properties']['include_children'] );
+			}
+		}
+
+		return $query_params;
 	}
 }

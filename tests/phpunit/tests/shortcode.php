@@ -213,9 +213,9 @@ class Tests_Shortcode extends WP_UnitTestCase {
 	}
 
 	function test_positional_atts_url() {
-		$out = do_shortcode( '[test-shortcode-tag http://www.youtube.com/watch?v=eBGIQ7ZuuiU]' );
+		$out = do_shortcode( '[test-shortcode-tag https://www.youtube.com/watch?v=72xdCU__XCk]' );
 		$this->assertSame( '', $out );
-		$this->assertSame( array( 0 => 'http://www.youtube.com/watch?v=eBGIQ7ZuuiU' ), $this->atts );
+		$this->assertSame( array( 0 => 'https://www.youtube.com/watch?v=72xdCU__XCk' ), $this->atts );
 		$this->assertSame( 'test-shortcode-tag', $this->tagname );
 	}
 
@@ -746,7 +746,7 @@ EOF;
 
 	function test_php_and_js_shortcode_attribute_regexes_match() {
 
-		$file    = file_get_contents( ABSPATH . WPINC . '/js/shortcode.js' );
+		$file    = file_get_contents( ABSPATH . 'js/_enqueues/wp/shortcode.js' );
 		$matched = preg_match( '|\s+pattern = (\/.+\/)g;|', $file, $matches );
 		$php     = get_shortcode_atts_regex();
 

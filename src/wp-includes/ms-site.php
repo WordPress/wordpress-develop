@@ -352,7 +352,7 @@ function _prime_site_caches( $ids, $update_meta_cache = true ) {
 
 	$non_cached_ids = _get_non_cached_ids( $ids, 'sites' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$fresh_sites = $wpdb->get_results( sprintf( "SELECT * FROM $wpdb->blogs WHERE blog_id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		update_site_cache( $fresh_sites, $update_meta_cache );
 	}
@@ -413,8 +413,8 @@ function update_sitemeta_cache( $site_ids ) {
  * @param string|array $args {
  *     Optional. Array or query string of site query parameters. Default empty.
  *
- *     @type array        $site__in          Array of site IDs to include. Default empty.
- *     @type array        $site__not_in      Array of site IDs to exclude. Default empty.
+ *     @type int[]        $site__in          Array of site IDs to include. Default empty.
+ *     @type int[]        $site__not_in      Array of site IDs to exclude. Default empty.
  *     @type bool         $count             Whether to return a site count (true) or array of site objects.
  *                                           Default false.
  *     @type array        $date_query        Date query clauses to limit sites by. See WP_Date_Query.
@@ -434,24 +434,24 @@ function update_sitemeta_cache( $site_ids ) {
  *     @type string       $order             How to order retrieved sites. Accepts 'ASC', 'DESC'. Default 'ASC'.
  *     @type int          $network_id        Limit results to those affiliated with a given network ID. If 0,
  *                                           include all networks. Default 0.
- *     @type array        $network__in       Array of network IDs to include affiliated sites for. Default empty.
- *     @type array        $network__not_in   Array of network IDs to exclude affiliated sites for. Default empty.
+ *     @type int[]        $network__in       Array of network IDs to include affiliated sites for. Default empty.
+ *     @type int[]        $network__not_in   Array of network IDs to exclude affiliated sites for. Default empty.
  *     @type string       $domain            Limit results to those affiliated with a given domain. Default empty.
- *     @type array        $domain__in        Array of domains to include affiliated sites for. Default empty.
- *     @type array        $domain__not_in    Array of domains to exclude affiliated sites for. Default empty.
+ *     @type string[]     $domain__in        Array of domains to include affiliated sites for. Default empty.
+ *     @type string[]     $domain__not_in    Array of domains to exclude affiliated sites for. Default empty.
  *     @type string       $path              Limit results to those affiliated with a given path. Default empty.
- *     @type array        $path__in          Array of paths to include affiliated sites for. Default empty.
- *     @type array        $path__not_in      Array of paths to exclude affiliated sites for. Default empty.
+ *     @type string[]     $path__in          Array of paths to include affiliated sites for. Default empty.
+ *     @type string[]     $path__not_in      Array of paths to exclude affiliated sites for. Default empty.
  *     @type int          $public            Limit results to public sites. Accepts '1' or '0'. Default empty.
  *     @type int          $archived          Limit results to archived sites. Accepts '1' or '0'. Default empty.
  *     @type int          $mature            Limit results to mature sites. Accepts '1' or '0'. Default empty.
  *     @type int          $spam              Limit results to spam sites. Accepts '1' or '0'. Default empty.
  *     @type int          $deleted           Limit results to deleted sites. Accepts '1' or '0'. Default empty.
  *     @type int          $lang_id           Limit results to a language ID. Default empty.
- *     @type array        $lang__in          Array of language IDs to include affiliated sites for. Default empty.
- *     @type array        $lang__not_in      Array of language IDs to exclude affiliated sites for. Default empty.
+ *     @type string[]     $lang__in          Array of language IDs to include affiliated sites for. Default empty.
+ *     @type string[]     $lang__not_in      Array of language IDs to exclude affiliated sites for. Default empty.
  *     @type string       $search            Search term(s) to retrieve matching sites for. Default empty.
- *     @type array        $search_columns    Array of column names to be searched. Accepts 'domain' and 'path'.
+ *     @type string[]     $search_columns    Array of column names to be searched. Accepts 'domain' and 'path'.
  *                                           Default empty array.
  *     @type bool         $update_site_cache Whether to prime the cache for found sites. Default true.
  * }
@@ -668,7 +668,7 @@ function wp_validate_site_data( $errors, $data, $old_site = null ) {
  *     @type array  $meta    Custom site metadata $key => $value pairs to use.
  *                           Default empty array.
  * }
- * @return bool|WP_Error True on success, or error object on failure.
+ * @return true|WP_Error True on success, or error object on failure.
  */
 function wp_initialize_site( $site_id, array $args = array() ) {
 	global $wpdb, $wp_roles;
@@ -799,7 +799,7 @@ function wp_initialize_site( $site_id, array $args = array() ) {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Site $site_id Site ID or object.
- * @return bool|WP_Error True on success, or error object on failure.
+ * @return true|WP_Error True on success, or error object on failure.
  */
 function wp_uninitialize_site( $site_id ) {
 	global $wpdb;
@@ -860,8 +860,8 @@ function wp_uninitialize_site( $site_id ) {
 	 *
 	 * @since MU (3.0.0)
 	 *
-	 * @param string $uploads['basedir'] Uploads path without subdirectory. @see wp_upload_dir()
-	 * @param int    $site_id            The site ID.
+	 * @param string $basedir Uploads path without subdirectory. @see wp_upload_dir()
+	 * @param int    $site_id The site ID.
 	 */
 	$dir     = apply_filters( 'wpmu_delete_blog_upload_dir', $uploads['basedir'], $site->id );
 	$dir     = rtrim( $dir, DIRECTORY_SEPARATOR );

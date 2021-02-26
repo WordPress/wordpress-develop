@@ -56,7 +56,7 @@ jQuery( document ).ready( function( $ ) {
 		});
 	}
 
-	$( '.export-personal-data-handle' ).click( function( event ) {
+	$( '.export-personal-data-handle' ).on( 'click', function( event ) {
 		var $this          = $( this ),
 			$action        = $this.parents( '.export-personal-data' ),
 			$requestRow    = $this.parents( 'tr' ),
@@ -72,12 +72,16 @@ jQuery( document ).ready( function( $ ) {
 
 		$rowActions.addClass( 'processing' );
 
-		$action.blur();
+		$action.trigger( 'blur' );
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
 		function onExportDoneSuccess( zipUrl ) {
-			var summaryMessage = __( 'The personal data export link for this user was sent.' );
+			var summaryMessage = __( 'This user&#8217;s personal data export link was sent.' );
+
+			if ( 'undefined' !== typeof zipUrl ) {
+				summaryMessage = __( 'This user&#8217;s personal data export file was downloaded.' );
+			}
 
 			setActionState( $action, 'export-personal-data-success' );
 
@@ -155,7 +159,7 @@ jQuery( document ).ready( function( $ ) {
 		doNextExport( 1, 1 );
 	});
 
-	$( '.remove-personal-data-handle' ).click( function( event ) {
+	$( '.remove-personal-data-handle' ).on( 'click', function( event ) {
 		var $this         = $( this ),
 			$action       = $this.parents( '.remove-personal-data' ),
 			$requestRow   = $this.parents( 'tr' ),
@@ -173,7 +177,7 @@ jQuery( document ).ready( function( $ ) {
 
 		$rowActions.addClass( 'processing' );
 
-		$action.blur();
+		$action.trigger( 'blur' );
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
@@ -271,7 +275,6 @@ jQuery( document ).ready( function( $ ) {
 	// Privacy Policy page, copy action.
 	$( document ).on( 'click', function( event ) {
 		var $parent,
-			$container,
 			range,
 			$target = $( event.target ),
 			copiedNotice = $target.siblings( '.success' );
@@ -279,14 +282,9 @@ jQuery( document ).ready( function( $ ) {
 		clearTimeout( copiedNoticeTimeout );
 
 		if ( $target.is( 'button.privacy-text-copy' ) ) {
-			$parent = $target.parent().parent();
-			$container = $parent.find( 'div.wp-suggested-text' );
+			$parent = $target.closest( '.privacy-settings-accordion-panel' );
 
-			if ( ! $container.length ) {
-				$container = $parent.find( 'div.policy-text' );
-			}
-
-			if ( $container.length ) {
+			if ( $parent.length ) {
 				try {
 					var documentPosition = document.documentElement.scrollTop,
 						bodyPosition     = document.body.scrollTop;
@@ -296,15 +294,15 @@ jQuery( document ).ready( function( $ ) {
 
 					// Hide tutorial content to remove from copied content.
 					range = document.createRange();
-					$container.addClass( 'hide-privacy-policy-tutorial' );
+					$parent.addClass( 'hide-privacy-policy-tutorial' );
 
 					// Copy action.
-					range.selectNodeContents( $container[0] );
+					range.selectNodeContents( $parent[0] );
 					window.getSelection().addRange( range );
 					document.execCommand( 'copy' );
 
 					// Reset section.
-					$container.removeClass( 'hide-privacy-policy-tutorial' );
+					$parent.removeClass( 'hide-privacy-policy-tutorial' );
 					window.getSelection().removeAllRanges();
 
 					// Return scroll position - see #49540.
@@ -316,7 +314,7 @@ jQuery( document ).ready( function( $ ) {
 
 					// Display and speak notice to indicate action complete.
 					copiedNotice.addClass( 'visible' );
-					wp.a11y.speak( __( 'The section has been copied to your clipboard.' ) );
+					wp.a11y.speak( __( 'The suggested policy text has been copied to your clipboard.' ) );
 
 					// Delay notice dismissal.
 					copiedNoticeTimeout = setTimeout( function() {
@@ -326,4 +324,23 @@ jQuery( document ).ready( function( $ ) {
 			}
 		}
 	});
+
+	// Label handling to focus the create page button on Privacy settings page.
+	$( 'body.options-privacy-php label[for=create-page]' ).on( 'click', function( e ) {
+		e.preventDefault();
+		$( 'input#create-page' ).trigger( 'focus' );
+	} );
+
+	// Accordion handling in various new Privacy settings pages.
+	$( '.privacy-settings-accordion' ).on( 'click', '.privacy-settings-accordion-trigger', function() {
+		var isExpanded = ( 'true' === $( this ).attr( 'aria-expanded' ) );
+
+		if ( isExpanded ) {
+			$( this ).attr( 'aria-expanded', 'false' );
+			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', true );
+		} else {
+			$( this ).attr( 'aria-expanded', 'true' );
+			$( '#' + $( this ).attr( 'aria-controls' ) ).attr( 'hidden', false );
+		}
+	} );
 });

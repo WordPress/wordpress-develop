@@ -16,7 +16,7 @@ You will need a basic understanding of how to use the command line on your compu
 You will need Node and npm installed on your computer. Node is a JavaScript runtime used for developer tooling, and npm is the package manager included with Node. If you have a package manager installed for your operating system, setup can be as straightforward as:
 
 * macOS: `brew install node`
-* Windows: `choco install node`
+* Windows: `choco install nodejs`
 * Ubuntu: `apt install nodejs npm`
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
@@ -28,6 +28,8 @@ You will also need [Docker](https://www.docker.com/products/docker-desktop) inst
 Ensure [Docker](https://www.docker.com/products/docker-desktop) is running before using these commands.
 
 #### To start the development environment for the first time
+
+Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
 
 ```
 npm install
@@ -43,7 +45,7 @@ Your WordPress site will accessible at http://localhost:8889. You can see or cha
 If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
 
 ```
-npm run watch
+npm run dev
 ```
 
 To stop the watcher, press `ctrl+c`.

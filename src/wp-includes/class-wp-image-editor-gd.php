@@ -79,7 +79,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return bool|WP_Error True if loaded successfully; WP_Error on failure.
+	 * @return true|WP_Error True if loaded successfully; WP_Error on failure.
 	 */
 	public function load() {
 		if ( $this->image ) {
@@ -93,13 +93,20 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 		// Set artificially high because GD uses uncompressed images in memory.
 		wp_raise_memory_limit( 'image' );
 
-		$this->image = @imagecreatefromstring( file_get_contents( $this->file ) );
+		$file_contents = @file_get_contents( $this->file );
+
+		if ( ! $file_contents ) {
+			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
+		}
+
+		$this->image = @imagecreatefromstring( $file_contents );
 
 		if ( ! is_gd_image( $this->image ) ) {
 			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 		}
 
-		$size = @getimagesize( $this->file );
+		$size = wp_getimagesize( $this->file );
+
 		if ( ! $size ) {
 			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );
 		}
@@ -304,7 +311,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 	 * @param int  $dst_w   Optional. The destination width.
 	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		// If destination width/height isn't specified,
@@ -316,7 +323,13 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			$dst_h = $src_h;
 		}
 
-		$dst = wp_imagecreatetruecolor( $dst_w, $dst_h );
+		foreach ( array( $src_w, $src_h, $dst_w, $dst_h ) as $value ) {
+			if ( ! is_numeric( $value ) || (int) $value <= 0 ) {
+				return new WP_Error( 'image_crop_error', __( 'Image crop failed.' ), $this->file );
+			}
+		}
+
+		$dst = wp_imagecreatetruecolor( (int) $dst_w, (int) $dst_h );
 
 		if ( $src_abs ) {
 			$src_w -= $src_x;
@@ -327,7 +340,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			imageantialias( $dst, true );
 		}
 
-		imagecopyresampled( $dst, $this->image, 0, 0, $src_x, $src_y, $dst_w, $dst_h, $src_w, $src_h );
+		imagecopyresampled( $dst, $this->image, 0, 0, (int) $src_x, (int) $src_y, (int) $dst_w, (int) $dst_h, (int) $src_w, (int) $src_h );
 
 		if ( is_gd_image( $dst ) ) {
 			imagedestroy( $this->image );

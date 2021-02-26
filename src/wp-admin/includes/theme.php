@@ -649,7 +649,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 
 	$updates    = array();
 	$no_updates = array();
-	if ( current_user_can( 'update_themes' ) ) {
+	if ( ! is_multisite() && current_user_can( 'update_themes' ) ) {
 		$updates_transient = get_site_transient( 'update_themes' );
 		if ( isset( $updates_transient->response ) ) {
 			$updates = $updates_transient->response;
@@ -716,9 +716,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			);
 		}
 
-		$type = 'theme';
-		/** This filter is documented in wp-admin/includes/class-wp-automatic-updater.php */
-		$auto_update_forced = apply_filters( "auto_update_{$type}", null, $auto_update_filter_payload );
+		$auto_update_forced = wp_is_auto_update_forced_for_item( 'theme', null, $auto_update_filter_payload );
 
 		$prepared_themes[ $slug ] = array(
 			'id'             => $slug,
@@ -748,7 +746,7 @@ function wp_prepare_themes_for_js( $themes = null ) {
 			'actions'        => array(
 				'activate'   => current_user_can( 'switch_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=activate&amp;stylesheet=' . $encoded_slug ), 'switch-theme_' . $slug ) : null,
 				'customize'  => $customize_action,
-				'delete'     => current_user_can( 'delete_themes' ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
+				'delete'     => ( ! is_multisite() && current_user_can( 'delete_themes' ) ) ? wp_nonce_url( admin_url( 'themes.php?action=delete&amp;stylesheet=' . $encoded_slug ), 'delete-theme_' . $slug ) : null,
 				'autoupdate' => wp_is_auto_update_enabled_for_type( 'theme' ) && ! is_multisite() && current_user_can( 'update_themes' )
 					? wp_nonce_url( admin_url( 'themes.php?action=' . $auto_update_action . '&amp;stylesheet=' . $encoded_slug ), 'updates' )
 					: null,
@@ -1129,6 +1127,8 @@ function resume_theme( $theme, $redirect = '' ) {
  * Renders an admin notice in case some themes have been paused due to errors.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  */
 function paused_themes_notice() {
 	if ( 'themes.php' === $GLOBALS['pagenow'] ) {

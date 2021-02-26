@@ -11,7 +11,7 @@ window.wpAjax = jQuery.extend( {
 		q = s.split('?'); if ( q[1] ) { s = q[1]; }
 		pp = s.split('&');
 		for ( i in pp ) {
-			if ( jQuery.isFunction(pp.hasOwnProperty) && !pp.hasOwnProperty(i) ) { continue; }
+			if ( typeof pp.hasOwnProperty === 'function' && !pp.hasOwnProperty(i) ) { continue; }
 			p = pp[i].split('=');
 			r[p[0]] = p[1];
 		}
@@ -66,5 +66,5 @@ window.wpAjax = jQuery.extend( {
 
 // Basic form validation.
 jQuery(document).ready( function($){
-	$('form.validate').submit( function() { return wpAjax.validateForm( $(this) ); } );
+	$('form.validate').on( 'submit', function() { return wpAjax.validateForm( $(this) ); } );
 });

@@ -20,7 +20,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		parent::setUpBeforeClass();
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$user_ids[] = self::$editor_id;
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );

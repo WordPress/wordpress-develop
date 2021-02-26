@@ -162,7 +162,7 @@ if ( $doaction ) {
 			$location = add_query_arg(
 				array(
 					'trashed' => count( $post_ids ),
-					'ids'     => join( ',', $post_ids ),
+					'ids'     => implode( ',', $post_ids ),
 				),
 				$location
 			);
@@ -275,8 +275,13 @@ if ( current_user_can( 'upload_files' ) ) {
 }
 
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', get_search_query() );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . get_search_query() . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

@@ -112,8 +112,8 @@ window.wp = window.wp || {};
 	 * @param object staticProps Properties to apply directly to the class.
 	 * @return child The subclass.
 	 */
-	api.Class.extend = function( protoProps, classProps ) {
-		var child = inherits( this, protoProps, classProps );
+	api.Class.extend = function( protoProps, staticProps ) {
+		var child = inherits( this, protoProps, staticProps );
 		child.extend = this.extend;
 		return child;
 	};
@@ -501,7 +501,7 @@ window.wp = window.wp || {};
 				dfd  = $.Deferred();
 
 			// If the last argument is a callback, bind it to .done().
-			if ( $.isFunction( ids[ ids.length - 1 ] ) ) {
+			if ( typeof ids[ ids.length - 1 ] === 'function' ) {
 				dfd.done( ids.pop() );
 			}
 
@@ -609,7 +609,7 @@ window.wp = window.wp || {};
 			};
 
 			this.bind( this.update );
-			this.element.bind( this.events, this.refresh );
+			this.element.on( this.events, this.refresh );
 		},
 
 		find: function( selector ) {

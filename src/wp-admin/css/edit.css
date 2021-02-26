@@ -68,7 +68,7 @@
 }
 
 #titlediv #title-prompt-text {
-	color: #72777c;
+	color: #787c82;
 	position: absolute;
 	font-size: 1.7em;
 	padding: 10px;
@@ -77,7 +77,7 @@
 
 input#link_description,
 input#link_url {
-	width: 98%;
+	width: 100%;
 }
 
 #pending {
@@ -94,7 +94,7 @@ input#link_url {
 	min-height: 25px;
 	margin-top: 5px;
 	padding: 0 10px;
-	color: #666;
+	color: #646970;
 }
 
 #edit-slug-box .cancel {
@@ -150,7 +150,7 @@ body.post-new-php .submitbox .submitdelete {
 
 /* Only highlight drop zones when dragging and only in the 2 columns layout. */
 .is-dragging-metaboxes .metabox-holder .postbox-container .meta-box-sortables {
-	outline: 3px dashed #606a73;
+	outline: 3px dashed #646970;
 	/* Prevent margin on the child from collapsing with margin on the parent. */
 	display: flow-root;
 	/*
@@ -166,7 +166,7 @@ body.post-new-php .submitbox .submitdelete {
 .postbox {
 	position: relative;
 	min-width: 255px;
-	border: 1px solid #ccd0d4;
+	border: 1px solid #c3c4c7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	background: #fff;
 }
@@ -218,7 +218,7 @@ ul.category-tabs li,
 .wp-tab-bar .wp-tab-active a,
 #post-body ul.category-tabs li.tabs a,
 #post-body ul.add-menu-item-tabs li.tabs a {
-	color: #32373c;
+	color: #2c3338;
 }
 
 .category-tabs {
@@ -270,9 +270,9 @@ ul.add-menu-item-tabs li {
 ul.category-tabs li.tabs,
 ul.add-menu-item-tabs li.tabs,
 .wp-tab-active {
-	border: 1px solid #ddd;
-	border-bottom-color: #fdfdfd;
-	background-color: #fdfdfd;
+	border: 1px solid #dcdcde;
+	border-bottom-color: #fff;
+	background-color: #fff;
 }
 
 ul.category-tabs li,
@@ -291,7 +291,7 @@ ul.wp-tab-bar li {
 	height: auto;
 	width: auto;
 	vertical-align: top;
-	background-image: linear-gradient(45deg, #c4c4c4 25%, transparent 25%, transparent 75%, #c4c4c4 75%, #c4c4c4), linear-gradient(45deg, #c4c4c4 25%, transparent 25%, transparent 75%, #c4c4c4 75%, #c4c4c4);
+	background-image: linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7), linear-gradient(45deg, #c3c4c7 25%, transparent 25%, transparent 75%, #c3c4c7 75%, #c3c4c7);
 	background-position: 0 0, 10px 10px;
 	background-size: 20px 20px;
 }
@@ -322,9 +322,9 @@ form#tags-filter {
 #post-status-info {
 	width: 100%;
 	border-spacing: 0;
-	border: 1px solid #ccd0d4;
+	border: 1px solid #c3c4c7;
 	border-top: none;
-	background-color: #f7f7f7;
+	background-color: #f6f7f7;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
 	z-index: 999;
 }
@@ -373,7 +373,7 @@ form#tags-filter {
 
 .wp-editor-expand #wp-content-editor-tools {
 	z-index: 1000;
-	border-bottom: 1px solid #ccd0d4;
+	border-bottom: 1px solid #c3c4c7;
 }
 
 .wp-editor-expand #wp-content-editor-container {
@@ -390,7 +390,7 @@ form#tags-filter {
 }
 
 .wp-editor-expand #post-status-info {
-	border-top: 1px solid #ccd0d4;
+	border-top: 1px solid #c3c4c7;
 }
 
 .wp-editor-expand div.mce-toolbar-grp {
@@ -422,7 +422,7 @@ form#tags-filter {
 /* End TinyMCE native fullscreen mode override */
 
 #wp-content-editor-tools {
-	background-color: #f1f1f1;
+	background-color: #f0f0f1;
 	padding-top: 20px;
 }
 
@@ -459,20 +459,24 @@ form#tags-filter {
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
-	color: #82878c;
+	color: #8c8f94;
 }
 
 #post-body .misc-pub-post-status:before,
 #post-body #visibility:before,
 .curtime #timestamp:before,
+#post-body .misc-pub-uploadedby:before,
+#post-body .misc-pub-uploadedto:before,
 #post-body .misc-pub-revisions:before,
 #post-body .misc-pub-response-to:before,
 #post-body .misc-pub-comment-status:before {
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	display: inline-block;
 	margin-left: -1px;
 	padding-right: 3px;
@@ -492,6 +496,18 @@ form#tags-filter {
 
 .curtime #timestamp:before {
 	content: "\f145";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedby:before {
+	content: "\f110";
+	position: relative;
+	top: -1px;
+}
+
+#post-body .misc-pub-uploadedto:before {
+	content: "\f318";
 	position: relative;
 	top: -1px;
 }
@@ -631,11 +647,16 @@ form#tags-filter {
 }
 
 #poststuff .stuffbox > h2 {
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid #f0f0f1;
 }
 
 #poststuff .inside {
 	margin: 6px 0 0 0;
+}
+
+.link-php #poststuff .inside,
+.link-add-php #poststuff .inside {
+	margin-top: 12px;
 }
 
 #poststuff .stuffbox .inside {
@@ -679,145 +700,282 @@ form#tags-filter {
 	min-height: 1.6923em;
 }
 
-/* Suggested text for privacy policy */
-.wp-privacy-policy-guide {
-	max-width: 1000px;
+/**
+* Privacy Settings section
+*/
+
+/* General */
+.privacy-settings #wpcontent,
+.privacy-settings.auto-fold #wpcontent {
+	padding-left: 0;
 }
 
-.privacy-text-box {
-	width: calc(100% - 260px);
+.privacy-settings-header h1 {
+	display: inline-block;
+	font-weight: 600;
+	margin: 0 0.8rem 1rem;
+	font-size: 23px;
+	padding: 9px 0 4px 0;
+	line-height: 1.3;
 }
 
-.privacy-text-box-toc {
-	float: right;
-	width: 250px;
-	background-color: #fff;
+/* Header */
+.privacy-settings-header {
+	text-align: center;
+	margin: 0 0 1rem;
+	background: #fff;
+	border-bottom: 1px solid #dcdcde;
 }
 
-.privacy-text-box-toc p {
-	margin: 0;
-	padding: 0.7em 1em;
-	border-bottom: 1px solid #eee;
+.privacy-settings-title-section {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	clear: both;
 }
 
-.privacy-text-box-toc ol {
-	margin-left: 2em;
+.privacy-settings-tabs-wrapper {
+	/* IE 11 */
+	display: -ms-inline-grid;
+	-ms-grid-columns: 1fr 1fr;
+	vertical-align: top;
+	/* modern browsers */
+	display: inline-grid;
+	grid-template-columns: 1fr 1fr;
 }
 
-.wp-privacy-policy-guide h3 {
-	font-size: 1.2em;
-	margin: 1em 0 0.5em;
+.privacy-settings-tab {
+	display: block; /* IE 11 */
+	text-decoration: none;
+	color: inherit;
+	padding: 0.5rem 1rem 1rem;
+	margin: 0 1rem;
+	transition: box-shadow 0.5s ease-in-out;
 }
 
-.privacy-text-section .privacy-text-copy {
-	float: right;
+.privacy-settings-tab:nth-child(1) {
+	-ms-grid-column: 1; /* IE 11 */
 }
 
-.privacy-text-section {
-	position: relative;
-	border-top: 1px solid #e3e3e3;
+.privacy-settings-tab:nth-child(2) {
+	-ms-grid-column: 2; /* IE 11 */
 }
 
-.privacy-text-box-head,
-.privacy-text-section.text-removed {
-	padding-bottom: 12px;
+.privacy-settings-tab:focus {
+	color: #1d2327;
+	outline: 1px solid #787c82;
+	box-shadow: none;
 }
 
-.text-removed .policy-text {
-	color: #666;
+.privacy-settings-tab.active {
+	box-shadow: inset 0 -3px #3582c4;
 	font-weight: 600;
 }
 
-.privacy-text-actions {
-	display: inline-block;
-	width: 100%;
-	height: 32px;
-	line-height: 2.46153846;
-	padding-bottom: 6px;
+/* Body */
+.privacy-settings-body {
+	max-width: 800px;
+	margin: 0 auto;
 }
 
-.privacy-text-actions .success {
-	display: none;
-	color: #40860a;
-	float: right;
-	padding-right: 1em;
+.tools-privacy-policy-page th {
+	min-width: 230px;
 }
 
-.privacy-text-actions .success.visible {
-	display: inline-block;
-	height: 32px;
+.hr-separator {
+	margin-top: 20px;
+	margin-bottom: 15px;
 }
 
-.wp-privacy-policy-guide .policy-text h2 {
-	margin: 1.2em 0 1em;
-	padding: 0;
+/* Accordions */
+.privacy-settings-accordion {
+	border: 1px solid #c3c4c7;
 }
 
-.suggested-policy-content {
-	font-style: italic;
-}
-
-.privacy-text-section .return-to-top {
-	float: right;
-	margin-right: -250px;
-	margin-top: 6px;
-}
-
-#wpbody:target:before {
-	content: "";
-	display: block;
-	padding-top: 50px;
-	margin-top: -50px;
-}
-
-.hide-privacy-policy-tutorial {
-	background-color: #fff;
-}
-
-.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
-.hide-privacy-policy-tutorial .privacy-policy-tutorial {
-	display: none;
-}
-
-.policy-text {
-	margin-bottom: 1em;
-}
-
-.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
-.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
-	background-color: #fff;
+.privacy-settings-accordion-heading {
 	margin: 0;
-	padding: 1em;
+	border-top: 1px solid #c3c4c7;
+	font-size: inherit;
+	line-height: inherit;
+	font-weight: 600;
+	color: inherit;
 }
 
-.policy-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help),
-.policy-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) + *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
-	padding-top: 0;
+.privacy-settings-accordion-heading:first-child {
+	border-top: none;
 }
 
-.hide-privacy-policy-tutorial > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help) {
-	margin: 1em 0;
-	padding: 0;
+.privacy-settings-accordion-trigger {
+	background: #fff;
+	border: 0;
+	color: #2c3338;
+	cursor: pointer;
+	display: flex;
+	font-weight: 400;
+	margin: 0;
+	padding: 1em 3.5em 1em 1.5em;
+	min-height: 46px;
+	position: relative;
+	text-align: left;
+	width: 100%;
+	align-items: center;
+	justify-content: space-between;
 }
 
-.policy-text ul li,
-.policy-text ol li {
-	margin-left: 2em;
+.privacy-settings-accordion-trigger:hover,
+.privacy-settings-accordion-trigger:active {
+	background: #f6f7f7;
 }
 
-.policy-text ul {
-	list-style: disc;
+.privacy-settings-accordion-trigger:focus {
+	color: #1d2327;
+	border: none;
+	box-shadow: none;
+	outline-offset: -1px;
+	outline: 2px solid #2271b1;
+	background-color: #f6f7f7;
 }
 
-strong.wp-policy-help, /* For back-compat, see #49282 */
-strong.privacy-policy-tutorial {
+.privacy-settings-accordion-trigger .title {
+	pointer-events: none;
+	font-weight: 600;
+	flex-grow: 1;
+}
+
+.privacy-settings-accordion-trigger .icon,
+.privacy-settings-view-read .icon {
+	border: solid #50575e;
+	border-width: 0 2px 2px 0;
+	height: 0.5rem;
+	pointer-events: none;
+	position: absolute;
+	right: 1.5em;
+	top: 50%;
+	transform: translateY(-70%) rotate(45deg);
+	width: 0.5rem;
+}
+
+.privacy-settings-accordion-trigger .badge {
+	padding: 0.1rem 0.5rem 0.15rem;
+	color: #2c3338;
+	font-weight: 600;
+	margin-left: 0.5rem;
+}
+
+.privacy-settings-accordion-trigger .badge.blue {
+	border: 1px solid #72aee6;
+}
+
+.privacy-settings-accordion-trigger .badge.orange {
+	border: 1px solid #dba617;
+}
+
+.privacy-settings-accordion-trigger .badge.red {
+	border: 1px solid #e65054;
+}
+
+.privacy-settings-accordion-trigger .badge.green {
+	border: 1px solid #00ba37;
+}
+
+.privacy-settings-accordion-trigger .badge.purple {
+	border: 1px solid #2271b1;
+}
+
+.privacy-settings-accordion-trigger .badge.gray {
+	border: 1px solid #c3c4c7;
+}
+
+.privacy-settings-accordion-trigger[aria-expanded="true"] .icon,
+.privacy-settings-view-passed[aria-expanded="true"] .icon {
+	transform: translateY(-30%) rotate(-135deg)
+}
+
+.privacy-settings-accordion-panel {
+	margin: 0;
+	padding: 1em 1.5em;
+	background: #fff;
+}
+
+.privacy-settings-accordion-panel[hidden] {
+	display: none;
+}
+
+.privacy-settings-accordion-panel a .dashicons {
+	text-decoration: none;
+}
+
+.privacy-settings-accordion-actions {
+	text-align: right;
+	display: block;
+}
+
+.privacy-settings-accordion-actions .success {
+	display: none;
+	color: #008a20;
+	padding-right: 1em;
+	padding-top: 6px;
+}
+
+.privacy-settings-accordion-actions .success.visible {
+	display: inline-block;
+}
+
+/* Suggested text for privacy policy */
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .wp-policy-help, /* For back-compat, see #49282 */
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .privacy-policy-tutorial,
+.privacy-settings-accordion-panel.hide-privacy-policy-tutorial .privacy-text-copy {
+	display: none;
+}
+
+.privacy-settings-accordion-panel strong.wp-policy-help, /* For back-compat, see #49282 */
+.privacy-settings-accordion-panel strong.privacy-policy-tutorial {
 	display: block;
 	margin: 0 0 1em;
 }
 
-.notice.wp-pp-notice {
-	margin: 15px 0 3px;
+.privacy-settings-accordion-panel .wp-suggested-text > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel .wp-suggested-text div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p),
+.privacy-settings-accordion-panel div > *:not(h1):not(h2):not(h3):not(h4):not(h5):not(h6):not(div):not(.privacy-policy-tutorial):not(.wp-policy-help):not(.privacy-text-copy):not(span.success):not(.notice p) {
+	margin: 0;
+	padding: 1em;
+	border-left: 2px solid #787c82;
 }
+
+/* Media queries */
+@media screen and (max-width: 782px) {
+
+	.privacy-settings-body {
+		margin: 0 12px;
+		width: auto;
+	}
+
+	.privacy-settings .notice {
+		margin: 5px 10px 15px;
+	}
+
+	.privacy-settings .update-nag {
+		margin-right: 10px;
+		margin-left: 10px;
+	}
+
+	input#create-page {
+		margin-top: 10px;
+	}
+}
+
+@media only screen and (max-width: 1004px) {
+
+	.privacy-settings-body {
+		margin: 0 22px;
+		width: auto;
+	}
+}
+
+/**
+* End Privacy Settings section
+*/
 
 /*------------------------------------------------------------------------------
   11.1 - Custom Fields
@@ -825,7 +983,7 @@ strong.privacy-policy-tutorial {
 
 #postcustomstuff thead th {
 	padding: 5px 8px 8px;
-	background-color: #f1f1f1;
+	background-color: #f0f0f1;
 }
 
 #postcustom #postcustomstuff .submit {
@@ -852,9 +1010,9 @@ strong.privacy-policy-tutorial {
 #postcustomstuff table {
 	margin: 0;
 	width: 100%;
-	border: 1px solid #ddd;
+	border: 1px solid #dcdcde;
 	border-spacing: 0;
-	background-color: #f9f9f9;
+	background-color: #f6f7f7;
 }
 
 #postcustomstuff tr {
@@ -947,15 +1105,15 @@ strong.privacy-policy-tutorial {
 	width: 20px;
 	margin-top: -4px;
 	margin-right: 7px;
-	color: #ddd;
+	color: #dcdcde;
 	font: normal 20px/1 dashicons;
-	speak: none;
+	speak: never;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
 a.post-format-icon:hover:before {
-	color: #006799;
+	color: #135e96;
 }
 
 #post-formats-select {
@@ -1041,8 +1199,8 @@ label.post-format-icon {
 	max-height: 200px;
 	overflow: auto;
 	padding: 0 0.9em;
-	border: solid 1px #ddd;
-	background-color: #fdfdfd;
+	border: solid 1px #dcdcde;
+	background-color: #fff;
 }
 
 div.tabs-panel-active {
@@ -1054,7 +1212,7 @@ div.tabs-panel-inactive {
 }
 
 div.tabs-panel-active:focus {
-	box-shadow: inset 0 0 0 1px #5b9dd9, inset 0 0 2px 1px rgba(30, 140, 190, 0.8);
+	box-shadow: inset 0 0 0 1px #4f94d4, inset 0 0 2px 1px rgba(79, 148, 212, 0.8);
 	outline: 0 none;
 }
 
@@ -1110,7 +1268,7 @@ ul.categorychecklist li {
 p.description,
 .form-wrap p {
 	margin: 2px 0 5px;
-	color: #666;
+	color: #646970;
 }
 
 p.help,
@@ -1198,7 +1356,7 @@ p.popular-tags a {
 #poststuff .inside .the-tagcloud {
 	margin: 5px 0 10px;
 	padding: 8px;
-	border: 1px solid #ddd;
+	border: 1px solid #dcdcde;
 	line-height: 1.2;
 	word-spacing: 3px;
 }
@@ -1211,7 +1369,7 @@ p.popular-tags a {
 	display: inline-block;
 }
 
-/* Suggest.js autocomplete, no more used by core. */
+/* Back-compat styles from deprecated jQuery.suggest, see ticket #40260. */
 .ac_results {
 	display: none;
 	margin: -1px 0 0;
@@ -1219,7 +1377,7 @@ p.popular-tags a {
 	list-style: none;
 	position: absolute;
 	z-index: 10000;
-	border: 1px solid #5b9dd9;
+	border: 1px solid #4f94d4;
 	background-color: #fff;
 }
 
@@ -1236,7 +1394,7 @@ p.popular-tags a {
 
 .ac_results .ac_over,
 .ac_over .ac_match {
-	background-color: #0073aa;
+	background-color: #2271b1;
 	color: #fff;
 	cursor: pointer;
 }
@@ -1278,7 +1436,7 @@ p.popular-tags a {
 	content: "(" attr( href ) ")";
 	display: inline-block;
 	padding: 0 4px;
-	color: #72777C;
+	color: #787c82;
 	font-size: 13px;
 	word-break: break-all;
 }
@@ -1697,10 +1855,7 @@ table.links-table {
 	}
 
 	.wp_themeSkin .mceSplitButton td a.mceAction {
-		padding-top: 6px;
-		padding-bottom: 6px;
-		padding-left: 6px;
-		padding-right: 3px;
+		padding: 6px 3px 6px 6px;
 	}
 
 	.wp_themeSkin .mceSplitButton td a.mceOpen,
@@ -1782,6 +1937,10 @@ table.links-table {
 	.links-table th,
 	.links-table td {
 		padding: 10px 0;
+	}
+
+	.edit-term-notes {
+		display: none;
 	}
 
 	.privacy-text-box {

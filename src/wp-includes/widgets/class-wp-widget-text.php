@@ -45,8 +45,8 @@ class WP_Widget_Text extends WP_Widget {
 	/**
 	 * Add hooks for enqueueing assets when registering all widget instances of this widget class.
 	 *
-	 * @param integer $number Optional. The unique order number of this widget instance
-	 *                        compared to other instances of the same class. Default -1.
+	 * @param int $number Optional. The unique order number of this widget instance
+	 *                    compared to other instances of the same class. Default -1.
 	 */
 	public function _register_one( $number = -1 ) {
 		parent::_register_one( $number );
@@ -270,12 +270,12 @@ class WP_Widget_Text extends WP_Widget {
 		 * Filters the content of the Text widget.
 		 *
 		 * @since 2.3.0
-		 * @since 4.4.0 Added the `$this` parameter.
-		 * @since 4.8.1 The `$this` param may now be a `WP_Widget_Custom_HTML` object in addition to a `WP_Widget_Text` object.
+		 * @since 4.4.0 Added the `$widget` parameter.
+		 * @since 4.8.1 The `$widget` param may now be a `WP_Widget_Custom_HTML` object in addition to a `WP_Widget_Text` object.
 		 *
 		 * @param string                               $text     The widget content.
 		 * @param array                                $instance Array of settings for the current widget.
-		 * @param WP_Widget_Text|WP_Widget_Custom_HTML $this     Current Text widget instance.
+		 * @param WP_Widget_Text|WP_Widget_Custom_HTML $widget   Current text or HTML widget instance.
 		 */
 		$text = apply_filters( 'widget_text', $text, $instance, $this );
 
@@ -290,7 +290,7 @@ class WP_Widget_Text extends WP_Widget {
 			 *
 			 * @param string         $text     The widget content.
 			 * @param array          $instance Array of settings for the current widget.
-			 * @param WP_Widget_Text $this     Current Text widget instance.
+			 * @param WP_Widget_Text $widget   Current Text widget instance.
 			 */
 			$text = apply_filters( 'widget_text_content', $text, $instance, $this );
 		} else {
@@ -331,7 +331,7 @@ class WP_Widget_Text extends WP_Widget {
 
 		$text = preg_replace_callback( '#<(video|iframe|object|embed)\s[^>]*>#i', array( $this, 'inject_video_max_width_style' ), $text );
 
-		// Adds noreferrer and noopener relationships, without duplicating values, to all HTML A elements that have a target.
+		// Adds 'noopener' relationship, without duplicating values, to all HTML A elements that have a target.
 		$text = wp_targeted_link_rel( $text );
 
 		?>

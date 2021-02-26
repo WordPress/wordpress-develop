@@ -9,15 +9,15 @@
  * @group feed
  */
 class Tests_Feeds_RSS2 extends WP_UnitTestCase {
-	static $user_id;
-	static $posts;
-	static $category;
-	static $post_date;
+	public static $user_id;
+	public static $posts;
+	public static $category;
+	public static $post_date;
 
 	/**
 	 * Setup a new user and attribute some posts.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Create a user.
 		self::$user_id = $factory->user->create(
 			array(
@@ -150,7 +150,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 	/**
 	 * Test that translated feeds have a valid listed date.
 	 *
-	 * @group 39141
+	 * @ticket 39141
 	 */
 	function test_channel_pubdate_element_translated() {
 		$original_locale = $GLOBALS['wp_locale'];

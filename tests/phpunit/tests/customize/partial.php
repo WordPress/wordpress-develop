@@ -66,7 +66,7 @@ class Test_WP_Customize_Partial extends WP_UnitTestCase {
 	 */
 	function render_post_content_partial( $partial ) {
 		$id_data = $partial->id_data();
-		$post_id = intval( $id_data['keys'][0] );
+		$post_id = (int) $id_data['keys'][0];
 		if ( empty( $post_id ) ) {
 			return false;
 		}

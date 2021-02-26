@@ -181,19 +181,19 @@ class WP_Fatal_Error_Handler {
 		}
 
 		if ( true === $handled && wp_is_recovery_mode() ) {
-			$message = __( 'There has been a critical error on your website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.' );
+			$message = __( 'There has been a critical error on this website, putting it in recovery mode. Please check the Themes and Plugins screens for more details. If you just installed or updated a theme or plugin, check the relevant page for that first.' );
 		} elseif ( is_protected_endpoint() ) {
-			$message = __( 'There has been a critical error on your website. Please check your site admin email inbox for instructions.' );
+			$message = __( 'There has been a critical error on this website. Please check your site admin email inbox for instructions.' );
 		} else {
-			$message = __( 'There has been a critical error on your website.' );
+			$message = __( 'There has been a critical error on this website.' );
 		}
 
 		$message = sprintf(
 			'<p>%s</p><p><a href="%s">%s</a></p>',
 			$message,
-			/* translators: Documentation explaining debugging in WordPress. */
-			__( 'https://wordpress.org/support/article/debugging-in-wordpress/' ),
-			__( 'Learn more about debugging in WordPress.' )
+			/* translators: Documentation about troubleshooting. */
+			__( 'https://wordpress.org/support/article/faq-troubleshooting/' ),
+			__( 'Learn more about troubleshooting WordPress.' )
 		);
 
 		$args = array(

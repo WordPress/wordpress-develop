@@ -24,12 +24,13 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	 * @ticket 44317
 	 *
 	 * @dataProvider get_bad_status_codes
-	 * @expectedException WPDieException
 	 *
 	 * @param string $location The path or URL to redirect to.
 	 * @param int    $status   HTTP response status code to use.
 	 */
 	public function test_wp_redirect_bad_status_code( $location, $status ) {
+		$this->expectException( 'WPDieException' );
+
 		wp_redirect( $location, $status );
 	}
 
@@ -62,7 +63,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group 36998
+	 * @ticket 36998
 	 */
 	function test_wp_sanitize_redirect_should_encode_spaces() {
 		$this->assertSame( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );

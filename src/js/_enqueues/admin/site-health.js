@@ -11,7 +11,6 @@ jQuery( document ).ready( function( $ ) {
 	var __ = wp.i18n.__,
 		_n = wp.i18n._n,
 		sprintf = wp.i18n.sprintf,
-		data,
 		clipboard = new ClipboardJS( '.site-health-copy-buttons .copy-button' ),
 		isDebugTab = $( '.health-check-body.health-check-debug-tab' ).length,
 		pathsSizesSection = $( '#health-check-accordion-block-wp-paths-sizes' ),
@@ -25,7 +24,7 @@ jQuery( document ).ready( function( $ ) {
 		// Clear the selection and move focus back to the trigger.
 		e.clearSelection();
 		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.focus();
+		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
@@ -67,6 +66,57 @@ jQuery( document ).ready( function( $ ) {
 	} );
 
 	/**
+	 * Validates the Site Health test result format.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param {Object} issue
+	 *
+	 * @return {boolean}
+	 */
+	function validateIssueData( issue ) {
+		// Expected minimum format of a valid SiteHealth test response.
+		var minimumExpected = {
+				test: 'string',
+				label: 'string',
+				description: 'string'
+			},
+			passed = true,
+			key, value, subKey, subValue;
+
+		// If the issue passed is not an object, return a `false` state early.
+		if ( 'object' !== typeof( issue ) ) {
+			return false;
+		}
+
+		// Loop over expected data and match the data types.
+		for ( key in minimumExpected ) {
+			value = minimumExpected[ key ];
+
+			if ( 'object' === typeof( value ) ) {
+				for ( subKey in value ) {
+					subValue = value[ subKey ];
+
+					if ( 'undefined' === typeof( issue[ key ] ) ||
+						'undefined' === typeof( issue[ key ][ subKey ] ) ||
+						subValue !== typeof( issue[ key ][ subKey ] )
+					) {
+						passed = false;
+					}
+				}
+			} else {
+				if ( 'undefined' === typeof( issue[ key ] ) ||
+					value !== typeof( issue[ key ] )
+				) {
+					passed = false;
+				}
+			}
+		}
+
+		return passed;
+	}
+
+	/**
 	 * Appends a new issue to the issue list.
 	 *
 	 * @since 5.2.0
@@ -78,10 +128,23 @@ jQuery( document ).ready( function( $ ) {
 			issueWrapper = $( '#health-check-issues-' + issue.status ),
 			heading,
 			count;
-		
+
+		/*
+		 * Validate the issue data format before using it.
+		 * If the output is invalid, discard it.
+		 */
+		if ( ! validateIssueData( issue ) ) {
+			return false;
+		}
+
 		SiteHealth.site_status.issues[ issue.status ]++;
 
 		count = SiteHealth.site_status.issues[ issue.status ];
+
+		// If no test name is supplied, append a placeholder for markup references.
+		if ( typeof issue.test === 'undefined' ) {
+			issue.test = issue.status + count;
+		}
 
 		if ( 'critical' === issue.status ) {
 			heading = sprintf(
@@ -119,10 +182,10 @@ jQuery( document ).ready( function( $ ) {
 		var $progressLabel = $( '.site-health-progress-label', $wrapper );
 		var $circle = $( '.site-health-progress svg #bar' );
 		var totalTests = parseInt( SiteHealth.site_status.issues.good, 0 ) +
-				parseInt( SiteHealth.site_status.issues.recommended, 0 ) +
-				( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
+			parseInt( SiteHealth.site_status.issues.recommended, 0 ) +
+			( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
 		var failedTests = ( parseInt( SiteHealth.site_status.issues.recommended, 0 ) * 0.5 ) +
-				( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
+			( parseInt( SiteHealth.site_status.issues.critical, 0 ) * 1.5 );
 		var val = 100 - Math.ceil( ( failedTests / totalTests ) * 100 );
 
 		if ( 0 === totalTests ) {
@@ -142,7 +205,7 @@ jQuery( document ).ready( function( $ ) {
 			val = 100;
 		}
 
-		pct = ( ( 100 - val ) / 100 ) * c;
+		pct = ( ( 100 - val ) / 100 ) * c + 'px';
 
 		$circle.css( { strokeDashoffset: pct } );
 
@@ -206,15 +269,50 @@ jQuery( document ).ready( function( $ ) {
 
 				this.completed = true;
 
-				$.post(
-					ajaxurl,
-					data,
-					function( response ) {
+				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
+					wp.apiRequest( {
+						url: wp.url.addQueryArgs( this.test, { _locale: 'user' } ),
+						headers: this.headers
+					} )
+						.done( function( response ) {
+							/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+							appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response ) );
+						} )
+						.fail( function( response ) {
+							var description;
+
+							if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
+								description = response.responseJSON.message;
+							} else {
+								description = __( 'No details available' );
+							}
+
+							addFailedSiteHealthCheckNotice( this.url, description );
+						} )
+						.always( function() {
+							maybeRunNextAsyncTest();
+						} );
+				} else {
+					$.post(
+						ajaxurl,
+						data
+					).done( function( response ) {
 						/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
 						appendIssue( wp.hooks.applyFilters( 'site_status_test_result', response.data ) );
+					} ).fail( function( response ) {
+						var description;
+
+						if ( 'undefined' !== typeof( response.responseJSON ) && 'undefined' !== typeof( response.responseJSON.message ) ) {
+							description = response.responseJSON.message;
+						} else {
+							description = __( 'No details available' );
+						}
+
+						addFailedSiteHealthCheckNotice( this.url, description );
+					} ).always( function() {
 						maybeRunNextAsyncTest();
-					}
-				);
+					} );
+				}
 
 				return false;
 			} );
@@ -223,6 +321,29 @@ jQuery( document ).ready( function( $ ) {
 		if ( doCalculation ) {
 			recalculateProgression();
 		}
+	}
+
+	/**
+	 * Add the details of a failed asynchronous test to the list of test results.
+	 *
+	 * @since 5.6.0
+	 */
+	function addFailedSiteHealthCheckNotice( url, description ) {
+		var issue;
+
+		issue = {
+			'status': 'recommended',
+			'label': __( 'A test is unavailable' ),
+			'badge': {
+				'color': 'red',
+				'label': __( 'Unavailable' )
+			},
+			'description': '<p>' + url + '</p><p>' + description + '</p>',
+			'actions': ''
+		};
+
+		/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
+		appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
 	}
 
 	if ( 'undefined' !== typeof SiteHealth && ! isDebugTab ) {
@@ -243,32 +364,13 @@ jQuery( document ).ready( function( $ ) {
 		}
 
 		if ( 0 < SiteHealth.site_status.async.length ) {
-			data = {
-				'action': 'health-check-' + SiteHealth.site_status.async[0].test.replace( '_', '-' ),
-				'_wpnonce': SiteHealth.nonce.site_status
-			};
-
-			SiteHealth.site_status.async[0].completed = true;
-
-			$.post(
-				ajaxurl,
-				data,
-				function( response ) {
-					appendIssue( response.data );
-					maybeRunNextAsyncTest();
-				}
-			);
+			maybeRunNextAsyncTest();
 		} else {
 			recalculateProgression();
 		}
 	}
 
 	function getDirectorySizes() {
-		var data = {
-			action: 'health-check-get-sizes',
-			_wpnonce: SiteHealth.nonce.site_status_result
-		};
-
 		var timestamp = ( new Date().getTime() );
 
 		// After 3 seconds announce that we're still waiting for directory sizes.
@@ -276,20 +378,17 @@ jQuery( document ).ready( function( $ ) {
 			wp.a11y.speak( __( 'Please wait...' ) );
 		}, 3000 );
 
-		$.post( {
-			type: 'POST',
-			url: ajaxurl,
-			data: data,
-			dataType: 'json'
+		wp.apiRequest( {
+			path: '/wp-site-health/v1/directory-sizes'
 		} ).done( function( response ) {
-			updateDirSizes( response.data || {} );
+			updateDirSizes( response || {} );
 		} ).always( function() {
 			var delay = ( new Date().getTime() ) - timestamp;
 
 			$( '.health-check-wp-paths-sizes.spinner' ).css( 'visibility', 'hidden' );
 			recalculateProgression();
 
-			if ( delay > 3000  ) {
+			if ( delay > 3000 ) {
 				/*
 				 * We have announced that we're waiting.
 				 * Announce that we're ready after giving at least 3 seconds

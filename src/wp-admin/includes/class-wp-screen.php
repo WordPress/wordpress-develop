@@ -377,7 +377,7 @@ final class WP_Screen {
 				return $screen;
 			}
 		} else {
-			$screen     = new WP_Screen();
+			$screen     = new self();
 			$screen->id = $id;
 		}
 
@@ -539,9 +539,9 @@ final class WP_Screen {
 	 *
 	 * @since 3.3.0
 	 *
-	 * @param string $option Option name.
-	 * @param string $key    Optional. Specific array key for when the option is an array.
-	 *                       Default false.
+	 * @param string       $option Option name.
+	 * @param string|false $key    Optional. Specific array key for when the option is an array.
+	 *                             Default false.
 	 * @return string The option value if set, null otherwise.
 	 */
 	public function get_option( $option, $key = false ) {
@@ -794,7 +794,7 @@ final class WP_Screen {
 		 *                   {@see get_current_screen()->remove_help_tab()} instead.
 		 *
 		 * @param array     $old_compat_help Old contextual help.
-		 * @param WP_Screen $this            Current WP_Screen instance.
+		 * @param WP_Screen $screen          Current WP_Screen instance.
 		 */
 		self::$_old_compat_help = apply_filters_deprecated(
 			'contextual_help_list',
@@ -814,7 +814,7 @@ final class WP_Screen {
 		 *
 		 * @param string    $old_help  Help text that appears on the screen.
 		 * @param string    $screen_id Screen ID.
-		 * @param WP_Screen $this      Current WP_Screen instance.
+		 * @param WP_Screen $screen    Current WP_Screen instance.
 		 */
 		$old_help = apply_filters_deprecated(
 			'contextual_help',
@@ -935,7 +935,7 @@ final class WP_Screen {
 		 *
 		 * @param array     $empty_columns Empty array.
 		 * @param string    $screen_id     Screen ID.
-		 * @param WP_Screen $this          Current WP_Screen instance.
+		 * @param WP_Screen $screen        Current WP_Screen instance.
 		 */
 		$columns = apply_filters( 'screen_layout_columns', array(), $this->id, $this );
 
@@ -1087,7 +1087,7 @@ final class WP_Screen {
 		 *
 		 * @param bool      $show_button Whether to show Screen Options submit button.
 		 *                               Default false.
-		 * @param WP_Screen $this        Current WP_Screen instance.
+		 * @param WP_Screen $screen      Current WP_Screen instance.
 		 */
 		$show_button = apply_filters( 'screen_options_show_submit', false, $this );
 
@@ -1113,9 +1113,14 @@ final class WP_Screen {
 		}
 		?>
 		<fieldset class="metabox-prefs">
-		<legend><?php _e( 'Boxes' ); ?></legend>
+		<legend><?php _e( 'Screen elements' ); ?></legend>
+		<p>
+			<?php _e( 'Some screen elements can be shown or hidden by using the checkboxes.' ); ?>
+			<?php _e( 'They can be expanded and collapsed by clickling on their headings, and arranged by dragging their headings or by clicking on the up and down arrows.' ); ?>
+		</p>
 		<?php
-			meta_box_prefs( $this );
+
+		meta_box_prefs( $this );
 
 		if ( 'dashboard' === $this->id && has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) {
 			if ( isset( $_GET['welcome'] ) ) {

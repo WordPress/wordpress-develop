@@ -12,7 +12,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	/**
 	 * Make sure the schema code is loaded before the tests are run.
 	 */
-	public static function wpSetUpBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		global $wpdb;
 
 		self::$options  = 'testprefix_options';

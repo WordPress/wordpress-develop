@@ -390,7 +390,7 @@
 				thisItem.shiftHorizontally( 1 );
 				break;
 			}
-			$this.focus();
+			$this.trigger( 'focus' );
 			api.registerChange();
 			api.refreshKeyboardAccessibility();
 			api.refreshAdvancedAccessibility();
@@ -572,7 +572,7 @@
 						break;
 					}
 					// Put focus back on same menu item.
-					$( '#edit-' + thisItemData['menu-item-db-id'] ).focus();
+					$( '#edit-' + thisItemData['menu-item-db-id'] ).trigger( 'focus' );
 					return false;
 				});
 			});
@@ -608,7 +608,7 @@
 			// Hide fields.
 			api.menuList.hideAdvancedMenuItemFields();
 
-			$('.hide-postbox-tog').click(function () {
+			$('.hide-postbox-tog').on( 'click', function () {
 				var hidden = $( '.accordion-container li.accordion-section' ).filter(':hidden').map(function() { return this.id; }).get().join(',');
 				$.post(ajaxurl, {
 					action: 'closed-postboxes',
@@ -809,7 +809,7 @@
 		},
 
 		initManageLocations : function () {
-			$('#menu-locations-wrap form').submit(function(){
+			$('#menu-locations-wrap form').on( 'submit', function(){
 				window.onbeforeunload = null;
 			});
 			$('.menu-location-menus select').on('change', function () {
@@ -823,7 +823,7 @@
 
 		attachMenuEditListeners : function() {
 			var that = this;
-			$('#update-nav-menu').bind('click', function(e) {
+			$('#update-nav-menu').on('click', function(e) {
 				if ( e.target && e.target.className ) {
 					if ( -1 != e.target.className.indexOf('item-edit') ) {
 						return that.eventOnClickEditLink(e.target);
@@ -852,12 +852,12 @@
 				}
 			}, 500 ) );
 
-			$('#add-custom-links input[type="text"]').keypress(function(e){
+			$('#add-custom-links input[type="text"]').on( 'keypress', function(e){
 				$('#customlinkdiv').removeClass('form-invalid');
 
 				if ( e.keyCode === 13 ) {
 					e.preventDefault();
-					$( '#submit-customlinkdiv' ).click();
+					$( '#submit-customlinkdiv' ).trigger( 'click' );
 				}
 			});
 		},
@@ -867,7 +867,7 @@
 			 * When a navigation menu is saved, store a JSON representation of all form data
 			 * in a single input to avoid PHP `max_input_vars` limitations. See #14134.
 			 */
-			$( '#update-nav-menu' ).submit( function() {
+			$( '#update-nav-menu' ).on( 'submit', function() {
 				var navMenuData = $( '#update-nav-menu' ).serializeArray();
 				$( '[name="nav-menu-data"]' ).val( JSON.stringify( navMenuData ) );
 			});
@@ -877,7 +877,7 @@
 			var loc = $('#nav-menu-theme-locations'), params = {};
 			params.action = 'menu-locations-save';
 			params['menu-settings-column-nonce'] = $('#menu-settings-column-nonce').val();
-			loc.find('input[type="submit"]').click(function() {
+			loc.find('input[type="submit"]').on( 'click', function() {
 				loc.find('select').each(function() {
 					params[this.name] = $(this).val();
 				});
@@ -947,8 +947,12 @@
 		},
 
 		addCustomLink : function( processMethod ) {
-			var url = $('#custom-menu-item-url').val().trim(),
+			var url = $('#custom-menu-item-url').val().toString(),
 				label = $('#custom-menu-item-name').val();
+
+			if ( '' !== url ) {
+				url = url.trim();
+			}
 
 			processMethod = processMethod || api.addMenuItemToBottom;
 
@@ -963,7 +967,7 @@
 				// Remove the Ajax spinner.
 				$( '.customlinkdiv .spinner' ).removeClass( 'is-active' );
 				// Set custom link form back to defaults.
-				$('#custom-menu-item-name').val('').blur();
+				$('#custom-menu-item-name').val('').trigger( 'blur' );
 				$( '#custom-menu-item-url' ).val( '' ).attr( 'placeholder', 'https://' );
 			});
 		},
@@ -999,7 +1003,8 @@
 			$.post( ajaxurl, params, function(menuMarkup) {
 				var ins = $('#menu-instructions');
 
-				menuMarkup = $.trim( menuMarkup ); // Trim leading whitespaces.
+				menuMarkup = menuMarkup || '';
+				menuMarkup = menuMarkup.toString().trim(); // Trim leading whitespaces.
 				processMethod(menuMarkup, params);
 
 				// Make it stand out a bit more visually, by adding a fadeIn.
@@ -1043,7 +1048,7 @@
 		},
 
 		attachUnsavedChangesListener : function() {
-			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').change(function(){
+			$('#menu-management input, #menu-management select, #menu-management, #menu-management textarea, .menu-location-menus select').on( 'change', function(){
 				api.registerChange();
 			});
 
@@ -1054,7 +1059,7 @@
 				};
 			} else {
 				// Make the post boxes read-only, as they can't be used yet.
-				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).unbind( 'click' );
+				$( '#menu-settings-column' ).find( 'input,select' ).end().find( 'a' ).attr( 'href', '#' ).off( 'click' );
 			}
 		},
 
@@ -1063,7 +1068,7 @@
 		},
 
 		attachTabsPanelListeners : function() {
-			$('#menu-settings-column').bind('click', function(e) {
+			$('#menu-settings-column').on('click', function(e) {
 				var selectAreaMatch, selectAll, panelId, wrapper, items,
 					target = $(e.target);
 
@@ -1083,7 +1088,7 @@
 					target.parent().addClass('tabs');
 
 					// Select the search bar.
-					$('.quick-search', wrapper).focus();
+					$('.quick-search', wrapper).trigger( 'focus' );
 
 					// Hide controls in the search tab if no items found.
 					if ( ! wrapper.find( '.tabs-panel-active .menu-item-title' ).length ) {
@@ -1136,7 +1141,7 @@
 
 				$.post( ajaxurl, this.href.replace( /.*\?/, '' ).replace( /action=([^&]*)/, '' ) + '&action=menu-get-metabox',
 					function( resp ) {
-						var metaBoxData = $.parseJSON( resp ),
+						var metaBoxData = JSON.parse( resp ),
 							toReplace;
 
 						if ( -1 === resp.indexOf( 'replace-id' ) ) {
@@ -1326,6 +1331,27 @@
 
 	};
 
-	$(document).ready(function(){ wpNavMenu.init(); });
+	$(document).ready(function() {
+
+		wpNavMenu.init();
+
+		// Prevent focused element from being hidden by the sticky footer.
+		$( '.menu-edit a, .menu-edit button, .menu-edit input, .menu-edit textarea, .menu-edit select' ).on('focus', function() {
+			if ( window.innerWidth >= 783 ) {
+				var navMenuHeight = $( '#nav-menu-footer' ).height() + 20;
+				var bottomOffset = $(this).offset().top - ( $(window).scrollTop() + $(window).height() - $(this).height() );
+
+				if ( bottomOffset > 0 ) {
+					bottomOffset = 0;
+				}
+				bottomOffset = bottomOffset * -1;
+
+				if( bottomOffset < navMenuHeight ) {
+					var scrollTop = $(document).scrollTop();
+					$(document).scrollTop( scrollTop + ( navMenuHeight - bottomOffset ) );
+				}
+			}
+		});
+	});
 
 })(jQuery);

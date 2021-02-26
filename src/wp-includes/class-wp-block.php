@@ -213,9 +213,16 @@ class WP_Block {
 		}
 
 		if ( $is_dynamic ) {
-			$global_post   = $post;
+			$global_post = $post;
+			$parent      = WP_Block_Supports::$block_to_render;
+
+			WP_Block_Supports::$block_to_render = $this->parsed_block;
+
 			$block_content = (string) call_user_func( $this->block_type->render_callback, $this->attributes, $block_content, $this );
-			$post          = $global_post;
+
+			WP_Block_Supports::$block_to_render = $parent;
+
+			$post = $global_post;
 		}
 
 		if ( ! empty( $this->block_type->script ) ) {
@@ -234,7 +241,22 @@ class WP_Block {
 		 * @param string $block_content The block content about to be appended.
 		 * @param array  $block         The full block, including name and attributes.
 		 */
-		return apply_filters( 'render_block', $block_content, $this->parsed_block );
+		$block_content = apply_filters( 'render_block', $block_content, $this->parsed_block );
+
+		/**
+		 * Filters the content of a single block.
+		 *
+		 * The dynamic portion of the hook name, `$name`, refers to
+		 * the block name, e.g. "core/paragraph".
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param string $block_content The block content about to be appended.
+		 * @param array  $block         The full block, including name and attributes.
+		 */
+		$block_content = apply_filters( "render_block_{$this->name}", $block_content, $this->parsed_block );
+
+		return $block_content;
 	}
 
 }

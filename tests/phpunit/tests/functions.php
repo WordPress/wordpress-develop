@@ -269,6 +269,30 @@ class Tests_Functions extends WP_UnitTestCase {
 		$this->assertSame( $expected, is_serialized( $value ) );
 	}
 
+	/**
+	 * @dataProvider data_serialize_deserialize_objects
+	 */
+	function test_deserialize_request_utility_filtered_iterator_objects( $value ) {
+		$serialized = maybe_serialize( $value );
+		if ( get_class( $value ) === 'Requests_Utility_FilteredIterator' ) {
+			$new_value = unserialize( $serialized );
+			$property  = ( new ReflectionClass( 'Requests_Utility_FilteredIterator' ) )->getProperty( 'callback' );
+			$property->setAccessible( true );
+			$callback_value = $property->getValue( $new_value );
+			$this->assertSame( null, $callback_value );
+		} else {
+			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
+		}
+	}
+
+	function data_serialize_deserialize_objects() {
+		return array(
+			array( new Requests_Utility_FilteredIterator( array( 1 ), 'md5' ) ),
+			array( new Requests_Utility_FilteredIterator( array( 1, 2 ), 'sha1' ) ),
+			array( new ArrayIterator( array( 1, 2, 3 ) ) ),
+		);
+	}
+
 	function data_is_serialized() {
 		return array(
 			array( serialize( null ), true ),
@@ -942,12 +966,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28786
+	 * @requires function mb_detect_order
 	 */
 	function test_wp_json_encode_non_utf8() {
-		if ( ! function_exists( 'mb_detect_order' ) ) {
-			$this->markTestSkipped( 'mbstring extension not available.' );
-		}
-
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
 		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
@@ -967,12 +988,9 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28786
+	 * @requires function mb_detect_order
 	 */
 	function test_wp_json_encode_non_utf8_in_array() {
-		if ( ! function_exists( 'mb_detect_order' ) ) {
-			$this->markTestSkipped( 'mbstring extension not available.' );
-		}
-
 		$charsets     = mb_detect_order();
 		$old_charsets = $charsets;
 		if ( ! in_array( 'EUC-JP', $charsets, true ) ) {
@@ -1087,7 +1105,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	 */
 	function test_wp_raise_memory_limit() {
 		if ( -1 !== WP_MAX_MEMORY_LIMIT ) {
-			$this->markTestSkipped( 'WP_MAX_MEMORY_LIMIT should be set to -1' );
+			$this->markTestSkipped( 'WP_MAX_MEMORY_LIMIT should be set to -1.' );
 		}
 
 		$ini_limit_before = ini_get( 'memory_limit' );
@@ -1210,24 +1228,18 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 39550
 	 * @dataProvider _wp_check_filetype_and_ext_data
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext( $file, $filename, $expected ) {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$this->assertSame( $expected, wp_check_filetype_and_ext( $file, $filename ) );
 	}
 
 	/**
 	 * @ticket 39550
 	 * @group ms-excluded
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext_with_filtered_svg() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$file     = DIR_TESTDATA . '/uploads/video-play.svg';
 		$filename = 'video-play.svg';
 
@@ -1247,12 +1259,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 39550
 	 * @group ms-excluded
+	 * @requires extension fileinfo
 	 */
 	function test_wp_check_filetype_and_ext_with_filtered_woff() {
-		if ( ! extension_loaded( 'fileinfo' ) ) {
-			$this->markTestSkipped( 'The fileinfo PHP extension is not loaded.' );
-		}
-
 		$file     = DIR_TESTDATA . '/uploads/dashicons.woff';
 		$filename = 'dashicons.woff';
 
@@ -1741,6 +1750,29 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( '61:59', false ),    // Out of bound.
 			array( '3:59:61', false ),  // Out of bound.
 			array( '03:61:59', false ), // Out of bound.
+		);
+	}
+
+	/**
+	 * @ticket 49404
+	 * @dataProvider data_test_wp_is_json_media_type
+	 */
+	public function test_wp_is_json_media_type( $input, $expected ) {
+		$this->assertSame( $expected, wp_is_json_media_type( $input ) );
+	}
+
+
+	public function data_test_wp_is_json_media_type() {
+		return array(
+			array( 'application/ld+json', true ),
+			array( 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"', true ),
+			array( 'application/activity+json', true ),
+			array( 'application/json+oembed', true ),
+			array( 'application/json', true ),
+			array( 'application/nojson', false ),
+			array( 'application/no.json', false ),
+			array( 'text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8', false ),
+			array( 'application/activity+json, application/nojson', true ),
 		);
 	}
 }

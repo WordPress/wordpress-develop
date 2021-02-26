@@ -6,13 +6,15 @@
  */
 class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
-	private $png_cdn = 'https://s.w.org/images/core/emoji/13.0.0/72x72/';
-	private $svn_cdn = 'https://s.w.org/images/core/emoji/13.0.0/svg/';
+	private $png_cdn = 'https://s.w.org/images/core/emoji/13.0.1/72x72/';
+	private $svn_cdn = 'https://s.w.org/images/core/emoji/13.0.1/svg/';
 
 	/**
 	 * @ticket 36525
 	 */
 	public function test_unfiltered_emoji_cdns() {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
 		$this->assertContains( wp_json_encode( $this->png_cdn ), $output );
@@ -31,6 +33,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 		add_filter( 'emoji_svg_url', array( $this, '_filtered_emoji_svn_cdn' ) );
 
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
 		$this->assertContains( wp_json_encode( $this->png_cdn ), $output );
@@ -52,6 +56,8 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 		add_filter( 'emoji_url', array( $this, '_filtered_emoji_png_cdn' ) );
 
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
 		$this->assertContains( wp_json_encode( $filtered_png_cdn ), $output );

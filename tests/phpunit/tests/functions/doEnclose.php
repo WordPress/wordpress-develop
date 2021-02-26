@@ -10,11 +10,11 @@
 /**
  * Tests_Functions_DoEnclose class.
  *
+ * @since 5.3.0
+ *
  * @group functions.php
  * @group post
  * @covers ::do_enclose
- *
- * @since 5.3.0
  */
 class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 
@@ -253,7 +253,7 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 *
 	 * @param  int    $post_id Post ID.
-	 * @return string          All enclosure data for the given post.
+	 * @return string  All enclosure data for the given post.
 	 */
 	protected function get_enclosed_by_post_id( $post_id ) {
 		return implode( '', (array) get_post_meta( $post_id, 'enclosure', false ) );

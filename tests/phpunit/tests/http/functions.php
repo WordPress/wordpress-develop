@@ -3,17 +3,13 @@
 /**
  * @group http
  * @group external-http
+ * @requires extension openssl
  */
 class Tests_HTTP_Functions extends WP_UnitTestCase {
 
-	public function setUp() {
-		if ( ! extension_loaded( 'openssl' ) ) {
-			$this->markTestSkipped( 'Tests_HTTP_Functions requires openssl.' );
-		}
-
-		parent::setUp();
-	}
-
+	/**
+	 * @covers ::wp_remote_head
+	 */
 	function test_head_request() {
 		// This URL gives a direct 200 response.
 		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
@@ -30,6 +26,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
+	/**
+	 * @covers ::wp_remote_head
+	 */
 	function test_head_redirect() {
 		// This URL will 301 redirect.
 		$url      = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
@@ -39,6 +38,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 301, wp_remote_retrieve_response_code( $response ) );
 	}
 
+	/**
+	 * @covers ::wp_remote_head
+	 */
 	function test_head_404() {
 		$url      = 'https://asdftestblog1.files.wordpress.com/2007/09/awefasdfawef.jpg';
 		$response = wp_remote_head( $url );
@@ -47,6 +49,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 404, wp_remote_retrieve_response_code( $response ) );
 	}
 
+	/**
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_headers
+	 * @covers ::wp_remote_retrieve_response_code
+	 */
 	function test_get_request() {
 		$url = 'https://asdftestblog1.files.wordpress.com/2007/09/2007-06-30-dsc_4700-1.jpg';
 
@@ -64,6 +71,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
+	/**
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_headers
+	 * @covers ::wp_remote_retrieve_response_code
+	 */
 	function test_get_redirect() {
 		// This will redirect to asdftestblog1.files.wordpress.com.
 		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
@@ -80,6 +92,9 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 		$this->assertSame( 200, wp_remote_retrieve_response_code( $response ) );
 	}
 
+	/**
+	 * @covers ::wp_remote_get
+	 */
 	function test_get_redirect_limit_exceeded() {
 		// This will redirect to asdftestblog1.files.wordpress.com.
 		$url = 'https://asdftestblog1.wordpress.com/files/2007/09/2007-06-30-dsc_4700-1.jpg';
@@ -93,6 +108,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33711
+	 *
+	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_cookies
+	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers ::wp_remote_retrieve_cookie_value
 	 */
 	function test_get_response_cookies() {
 		$url = 'https://login.wordpress.org/wp-login.php';
@@ -122,6 +142,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37437
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_cookies
+	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	function test_get_response_cookies_with_wp_http_cookie_object() {
 		$url = 'http://example.org';
@@ -154,6 +178,10 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37437
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_cookies
+	 * @covers ::wp_remote_retrieve_cookie
 	 */
 	function test_get_response_cookies_with_name_value_array() {
 		$url = 'http://example.org';
@@ -181,6 +209,11 @@ class Tests_HTTP_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43231
+	 *
+	 * @covers WP_HTTP_Requests_Response::__construct
+	 * @covers ::wp_remote_retrieve_cookies
+	 * @covers ::wp_remote_retrieve_cookie
+	 * @covers WP_Http
 	 */
 	function test_get_cookie_host_only() {
 		// Emulate WP_Http::request() internals.

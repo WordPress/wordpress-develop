@@ -28,31 +28,28 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$this->assertFalse( $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_width() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertInternalType( 'array', $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_height() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertInternalType( 'array', $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_successful() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
 		$this->assertInternalType( 'array', $image );
@@ -67,6 +64,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_name() {
 		add_image_size( 'test-size', 330, 220, true );
@@ -87,6 +85,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_exact() {
 		// Only one dimention match shouldn't return false positive (see: #17626).
@@ -108,6 +107,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_nearest() {
 		// If an exact size is not found, it should be returned.
@@ -151,6 +151,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_zero_height() {
 		// Generate random width.
@@ -179,6 +180,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @ticket 17626
 	 * @ticket 34087
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_zero_width() {
 		// 202 is the smallest height that will trigger a miss for 'false-height'.
@@ -207,6 +209,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @ticket 17626
 	 * @ticket 34087
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_should_match_size_with_off_by_one_aspect_ratio() {
 		// Original is 600x400. 300x201 is close enough to match.
@@ -230,6 +233,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34384
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_size_with_small_size_array() {
 		// Add a hard cropped size that matches the aspect ratio we're going to test.
@@ -247,6 +251,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34384
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_size_with_small_size_array_fallback() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';

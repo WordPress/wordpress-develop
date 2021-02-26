@@ -71,6 +71,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			'flipimage',
 			'flopimage',
 			'readimage',
+			'readimageblob',
 		);
 
 		// Now, test for deep requirements within Imagick.
@@ -127,7 +128,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			return true;
 		}
 
-		if ( ! is_file( $this->file ) && ! preg_match( '|^https?://|', $this->file ) ) {
+		if ( ! is_file( $this->file ) && ! wp_is_stream( $this->file ) ) {
 			return new WP_Error( 'error_loading_image', __( 'File doesn&#8217;t exist?' ), $this->file );
 		}
 
@@ -140,15 +141,21 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		try {
 			$this->image    = new Imagick();
 			$file_extension = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$filename       = $this->file;
 
 			if ( 'pdf' === $file_extension ) {
-				$filename = $this->pdf_setup();
-			}
+				$pdf_loaded = $this->pdf_load_source();
 
-			// Reading image after Imagick instantiation because `setResolution`
-			// only applies correctly before the image is read.
-			$this->image->readImage( $filename );
+				if ( is_wp_error( $pdf_loaded ) ) {
+					return $pdf_loaded;
+				}
+			} else {
+				if ( wp_is_stream( $this->file ) ) {
+					// Due to reports of issues with streams with `Imagick::readImageFile()`, uses `Imagick::readImageBlob()` instead.
+					$this->image->readImageBlob( file_get_contents( $this->file ), $this->file );
+				} else {
+					$this->image->readImage( $this->file );
+				}
+			}
 
 			if ( ! $this->image->valid() ) {
 				return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
@@ -165,6 +172,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 		}
 
 		$updated_size = $this->update_size();
+
 		if ( is_wp_error( $updated_size ) ) {
 			return $updated_size;
 		}
@@ -244,7 +252,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int|null $max_w Image width.
 	 * @param int|null $max_h Image height.
 	 * @param bool     $crop
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
 		if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
@@ -283,7 +291,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int    $dst_h       The destination height.
 	 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_TRIANGLE'.
 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
-	 * @return bool|WP_Error
+	 * @return void|WP_Error
 	 */
 	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
 		$allowed_filters = array(
@@ -516,7 +524,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int  $dst_w   Optional. The destination width.
 	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		if ( $src_abs ) {
@@ -680,8 +688,16 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			$orig_format = $this->image->getImageFormat();
 
 			$this->image->setImageFormat( strtoupper( $this->get_extension( $mime_type ) ) );
-			$this->make_image( $filename, array( $image, 'writeImage' ), array( $filename ) );
+		} catch ( Exception $e ) {
+			return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+		}
 
+		$write_image_result = $this->write_image( $this->image, $filename );
+		if ( is_wp_error( $write_image_result ) ) {
+			return $write_image_result;
+		}
+
+		try {
 			// Reset original format.
 			$this->image->setImageFormat( $orig_format );
 		} catch ( Exception $e ) {
@@ -704,12 +720,62 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	}
 
 	/**
+	 * Writes an image to a file or stream.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param Imagick $image
+	 * @param string  $filename The destination filename or stream URL.
+	 * @return true|WP_Error
+	 */
+	private function write_image( $image, $filename ) {
+		if ( wp_is_stream( $filename ) ) {
+			/*
+			 * Due to reports of issues with streams with `Imagick::writeImageFile()` and `Imagick::writeImage()`, copies the blob instead.
+			 * Checks for exact type due to: https://www.php.net/manual/en/function.file-put-contents.php
+			 */
+			if ( file_put_contents( $filename, $image->getImageBlob() ) === false ) {
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: PHP function name. */
+						__( '%s failed while writing image to stream.' ),
+						'<code>file_put_contents()</code>'
+					),
+					$filename
+				);
+			} else {
+				return true;
+			}
+		} else {
+			$dirname = dirname( $filename );
+
+			if ( ! wp_mkdir_p( $dirname ) ) {
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: Directory path. */
+						__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+						esc_html( $dirname )
+					)
+				);
+			}
+
+			try {
+				return $image->writeImage( $filename );
+			} catch ( Exception $e ) {
+				return new WP_Error( 'image_save_error', $e->getMessage(), $filename );
+			}
+		}
+	}
+
+	/**
 	 * Streams current image to browser.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param string $mime_type The mime type of the image.
-	 * @return bool|WP_Error True on success, WP_Error object on failure.
+	 * @return true|WP_Error True on success, WP_Error object on failure.
 	 */
 	public function stream( $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
@@ -741,13 +807,25 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	protected function strip_meta() {
 
 		if ( ! is_callable( array( $this->image, 'getImageProfiles' ) ) ) {
-			/* translators: %s: ImageMagick method name. */
-			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::getImageProfiles()</code>' ) );
+			return new WP_Error(
+				'image_strip_meta_error',
+				sprintf(
+					/* translators: %s: ImageMagick method name. */
+					__( '%s is required to strip image meta.' ),
+					'<code>Imagick::getImageProfiles()</code>'
+				)
+			);
 		}
 
 		if ( ! is_callable( array( $this->image, 'removeImageProfile' ) ) ) {
-			/* translators: %s: ImageMagick method name. */
-			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::removeImageProfile()</code>' ) );
+			return new WP_Error(
+				'image_strip_meta_error',
+				sprintf(
+					/* translators: %s: ImageMagick method name. */
+					__( '%s is required to strip image meta.' ),
+					'<code>Imagick::removeImageProfile()</code>'
+				)
+			);
 		}
 
 		/*
@@ -795,15 +873,46 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			// We want the thumbnail to be readable, so increase the rendering DPI.
 			$this->image->setResolution( 128, 128 );
 
-			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
-			// area (resulting in unnecessary whitespace) unless the following option is set.
-			$this->image->setOption( 'pdf:use-cropbox', true );
-
 			// Only load the first page.
 			return $this->file . '[0]';
 		} catch ( Exception $e ) {
 			return new WP_Error( 'pdf_setup_failed', $e->getMessage(), $this->file );
 		}
+	}
+
+	/**
+	 * Load the image produced by Ghostscript.
+	 *
+	 * Includes a workaround for a bug in Ghostscript 8.70 that prevents processing of some PDF files
+	 * when `use-cropbox` is set.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return true|WP_error
+	 */
+	protected function pdf_load_source() {
+		$filename = $this->pdf_setup();
+
+		if ( is_wp_error( $filename ) ) {
+			return $filename;
+		}
+
+		try {
+			// When generating thumbnails from cropped PDF pages, Imagemagick uses the uncropped
+			// area (resulting in unnecessary whitespace) unless the following option is set.
+			$this->image->setOption( 'pdf:use-cropbox', true );
+
+			// Reading image after Imagick instantiation because `setResolution`
+			// only applies correctly before the image is read.
+			$this->image->readImage( $filename );
+		} catch ( Exception $e ) {
+			// Attempt to run `gs` without the `use-cropbox` option. See #48853.
+			$this->image->setOption( 'pdf:use-cropbox', false );
+
+			$this->image->readImage( $filename );
+		}
+
+		return true;
 	}
 
 }

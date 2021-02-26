@@ -70,13 +70,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpSetUpBeforeClass' ), self::factory() );
+		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
+			call_user_func( array( $class, 'wpSetUpBeforeClass' ), self::factory() );
+		}
 
 		self::commit_transaction();
 	}
@@ -90,13 +88,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpTearDownAfterClass' ) );
+		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
+			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
+		}
 
 		self::commit_transaction();
 	}
@@ -185,7 +181,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	/**
 	 * Allow tests to be skipped on some automated runs.
 	 *
-	 * For test runs on Travis for something other than trunk/master
+	 * For test runs on Travis/GitHub Actions for something other than trunk/master,
 	 * we want to skip tests that only need to run for master.
 	 */
 	public function skipOnAutomatedBranches() {
@@ -193,12 +189,22 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
 		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
 
-		if ( ! $travis_branch || ! $travis_pull_request ) {
-			return;
-		}
+		// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
+		$github_ref        = getenv( 'GITHUB_REF' );
 
-		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
-			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+		if ( $github_event_name && 'false' !== $github_event_name ) {
+			// We're on GitHub Actions.
+			$skipped = array( 'pull_request', 'pull_request_target' );
+
+			if ( in_array( $github_event_name, $skipped, true ) || 'refs/heads/master' !== $github_ref ) {
+				$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+			}
+		} elseif ( $travis_branch && 'false' !== $travis_branch ) {
+			// We're on Travis CI.
+			if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
+				$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+			}
 		}
 	}
 
@@ -1286,5 +1292,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 				'%d',
 			)
 		);
+	}
+
+	/**
+	 * Touches the given file and its directory if it doesn't already exist.
+	 *
+	 * This can be used to ensure a file that is implictly relied on in a test exists
+	 * without it having to be built.
+	 *
+	 * @param string $file The file name.
+	 */
+	public static function touch( $file ) {
+		if ( file_exists( $file ) ) {
+			return;
+		}
+
+		$dir = dirname( $file );
+
+		if ( ! file_exists( $dir ) ) {
+			mkdir( $dir, 0777, true );
+		}
+
+		touch( $file );
 	}
 }

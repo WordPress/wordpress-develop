@@ -54,14 +54,14 @@
 			inputs.queryNoticeTextHint = inputs.queryNotice.find( '.query-notice-hint' );
 
 			// Bind event handlers.
-			inputs.dialog.keydown( wpLink.keydown );
-			inputs.dialog.keyup( wpLink.keyup );
-			inputs.submit.click( function( event ) {
+			inputs.dialog.on( 'keydown', wpLink.keydown );
+			inputs.dialog.on( 'keyup', wpLink.keyup );
+			inputs.submit.on( 'click', function( event ) {
 				event.preventDefault();
 				wpLink.update();
 			});
 
-			inputs.close.add( inputs.backdrop ).add( '#wp-link-cancel button' ).click( function( event ) {
+			inputs.close.add( inputs.backdrop ).add( '#wp-link-cancel button' ).on( 'click', function( event ) {
 				event.preventDefault();
 				wpLink.close();
 			});
@@ -181,7 +181,7 @@
 
 			if ( isTouch ) {
 				// Close the onscreen keyboard.
-				inputs.url.focus().blur();
+				inputs.url.trigger( 'focus' ).trigger( 'blur' );
 			} else {
 				/*
 				 * Focus the URL field and highlight its contents.
@@ -190,7 +190,7 @@
 				 */
 				window.setTimeout( function() {
 					inputs.url[0].select();
-					inputs.url.focus();
+					inputs.url.trigger( 'focus' );
 				} );
 			}
 
@@ -557,10 +557,10 @@
 				// wp-link-submit must always be the last focusable element in the dialog.
 				// Following focusable elements will be skipped on keyboard navigation.
 				if ( id === 'wp-link-submit' && ! event.shiftKey ) {
-					inputs.close.focus();
+					inputs.close.trigger( 'focus' );
 					event.preventDefault();
 				} else if ( id === 'wp-link-close' && event.shiftKey ) {
-					inputs.submit.focus();
+					inputs.submit.trigger( 'focus' );
 					event.preventDefault();
 				}
 			}
@@ -625,7 +625,7 @@
 		this.change( search );
 		this.refresh();
 
-		$( '#wp-link .query-results, #wp-link #link-selector' ).scroll( function() {
+		$( '#wp-link .query-results, #wp-link #link-selector' ).on( 'scroll', function() {
 			self.maybeLoad();
 		});
 		element.on( 'click', 'li', function( event ) {

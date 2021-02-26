@@ -59,7 +59,7 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$registered_user_email     = 'export@local.test';
 		self::$non_registered_user_email = 'non-registered-user@local.test';
 
@@ -93,12 +93,25 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure a WP_Error is returned when no action is passed.
+	 *
+	 * @ticket 46536
+	 */
+	public function test_missing_action() {
+		$actual = wp_create_user_request( self::$registered_user_email, false );
+
+		$this->assertWPError( $actual );
+		$this->assertSame( 'invalid_action', $actual->get_error_code() );
+	}
+
+	/**
 	 * Ensure a WP_Error is returned when an invalid action is passed.
 	 *
 	 * @ticket 44707
+	 * @ticket 46536
 	 */
 	public function test_invalid_action() {
-		$actual = wp_create_user_request( self::$registered_user_email, false );
+		$actual = wp_create_user_request( self::$registered_user_email, 'invalid_action_name' );
 
 		$this->assertWPError( $actual );
 		$this->assertSame( 'invalid_action', $actual->get_error_code() );
@@ -161,13 +174,13 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * @ticket 44707
 	 */
 	public function test_sanitized_action_name() {
-		$actual = wp_create_user_request( self::$non_registered_user_email, 'some[custom*action\name' );
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export[_person*al_\data' );
 
 		$this->assertNotWPError( $actual );
 
 		$post = get_post( $actual );
 
-		$this->assertSame( 'somecustomactionname', $post->post_name );
+		$this->assertSame( 'export_personal_data', $post->post_name );
 		$this->assertSame( self::$non_registered_user_email, $post->post_title );
 	}
 
@@ -294,5 +307,52 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 
 		$this->assertWPError( $actual );
 		$this->assertSame( 'empty_content', $actual->get_error_code() );
+	}
+
+	/**
+	 * Test that the request has a Pending status by default.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_wp_create_user_request_default_pending_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data' );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-pending', $post->post_status );
+	}
+
+	/**
+	 * Test that the request has a Pending status if the $status param is 'pending'.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_wp_create_user_request_pending_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'pending' );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-pending', $post->post_status );
+	}
+
+	/**
+	 * Test that the request has a Confirmed status if the $status param is 'confirmed'.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_wp_create_user_request_confirmed_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'confirmed' );
+		$post   = get_post( $actual );
+
+		$this->assertSame( 'request-confirmed', $post->post_status );
+	}
+
+	/**
+	 * Test that the request returns a WP_Error if $status isn't 'pending' or 'confirmed'.
+	 *
+	 * @ticket 43890
+	 */
+	public function test_wp_create_user_request_wp_error_status() {
+		$actual = wp_create_user_request( self::$non_registered_user_email, 'export_personal_data', array(), 'wrong-status' );
+
+		$this->assertWPError( $actual );
 	}
 }

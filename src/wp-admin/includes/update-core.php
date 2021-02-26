@@ -798,6 +798,9 @@ $_old_files = array(
 	'wp-admin/css/ie.min.css',
 	'wp-admin/css/ie-rtl.css',
 	'wp-admin/css/ie-rtl.min.css',
+	// 5.6
+	'wp-includes/js/jquery/ui/position.min.js',
+	'wp-includes/js/jquery/ui/widget.min.js',
 );
 
 /**
@@ -835,6 +838,7 @@ $_new_bundled_files = array(
 	'themes/twentyseventeen/' => '4.7',
 	'themes/twentynineteen/'  => '5.0',
 	'themes/twentytwenty/'    => '5.3',
+	'themes/twentytwentyone/' => '5.6',
 );
 
 /**
@@ -1347,6 +1351,10 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 	global $wp_filesystem;
 
 	$dirlist = $wp_filesystem->dirlist( $from );
+
+	if ( false === $dirlist ) {
+		return new WP_Error( 'dirlist_failed__copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+	}
 
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );

@@ -11,15 +11,15 @@
  *
  * @since 2.1.0
  *
- * @param string|int $src      The source file or Attachment ID.
- * @param int        $src_x    The start x position to crop from.
- * @param int        $src_y    The start y position to crop from.
- * @param int        $src_w    The width to crop.
- * @param int        $src_h    The height to crop.
- * @param int        $dst_w    The destination width.
- * @param int        $dst_h    The destination height.
- * @param bool       $src_abs  Optional. If the source crop points are absolute.
- * @param string     $dst_file Optional. The destination file to write to.
+ * @param string|int   $src      The source file or Attachment ID.
+ * @param int          $src_x    The start x position to crop from.
+ * @param int          $src_y    The start y position to crop from.
+ * @param int          $src_w    The width to crop.
+ * @param int          $src_h    The height to crop.
+ * @param int          $dst_w    The destination width.
+ * @param int          $dst_h    The destination height.
+ * @param bool|false   $src_abs  Optional. If the source crop points are absolute.
+ * @param string|false $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = @getimagesize( $image_file );
+		$imagesize  = wp_getimagesize( $image_file );
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -224,7 +224,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
-	$imagesize = @getimagesize( $file );
+	$imagesize = wp_getimagesize( $file );
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
@@ -680,14 +680,14 @@ function wp_exif_date2ts( $str ) {
  * @since 2.5.0
  *
  * @param string $file
- * @return bool|array False on failure. Image metadata array on success.
+ * @return array|false Image metadata array on success, false on failure.
  */
 function wp_read_image_metadata( $file ) {
 	if ( ! file_exists( $file ) ) {
 		return false;
 	}
 
-	list( , , $image_type ) = @getimagesize( $file );
+	list( , , $image_type ) = wp_getimagesize( $file );
 
 	/*
 	 * EXIF contains a bunch of data we'll probably never need formatted in ways
@@ -716,10 +716,21 @@ function wp_read_image_metadata( $file ) {
 	 * as caption, description etc.
 	 */
 	if ( is_callable( 'iptcparse' ) ) {
-		@getimagesize( $file, $info );
+		wp_getimagesize( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
-			$iptc = @iptcparse( $info['APP13'] );
+			if (
+				// Skip when running unit tests.
+				! defined( 'WP_RUN_CORE_TESTS' )
+				&&
+				// Process without silencing errors when in debug mode.
+				defined( 'WP_DEBUG' ) && WP_DEBUG
+			) {
+				$iptc = iptcparse( $info['APP13'] );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+				$iptc = @iptcparse( $info['APP13'] );
+			}
 
 			// Headline, "A brief synopsis of the caption".
 			if ( ! empty( $iptc['2#105'][0] ) ) {
@@ -779,7 +790,18 @@ function wp_read_image_metadata( $file ) {
 	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM ) );
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
-		$exif = @exif_read_data( $file );
+		if (
+			// Skip when running unit tests.
+			! defined( 'WP_RUN_CORE_TESTS' )
+			&&
+			// Process without silencing errors when in debug mode.
+			defined( 'WP_DEBUG' ) && WP_DEBUG
+		) {
+			$exif = exif_read_data( $file );
+		} else {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+			$exif = @exif_read_data( $file );
+		}
 
 		if ( ! empty( $exif['ImageDescription'] ) ) {
 			mbstring_binary_safe_encoding();
@@ -877,7 +899,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = @getimagesize( $path );
+	$size = wp_getimagesize( $path );
 	return ! empty( $size );
 }
 
@@ -892,7 +914,7 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO );
 
-	$info = @getimagesize( $path );
+	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {
 		$result = false;
 	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
@@ -917,9 +939,10 @@ function file_is_displayable_image( $path ) {
  *
  * @since 2.9.0
  *
- * @param string $attachment_id Attachment ID.
- * @param string $mime_type     Image mime type.
- * @param string $size          Optional. Image size. Default 'full'.
+ * @param int          $attachment_id Attachment ID.
+ * @param string       $mime_type     Image mime type.
+ * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
+ *                                    of width and height values in pixels (in that order). Default 'full'.
  * @return resource|GdImage|false The resulting image resource or GdImage instance on success,
  *                                false on failure.
  */
@@ -951,8 +974,9 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 		 * @since 2.9.0
 		 *
 		 * @param resource|GdImage $image         Current image.
-		 * @param string           $attachment_id Attachment ID.
-		 * @param string           $size          Image size.
+		 * @param int              $attachment_id Attachment ID.
+		 * @param string|int[]     $size          Requested image size. Can be any registered image size name, or
+		 *                                        an array of width and height values in pixels (in that order).
 		 */
 		$image = apply_filters( 'load_image_to_edit', $image, $attachment_id, $size );
 
@@ -966,17 +990,18 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 }
 
 /**
- * Retrieve the path or url of an attachment's attached file.
+ * Retrieve the path or URL of an attachment's attached file.
  *
  * If the attached file is not present on the local filesystem (usually due to replication plugins),
- * then the url of the file is returned if url fopen is supported.
+ * then the URL of the file is returned if `allow_url_fopen` is supported.
  *
  * @since 3.4.0
  * @access private
  *
- * @param string $attachment_id Attachment ID.
- * @param string $size          Optional. Image size. Default 'full'.
- * @return string|false File path or url on success, false on failure.
+ * @param int          $attachment_id Attachment ID.
+ * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array
+ *                                    of width and height values in pixels (in that order). Default 'full'.
+ * @return string|false File path or URL on success, false on failure.
  */
 function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	$filepath = get_attached_file( $attachment_id );
@@ -989,30 +1014,32 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 				$filepath = path_join( dirname( $filepath ), $data['file'] );
 
 				/**
-				 * Filters the path to the current image.
+				 * Filters the path to an attachment's file when editing the image.
 				 *
 				 * The filter is evaluated for all image sizes except 'full'.
 				 *
 				 * @since 3.1.0
 				 *
-				 * @param string $path          Path to the current image.
-				 * @param string $attachment_id Attachment ID.
-				 * @param string $size          Size of the image.
+				 * @param string       $path          Path to the current image.
+				 * @param int          $attachment_id Attachment ID.
+				 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+				 *                                    an array of width and height values in pixels (in that order).
 				 */
 				$filepath = apply_filters( 'load_image_to_edit_filesystempath', $filepath, $attachment_id, $size );
 			}
 		}
 	} elseif ( function_exists( 'fopen' ) && ini_get( 'allow_url_fopen' ) ) {
 		/**
-		 * Filters the image URL if not in the local filesystem.
+		 * Filters the path to an attachment's URL when editing the image.
 		 *
-		 * The filter is only evaluated if fopen is enabled on the server.
+		 * The filter is only evaluated if the file isn't stored locally and `allow_url_fopen` is enabled on the server.
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string $image_url     Current image URL.
-		 * @param string $attachment_id Attachment ID.
-		 * @param string $size          Size of the image.
+		 * @param string|false $image_url     Current image URL.
+		 * @param int          $attachment_id Attachment ID.
+		 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+		 *                                    an array of width and height values in pixels (in that order).
 		 */
 		$filepath = apply_filters( 'load_image_to_edit_attachmenturl', wp_get_attachment_url( $attachment_id ), $attachment_id, $size );
 	}
@@ -1022,9 +1049,10 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string|bool $filepath      File path or URL to current image, or false.
-	 * @param string      $attachment_id Attachment ID.
-	 * @param string      $size          Size of the image.
+	 * @param string|false $filepath      File path or URL to current image, or false.
+	 * @param int          $attachment_id Attachment ID.
+	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
+	 *                                    an array of width and height values in pixels (in that order).
 	 */
 	return apply_filters( 'load_image_to_edit_path', $filepath, $attachment_id, $size );
 }
@@ -1035,7 +1063,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
  * @since 3.4.0
  * @access private
  *
- * @param string $attachment_id Attachment ID.
+ * @param int $attachment_id Attachment ID.
  * @return string|false New file path on success, false on failure.
  */
 function _copy_image_file( $attachment_id ) {

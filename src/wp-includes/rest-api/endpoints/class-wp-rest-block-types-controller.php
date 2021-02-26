@@ -87,11 +87,11 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			array(
 				'args'   => array(
 					'name'      => array(
-						'description' => __( 'Block name' ),
+						'description' => __( 'Block name.' ),
 						'type'        => 'string',
 					),
 					'namespace' => array(
-						'description' => __( 'Block namespace' ),
+						'description' => __( 'Block namespace.' ),
 						'type'        => 'string',
 					),
 				),
@@ -114,7 +114,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
@@ -126,7 +126,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data        = array();
@@ -160,7 +160,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$check = $this->check_read_permission();
@@ -181,7 +181,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @return WP_Error|bool True if the block type is visible, WP_Error otherwise.
+	 * @return true|WP_Error True if the block type is visible, WP_Error otherwise.
 	 */
 	protected function check_read_permission() {
 		if ( current_user_can( 'edit_posts' ) ) {
@@ -219,7 +219,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 	 * @since 5.5.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$block_name = sprintf( '%s/%s', $request['namespace'], $request['name'] );
@@ -256,6 +256,7 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 
 		$schema       = $this->get_item_schema();
 		$extra_fields = array(
+			'api_version',
 			'name',
 			'title',
 			'description',
@@ -365,6 +366,13 @@ class WP_REST_Block_Types_Controller extends WP_REST_Controller {
 			'title'      => 'block-type',
 			'type'       => 'object',
 			'properties' => array(
+				'api_version'      => array(
+					'description' => __( 'Version of block API.' ),
+					'type'        => 'integer',
+					'default'     => 1,
+					'context'     => array( 'embed', 'view', 'edit' ),
+					'readonly'    => true,
+				),
 				'title'            => array(
 					'description' => __( 'Title of block type.' ),
 					'type'        => 'string',

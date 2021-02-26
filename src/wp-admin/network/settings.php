@@ -60,7 +60,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://codex.wordpress.org/Network_Admin_Settings_Screen">Documentation on Network Settings</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/network-admin-settings-screen/">Documentation on Network Settings</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -423,7 +423,7 @@ if ( isset( $_GET['updated'] ) ) {
 			<h2><?php _e( 'Language Settings' ); ?></h2>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th><label for="WPLANG"><?php _e( 'Default Language' ); ?></label></th>
+					<th><label for="WPLANG"><?php _e( 'Default Language' ); ?><span class="dashicons dashicons-translation" aria-hidden="true"></span></label></th>
 					<td>
 						<?php
 						$lang = get_site_option( 'WPLANG' );

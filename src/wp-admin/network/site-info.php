@@ -17,7 +17,7 @@ if ( ! current_user_can( 'manage_sites' ) ) {
 get_current_screen()->add_help_tab( get_site_screen_help_tab_args() );
 get_current_screen()->set_help_sidebar( get_site_screen_help_sidebar_content() );
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
 	wp_die( __( 'Invalid site ID.' ) );
@@ -181,7 +181,7 @@ if ( ! empty( $messages ) ) {
 			<td><input name="blog[last_updated]" type="text" id="blog_last_updated" value="<?php echo esc_attr( $details->last_updated ); ?>" /></td>
 		</tr>
 		<?php
-		$attribute_fields = array( 'public' => __( 'Public' ) );
+		$attribute_fields = array( 'public' => _x( 'Public', 'site' ) );
 		if ( ! $is_main_site ) {
 			$attribute_fields['archived'] = __( 'Archived' );
 			$attribute_fields['spam']     = _x( 'Spam', 'site' );
@@ -202,7 +202,19 @@ if ( ! empty( $messages ) ) {
 			</td>
 		</tr>
 	</table>
-	<?php submit_button(); ?>
+
+	<?php
+	/**
+	 * Fires at the end of the site info form in network admin.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param int $id The site ID.
+	 */
+	do_action( 'network_site_info_form', $id );
+
+	submit_button();
+	?>
 </form>
 
 </div>
