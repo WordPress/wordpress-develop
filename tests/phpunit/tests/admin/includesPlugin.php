@@ -4,6 +4,14 @@
  * @group admin
  */
 class Tests_Admin_includesPlugin extends WP_UnitTestCase {
+	public static function wpSetUpBeforeClass( $factory ) {
+		self::_back_up_mu_plugins();
+	}
+
+	public static function wpTearDownAfterClass() {
+		self::_restore_mu_plugins();
+	}
+
 	function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -377,130 +385,83 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			'list_files_test_plugin/list_files_test_plugin.php',
 			'list_files_test_plugin/subdir/subfile.php',
 		);
-		$this->assertSame( $expected, $plugin_files );
 
 		unlink( $sub_dir . '/subfile.php' );
 		unlink( $plugin[1] );
 		rmdir( $sub_dir );
 		rmdir( $plugin_dir );
+
+		$this->assertSame( $expected, $plugin_files );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_exists_but_is_empty() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
-		$this->assertSame( array(), get_mu_plugins() );
+		$mu_plugins = get_mu_plugins();
 
-		// Clean up.
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_when_mu_plugins_directory_does_not_exist() {
-		$exists = false;
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-			rmdir( WPMU_PLUGIN_DIR );
-		}
-
+		$this->assertFileNotExists( WPMU_PLUGIN_DIR );
 		$this->assertSame( array(), get_mu_plugins() );
-
-		// Clean up.
-		if ( $exists ) {
-			mkdir( WPMU_PLUGIN_DIR );
-			$this->_restore_mu_plugins();
-		}
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_ignore_index_php_containing_silence_is_golden() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Silence is golden.', 'index.php', WPMU_PLUGIN_DIR );
-		$this->assertSame( array(), get_mu_plugins() );
 
-		// Clean up.
+		$mu_plugins = get_mu_plugins();
+
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array(), $mu_plugins );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_not_ignore_index_php_containing_something_other_than_silence_is_golden() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Silence is not golden.', 'index.php', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/index.php' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+		rmdir( WPMU_PLUGIN_DIR );
+
+		$this->assertSame( array( 'index.php' ), array_keys( $found ) );
 	}
 
 	/**
 	 * @covers ::get_mu_plugins
 	 */
 	public function test_get_mu_plugins_should_ignore_files_without_php_extensions() {
-		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
-			$exists = true;
-			$this->_back_up_mu_plugins();
-		} else {
-			$exists = false;
-			mkdir( WPMU_PLUGIN_DIR );
-		}
+		mkdir( WPMU_PLUGIN_DIR );
 
 		$this->_create_plugin( '<?php\n//Test', 'foo.php', WPMU_PLUGIN_DIR );
 		$this->_create_plugin( '<?php\n//Test 2', 'bar.txt', WPMU_PLUGIN_DIR );
 		$found = get_mu_plugins();
-		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 
 		// Clean up.
 		unlink( WPMU_PLUGIN_DIR . '/foo.php' );
 		unlink( WPMU_PLUGIN_DIR . '/bar.txt' );
-		if ( $exists ) {
-			$this->_restore_mu_plugins();
-		} else {
-			rmdir( WPMU_PLUGIN_DIR );
-		}
+
+		$this->assertSame( array( 'foo.php' ), array_keys( $found ) );
 	}
 
 	/**
@@ -659,34 +620,16 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Move existing mu-plugins to wp-content/mu-plugin/backup.
+	 * Move existing mu-plugins to wp-content/mu-plugin-backup.
 	 *
 	 * @since 4.2.0
 	 *
 	 * @access private
 	 */
-	private function _back_up_mu_plugins() {
+	private static function _back_up_mu_plugins() {
 		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
 			$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
-			if ( ! is_dir( $mu_bu_dir ) ) {
-				mkdir( $mu_bu_dir );
-			}
-
-			$files_to_move = array();
-			$mu_plugins    = opendir( WPMU_PLUGIN_DIR );
-			if ( $mu_plugins ) {
-				while ( false !== $plugin = readdir( $mu_plugins ) ) {
-					if ( 0 !== strpos( $plugin, '.' ) ) {
-						$files_to_move[] = $plugin;
-					}
-				}
-			}
-
-			closedir( $mu_plugins );
-
-			foreach ( $files_to_move as $file_to_move ) {
-				$f = rename( WPMU_PLUGIN_DIR . '/' . $file_to_move, $mu_bu_dir . '/' . $file_to_move );
-			}
+			rename( WPMU_PLUGIN_DIR, $mu_bu_dir );
 		}
 	}
 
@@ -697,26 +640,15 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 *
 	 * @access private
 	 */
-	private function _restore_mu_plugins() {
-		$mu_bu_dir     = WP_CONTENT_DIR . '/mu-plugin-backup';
-		$files_to_move = array();
-		$mu_plugins    = @opendir( $mu_bu_dir );
-		if ( $mu_plugins ) {
-			while ( false !== $plugin = readdir( $mu_plugins ) ) {
-				if ( 0 !== strpos( $plugin, '.' ) ) {
-					$files_to_move[] = $plugin;
-				}
-			}
-		}
+	private static function _restore_mu_plugins() {
+		$mu_bu_dir = WP_CONTENT_DIR . '/mu-plugin-backup';
 
-		closedir( $mu_plugins );
-
-		foreach ( $files_to_move as $file_to_move ) {
-			rename( $mu_bu_dir . '/' . $file_to_move, WPMU_PLUGIN_DIR . '/' . $file_to_move );
+		if ( is_dir( WPMU_PLUGIN_DIR ) ) {
+			rmdir( WPMU_PLUGIN_DIR );
 		}
 
 		if ( is_dir( $mu_bu_dir ) ) {
-			rmdir( $mu_bu_dir );
+			rename( $mu_bu_dir, WPMU_PLUGIN_DIR );
 		}
 	}
 
