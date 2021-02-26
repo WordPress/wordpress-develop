@@ -23,7 +23,7 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           ref: ${{ branch }}
 
   php-compatibility:
@@ -37,7 +37,7 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           ref: ${{ branch }}
 
   unit-tests-and-npm-check:
@@ -56,5 +56,5 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
           ref: ${{ branch }}
