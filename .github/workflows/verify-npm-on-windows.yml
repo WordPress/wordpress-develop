@@ -16,6 +16,8 @@ on:
       - '**.css'
       # Changes to workflow files should always verify all workflows still work.
       - '.github/workflows/**.yml'
+      # Always run when a version bump occurs.
+      - 'src/wp-includes/version.php'
   pull_request:
     branches:
       - master
@@ -27,6 +29,7 @@ on:
       - '**.scss'
       - '**.css'
       - '.github/workflows/**.yml'
+      - 'src/wp-includes/version.php'
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}

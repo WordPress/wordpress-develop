@@ -20,6 +20,8 @@ on:
       - '.jshintrc'
       # Changes to workflow files should always verify all workflows still work.
       - '.github/workflows/*.yml'
+      # Always run when a version bump occurs.
+      - 'src/wp-includes/version.php'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
@@ -35,6 +37,7 @@ on:
       - 'composer.*'
       - '.jshintrc'
       - '.github/workflows/*.yml'
+      - 'src/wp-includes/version.php'
 
 jobs:
   # Runs PHP coding standards checks.
