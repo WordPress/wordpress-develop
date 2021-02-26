@@ -450,15 +450,15 @@ function wp_list_authors( $args = '' ) {
 		$query_args['fields'] = 'ids';
 	}
 
-  	/**
- 	 * Filter the found list of authors.
- 	 *
- 	 * @since 5.7.0
- 	 *
- 	 * @param array $authors    Array of WP_User objects for found authors.
- 	 * @param array $query_args User query arguments.
- 	 */ 
- 	$authors = apply_filters( 'wp_list_authors', get_users( $query_args ), $query_args );
+	/**
+	 * Filter the found list of authors.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $authors    Array of WP_User objects for found authors.
+	 * @param array $query_args User query arguments.
+	 */ 
+	$authors = apply_filters( 'wp_list_authors', get_users( $query_args ), $query_args );
 
 	foreach ( $authors as $author_id ) {
 		$posts = isset( $author_count[ $author_id ] ) ? $author_count[ $author_id ] : 0;
