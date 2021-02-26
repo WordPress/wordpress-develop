@@ -6,7 +6,6 @@ on:
     - cron: '0 0 * * *'
 
 env:
-  LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   COMPOSER_INSTALL: ${{ false }}
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
@@ -26,7 +25,6 @@ jobs:
   # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Builds WordPress to run from the `build` directory.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -84,9 +82,6 @@ jobs:
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
-
-      - name: Build WordPress
-        run: npm run build
 
       - name: Docker debug information
         run: |
