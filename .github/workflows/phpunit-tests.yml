@@ -214,14 +214,6 @@ jobs:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
 
-      - name: Set up the Git repository
-        if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
-        run: |
-          git init
-          git remote add origin https://github.com/WordPress/wordpress-develop.git
-          git fetch
-          git reset origin/master
-
       - name: Submit test results to the WordPress.org host test results
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
         env:
