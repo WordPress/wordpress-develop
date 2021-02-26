@@ -1,6 +1,7 @@
 name: Test old branches
 
 on:
+  pull_request:
   pull_request_target:
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
