@@ -44,7 +44,7 @@ jobs:
   test-npm:
     name: Tests NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || ( github.event_name == 'pull_request' && matrix.os != 'macos-latst' ) }}
     needs: prepare-workflow
     strategy:
       matrix:
