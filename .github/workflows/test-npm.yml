@@ -3,24 +3,28 @@ name: Test NPM
 on:
   push:
     paths:
-      # Changes to workflow files should always verify all workflows still work.
-      - '.github/workflows/**.yml'
+      # These files configure NPM.
+      - 'package.json'
+      - 'package-lock.json'
+      # JavaScript files are built using NPM.
       - '**.js'
-      - '**.json'
+      # CSS and SCSS files are built using NPM.
       - '**.scss'
       - '**.css'
+      # Changes to workflow files should always verify all workflows still work.
+      - '.github/workflows/**.yml'
     branches:
       - master
       - '3.[7-9]'
       - '[4-9].[0-9]'
   pull_request:
     paths:
-      # Changes to workflow files should always verify all workflows still work.
-      - '.github/workflows/**.yml'
+      - 'package.json'
+      - 'package-lock.json'
       - '**.js'
-      - '**.json'
       - '**.scss'
       - '**.css'
+      - '.github/workflows/**.yml'
     branches:
       - master
       - '3.[7-9]'
