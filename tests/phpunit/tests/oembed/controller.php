@@ -35,6 +35,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 			)
 		);
 
+		// `get_post_embed_html()` assumes `wp-includes/js/wp-embed.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 

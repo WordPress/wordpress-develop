@@ -13,6 +13,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 	 * @ticket 36525
 	 */
 	public function test_unfiltered_emoji_cdns() {
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
@@ -32,6 +33,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 		add_filter( 'emoji_svg_url', array( $this, '_filtered_emoji_svn_cdn' ) );
 
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 
@@ -54,6 +56,7 @@ class Tests_Formatting_Emoji extends WP_UnitTestCase {
 
 		add_filter( 'emoji_url', array( $this, '_filtered_emoji_png_cdn' ) );
 
+		// `_print_emoji_detection_script()` assumes `wp-includes/js/wp-emoji-loader.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-emoji-loader.js' );
 		$output = get_echo( '_print_emoji_detection_script' );
 

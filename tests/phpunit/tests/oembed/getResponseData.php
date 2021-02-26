@@ -8,6 +8,7 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 	public function setUp() {
 		parent::setUp();
 
+		// `get_post_embed_html()` assumes `wp-includes/js/wp-embed.js` is present:
 		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
