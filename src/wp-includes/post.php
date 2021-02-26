@@ -2626,18 +2626,18 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 function stick_post( $post_id ) {
 	$post_id  = (int) $post_id;
 	$stickies = get_option( 'sticky_posts' );
+	$updated  = false;
 
 	if ( ! is_array( $stickies ) ) {
-		$stickies = array();
+		$stickies = array( $post_id );
+	} else {
+		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}
-
-	$stickies = array_map( 'intval', $stickies );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		$stickies[] = $post_id;
+		$updated    = update_option( 'sticky_posts', array_values( $stickies ) );
 	}
-
-	$updated = update_option( 'sticky_posts', $stickies );
 
 	if ( $updated ) {
 		/**
@@ -2668,7 +2668,7 @@ function unstick_post( $post_id ) {
 		return;
 	}
 
-	$stickies = array_map( 'intval', $stickies );
+	$stickies = array_values( array_unique( array_map( 'intval', $stickies ) ) );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		return;
@@ -6277,6 +6277,8 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
  * @return string|false Attachment URL, otherwise false.
  */
 function wp_get_attachment_url( $attachment_id = 0 ) {
+	global $pagenow;
+
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
@@ -6319,7 +6321,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	}
 
 	// On SSL front end, URLs should be HTTPS.
-	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow ) {
 		$url = set_url_scheme( $url );
 	}
 

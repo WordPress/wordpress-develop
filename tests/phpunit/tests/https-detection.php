@@ -65,14 +65,14 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// If initial request succeeds, all good.
 		add_filter( 'pre_http_request', array( $this, 'mock_success_with_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals( array(), get_option( 'https_detection_errors' ) );
+		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
 
 		// If initial request fails and request without SSL verification succeeds,
 		// return error with 'ssl_verification_failed' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -82,7 +82,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_ssl_certificate' => array( 'Bad SSL certificate.' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -91,7 +91,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// 'bad_response_code' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_not_found' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_response_code' => array( 'Not Found' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -100,13 +100,13 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		// WordPress site, return error with 'bad_response_source' error code.
 		add_filter( 'pre_http_request', array( $this, 'mock_bad_source' ), 10, 2 );
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'bad_response_source' => array( 'It looks like the response did not come from this site.' ) ),
 			get_option( 'https_detection_errors' )
 		);
 
 		// Check that the requests are made to the correct URL.
-		$this->assertEquals( 'https://example.com/', $this->last_request_url );
+		$this->assertSame( 'https://example.com/', $this->last_request_url );
 	}
 
 	/**
@@ -121,7 +121,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 			}
 		);
 		wp_update_https_detection_errors();
-		$this->assertEquals( array(), get_option( 'https_detection_errors' ) );
+		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
 
 		// Override to enforce an error being detected.
 		add_filter(
@@ -134,7 +134,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 			}
 		);
 		wp_update_https_detection_errors();
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
 			get_option( 'https_detection_errors' )
 		);
@@ -145,7 +145,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 	 */
 	public function test_wp_schedule_https_detection() {
 		wp_schedule_https_detection();
-		$this->assertEquals( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
+		$this->assertSame( 'twicedaily', wp_get_schedule( 'wp_https_detection' ) );
 	}
 
 	/**
@@ -157,7 +157,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 			'url'  => 'http://example.com/',
 			'args' => array( 'sslverify' => true ),
 		);
-		$this->assertEquals( $request, wp_cron_conditionally_prevent_sslverify( $request ) );
+		$this->assertSame( $request, wp_cron_conditionally_prevent_sslverify( $request ) );
 
 		// If URL is using HTTPS, set 'sslverify' to false.
 		$request                       = array(
@@ -166,11 +166,12 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		);
 		$expected                      = $request;
 		$expected['args']['sslverify'] = false;
-		$this->assertEquals( $expected, wp_cron_conditionally_prevent_sslverify( $request ) );
+		$this->assertSame( $expected, wp_cron_conditionally_prevent_sslverify( $request ) );
 	}
 
 	/**
 	 * @ticket 47577
+	 * @ticket 52542
 	 */
 	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
@@ -180,6 +181,12 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes modified RSD link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
+
+		// HTML includes RSD link with alternative URL scheme.
+		$head_tag = get_echo( 'rsd_link' );
+		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 

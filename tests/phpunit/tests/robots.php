@@ -29,7 +29,7 @@ class Tests_Robots extends WP_UnitTestCase {
 		// Render robots meta tag with noindex.
 		add_filter( 'wp_robots', array( $this, 'add_noindex_directive' ) );
 		$output = get_echo( 'wp_robots' );
-		$this->assertEquals( "<meta name='robots' content='noindex' />\n", $output );
+		$this->assertSame( "<meta name='robots' content='noindex' />\n", $output );
 
 		// Do not render robots meta tag when there are only false-y directives.
 		add_filter( 'wp_robots', array( $this, 'remove_noindex_directive' ), 11 );
@@ -174,6 +174,28 @@ class Tests_Robots extends WP_UnitTestCase {
 		update_option( 'blog_public', '0' );
 		$output = get_echo( 'wp_robots' );
 		$this->assertEmpty( $output );
+	}
+
+	/**
+	 * @ticket 52457
+	 */
+	public function test_wp_robots_search_page() {
+		add_filter( 'wp_robots', 'wp_robots_noindex_search' );
+		$this->go_to( home_url( '?s=ticket+52457+core.trac.wordpress.org' ) );
+
+		$output = get_echo( 'wp_robots' );
+		$this->assertContains( 'noindex', $output );
+	}
+
+	/**
+	 * @ticket 52457
+	 */
+	public function test_wp_robots_non_search_page() {
+		add_filter( 'wp_robots', 'wp_robots_noindex_search' );
+		$this->go_to( home_url() );
+
+		$output = get_echo( 'wp_robots' );
+		$this->assertNotContains( 'noindex', $output );
 	}
 
 	public function add_noindex_directive( array $robots ) {

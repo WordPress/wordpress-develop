@@ -72,7 +72,7 @@ jQuery( document ).ready( function( $ ) {
 
 		$rowActions.addClass( 'processing' );
 
-		$action.blur();
+		$action.trigger( 'blur' );
 		clearResultsAfterRow( $requestRow );
 		setExportProgress( 0 );
 
@@ -177,7 +177,7 @@ jQuery( document ).ready( function( $ ) {
 
 		$rowActions.addClass( 'processing' );
 
-		$action.blur();
+		$action.trigger( 'blur' );
 		clearResultsAfterRow( $requestRow );
 		setErasureProgress( 0 );
 
@@ -328,7 +328,7 @@ jQuery( document ).ready( function( $ ) {
 	// Label handling to focus the create page button on Privacy settings page.
 	$( 'body.options-privacy-php label[for=create-page]' ).on( 'click', function( e ) {
 		e.preventDefault();
-		$( 'input#create-page' ).focus();
+		$( 'input#create-page' ).trigger( 'focus' );
 	} );
 
 	// Accordion handling in various new Privacy settings pages.
