@@ -7,6 +7,10 @@ on:
       - '3.[7-9]'
       - '[4-9].[0-9]'
   pull_request:
+    branches:
+      - master
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
@@ -61,8 +65,6 @@ jobs:
         with:
           path: ${{ steps.npm-cache.outputs.dir }}
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
