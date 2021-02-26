@@ -18,6 +18,8 @@ on:
       - 'composer.*'
       # Configures JSHint.
       - '.jshintrc'
+      # Configures PHPCS.
+      - 'phpcs.xml.dist'
       # Changes to workflow files should always verify all workflows still work.
       - '.github/workflows/*.yml'
       # Always run when a version bump occurs.
