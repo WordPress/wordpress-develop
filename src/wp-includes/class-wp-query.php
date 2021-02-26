@@ -1931,7 +1931,7 @@ class WP_Query {
 				$fields = "{$wpdb->posts}.ID, {$wpdb->posts}.post_parent";
 				break;
 			case 'count':
-				$fields = "COUNT(*)";
+				$fields = 'COUNT(*)';
 				break;
 			default:
 				$fields = "{$wpdb->posts}.*";
