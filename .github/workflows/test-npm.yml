@@ -3,6 +3,8 @@ name: Test NPM
 on:
   push:
     paths:
+      # Changes to workflow files should always verify all workflows still work.
+      - '.github/workflows/**.yml'
       - '**.js'
       - '**.json'
       - '**.scss'
@@ -13,6 +15,8 @@ on:
       - '[4-9].[0-9]'
   pull_request:
     paths:
+      # Changes to workflow files should always verify all workflows still work.
+      - '.github/workflows/**.yml'
       - '**.js'
       - '**.json'
       - '**.scss'
