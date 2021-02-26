@@ -2,11 +2,21 @@ name: Test NPM
 
 on:
   push:
+    paths:
+      - '**.js'
+      - '**.json'
+      - '**.scss'
+      - '**.css'
     branches:
       - master
       - '3.[7-9]'
       - '[4-9].[0-9]'
   pull_request:
+    paths:
+      - '**.js'
+      - '**.json'
+      - '**.scss'
+      - '**.css'
     branches:
       - master
       - '3.[7-9]'
