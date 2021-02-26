@@ -8,6 +8,18 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP or JavaScript file should run checks.
+      - '**.js'
+      - '**.php'
+      # These files configure NPM, which could affect outcome.
+      - 'package*.json'
+      # These files configure Composer, which could affect outcome.
+      - 'composer.*'
+      # Configures JSHint.
+      - '.jshintrc'
+      # Changes to workflow files should always verify all workflows still work.
+      - '.github/workflows/*.yml'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
@@ -16,6 +28,13 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
+    paths:
+      - '**.js'
+      - '**.php'
+      - 'package*.json'
+      - 'composer.*'
+      - '.jshintrc'
+      - '.github/workflows/*.yml'
 
 jobs:
   # Runs PHP coding standards checks.
