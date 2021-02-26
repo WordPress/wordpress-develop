@@ -19,7 +19,7 @@ on:
       - '.github/workflows/*.yml'
       # Always run when a version bump occurs.
       - 'src/wp-includes/version.php'
-      tags:
+    tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
   pull_request:
