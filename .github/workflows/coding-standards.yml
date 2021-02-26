@@ -38,6 +38,7 @@ on:
       - 'package*.json'
       - 'composer.*'
       - '.jshintrc'
+      - 'phpcs.xml.dist'
       - '.github/workflows/*.yml'
       - 'src/wp-includes/version.php'
 
