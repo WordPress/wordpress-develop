@@ -121,7 +121,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Run JSHint
         run: npm run grunt jshint
