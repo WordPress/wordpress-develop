@@ -439,24 +439,24 @@ function wp_list_authors( $args = '' ) {
 	$query_args['fields'] = 'ids';
 
 	$author_count = array();
-	$rows = $wpdb->get_results( "SELECT DISTINCT post_author, COUNT(ID) AS count FROM $wpdb->posts WHERE post_type = 'post' AND " . get_private_posts_cap_sql( 'post' ) . " GROUP BY post_author" );
+	$rows = $wpdb->get_results( "SELECT DISTINCT post_author, COUNT(ID) AS count FROM $wpdb->posts WHERE post_type = 'post' AND " . get_private_posts_cap_sql( 'post' ) . ' GROUP BY post_author' );
 	foreach ( $rows as $row ) {
 		$author_count[ $row->post_author ] = $row->count;
 	}
-	
+
 	if ( $query_args['hide_empty'] ) {
 		$query_args['include'] = wp_list_pluck( $rows, 'post_author' );
 	} else {
 		$query_args['fields'] = 'ids';
 	}
 
-  	/** 
- 	 * Filter the found list of authors. 
- 	 * 
- 	 * @since 5.7.0 
- 	 * 
- 	 * @param array $authors    Array of WP_User objects for found authors. 
- 	 * @param array $query_args User query arguments. 
+  	/**
+ 	 * Filter the found list of authors.
+ 	 *
+ 	 * @since 5.7.0
+ 	 *
+ 	 * @param array $authors    Array of WP_User objects for found authors.
+ 	 * @param array $query_args User query arguments.
  	 */ 
  	$authors = apply_filters( 'wp_list_authors', get_users( $query_args ), $query_args );
 
