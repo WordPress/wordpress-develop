@@ -6,6 +6,7 @@ on:
       - master
       - '3.[7-9]'
       - '[4-9].[0-9]'
+      - '**'
   pull_request:
     branches:
       - master
@@ -29,7 +30,7 @@ jobs:
   test-npm:
     name: Tests NPM on Windows
     runs-on: windows-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    # if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)

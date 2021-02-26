@@ -7,6 +7,7 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
+      - '**'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
@@ -32,7 +33,7 @@ jobs:
   test-js:
     name: QUnit Tests
     runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    # if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
 
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
