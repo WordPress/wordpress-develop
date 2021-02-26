@@ -71,7 +71,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled

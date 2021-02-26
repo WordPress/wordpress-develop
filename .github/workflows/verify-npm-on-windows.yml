@@ -67,7 +67,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Build WordPress
         run: npm run build
