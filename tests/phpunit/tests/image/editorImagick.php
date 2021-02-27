@@ -14,11 +14,11 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	public $editor_engine = 'WP_Image_Editor_Imagick';
 
 	public function setUp() {
+		parent::setUp();
+
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
-
-		parent::setUp();
 	}
 
 	public function tearDown() {

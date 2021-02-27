@@ -43,6 +43,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	 * Create a custom table to be used in each test.
 	 */
 	public function setUp() {
+		parent::setUp();
 
 		global $wpdb;
 
@@ -78,8 +79,6 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				$this->max_index_length
 			)
 		);
-
-		parent::setUp();
 	}
 
 	/**
