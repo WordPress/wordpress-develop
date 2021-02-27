@@ -22,11 +22,6 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 		$this->queryreplace   = $wp_rewrite->queryreplace;
 	}
 
-	public function tearDown() {
-		global $wp_rewrite;
-		$wp_rewrite = $this->wp_rewrite;
-	}
-
 	public function _invalid_rewrite_tags() {
 		return array(
 			array( 'foo', 'bar' ),

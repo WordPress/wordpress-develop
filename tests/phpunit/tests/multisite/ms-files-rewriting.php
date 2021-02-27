@@ -26,7 +26,6 @@ if ( is_multisite() ) :
 		function tearDown() {
 			global $wpdb;
 
-			update_site_option( 'ms_files_rewriting', 0 );
 			$wpdb->suppress_errors( $this->suppress );
 
 			parent::tearDown();
