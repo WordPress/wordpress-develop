@@ -19,12 +19,12 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		while ( ! empty( $this->registered_block_names ) ) {
 			$block_name = array_pop( $this->registered_block_names );
 			unregister_block_type( $block_name );
 		}
+
+		parent::tearDown();
 	}
 
 	/**

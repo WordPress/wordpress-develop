@@ -157,7 +157,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	 * Resets $_POST, removes the wp_die() override, restores error reporting.
 	 */
 	public function tearDown() {
-		parent::tearDown();
 		$_POST = array();
 		$_GET  = array();
 		unset( $GLOBALS['post'] );
@@ -166,6 +165,7 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 		remove_action( 'clear_auth_cookie', array( $this, 'logout' ) );
 		error_reporting( $this->_error_level );
 		set_current_screen( 'front' );
+		parent::tearDown();
 	}
 
 	/**

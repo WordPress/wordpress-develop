@@ -37,9 +37,9 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->registry = null;
+
+		parent::tearDown();
 	}
 
 	/**
