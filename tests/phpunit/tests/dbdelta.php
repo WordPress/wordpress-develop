@@ -43,8 +43,6 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	 * Create a custom table to be used in each test.
 	 */
 	public function setUp() {
-		parent::setUp();
-
 		global $wpdb;
 
 		$db_version = $wpdb->db_version();
@@ -79,6 +77,10 @@ class Tests_dbDelta extends WP_UnitTestCase {
 				$this->max_index_length
 			)
 		);
+
+		// This has to be called after the `CREATE TABLE` above as the `_create_temporary_tables` filter
+		// causes it to create a temporary table, and a temporary table cannot use a FULLTEXT index.
+		parent::setUp();
 	}
 
 	/**
