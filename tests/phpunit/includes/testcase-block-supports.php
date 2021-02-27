@@ -16,13 +16,6 @@ class Block_Supported_Styles_Test extends WP_UnitTestCase {
 	private $registered_block_names = array();
 
 	/**
-	 * Sets up each test method.
-	 */
-	public function setUp() {
-		parent::setUp();
-	}
-
-	/**
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
