@@ -27,8 +27,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 */
 	function tearDown() {
 		global $current_screen;
-		parent::tearDown();
 		$current_screen = $this->current_screen;
+		parent::tearDown();
 	}
 
 	/**

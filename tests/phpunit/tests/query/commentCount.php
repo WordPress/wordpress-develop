@@ -14,8 +14,8 @@ class Tests_Query_CommentCount extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
 		unset( $this->q );
+		parent::tearDown();
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
