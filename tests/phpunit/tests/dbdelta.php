@@ -43,6 +43,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 	 * Create a custom table to be used in each test.
 	 */
 	public function setUp() {
+
 		global $wpdb;
 
 		$db_version = $wpdb->db_version();

@@ -14,10 +14,11 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	public $editor_engine = 'WP_Image_Editor_GD';
 
 	public function setUp() {
-		parent::setUp();
-
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
+
+		// This needs to come after the mock image editor class is loaded.
+		parent::setUp();
 	}
 
 	public function tearDown() {
