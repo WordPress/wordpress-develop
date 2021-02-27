@@ -116,6 +116,8 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 	);
 
 	public static function setUpBeforeClass() {
+		parent::setUpBeforeClass();
+
 		remove_action( 'admin_init', '_maybe_update_core' );
 		remove_action( 'admin_init', '_maybe_update_plugins' );
 		remove_action( 'admin_init', '_maybe_update_themes' );
@@ -126,8 +128,6 @@ abstract class WP_Ajax_UnitTestCase extends WP_UnitTestCase {
 				add_action( 'wp_ajax_' . $action, 'wp_ajax_' . str_replace( '-', '_', $action ), 1 );
 			}
 		}
-
-		parent::setUpBeforeClass();
 	}
 
 	/**
