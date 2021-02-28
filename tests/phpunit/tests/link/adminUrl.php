@@ -3,7 +3,7 @@
 /**
  * @group link
  */
-class Tests_Link_Admin extends WP_UnitTestCase {
+class Tests_Link_AdminUrl extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37446
