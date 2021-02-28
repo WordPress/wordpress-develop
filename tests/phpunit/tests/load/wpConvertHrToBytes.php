@@ -5,7 +5,7 @@
  *
  * @group load.php
  */
-class Tests_Functions_Convert_Hr_To_Bytes extends WP_UnitTestCase {
+class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 	/**
 	 * Tests converting (PHP ini) byte values to integer byte values.
 	 *
