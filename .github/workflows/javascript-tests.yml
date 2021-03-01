@@ -7,21 +7,6 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
-    paths:
-      # Any change to a JavaScript file should run tests.
-      - '**.js'
-      # These files configure NPM, which could affect test outcome.
-      - 'package.json'
-      - 'package-lock.json'
-      # Any change to the QUnit directory should run tests.
-      - 'tests/qunit/**'
-      # Changes to workflow files should always verify all workflows still work.
-      - '.github/workflows/*.yml'
-      # Always run when a version bump occurs.
-      - 'src/wp-includes/version.php'
-      #  Coding standard changes should trigger tests
-      - '.eslintignore'
-      - '.jshintrc'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
@@ -31,14 +16,18 @@ on:
       - '3.[89]'
       - '[4-9].[0-9]'
     paths:
+      # Any change to a JavaScript file should run tests.
       - '**.js'
+      # These files configure NPM, which could affect test outcome.
       - 'package.json'
       - 'package-lock.json'
-      - 'tests/qunit/**'
-      - '.github/workflows/*.yml'
-      - 'src/wp-includes/version.php'
+      #  Coding standards changes could affect tests.
       - '.eslintignore'
       - '.jshintrc'
+      # Any change to the QUnit directory should run tests.
+      - 'tests/qunit/**'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
 
 jobs:
   # Runs the QUnit tests for WordPress.

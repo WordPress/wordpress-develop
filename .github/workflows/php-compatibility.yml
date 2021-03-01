@@ -7,17 +7,6 @@ on:
       - master
       - '5.[5-9]'
       - '[6-9].[0-9]'
-    paths:
-      # This workflow only scans PHP files.
-      - '**.php'
-      # These files configure Composer.
-      - 'composer.*'
-      # This file configures PHP Compatibility scanning.
-      - 'phpcompat.xml.dist'
-      # Changes to workflow files should always verify all workflows still work.
-      - '.github/workflows/*.yml'
-      # Always run when a version bump occurs.
-      - 'src/wp-includes/version.php'
     tags:
       - '5.[5-9]*'
       - '[6-9].[0-9]*'
@@ -27,11 +16,14 @@ on:
       - '5.[5-9]'
       - '[6-9].[0-9]'
     paths:
+      # This workflow only scans PHP files.
       - '**.php'
+      # These files configure Composer.
       - 'composer.*'
+      # This file configures PHP Compatibility scanning.
       - 'phpcompat.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
-      - 'src/wp-includes/version.php'
 
 jobs:
 

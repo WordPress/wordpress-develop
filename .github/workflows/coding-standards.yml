@@ -8,6 +8,14 @@ on:
       - master
       - '3.[89]'
       - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
+  pull_request:
+    branches:
+      - master
+      - '3.[89]'
+      - '[4-9].[0-9]'
     paths:
       # Any change to a PHP or JavaScript file should run checks.
       - '**.js'
@@ -20,27 +28,8 @@ on:
       - '.jshintrc'
       # Configures PHPCS.
       - 'phpcs.xml.dist'
-      # Changes to workflow files should always verify all workflows still work.
+      # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
-      # Always run when a version bump occurs.
-      - 'src/wp-includes/version.php'
-    tags:
-      - '3.[89]*'
-      - '[4-9].[0-9]*'
-  pull_request:
-    branches:
-      - master
-      - '3.[89]'
-      - '[4-9].[0-9]'
-    paths:
-      - '**.js'
-      - '**.php'
-      - 'package*.json'
-      - 'composer.*'
-      - '.jshintrc'
-      - 'phpcs.xml.dist'
-      - '.github/workflows/*.yml'
-      - 'src/wp-includes/version.php'
 
 jobs:
   # Runs PHP coding standards checks.
