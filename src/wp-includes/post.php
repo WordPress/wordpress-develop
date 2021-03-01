@@ -22,9 +22,7 @@ function create_initial_post_types() {
 		'post',
 		array(
 			'labels'                => array(
-				'name_admin_bar'        => _x( 'Post', 'add new from admin bar' ),
-				'item_link'             => _x( 'Post Link', 'navigation link block title' ),
-				'item_link_description' => _x( 'A link to a post.', 'navigation link block description' ),
+				'name_admin_bar' => _x( 'Post', 'add new from admin bar' ),
 			),
 			'public'                => true,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -48,9 +46,7 @@ function create_initial_post_types() {
 		'page',
 		array(
 			'labels'                => array(
-				'name_admin_bar'        => _x( 'Page', 'add new from admin bar' ),
-				'item_link'             => _x( 'Page Link', 'navigation link block title' ),
-				'item_link_description' => _x( 'A link to a page.', 'navigation link block description' ),
+				'name_admin_bar' => _x( 'Page', 'add new from admin bar' ),
 			),
 			'public'                => true,
 			'publicly_queryable'    => false,
@@ -1707,8 +1703,9 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
- * - `item_link` - Title for a navigation link block variation. Default null/null.
- * - `item_link_description` - Description for a navigation link block variation. Default null/null.
+ * - `item_link` - Title for a navigation link block variation. Default is 'Post Link' / 'Page Link'.
+ * - `item_link_description` - Description for a navigation link block variation. Default is 'A link to a post.' /
+ *                             'A link to a page.'
  *
  * Above, the first default value is for non-hierarchical post types (like posts)
  * and the second one is for hierarchical post types (like pages).
@@ -1732,7 +1729,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @return object Object with all the labels as member variables.
  */
 function get_post_type_labels( $post_type_object ) {
-	$nohier_vs_hier_defaults              = array(
+	$nohier_vs_hier_defaults                  = array(
 		'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 		'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
 		'add_new'                  => array( _x( 'Add New', 'post' ), _x( 'Add New', 'page' ) ),
@@ -1763,35 +1760,41 @@ function get_post_type_labels( $post_type_object ) {
 		'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
 		'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 		'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
-		'item_link'                => array( null, null ),
-		'item_link_description'    => array( null, null ),
+		'item_link'                => array(
+			_x( 'Post Link', 'navigation link block title' ),
+			_x( 'Page Link', 'navigation link block title' ),
+		),
+		'item_link_description'    => array(
+			_x( 'A link to a post.', 'navigation link block description' ),
+			_x( 'A link to a page.', 'navigation link block description' ),
+		),
 	);
-	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
+		$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
-	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
+		$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
 
-	$post_type = $post_type_object->name;
+		$post_type = $post_type_object->name;
 
-	$default_labels = clone $labels;
+		$default_labels = clone $labels;
 
-	/**
-	 * Filters the labels of a specific post type.
-	 *
-	 * The dynamic portion of the hook name, `$post_type`, refers to
-	 * the post type slug.
-	 *
-	 * @since 3.5.0
-	 *
-	 * @see get_post_type_labels() for the full list of labels.
-	 *
-	 * @param object $labels Object with labels for the post type as member variables.
-	 */
-	$labels = apply_filters( "post_type_labels_{$post_type}", $labels );
+		/**
+		 * Filters the labels of a specific post type.
+		 *
+		 * The dynamic portion of the hook name, `$post_type`, refers to
+		 * the post type slug.
+		 *
+		 * @since 3.5.0
+		 *
+		 * @see get_post_type_labels() for the full list of labels.
+		 *
+		 * @param object $labels Object with labels for the post type as member variables.
+		 */
+		$labels = apply_filters( "post_type_labels_{$post_type}", $labels );
 
-	// Ensure that the filtered labels contain all required default values.
-	$labels = (object) array_merge( (array) $default_labels, (array) $labels );
+		// Ensure that the filtered labels contain all required default values.
+		$labels = (object) array_merge( (array) $default_labels, (array) $labels );
 
-	return $labels;
+		return $labels;
 }
 
 /**
