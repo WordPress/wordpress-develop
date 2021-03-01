@@ -135,12 +135,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-subtle-background-color">
 			<figure class="column about__image" id="about-image-comparison">
 				<div class="about__image-comparison no-js">
-					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard using old color scheme.' ); ?>" />
+					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard with old color scheme.' ); ?>" />
 					<div class="about__image-comparison-resize">
-						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard using new color scheme.' ); ?>" />
+						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard with new color scheme.' ); ?>" />
 					</div>
 				</div>
-				<figcaption><?php _e( 'Comparison of the Dashboard before and after the color update.' ); ?></figcaption>
+				<figcaption><?php _e( 'Above, the Dashboard before and after the color update in 5.7.' ); ?></figcaption>
 			</figure>
 		</div>
 
