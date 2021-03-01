@@ -444,7 +444,7 @@ function wp_list_authors( $args = '' ) {
 		$author_count[ $row->post_author ] = $row->count;
 	}
 
-	if ( $query_args['hide_empty'] ) {
+	if ( $args['hide_empty'] ) {
 		$query_args['include'] = wp_list_pluck( $rows, 'post_author' );
 	} else {
 		$query_args['fields'] = 'ids';
