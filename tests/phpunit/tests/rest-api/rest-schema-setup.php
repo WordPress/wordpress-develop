@@ -27,13 +27,12 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
 		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+		parent::tearDown();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {

@@ -16,9 +16,10 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * Set up. Workaround set_current_screen( null ) not working due to $hook_suffix not being set.
 	 */
 	function setUp() {
+		parent::setUp();
+
 		global $current_screen;
 		$this->current_screen = $current_screen;
-		parent::setUp();
 	}
 
 	/**
@@ -26,8 +27,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 */
 	function tearDown() {
 		global $current_screen;
-		parent::tearDown();
 		$current_screen = $this->current_screen;
+		parent::tearDown();
 	}
 
 	/**
