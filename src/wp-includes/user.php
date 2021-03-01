@@ -4388,7 +4388,7 @@ function wp_is_application_passwords_available_for_user( $user ) {
   * }
   * @return null|string The output, if echo is set to false. Otherwise null.
   */
- function wp_list_users( $args = array() ) {
+function wp_list_users( $args = array() ) {
 	$defaults = array(
 		'orderby' => 'name',
 		'order' => 'ASC',
@@ -4419,7 +4419,7 @@ function wp_is_application_passwords_available_for_user( $user ) {
 		if ( $args['exclude_admin'] && 'admin' == $user->display_name ) {
 			continue;
 		}
- 
+
 		if ( $args['show_fullname'] && $user->first_name && $user->last_name ) {
 			$name = "$user->first_name $user->last_name";
 		} else {
@@ -4478,4 +4478,4 @@ function wp_is_application_passwords_available_for_user( $user ) {
 	}
 
 	echo $output;
- }
+}
