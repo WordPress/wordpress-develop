@@ -37,6 +37,8 @@ on:
       - 'tests/qunit/**'
       - '.github/workflows/*.yml'
       - 'src/wp-includes/version.php'
+      - '.eslintignore'
+      - '.jshintrc'
 
 jobs:
   # Runs the QUnit tests for WordPress.
