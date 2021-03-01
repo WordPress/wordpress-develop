@@ -64,8 +64,6 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10 );
-		remove_filter( 'oembed_result', array( $this, 'filter_oembed_result' ), 10 );
 		parent::tearDown();
 	}
 

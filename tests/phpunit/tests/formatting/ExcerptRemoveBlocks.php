@@ -83,7 +83,6 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	function tearDown() {
 		$registry = WP_Block_Type_Registry::get_instance();
 		$registry->unregister( 'core/fake' );
-		wp_delete_post( self::$post_id, true );
 
 		parent::tearDown();
 	}

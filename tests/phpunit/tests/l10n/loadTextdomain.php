@@ -26,13 +26,6 @@ class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
 	}
 
-	public function tearDown() {
-		remove_filter( 'plugin_locale', array( $this, 'store_locale' ) );
-		remove_filter( 'theme_locale', array( $this, 'store_locale' ) );
-
-		parent::tearDown();
-	}
-
 	public function store_locale( $locale ) {
 		$this->locale = $locale;
 
