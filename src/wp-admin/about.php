@@ -133,14 +133,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-subtle-background-color">
-			<div class="column about__image" id="about-image-comparison">
+			<figure class="column about__image" id="about-image-comparison">
 				<div class="about__image-comparison no-js">
-					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" />
+					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard using old color scheme.' ); ?>" />
 					<div class="about__image-comparison-resize">
-						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" />
+						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard using new color scheme.' ); ?>" />
 					</div>
 				</div>
-			</div>
+				<figcaption><?php _e( 'Comparison of the Dashboard before and after the color update.' ); ?></figcaption>
+			</figure>
 		</div>
 
 		<div class="about__section has-2-columns has-subtle-background-color">
@@ -243,6 +244,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <script>
 	wp.domReady( function() {
 		var createElement = wp.element.createElement;
+		var Fragment = wp.element.Fragment;
 		var render = wp.element.render;
 		var useState = wp.element.useState;
 		var ResizableBox = wp.components.ResizableBox;
@@ -256,6 +258,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		var beforeImage = images.item( 0 );
 		var afterImage = images.item( 1 );
+		var caption = container.querySelector( 'figcaption' ).innerText;
 
 		function ImageComparison( props ) {
 			var stateHelper = useState( props.width );
@@ -267,7 +270,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				{
 					className: 'about__image-comparison'
 				},
-				createElement( 'img', { src: beforeImage.src, alt: '' } ),
+				createElement( 'img', { src: beforeImage.src, alt: beforeImage.alt } ),
 				createElement(
 					ResizableBox,
 					{
@@ -292,19 +295,24 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						{
 							style: { width: '100%', height: '100%', overflow: 'hidden' }
 						},
-						createElement('img', { src: afterImage.src, alt: '' } )
+						createElement('img', { src: afterImage.src, alt: afterImage.alt } )
 					)
-				)
+				),
 			);
 		}
 
 		render(
 			createElement(
-				ImageComparison,
-				{
-					width: beforeImage.clientWidth / 2,
-					height: beforeImage.clientHeight
-				}
+				Fragment,
+				{},
+				createElement(
+					ImageComparison,
+					{
+						width: beforeImage.clientWidth / 2,
+						height: beforeImage.clientHeight
+					}
+				),
+				createElement( 'figcaption', {}, caption )
 			),
 			container
 		);

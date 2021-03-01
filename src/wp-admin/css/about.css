@@ -551,6 +551,11 @@
 	height: auto;
 }
 
+.about__container .about__image figcaption {
+	margin-top: 0.5em;
+	text-align: center;
+}
+
 .about__container .about__image .wp-video {
 	margin-left: auto;
 	margin-right: auto;
@@ -559,7 +564,6 @@
 .about__container .about__image-comparison {
 	position: relative;
 	display: inline-block;
-	line-height: 0;
 	max-width: 100%;
 }
 
