@@ -4402,20 +4402,20 @@ function wp_is_application_passwords_available_for_user( $user ) {
 		'style' => 'list',
 		'html' => true,
 		'exclude' => '',
-		'include' => ''
+		'include' => '',
 	);
- 
+
 	$args = wp_parse_args( $args, $defaults );
- 
+
 	$output = '';
- 
+
 	$query_args = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
 	$query_args['fields'] = 'ids';
 	$users = get_users( $query_args );
- 
+
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
- 
+
 		if ( $args['exclude_admin'] && 'admin' == $user->display_name ) {
 			continue;
 		}
@@ -4425,56 +4425,57 @@ function wp_is_application_passwords_available_for_user( $user ) {
 		} else {
 			$name = $user->display_name;
 		}
- 
+
 		if ( ! $args['html'] ) {
 			$output .= $name . ', ';
- 
+
 			continue; // No need to go further to process HTML.
 		}
- 
+
 		if ( 'list' == $args['style'] ) {
 			$output .= '<li>';
 		}
- 
+
 		$row = $name;
- 
+
 		if ( ! empty( $args['feed_image'] ) || ! empty( $args['feed'] ) ) {
 			$row .= ' ';
 			if ( empty( $args['feed_image'] ) ) {
 				$row .= '(';
 			}
- 
+
 			$row .= '<a href="' . get_author_feed_link( $user->ID, $args['feed_type'] ) . '"';
- 
+
 			$alt = '';
 			if ( ! empty( $args['feed'] ) ) {
 				$alt = ' alt="' . esc_attr( $args['feed'] ) . '"';
 				$name = $args['feed'];
 			}
- 
+
 			$row .= '>';
- 
+
 			if ( ! empty( $args['feed_image'] ) ) {
 				$row .= '<img src="' . esc_url( $args['feed_image'] ) . '" style="border: none;"' . $alt . ' />';
 			} else {
 				$row .= $name;
 			}
- 
+
 			$row .= '</a>';
- 
+
 			if ( empty( $args['feed_image'] ) ) {
 				$row .= ')';
 			}
 		}
- 
+
 		$output .= $row;
 		$output .= ( 'list' == $args['style'] ) ? '</li>' : ', ';
 	}
- 
+
 	$output = rtrim( $return, ', ' );
- 
+
 	if ( ! $args['echo'] ) {
 		return $output;
 	}
+
 	echo $output;
  }
