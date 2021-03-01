@@ -297,7 +297,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						},
 						createElement('img', { src: afterImage.src, alt: afterImage.alt } )
 					)
-				),
+				)
 			);
 		}
 
