@@ -284,9 +284,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 						showHandle: true,
 						enable: {
 							top: false,
-							right: true,
+							right: ! wp.i18n.isRTL(),
 							bottom: false,
-							left: false
+							left: wp.i18n.isRTL(),
 						},
 						className: 'about__image-comparison-resize'
 					},
