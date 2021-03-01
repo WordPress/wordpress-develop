@@ -1769,32 +1769,32 @@ function get_post_type_labels( $post_type_object ) {
 			_x( 'A link to a page.', 'navigation link block description' ),
 		),
 	);
-		$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
+	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
-		$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
+	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
 
-		$post_type = $post_type_object->name;
+	$post_type = $post_type_object->name;
 
-		$default_labels = clone $labels;
+	$default_labels = clone $labels;
 
-		/**
-		 * Filters the labels of a specific post type.
-		 *
-		 * The dynamic portion of the hook name, `$post_type`, refers to
-		 * the post type slug.
-		 *
-		 * @since 3.5.0
-		 *
-		 * @see get_post_type_labels() for the full list of labels.
-		 *
-		 * @param object $labels Object with labels for the post type as member variables.
-		 */
-		$labels = apply_filters( "post_type_labels_{$post_type}", $labels );
+	/**
+	 * Filters the labels of a specific post type.
+	 *
+	 * The dynamic portion of the hook name, `$post_type`, refers to
+	 * the post type slug.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @see get_post_type_labels() for the full list of labels.
+	 *
+	 * @param object $labels Object with labels for the post type as member variables.
+	 */
+	$labels = apply_filters( "post_type_labels_{$post_type}", $labels );
 
-		// Ensure that the filtered labels contain all required default values.
-		$labels = (object) array_merge( (array) $default_labels, (array) $labels );
+	// Ensure that the filtered labels contain all required default values.
+	$labels = (object) array_merge( (array) $default_labels, (array) $labels );
 
-		return $labels;
+	return $labels;
 }
 
 /**
