@@ -32,7 +32,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
-			'anonymous'     => get_user_object( 0 ),
+			'anonymous'     => new WP_User( 0 ),
 			'administrator' => $factory->user->create_and_get( array( 'role' => 'administrator' ) ),
 			'editor'        => $factory->user->create_and_get( array( 'role' => 'editor' ) ),
 			'author'        => $factory->user->create_and_get( array( 'role' => 'author' ) ),
