@@ -215,14 +215,14 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 * Test canonical redirect does not reveal private posts presence.
 	 *
 	 * @ticket 5272
-	 * @dataProvider data_canonical_redirects_to_ugly_permalinks
+	 * @dataProvider data_canonical_redirects_to_plain_permalinks
 	 *
 	 * @param string $post_key  Post key used for creating fixtures.
 	 * @param string $user_role User role.
 	 * @param string $requested Requested URL.
 	 * @param string $expected  Expected URL.
 	 */
-	public function test_canonical_redirects_to_ugly_permalinks( $post_key, $user_role, $requested, $expected ) {
+	public function test_canonical_redirects_to_plain_permalinks( $post_key, $user_role, $requested, $expected ) {
 		wp_set_current_user( self::$users[ $user_role ] );
 		$this->set_permalink_structure( '' );
 		$post = self::$posts[ $post_key ];
@@ -239,7 +239,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_canonical_redirects_to_ugly_permalinks.
+	 * Data provider for test_canonical_redirects_to_plain_permalinks.
 	 *
 	 * @return array[] Array of arguments for tests {
 	 *     @type string $post_key  Post key used for creating fixtures.
@@ -248,7 +248,7 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 *     @type string $expected  Expected URL.
 	 * }
 	 */
-	function data_canonical_redirects_to_ugly_permalinks() {
+	function data_canonical_redirects_to_plain_permalinks() {
 		$data              = array();
 		$all_user_list     = array( 'anon', 'subscriber', 'content_author', 'editor' );
 		$select_allow_list = array( 'content_author', 'editor' );
@@ -263,8 +263,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $all_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				/*
-				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
-				 * to a canonical ugly version, these expected values can be changed.
+				 * In the event `redirect_canonical()` is updated to redirect plain permalinks
+				 * to a canonical plain version, these expected values can be changed.
 				 */
 				$data[] = array(
 					"$post_key-page",
@@ -301,8 +301,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $select_user_post_status_keys as $post_key ) {
 			foreach ( $select_allow_list as $user ) {
 				/*
-				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
-				 * to a canonical ugly version, these expected values can be changed.
+				 * In the event `redirect_canonical()` is updated to redirect plain permalinks
+				 * to a canonical plain version, these expected values can be changed.
 				 */
 				$data[] = array(
 					"$post_key-page",
@@ -337,8 +337,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 
 			foreach ( $select_block_list as $user ) {
 				/*
-				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
-				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 * In the event `redirect_canonical()` is updated to redirect plain permalinks
+				 * to a canonical plain version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
 					"$post_key-page",
@@ -375,8 +375,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( $no_user_post_status_keys as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				/*
-				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
-				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 * In the event `redirect_canonical()` is updated to redirect plain permalinks
+				 * to a canonical plain version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
 					"$post_key-page",
@@ -413,8 +413,8 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 		foreach ( array( 'trash' ) as $post_key ) {
 			foreach ( $all_user_list as $user ) {
 				/*
-				 * In the event `redirect_canonical()` is updated to redirect ugly permalinks
-				 * to a canonical ugly version, these expected values MUST NOT be changed.
+				 * In the event `redirect_canonical()` is updated to redirect plain permalinks
+				 * to a canonical plain version, these expected values MUST NOT be changed.
 				 */
 				$data[] = array(
 					"$post_key-page",

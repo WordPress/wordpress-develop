@@ -427,39 +427,149 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "categories": {
-                            "description": "Limit result set to all items that have the specified term assigned in the categories taxonomy.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "default": [],
+                            "description": "Limit result set to items with specific terms assigned in the categories taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        },
+                                        "include_children": {
+                                            "description": "Whether to include child terms in the terms limiting the result set.",
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
                             "required": false
                         },
                         "categories_exclude": {
-                            "description": "Limit result set to all items except those that have the specified term assigned in the categories taxonomy.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "default": [],
+                            "description": "Limit result set to items except those with specific terms assigned in the categories taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        },
+                                        "include_children": {
+                                            "description": "Whether to include child terms in the terms limiting the result set.",
+                                            "type": "boolean",
+                                            "default": false
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
                             "required": false
                         },
                         "tags": {
-                            "description": "Limit result set to all items that have the specified term assigned in the tags taxonomy.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "default": [],
+                            "description": "Limit result set to items with specific terms assigned in the tags taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
                             "required": false
                         },
                         "tags_exclude": {
-                            "description": "Limit result set to all items except those that have the specified term assigned in the tags taxonomy.",
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            },
-                            "default": [],
+                            "description": "Limit result set to items except those with specific terms assigned in the tags taxonomy.",
+                            "type": [
+                                "object",
+                                "array"
+                            ],
+                            "oneOf": [
+                                {
+                                    "title": "Term ID List",
+                                    "description": "Match terms with the listed IDs.",
+                                    "type": "array",
+                                    "items": {
+                                        "type": "integer"
+                                    }
+                                },
+                                {
+                                    "title": "Term ID Taxonomy Query",
+                                    "description": "Perform an advanced term query.",
+                                    "type": "object",
+                                    "properties": {
+                                        "terms": {
+                                            "description": "Term IDs.",
+                                            "type": "array",
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "default": []
+                                        }
+                                    },
+                                    "additionalProperties": false
+                                }
+                            ],
                             "required": false
                         },
                         "sticky": {
@@ -3128,8 +3238,95 @@ mockedApiResponse.Schema = {
                         "POST"
                     ],
                     "args": {
+                        "src": {
+                            "description": "URL to the edited image file.",
+                            "type": "string",
+                            "format": "uri",
+                            "required": true
+                        },
+                        "modifiers": {
+                            "description": "Array of image edits.",
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "description": "Image edit.",
+                                "type": "object",
+                                "required": [
+                                    "type",
+                                    "args"
+                                ],
+                                "oneOf": [
+                                    {
+                                        "title": "Rotation",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Rotation type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "rotate"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Rotation arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "angle"
+                                                ],
+                                                "properties": {
+                                                    "angle": {
+                                                        "description": "Angle to rotate clockwise in degrees.",
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "title": "Crop",
+                                        "properties": {
+                                            "type": {
+                                                "description": "Crop type.",
+                                                "type": "string",
+                                                "enum": [
+                                                    "crop"
+                                                ]
+                                            },
+                                            "args": {
+                                                "description": "Crop arguments.",
+                                                "type": "object",
+                                                "required": [
+                                                    "left",
+                                                    "top",
+                                                    "width",
+                                                    "height"
+                                                ],
+                                                "properties": {
+                                                    "left": {
+                                                        "description": "Horizontal position from the left to begin the crop as a percentage of the image width.",
+                                                        "type": "number"
+                                                    },
+                                                    "top": {
+                                                        "description": "Vertical position from the top to begin the crop as a percentage of the image height.",
+                                                        "type": "number"
+                                                    },
+                                                    "width": {
+                                                        "description": "Width of the crop as a percentage of the image width.",
+                                                        "type": "number"
+                                                    },
+                                                    "height": {
+                                                        "description": "Height of the crop as a percentage of the image height.",
+                                                        "type": "number"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            "required": false
+                        },
                         "rotation": {
-                            "description": "The amount to rotate the image clockwise in degrees.",
+                            "description": "The amount to rotate the image clockwise in degrees. DEPRECATED: Use `modifiers` instead.",
                             "type": "integer",
                             "minimum": 0,
                             "exclusiveMinimum": true,
@@ -3138,38 +3335,32 @@ mockedApiResponse.Schema = {
                             "required": false
                         },
                         "x": {
-                            "description": "As a percentage of the image, the x position to start the crop from.",
+                            "description": "As a percentage of the image, the x position to start the crop from. DEPRECATED: Use `modifiers` instead.",
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
                             "required": false
                         },
                         "y": {
-                            "description": "As a percentage of the image, the y position to start the crop from.",
+                            "description": "As a percentage of the image, the y position to start the crop from. DEPRECATED: Use `modifiers` instead.",
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
                             "required": false
                         },
                         "width": {
-                            "description": "As a percentage of the image, the width to crop the image to.",
+                            "description": "As a percentage of the image, the width to crop the image to. DEPRECATED: Use `modifiers` instead.",
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
                             "required": false
                         },
                         "height": {
-                            "description": "As a percentage of the image, the height to crop the image to.",
+                            "description": "As a percentage of the image, the height to crop the image to. DEPRECATED: Use `modifiers` instead.",
                             "type": "number",
                             "minimum": 0,
                             "maximum": 100,
                             "required": false
-                        },
-                        "src": {
-                            "description": "URL to the edited image file.",
-                            "type": "string",
-                            "format": "uri",
-                            "required": true
                         }
                     }
                 }

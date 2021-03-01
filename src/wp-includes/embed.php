@@ -509,7 +509,8 @@ JS;
  *
  * @param WP_Post|int $post  Post object or ID.
  * @param int         $width The requested width.
- * @return array|false Response data on success, false if post doesn't exist.
+ * @return array|false Response data on success, false if post doesn't exist
+ *                     or is not publicly viewable.
  */
 function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
@@ -519,7 +520,7 @@ function get_oembed_response_data( $post, $width ) {
 		return false;
 	}
 
-	if ( 'publish' !== get_post_status( $post ) ) {
+	if ( ! is_post_publicly_viewable( $post ) ) {
 		return false;
 	}
 
@@ -1242,24 +1243,4 @@ function wp_filter_pre_oembed_result( $result, $url, $args ) {
 	}
 
 	return $result;
-}
-
-/**
- * Adds noindex to the robots meta tag for embeds.
- *
- * Typical usage is as a {@see 'wp_robots'} callback:
- *
- *     add_filter( 'wp_robots', 'wp_embed_no_robots' );
- *
- * @since 5.7.0
- *
- * @param array $robots Associative array of robots directives.
- * @return array Filtered robots directives.
- */
-function wp_embed_no_robots( array $robots ) {
-	if ( ! is_embed() ) {
-		return $robots;
-	}
-
-	return wp_robots_no_robots( $robots );
 }

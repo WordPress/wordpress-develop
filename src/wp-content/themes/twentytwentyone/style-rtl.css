@@ -317,7 +317,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
 	--widget--spacing-menu: calc(0.66 * var(--global--spacing-unit));
 
 	/* Admin-bar height */
-	--global--admin-bar--height: 0;
+	--global--admin-bar--height: 0px;
 }
 
 .admin-bar {
@@ -1564,9 +1564,9 @@ fieldset input[type=checkbox] + label {
 }
 
 img {
-	display: block;
 	height: auto;
 	max-width: 100%;
+	vertical-align: middle;
 }
 
 /* Classic editor images */
@@ -1660,9 +1660,14 @@ a:hover {
 	background: rgba(255, 255, 255, 0.9);
 }
 
-.is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button),
+.is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
+	background: var(--global--color-black);
+	color: var(--global--color-white);
+	text-decoration: none;
+}
+
 .is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) .meta-nav {
-	color: var(--wp--style--color--link, var(--global--color-background));
+	color: var(--wp--style--color--link, var(--global--color-white));
 }
 
 .has-background-white .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
@@ -1684,6 +1689,10 @@ a:hover {
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).skip-link:focus {
 	color: #21759b;
 	background-color: #f1f1f1;
+}
+
+.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).custom-logo-link {
+	background: none;
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) img {
@@ -1714,7 +1723,6 @@ input[type=reset],
 	border: var(--button--border-width) solid transparent;
 	border-radius: var(--button--border-radius);
 	cursor: pointer;
-	display: block;
 	font-weight: var(--button--font-weight);
 	font-family: var(--button--font-family);
 	font-size: var(--button--font-size);
@@ -1905,7 +1913,6 @@ input[type=reset]:disabled,
 
 .wp-block-code code {
 	color: var(--global--color-primary);
-	font-size: var(--global--font-size-xs);
 	white-space: pre;
 	overflow-x: auto;
 	display: block;
@@ -2366,12 +2373,6 @@ h6,
 	margin-top: 0;
 }
 
-img {
-	height: auto;
-	max-width: 100%;
-	vertical-align: middle;
-}
-
 .wp-block-image.is-style-twentytwentyone-border img,
 .wp-block-image.is-style-twentytwentyone-image-frame img {
 	border: calc(3 * var(--separator--height)) solid var(--global--color-border);
@@ -2683,8 +2684,16 @@ ul {
 	list-style-type: disc;
 }
 
+ul ul {
+	list-style-type: circle;
+}
+
 ol {
 	list-style-type: decimal;
+}
+
+ol ul {
+	list-style-type: circle;
 }
 
 dt {
@@ -2853,7 +2862,7 @@ dd {
 }
 
 p {
-	line-height: var(--wp--typography--line-height, --global--line-height-body);
+	line-height: var(--wp--typography--line-height, var(--global--line-height-body));
 }
 
 p.has-background {
@@ -3402,7 +3411,8 @@ hr.wp-block-separator.is-style-dots:before {
 	color: var(--global--color-primary);
 }
 
-.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link {
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link,
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
 	background: none;
 }
 
@@ -3805,15 +3815,6 @@ table.wp-calendar-table caption {
 	font-family: var(--branding--description--font-family);
 	font-size: var(--branding--description--font-size);
 	line-height: 1.4;
-}
-
-a.custom-logo-link {
-	text-decoration: none;
-}
-
-.has-background-white a.custom-logo-link:focus,
-.is-dark-theme a.custom-logo-link:focus {
-	background: none;
 }
 
 .site-title > a {
@@ -4444,7 +4445,7 @@ h1.page-title {
 	margin: 0;
 }
 
-.comment-content a {
+.comment-content {
 	word-wrap: break-word;
 }
 

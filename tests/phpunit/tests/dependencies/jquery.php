@@ -6,6 +6,9 @@
  */
 class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
+	/**
+	 * @covers WP_Scripts::query
+	 */
 	function test_location_of_jquery() {
 		$scripts = new WP_Scripts;
 		wp_default_scripts( $scripts );
@@ -36,17 +39,12 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		}
 	}
 
-	function test_presence_of_jquery_no_conflict() {
-		$contents   = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
-		$noconflict = 'jQuery.noConflict();';
-		$end        = substr( $contents, - strlen( $noconflict ) );
-		$this->assertSame( $noconflict, $end );
-	}
-
 	/**
 	 * @ticket 22896
 	 *
 	 * @expectedIncorrectUsage wp_deregister_script
+	 *
+	 * @covers ::wp_script_is
 	 */
 	function test_dont_allow_deregister_core_scripts_in_admin() {
 		set_current_screen( 'edit.php' );
@@ -90,6 +88,8 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28404
+	 *
+	 * @covers ::wp_script_is
 	 */
 	function test_wp_script_is_dep_enqueued() {
 		wp_enqueue_script( 'jquery-ui-accordion' );
@@ -104,6 +104,8 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 	 * Test placing of jQuery in footer.
 	 *
 	 * @ticket 25247
+	 *
+	 * @covers WP_Scripts::do_items
 	 */
 	function test_jquery_in_footer() {
 		$scripts = new WP_Scripts;

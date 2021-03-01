@@ -3,6 +3,7 @@
 /**
  * @group date
  * @group datetime
+ * @covers ::mysql2date
  */
 class Tests_Date_mysql2date extends WP_UnitTestCase {
 

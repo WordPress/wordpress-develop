@@ -1943,6 +1943,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
 
 	foreach ( $object_ids as $object_id ) {
+		if ( ! isset( $default ) ) {
+			wp_remove_object_terms( $object_id, $term, $taxonomy );
+			continue;
+		}
+
 		$terms = wp_get_object_terms(
 			$object_id,
 			$taxonomy,
@@ -1951,6 +1956,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 				'orderby' => 'none',
 			)
 		);
+
 		if ( 1 === count( $terms ) && isset( $default ) ) {
 			$terms = array( $default );
 		} else {
@@ -1959,6 +1965,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 				$terms = array_merge( $terms, array( $default ) );
 			}
 		}
+
 		$terms = array_map( 'intval', $terms );
 		wp_set_object_terms( $object_id, $terms, $taxonomy );
 	}
@@ -3891,17 +3898,30 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
 	}
 
+	$post_statuses = array( 'publish' );
+
+	/**
+	 * Filters the post statuses for updating the term count.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string[]    $post_statuses List of post statuses to include in the count. Default is 'publish'.
+	 * @param WP_Taxonomy $taxonomy      Current taxonomy object.
+	 */
+	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
+
 	foreach ( (array) $terms as $term ) {
 		$count = 0;
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status = 'publish' OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) = 'publish' ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
 		}
 
 		if ( $object_types ) {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
 		}
 
 		/** This action is documented in wp-includes/taxonomy.php */

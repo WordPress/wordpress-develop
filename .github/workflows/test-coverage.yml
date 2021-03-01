@@ -6,7 +6,6 @@ on:
     - cron: '0 0 * * *'
 
 env:
-  LOCAL_DIR: build
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   COMPOSER_INSTALL: ${{ false }}
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
@@ -26,7 +25,6 @@ jobs:
   # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
-  # - Builds WordPress to run from the `build` directory.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
   # - Logs debug general information.
@@ -69,7 +67,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: 14
 
@@ -81,14 +79,9 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
-
-      - name: Build WordPress
-        run: npm run build
+        run: npm ci
 
       - name: Docker debug information
         run: |

@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
+class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	protected $locale;
 	protected static $user_id;
 

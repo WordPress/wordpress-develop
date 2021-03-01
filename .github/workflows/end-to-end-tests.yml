@@ -1,13 +1,20 @@
 name: End-to-end Tests
 
 on:
+  # The end to end test suite was introduced in WordPress 5.3.
   push:
     branches:
       - master
-      # The end to end test suite was introduced in WordPress 5.3.
       - '5.[3-9]'
-      - '[6-9].*'
+      - '[6-9].[0-9]'
+    tags:
+      - '5.[3-9]*'
+      - '[6-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '5.[3-9]'
+      - '[6-9].[0-9]'
 
 env:
   LOCAL_DIR: build
@@ -20,7 +27,7 @@ jobs:
   # - Set environment variables.
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches).
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
@@ -39,7 +46,7 @@ jobs:
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.8.0
         with:
           access_token: ${{ github.token }}
 
@@ -63,7 +70,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: 14
 
@@ -75,11 +82,9 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Build WordPress
         run: npm run build

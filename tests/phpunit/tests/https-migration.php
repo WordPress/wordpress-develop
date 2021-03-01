@@ -61,11 +61,11 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 		// Replaces URLs, including its encoded variant.
 		add_filter( 'wp_should_replace_insecure_home_url', '__return_true' );
-		$this->assertEquals( $https_content, wp_replace_insecure_home_url( $http_content ) );
+		$this->assertSame( $https_content, wp_replace_insecure_home_url( $http_content ) );
 
 		// Does not replace anything if determined as unnecessary.
 		add_filter( 'wp_should_replace_insecure_home_url', '__return_false' );
-		$this->assertEquals( $http_content, wp_replace_insecure_home_url( $http_content ) );
+		$this->assertSame( $http_content, wp_replace_insecure_home_url( $http_content ) );
 	}
 
 	/**
@@ -86,8 +86,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 
 		// Update URLs to HTTPS (successfully).
 		$this->assertTrue( wp_update_urls_to_https() );
-		$this->assertEquals( $https_url, get_option( 'home' ) );
-		$this->assertEquals( $https_url, get_option( 'siteurl' ) );
+		$this->assertSame( $https_url, get_option( 'home' ) );
+		$this->assertSame( $https_url, get_option( 'siteurl' ) );
 
 		// Switch options back to use HTTP URLs, but now add filter to
 		// force option value which will make the update irrelevant.
@@ -98,8 +98,8 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		// Update URLs to HTTPS. While the update technically succeeds, it does not take effect due to the enforced
 		// option. Therefore the change is expected to be reverted.
 		$this->assertFalse( wp_update_urls_to_https() );
-		$this->assertEquals( $http_url, get_option( 'home' ) );
-		$this->assertEquals( $http_url, get_option( 'siteurl' ) );
+		$this->assertSame( $http_url, get_option( 'home' ) );
+		$this->assertSame( $http_url, get_option( 'siteurl' ) );
 	}
 
 	/**
@@ -109,7 +109,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		// Changing HTTP to HTTPS on a site with content should result in flag being set, requiring migration.
 		update_option( 'fresh_site', '0' );
 		wp_update_https_migration_required( 'http://example.org', 'https://example.org' );
-		$this->assertEquals( '1', get_option( 'https_migration_required' ) );
+		$this->assertTrue( get_option( 'https_migration_required' ) );
 
 		// Changing another part than the scheme should delete/reset the flag because changing those parts (e.g. the
 		// domain) can have further implications.
@@ -119,7 +119,7 @@ class Tests_HTTPS_Migration extends WP_UnitTestCase {
 		// Changing HTTP to HTTPS on a site without content should result in flag being set, but not requiring migration.
 		update_option( 'fresh_site', '1' );
 		wp_update_https_migration_required( 'http://example.org', 'https://example.org' );
-		$this->assertEquals( '', get_option( 'https_migration_required' ) );
+		$this->assertFalse( get_option( 'https_migration_required' ) );
 
 		// Changing (back) from HTTPS to HTTP should delete/reset the flag.
 		wp_update_https_migration_required( 'https://example.org', 'http://example.org' );

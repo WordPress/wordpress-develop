@@ -193,10 +193,8 @@ $styles = array(
 	),
 );
 
-/* translators: Use this to specify the CSS font family for the default font. */
-$locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
-$styles[]           = array(
-	'css' => "body { font-family: '$locale_font_family' }",
+$styles[] = array(
+	'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
 );
 
 if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {

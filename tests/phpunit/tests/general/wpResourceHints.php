@@ -1,10 +1,12 @@
 <?php
 
 /**
+ * @group general
  * @group template
  * @ticket 34292
+ * @covers ::wp_resource_hints
  */
-class Tests_WP_Resource_Hints extends WP_UnitTestCase {
+class Tests_General_wpResourceHints extends WP_UnitTestCase {
 	private $old_wp_scripts;
 	private $old_wp_styles;
 
@@ -181,7 +183,10 @@ class Tests_WP_Resource_Hints extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	function test_dns_prefetch_scripts_does_not_included_registered_only() {
+	/**
+	 * @ticket 37385
+	 */
+	function test_dns_prefetch_scripts_does_not_include_registered_only() {
 		$expected   = "<link rel='dns-prefetch' href='//s.w.org' />\n";
 		$unexpected = "<link rel='dns-prefetch' href='//wordpress.org' />\n";
 
@@ -244,7 +249,7 @@ class Tests_WP_Resource_Hints extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group 38121
+	 * @ticket 38121
 	 */
 	function test_custom_attributes() {
 		$expected = "<link rel='dns-prefetch' href='//s.w.org' />\n" .

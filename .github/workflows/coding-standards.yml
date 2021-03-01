@@ -1,13 +1,21 @@
 name: Coding Standards
 
 on:
+  # JSHint was introduced in WordPress 3.8.
+  # PHPCS checking was introduced in WordPress 5.1.
   push:
     branches:
       - master
-      # PHPCS checking was introduced in WordPress 5.1.
-      - '5.[1-9]'
-      - '[6-9].*'
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '3.[89]'
+      - '[4-9].[0-9]'
 
 jobs:
   # Runs PHP coding standards checks.
@@ -64,10 +72,12 @@ jobs:
 
   # Runs the JavaScript coding standards checks.
   #
+  # JSHint violations are not currently reported inline with annotations.
+  #
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
@@ -92,7 +102,7 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: 14
 
@@ -104,8 +114,6 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Log debug information
         run: |
@@ -113,7 +121,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Run JSHint
         run: npm run grunt jshint

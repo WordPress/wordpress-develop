@@ -114,8 +114,17 @@ switch ( $wp_list_table->current_action() ) {
 		$editable_roles = get_editable_roles();
 		$role           = $_REQUEST['new_role'];
 
+		// Mocking the `none` role so we are able to save it to the database
+		$editable_roles['none'] = array(
+			'name' => __( '&mdash; No role for this site &mdash;' ),
+		);
+
 		if ( ! $role || empty( $editable_roles[ $role ] ) ) {
 			wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
+		}
+
+		if ( 'none' === $role ) {
+			$role = '';
 		}
 
 		$userids = $_REQUEST['users'];
@@ -211,7 +220,7 @@ switch ( $wp_list_table->current_action() ) {
 	case 'resetpassword':
 		check_admin_referer( 'bulk-users' );
 		if ( ! current_user_can( 'edit_users' ) ) {
-			$errors = new WP_Error( 'edit_users', __( 'You can&#8217;t edit users.' ) );
+			$errors = new WP_Error( 'edit_users', __( 'Sorry, you are not allowed to edit users.' ) );
 		}
 		if ( empty( $_REQUEST['users'] ) ) {
 			wp_redirect( $redirect );
@@ -223,7 +232,7 @@ switch ( $wp_list_table->current_action() ) {
 
 		foreach ( $userids as $id ) {
 			if ( ! current_user_can( 'edit_user', $id ) ) {
-				wp_die( __( 'You can&#8217;t edit that user.' ) );
+				wp_die( __( 'Sorry, you are not allowed to edit this user.' ) );
 			}
 
 			if ( $id === $current_user->ID ) {
@@ -552,9 +561,9 @@ switch ( $wp_list_table->current_action() ) {
 						$message = __( 'Password reset link sent.' );
 					} else {
 						/* translators: %s: Number of users. */
-						$message = sprintf( __( 'Password reset links sent to %s users.' ), $reset_count );
+						$message = _n( 'Password reset links sent to %s user.', 'Password reset links sent to %s users.', $reset_count );
 					}
-					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . $message . '</p></div>';
+					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . sprintf( $message, number_format_i18n( $reset_count ) ) . '</p></div>';
 					break;
 				case 'promote':
 					$messages[] = '<div id="message" class="updated notice is-dismissible"><p>' . __( 'Changed roles.' ) . '</p></div>';

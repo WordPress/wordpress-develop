@@ -2071,7 +2071,9 @@ fieldset input[type=checkbox] + label {
 }
 
 img {
-	display: block;
+	height: auto;
+	max-width: 100%;
+	vertical-align: middle;
 }
 
 /* Classic editor images */
@@ -2190,11 +2192,13 @@ a:hover {
 }
 
 .is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
-	color: #d1e4dd;
+	background: #000;
+	color: #fff;
+	text-decoration: none;
 }
 
 .is-dark-theme .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) .meta-nav {
-	color: #d1e4dd;
+	color: #fff;
 }
 
 .has-background-white .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) {
@@ -2216,6 +2220,10 @@ a:hover {
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).skip-link:focus {
 	color: #21759b;
 	background-color: #f1f1f1;
+}
+
+.site a:focus:not(.wp-block-button__link):not(.wp-block-file__button).custom-logo-link {
+	background: none;
 }
 
 .site a:focus:not(.wp-block-button__link):not(.wp-block-file__button) img {
@@ -2243,7 +2251,6 @@ a:hover {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2256,7 +2263,6 @@ button {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2269,7 +2275,6 @@ input[type=submit] {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2282,7 +2287,6 @@ input[type=reset] {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2295,7 +2299,6 @@ input[type=reset] {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2308,7 +2311,6 @@ input[type=reset] {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2321,7 +2323,6 @@ input[type=reset] {
 	border: 3px solid transparent;
 	border-radius: 0;
 	cursor: pointer;
-	display: block;
 	font-weight: 500;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.25rem;
@@ -2648,7 +2649,6 @@ input[type=reset]:disabled {
 
 .wp-block-code code {
 	color: #28303d;
-	font-size: 1rem;
 	white-space: pre;
 	overflow-x: auto;
 	display: block;
@@ -3488,12 +3488,6 @@ h6 {
 	margin-top: 0;
 }
 
-img {
-	height: auto;
-	max-width: 100%;
-	vertical-align: middle;
-}
-
 .wp-block-image.is-style-twentytwentyone-border img {
 	border: 3px solid #28303d;
 }
@@ -3831,8 +3825,16 @@ ul {
 	list-style-type: disc;
 }
 
+ul ul {
+	list-style-type: circle;
+}
+
 ol {
 	list-style-type: decimal;
+}
+
+ol ul {
+	list-style-type: circle;
 }
 
 dt {
@@ -4015,7 +4017,7 @@ dd {
 }
 
 p {
-	line-height: --global--line-height-body;
+	line-height: 1.7;
 }
 
 p.has-background {
@@ -4774,7 +4776,8 @@ hr.wp-block-separator.is-style-dots:before {
 	color: #28303d;
 }
 
-.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link {
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color .wp-social-link,
+.wp-block-social-links.is-style-twentytwentyone-social-icons-color.has-icon-background-color.has-icon-background-color .wp-social-link {
 	background: none;
 }
 
@@ -5400,15 +5403,6 @@ table.wp-calendar-table caption {
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 	font-size: 1.125rem;
 	line-height: 1.4;
-}
-
-a.custom-logo-link {
-	text-decoration: none;
-}
-
-.has-background-white a.custom-logo-link:focus,
-.is-dark-theme a.custom-logo-link:focus {
-	background: none;
 }
 
 .site-title > a {
@@ -6182,7 +6176,7 @@ h1.page-title {
 	margin: 0;
 }
 
-.comment-content a {
+.comment-content {
 	word-wrap: break-word;
 }
 
