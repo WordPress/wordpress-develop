@@ -19,6 +19,9 @@ on:
       - '.github/workflows/*.yml'
       # Always run when a version bump occurs.
       - 'src/wp-includes/version.php'
+      #  Coding standard changes should trigger tests
+      - '.eslintignore'
+      - '.jshintrc'
     tags:
       - '3.[89]*'
       - '[4-9].[0-9]*'
