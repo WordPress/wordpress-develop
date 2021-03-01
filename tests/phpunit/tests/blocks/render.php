@@ -38,8 +38,6 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	 * @since 5.0.0
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->test_block_instance_number = 0;
 
 		$registry = WP_Block_Type_Registry::get_instance();
@@ -49,6 +47,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		if ( $registry->is_registered( 'core/dynamic' ) ) {
 			$registry->unregister( 'core/dynamic' );
 		}
+
+		parent::tearDown();
 	}
 
 	/**
