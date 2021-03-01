@@ -589,6 +589,7 @@
 
 .about__container .about__image-comparison.no-js .about__image-comparison-resize {
 	overflow: hidden;
+	border-right: 2px solid #007cba;
 	border-right: 2px solid var(--wp-admin-theme-color);
 }
 
