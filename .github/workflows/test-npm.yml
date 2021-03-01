@@ -45,7 +45,7 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   test-npm:
-    name: Tests NPM on ${{ matrix.os }}
+    name: Test NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: prepare-workflow
@@ -119,7 +119,7 @@ jobs:
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
   test-npm-macos:
-    name: Tests NPM on MacOS
+    name: Test NPM on MacOS
     runs-on: macos-latest
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     needs: prepare-workflow
