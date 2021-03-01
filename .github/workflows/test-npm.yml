@@ -106,6 +106,8 @@ jobs:
 
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
+  # This is a separate job in order to that more strict conditions can be used.
+  #
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
