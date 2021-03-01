@@ -788,12 +788,17 @@ function author_can( $post, $capability, ...$args ) {
  * @return bool Whether the user has the given capability.
  */
 function user_can( $user, $capability, ...$args ) {
-	if ( ! is_object( $user ) ) {
-		$user = get_user_object( $user );
+	if (
+		! is_object( $user ) &&
+		0 !== $user // Bypass DB lookup for logged out users.
+	) {
+		$user = get_userdata( $user );
 	}
 
 	if ( empty( $user ) ) {
-		return false;
+		// User is logged out, create anonymous user object.
+		$user = new WP_User( 0 );
+		$user->init( new stdClass );
 	}
 
 	return $user->has_cap( $capability, ...$args );
