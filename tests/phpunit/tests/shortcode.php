@@ -744,9 +744,22 @@ EOF;
 		return data_whole_posts();
 	}
 
+	/**
+	 * @ticket 34191
+	 */
 	function test_php_and_js_shortcode_attribute_regexes_match() {
+		$file_src   = ABSPATH . 'js/_enqueues/wp/shortcode.js';
+		$file_build = ABSPATH . 'wp-includes/js/shortcode.js';
 
-		$file    = file_get_contents( ABSPATH . 'js/_enqueues/wp/shortcode.js' );
+		$this->assertTrue( file_exists( $file_src ) || file_exists( $file_build ) );
+
+		$path = $file_src;
+
+		if ( file_exists( $file_build ) ) {
+			$path = $file_build;
+		}
+
+		$file    = file_get_contents( $path );
 		$matched = preg_match( '|\s+pattern = (\/.+\/)g;|', $file, $matches );
 		$php     = get_shortcode_atts_regex();
 
