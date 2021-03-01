@@ -788,10 +788,7 @@ function author_can( $post, $capability, ...$args ) {
  * @return bool Whether the user has the given capability.
  */
 function user_can( $user, $capability, ...$args ) {
-	if (
-		! is_object( $user ) &&
-		0 !== $user // Bypass DB lookup for logged out users.
-	) {
+	if ( ! is_object( $user ) ) {
 		$user = get_userdata( $user );
 	}
 
