@@ -78,6 +78,7 @@ class WP_Http_Curl {
 			'body'        => null,
 			'cookies'     => array(),
 			'decompress'  => false,
+			'filename'    => '',
 		);
 
 		$parsed_args = wp_parse_args( $args, $defaults );
