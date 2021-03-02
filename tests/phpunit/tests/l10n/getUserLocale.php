@@ -21,7 +21,6 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		delete_user_meta( $this->user_id, 'locale' );
 		set_current_screen( 'front' );
 
 		parent::tearDown();

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
   # Once weekly On Sundays at 00:00 UTC.
@@ -39,9 +41,7 @@ jobs:
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.8.0
-        with:
-          access_token: ${{ github.token }}
+        uses: styfle/cancel-workflow-action@3d86a7cc43670094ac248017207be0295edbc31d
 
   # Runs the PHPUnit tests for WordPress.
   #
