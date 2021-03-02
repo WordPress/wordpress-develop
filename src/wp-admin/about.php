@@ -93,7 +93,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column about__image">
 				<video controls>
-					<source src="https://make.wordpress.org/core/files/2021/02/about-57-drag-drop-image.mp4" type="video/mp4" />
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.mp4" type="video/mp4" />
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.mp4" type="video/webm" />
 				</video>
 			</div>
 		</div>
@@ -115,12 +116,12 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 				<p>
 					<?php
-					_e( '<strong>Social Icons block:</strong> you can now change the size of the icons in the Social Icons block.' );
+					_e( '<strong>Social Icons block:</strong> you can now change the size of the icons.' );
 					?>
 				</p>
 			</div>
 			<div class="column about__image">
-				<img src="https://make.wordpress.org/core/files/2021/02/about-57-cover-1.jpg" alt="" />
+				<img src="https://s.w.org/images/core/5.7/about-57-cover.jpg" alt="" />
 			</div>
 		</div>
 
@@ -135,9 +136,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-subtle-background-color">
 			<figure class="column about__image" id="about-image-comparison">
 				<div class="about__image-comparison no-js">
-					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard with old color scheme.' ); ?>" />
+					<img src="https://s.w.org/images/core/5.7/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard with old color scheme.' ); ?>" />
 					<div class="about__image-comparison-resize">
-						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard with new color scheme.' ); ?>" />
+						<img src="https://s.w.org/images/core/5.7/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard with new color scheme.' ); ?>" />
 					</div>
 				</div>
 				<figcaption><?php _e( 'Above, the Dashboard before and after the color update in 5.7.' ); ?></figcaption>
@@ -197,14 +198,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'New Robots API' ); ?></h3>
 				<p>
 					<?php
-					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the directive <code>max-image-preview: large</code> by default. That means search engines can show bigger image previews (unless the blog is marked as not public), which can boost your traffic.' )
-					?>
+					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the <code>max-image-preview: large</code> directive by default. That means search engines can show bigger image previews, which can boost your traffic*.'); ?>
 				</p>
+				<p><?php _e( '* (unless the site is marked <em>not-public</em>).' ); ?></p>
 			</div>
 			<div class="column">
 				<h3><?php _e( 'Ongoing cleanup after update to jQuery 3.5.1' ); ?></h3>
 				<p><?php _e( 'For years jQuery helped make things move on the screen in ways the basic tools couldn’t—but that keeps changing, and so does jQuery.' ); ?></p>
-				<p><?php _e( 'One side effect: it generated a set of cryptic messages on the dashboard that informed only developers. In 5.7, you will get far fewer of those messages, and they will be in plain language.' ); ?></p>
+				<p><?php _e( 'In 5.7, jQuery gets more focused and less intrusive, with fewer messages in the console.' ); ?></p>
 				<h3><?php _e( 'Lazy-load your iframes' ); ?></h3>
 				<p><?php _e( 'Now it’s simple to let iframes lazy-load. Just add the <code>loading="lazy"</code> attribute to iframe tags on the front end.' ); ?></p>
 			</div>
