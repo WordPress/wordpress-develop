@@ -63,9 +63,8 @@ jobs:
 #        ]
     steps:
       - name: Dispatch workflow run
-        run: |
-          curl -u ":$TOKEN" \
-          -X POST \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/desrosj/wordpress-develop/actions/workflows/${{ matrix.workflow }}/dispatches \
-          -d '{ "ref": "${{ matrix.branch }}" }'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{ matrix.workflow }}
+          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          ref: ${{ matrix.branch }}
