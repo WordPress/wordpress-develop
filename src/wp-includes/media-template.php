@@ -404,6 +404,7 @@ function wp_print_media_templates() {
 			</div>
 		</div>
 		<div class="attachment-info">
+			<div class="upload-errors"></div>
 			<span class="settings-save-status" role="status">
 				<span class="spinner"></span>
 				<span class="saved"><?php esc_html_e( 'Saved.' ); ?></span>

@@ -140,6 +140,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 * @return {void}
 	 */
 	announceError: _.debounce( function( view, error ) {
+		this.sidebar.set( 'errors', new wp.media.view.AttachmentQueryError( {
+			message: error
+		} ), { at: 0 } );
+
 		wp.a11y.speak( error );
 	}, 200 ),
 
