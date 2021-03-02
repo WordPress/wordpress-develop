@@ -135,11 +135,11 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 	 *
 	 * @since x.x.x
 	 *
-	 * @param {object} browser The current object.
+	 * @param {object} view  The current view.
 	 * @param {string} error The error message.
 	 * @return {void}
 	 */
-	announceError: _.debounce( function( browser, error ) {
+	announceError: _.debounce( function( view, error ) {
 		wp.a11y.speak( error );
 	}, 200 ),
 
@@ -424,7 +424,7 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 					noItemsView.$el.addClass( 'hidden' );
 				}
 				view.toolbar.get( 'spinner' ).hide();
-			} ).fail( function( error ) {
+			} ).fail( function() {
 				view.toolbar.get( 'spinner' ).hide();
 			} );
 		} else {
