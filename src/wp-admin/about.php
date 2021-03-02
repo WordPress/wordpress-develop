@@ -116,7 +116,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 				<p>
 					<?php
-					_e( '<strong>Social Icons block:</strong> you can now change the size of the icons.' );
+					_e( '<strong>Social Icons block:</strong> now you can change the size of the icons.' );
 					?>
 				</p>
 			</div>
