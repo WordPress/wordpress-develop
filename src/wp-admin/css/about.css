@@ -112,6 +112,11 @@
 	color: var(--text-light);
 }
 
+.about__container .has-accent-background-color a {
+	color: #fff;
+	color: var(--text-light);
+}
+
 .about__container .has-transparent-background-color {
 	background-color: transparent;
 }
