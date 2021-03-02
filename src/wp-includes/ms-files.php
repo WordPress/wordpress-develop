@@ -45,11 +45,17 @@ if ( $mime['type'] ) {
 header( 'Content-Type: ' . $mimetype ); // Always send this.
 
 // Optional support for X-Sendfile and X-Accel-Redirect.
-if ( WPMU_ACCEL_REDIRECT ) {
-	header( 'X-Accel-Redirect: ' . str_replace( WP_CONTENT_DIR, '', $file ) );
-	exit;
-} elseif ( WPMU_SENDFILE ) {
-	header( 'X-Sendfile: ' . $file );
+if ( WPMU_ACCEL_REDIRECT || WPMU_SENDFILE ) {
+	if ( false === strpos( $_SERVER['SERVER_SOFTWARE'], 'Microsoft-IIS' ) ) {
+		header( 'Content-Length: ' . $size );
+	}
+
+	if ( WPMU_ACCEL_REDIRECT ) {
+		header( 'X-Accel-Redirect: ' . str_replace( WP_CONTENT_DIR, '', $file ) );
+	} elseif ( WPMU_SENDFILE ) {
+		header( 'X-Sendfile: ' . $file );
+	}
+
 	exit;
 }
 
