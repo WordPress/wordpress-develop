@@ -198,9 +198,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'New Robots API' ); ?></h3>
 				<p>
 					<?php
-					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the <code>max-image-preview: large</code> directive by default. That means search engines can show bigger image previews, which can boost your traffic*.'); ?>
+					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the <code>max-image-preview: large</code> directive by default. That means search engines can show bigger image previews, which can boost your traffic (unless the site is marked <em>not-public</em>).' );
+					?>
 				</p>
-				<p><?php _e( '* (unless the site is marked <em>not-public</em>).' ); ?></p>
 			</div>
 			<div class="column">
 				<h3><?php _e( 'Ongoing cleanup after update to jQuery 3.5.1' ); ?></h3>
