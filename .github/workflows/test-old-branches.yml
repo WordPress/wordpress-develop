@@ -57,7 +57,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workflow: [ 'php-compatibility.yml' ]
+        workflow: [ 'PHP Compatibility' ]
         branch: [ '5.5-test' ]
     #        branch: [ '5.7', '5.6', '5.5-test' ]
     steps:
@@ -74,7 +74,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workflow: [ 'PHPUnit Tests', 'Test NPM on Windows' ]
+        workflow: [ 'phpunit-tests.yml', 'verify-npm-on-windows.yml' ]
         branch: [ '5.5-test' ]
     #        branch: [
     #           '5.7', '5.6', '5.5-test', '5.4', '5.3', '5.2', '5.1', '5.0',
