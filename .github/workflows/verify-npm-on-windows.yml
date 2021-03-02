@@ -4,11 +4,13 @@ on:
   push:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
   pull_request:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
 

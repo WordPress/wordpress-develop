@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
     tags:
@@ -13,6 +14,7 @@ on:
   pull_request:
     branches:
       - master
+      - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
 
