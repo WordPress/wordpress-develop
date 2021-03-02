@@ -17,6 +17,19 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
+    paths:
+      # Any change to a JavaScript file should run tests.
+      - '**.js'
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # This file configures ESLint. Changes could affect the outcome.
+      - '.eslintignore'
+      # This file configures JSHint. Changes could affect the outcome.
+      - '.jshintrc'
+      # Any change to the QUnit directory should run tests.
+      - 'tests/qunit/**'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
 
 jobs:
   # Runs the QUnit tests for WordPress.

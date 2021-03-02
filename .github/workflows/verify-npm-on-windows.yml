@@ -13,6 +13,16 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+    paths:
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # JavaScript files are built using NPM.
+      - '**.js'
+      # CSS and SCSS files are built using NPM.
+      - '**.scss'
+      - '**.css'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/**.yml'
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}

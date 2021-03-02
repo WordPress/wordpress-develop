@@ -18,6 +18,20 @@ on:
       - trunk
       - '3.[89]'
       - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP or JavaScript file should run checks.
+      - '**.js'
+      - '**.php'
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures JSHint. Changes could affect the outcome.
+      - '.jshintrc'
+      # This file configures PHPCS. Changes could affect the outcome.
+      - 'phpcs.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
 
 jobs:
   # Runs PHP coding standards checks.
