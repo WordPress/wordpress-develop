@@ -330,6 +330,13 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 
 			// Used for the search results.
 			attachments.trigger( 'attachments:received', this );
+		} ).fail( function( error ) {
+			if ( this === attachments.mirroring ) {
+				deferred.resolveWith( this );
+			}
+
+			// Used for the error display.
+			attachments.trigger( 'attachments:errored', this, error );
 		});
 
 		return deferred.promise();

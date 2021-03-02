@@ -116,6 +116,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 			if ( _.isEmpty( resp ) || -1 === this.args.posts_per_page || resp.length < this.args.posts_per_page ) {
 				query._hasMore = false;
 			}
+		} ).fail( function( error ) {
+			query._hasMore = false;
 		});
 	},
 	/**

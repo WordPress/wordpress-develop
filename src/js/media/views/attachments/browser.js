@@ -94,6 +94,9 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 		// The non-cached or cached attachments query has completed.
 		this.collection.on( 'attachments:received', this.announceSearchResults, this );
+
+		// The attachments query has errored.
+		this.collection.on( 'attachments:errored', this.announceError, this );
 	},
 
 	/**
@@ -123,6 +126,21 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 
 			wp.a11y.speak( l10n.mediaFound.replace( '%d', count ) );
 		}
+	}, 200 ),
+
+	/**
+	 * Updates the `wp.a11y.speak()` ARIA live region with a message to communicate
+	 * an error when fetching attachments. This function is debounced because the
+	 * collection updates multiple times.
+	 *
+	 * @since x.x.x
+	 *
+	 * @param {object} browser The current object.
+	 * @param {string} error The error message.
+	 * @return {void}
+	 */
+	announceError: _.debounce( function( browser, error ) {
+		wp.a11y.speak( error );
 	}, 200 ),
 
 	editSelection: function( modal ) {
@@ -405,6 +423,8 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 				} else {
 					noItemsView.$el.addClass( 'hidden' );
 				}
+				view.toolbar.get( 'spinner' ).hide();
+			} ).fail( function( error ) {
 				view.toolbar.get( 'spinner' ).hide();
 			} );
 		} else {
