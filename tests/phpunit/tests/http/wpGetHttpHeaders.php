@@ -2,8 +2,9 @@
 
 /**
  * @group http
+ * @covers ::wp_get_http_headers
  */
-class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
+class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 
 	/**
 	 * Set up the environment
@@ -13,16 +14,6 @@ class Tests_HTTP_GetHttpHeaders extends WP_UnitTestCase {
 
 		// Hook a fake HTTP request response.
 		add_filter( 'pre_http_request', array( $this, 'fake_http_request' ), 10, 3 );
-	}
-
-	/**
-	 * Clean up environment
-	 */
-	public function tearDown() {
-		parent::tearDown();
-
-		// Clear the hook for the fake HTTP request response.
-		remove_filter( 'pre_http_request', array( $this, 'fake_http_request' ) );
 	}
 
 	/**

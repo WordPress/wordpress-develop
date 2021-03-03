@@ -541,7 +541,7 @@ window.autosave = function() {
 					lastCompareString = getCompareString( postData );
 
 					if ( $( '#title' ).val() !== postData.post_title ) {
-						$( '#title' ).focus().val( postData.post_title || '' );
+						$( '#title' ).trigger( 'focus' ).val( postData.post_title || '' );
 					}
 
 					$( '#excerpt' ).val( postData.excerpt || '' );
@@ -560,8 +560,8 @@ window.autosave = function() {
 					} else {
 
 						// Make sure the Text editor is selected.
-						$( '#content-html' ).click();
-						$( '#content' ).focus();
+						$( '#content-html' ).trigger( 'click' );
+						$( '#content' ).trigger( 'focus' );
 
 						// Using document.execCommand() will let the user undo.
 						document.execCommand( 'selectAll' );
@@ -710,7 +710,7 @@ window.autosave = function() {
 						var editor = window.tinymce.get( field );
 
 						if ( ! editor || editor.isHidden() ) {
-							if ( $( '#' + field ).val() !== initialCompareData[ field ] ) {
+							if ( ( $( '#' + field ).val() || '' ) !== initialCompareData[ field ] ) {
 								changed = true;
 								// Break.
 								return false;
@@ -721,7 +721,7 @@ window.autosave = function() {
 						}
 					} );
 
-					if ( $( '#title' ).val() !== initialCompareData.post_title ) {
+					if ( ( $( '#title' ).val() || '' ) !== initialCompareData.post_title ) {
 						changed = true;
 					}
 

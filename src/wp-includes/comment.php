@@ -1922,6 +1922,8 @@ function wp_get_current_commenter() {
  * Used to allow the commenter to see their pending comment.
  *
  * @since 5.1.0
+ * @since 5.7.0 The window within which the author email for an unapproved comment
+ *              can be retrieved was extended to 10 minutes.
  *
  * @return string The unapproved comment author's email (when supplied).
  */
@@ -1933,8 +1935,8 @@ function wp_get_unapproved_comment_author_email() {
 		$comment    = get_comment( $comment_id );
 
 		if ( $comment && hash_equals( $_GET['moderation-hash'], wp_hash( $comment->comment_date_gmt ) ) ) {
-			// The comment will only be viewable by the comment author for 1 minute.
-			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+1 minute' );
+			// The comment will only be viewable by the comment author for 10 minutes.
+			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+10 minutes' );
 
 			if ( time() < $comment_preview_expires ) {
 				$commenter_email = $comment->comment_author_email;
@@ -2346,114 +2348,6 @@ function wp_new_comment_notify_postauthor( $comment_ID ) {
 	}
 
 	return wp_notify_postauthor( $comment_ID );
-}
-
-/**
- * Notifies the comment author when their comment gets approved.
- *
- * This notification is only sent once when the comment status
- * changes from unapproved to approved.
- *
- * @since 5.7.0
- *
- * @param int|WP_Comment $comment_id Comment ID or WP_Comment object.
- * @return bool Whether the email was sent.
- */
-function wp_new_comment_notify_comment_author( $comment_id ) {
-	$comment = get_comment( $comment_id );
-
-	if ( ! $comment ) {
-		return false;
-	}
-
-	$post = get_post( $comment->comment_post_ID );
-
-	if ( ! $post ) {
-		return false;
-	}
-
-	// Make sure the comment author can be notified by email.
-	if ( empty( $comment->comment_author_email ) ) {
-		return false;
-	}
-
-	if ( ! get_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin', true ) ) {
-		return false;
-	}
-
-	/**
-	 * The blogname option is escaped with esc_html when
-	 * saved into the database, we need to reverse this for
-	 * the plain text area of the email.
-	 */
-	$blogname = wp_specialchars_decode( get_option( 'blogname' ), ENT_QUOTES );
-
-	$subject = sprintf(
-		/* translators: 1: Blog name, 2: Post title. */
-		__( '[%1$s] Your comment on "%2$s" has been approved' ),
-		$blogname,
-		$post->post_title
-	);
-
-	if ( ! empty( $comment->comment_author ) ) {
-		$notify_message = sprintf(
-			/* translators: %s: Comment author's name. */
-			__( 'Howdy %s,' ),
-			$comment->comment_author
-		) . "\r\n\r\n";
-	} else {
-		$notify_message = __( 'Howdy,' ) . "\r\n\r\n";
-	}
-
-	$notify_message .= sprintf(
-		/* translators: %s: Post title. */
-		__( 'Your comment on "%s" has been approved.' ),
-		$post->post_title
-	) . "\r\n\r\n";
-
-	$notify_message .= sprintf(
-		/* translators: %s: Comment permalink. */
-		__( 'View comment: %s' ),
-		get_comment_link( $comment )
-	) . "\r\n";
-
-	$email = array(
-		'to'      => $comment->comment_author_email,
-		'subject' => $subject,
-		'message' => $notify_message,
-		'headers' => '',
-	);
-
-	/**
-	 * Filters the contents of the email sent to notify a comment author that their comment was approved.
-	 *
-	 * Content should be formatted for transmission via wp_mail().
-	 *
-	 * @since 5.7.0
-	 *
-	 * @param array      $email   {
-	 *     Used to build wp_mail().
-	 *
-	 *     @type string $to      The email address of the comment author.
-	 *     @type string $subject The subject of the email.
-	 *     @type string $message The content of the email.
-	 *     @type string $headers Headers.
-	 * }
-	 * @param WP_Comment $comment Comment object.
-	 */
-	$email = apply_filters( 'comment_approval_notification', $email, $comment );
-
-	$sent = wp_mail(
-		$email['to'],
-		wp_specialchars_decode( $email['subject'] ),
-		$email['message'],
-		$email['headers']
-	);
-
-	// Delete the opt-in now the notification has been sent.
-	delete_comment_meta( $comment->comment_ID, '_wp_comment_author_notification_optin' );
-
-	return $sent;
 }
 
 /**

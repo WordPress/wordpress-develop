@@ -30,11 +30,9 @@ class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->old_slug_redirect_url = null;
 
-		remove_filter( 'old_slug_redirect_url', array( $this, 'filter_old_slug_redirect_url' ), 10 );
+		parent::tearDown();
 	}
 
 	public function test_old_slug_redirect() {

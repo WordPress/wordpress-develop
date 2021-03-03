@@ -41,9 +41,9 @@ get_current_screen()->add_help_tab(
 );
 
 $privacy_policy_guide = '<p>' . sprintf(
-	/* translators: 1: URL to Privacy Policy Guide screen. */
-	__( 'If you are not sure, check the plugin documentation or contact the plugin author to see if the plugin collects data and if it supports the Data Eraser tool. This information may be available in the <a href="%1$s">Privacy Policy Guide</a>.' ),
-	admin_url( 'privacy-policy-guide.php' )
+	/* translators: %s: URL to Privacy Policy Guide screen. */
+	__( 'If you are not sure, check the plugin documentation or contact the plugin author to see if the plugin collects data and if it supports the Data Eraser tool. This information may be available in the <a href="%s">Privacy Policy Guide</a>.' ),
+	admin_url( 'options-privacy.php?tab=policyguide' )
 ) . '</p>';
 
 get_current_screen()->add_help_tab(
@@ -52,7 +52,7 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Plugin Data' ),
 		'content' =>
 					'<p>' . __( 'Many plugins may collect or store personal data either in the WordPress database or remotely. Any Erase Personal Data request should delete data from plugins as well.' ) . '</p>' .
-					'<p>' . __( 'Plugin authors can <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/" target=_blank"> learn more about how to add support for the Personal Data Eraser to a plugin here</a>.' ) . '</p>' .
+					'<p>' . __( 'Plugin authors can <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/" target="_blank">learn more about how to add support for the Personal Data Eraser to a plugin here</a>.' ) . '</p>' .
 					$privacy_policy_guide,
 	)
 );

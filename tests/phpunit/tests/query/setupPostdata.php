@@ -11,20 +11,6 @@ class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 
 	protected $pages_global;
 
-	public function setUp() {
-		parent::setUp();
-		return;
-
-		foreach ( $this->global_keys as $global_key ) {
-			if ( isset( $GLOBALS[ $global_key ] ) ) {
-				$this->global_data[ $global_key ] = $GLOBALS[ $global_key ];
-				unset( $GLOBALS[ $global_key ] );
-			} else {
-				$this->global_data[ $global_key ] = null;
-			}
-		}
-	}
-
 	public function test_id() {
 		$p = self::factory()->post->create_and_get();
 		setup_postdata( $p );

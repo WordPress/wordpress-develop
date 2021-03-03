@@ -1199,7 +1199,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 
 		$this->assertCount( 1, $data );
-		$this->assertEquals( $post_ids[0], $data[0]['id'] );
+		$this->assertSame( $post_ids[0], $data[0]['id'] );
 	}
 
 	/**
@@ -5088,13 +5088,10 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	}
 
 	public function tearDown() {
-		_unregister_post_type( 'private-post' );
-		_unregister_post_type( 'youseeme' );
 		if ( isset( $this->attachment_id ) ) {
 			$this->remove_added_uploads();
 		}
-		remove_filter( 'rest_pre_dispatch', array( $this, 'wpSetUpBeforeRequest' ), 10, 3 );
-		remove_filter( 'posts_clauses', array( $this, 'save_posts_clauses' ), 10, 2 );
+
 		parent::tearDown();
 	}
 
