@@ -26,7 +26,7 @@
  * @return string Nav menu item start element.
  */
 function twenty_twenty_one_add_sub_menu_toggle( $output, $item, $depth, $args ) {
-	if ( 0 === $depth && in_array( 'menu-item-has-children', $item->classes, true ) ) {
+	if ( isset( $args->theme_location ) && 'primary' === $args->theme_location && 0 === $depth && in_array( 'menu-item-has-children', $item->classes, true ) ) {
 
 		// Add toggle button.
 		$output .= '<button class="sub-menu-toggle" aria-expanded="false" onClick="twentytwentyoneExpandSubMenu(this)">';
