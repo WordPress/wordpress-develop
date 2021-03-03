@@ -43,10 +43,10 @@ class Tests_Auth extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		// Cleanup all the global state.
 		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
+
+		parent::tearDown();
 	}
 
 	function test_auth_cookie_valid() {
@@ -468,7 +468,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			wp_validate_application_password( null ),
 			'Application passwords should be allowed for API authentication'
 		);
-		$this->assertEquals( $item['uuid'], rest_get_authenticated_app_password() );
+		$this->assertSame( $item['uuid'], rest_get_authenticated_app_password() );
 	}
 
 	/**

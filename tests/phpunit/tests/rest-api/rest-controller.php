@@ -53,10 +53,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
+
+		parent::tearDown();
 	}
 
 	public function test_validate_schema_type_integer() {

@@ -751,7 +751,9 @@ function get_extended( $post ) {
  *
  * @global WP_Post $post Global post object.
  *
- * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post   Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey
+ *                                 values return the current global post inside the loop. A numerically valid post
+ *                                 ID that points to a non-existent post returns `null`. Defaults to global $post.
  * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                 correspond to a WP_Post object, an associative array, or a numeric array,
  *                                 respectively. Default OBJECT.
@@ -2083,10 +2085,18 @@ function is_post_publicly_viewable( $post = null ) {
 /**
  * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
+ * For more information on the accepted arguments, see the
+ * {@link https://developer.wordpress.org/reference/classes/wp_query/
+ * WP_Query} documentation in the Developer Handbook.
+ *
+ * The `$ignore_sticky_posts` and `$no_found_rows` arguments are ignored by
+ * this function and both are set to `true`.
+ *
  * The defaults are as follows:
  *
  * @since 1.2.0
  *
+ * @see WP_Query
  * @see WP_Query::parse_query()
  *
  * @param array $args {
@@ -2616,18 +2626,18 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 function stick_post( $post_id ) {
 	$post_id  = (int) $post_id;
 	$stickies = get_option( 'sticky_posts' );
+	$updated  = false;
 
 	if ( ! is_array( $stickies ) ) {
-		$stickies = array();
+		$stickies = array( $post_id );
+	} else {
+		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}
-
-	$stickies = array_map( 'intval', $stickies );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		$stickies[] = $post_id;
+		$updated    = update_option( 'sticky_posts', array_values( $stickies ) );
 	}
-
-	$updated = update_option( 'sticky_posts', $stickies );
 
 	if ( $updated ) {
 		/**
@@ -2658,7 +2668,7 @@ function unstick_post( $post_id ) {
 		return;
 	}
 
-	$stickies = array_map( 'intval', $stickies );
+	$stickies = array_values( array_unique( array_map( 'intval', $stickies ) ) );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		return;
@@ -6267,6 +6277,8 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
  * @return string|false Attachment URL, otherwise false.
  */
 function wp_get_attachment_url( $attachment_id = 0 ) {
+	global $pagenow;
+
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
@@ -6309,7 +6321,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	}
 
 	// On SSL front end, URLs should be HTTPS.
-	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow ) {
 		$url = set_url_scheme( $url );
 	}
 

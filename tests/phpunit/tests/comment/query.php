@@ -13,10 +13,6 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::$post_id = $factory->post->create();
 	}
 
-	function setUp() {
-		parent::setUp();
-	}
-
 	public function test_query() {
 		$c1 = self::factory()->comment->create(
 			array(

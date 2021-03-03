@@ -1,13 +1,31 @@
 name: PHP Compatibility
 
 on:
+  # PHP compatibility testing was introduced in WordPress 5.5.
   push:
     branches:
       - master
-      # The PHP compatibility testing was introduced in WordPress 5.5.
+      - trunk
       - '5.[5-9]'
-      - '[6-9].*'
+      - '[6-9].[0-9]'
+    tags:
+      - '5.[5-9]*'
+      - '[6-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - trunk
+      - '5.[5-9]'
+      - '[6-9].[0-9]'
+    paths:
+      # This workflow only scans PHP files.
+      - '**.php'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      - 'phpcompat.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
 
 jobs:
 
