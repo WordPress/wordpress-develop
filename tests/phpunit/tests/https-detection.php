@@ -56,6 +56,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 * @ticket 52484
 	 */
 	public function test_wp_update_https_detection_errors() {
 		// Set HTTP URL, the request below should use its HTTPS version.
@@ -68,22 +69,22 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
 
 		// If initial request fails and request without SSL verification succeeds,
-		// return error with 'ssl_verification_failed' error code.
+		// return 'ssl_verification_failed' error.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
+			array( 'ssl_verification_failed' => array( __( 'SSL verification failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 
 		// If both initial request and request without SSL verification fail,
-		// return actual error from request.
+		// return 'https_request_failed' error.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'bad_ssl_certificate' => array( 'Bad SSL certificate.' ) ),
+			array( 'https_request_failed' => array( __( 'HTTPS request failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 

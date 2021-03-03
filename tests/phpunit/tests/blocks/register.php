@@ -58,8 +58,6 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * @since 5.0.0
 	 */
 	function tearDown() {
-		parent::tearDown();
-
 		$registry = WP_Block_Type_Registry::get_instance();
 
 		foreach ( array( 'core/test-static', 'core/test-dynamic', 'tests/notice' ) as $block_name ) {
@@ -67,6 +65,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 				$registry->unregister( $block_name );
 			}
 		}
+
+		parent::tearDown();
 	}
 
 	/**

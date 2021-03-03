@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+      - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
@@ -13,8 +14,18 @@ on:
   pull_request:
     branches:
       - master
+      - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
+    paths:
+      # This workflow only scans PHP files.
+      - '**.php'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      - 'phpcompat.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
   workflow_dispatch:
 
 jobs:

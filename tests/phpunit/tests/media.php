@@ -280,6 +280,8 @@ CAP;
 
 	/**
 	 * @ticket 23776
+	 *
+	 * @group external-http
 	 */
 	function test_autoembed_no_paragraphs_around_urls() {
 		global $wp_embed;
@@ -1280,6 +1282,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_multiline_comment_with_embeds() {
 		$content = <<<EOF
@@ -1323,6 +1327,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_oembed_explicit_media_link() {
 		global $wp_embed;
