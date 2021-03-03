@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        workflow: [ 'Coding Standards', 'JavaScript Tests' ]
+        workflow: [ 'coding-standards.yml', 'javascript-tests.yml' ]
         branch: [ '5.5-test' ]
 #        branch: [
 #            '5.7', '5.6', '5.5-test', '5.4', '5.3', '5.2', '5.1', '5.0',
@@ -23,11 +23,16 @@ jobs:
 #        ]
     steps:
       - name: Dispatch workflow run
-        uses: benc-uk/workflow-dispatch@v1
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
         with:
-          workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ matrix.branch }}
+          github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          script: |
+            github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: '${{ matrix.workflow }}',
+              ref: '${{ matrix.branch }}'
+            });
 
   php-compatibility:
     name: PHP Compatibility for ${{ matrix.branch }}
@@ -41,32 +46,17 @@ jobs:
         branch: [ '5.5-test' ]
     #        branch: [ '5.7', '5.6', '5.5-test' ]
     steps:
-      - name: Dispatch workflow run (manually with cURL)
-        run: |
-          curl -u ":$TOKEN" \
-          -X POST \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/desrosj/wordpress-develop/actions/workflows/${{ matrix.workflow }}/dispatches \
-          -d '{ "ref": "${{ matrix.branch }}" }'
-
-  php-compatibility-fails:
-    name: (fails) PHP Compatibility for ${{ matrix.branch }}
-    runs-on: ubuntu-latest
-    env:
-      TOKEN: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-    strategy:
-      fail-fast: false
-      matrix:
-        workflow: [ 'PHP Compatibility' ]
-        branch: [ '5.5-test' ]
-    #        branch: [ '5.7', '5.6', '5.5-test' ]
-    steps:
       - name: Dispatch workflow run
-        uses: benc-uk/workflow-dispatch@v1
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
         with:
-          workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ matrix.branch }}
+          github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          script: |
+            github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: '${{ matrix.workflow }}',
+              ref: '${{ matrix.branch }}'
+            });
 
   unit-tests-and-npm-check:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
@@ -82,32 +72,14 @@ jobs:
     #           '3.9', '3.8', '3.7'
     #        ]
     steps:
-      - name: Dispatch workflow run (manually with cURL)
-        run: |
-          curl -u ":$TOKEN" \
-          -X POST \
-          -H "Accept: application/vnd.github.v3+json" \
-          https://api.github.com/repos/desrosj/wordpress-develop/actions/workflows/${{ matrix.workflow }}/dispatches \
-          -d '{ "ref": "${{ matrix.branch }}" }'
-
-  unit-tests-and-npm-check-fails:
-    name: (PHPUnit only fails) ${{ matrix.workflow }} for ${{ matrix.branch }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        workflow: [ 'PHPUnit Tests', 'Test NPM on Windows' ]
-        branch: [ '5.5-test' ]
-    #        branch: [
-    #           '5.7', '5.6', '5.5-test', '5.4', '5.3', '5.2', '5.1', '5.0',
-    #           '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
-    #           '3.9', '3.8', '3.7'
-    #        ]
-    steps:
       - name: Dispatch workflow run
-        uses: benc-uk/workflow-dispatch@v1
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
         with:
-          workflow: ${{ matrix.workflow }}
-          token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
-          ref: ${{ matrix.branch }}
-
+          github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          script: |
+            github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: '${{ matrix.workflow }}',
+              ref: '${{ matrix.branch }}'
+            });
