@@ -1,11 +1,9 @@
 name: Test old branches
 
 on:
-  pull_request:
-  pull_request_target:
-  # Once weekly On Sundays at 00:00 UTC.
+  # Once weekly On Mondays at 00:00 UTC.
   schedule:
-    - cron: '0 0 * * 0'
+    - cron: '0 0 * * 1'
 
 jobs:
   coding-standards-and-js-tests:
@@ -15,12 +13,11 @@ jobs:
       fail-fast: false
       matrix:
         workflow: [ 'coding-standards.yml', 'javascript-tests.yml' ]
-        branch: [ '5.5-test' ]
-#        branch: [
-#            '5.7', '5.6', '5.5-test', '5.4', '5.3', '5.2', '5.1', '5.0',
-#            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
-#            '3.9', '3.8'
-#        ]
+        branch: [
+            '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
+            '3.9', '3.8'
+        ]
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
@@ -43,8 +40,7 @@ jobs:
       fail-fast: false
       matrix:
         workflow: [ 'php-compatibility.yml' ]
-        branch: [ '5.5-test' ]
-    #        branch: [ '5.7', '5.6', '5.5-test' ]
+        branch: [ '5.7', '5.6', '5.5' ]
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
@@ -65,12 +61,32 @@ jobs:
       fail-fast: false
       matrix:
         workflow: [ 'phpunit-tests.yml', 'verify-npm-on-windows.yml' ]
-        branch: [ '5.5-test' ]
-    #        branch: [
-    #           '5.7', '5.6', '5.5-test', '5.4', '5.3', '5.2', '5.1', '5.0',
-    #           '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
-    #           '3.9', '3.8', '3.7'
-    #        ]
+        branch: [
+           '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+           '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
+           '3.9', '3.8', '3.7'
+        ]
+    steps:
+      - name: Dispatch workflow run
+        uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
+        with:
+          github-token: ${{ secrets.GHA_OLD_BRANCH_DISPATCH }}
+          script: |
+            github.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: '${{ matrix.workflow }}',
+              ref: '${{ matrix.branch }}'
+            });
+
+  end-to-end-tests:
+    name: E2E tests for ${{ matrix.branch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workflow: [ 'end-to-end-tests.yml' ]
+        branch: [ '5.7' ]
     steps:
       - name: Dispatch workflow run
         uses: actions/github-script@47f7cf65b5ced0830a325f705cad64f2f58dddf7 # v3.1.0
