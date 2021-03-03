@@ -679,7 +679,7 @@ function map_meta_cap( $cap, $user_id, ...$args ) {
  * @since 2.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
- * @since 5.7.0 Converted to wrapper for the user_can() function.
+ * @since 5.8.0 Converted to wrapper for the user_can() function.
  *
  * @see WP_User::has_cap()
  * @see map_meta_cap()
@@ -709,7 +709,7 @@ function current_user_can( $capability, ...$args ) {
  * @since 3.0.0
  * @since 5.3.0 Formalized the existing and already documented `...$args` parameter
  *              by adding it to the function signature.
- * @since 5.7.0 Wraps current_user_can() after switching to blog.
+ * @since 5.8.0 Wraps current_user_can() after switching to blog.
  *
  * @param int    $blog_id    Site ID.
  * @param string $capability Capability name.
