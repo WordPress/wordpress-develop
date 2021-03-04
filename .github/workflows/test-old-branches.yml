@@ -1,7 +1,6 @@
 name: Test old branches
 
 on:
-  pull_request:
   # Once weekly On Mondays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 1'
