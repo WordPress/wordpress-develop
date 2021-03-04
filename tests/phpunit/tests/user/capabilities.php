@@ -645,13 +645,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function test_do_not_allow_is_denied_for_all_roles() {
 		foreach ( self::$users as $role => $user ) {
 
-			# Test adding the cap directly to the user
+			// Test adding the cap directly to the user.
 			$user->add_cap( 'do_not_allow' );
 			$has_cap = $user->has_cap( 'do_not_allow' );
 			$user->remove_cap( 'do_not_allow' );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
-			# Test adding the cap via a filter
+			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
 			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
@@ -662,7 +662,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 				continue;
 			}
 
-			# Test adding the cap to the user's role
+			// Test adding the cap to the user's role.
 			$role_obj = get_role( $role );
 			$role_obj->add_cap( 'do_not_allow' );
 			$has_cap = $user->has_cap( 'do_not_allow' );
@@ -676,13 +676,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 41059
 	 */
 	public function test_do_not_allow_is_denied_for_super_admins() {
-		# Test adding the cap directly to the user
+		// Test adding the cap directly to the user.
 		self::$super_admin->add_cap( 'do_not_allow' );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
 		self::$super_admin->remove_cap( 'do_not_allow' );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 
-		# Test adding the cap via a filter
+		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
 		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
