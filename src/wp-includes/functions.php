@@ -800,9 +800,12 @@ function xmlrpc_removepostdata( $content ) {
 function wp_extract_urls( $content ) {
 	preg_match_all(
 		"#([\"']?)("
-			. '(?:([\w-]+:)?//?)'
+			. '(?:'
+				. '(?:(?<=\s)/{1,2})|'
+				. '(?:^/)|'
+				. '(?:(?:[.\w-]+:)?//)'
+			. ')'
 			. '[^\s()<>]+'
-			. '[.]'
 			. '(?:'
 				. '\([\w\d]+\)|'
 				. '(?:'
