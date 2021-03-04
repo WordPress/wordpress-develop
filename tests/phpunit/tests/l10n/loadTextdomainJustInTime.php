@@ -40,9 +40,6 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 
 	public function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
-		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 		unset( $GLOBALS['l10n'] );
