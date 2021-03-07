@@ -64,6 +64,11 @@ function list_core_update( $update ) {
 	$mysql_version = $wpdb->db_version();
 	$show_buttons  = true;
 
+	if ( ! preg_match( '/-\w+-/', $update->current ) ) {
+		/* translators: %s: version number */
+		$submit = sprintf( __( 'Update to version %s' ), $update->current );
+	}
+
 	if ( 'development' === $update->response ) {
 		$message = __( 'You can update to the latest nightly build manually:' );
 	} else {
