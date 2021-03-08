@@ -656,16 +656,16 @@ class Tests_General_Template extends WP_UnitTestCase {
 	 * @covers ::wp_get_document_title
 	 */
 	public function test_document_title_when_no_static_homepage_is_selected() {
-		$post            = array(
+		$post             = array(
 			'post_title'  => 'Blog',
 			'post_author' => 1,
 			'post_status' => 'published',
 			'post_type'   => 'page',
 		);
-		$post_id         = wp_insert_post( $post );
+		$post_id          = wp_insert_post( $post );
 		$blog_name        = get_bloginfo( 'name' );
 		$blog_description = get_bloginfo( 'description' );
-		$document_title  = sprintf( '%s &#8211; %s', $blog_name, $blog_description );
+		$document_title   = sprintf( '%s &#8211; %s', $blog_name, $blog_description );
 
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', $post_id );
