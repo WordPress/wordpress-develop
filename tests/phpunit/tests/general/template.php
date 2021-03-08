@@ -663,9 +663,9 @@ class Tests_General_Template extends WP_UnitTestCase {
 			'post_type'   => 'page',
 		);
 		$post_id         = wp_insert_post( $post );
-		$blogname        = get_bloginfo( 'name' );
-		$blogdescription = get_bloginfo( 'description' );
-		$document_title  = sprintf( '%s &#8211; %s', $blogname, $blogdescription );
+		$blog_name        = get_bloginfo( 'name' );
+		$blog_description = get_bloginfo( 'description' );
+		$document_title  = sprintf( '%s &#8211; %s', $blog_name, $blog_description );
 
 		update_option( 'show_on_front', 'page' );
 		update_option( 'page_for_posts', $post_id );
