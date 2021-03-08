@@ -179,6 +179,11 @@ p.has-drop-cap:not(:focus)::first-letter {
 	font-style: italic;
 }
 
+.wp-block-quote.is-style-large cite {
+	font-size: 18px;
+	font-style: normal;
+}
+
 /* Audio */
 
 .wp-block-audio audio {
