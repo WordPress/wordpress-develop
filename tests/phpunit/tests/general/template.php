@@ -649,4 +649,30 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->assertSame( $user_with_posts->display_name, $title_when_posts );
 		$this->assertSame( $user_with_no_posts->display_name, $title_when_no_posts );
 	}
+
+	/**
+	 * @ticket 51307
+	 *
+	 * @covers ::wp_get_document_title
+	 */
+	public function test_document_title_when_no_static_homepage_is_selected() {
+		$post            = array(
+			'post_title'  => 'Blog',
+			'post_author' => 1,
+			'post_status' => 'published',
+			'post_type'   => 'page',
+		);
+		$post_id         = wp_insert_post( $post );
+		$blogname        = get_bloginfo( 'name' );
+		$blogdescription = get_bloginfo( 'description' );
+		$document_title  = sprintf( '%s &#8211; %s', $blogname, $blogdescription );
+
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $post_id );
+
+		$this->go_to( '/' );
+		$this->assertSame( wp_get_document_title(), $document_title );
+
+		wp_delete_post( $post_id, true );
+	}
 }
