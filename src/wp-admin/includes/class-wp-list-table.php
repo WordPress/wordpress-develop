@@ -1121,9 +1121,16 @@ class WP_List_Table {
 			 * column headers property. This ensures the primary column name is included
 			 * in plugins setting the property directly in the three item format.
 			 */
-			if ( 3 === count( $this->_column_headers ) ) {
-				$this->_column_headers[] = $this->get_primary_column_name();
+			if ( 4 === count( $this->_column_headers ) ) {
+				return $this->_column_headers;
 			}
+
+			$column_headers = array( array(), array(), array(), $this->get_primary_column_name() );
+			foreach ( $this->_column_headers as $key => $value ) {
+				$column_headers[ $key ] = $value;
+			}
+
+			$this->_column_headers = $column_headers;
 
 			return $this->_column_headers;
 		}
