@@ -7,6 +7,8 @@ var installChanged = require( 'install-changed' );
 module.exports = function(grunt) {
 	var path = require('path'),
 		fs = require( 'fs' ),
+		glob = require( 'glob' ),
+		assert = require( 'assert' ).strict,
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
@@ -1429,6 +1431,126 @@ module.exports = function(grunt) {
 		'copy:version',
 	] );
 
+	/**
+	 * Build verification tasks.
+	 */
+	grunt.registerTask( 'verify:build', [
+		'verify:wp-embed',
+		'verify:old-files',
+		'verify:source-maps',
+	] );
+
+	/**
+	 * Build assertions for wp-embed.min.js.
+	 *
+	 * @ticket 34698
+	 */
+	grunt.registerTask( 'verify:wp-embed', function() {
+		const file = `${ BUILD_DIR }/wp-includes/js/wp-embed.min.js`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-includes/js/wp-embed.min.js file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			contents.length > 0,
+			'The build/wp-includes/js/wp-embed.min.js file must not be empty.'
+		);
+		assert(
+			false === contents.includes( '&' ),
+			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
+		);
+	} );
+
+	/**
+	 * Build assertions to ensure no project files are inside `$_old_files` in the build directory.
+	 *
+	 * @ticket 36083
+	 */
+	grunt.registerTask( 'verify:old-files', function() {
+		const file = `${ BUILD_DIR }wp-admin/includes/update-core.php`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-admin/includes/update-core.php file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			contents.length > 0,
+			'The build/wp-admin/includes/update-core.php file must not be empty.'
+		);
+
+		const match = contents.match( /\$_old_files = array\(([^\)]+)\);/ );
+
+		assert(
+			match.length > 0,
+			'The build/wp-admin/includes/update-core.php file does not include an `$_old_files` array.'
+		);
+
+		const files = match[1].split( '\n\t' ).filter( function( file ) {
+			// Filter out empty lines
+			if ( '' === file ) {
+				return false;
+			}
+
+			// Filter out commented out lines
+			if ( 0 === file.indexOf( '/' ) ) {
+				return false;
+			}
+
+			return true;
+		} ).map( function( file ) {
+			// Strip leading and trailing single quotes and commas
+			return file.replace( /^\'|\',$/g, '' );
+		} );
+
+		files.forEach(function( file ){
+			const search = `${ BUILD_DIR }${ file }`;
+			assert(
+				false === fs.existsSync( search ),
+				`${ search } should not be present in the $_old_files array.`
+			);
+		});
+	} );
+
+	/**
+	 * Build assertions for the lack of source maps in JavaScript files.
+	 *
+	 * @ticket 24994
+	 * @ticket 46218
+	 */
+	grunt.registerTask( 'verify:source-maps', function() {
+		const path = `${ BUILD_DIR }**/*.js`;
+		const files = glob.sync( path );
+
+		assert(
+			files.length > 0,
+			'No JavaScript files found in the build directory.'
+		);
+
+		files.forEach( function( file ) {
+			const contents = fs.readFileSync( file, {
+				encoding: 'utf8',
+			} );
+			// `data:` URLs are allowed:
+			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+
+			assert(
+				match === null,
+				`The ${ file } file must not contain a sourceMappingURL.`
+			);
+		} );
+	} );
+
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
@@ -1442,7 +1564,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText'
+				'replace:emojiBannerText',
+				'verify:build'
 			] );
 		}
 	} );
