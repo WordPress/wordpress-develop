@@ -1103,7 +1103,7 @@
 			if ( input.is( ':radio, :checkbox' ) ) {
 				input.prop( 'checked', state );
 			} else if ( input.is( 'select[multiple]' ) ) {
-				if ( ! $.isArray( state ) ) {
+				if ( ! Array.isArray( state ) ) {
 					state = [];
 				} else {
 					// Make sure all state items are strings since the DOM value is a string.
