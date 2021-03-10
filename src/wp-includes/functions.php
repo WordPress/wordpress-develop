@@ -3119,6 +3119,7 @@ function wp_get_mime_types() {
 			'png'                          => 'image/png',
 			'bmp'                          => 'image/bmp',
 			'tiff|tif'                     => 'image/tiff',
+			'webp'                         => 'image/webp',
 			'ico'                          => 'image/x-icon',
 			'heic'                         => 'image/heic',
 			// Video formats.
