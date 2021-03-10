@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = wp_get_image_size( $image_file );
+		$imagesize  = wp_getimagesize( $image_file );
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -224,7 +224,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
-	$imagesize = wp_get_image_size( $file );
+	$imagesize = wp_getimagesize( $file );
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
@@ -690,7 +690,7 @@ function wp_read_image_metadata( $file ) {
 		return false;
 	}
 
-	list( , , $image_type ) = wp_get_image_size( $file );
+	list( , , $image_type ) = wp_getimagesize( $file );
 
 	/*
 	 * EXIF contains a bunch of data we'll probably never need formatted in ways
@@ -719,7 +719,7 @@ function wp_read_image_metadata( $file ) {
 	 * as caption, description etc.
 	 */
 	if ( is_callable( 'iptcparse' ) ) {
-		wp_get_image_size( $file, $info );
+		wp_getimagesize( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
 			if (
@@ -902,7 +902,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = wp_get_image_size( $path );
+	$size = wp_getimagesize( $path );
 	return ! empty( $size );
 }
 
@@ -917,7 +917,7 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO );
 
-	$info = wp_get_image_size( $path );
+	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {
 		$result = false;
 	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {

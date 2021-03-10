@@ -1227,14 +1227,14 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35725
-	 * @dataProvider _wp_get_image_size
+	 * @dataProvider _wp_getimagesize
 	 */
-	public function test_wp_get_image_size( $file, $expected ) {
+	public function test_wp_getimagesize( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
 			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
 		}
 
-		$result = wp_get_image_size( $file );
+		$result = wp_getimagesize( $file );
 
 		// The getimagesize() function varies in its response, so
 		// let's restrict comparison to expected keys only.
@@ -1367,9 +1367,9 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_get_image_size();
+	 * Data profider for test_wp_getimagesize();
 	 */
-	public function _wp_get_image_size() {
+	public function _wp_getimagesize() {
 		$data = array(
 			// Standard JPEG.
 			array(

@@ -215,7 +215,7 @@ class WP_Widget_Media_Image extends WP_Widget_Media {
 				$size  = array( $instance['width'], $instance['height'] );
 				$width = $instance['width'];
 			} else {
-				$caption_size = _wp_get_image_size_from_meta( $instance['size'], wp_get_attachment_metadata( $attachment->ID ) );
+				$caption_size = _wp_getimagesize_from_meta( $instance['size'], wp_get_attachment_metadata( $attachment->ID ) );
 				$width        = empty( $caption_size[0] ) ? 0 : $caption_size[0];
 			}
 

@@ -115,7 +115,7 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			return new WP_Error( 'invalid_image', __( 'File is not an image.' ), $this->file );
 		}
 
-		$size = wp_get_image_size( $this->file );
+		$size = wp_getimagesize( $this->file );
 
 		if ( ! $size ) {
 			return new WP_Error( 'invalid_image', __( 'Could not read image size.' ), $this->file );

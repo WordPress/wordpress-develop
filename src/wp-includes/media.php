@@ -244,7 +244,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$info       = null;
 
 		if ( $thumb_file ) {
-			$info = wp_get_image_size( $thumb_file );
+			$info = wp_getimagesize( $thumb_file );
 		}
 
 		if ( $thumb_file && $info ) {
@@ -962,7 +962,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
 				$src_file               = $icon_dir . '/' . wp_basename( $src );
-				list( $width, $height ) = wp_get_image_size( $src_file );
+				list( $width, $height ) = wp_getimagesize( $src_file );
 			}
 		}
 
@@ -1174,7 +1174,7 @@ function _wp_get_attachment_relative_path( $file ) {
  *     @type int $1 Image height.
  * }
  */
-function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
+function _wp_getimagesize_from_meta( $size_name, $image_meta ) {
 	if ( 'full' === $size_name ) {
 		return array(
 			absint( $image_meta['width'] ),
@@ -1490,7 +1490,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
 		}
 
 		if ( is_array( $image_meta ) ) {
-			$size_array = _wp_get_image_size_from_meta( $size, $image_meta );
+			$size_array = _wp_getimagesize_from_meta( $size, $image_meta );
 			if ( $size_array ) {
 				$width = absint( $size_array[0] );
 			}
@@ -4974,6 +4974,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
  * @since 5.7.0
+ * @since 5.8.0 Added support for WebP images.
  *
  * @param string $filename  The file path.
  * @param array  $imageinfo Extended image information, passed by reference.
@@ -4987,7 +4988,7 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 		// Return without silencing errors when in debug mode.
 		defined( 'WP_DEBUG' ) && WP_DEBUG
 	) {
-		return getimagesize( $filename, $imageinfo );
+		return _get_image_size( $filename, $imageinfo );
 	}
 
 	/*
@@ -5001,5 +5002,88 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 	 *
 	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
 	 */
-	return @getimagesize( $filename, $imageinfo );
+	return @_get_image_size( $filename, $imageinfo );
+}
+
+/**
+ * Get the image size, with support for WebP images.
+ *
+ * @since 5.8.0
+ *
+ * @param string $filename  The file path.
+ * @param array  $imageinfo Extended image information, passed by reference.
+ */
+private function _get_image_size( $filename, &$imageinfo = array() ) {
+// Try getimagesize() first.
+$info = getimagesize( $file, $info );
+if ( false !== $info ) {
+	return $info;
+}
+
+// For PHP versions that don't support WebP images, pull info from the file headers.
+if ( 'image/webp' === wp_get_image_mime( $file ) ) {
+	try {
+		$handle = fopen( $file, 'rb' );
+		if ( $handle ) {
+			$magic = fread( $handle, 40 );
+			fclose( $handle );
+
+			// Make sure we got enough bytes.
+			if ( strlen( $magic ) < 40 ) {
+				return false;
+			}
+
+			$width = false;
+			$height = false;
+
+			// The headers are a little different for each of the three formats.
+			switch ( substr( $magic, 12, 4 ) ) {
+				// Lossy WebP.
+				case 'VP8 ':
+					$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+					$width  = (int) ( $parts[1] & 0x3FFF );
+					$height = (int) ( $parts[2] & 0x3FFF );
+					break;
+				// Lossless WebP.
+				case 'VP8L':
+					$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+					$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+					$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
+									( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+					break;
+				// Animated/alpha WebP.
+				case 'VP8X':
+					// Pad 24-bit int.
+					$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+					$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+
+					// Pad 24-bit int.
+					$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+					$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+					break;
+			}
+
+			// Mimic the native return format.
+			if ( $width && $height ) {
+				return array(
+					$width,
+					$height,
+					IMAGETYPE_WEBP,
+					sprintf(
+						'width="%d" height="%d"',
+						$width,
+						$height
+					),
+					'mime' => 'image/webp',
+				);
+			}
+
+			// The image could not be parsed.
+			return false;
+		}
+	} catch ( Exception $e ) {
+		return false;
+	}
+
+	return false;
 }
