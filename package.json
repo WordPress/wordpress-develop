@@ -137,7 +137,7 @@
 		"jquery": "3.6.0",
 		"jquery-color": "https://github.com/jquery/jquery-color/archive/2.1.2.tar.gz",
 		"jquery-form": "4.2.1",
-		"jquery-hoverintent": "1.8.3",
+		"jquery-hoverintent": "1.10.1",
 		"lodash": "4.17.19",
 		"masonry-layout": "4.2.2",
 		"moment": "2.27.0",
