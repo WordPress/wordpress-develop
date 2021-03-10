@@ -1706,7 +1706,7 @@ $document.ready( function() {
 			});
 
 			self.trigger();
-			$document.on( 'wp-window-resized.wp-responsive', $.proxy( this.trigger, this ) );
+			$document.on( 'wp-window-resized.wp-responsive', this.trigger.bind( this ) );
 
 			// This needs to run later as UI Sortable may be initialized later on $(document).ready().
 			$window.on( 'load.wp-responsive', this.maybeDisableSortables );

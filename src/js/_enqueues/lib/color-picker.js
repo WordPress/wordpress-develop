@@ -101,7 +101,7 @@
 			}
 
 			// Bind the close event.
-			self.close = $.proxy( self.close, self );
+			self.close = self.close.bind( self );
 
 			self.initialValue = el.val();
 

@@ -1592,7 +1592,7 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
 							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
@@ -1609,7 +1609,7 @@
 						content.addClass( 'open' );
 						overlay.addClass( 'section-open' );
 						api.state( 'expandedSection' ).set( section );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( ! args.allowMultiple ) {
@@ -2696,7 +2696,7 @@
 				if ( args.unchanged ) {
 					expand = args.completeCallback;
 				} else {
-					expand = $.proxy( function() {
+					expand = function() {
 						section._animateChangeExpanded( function() {
 							sectionTitle.attr( 'tabindex', '-1' );
 							backBtn.attr( 'tabindex', '0' );
@@ -2711,7 +2711,7 @@
 						} );
 
 						content.addClass( 'open' );
-					}, this );
+					}.bind( this );
 				}
 
 				if ( section.panel() ) {
