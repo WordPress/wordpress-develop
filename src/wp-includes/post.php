@@ -7663,8 +7663,10 @@ function wp_cache_set_posts_last_changed() {
  */
 function get_available_post_mime_types( $type = 'attachment' ) {
 	global $wpdb;
-
-	$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+	$types = apply_filters( 'get_available_post_mime_types', null, $type );
+	if ( ! is_array( $types ) ) {
+		$types = $wpdb->get_col( $wpdb->prepare( "SELECT DISTINCT post_mime_type FROM $wpdb->posts WHERE post_type = %s", $type ) );
+	}
 	return $types;
 }
 
