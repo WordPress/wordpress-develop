@@ -79,6 +79,8 @@ class Tests_dbDelta extends WP_UnitTestCase {
 			)
 		);
 
+		// This has to be called after the `CREATE TABLE` above as the `_create_temporary_tables` filter
+		// causes it to create a temporary table, and a temporary table cannot use a FULLTEXT index.
 		parent::setUp();
 	}
 
@@ -91,6 +93,7 @@ class Tests_dbDelta extends WP_UnitTestCase {
 
 		parent::tearDown();
 
+		// This has to be called after the parent `tearDown()` method.
 		$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}dbdelta_test" );
 	}
 

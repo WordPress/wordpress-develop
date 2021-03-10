@@ -8,7 +8,7 @@ const childProcess = require( 'child_process' );
 
 // Config
 // This should be updated every time we update the WordPress packages.
-const GUTENBERG_VERSION = '@wordpress/block-editor@5.0.1';
+const GUTENBERG_VERSION = '@wordpress/block-editor@5.2.10';
 
 // Utils
 /**

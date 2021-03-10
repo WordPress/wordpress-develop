@@ -1772,6 +1772,12 @@ function get_post_type_labels( $post_type_object ) {
 	 * The dynamic portion of the hook name, `$post_type`, refers to
 	 * the post type slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `post_type_labels_post`
+	 *  - `post_type_labels_page`
+	 *  - `post_type_labels_attachment`
+	 *
 	 * @since 3.5.0
 	 *
 	 * @see get_post_type_labels() for the full list of labels.
@@ -5031,6 +5037,23 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
 	 * refer to the new post status and post type, respectively.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `draft_post`
+	 *  - `future_post`
+	 *  - `pending_post`
+	 *  - `private_post`
+	 *  - `publish_post`
+	 *  - `trash_post`
+	 *  - `draft_page`
+	 *  - `future_page`
+	 *  - `pending_page`
+	 *  - `private_page`
+	 *  - `publish_page`
+	 *  - `trash_page`
+	 *  - `publish_attachment`
+	 *  - `trash_attachment`
+	 *
 	 * Please note: When this action is hooked using a particular post status (like
 	 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
 	 * first transitioned to that status from something else, as well as upon
@@ -6277,6 +6300,8 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
  * @return string|false Attachment URL, otherwise false.
  */
 function wp_get_attachment_url( $attachment_id = 0 ) {
+	global $pagenow;
+
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
@@ -6319,7 +6344,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	}
 
 	// On SSL front end, URLs should be HTTPS.
-	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow ) {
 		$url = set_url_scheme( $url );
 	}
 

@@ -18,8 +18,8 @@ if ( is_multisite() ) :
 
 		function tearDown() {
 			global $wpdb;
-			parent::tearDown();
 			$wpdb->suppress_errors( $this->suppress );
+			parent::tearDown();
 		}
 
 		function test_wpmu_log_new_registrations() {

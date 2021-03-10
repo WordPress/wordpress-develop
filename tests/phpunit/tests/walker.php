@@ -9,11 +9,9 @@
 class Tests_Walker extends WP_UnitTestCase {
 
 	function setUp() {
-
-		$this->walker = new Walker_Test();
-
 		parent::setUp();
 
+		$this->walker = new Walker_Test();
 	}
 
 	function test_single_item() {

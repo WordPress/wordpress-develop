@@ -5,7 +5,7 @@
  */
 class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
 	function test_munges_extensions() {
-		# r17990
+		// r17990
 		$file_name = sanitize_file_name( 'test.phtml.txt' );
 		$this->assertSame( 'test.phtml_.txt', $file_name );
 	}
