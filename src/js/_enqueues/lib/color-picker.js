@@ -277,7 +277,7 @@
 				if ( me.hasClass( 'wp-picker-clear' ) ) {
 					self.element.val( '' );
 					self.toggler.css( 'backgroundColor', '' );
-					if ( $.isFunction( self.options.clear ) ) {
+					if ( typeof self.options.clear === 'function' ) {
 						self.options.clear.call( this, event );
 					}
 				} else if ( me.hasClass( 'wp-picker-default' ) ) {
