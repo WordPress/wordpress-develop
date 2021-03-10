@@ -133,7 +133,7 @@ Modal = wp.media.View.extend(/** @lends wp.media.view.Modal.prototype */{
 		}
 
 		// Pause current audio/video even after closing the modal.
-		$( '.mejs-pause button' ).click();
+		$( '.mejs-pause button' ).trigger( 'click' );
 
 		// Enable page scrolling.
 		$( 'body' ).removeClass( 'modal-open' );
