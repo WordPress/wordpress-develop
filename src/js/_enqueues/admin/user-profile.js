@@ -319,7 +319,7 @@
 		}
 	}
 
-	$(document).ready( function() {
+	$( function() {
 		var $colorpicker, $stylesheet, user_id, current_user_id,
 			select       = $( '#display_name' ),
 			current_name = select.val(),
@@ -466,7 +466,7 @@
 	 * to avoid double clicking the button to retrieve the first generated password.
 	 * See ticket #39638.
 	 */
-	$( document ).ready( function() {
+	$( function() {
 		if ( $( '.reset-pass-submit' ).length ) {
 			$( '.reset-pass-submit button.wp-generate-pw' ).trigger( 'click' );
 		}

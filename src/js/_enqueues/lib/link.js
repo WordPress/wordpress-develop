@@ -797,5 +797,5 @@
 		}
 	});
 
-	$( document ).ready( wpLink.init );
+	$( wpLink.init );
 })( jQuery, window.wpLinkL10n, window.wp );

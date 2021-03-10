@@ -4,7 +4,7 @@
 
 /* global postboxes, deleteUserSetting, setUserSetting, getUserSetting */
 
-jQuery(document).ready( function($) {
+jQuery( function($) {
 
 	var newCat, noSyncChecks = false, syncChecks, catAddAfter;
 

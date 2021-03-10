@@ -12,7 +12,7 @@ window.communityEventsData = window.communityEventsData || {};
  *
  * @since 2.7.0
  */
-jQuery(document).ready( function($) {
+jQuery( function($) {
 	var welcomePanel = $( '#welcome-panel' ),
 		welcomePanelHide = $('#wp_welcome_panel-hide'),
 		updateWelcomePanel;

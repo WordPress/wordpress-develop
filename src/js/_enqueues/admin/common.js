@@ -483,7 +483,7 @@ window.columns = {
 	}
 };
 
-$document.ready(function(){columns.init();});
+$( function() { columns.init(); } );
 
 /**
  * Validates that the required form fields are not empty.
@@ -802,7 +802,7 @@ $availableStructureTags.on( 'click', function() {
 	}
 } );
 
-$document.ready( function() {
+$( function() {
 	var checks, first, last, checked, sliced, mobileEvent, transitionTimeout, focusedRowActions,
 		lastClicked = false,
 		pageInput = $('input.current-page'),
@@ -2008,7 +2008,7 @@ $document.ready( function() {
  *
  * @since 5.5.0
  */
-$document.ready( function( $ ) {
+$( function( $ ) {
 	var $overwrite, $warning;
 
 	if ( ! $body.hasClass( 'update-php' ) ) {
