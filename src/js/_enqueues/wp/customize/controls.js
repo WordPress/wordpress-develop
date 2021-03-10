@@ -289,7 +289,7 @@
 					collection.focusContainer.focus();
 				}
 			} else if ( collection.previousActiveElement ) {
-				$( collection.previousActiveElement ).focus();
+				$( collection.previousActiveElement ).trigger( 'focus' );
 				collection.previousActiveElement = null;
 			}
 

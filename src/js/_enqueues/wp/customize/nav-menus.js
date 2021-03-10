@@ -218,7 +218,7 @@
 
 			// Clear the search results and trigger an `input` event to fire a new search.
 			this.$clearResults.on( 'click', function() {
-				self.$search.val( '' ).focus().trigger( 'input' );
+				self.$search.val( '' ).trigger( 'focus' ).trigger( 'input' );
 			} );
 
 			this.$el.on( 'input', '#custom-menu-item-name.invalid, #custom-menu-item-url.invalid', function() {
@@ -716,7 +716,7 @@
 
 			this.$el.find( '.selected' ).removeClass( 'selected' );
 
-			this.$search.focus();
+			this.$search.trigger( 'focus' );
 		},
 
 		// Closes the panel.
