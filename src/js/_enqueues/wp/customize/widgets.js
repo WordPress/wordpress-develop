@@ -2089,7 +2089,7 @@
 				widgetNumber = widget.get( 'multi_number' );
 			}
 
-			controlHtml = $.trim( $( '#widget-tpl-' + widget.get( 'id' ) ).html() );
+			controlHtml = $( '#widget-tpl-' + widget.get( 'id' ) ).html().trim();
 			if ( widget.get( 'is_multi' ) ) {
 				controlHtml = controlHtml.replace( /<[^<>]+>/g, function( m ) {
 					return m.replace( /__i__|%i%/g, widgetNumber );

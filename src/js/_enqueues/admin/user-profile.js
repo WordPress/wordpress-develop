@@ -374,7 +374,7 @@
 					return;
 				}
 
-				var display_name = $.trim( this.value ) || current_name;
+				var display_name = this.value.trim() || current_name;
 
 				greeting.text( display_name );
 			} );

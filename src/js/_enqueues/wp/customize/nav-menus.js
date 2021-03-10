@@ -644,7 +644,7 @@
 				return;
 			}
 
-			if ( '' === $.trim( itemName.val() ) ) {
+			if ( '' === itemName.val().trim() ) {
 				itemName.addClass( 'invalid' );
 				itemName.focus();
 				return;
@@ -1879,7 +1879,7 @@
 
 			// Ensure that whitespace is trimmed on blur so placeholder can be shown.
 			control.container.find( '.edit-menu-item-title' ).on( 'blur', function() {
-				$( this ).val( $.trim( $( this ).val() ) );
+				$( this ).val( $( this ).val().trim() );
 			} );
 
 			titleEl = control.container.find( '.menu-item-title' );
@@ -1888,7 +1888,8 @@
 				if ( ! item ) {
 					return;
 				}
-				trimmedTitle = $.trim( item.title );
+				item.title = item.title || '';
+				trimmedTitle = item.title.trim();
 
 				titleText = trimmedTitle || item.original_title || api.Menus.data.l10n.untitled;
 

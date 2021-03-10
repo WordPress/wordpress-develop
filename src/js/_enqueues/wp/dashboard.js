@@ -328,7 +328,7 @@ jQuery( function( $ ) {
 			 * @return {void}
 			 */
 			$container.on( 'submit', '.community-events-form', function( event ) {
-				var location = $.trim( $( '#community-events-location' ).val() );
+				var location = $( '#community-events-location' ).val().trim();
 
 				event.preventDefault();
 

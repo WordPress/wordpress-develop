@@ -3874,9 +3874,9 @@
 
 			control.container.toggleClass( 'has-notifications', 0 !== notifications.length );
 			control.container.toggleClass( 'has-error', hasError );
-			container.empty().append( $.trim(
-				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } )
-			) );
+			container.empty().append(
+				control.notificationsTemplate( { notifications: notifications, altNotice: Boolean( control.altNotice ) } ).trim()
+			);
 		},
 
 		/**
