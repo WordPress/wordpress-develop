@@ -5013,77 +5013,78 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
  * @param string $filename  The file path.
  * @param array  $imageinfo Extended image information, passed by reference.
  */
-private function _get_image_size( $filename, &$imageinfo = array() ) {
-// Try getimagesize() first.
-$info = getimagesize( $file, $info );
-if ( false !== $info ) {
-	return $info;
-}
-
-// For PHP versions that don't support WebP images, pull info from the file headers.
-if ( 'image/webp' === wp_get_image_mime( $file ) ) {
-	try {
-		$handle = fopen( $file, 'rb' );
-		if ( $handle ) {
-			$magic = fread( $handle, 40 );
-			fclose( $handle );
-
-			// Make sure we got enough bytes.
-			if ( strlen( $magic ) < 40 ) {
-				return false;
-			}
-
-			$width = false;
-			$height = false;
-
-			// The headers are a little different for each of the three formats.
-			switch ( substr( $magic, 12, 4 ) ) {
-				// Lossy WebP.
-				case 'VP8 ':
-					$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
-					$width  = (int) ( $parts[1] & 0x3FFF );
-					$height = (int) ( $parts[2] & 0x3FFF );
-					break;
-				// Lossless WebP.
-				case 'VP8L':
-					$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
-					$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-					$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
-									( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
-					break;
-				// Animated/alpha WebP.
-				case 'VP8X':
-					// Pad 24-bit int.
-					$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
-					$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
-
-					// Pad 24-bit int.
-					$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
-					$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
-					break;
-			}
-
-			// Mimic the native return format.
-			if ( $width && $height ) {
-				return array(
-					$width,
-					$height,
-					IMAGETYPE_WEBP,
-					sprintf(
-						'width="%d" height="%d"',
-						$width,
-						$height
-					),
-					'mime' => 'image/webp',
-				);
-			}
-
-			// The image could not be parsed.
-			return false;
-		}
-	} catch ( Exception $e ) {
-		return false;
+function _get_image_size( $filename, &$imageinfo = array() ) {
+	// Try getimagesize() first.
+	$info = getimagesize( $file, $info );
+	if ( false !== $info ) {
+		return $info;
 	}
 
-	return false;
+	// For PHP versions that don't support WebP images, pull info from the file headers.
+	if ( 'image/webp' === wp_get_image_mime( $file ) ) {
+		try {
+			$handle = fopen( $file, 'rb' );
+			if ( $handle ) {
+				$magic = fread( $handle, 40 );
+				fclose( $handle );
+
+				// Make sure we got enough bytes.
+				if ( strlen( $magic ) < 40 ) {
+					return false;
+				}
+
+				$width = false;
+				$height = false;
+
+				// The headers are a little different for each of the three formats.
+				switch ( substr( $magic, 12, 4 ) ) {
+					// Lossy WebP.
+					case 'VP8 ':
+						$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+						$width  = (int) ( $parts[1] & 0x3FFF );
+						$height = (int) ( $parts[2] & 0x3FFF );
+						break;
+					// Lossless WebP.
+					case 'VP8L':
+						$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+						$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
+										( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+						break;
+					// Animated/alpha WebP.
+					case 'VP8X':
+						// Pad 24-bit int.
+						$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+						$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+
+						// Pad 24-bit int.
+						$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+						$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+						break;
+				}
+
+				// Mimic the native return format.
+				if ( $width && $height ) {
+					return array(
+						$width,
+						$height,
+						IMAGETYPE_WEBP,
+						sprintf(
+							'width="%d" height="%d"',
+							$width,
+							$height
+						),
+						'mime' => 'image/webp',
+					);
+				}
+
+				// The image could not be parsed.
+				return false;
+			}
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return false;
+	}
 }
