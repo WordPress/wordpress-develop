@@ -1889,7 +1889,7 @@ $document.ready( function() {
 		$( '.aria-button-if-js' ).attr( 'role', 'button' );
 	}
 
-	$( document ).ajaxComplete( function() {
+	$( document ).on( 'ajaxComplete', function() {
 		aria_button_if_js();
 	});
 
