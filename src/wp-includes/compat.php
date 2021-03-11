@@ -372,9 +372,9 @@ if ( ! function_exists( 'is_iterable' ) ) {
 }
 
 // WebP constants may not be defined, even in cases where the format is supported.
-if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
-	define( 'IMAGETYPE_WEBP', 18 );
+if ( ! defined( 'IMAGETYPE_WEBP' ) ) { // phpcs:ignore PHPCompatibility
+	define( 'IMAGETYPE_WEBP', 18 ); // phpcs:ignore PHPCompatibility
 }
-if ( ! defined( 'IMG_WEBP' ) ) {
-	define( 'IMG_WEBP', IMAGETYPE_WEBP );
+if ( ! defined( 'IMG_WEBP' ) ) { // phpcs:ignore PHPCompatibility
+	define( 'IMG_WEBP', IMAGETYPE_WEBP ); // phpcs:ignore PHPCompatibility
 }

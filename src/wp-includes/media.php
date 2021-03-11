@@ -5068,7 +5068,7 @@ function _get_image_size( $filename, &$imageinfo = array() ) {
 					return array(
 						$width,
 						$height,
-						IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.FunctionDeclarations.NewParamTypeDeclarations
+						IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
 						sprintf(
 							'width="%d" height="%d"',
 							$width,
