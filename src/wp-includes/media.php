@@ -1174,7 +1174,7 @@ function _wp_get_attachment_relative_path( $file ) {
  *     @type int $1 Image height.
  * }
  */
-function _wp_getimagesize_from_meta( $size_name, $image_meta ) {
+function _wp_get_image_size_from_meta( $size_name, $image_meta ) {
 	if ( 'full' === $size_name ) {
 		return array(
 			absint( $image_meta['width'] ),
@@ -1490,7 +1490,7 @@ function wp_calculate_image_sizes( $size, $image_src = null, $image_meta = null,
 		}
 
 		if ( is_array( $image_meta ) ) {
-			$size_array = _wp_getimagesize_from_meta( $size, $image_meta );
+			$size_array = _wp_get_image_size_from_meta( $size, $image_meta );
 			if ( $size_array ) {
 				$width = absint( $size_array[0] );
 			}
