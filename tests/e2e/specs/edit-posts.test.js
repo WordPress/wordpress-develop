@@ -59,8 +59,10 @@ describe( 'Edit Posts', () => {
 		await publishPost();
 		await visitAdminPage( '/edit.php' );
 
+		await page.waitForSelector( '#the-list .type-post' );
+
 		// Expect there to be one row in the post list.
-		const posts = await page.$$( '#the-list tr.type-post' );
+		const posts = await page.$$( '#the-list .type-post' );
 		expect( posts.length ).toBe( 1 );
 
 		const [ firstPost ] = posts;
@@ -78,6 +80,8 @@ describe( 'Edit Posts', () => {
 		await publishPost();
 		await visitAdminPage( '/edit.php' );
 
+		await page.waitForSelector( '#the-list .type-post' );
+
 		// Click the post title (edit) link
 		const [ editLink ] = await page.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
@@ -86,6 +90,9 @@ describe( 'Edit Posts', () => {
 
 		// Edit the post.
 		await page.waitForNavigation();
+
+		// Wait for title field to render onscreen.
+		await page.waitForSelector( '.editor-post-title__input' );
 
 		// Expect to now be in the editor with the correct post title shown.
 		const editorPostTitleInput = await page.$x(
@@ -99,6 +106,8 @@ describe( 'Edit Posts', () => {
 		await createNewPost( { title } );
 		await publishPost();
 		await visitAdminPage( '/edit.php' );
+
+		await page.waitForSelector( '#the-list .type-post' );
 
 		// Focus on the post title link.
 		const [ editLink ] = await page.$x(
