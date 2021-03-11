@@ -5033,7 +5033,7 @@ function _get_image_size( $filename, &$imageinfo = array() ) {
 					return false;
 				}
 
-				$width = false;
+				$width  = false;
 				$height = false;
 
 				// The headers are a little different for each of the three formats.
