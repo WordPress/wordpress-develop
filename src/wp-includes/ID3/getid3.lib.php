@@ -1511,7 +1511,7 @@ class getid3_lib
 			if (is_writable($tempfilename) && is_file($tempfilename) && ($tmp = fopen($tempfilename, 'wb'))) {
 				fwrite($tmp, $imgData);
 				fclose($tmp);
-				$GetDataImageSize = wp_getimagesize($tempfilename, $imageinfo);
+				$GetDataImageSize = @wp_getimagesize($tempfilename, $imageinfo);
 				if (($GetDataImageSize === false) || !isset($GetDataImageSize[0]) || !isset($GetDataImageSize[1])) {
 					return false;
 				}
