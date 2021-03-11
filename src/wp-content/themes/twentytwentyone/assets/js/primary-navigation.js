@@ -167,15 +167,18 @@ function twentytwentyoneExpandSubMenu( el ) { // jshint ignore:line
 			}
 		} );
 
-		document.getElementById( 'site-navigation' ).querySelectorAll( '.menu-wrapper > .menu-item-has-children' ).forEach( function( li ) {
-			li.addEventListener( 'mouseenter', function() {
-				this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'true' );
-				twentytwentyoneSubmenuPosition( li );
+		var navMenu = document.getElementById( 'site-navigation' );
+		if( null !== navMenu ) {
+			navMenu.querySelectorAll( '.menu-wrapper > .menu-item-has-children' ).forEach( function( li ) {
+				li.addEventListener( 'mouseenter', function() {
+					this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'true' );
+					twentytwentyoneSubmenuPosition( li );
+				} );
+				li.addEventListener( 'mouseleave', function() {
+					this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'false' );
+				} );
 			} );
-			li.addEventListener( 'mouseleave', function() {
-				this.querySelector( '.sub-menu-toggle' ).setAttribute( 'aria-expanded', 'false' );
-			} );
-		} );
+		}
 	};
 
 	window.addEventListener( 'load', function() {
