@@ -5015,15 +5015,15 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
  */
 function _get_image_size( $filename, &$imageinfo = array() ) {
 	// Try getimagesize() first.
-	$info = getimagesize( $file, $info );
+	$info = getimagesize( $filename, $imageinfo );
 	if ( false !== $info ) {
 		return $info;
 	}
 
 	// For PHP versions that don't support WebP images, pull info from the file headers.
-	if ( 'image/webp' === wp_get_image_mime( $file ) ) {
+	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
 		try {
-			$handle = fopen( $file, 'rb' );
+			$handle = fopen( $filename, 'rb' );
 			if ( $handle ) {
 				$magic = fread( $handle, 40 );
 				fclose( $handle );
