@@ -1626,7 +1626,7 @@ function wp_dashboard_browser_nag() {
 
 	if ( $response ) {
 		if ( $is_IE ) {
-			$msg = __( "For the best WordPress experience, please use Microsoft Edge or another modern browser instead of Internet Explorer." );
+			$msg = __( 'For the best WordPress experience, please use Microsoft Edge or another modern browser instead of Internet Explorer.' );
 		} elseif ( $response['insecure'] ) {
 			$msg = sprintf(
 				/* translators: %s: Browser name and link. */
