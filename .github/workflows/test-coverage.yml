@@ -4,6 +4,8 @@ on:
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
