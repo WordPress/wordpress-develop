@@ -1,6 +1,7 @@
 name: Code Coverage Report
 
 on:
+  pull_request:
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
