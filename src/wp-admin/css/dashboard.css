@@ -865,10 +865,6 @@ body #dashboard-widgets .postbox form .submit {
 
 /* Browse happy box */
 
-#dashboard-widgets #dashboard_browser_nag.postbox .inside {
-	margin: 10px;
-}
-
 .postbox .button-link .edit-box {
 	display: none;
 }
@@ -1025,31 +1021,42 @@ a.rsswidget {
 	text-decoration: underline;
 }
 
-#dashboard_browser_nag p.browser-update-nag.has-browser-icon {
-	padding-right: 128px;
+#dashboard_browser_nag.postbox {
+	background-color: #f2d675;
+	background-image: none;
+	border-color: #f2d675;
+	color: #000;
+	box-shadow: none;
+}
+
+#dashboard_browser_nag.postbox.browser-insecure {
+	background-color: #b32d2e;
+	border-color: #b32d2e;
+	color: #fff;
+}
+
+#dashboard_browser_nag .inside {
+	display: flex;
+	margin-top: 0;
 }
 
 #dashboard_browser_nag .browser-icon {
-	margin-top: -32px;
-}
-
-#dashboard_browser_nag.postbox {
-	background-color: #b32d2e;
-	background-image: none;
-	border-color: #b32d2e;
-	color: #fff;
-	box-shadow: none;
+	margin-left: 16px;
 }
 
 #dashboard_browser_nag.postbox h2 {
 	border-bottom-color: transparent;
 	background: transparent none;
-	color: #fff;
+	color: currentColor;
 	box-shadow: none;
 }
 
 #dashboard_browser_nag a {
-	color: #fff;
+	color: currentColor;
+}
+
+#dashboard_browser_nag.postbox .postbox-header {
+	border-color: transparent;
 }
 
 #dashboard_browser_nag.postbox .postbox-header {

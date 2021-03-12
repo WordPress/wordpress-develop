@@ -1641,14 +1641,8 @@ function wp_dashboard_browser_nag() {
 			);
 		}
 
-		$browser_nag_class = '';
-		if ( ! empty( $response['img_src'] ) ) {
-			$img_src = ( is_ssl() && ! empty( $response['img_src_ssl'] ) ) ? $response['img_src_ssl'] : $response['img_src'];
-
-			$notice .= '<div class="alignright browser-icon"><img src="' . esc_attr( $img_src ) . '" alt="" /></div>';
-			$browser_nag_class = ' has-browser-icon';
-		}
-		$notice .= "<p class='browser-update-nag{$browser_nag_class}'>{$msg}</p>";
+		$notice .= '<div>';
+		$notice .= "<p class='browser-update-nag'>{$msg}</p>";
 
 		$browsehappy = 'https://browsehappy.com/';
 		$locale      = get_user_locale();
@@ -1674,7 +1668,13 @@ function wp_dashboard_browser_nag() {
 
 		$notice .= '<p>' . $msg_browsehappy . '</p>';
 		$notice .= '<p class="hide-if-no-js"><a href="" class="dismiss" aria-label="' . esc_attr__( 'Dismiss the browser warning panel' ) . '">' . __( 'Dismiss' ) . '</a></p>';
-		$notice .= '<div class="clear"></div>';
+		$notice .= '</div>';
+
+		if ( ! empty( $response['img_src'] ) ) {
+			$img_src = ( is_ssl() && ! empty( $response['img_src_ssl'] ) ) ? $response['img_src_ssl'] : $response['img_src'];
+
+			$notice .= '<div class="browser-icon"><img src="' . esc_attr( $img_src ) . '" alt="" /></div>';
+		}
 	}
 
 	/**
