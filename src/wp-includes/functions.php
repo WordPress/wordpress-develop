@@ -7568,7 +7568,7 @@ function wp_get_direct_php_update_url() {
  * @return string Encoded url.
  */
 function wp_half_baked_url_encode( $url ) {
-	return preg_replace( "/\.$/", "%2E", rawurlencode( $url ) );
+	return preg_replace( '/\.$/', '%2E', rawurlencode( $url ) );
 }
 
 /**
