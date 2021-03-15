@@ -437,21 +437,42 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				$path_to_wp_config = dirname( ABSPATH ) . '/wp-config.php';
 			}
 
-			$handle = fopen( $path_to_wp_config, 'w' );
+			$error_message = '';
+			$handle 	   = fopen( $path_to_wp_config, 'w' );
 			if ( false !== $handle ) {
 				foreach ( $config_file as $line ) {
 					fwrite( $handle, $line );
 				}
 				fclose( $handle );
+			} else {
+				$wp_config_perms = fileperms( $path_to_wp_config );
+				if ( ! empty( $wp_config_perms ) && ! is_writable( $path_to_wp_config ) ) {
+					$wp_config_perms = substr( decoct( $wp_config_perms ), 2 );
+					/* translators: 1: wp-config.php, 2: wp-config.php file permission */
+					$error_message = sprintf(
+							__( 'Unable to write to %1$s file due to its permissions: %2$s. Please try again.' ),
+							'<code>wp-config.php</code>',
+							"<code>{$wp_config_perms}</code>"
+					);
+				} else {
+					/* translators: %s: wp-config.php */
+					$error_message = sprintf( __( 'Unable to write to %s file. Please try again' ), '<code>wp-config.php</code>' );
+				}
 			}
+
 			chmod( $path_to_wp_config, 0666 );
 			setup_config_display_header();
+
+			if ( false !== $handle ) :
 			?>
 <h1 class="screen-reader-text"><?php _e( 'Successful database connection' ); ?></h1>
 <p><?php _e( 'All right, sparky! You&#8217;ve made it through this part of the installation. WordPress can now communicate with your database. If you are ready, time now to&hellip;' ); ?></p>
 
 <p class="step"><a href="<?php echo $install; ?>" class="button button-large"><?php _e( 'Run the installation' ); ?></a></p>
-			<?php
+<?php
+			else:
+				printf( '<p>%s</p>', $error_message );
+			endif;
 		endif;
 		break;
 } // end of the steps switch.
