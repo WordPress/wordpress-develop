@@ -438,7 +438,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			}
 
 			$error_message = '';
-			$handle 	   = fopen( $path_to_wp_config, 'w' );
+			$handle       = fopen( $path_to_wp_config, 'w' );
 			if ( false !== $handle ) {
 				foreach ( $config_file as $line ) {
 					fwrite( $handle, $line );
