@@ -320,7 +320,7 @@ abstract class WP_Image_Editor {
 		$image_editor_mime_mapping = array(
 			// Map jpeg images to webp images by default.
 			'image/jpeg' => array(
-				'mime_type' => 'iamge/webp',
+				'mime_type' => 'image/webp',
 				'extension' => 'webp',
 			),
 		);
