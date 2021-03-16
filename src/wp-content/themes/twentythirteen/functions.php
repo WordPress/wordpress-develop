@@ -842,7 +842,7 @@ if ( function_exists( 'register_block_style' ) ) {
 			'core/button',
 			array(
 				'name'         => 'no-shadow',
-				'label'        => 'No Shadow',
+				'label'        => __( 'No Shadow', 'twentythirteen' ),
 				'style_handle' => 'no-shadow',
 			)
 		);
