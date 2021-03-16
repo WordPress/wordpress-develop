@@ -56,6 +56,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 * @ticket 52484
 	 */
 	public function test_wp_update_https_detection_errors() {
 		// Set HTTP URL, the request below should use its HTTPS version.
@@ -68,22 +69,22 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
 
 		// If initial request fails and request without SSL verification succeeds,
-		// return error with 'ssl_verification_failed' error code.
+		// return 'ssl_verification_failed' error.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'ssl_verification_failed' => array( 'Bad SSL certificate.' ) ),
+			array( 'ssl_verification_failed' => array( __( 'SSL verification failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 
 		// If both initial request and request without SSL verification fail,
-		// return actual error from request.
+		// return 'https_request_failed' error.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
-			array( 'bad_ssl_certificate' => array( 'Bad SSL certificate.' ) ),
+			array( 'https_request_failed' => array( __( 'HTTPS request failed.' ) ) ),
 			get_option( 'https_detection_errors' )
 		);
 
@@ -171,6 +172,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47577
+	 * @ticket 52542
 	 */
 	public function test_wp_is_local_html_output_via_rsd_link() {
 		// HTML includes RSD link.
@@ -180,6 +182,12 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 		// HTML includes modified RSD link but same URL.
 		$head_tag = str_replace( ' />', '>', get_echo( 'rsd_link' ) );
+		$html     = $this->get_sample_html_string( $head_tag );
+		$this->assertTrue( wp_is_local_html_output( $html ) );
+
+		// HTML includes RSD link with alternative URL scheme.
+		$head_tag = get_echo( 'rsd_link' );
+		$head_tag = false !== strpos( $head_tag, 'https://' ) ? str_replace( 'https://', 'http://', $head_tag ) : str_replace( 'http://', 'https://', $head_tag );
 		$html     = $this->get_sample_html_string( $head_tag );
 		$this->assertTrue( wp_is_local_html_output( $html ) );
 

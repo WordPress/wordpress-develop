@@ -6,7 +6,7 @@
  * @group post
  * @covers ::get_permalink
  */
-class Tests_Date_Get_Permalink extends WP_UnitTestCase {
+class Tests_Date_GetPermalink extends WP_UnitTestCase {
 
 	function tearDown() {
 		delete_option( 'permalink_structure' );

@@ -690,7 +690,7 @@ function get_feed_link( $feed = '' ) {
 
 	$permalink = $wp_rewrite->get_feed_permastruct();
 
-	if ( '' !== $permalink ) {
+	if ( $permalink ) {
 		if ( false !== strpos( $feed, 'comments_' ) ) {
 			$feed      = str_replace( 'comments_', '', $feed );
 			$permalink = $wp_rewrite->get_comment_feed_permastruct();
@@ -1811,6 +1811,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_excluded_terms`
+	 *  - `get_previous_post_excluded_terms`
+	 *
 	 * @since 4.4.0
 	 *
 	 * @param array|string $excluded_terms Array of excluded term IDs. Empty string if none were provided.
@@ -1882,6 +1887,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_join`
+	 *  - `get_previous_post_join`
+	 *
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
 	 *
@@ -1899,6 +1909,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_where`
+	 *  - `get_previous_post_where`
+	 *
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$taxonomy` and `$post` parameters.
 	 *
@@ -1915,6 +1930,11 @@ function get_adjacent_post( $in_same_term = false, $excluded_terms = '', $previo
 	 *
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_next_post_sort`
+	 *  - `get_previous_post_sort`
 	 *
 	 * @since 2.5.0
 	 * @since 4.4.0 Added the `$post` parameter.
@@ -2003,6 +2023,11 @@ function get_adjacent_post_rel_link( $title = '%title', $in_same_term = false, $
 	 *
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `next_post_rel_link`
+	 *  - `previous_post_rel_link`
 	 *
 	 * @since 2.8.0
 	 *
@@ -2260,6 +2285,11 @@ function get_adjacent_post_link( $format, $link, $in_same_term = false, $exclude
 	 *
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type
 	 * of adjacency, 'next' or 'previous'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `next_post_link`
+	 *  - `previous_post_link`
 	 *
 	 * @since 2.6.0
 	 * @since 4.2.0 Added the `$adjacent` parameter.
@@ -3253,17 +3283,13 @@ function home_url( $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @global string $pagenow
- *
- * @param int         $blog_id Optional. Site ID. Default null (current site).
+ * @param int|null    $blog_id Optional. Site ID. Default null (current site).
  * @param string      $path    Optional. Path relative to the home URL. Default empty.
  * @param string|null $scheme  Optional. Scheme to give the home URL context. Accepts
  *                             'http', 'https', 'relative', 'rest', or null. Default null.
  * @return string Home URL link with optional path appended.
  */
 function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
-	global $pagenow;
-
 	$orig_scheme = $scheme;
 
 	if ( empty( $blog_id ) || ! is_multisite() ) {
@@ -3312,8 +3338,8 @@ function get_home_url( $blog_id = null, $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @param string $path   Optional. Path relative to the site URL. Default empty.
- * @param string $scheme Optional. Scheme to give the site URL context. See set_url_scheme().
+ * @param string      $path   Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the site URL context. See set_url_scheme().
  * @return string Site URL link with optional path appended.
  */
 function site_url( $path = '', $scheme = null ) {
@@ -3330,11 +3356,11 @@ function site_url( $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @param int    $blog_id Optional. Site ID. Default null (current site).
- * @param string $path    Optional. Path relative to the site URL. Default empty.
- * @param string $scheme  Optional. Scheme to give the site URL context. Accepts
- *                        'http', 'https', 'login', 'login_post', 'admin', or
- *                        'relative'. Default null.
+ * @param int|null    $blog_id Optional. Site ID. Default null (current site).
+ * @param string      $path    Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme  Optional. Scheme to give the site URL context. Accepts
+ *                             'http', 'https', 'login', 'login_post', 'admin', or
+ *                             'relative'. Default null.
  * @return string Site URL link with optional path appended.
  */
 function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
@@ -3371,7 +3397,7 @@ function get_site_url( $blog_id = null, $path = '', $scheme = null ) {
  *
  * @since 2.6.0
  *
- * @param string $path   Optional path relative to the admin URL.
+ * @param string $path   Optional. Path relative to the admin URL. Default 'admin'.
  * @param string $scheme The scheme to use. Default is 'admin', which obeys force_ssl_admin() and is_ssl().
  *                       'http' or 'https' can be passed to force those schemes.
  * @return string Admin URL link with optional path appended.
@@ -3385,11 +3411,11 @@ function admin_url( $path = '', $scheme = 'admin' ) {
  *
  * @since 3.0.0
  *
- * @param int    $blog_id Optional. Site ID. Default null (current site).
- * @param string $path    Optional. Path relative to the admin URL. Default empty.
- * @param string $scheme  Optional. The scheme to use. Accepts 'http' or 'https',
- *                        to force those schemes. Default 'admin', which obeys
- *                        force_ssl_admin() and is_ssl().
+ * @param int|null $blog_id Optional. Site ID. Default null (current site).
+ * @param string   $path    Optional. Path relative to the admin URL. Default empty.
+ * @param string   $scheme  Optional. The scheme to use. Accepts 'http' or 'https',
+ *                          to force those schemes. Default 'admin', which obeys
+ *                          force_ssl_admin() and is_ssl().
  * @return string Admin URL link with optional path appended.
  */
 function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
@@ -3416,9 +3442,9 @@ function get_admin_url( $blog_id = null, $path = '', $scheme = 'admin' ) {
  *
  * @since 2.6.0
  *
- * @param string $path   Optional. Path relative to the includes URL. Default empty.
- * @param string $scheme Optional. Scheme to give the includes URL context. Accepts
- *                       'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the includes URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the includes URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Includes URL link with optional path appended.
  */
 function includes_url( $path = '', $scheme = null ) {
@@ -3531,9 +3557,9 @@ function plugins_url( $path = '', $plugin = '' ) {
  *
  * @see set_url_scheme()
  *
- * @param string $path   Optional. Path relative to the site URL. Default empty.
- * @param string $scheme Optional. Scheme to give the site URL context. Accepts
- *                       'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the site URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the site URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Site URL link with optional path appended.
  */
 function network_site_url( $path = '', $scheme = null ) {
@@ -3576,9 +3602,9 @@ function network_site_url( $path = '', $scheme = null ) {
  *
  * @since 3.0.0
  *
- * @param string $path   Optional. Path relative to the home URL. Default empty.
- * @param string $scheme Optional. Scheme to give the home URL context. Accepts
- *                       'http', 'https', or 'relative'. Default null.
+ * @param string      $path   Optional. Path relative to the home URL. Default empty.
+ * @param string|null $scheme Optional. Scheme to give the home URL context. Accepts
+ *                            'http', 'https', or 'relative'. Default null.
  * @return string Home URL link with optional path appended.
  */
 function network_home_url( $path = '', $scheme = null ) {

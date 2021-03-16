@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
+class Tests_L10n_LoadTextdomain extends WP_UnitTestCase {
 	protected $locale;
 	protected static $user_id;
 
@@ -24,13 +24,6 @@ class Tests_L10n_loadTextdomain extends WP_UnitTestCase {
 
 		add_filter( 'plugin_locale', array( $this, 'store_locale' ) );
 		add_filter( 'theme_locale', array( $this, 'store_locale' ) );
-	}
-
-	public function tearDown() {
-		remove_filter( 'plugin_locale', array( $this, 'store_locale' ) );
-		remove_filter( 'theme_locale', array( $this, 'store_locale' ) );
-
-		parent::tearDown();
 	}
 
 	public function store_locale( $locale ) {

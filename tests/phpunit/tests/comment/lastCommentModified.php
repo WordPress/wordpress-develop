@@ -2,7 +2,7 @@
 
 /**
  * @group comment
- * @group 38027
+ * @ticket 38027
  */
 class Tests_Comment_Last_Modified extends WP_UnitTestCase {
 	public function test_no_comments() {

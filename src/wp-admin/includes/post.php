@@ -1168,8 +1168,11 @@ function wp_edit_posts_query( $q = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
 	 *
-	 * Some examples of filter hooks generated here include: 'edit_attachment_per_page',
-	 * 'edit_post_per_page', 'edit_page_per_page', etc.
+	 * Possible hook names include:
+	 *
+	 *  - `edit_post_per_page`
+	 *  - `edit_page_per_page`
+	 *  - `edit_attachment_per_page`
 	 *
 	 * @since 3.0.0
 	 *
@@ -2240,18 +2243,19 @@ function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	$blocks         = array();
 	$fields_to_pick = array(
+		'api_version'      => 'apiVersion',
 		'title'            => 'title',
 		'description'      => 'description',
 		'icon'             => 'icon',
-		'category'         => 'category',
-		'keywords'         => 'keywords',
-		'parent'           => 'parent',
-		'supports'         => 'supports',
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'supports'         => 'supports',
+		'category'         => 'category',
 		'styles'           => 'styles',
 		'textdomain'       => 'textdomain',
+		'parent'           => 'parent',
+		'keywords'         => 'keywords',
 		'example'          => 'example',
 	);
 

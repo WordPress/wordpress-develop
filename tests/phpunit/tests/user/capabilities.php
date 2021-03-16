@@ -12,6 +12,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @var WP_User[] $users
 	 */
 	protected static $users = array(
+		'anonymous'     => null,
 		'administrator' => null,
 		'editor'        => null,
 		'author'        => null,
@@ -31,6 +32,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users       = array(
+			'anonymous'     => new WP_User( 0 ),
 			'administrator' => $factory->user->create_and_get( array( 'role' => 'administrator' ) ),
 			'editor'        => $factory->user->create_and_get( array( 'role' => 'editor' ) ),
 			'author'        => $factory->user->create_and_get( array( 'role' => 'author' ) ),
@@ -342,6 +344,26 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		return $data;
 	}
 
+	/**
+	 * Data provider for testing a single site install's roles.
+	 *
+	 * @return array[] {
+	 *     Arguments for test.
+	 *
+	 *     @type string $role The role to test for.
+	 * }
+	 */
+	function data_single_site_roles_to_check() {
+		return array(
+			array( 'anonymous' ),
+			array( 'administrator' ),
+			array( 'editor' ),
+			array( 'author' ),
+			array( 'contributor' ),
+			array( 'subscriber' ),
+		);
+	}
+
 	protected function getAllCapsAndRoles() {
 		return $this->getPrimitiveCapsAndRoles() + $this->getMetaCapsAndRoles();
 	}
@@ -391,9 +413,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 		$this->assertFalse( defined( 'ALLOW_UNFILTERED_UPLOADS' ) );
 
 		foreach ( self::$users as $role => $user ) {
-
-			// Make sure the user is valid.
-			$this->assertTrue( $user->exists(), "User with {$role} role does not exist" );
+			if ( 'anonymous' === $role ) {
+				// The anonymous role does not exist.
+				$this->assertFalse( $user->exists(), "User with {$role} role should not exist" );
+			} else {
+				// Make sure the user is valid.
+				$this->assertTrue( $user->exists(), "User with {$role} role does not exist" );
+			}
 
 			$user_caps = $user->allcaps;
 
@@ -563,24 +589,54 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 
 	/**
 	 * Test miscellaneous capabilities of all user roles.
+	 *
+	 * @dataProvider data_single_site_roles_to_check
 	 */
-	function test_other_caps_for_all_roles() {
-		foreach ( self::$users as $role => $user ) {
-			// Make sure the user is valid.
-			$this->assertTrue( $user->exists(), "User with {$role} role does not exist" );
+	function test_other_caps_for_all_roles( $role ) {
+		$user   = self::$users[ $role ];
+		$old_id = wp_get_current_user()->ID;
+		wp_set_current_user( $user->ID );
 
-			// Make sure the role name is correct.
-			$this->assertSame( array( $role ), $user->roles, "User should only have the {$role} role" );
-
-			$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
-			$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability" );
-
-			$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
-			$this->assertFalse( user_can( $user, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability" );
-
-			$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability" );
-			$this->assertTrue( user_can( $user, 'exist' ), "User with the {$role} role should have the exist capability" );
+		// Make sure the role name is correct.
+		$expected_roles = array( $role );
+		if ( 'anonymous' === $role ) {
+			//  Anonymous role does not exist, user roles should be empty.
+			$expected_roles = array();
 		}
+		$this->assertSame( $expected_roles, $user->roles, "User should only have the {$role} role" );
+
+		$this->assertFalse( $user->has_cap( 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test via WP_User->has_cap() method)." );
+		$this->assertFalse( user_can( $user, 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by user object)." );
+		$this->assertFalse( user_can( $user->ID, 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by user ID)." );
+		$this->assertFalse( current_user_can( 'start_a_fire' ), "User with the {$role} role should not have a custom capability (test by current user)." );
+
+		$this->assertFalse( $user->has_cap( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test via WP_User->has_cap() method)." );
+		$this->assertFalse( user_can( $user, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by user object)." );
+		$this->assertFalse( user_can( $user->ID, 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by user ID)." );
+		$this->assertFalse( current_user_can( 'do_not_allow' ), "User with the {$role} role should not have the do_not_allow capability (test by current user)." );
+
+		$this->assertTrue( $user->has_cap( 'exist' ), "User with the {$role} role should have the exist capability (test via WP_User->has_cap() method)." );
+		$this->assertTrue( user_can( $user, 'exist' ), "User with the {$role} role should have the exist capability (test by user object)." );
+		$this->assertTrue( user_can( $user->ID, 'exist' ), "User with the {$role} role should have the exist capability (test by user ID)." );
+		$this->assertTrue( current_user_can( 'exist' ), "User with the {$role} role should have the exist capability (test by current user)." );
+
+		wp_set_current_user( $old_id );
+	}
+
+	/**
+	 * Test user exists/does not exist as expected.
+	 *
+	 * @dataProvider data_single_site_roles_to_check
+	 */
+	function test_user_exists_in_database( $role ) {
+		$user     = self::$users[ $role ];
+		$expected = true;
+
+		if ( 'anonymous' === $role ) {
+			$expected = false;
+		}
+
+		$this->assertSame( $expected, $user->exists() );
 	}
 
 	/**
@@ -589,25 +645,29 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	public function test_do_not_allow_is_denied_for_all_roles() {
 		foreach ( self::$users as $role => $user ) {
 
-			# Test adding the cap directly to the user
+			// Test adding the cap directly to the user.
 			$user->add_cap( 'do_not_allow' );
 			$has_cap = $user->has_cap( 'do_not_allow' );
 			$user->remove_cap( 'do_not_allow' );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
-			# Test adding the cap to the user's role
-			$role_obj = get_role( $role );
-			$role_obj->add_cap( 'do_not_allow' );
-			$has_cap = $user->has_cap( 'do_not_allow' );
-			$role_obj->remove_cap( 'do_not_allow' );
-			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
-
-			# Test adding the cap via a filter
+			// Test adding the cap via a filter.
 			add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$has_cap = $user->has_cap( 'do_not_allow' );
 			remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 
+			if ( 'anonymous' === $role ) {
+				// The anonymous role does not exist.
+				continue;
+			}
+
+			// Test adding the cap to the user's role.
+			$role_obj = get_role( $role );
+			$role_obj->add_cap( 'do_not_allow' );
+			$has_cap = $user->has_cap( 'do_not_allow' );
+			$role_obj->remove_cap( 'do_not_allow' );
+			$this->assertFalse( $has_cap, "User with the {$role} role should not have the do_not_allow capability" );
 		}
 	}
 
@@ -616,13 +676,13 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 41059
 	 */
 	public function test_do_not_allow_is_denied_for_super_admins() {
-		# Test adding the cap directly to the user
+		// Test adding the cap directly to the user.
 		self::$super_admin->add_cap( 'do_not_allow' );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
 		self::$super_admin->remove_cap( 'do_not_allow' );
 		$this->assertFalse( $has_cap, 'Super admins should not have the do_not_allow capability' );
 
-		# Test adding the cap via a filter
+		// Test adding the cap via a filter.
 		add_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
 		$has_cap = self::$super_admin->has_cap( 'do_not_allow' );
 		remove_filter( 'user_has_cap', array( $this, 'grant_do_not_allow' ), 10, 4 );
