@@ -317,12 +317,12 @@ abstract class WP_Image_Editor {
 		}
 
 		// Remap legacy formats to modern formats.
-		$image_editor_mime_mapping = array (
+		$image_editor_mime_mapping = array(
 			// Map jpeg images to webp images by default.
-			'image/jpeg' => array (
+			'image/jpeg' => array(
 				'mime_type' => 'iamge/webp',
 				'extension' => 'webp',
-			)
+			),
 		);
 
 		/**
@@ -345,7 +345,7 @@ abstract class WP_Image_Editor {
 		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', $image_editor_mime_mapping, $filename, $mime_type );
 
 		if ( $image_editor_mime_mapping[ $mime_type ] ) {
-			$new_ext = $image_editor_mime_mapping[ $mime_type ]['extension'];
+			$new_ext   = $image_editor_mime_mapping[ $mime_type ]['extension'];
 			$mime_type = $image_editor_mime_mapping[ $mime_type ]['mime_type'];
 		}
 
