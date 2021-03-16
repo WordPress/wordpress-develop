@@ -809,10 +809,12 @@ class WP_Query {
 
 		$qv['attachment_id'] = absint( $qv['attachment_id'] );
 
+		$this->parse_tax_query( $qv );
+
 		if ( ( '' !== $qv['attachment'] ) || ! empty( $qv['attachment_id'] ) ) {
 			$this->is_single     = true;
 			$this->is_attachment = true;
-		} elseif ( '' !== $qv['name'] ) {
+		} elseif ( '' !== $qv['name'] && count( $this->tax_query->queries ) === 0 ) {
 			$this->is_single = true;
 		} elseif ( $qv['p'] ) {
 			$this->is_single = true;
@@ -889,7 +891,6 @@ class WP_Query {
 			}
 
 			$this->query_vars_hash = false;
-			$this->parse_tax_query( $qv );
 
 			foreach ( $this->tax_query->queries as $tax_query ) {
 				if ( ! is_array( $tax_query ) ) {
