@@ -316,6 +316,39 @@ abstract class WP_Image_Editor {
 			$new_ext   = $file_ext;
 		}
 
+		// Remap legacy formats to modern formats.
+		$image_editor_mime_mapping = array (
+			// Map jpeg images to webp images by default.
+			'image/jpeg' => array (
+				'mime_type' => 'iamge/webp',
+				'extension' => 'webp',
+			)
+		);
+
+		/**
+		 * Filters the default mime mapping.
+		 *
+		 * @see get_output_format()
+		 *
+		 * @since 5.8.0
+		 *
+		 * @param array $image_editor_mime_mapping {
+		 *     An array of mime type mappings. Maps a source mime type to a new
+		 *     destination mime type and file extension.
+		 *
+		 *     @type array $mime_type The source mime type {
+		 *         @type string $mime_type The new mime type.
+		 *         @type string $extension The new mime file extension.
+		 *     }
+		 * }
+		 */
+		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', $image_editor_mime_mapping, $filename, $mime_type );
+
+		if ( $image_editor_mime_mapping[ $mime_type ] ) {
+			$new_ext = $image_editor_mime_mapping[ $mime_type ]['extension'];
+			$mime_type = $image_editor_mime_mapping[ $mime_type ]['mime_type'];
+		}
+
 		// Double-check that the mime-type selected is supported by the editor.
 		// If not, choose a default instead.
 		if ( ! $this->supports_mime_type( $mime_type ) ) {
