@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+wp_enqueue_script( 'wp-components' );
+wp_enqueue_style( 'wp-components' );
+
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -20,7 +23,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		<div class="about__header">
 			<div class="about__header-image">
-				<img alt="<?php _e( 'Code is Poetry' ); ?>" src="images/about-badge.svg" />
+				<img alt="<?php _e( 'Code is Poetry' ); ?>" src="<?php echo admin_url( 'images/about-badge.svg' ); ?>" />
 			</div>
 
 			<div class="about__header-title">
@@ -55,11 +58,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</h1>
 				<p>
 					<?php
-					printf(
-						/* translators: %s: The current WordPress version number. */
-						__( 'With this new version, the editor cleans up the colors and helps you work in a few places you couldn’t before—at least, not without getting into code or hiring a pro. The controls you use most, like changing type sizes, are in more places—right where you need them. And layout changes that should be simple, like full-height images, get even simpler to make.' ),
-						$display_version
-					);
+					_e( 'With this new version, WordPress brings you fresh colors. The editor helps you work in a few places you couldn’t before—at least, not without getting into code or hiring a pro. The controls you use most, like changing font sizes, are in more places—right where you need them. And layout changes that should be simple, like full-height images, are even simpler to make.' );
 					?>
 				</p>
 			</div>
@@ -90,7 +89,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column about__image">
 				<video controls>
-					<source src="https://make.wordpress.org/core/files/2021/02/about-57-drag-drop-image.mp4" type="video/mp4" />
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.mp4" type="video/mp4" />
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.webm" type="video/webm" />
 				</video>
 			</div>
 		</div>
@@ -107,17 +107,17 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</p>
 				<p>
 					<?php
-					_e( '<strong>Buttons block:</strong> now you can align the content in buttons vertically. And you can set the width of a button to a preset percentage.' );
+					_e( '<strong>Buttons block:</strong> now you can choose a vertical or a horizontal layout. And you can set the width of a button to a preset percentage.' );
 					?>
 				</p>
 				<p>
 					<?php
-					_e( '<strong>Social Icons block:</strong> you can now change the size of the icons in the Social Icons block.' );
+					_e( '<strong>Social Icons block:</strong> now you can change the size of the icons.' );
 					?>
 				</p>
 			</div>
 			<div class="column about__image">
-				<img src="https://make.wordpress.org/core/files/2021/02/about-57-cover-1.jpg" alt="" />
+				<img src="https://s.w.org/images/core/5.7/about-57-cover.jpg" alt="" />
 			</div>
 		</div>
 
@@ -130,14 +130,15 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-subtle-background-color">
-			<div class="column about__image">
-				<div class="about__image-comparison">
+			<figure class="column about__image" id="about-image-comparison">
+				<div class="about__image-comparison no-js">
+					<img src="https://s.w.org/images/core/5.7/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard with old color scheme.' ); ?>" />
 					<div class="about__image-comparison-resize">
-						<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-new.png" />
+						<img src="https://s.w.org/images/core/5.7/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard with new color scheme.' ); ?>" />
 					</div>
-					<img src="https://make.wordpress.org/core/files/2021/02/about-57-color-old.png" />
 				</div>
-			</div>
+				<figcaption><?php _e( 'Above, the Dashboard before and after the color update in 5.7.' ); ?></figcaption>
+			</figure>
 		</div>
 
 		<div class="about__section has-2-columns has-subtle-background-color">
@@ -178,8 +179,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="about__section has-subtle-background-color">
 			<div class="column about__image">
 				<picture>
-					<source media="(max-width: 600px)" srcset="images/about-color-palette-vert.svg" />
-					<img alt="" src="images/about-color-palette.svg" />
+					<source media="(max-width: 600px)" srcset="<?php echo admin_url( 'images/about-color-palette-vert.svg' ); ?>" />
+					<img alt="" src="<?php echo admin_url( 'images/about-color-palette.svg' ); ?>" />
 				</picture>
 			</div>
 		</div>
@@ -193,16 +194,16 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<h3><?php _e( 'New Robots API' ); ?></h3>
 				<p>
 					<?php
-					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the directive <code>max-image-preview: large</code> by default. That means search engines can show bigger image previews (unless the blog is marked as not public), which can boost your traffic.' )
+					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the <code>max-image-preview: large</code> directive by default. That means search engines can show bigger image previews, which can boost your traffic (unless the site is marked <em>not-public</em>).' );
 					?>
 				</p>
 			</div>
 			<div class="column">
 				<h3><?php _e( 'Ongoing cleanup after update to jQuery 3.5.1' ); ?></h3>
 				<p><?php _e( 'For years jQuery helped make things move on the screen in ways the basic tools couldn’t—but that keeps changing, and so does jQuery.' ); ?></p>
-				<p><?php _e( 'One side effect: it generated a set of cryptic messages on the dashboard that informed only developers. In 5.7, you will get far fewer of those messages, and they will be in plain language.' ); ?></p>
+				<p><?php _e( 'In 5.7, jQuery gets more focused and less intrusive, with fewer messages in the console.' ); ?></p>
 				<h3><?php _e( 'Lazy-load your iframes' ); ?></h3>
-				<p><?php _e( 'Now it’s simple to let iframes lazy-load. Just add the <code>loading="lazy"</code> attribute to iframe tags on the front end.' ); ?></p>
+				<p><?php _e( 'Now it’s simple to let iframes lazy-load. By default, WordPress will add a <code>loading="lazy"</code> attribute to iframe tags when both width and height are specified.' ); ?></p>
 			</div>
 		</div>
 
@@ -234,9 +235,87 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>
 		</div>
 	</div>
-<?php
 
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+
+<script>
+	window.addEventListener( 'load', function() {
+		var createElement = wp.element.createElement;
+		var Fragment = wp.element.Fragment;
+		var render = wp.element.render;
+		var useState = wp.element.useState;
+		var ResizableBox = wp.components.ResizableBox;
+
+		var container = document.getElementById( 'about-image-comparison' );
+		var images = container ? container.querySelectorAll( 'img' ) : [];
+		if ( ! images.length ) {
+			// Something's wrong, return early.
+			return;
+		}
+
+		var beforeImage = images.item( 0 );
+		var afterImage = images.item( 1 );
+		var caption = container.querySelector( 'figcaption' ).innerText;
+
+		function ImageComparison( props ) {
+			var stateHelper = useState( props.width );
+			var width = stateHelper[0];
+			var setWidth = stateHelper[1];
+
+			return createElement(
+				'div',
+				{
+					className: 'about__image-comparison'
+				},
+				createElement( 'img', { src: beforeImage.src, alt: beforeImage.alt } ),
+				createElement(
+					ResizableBox,
+					{
+						size: {
+							width: width,
+							height: props.height
+						},
+						onResizeStop: function( event, direction, elt, delta ) {
+							setWidth( parseInt( width + delta.width, 10 ) );
+						},
+						showHandle: true,
+						enable: {
+							top: false,
+							right: ! wp.i18n.isRTL(),
+							bottom: false,
+							left: wp.i18n.isRTL(),
+						},
+						className: 'about__image-comparison-resize'
+					},
+					createElement(
+						'div',
+						{
+							style: { width: '100%', height: '100%', overflow: 'hidden' }
+						},
+						createElement('img', { src: afterImage.src, alt: afterImage.alt } )
+					)
+				)
+			);
+		}
+
+		render(
+			createElement(
+				Fragment,
+				{},
+				createElement(
+					ImageComparison,
+					{
+						width: beforeImage.clientWidth / 2,
+						height: beforeImage.clientHeight
+					}
+				),
+				createElement( 'figcaption', {}, caption )
+			),
+			container
+		);
+	} );
+</script>
+<?php
 
 // These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
 return;

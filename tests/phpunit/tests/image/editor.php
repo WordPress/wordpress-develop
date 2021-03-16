@@ -19,6 +19,7 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 
 		require_once DIR_TESTDATA . '/../includes/mock-image-editor.php';
 
+		// This needs to come after the mock image editor class is loaded.
 		parent::setUp();
 	}
 

@@ -16,12 +16,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
 	}
 
-	public function tearDown() {
-		remove_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
-
-		parent::tearDown();
-	}
-
 	public function wp_image_editors() {
 		return array( $this->editor_engine );
 	}

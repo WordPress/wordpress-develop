@@ -17,6 +17,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
+		// This needs to come after the mock image editor class is loaded.
 		parent::setUp();
 	}
 
@@ -88,7 +89,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$resized = $gd_image_editor->multi_resize( $sizes_array );
 
-		# First, check to see if returned array is as expected
+		// First, check to see if returned array is as expected.
 		$expected_array = array(
 			array(
 				'file'      => 'waffles-50x33.jpg',
@@ -216,7 +217,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 * By aspect, should be 30x20 output.
 			 */
 			array(
-				'width'  => 9999, # Arbitrary High Value
+				'width'  => 9999, // Arbitrary high value.
 				'height' => 20,
 				'crop'   => false,
 			),
@@ -227,7 +228,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 45,
-				'height' => 9999, # Arbitrary High Value
+				'height' => 9999, // Arbitrary high value.
 				'crop'   => true,
 			),
 
@@ -270,7 +271,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 * By aspect, should be 105x70 output.
 			 */
 			array(
-				'width'  => -9999, # Arbitrary Negative Value
+				'width'  => -9999, // Arbitrary negative value.
 				'height' => 70,
 			),
 
@@ -280,7 +281,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 200,
-				'height' => -9999, # Arbitrary Negative Value
+				'height' => -9999, // Arbitrary negative value.
 			),
 		);
 

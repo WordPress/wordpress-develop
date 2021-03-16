@@ -39,13 +39,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
-		foreach ( array( 'curl', 'streams', 'fsockopen' ) as $t ) {
-			remove_filter( "use_{$t}_transport", '__return_false' );
-		}
-		parent::tearDown();
-	}
-
 	function filter_http_request_args( array $args ) {
 		$this->http_request_args = $args;
 		return $args;

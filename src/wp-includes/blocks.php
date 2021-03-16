@@ -148,7 +148,7 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @since 5.5.0
  *
- * @param array  $metadata Block metadata.
+ * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
@@ -902,7 +902,7 @@ function register_block_style( $block_name, $style_properties ) {
  * @since 5.3.0
  *
  * @param string $block_name       Block type name including namespace.
- * @param array  $block_style_name Block style name.
+ * @param string $block_style_name Block style name.
  * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {
