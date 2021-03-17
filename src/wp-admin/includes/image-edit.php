@@ -399,8 +399,15 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return imagegif( $image, $filename );
 			case 'image/webp':
 				if ( function_exists( 'imagewebp' ) ) {
-					/** This filter is documented in wp-includes/class-wp-image-editor.php */
-					return imagewebp( $image, null, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
+				/**
+				 * Filters the WebP compression quality for image file saves.
+				 *
+				 * @since 5.8.0
+				 *
+				 * @param int    $quality Quality level between 0 (low) and 100 (high) of the WebP.
+				 * @param string $context Context of the filter.
+				 */
+				return imagewebp( $image, null, apply_filters( 'webp_quality', 75 ) );
 				}
 				return false;
 			default:
