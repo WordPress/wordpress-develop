@@ -399,6 +399,7 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return imagegif( $image, $filename );
 			case 'image/webp':
 				if ( function_exists( 'imagewebp' ) ) {
+					/** This filter is documented in wp-includes/class-wp-image-editor.php */
 					return imagewebp( $image, null, apply_filters( 'jpeg_quality', 90, 'edit_image' ) );
 				}
 				return false;
