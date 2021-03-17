@@ -5009,6 +5009,7 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
  * Get the image size, with support for WebP images.
  *
  * @since 5.8.0
+ * @access private
  *
  * @param string $filename  The file path.
  * @param array  $imageinfo Extended image information, passed by reference.
