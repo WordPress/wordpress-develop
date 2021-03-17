@@ -371,6 +371,7 @@ body:not(.sidebar) .wp-block-table.alignfull {
 .entry-content .wp-block-button__link:focus,
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color):hover,
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-text-color):focus,
+.wp-block-button.is-style-outline .wp-block-button__link:not(.has-background):hover,
 .wp-block-button.is-style-outline .wp-block-button__link:not(.has-background):focus {
 	background: #ed6a31;
 	color: #fff;
