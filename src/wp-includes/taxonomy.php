@@ -538,6 +538,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.4.0 Added the `items_list_navigation` and `items_list` labels.
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
  * @since 5.7.0 Added the `filter_by_item` label.
+ * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -576,6 +577,10 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $items_list                 Label for the table hidden heading.
  *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
  *     @type string $back_to_items              Label displayed after a term has been updated.
+ *     @type string $item_link                  Used in the block editor. Title for a navigation link block variation.
+ *                                              Default 'Tag Link'/'Category Link'.
+ *     @type string $item_link_description      Used in the block editor. Description for a navigation link block
+ *                                              variation. Default 'A link to a tag'/'A link to a category'.
  * }
  */
 function get_taxonomy_labels( $tax ) {
@@ -613,7 +618,16 @@ function get_taxonomy_labels( $tax ) {
 		/* translators: Tab heading when selecting from the most used terms. */
 		'most_used'                  => array( _x( 'Most Used', 'tags' ), _x( 'Most Used', 'categories' ) ),
 		'back_to_items'              => array( __( '&larr; Go to Tags' ), __( '&larr; Go to Categories' ) ),
+		'item_link'                  => array(
+			_x( 'Tag Link', 'navigation link block title' ),
+			_x( 'Category Link', 'navigation link block description' ),
+		),
+		'item_link_description'      => array(
+			_x( 'A link to a tag.', 'navigation link block description' ),
+			_x( 'A link to a category.', 'navigation link block description' ),
+		),
 	);
+
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
