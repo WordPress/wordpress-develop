@@ -1489,7 +1489,7 @@ EOF;
 	/**
 	 * Helper function to get image size array from size "name".
 	 */
-	function _get_image_size_array_from_meta( $image_meta, $size_name ) {
+	function _wp_get_image_size_array_from_meta( $image_meta, $size_name ) {
 		$array = false;
 
 		if ( is_array( $image_meta ) ) {

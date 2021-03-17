@@ -4988,7 +4988,7 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 		// Return without silencing errors when in debug mode.
 		defined( 'WP_DEBUG' ) && WP_DEBUG
 	) {
-		return _get_image_size( $filename, $imageinfo );
+		return _wp_get_image_size( $filename, $imageinfo );
 	}
 
 	/*
@@ -5014,7 +5014,7 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
  * @param string $filename  The file path.
  * @param array  $imageinfo Extended image information, passed by reference.
  */
-function _get_image_size( $filename, &$imageinfo = array() ) {
+function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 	// Try getimagesize() first.
 	$info = getimagesize( $filename, $imageinfo );
 	if ( false !== $info ) {
