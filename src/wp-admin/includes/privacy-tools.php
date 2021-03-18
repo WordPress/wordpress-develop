@@ -388,20 +388,20 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// And now, all the Groups.
 	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
 
-	// Merge in the special about group.
-	if ( is_array( $groups ) ) {
-		$groups       = array_merge( array( 'about' => $about_group ), $groups );
-		$groups_count = count( $groups );
-	} elseif ( '' === $groups || false === $groups ) {
+	// False returned when the request ID is invalid.
+	if ( false === $groups ) {
 		$groups       = array( 'about' => $about_group );
 		$groups_count = 1;
 	} else {
-		wp_send_json_error(
-			sprintf(
-				'Warning: array_merge(): Expected parameter 2 to be an array, %1$s given.',
-				gettype( $groups )
-			)
-		);
+		if ( ! is_array( $groups ) ) {
+			_doing_it_wrong(
+				__FUNCTION__,
+				/* translators: %s: post meta key. */
+				sprintf( __( 'The %s post meta must be an array.', "<code>'_export_data_grouped'</code>" ) )
+			);
+		}
+		$groups       = array_merge( array( 'about' => $about_group ), (array) $groups );
+		$groups_count = count( $groups );
 	}
 
 	// Convert the groups to JSON format.
