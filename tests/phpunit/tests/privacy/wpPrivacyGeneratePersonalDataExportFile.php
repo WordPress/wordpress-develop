@@ -214,13 +214,13 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * @dataProvider data_invalid_export_data_grouped_type_error
+	 * @dataProvider data_export_data_grouped_invalid_type
 	 *
 	 * @ticket 51423
 	 *
 	 * @param mixed $groups '_export_data_grouped' post meta value.
 	 */
-	public function test_doing_it_wrong_for_invalid_export_data_grouped_type( $groups ) {
+	public function test_doing_it_wrong_for_export_data_grouped_invalid_type( $groups ) {
 		update_post_meta( self::$export_request_id, '_export_data_grouped', $groups );
 
 		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
@@ -228,7 +228,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
-	public function data_invalid_export_data_grouped_type_error() {
+	public function data_export_data_grouped_invalid_type() {
 		return array(
 			array( 10 ),
 			array( '10' ),
