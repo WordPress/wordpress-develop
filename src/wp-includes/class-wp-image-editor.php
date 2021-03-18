@@ -322,14 +322,6 @@ abstract class WP_Image_Editor {
 				'mime_type' => 'image/webp',
 				'extension' => 'webp',
 			),
-			'image/png'  => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
-			'image/gif'  => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
 		);
 
 		/**
