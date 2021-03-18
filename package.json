@@ -63,7 +63,6 @@
 		"install-changed": "1.1.0",
 		"matchdep": "~2.0.0",
 		"prettier": "npm:wp-prettier@2.0.5",
-		"puppeteer": "npm:puppeteer-core@3.0.0",
 		"qunit": "~2.14.0",
 		"sass": "^1.32.8",
 		"sinon": "~9.2.4",
