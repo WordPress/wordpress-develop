@@ -20,7 +20,7 @@ function _register_core_block_patterns_and_categories() {
 	if ( $should_register_core_patterns ) {
 		$core_block_patterns = array(
 			'media-text-nature',
-			'gallery',
+			'two-images-gallery',
 			'cover-quote',
 			'cover-columns',
 			'three-columns-media-text',
@@ -30,6 +30,10 @@ function _register_core_block_patterns_and_categories() {
 			'text-two-columns-title',
 			'three-columns-list',
 			'text-two-columns-title-2',
+			'heading',
+			'three-images-gallery',
+			'two-columns-list',
+			'media-text-arquitecture',
 			'text-two-columns',
 			'two-buttons',
 			'two-images',
@@ -57,4 +61,5 @@ function _register_core_block_patterns_and_categories() {
 	register_block_pattern_category( 'text', array( 'label' => _x( 'Text', 'Block pattern category' ) ) );
 	register_block_pattern_category( 'nature', array( 'label' => _x( 'Nature', 'Block pattern category' ) ) );
 	register_block_pattern_category( 'art', array( 'label' => _x( 'Art', 'Block pattern category' ) ) );
+	register_block_pattern_category( 'arquitecture', array( 'label' => _x( 'Arquitecture', 'Block pattern category' ) ) );
 }
