@@ -19,12 +19,17 @@ function _register_core_block_patterns_and_categories() {
 
 	if ( $should_register_core_patterns ) {
 		$core_block_patterns = array(
-			'media-text',
+			'media-text-nature',
 			'gallery',
 			'cover-quote',
 			'cover-columns',
 			'three-columns-media-text',
 			'quote-portrait',
+			'hero-section',
+			'media-text-art',
+			'text-two-columns-title',
+			'three-columns-list',
+			'text-two-columns-title-2',
 			'text-two-columns',
 			'two-buttons',
 			'two-images',
@@ -51,4 +56,5 @@ function _register_core_block_patterns_and_categories() {
 	register_block_pattern_category( 'header', array( 'label' => _x( 'Headers', 'Block pattern category' ) ) );
 	register_block_pattern_category( 'text', array( 'label' => _x( 'Text', 'Block pattern category' ) ) );
 	register_block_pattern_category( 'nature', array( 'label' => _x( 'Nature', 'Block pattern category' ) ) );
+	register_block_pattern_category( 'art', array( 'label' => _x( 'Art', 'Block pattern category' ) ) );
 }

@@ -25,5 +25,5 @@ return array(
 	<!-- /wp:buttons --></div></div>
 	<!-- /wp:media-text --></div></div>
 	<!-- /wp:cover -->',
-	'description' => _x( 'Full height image cover with a quote on top of it', 'Block pattern description' ),
+	'description' => _x( 'Media and text block with image to the left and text and button to the right', 'Block pattern description' ),
 );
