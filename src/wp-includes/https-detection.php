@@ -143,12 +143,8 @@ function wp_update_https_detection_errors() {
 		$response = $unverified_response;
 	}
 
-	if ( ! is_wp_error( $response ) ) {
-		if ( 200 !== wp_remote_retrieve_response_code( $response ) ) {
-			$support_errors->add( 'bad_response_code', wp_remote_retrieve_response_message( $response ) );
-		} elseif ( false === wp_is_local_html_output( wp_remote_retrieve_body( $response ) ) ) {
-			$support_errors->add( 'bad_response_source', __( 'It looks like the response did not come from this site.' ) );
-		}
+	if ( ! is_wp_error( $response ) && 200 !== wp_remote_retrieve_response_code( $response ) ) {
+		$support_errors->add( 'bad_response_code', wp_remote_retrieve_response_message( $response ) );
 	}
 
 	update_option( 'https_detection_errors', $support_errors->errors );
