@@ -1183,14 +1183,7 @@ class getID3
 							'fail_id3'  => 'ERROR',
 							'fail_ape'  => 'ERROR',
 						),
-				'webp' => array(
-						'pattern'   => '^WEBP',
-						'group'     => 'graphic',
-						'module'    => 'webp',
-						'mime_type' => 'image/webp',
-						'fail_id3'  => 'ERROR',
-						'fail_ape'  => 'ERROR',
-					),
+
 				// PCD  - still image - Kodak Photo CD
 				'pcd'  => array(
 							'pattern'   => '^.{2048}PCD_IPI\\x00',
