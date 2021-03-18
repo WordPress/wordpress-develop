@@ -341,7 +341,8 @@ abstract class WP_Image_Editor {
 		 *
 		 * @param array $image_editor_mime_mapping {
 		 *     An array of mime type mappings. Maps a source mime type to a new
-		 *     destination mime type and file extension.
+		 *     destination mime type and file extension. Only remaps to supported
+		 *     mime types.
 		 *
 		 *     @type array $mime_type The source mime type {
 		 *         @type string $mime_type The new mime type.
@@ -351,7 +352,13 @@ abstract class WP_Image_Editor {
 		 */
 		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', $image_editor_mime_mapping, $filename, $mime_type );
 
-		if ( $image_editor_mime_mapping && isset( $image_editor_mime_mapping[ $mime_type ] ) && $image_editor_mime_mapping[ $mime_type ] ) {
+		if (
+			$image_editor_mime_mapping &&
+			isset( $image_editor_mime_mapping[ $mime_type ] ) &&
+			isset( $image_editor_mime_mapping[ $mime_type ]['mime_type'] ) &&
+			$image_editor_mime_mapping[ $mime_type ] &&
+			this->supports_mime_type( $image_editor_mime_mapping[ $mime_type ]['mime_type'] )
+		) {
 			$new_ext   = $image_editor_mime_mapping[ $mime_type ]['extension'];
 			$mime_type = $image_editor_mime_mapping[ $mime_type ]['mime_type'];
 		}
