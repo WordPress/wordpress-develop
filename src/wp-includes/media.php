@@ -5002,7 +5002,7 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 	 *
 	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
 	 */
-	return @_get_image_size( $filename, $imageinfo );
+	return @_wp_get_image_size( $filename, $imageinfo );
 }
 
 /**
