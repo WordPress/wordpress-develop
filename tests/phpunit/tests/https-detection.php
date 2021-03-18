@@ -63,24 +63,7 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 		update_option( 'home', 'http://example.com/' );
 		add_filter( 'pre_http_request', array( $this, 'record_request_url' ), 10, 3 );
 
-		// If initial request succeeds, all good.
-		add_filter( 'pre_http_request', array( $this, 'mock_success_with_sslverify' ), 10, 2 );
-		wp_update_https_detection_errors();
-		$this->assertSame( array(), get_option( 'https_detection_errors' ) );
-
-		// If initial request fails and request without SSL verification succeeds,
-		// return 'ssl_verification_failed' error.
-		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
-		add_filter( 'pre_http_request', array( $this, 'mock_success_without_sslverify' ), 10, 2 );
-		wp_update_https_detection_errors();
-		$this->assertSame(
-			array( 'ssl_verification_failed' => array( __( 'SSL verification failed.' ) ) ),
-			get_option( 'https_detection_errors' )
-		);
-
-		// If both initial request and request without SSL verification fail,
-		// return 'https_request_failed' error.
-		add_filter( 'pre_http_request', array( $this, 'mock_error_with_sslverify' ), 10, 2 );
+		// If the request fails, return 'https_request_failed' error.
 		add_filter( 'pre_http_request', array( $this, 'mock_error_without_sslverify' ), 10, 2 );
 		wp_update_https_detection_errors();
 		$this->assertSame(
@@ -257,20 +240,6 @@ class Tests_HTTPS_Detection extends WP_UnitTestCase {
 
 	public function record_request_url( $preempt, $parsed_args, $url ) {
 		$this->last_request_url = $url;
-		return $preempt;
-	}
-
-	public function mock_success_with_sslverify( $preempt, $parsed_args ) {
-		if ( ! empty( $parsed_args['sslverify'] ) ) {
-			return $this->mock_success();
-		}
-		return $preempt;
-	}
-
-	public function mock_error_with_sslverify( $preempt, $parsed_args ) {
-		if ( ! empty( $parsed_args['sslverify'] ) ) {
-			return $this->mock_error();
-		}
 		return $preempt;
 	}
 

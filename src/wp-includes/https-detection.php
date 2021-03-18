@@ -113,34 +113,15 @@ function wp_update_https_detection_errors() {
 			'headers'   => array(
 				'Cache-Control' => 'no-cache',
 			),
-			'sslverify' => true,
+			'sslverify' => false,
 		)
 	);
 
 	if ( is_wp_error( $response ) ) {
-		$unverified_response = wp_remote_request(
-			home_url( '/', 'https' ),
-			array(
-				'headers'   => array(
-					'Cache-Control' => 'no-cache',
-				),
-				'sslverify' => false,
-			)
+		$support_errors->add(
+			'https_request_failed',
+			__( 'HTTPS request failed.' )
 		);
-
-		if ( is_wp_error( $unverified_response ) ) {
-			$support_errors->add(
-				'https_request_failed',
-				__( 'HTTPS request failed.' )
-			);
-		} else {
-			$support_errors->add(
-				'ssl_verification_failed',
-				__( 'SSL verification failed.' )
-			);
-		}
-
-		$response = $unverified_response;
 	}
 
 	if ( ! is_wp_error( $response ) && 200 !== wp_remote_retrieve_response_code( $response ) ) {

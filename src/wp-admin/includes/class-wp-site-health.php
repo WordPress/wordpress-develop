@@ -1637,16 +1637,10 @@ class WP_Site_Health {
 			$result['label']  = __( 'There are problems with the HTTPS connection of your website' );
 
 			$https_detection_errors = get_option( 'https_detection_errors' );
-			if ( ! empty( $https_detection_errors['ssl_verification_failed'] ) ) {
-				$result['description'] = sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: URL to Settings > General > WordPress Address. */
-						__( 'Your <a href="%s">WordPress Address</a> is set up to use HTTPS, but the SSL certificate appears to be invalid.' ),
-						esc_url( admin_url( 'options-general.php' ) . '#siteurl' )
-					)
-				);
-			} else {
+			if (
+				! empty( $https_detection_errors['https_request_failed'] ) ||
+				! empty( $https_detection_errors['bad_response_code'] )
+			) {
 				$result['description'] = sprintf(
 					'<p>%s</p>',
 					sprintf(
