@@ -135,7 +135,7 @@
 		"hoverintent": "2.2.1",
 		"imagesloaded": "4.1.4",
 		"jquery": "3.6.0",
-		"jquery-color": "https://github.com/jquery/jquery-color/archive/2.1.2.tar.gz",
+		"jquery-color": "2.2.0",
 		"jquery-form": "4.2.1",
 		"jquery-hoverintent": "1.10.1",
 		"lodash": "4.17.19",
