@@ -387,8 +387,6 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 
 	// And now, all the Groups.
 	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
-
-	// False returned when the request ID is invalid.
 	if ( false === $groups ) {
 		$groups       = array( 'about' => $about_group );
 		$groups_count = 1;
@@ -397,7 +395,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				/* translators: %s: post meta key. */
-				sprintf( __( 'The %s post meta must be an array.', "<code>'_export_data_grouped'</code>" ) )
+				sprintf( __( 'The %s post meta must be an array.', "<code>'_export_data_grouped'</code>" ) ),
+				'5.8.0'
 			);
 		}
 		$groups       = array_merge( array( 'about' => $about_group ), (array) $groups );

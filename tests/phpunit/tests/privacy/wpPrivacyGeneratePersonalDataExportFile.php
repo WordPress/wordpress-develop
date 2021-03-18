@@ -219,37 +219,23 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @ticket 51423
 	 *
 	 * @param mixed $groups '_export_data_grouped' post meta value.
-	 * @param string $type  Expected groups data type.
 	 */
-	public function test_invalid_export_data_grouped_type_error( $groups, $type ) {
+	public function test_doing_it_wrong_for_invalid_export_data_grouped_type( $groups ) {
 		update_post_meta( self::$export_request_id, '_export_data_grouped', $groups );
 
-		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Warning: array_merge(): Expected parameter 2 to be an array, ' . $type . ' given."}' );
+		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
 
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
 	public function data_invalid_export_data_grouped_type_error() {
 		return array(
+			array( 10 ),
+			array( '10' ),
+			array( true ),
+			array( new stdClass() ),
 			array(
-				'groups' => 10,
-				'type'   => 'string',
-			),
-			array(
-				'groups' => '10',
-				'type'   => 'string',
-			),
-			array(
-				'groups' => true,
-				'type'   => 'string',
-			),
-			array(
-				'groups' => new stdClass(),
-				'type'   => 'object',
-			),
-			array(
-				'groups' => json_encode(
+				json_encode(
 					array(
 						'user' => array(
 							'group_label'       => 'User',
@@ -289,7 +275,6 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 					)
 				),
-				'type'   => 'string',
 			),
 		);
 	}
@@ -346,33 +331,52 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @dataProvider data_json_contents
 	 *
 	 * @param mixed $groups '_export_data_grouped' post meta value.
+	 * @param string $expected_json Expected groups JSON. Default is empty string.
 	 */
-	public function test_json_contents( $groups ) {
-		$about_group = '{"Personal Data Export for export-requester@example.com":{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"export-requester@example.com"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"' . current_time( 'mysql' ) . '"}]}}';
-
-		$this->expectOutputString( '' );
-
-		$report_dir = $this->setup_export_contents_test( $groups );
-
-		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
-
+	public function test_json_contents( $groups, $expected_json = '' ) {
+		$about_group          = '{"Personal Data Export for export-requester@example.com":{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"export-requester@example.com"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"' . current_time( 'mysql' ) . '"}]}}';
+		$report_dir           = $this->setup_export_contents_test( $groups );
 		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
 
-		if ( is_array( $groups ) && ! empty( $groups ) ) {
-			$expected_user_group = substr( json_encode( $groups ), 1 );
-			$expected            = "{$about_group},{$expected_user_group}}";
-			$this->assertSame( $expected, $report_contents_json );
-		} else {
-			$this->assertSame( $about_group . '}}', $report_contents_json );
+		$expected = $about_group;
+		if ( ! is_null( $groups ) ) {
+			if ( ! is_array( $groups ) ) {
+				$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
+			}
+			$expected .= $expected_json;
 		}
+		$expected .= '}}';
+
+		$this->assertSame( $expected, $report_contents_json );
 	}
 
 	public function data_json_contents() {
 		return array(
-			'no _export_data_grouped should contain about group'                                => array( null ),
-			'_export_data_grouped empty array should contain about group'                       => array( array() ),
-			'_export_data_grouped populated array should contain about and export data groups'  => array(
-				array(
+			// Unhappy path.
+			'should type cast and include groups when integer' => array(
+				'groups'        => 10,
+				'expected_json' => ',"0":"10"',
+			),
+			'should type cast and include groups when boolean' => array(
+				'groups'        => true,
+				'expected_json' => ',"0":"1"',
+			),
+			'should type cast and include groups when string' => array(
+				'groups'        => 'string',
+				'expected_json' => ',"0":"string"',
+			),
+			'should type cast and include group when object' => array(
+				'groups' => new stdClass(),
+			),
+			// Happy path.
+			'should contain about when _export_data_grouped does not exist' => array(
+				'groups' => null,
+			),
+			'should contain about when empty array' => array(
+				'groups' => array(),
+			),
+			'should contain about and export data groups when properly formatted groups exist' => array(
+				'groups'        => array(
 					'user' => array(
 						'group_label'       => 'User',
 						'group_description' => 'User&#8217;s profile data.',
@@ -410,6 +414,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 						),
 					),
 				),
+				'expected_json' => ',"user":{"group_label":"User","group_description":"User&#8217;s profile data.","items":{"user-1":[{"name":"User ID","value":1},{"name":"User Login Name","value":"user_login"},{"name":"User Nice Name","value":"User Name"},{"name":"User Email","value":"export-requester@example.com"},{"name":"User Registration Date","value":"2020-01-31 19:29:29"},{"name":"User Display Name","value":"User Name"},{"name":"User Nickname","value":"User"}]}}',
 			),
 		);
 	}
