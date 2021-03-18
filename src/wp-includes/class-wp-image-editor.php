@@ -290,9 +290,23 @@ abstract class WP_Image_Editor {
 	 *
 	 * @param string $filename
 	 * @param string $mime_type
+	 * @param array $image_editor_mime_mapping {
+	 *     An array of mime type mappings. Maps a source mime type to a new
+	 *     destination mime type and file extension. Only remaps to supported
+	 *     mime types.
+	 *
+	 *     @type array $mime_type The source mime type {
+	 *         @type string $mime_type The new mime type.
+	 *         @type string $extension The new mime file extension.
+	 *     }
 	 * @return array { filename|null, extension, mime-type }
 	 */
-	protected function get_output_format( $filename = null, $mime_type = null ) {
+	protected function get_output_format( $filename = null, $mime_type = null, $image_editor_mime_mapping = array(
+		'image/jpeg' => array(
+			'mime_type' => 'image/webp',
+			'extension' => 'webp',
+		),
+	) ) {
 		$new_ext = null;
 
 		// By default, assume specified type takes priority.
@@ -316,18 +330,10 @@ abstract class WP_Image_Editor {
 			$new_ext   = $file_ext;
 		}
 
-		// Remap legacy formats to modern formats.
-		$image_editor_mime_mapping = array(
-			'image/jpeg' => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
-		);
-
 		/**
 		 * Filters the default mime mapping.
 		 *
-		 * @see get_output_format()
+		 * @see src/wp-includes/class-wp-image-editor.php -> get_output_format()
 		 *
 		 * @since 5.8.0
 		 *
