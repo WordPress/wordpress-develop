@@ -398,8 +398,9 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 				sprintf( __( 'The %s post meta must be an array.' ), "<code>'_export_data_grouped'</code>" ),
 				'5.8.0'
 			);
+			$groups = (array) $groups;
 		}
-		$groups       = array_merge( array( 'about' => $about_group ), (array) $groups );
+		$groups       = array_merge( array( 'about' => $about_group ), $groups );
 		$groups_count = count( $groups );
 	}
 
