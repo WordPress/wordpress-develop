@@ -387,21 +387,21 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 
 	// And now, all the Groups.
 	$groups = get_post_meta( $request_id, '_export_data_grouped', true );
-	if ( false === $groups ) {
-		$groups       = array( 'about' => $about_group );
-		$groups_count = 1;
+	if ( is_array( $groups ) ) {
+		$groups       = array_merge( array( 'about' => $about_group ), $groups );
+		$groups_count = count( $groups );
 	} else {
-		if ( ! is_array( $groups ) ) {
+		if ( false !== $groups ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				/* translators: %s: post meta key. */
 				sprintf( __( 'The %s post meta must be an array.' ), "<code>'_export_data_grouped'</code>" ),
 				'5.8.0'
 			);
-			$groups = (array) $groups;
 		}
-		$groups       = array_merge( array( 'about' => $about_group ), $groups );
-		$groups_count = count( $groups );
+
+		$groups       = array( 'about' => $about_group );
+		$groups_count = 1;
 	}
 
 	// Convert the groups to JSON format.

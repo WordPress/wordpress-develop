@@ -354,16 +354,13 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		return array(
 			// Unhappy path.
 			'should type cast and include groups when integer' => array(
-				'groups'        => 10,
-				'expected_json' => ',"0":"10"',
+				'groups' => 10,
 			),
 			'should type cast and include groups when boolean' => array(
-				'groups'        => true,
-				'expected_json' => ',"0":"1"',
+				'groups' => true,
 			),
 			'should type cast and include groups when string' => array(
-				'groups'        => 'string',
-				'expected_json' => ',"0":"string"',
+				'groups' => 'string',
 			),
 			'should type cast and include group when object' => array(
 				'groups' => new stdClass(),
