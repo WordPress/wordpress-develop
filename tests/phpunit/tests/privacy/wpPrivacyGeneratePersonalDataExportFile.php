@@ -334,9 +334,13 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @param string $expected_json Expected groups JSON. Default is empty string.
 	 */
 	public function test_json_contents( $groups, $expected_json = '' ) {
-		$about_group          = '{"Personal Data Export for export-requester@example.com":{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"export-requester@example.com"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"' . current_time( 'mysql' ) . '"}]}}';
 		$report_dir           = $this->setup_export_contents_test( $groups );
 		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
+
+		// The about group: to avoid a second time difference, use the report's "on" timestamp.
+		$about_group  = '{"Personal Data Export for export-requester@example.com":{"about":{"group_label":"About","group_description":"Overview of export report.","items":{"about-1":[{"name":"Report generated for","value":"export-requester@example.com"},{"name":"For site","value":"Test Blog"},{"name":"At URL","value":"http:\/\/example.org"},{"name":"On","value":"';
+		$timestamp    = substr( $report_contents_json, strlen( $about_group ), strlen( current_time( 'mysql' ) ) );
+		$about_group .= $timestamp . '"}]}}';
 
 		$expected = $about_group;
 		if ( ! is_null( $groups ) ) {
