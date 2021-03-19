@@ -157,44 +157,4 @@ class Tests_Robots extends WP_UnitTestCase {
 		$robots['noindex'] = false;
 		return $robots;
 	}
-
-	public function add_follow_directive( array $robots ) {
-		$robots['follow'] = true;
-		return $robots;
-	}
-
-	public function remove_follow_directive( array $robots ) {
-		$robots['follow'] = false;
-		return $robots;
-	}
-
-	public function add_nofollow_directive( array $robots ) {
-		$robots['nofollow'] = true;
-		return $robots;
-	}
-
-	public function remove_nofollow_directive( array $robots ) {
-		$robots['nofollow'] = false;
-		return $robots;
-	}
-
-	public function add_archive_directive( array $robots ) {
-		$robots['archive'] = true;
-		return $robots;
-	}
-
-	public function remove_archive_directive( array $robots ) {
-		$robots['archive'] = false;
-		return $robots;
-	}
-
-	public function add_noarchive_directive( array $robots ) {
-		$robots['noarchive'] = true;
-		return $robots;
-	}
-
-	public function remove_noarchive_directive( array $robots ) {
-		$robots['noarchive'] = false;
-		return $robots;
-	}
 }
