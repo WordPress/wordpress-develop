@@ -5021,7 +5021,8 @@ function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 		return $info;
 	}
 
-	// For PHP versions that don't support WebP images, pull info from the file headers.
+	// For PHP versions that don't support WebP images, extract the image
+	// size info from the file headers.
 	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
 		try {
 			$handle = fopen( $filename, 'rb' );
@@ -5049,8 +5050,7 @@ function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 					case 'VP8L':
 						$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
 						$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) |
-										( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
 						break;
 					// Animated/alpha WebP.
 					case 'VP8X':
