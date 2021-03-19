@@ -11,8 +11,6 @@ class Tests_Media extends WP_UnitTestCase {
 	protected static $post_ids;
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
-
 		self::$_sizes                          = wp_get_additional_image_sizes();
 		$GLOBALS['_wp_additional_image_sizes'] = array();
 
@@ -51,7 +49,6 @@ class Tests_Media extends WP_UnitTestCase {
 
 	public static function wpTearDownAfterClass() {
 		$GLOBALS['_wp_additional_image_sizes'] = self::$_sizes;
-		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 	}
 
 	public static function tearDownAfterClass() {

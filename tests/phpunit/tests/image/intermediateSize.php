@@ -5,13 +5,6 @@
  * @group upload
  */
 class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
-	/**
-	 * Setup test fixture
-	 */
-	public function setUp() {
-		parent::setUp();
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
-	}
 
 	function tearDown() {
 		$this->remove_added_uploads();
@@ -20,7 +13,6 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		remove_image_size( 'false-height' );
 		remove_image_size( 'false-width' );
 		remove_image_size( 'off-by-one' );
-		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 		parent::tearDown();
 	}
 

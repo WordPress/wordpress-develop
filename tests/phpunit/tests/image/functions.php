@@ -25,12 +25,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 	}
 
 	/**
@@ -166,7 +160,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_save_image_file() {
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {

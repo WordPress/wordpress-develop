@@ -14,12 +14,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		parent::setUp();
 
 		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 	}
 
 	public function wp_image_editors() {

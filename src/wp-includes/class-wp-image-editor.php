@@ -290,23 +290,9 @@ abstract class WP_Image_Editor {
 	 *
 	 * @param string $filename
 	 * @param string $mime_type
-	 * @param array $image_editor_mime_mapping {
-	 *     An array of mime type mappings. Maps a source mime type to a new
-	 *     destination mime type and file extension. Only remaps to supported
-	 *     mime types.
-	 *
-	 *     @type array $mime_type The source mime type {
-	 *         @type string $mime_type The new mime type.
-	 *         @type string $extension The new mime file extension.
-	 *     }
 	 * @return array { filename|null, extension, mime-type }
 	 */
-	protected function get_output_format( $filename = null, $mime_type = null, $image_editor_mime_mapping = array(
-		'image/jpeg' => array(
-			'mime_type' => 'image/webp',
-			'extension' => 'webp',
-		),
-	) ) {
+	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
 		// By default, assume specified type takes priority.
@@ -328,37 +314,6 @@ abstract class WP_Image_Editor {
 		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
 			$mime_type = $file_mime;
 			$new_ext   = $file_ext;
-		}
-
-		/**
-		 * Filters the default mime mapping.
-		 *
-		 * @see src/wp-includes/class-wp-image-editor.php -> get_output_format()
-		 *
-		 * @since 5.8.0
-		 *
-		 * @param array $image_editor_mime_mapping {
-		 *     An array of mime type mappings. Maps a source mime type to a new
-		 *     destination mime type and file extension. Only remaps to supported
-		 *     mime types.
-		 *
-		 *     @type array $mime_type The source mime type {
-		 *         @type string $mime_type The new mime type.
-		 *         @type string $extension The new mime file extension.
-		 *     }
-		 * }
-		 */
-		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', $image_editor_mime_mapping, $filename, $mime_type );
-
-		if (
-			$image_editor_mime_mapping &&
-			isset( $image_editor_mime_mapping[ $mime_type ] ) &&
-			isset( $image_editor_mime_mapping[ $mime_type ]['mime_type'] ) &&
-			$image_editor_mime_mapping[ $mime_type ] &&
-			this->supports_mime_type( $image_editor_mime_mapping[ $mime_type ]['mime_type'] )
-		) {
-			$new_ext   = $image_editor_mime_mapping[ $mime_type ]['extension'];
-			$mime_type = $image_editor_mime_mapping[ $mime_type ]['mime_type'];
 		}
 
 		// Double-check that the mime-type selected is supported by the editor.
