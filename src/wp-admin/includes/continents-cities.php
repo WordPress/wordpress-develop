@@ -324,7 +324,7 @@ __( 'Phnom Penh', 'continents-cities' );
 __( 'Pontianak', 'continents-cities' );
 __( 'Pyongyang', 'continents-cities' );
 __( 'Qatar', 'continents-cities' );
-__( 'Qostanay' 'continents-cities' );
+__( 'Qostanay', 'continents-cities' );
 __( 'Qyzylorda', 'continents-cities' );
 __( 'Rangoon', 'continents-cities' );
 __( 'Riyadh', 'continents-cities' );
