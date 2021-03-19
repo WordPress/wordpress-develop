@@ -4974,6 +4974,7 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  * Allows PHP's getimagesize() to be debuggable when necessary.
  *
  * @since 5.7.0
+ * @since 5.8.0 Added support for WebP images.
  *
  * @param string $filename   The file path.
  * @param array  $image_info Optional. Extended image information (passed by reference).
@@ -4987,7 +4988,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		// Return without silencing errors when in debug mode.
 		defined( 'WP_DEBUG' ) && WP_DEBUG
 	) {
-		return getimagesize( $filename, $image_info );
+		return _wp_get_image_size( $filename, $image_info );
 	}
 
 	/*
@@ -5001,5 +5002,84 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 	 *
 	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
 	 */
-	return @getimagesize( $filename, $image_info );
+	return @_wp_get_image_size( $filename, $image_info );
+}
+
+/**
+ * Get the image size, with support for WebP images.
+ *
+ * @since 5.8.0
+ * @access private
+ *
+ * @param string $filename  The file path.
+ * @param array  $imageinfo Extended image information, passed by reference.
+ */
+function _wp_get_image_size( $filename, &$imageinfo = array() ) {
+	// For PHP versions that don't support WebP images, extract the image
+	// size info from the file headers.
+	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
+		try {
+			$handle = fopen( $filename, 'rb' );
+			if ( $handle ) {
+				$magic = fread( $handle, 40 );
+				fclose( $handle );
+
+				// Make sure we got enough bytes.
+				if ( strlen( $magic ) < 40 ) {
+					return false;
+				}
+
+				$width  = false;
+				$height = false;
+
+				// The headers are a little different for each of the three formats.
+				switch ( substr( $magic, 12, 4 ) ) {
+					// Lossy WebP.
+					case 'VP8 ':
+						$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+						$width  = (int) ( $parts[1] & 0x3FFF );
+						$height = (int) ( $parts[2] & 0x3FFF );
+						break;
+					// Lossless WebP.
+					case 'VP8L':
+						$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+						$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+						break;
+					// Animated/alpha WebP.
+					case 'VP8X':
+						// Pad 24-bit int.
+						$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+						$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+
+						// Pad 24-bit int.
+						$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+						$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+						break;
+				}
+
+				// Mimic the native return format.
+				if ( $width && $height ) {
+					return array(
+						$width,
+						$height,
+						IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
+						sprintf(
+							'width="%d" height="%d"',
+							$width,
+							$height
+						),
+						'mime' => 'image/webp',
+					);
+				}
+
+				// The image could not be parsed.
+				return false;
+			}
+		} catch ( Exception $e ) {
+			return false;
+		}
+
+		return false;
+	}
 }
