@@ -66,6 +66,7 @@ __( 'Tunis', 'continents-cities' );
 __( 'Windhoek', 'continents-cities' );
 
 __( 'America', 'continents-cities' );
+__( 'Nuuk', 'continents-cities' );
 __( 'Adak', 'continents-cities' );
 __( 'Anchorage', 'continents-cities' );
 __( 'Anguilla', 'continents-cities' );
@@ -317,7 +318,6 @@ __( 'Muscat', 'continents-cities' );
 __( 'Nicosia', 'continents-cities' );
 __( 'Novokuznetsk', 'continents-cities' );
 __( 'Novosibirsk', 'continents-cities' );
-__( 'Nuuk', 'continents-cities' );
 __( 'Omsk', 'continents-cities' );
 __( 'Oral', 'continents-cities' );
 __( 'Phnom Penh', 'continents-cities' );
