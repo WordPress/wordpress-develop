@@ -395,7 +395,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 			_doing_it_wrong(
 				__FUNCTION__,
 				/* translators: %s: post meta key. */
-				sprintf( __( 'The %s post meta must be an array.', "<code>'_export_data_grouped'</code>" ) ),
+				sprintf( __( 'The %s post meta must be an array.' ), "<code>'_export_data_grouped'</code>" ),
 				'5.8.0'
 			);
 		}
