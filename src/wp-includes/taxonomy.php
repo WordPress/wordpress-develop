@@ -538,6 +538,7 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.4.0 Added the `items_list_navigation` and `items_list` labels.
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
  * @since 5.7.0 Added the `filter_by_item` label.
+ * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -576,6 +577,10 @@ function unregister_taxonomy( $taxonomy ) {
  *     @type string $items_list                 Label for the table hidden heading.
  *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
  *     @type string $back_to_items              Label displayed after a term has been updated.
+ *     @type string $item_link                  Used in the block editor. Title for a navigation link block variation.
+ *                                              Default 'Tag Link'/'Category Link'.
+ *     @type string $item_link_description      Used in the block editor. Description for a navigation link block
+ *                                              variation. Default 'A link to a tag'/'A link to a category'.
  * }
  */
 function get_taxonomy_labels( $tax ) {
@@ -613,7 +618,16 @@ function get_taxonomy_labels( $tax ) {
 		/* translators: Tab heading when selecting from the most used terms. */
 		'most_used'                  => array( _x( 'Most Used', 'tags' ), _x( 'Most Used', 'categories' ) ),
 		'back_to_items'              => array( __( '&larr; Go to Tags' ), __( '&larr; Go to Categories' ) ),
+		'item_link'                  => array(
+			_x( 'Tag Link', 'navigation link block title' ),
+			_x( 'Category Link', 'navigation link block description' ),
+		),
+		'item_link_description'      => array(
+			_x( 'A link to a tag.', 'navigation link block description' ),
+			_x( 'A link to a category.', 'navigation link block description' ),
+		),
 	);
+
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
@@ -626,6 +640,11 @@ function get_taxonomy_labels( $tax ) {
 	 * Filters the labels of a specific taxonomy.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `taxonomy_labels_category`
+	 *  - `taxonomy_labels_post_tag`
 	 *
 	 * @since 4.4.0
 	 *
@@ -2031,6 +2050,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the specific
 	 * taxonomy the term belonged to.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `delete_category`
+	 *  - `delete_post_tag`
+	 *
 	 * @since 2.3.0
 	 * @since 4.5.0 Introduced the `$object_ids` argument.
 	 *
@@ -2474,6 +2498,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * The dynamic portion of the hook name, `$taxonomy`, refers
 	 * to the slug of the taxonomy the term was created for.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `create_category`
+	 *  - `create_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -2513,6 +2542,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `created_category`
+	 *  - `created_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -2540,6 +2574,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * cache has been cleared.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `saved_category`
+	 *  - `saved_post_tag`
 	 *
 	 * @since 5.5.0
 	 *
@@ -3186,6 +3225,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `edit_category`
+	 *  - `edit_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -3217,6 +3261,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 * cache has been cleaned.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `edited_category`
+	 *  - `edited_post_tag`
 	 *
 	 * @since 2.3.0
 	 *

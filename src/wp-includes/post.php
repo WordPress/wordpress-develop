@@ -1422,20 +1422,20 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                               ?{query_var_string}={post_slug} will be valid.
  *     @type bool         $can_export            Whether to allow this post type to be exported. Default true.
  *     @type bool         $delete_with_user      Whether to delete posts of this type when deleting a user.
- *                                               - If true, posts of this type belonging to the user will be moved
+ *                                               * If true, posts of this type belonging to the user will be moved
  *                                                 to Trash when the user is deleted.
- *                                               - If false, posts of this type belonging to the user will *not*
+ *                                               * If false, posts of this type belonging to the user will *not*
  *                                                 be trashed or deleted.
- *                                               - If not set (the default), posts are trashed if post type supports
+ *                                               * If not set (the default), posts are trashed if post type supports
  *                                                 the 'author' feature. Otherwise posts are not trashed or deleted.
  *                                               Default null.
  *     @type array        $template              Array of blocks to use as the default initial state for an editor
  *                                               session. Each item should be an array containing block name and
  *                                               optional attributes. Default empty array.
  *     @type string|false $template_lock         Whether the block template should be locked if $template is set.
- *                                               - If set to 'all', the user is unable to insert new blocks,
+ *                                               * If set to 'all', the user is unable to insert new blocks,
  *                                                 move existing blocks and delete blocks.
- *                                               - If set to 'insert', the user is able to move existing blocks
+ *                                               * If set to 'insert', the user is able to move existing blocks
  *                                                 but is unable to insert new blocks and delete blocks.
  *                                               Default false.
  *     @type bool         $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
@@ -1703,6 +1703,9 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
+ * - `item_link` - Title for a navigation link block variation. Default is 'Post Link' / 'Page Link'.
+ * - `item_link_description` - Description for a navigation link block variation. Default is 'A link to a post.' /
+ *                             'A link to a page.'
  *
  * Above, the first default value is for non-hierarchical post types (like posts)
  * and the second one is for hierarchical post types (like pages).
@@ -1719,6 +1722,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 5.0.0 Added the `item_published`, `item_published_privately`, `item_reverted_to_draft`,
  *              `item_scheduled`, and `item_updated` labels.
  * @since 5.7.0 Added the `filter_by_date` label.
+ * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  *
  * @access private
  *
@@ -1726,7 +1730,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @return object Object with all the labels as member variables.
  */
 function get_post_type_labels( $post_type_object ) {
-	$nohier_vs_hier_defaults              = array(
+	$nohier_vs_hier_defaults = array(
 		'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 		'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
 		'add_new'                  => array( _x( 'Add New', 'post' ), _x( 'Add New', 'page' ) ),
@@ -1757,7 +1761,16 @@ function get_post_type_labels( $post_type_object ) {
 		'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
 		'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 		'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
+		'item_link'                => array(
+			_x( 'Post Link', 'navigation link block title' ),
+			_x( 'Page Link', 'navigation link block title' ),
+		),
+		'item_link_description'    => array(
+			_x( 'A link to a post.', 'navigation link block description' ),
+			_x( 'A link to a page.', 'navigation link block description' ),
+		),
 	);
+
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
@@ -1771,6 +1784,12 @@ function get_post_type_labels( $post_type_object ) {
 	 *
 	 * The dynamic portion of the hook name, `$post_type`, refers to
 	 * the post type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `post_type_labels_post`
+	 *  - `post_type_labels_page`
+	 *  - `post_type_labels_attachment`
 	 *
 	 * @since 3.5.0
 	 *
@@ -5030,6 +5049,23 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 *
 	 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
 	 * refer to the new post status and post type, respectively.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `draft_post`
+	 *  - `future_post`
+	 *  - `pending_post`
+	 *  - `private_post`
+	 *  - `publish_post`
+	 *  - `trash_post`
+	 *  - `draft_page`
+	 *  - `future_page`
+	 *  - `pending_page`
+	 *  - `private_page`
+	 *  - `publish_page`
+	 *  - `trash_page`
+	 *  - `publish_attachment`
+	 *  - `trash_attachment`
 	 *
 	 * Please note: When this action is hooked using a particular post status (like
 	 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
