@@ -11,7 +11,7 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	/**
 	 * @dataProvider make_absolute_url_testcases
 	 *
-	 * @covers ::WP_Http::make_absolute_url
+	 * @covers WP_Http::make_absolute_url
 	 */
 	function test_make_absolute_url( $relative_url, $absolute_url, $expected ) {
 		$actual = WP_Http::make_absolute_url( $relative_url, $absolute_url );
