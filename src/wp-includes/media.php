@@ -5015,6 +5015,11 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * @param array  $imageinfo Extended image information, passed by reference.
  */
 function _wp_get_image_size( $filename, &$imageinfo = array() ) {
+	// Try getimagesize() first.
+	$info = getimagesize( $filename, $imageinfo );
+	if ( false !== $info ) {
+		return $info;
+	}
 	// For PHP versions that don't support WebP images, extract the image
 	// size info from the file headers.
 	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
