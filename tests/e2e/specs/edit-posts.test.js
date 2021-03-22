@@ -116,4 +116,30 @@ describe( 'Edit Posts', () => {
 		);
 		expect( postTitle.length ).toBe( 1 );
 	} );
+	it( 'allows an existing post to be deleted using the Trash button', async () => {
+		const title = 'Test Title';
+		await createNewPost( { title } );
+		await publishPost();
+		await visitAdminPage( '/edit.php' );
+
+		await page.waitForSelector( '#the-list .type-post' );
+
+		// Focus on the post title link.
+		const [ editLink ] = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+		);
+		await editLink.focus();
+
+		// Tab to the Trash button and press Enter to delete the post.
+		await pressKeyTimes( 'Tab', 3 );
+		await page.keyboard.press( 'Enter' );
+
+		const noPostsMessage = await page.waitForSelector(
+			'#the-list .no-items td'
+		);
+
+		expect(
+			await noPostsMessage.evaluate( ( element ) => element.innerText )
+		).toBe( 'No posts found.' );
+	} );
 } );
