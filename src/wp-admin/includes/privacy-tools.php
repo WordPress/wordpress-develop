@@ -400,8 +400,8 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 			);
 		}
 
-		$groups       = array( 'about' => $about_group );
-		$groups_count = 1;
+		$groups       = null;
+		$groups_count = 0;
 	}
 
 	// Convert the groups to JSON format.
