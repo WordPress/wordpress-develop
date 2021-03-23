@@ -424,7 +424,7 @@ final class WP_Privacy_Policy_Content {
 						<span class="screen-reader-text">
 							<?php
 							/* translators: %s: Plugin name. */
-							sprintf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
+							echo sprintf( __( 'Copy suggested policy text from %s.' ), $plugin_name );
 							?>
 						</span>
 					</button>
