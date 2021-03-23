@@ -74,56 +74,6 @@ class Tests_Robots extends WP_UnitTestCase {
 	/**
 	 * @ticket 51511
 	 */
-	public function test_wp_robots_includes_basic_sanitization_follow_nofollow() {
-		// Only follow or nofollow can be present, with follow taking precedence.
-		add_filter( 'wp_robots', array( $this, 'add_follow_directive' ) );
-		add_filter( 'wp_robots', array( $this, 'add_nofollow_directive' ) );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'follow'", $output );
-
-		// Consider truthyness of the directive value though.
-		// Here nofollow is true, follow is false.
-		add_filter( 'wp_robots', array( $this, 'remove_follow_directive' ), 11 );
-		add_filter( 'wp_robots', array( $this, 'add_nofollow_directive' ), 11 );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'nofollow'", $output );
-
-		// Consider truthyness of the directive value though.
-		// Here follow is true, nofollow is false.
-		add_filter( 'wp_robots', array( $this, 'add_follow_directive' ), 12 );
-		add_filter( 'wp_robots', array( $this, 'remove_nofollow_directive' ), 12 );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'follow'", $output );
-	}
-
-	/**
-	 * @ticket 51511
-	 */
-	public function test_wp_robots_includes_basic_sanitization_archive_noarchive() {
-		// Only archive or noarchive can be present, with archive taking precedence.
-		add_filter( 'wp_robots', array( $this, 'add_archive_directive' ) );
-		add_filter( 'wp_robots', array( $this, 'add_noarchive_directive' ) );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'archive'", $output );
-
-		// Consider truthyness of the directive value though.
-		// Here noarchive is true, archive is false.
-		add_filter( 'wp_robots', array( $this, 'remove_archive_directive' ), 11 );
-		add_filter( 'wp_robots', array( $this, 'add_noarchive_directive' ), 11 );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'noarchive'", $output );
-
-		// Consider truthyness of the directive value though.
-		// Here archive is true, noarchive is false.
-		add_filter( 'wp_robots', array( $this, 'add_archive_directive' ), 12 );
-		add_filter( 'wp_robots', array( $this, 'remove_noarchive_directive' ), 12 );
-		$output = get_echo( 'wp_robots' );
-		$this->assertContains( "'archive'", $output );
-	}
-
-	/**
-	 * @ticket 51511
-	 */
 	public function test_wp_robots_noindex() {
 		add_filter( 'wp_robots', 'wp_robots_noindex' );
 
@@ -205,46 +155,6 @@ class Tests_Robots extends WP_UnitTestCase {
 
 	public function remove_noindex_directive( array $robots ) {
 		$robots['noindex'] = false;
-		return $robots;
-	}
-
-	public function add_follow_directive( array $robots ) {
-		$robots['follow'] = true;
-		return $robots;
-	}
-
-	public function remove_follow_directive( array $robots ) {
-		$robots['follow'] = false;
-		return $robots;
-	}
-
-	public function add_nofollow_directive( array $robots ) {
-		$robots['nofollow'] = true;
-		return $robots;
-	}
-
-	public function remove_nofollow_directive( array $robots ) {
-		$robots['nofollow'] = false;
-		return $robots;
-	}
-
-	public function add_archive_directive( array $robots ) {
-		$robots['archive'] = true;
-		return $robots;
-	}
-
-	public function remove_archive_directive( array $robots ) {
-		$robots['archive'] = false;
-		return $robots;
-	}
-
-	public function add_noarchive_directive( array $robots ) {
-		$robots['noarchive'] = true;
-		return $robots;
-	}
-
-	public function remove_noarchive_directive( array $robots ) {
-		$robots['noarchive'] = false;
 		return $robots;
 	}
 }
