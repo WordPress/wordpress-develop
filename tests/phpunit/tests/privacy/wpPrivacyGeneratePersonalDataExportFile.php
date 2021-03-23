@@ -659,7 +659,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	/**
 	 * Test should generate a valid JSON report when/if JSON encoding fails.
 	 *
-	 * @ticket 51423b
+	 * @ticket 51423
 	 */
 	public function test_should_generate_valid_json_when_json_encoding_fails() {
 		add_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ), 10, 3 );
@@ -668,7 +668,9 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$metadata = get_post_meta( self::$export_request_id, '_export_data_grouped', true );
 		$this->assertFalse( wp_json_encode( $metadata ) );
 
+		$this->setExpectedIncorrectUsage( 'privacy_export_personal_data_json_encode_error' );
 		$this->expectOutputString( '' );
+
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 
 		$this->assertTrue( file_exists( $this->export_file_name ) );

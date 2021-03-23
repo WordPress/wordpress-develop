@@ -402,6 +402,14 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	$groups_json = wp_json_encode( $groups );
 	if ( false === $groups_json ) {
 		$groups_json = '"false"';
+
+		// Get the error message.
+		$last_error_code    = json_last_error();
+		$json_error_message = JSON_ERROR_NONE === $last_error_code || empty( $last_error_code )
+			? __( 'Unable to encode the export file (JSON report)' )
+			: json_last_error_msg();
+
+		_doing_it_wrong( 'privacy_export_personal_data_json_encode_error', $json_error_message, '5.8.0' );
 	}
 
 	/*
