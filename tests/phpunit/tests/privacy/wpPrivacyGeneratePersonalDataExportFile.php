@@ -94,6 +94,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @since 5.2.0
 	 */
 	public function tearDown() {
+		remove_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ) );
 		$this->remove_exports_dir();
 		error_reporting( $this->_error_level );
 		parent::tearDown();
@@ -653,5 +654,64 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->assertNotContains( '<span class="count">', $report_contents );
 		$this->assertContains( $request->email, $report_contents );
 
+	}
+
+	/**
+	 * Test should generate a valid JSON report when/if JSON encoding fails.
+	 *
+	 * @ticket 51423b
+	 */
+	public function test_should_generate_valid_json_when_json_encoding_fails() {
+		add_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ), 10, 3 );
+
+		// Validate JSON encoding fails and returns `false`.
+		$metadata = get_post_meta( self::$export_request_id, '_export_data_grouped', true );
+		$this->assertFalse( wp_json_encode( $metadata ) );
+
+		$this->expectOutputString( '' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+
+		$this->assertTrue( file_exists( $this->export_file_name ) );
+
+		// Extract the JSON report's contents for testing.
+		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
+		mkdir( $report_dir );
+		$zip        = new ZipArchive();
+		$opened_zip = $zip->open( $this->export_file_name );
+		$this->assertTrue( $opened_zip );
+		$zip->extractTo( $report_dir );
+		$zip->close();
+		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
+		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
+
+		// Check valid JSON is created.
+		$request  = wp_get_user_request( self::$export_request_id );
+		$expected = '{"Personal Data Export for ' . $request->email . '":"false"}';
+		$this->assertSame( $expected, $report_contents_json );
+	}
+
+	public function filter_export_data_grouped_metadata( $value, $object_id, $meta_key ) {
+		if ( $object_id !== self::$export_request_id ) {
+			return $value;
+		}
+
+		if ( '_export_data_grouped' !== $meta_key ) {
+			return $value;
+		}
+
+		$file = fopen( __FILE__, 'r' );
+
+		$value = array(
+			'user' => array(
+				'group_label'       => 'User',
+				'group_description' => 'User&#8217;s profile data.',
+				'items'             => array(),
+				'resource'          => $file,
+			),
+		);
+
+		fclose( $file );
+
+		return array( $value );
 	}
 }
