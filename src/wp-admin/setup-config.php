@@ -448,19 +448,22 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				$wp_config_perms = fileperms( $path_to_wp_config );
 				if ( ! empty( $wp_config_perms ) && ! is_writable( $path_to_wp_config ) ) {
 					$wp_config_perms = substr( decoct( $wp_config_perms ), 2 );
-					/* translators: 1: wp-config.php, 2: wp-config.php file permission */
 					$error_message = sprintf(
-							__( 'Unable to write to %1$s file due to its permissions: %2$s. Please try again.' ),
+							/* translators: 1: wp-config.php, 2: wp-config.php file permission */
+							__( 'Unable to write to %1$s file due to the file permissions being too restrictive: %2$s. Please update the chmod file permissions to allow for write access.' ),
 							'<code>wp-config.php</code>',
 							"<code>{$wp_config_perms}</code>"
 					);
 				} else {
 					/* translators: %s: wp-config.php */
-					$error_message = sprintf( __( 'Unable to write to %s file. Please try again' ), '<code>wp-config.php</code>' );
+					$error_message = sprintf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
 				}
 			}
 
-			chmod( $path_to_wp_config, 0666 );
+			if ( ! chmod( $path_to_wp_config, 0666 ) ) {
+				/* translators: %s: wp-config.php */
+				$error_message = sprintf( __( 'Unable to change the %s file permissions to 0666.' ), '<code>wp-config.php</code>' );
+			}
 			setup_config_display_header();
 
 			if ( false !== $handle ) :
