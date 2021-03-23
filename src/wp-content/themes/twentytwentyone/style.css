@@ -5925,3 +5925,8 @@ footer {
 .is-IE .post-thumbnail .wp-post-image {
 	min-width: auto;
 }
+@media only screen and (max-width: 500px) {
+	.search-form .search-submit {
+		margin-left: 3px;
+	}
+}
