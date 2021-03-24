@@ -180,8 +180,12 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'image/jpeg',
 			'image/gif',
 			'image/png',
-			'image/webp',
 		);
+
+		// Include WebP in tests when platform supports it.
+		if ( function_exists( 'imagewebp' ) ) {
+			array_push( $mime_types, 'image/webp' );
+		}
 
 		// Test each image editor engine.
 		foreach ( $classes as $class ) {
