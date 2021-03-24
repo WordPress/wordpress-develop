@@ -43,7 +43,7 @@ Your WordPress site will accessible at http://localhost:8889. You can see or cha
 If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
 
 ```
-npm run watch
+npm run dev
 ```
 
 To stop the watcher, press `ctrl+c`.

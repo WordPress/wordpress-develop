@@ -36,13 +36,7 @@ class Tests_Dependencies_jQuery extends WP_UnitTestCase {
 		*/
 	}
 
-	function test_presence_of_jquery_no_conflict() {
-		$contents   = trim( file_get_contents( ABSPATH . WPINC . '/js/jquery/jquery.js' ) );
-		$noconflict = 'jQuery.noConflict();';
-		$end        = substr( $contents, - strlen( $noconflict ) );
-		$this->assertEquals( $noconflict, $end );
-	}
-
+	/**
 	/**
 	 * @ticket 22896
 	 *
