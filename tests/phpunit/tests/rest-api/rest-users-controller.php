@@ -1861,7 +1861,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		wp_set_current_user( self::$user );
 
 		$params = array(
-			'id'       => '156',
+			'id'       => '0',
 			'username' => 'lisasimpson',
 			'password' => 'DavidHasselhoff',
 			'email'    => 'smartgirl63_@yahoo.com',
