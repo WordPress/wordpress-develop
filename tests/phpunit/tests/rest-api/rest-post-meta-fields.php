@@ -1052,6 +1052,42 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 		$this->assertEmpty( $meta );
 	}
 
+	/**
+	 * Ensure deleting non-existant meta data behaves gracefully.
+	 *
+	 * @ticket 52787
+	 * @dataProvider data_delete_does_not_trigger_error_if_no_meta_values
+	 *
+	 * @param array|null $delete_value Value used to delete meta data.
+	 */
+	public function test_delete_does_not_trigger_error_if_no_meta_values( $delete_value ) {
+		$this->grant_write_permission();
+
+		$data    = array(
+			'meta' => array(
+				'test_multi' => $delete_value,
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
+		$request->set_body_params( $data );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
+	 * Data provider for test_delete_does_not_trigger_error_if_no_meta_values().
+	 *
+	 * @return array[] Array of test parameters.
+	 */
+	public function data_delete_does_not_trigger_error_if_no_meta_values() {
+		return array(
+			array( array() ),
+			array( null ),
+		);
+	}
+
 	public function test_remove_multi_value_db_error() {
 		add_post_meta( self::$post_id, 'test_multi', 'val1' );
 		$values = get_post_meta( self::$post_id, 'test_multi', false );
