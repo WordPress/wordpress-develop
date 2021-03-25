@@ -1,3 +1,8 @@
+/* This value is set on `html` for use in `_admin_bar_bump_cb`. */
+html {
+	--wp-admin--admin-bar--height: 32px;
+}
+
 #wpadminbar * {
 	height: auto;
 	width: auto;
@@ -720,6 +725,10 @@ html:lang(he-il) .rtl #wpadminbar * {
 }
 
 @media screen and (max-width: 782px) {
+	html {
+		--wp-admin--admin-bar--height: 46px;
+	}
+
 	/* Toolbar Touchification*/
 	html #wpadminbar {
 		height: 46px;
