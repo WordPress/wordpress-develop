@@ -138,11 +138,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	padding: 0 8px 0 7px;
 }
 
-#wpadminbar .quicklinks > ul > li,
-#wpadminbar .quicklinks .ab-item {
-	max-width: 100px; /* Improve spacing and prevent Site Title from eating WP Logo */
-}
-
 #wpadminbar .menupop .ab-sub-wrapper,
 #wpadminbar .shortlink-input {
 	margin: 0;
@@ -724,14 +719,6 @@ html:lang(he-il) .rtl #wpadminbar * {
 	box-shadow: 0 0 2px 2px rgba(0, 0, 0, 0.6);
 }
 
-@media only screen and (min-width: 1061px) {
-	/* Reset the spacing */
-	#wpadminbar .quicklinks > ul > li,
-	#wpadminbar .quicklinks .ab-item {
-		max-width: initial;
-		text-overflow: clip;
-	}
-}
 @media screen and (min-width: 782px) {
 	/* Prevent wrapping of admin bar that has more items than admin bar area (mobile-friendly toolbar doesn't need this) */
 	#wpadminbar .quicklinks {
