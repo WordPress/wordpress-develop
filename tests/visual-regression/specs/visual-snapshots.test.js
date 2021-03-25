@@ -14,7 +14,7 @@ async function hideElementVisibility( elements ) {
 			} );
 		}
 	}
-	await new Promise( ( resolve ) => setTimeout( resolve, 1000 ) );
+	await page.waitFor( 1000 );
 }
 
 async function removeElementFromLayout( elements ) {
@@ -26,7 +26,7 @@ async function removeElementFromLayout( elements ) {
 			} );
 		}
 	}
-	await new Promise( ( resolve ) => setTimeout( resolve, 1000 ) );
+	await page.waitFor( 1000 );
 }
 
 const elementsToHide = [ '#footer-upgrade', '#wp-admin-bar-root-default' ];
