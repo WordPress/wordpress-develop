@@ -1,20 +1,10 @@
 import {
 	createNewPost,
 	pressKeyTimes,
-	switchUserToAdmin,
-	switchUserToTest,
+	publishPost,
 	trashAllPosts,
 	visitAdminPage,
 } from '@wordpress/e2e-test-utils';
-
-export async function publishPost() {
-	await page.waitForSelector(
-		'.editor-post-publish-panel__toggle:not([aria-disabled="true"])'
-	);
-	await page.click( '.editor-post-publish-panel__toggle' );
-	await page.waitForSelector( '.editor-post-publish-button' );
-	await page.keyboard.press( 'Enter' );
-}
 
 describe( 'Edit Posts', () => {
 	beforeEach( async () => {
