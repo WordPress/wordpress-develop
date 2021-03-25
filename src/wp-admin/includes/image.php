@@ -711,7 +711,6 @@ function wp_read_image_metadata( $file ) {
 	);
 
 	$iptc = array();
-	$info = array();
 	/*
 	 * Read IPTC first, since it might contain data not available in exif such
 	 * as caption, description etc.
