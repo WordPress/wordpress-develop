@@ -23,6 +23,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 
 		$this->assertQueryTrue( 'is_single', 'is_singular', 'is_embed' );
 
+		// `print_embed_scripts()` assumes `wp-includes/js/wp-embed-template.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-embed-template.js' );
+
 		ob_start();
 		include( ABSPATH . WPINC . '/theme-compat/embed.php' );
 		$actual = ob_get_clean();
@@ -290,50 +293,13 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Confirms that no ampersands exist in src/wp-includes/js/wp-embed.js.
+	 *
+	 * See also the `verify:wp-embed` Grunt task for verifying the built file.
+	 *
 	 * @ticket 34698
 	 */
 	function test_js_no_ampersands() {
 		$this->assertNotContains( '&', file_get_contents( ABSPATH . WPINC . '/js/wp-embed.js' ) );
 	}
-
-	/**
-	 * @ticket 34698
-	 *
-	 * @depends test_js_no_ampersands
-	 *
-	 * The previous test confirms that no ampersands exist in src/wp-includes/js/wp-embed.js.
-	 * However, we must also confirm that UglifyJS does not add ampersands during its
-	 * optimizations (which we tweak to avoid, but indirectly -- understandably, there's
-	 * no "don't add ampersands to my JavaScript file" option).
-	 *
-	 * So this test checks for ampersands in build/wp-includes/js/wp-embed.min.js.
-	 * In many cases, this file will not exist; in those cases, we simply skip the test.
-	 *
-	 * So when would it be run? We have Travis CI run `grunt test` which then runs, in order,
-	 * `qunit:compiled` (which runs the build) and then `phpunit`. Thus, this test will at least be
-	 * run during continuous integration.
-	 *
-	 * However, we need to verify that `qunit:compiled` runs before `phpunit`. So this test also
-	 * does a cheap check for a registered Grunt task called `test` that contains both
-	 * `qunit:compiled` and `phpunit`, in that order.
-	 *
-	 * One final failsafe: The Gruntfile.js assertion takes place before checking for the existence
-	 * of wp-embed.min.js. If the Grunt tasks are significantly refactored later, it could indicate
-	 * that wp-embed.min.js doesn't exist anymore. We wouldn't want the test to silently become one
-	 * that is always skipped, and thus useless.
-	 */
-	function test_js_no_ampersands_in_compiled() {
-		$gruntfile = file_get_contents( dirname( ABSPATH ) . '/Gruntfile.js' );
-
-		// Confirm this file *should* exist, otherwise this test will always be skipped.
-		$test = '/grunt.registerTask\(\s*\'test\',.*\'qunit:compiled\'.*\'phpunit\'/';
-		$this->assertTrue( (bool) preg_match( $test, $gruntfile ) );
-
-		$file = dirname( ABSPATH ) . '/build/' . WPINC . '/js/wp-embed.min.js';
-		if ( ! file_exists( $file ) ) {
-			return;
-		}
-		$this->assertNotContains( '&', file_get_contents( $file ) );
-	}
-
 }

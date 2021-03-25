@@ -1,16 +1,31 @@
 name: PHP Compatibility
 
 on:
+  # PHP compatibility testing was introduced in WordPress 5.5.
   push:
     branches:
       - master
-      # The PHP compatibility testing was introduced in WordPress 5.5.
+      - trunk
       - '5.[5-9]'
       - '[6-9].[0-9]'
     tags:
       - '5.[5-9]*'
       - '[6-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - trunk
+      - '5.[5-9]'
+      - '[6-9].[0-9]'
+    paths:
+      # This workflow only scans PHP files.
+      - '**.php'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures PHP Compatibility scanning. Changes could affect the outcome.
+      - 'phpcompat.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
 
 jobs:
 
@@ -34,10 +49,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@afefcaf556d98dc7896cca380e181decb609ca44 # v2.10.0
         with:
           php-version: '7.4'
           coverage: none
@@ -49,7 +64,7 @@ jobs:
           composer --version
 
       - name: Install Composer dependencies
-        uses: ramsey/composer-install@v1
+        uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
         with:
           composer-options: "--no-progress --no-ansi --no-interaction"
 

@@ -1,0 +1,173 @@
+name: Test NPM
+
+on:
+  push:
+    branches:
+      - master
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+  pull_request:
+    branches:
+      - master
+      - trunk
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
+    paths:
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # JavaScript files are built using NPM.
+      - '**.js'
+      # CSS and SCSS files are built using NPM.
+      - '**.scss'
+      - '**.css'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/**.yml'
+
+env:
+  PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
+
+jobs:
+  # Prepares the workflow.
+  #
+  # Performs the following steps:
+  # - Cancels all previous workflow runs for pull requests that have not completed.
+  prepare-workflow:
+    name: Prepare the workflow
+    runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+
+    steps:
+      - name: Cancel previous runs of this workflow (pull requests only)
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: styfle/cancel-workflow-action@3d86a7cc43670094ac248017207be0295edbc31d # v0.8.0
+
+  # Verifies that installing NPM dependencies and building WordPress works as expected.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Cleans up after building WordPress to the `build` directory.
+  # - Builds WordPress to run from the `src` directory.
+  # - Cleans up after building WordPress to the `src` directory.
+  test-npm:
+    name: Test NPM on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
+    needs: prepare-workflow
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install NodeJS
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        with:
+          node-version: 14
+
+      - name: Cache NodeJS modules (Ubuntu & MacOS)
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        if: ${{ matrix.os != 'windows-latest' }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Get NPM cache directory (Windows only)
+        if: ${{ matrix.os == 'windows-latest' }}
+        id: npm-cache
+        run: echo "::set-output name=dir::$(npm config get cache)"
+
+      - name: Cache NodeJS modules (Windows only)
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        if: ${{ matrix.os == 'windows-latest' }}
+        with:
+          path: ${{ steps.npm-cache.outputs.dir }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Clean after building in /src
+        run: npm run grunt clean --dev
+
+  # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
+  #
+  # This is a separate job in order to that more strict conditions can be used.
+  #
+  # Performs the following steps:
+  # - Checks out the repository.
+  # - Logs debug information about the runner container.
+  # - Installs NodeJS 14.
+  # - Sets up caching for NPM.
+  # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
+  # - Builds WordPress to run from the `build` directory.
+  # - Cleans up after building WordPress to the `build` directory.
+  # - Builds WordPress to run from the `src` directory.
+  # - Cleans up after building WordPress to the `src` directory.
+  test-npm-macos:
+    name: Test NPM on MacOS
+    runs-on: macos-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    needs: prepare-workflow
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
+
+      - name: Log debug information
+        run: |
+          npm --version
+          node --version
+          curl --version
+          git --version
+          svn --version
+
+      - name: Install NodeJS
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        with:
+          node-version: 14
+
+      - name: Cache NodeJS modules
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
+        if: ${{ matrix.os != 'windows-latest' }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build WordPress
+        run: npm run build
+
+      - name: Clean after building
+        run: npm run grunt clean
+
+      - name: Build WordPress in /src
+        run: npm run build:dev
+
+      - name: Clean after building in /src
+        run: npm run grunt clean --dev
