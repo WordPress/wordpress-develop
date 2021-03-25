@@ -23,6 +23,7 @@ on:
       - '**.css'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/**.yml'
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
@@ -60,6 +61,7 @@ jobs:
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     needs: prepare-workflow
     strategy:
+      fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
 
