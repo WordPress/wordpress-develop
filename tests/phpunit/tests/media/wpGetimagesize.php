@@ -37,6 +37,7 @@ class Tests_Media_WpGetimagesize extends WP_UnitTestCase {
 	}
 
 	public function test_get_jpeg_with_meta_data_via_stream() {
+		// wp_read_image_metadata gets the meta data via wp_getimagesize().
 		$out = wp_read_image_metadata( 'wptestmediawpgetimagesize://Tests_Media_WpGetimagesize/exif.jpg' );
 
 		$this->assertEquals( 6.3, $out['aperture'] );
