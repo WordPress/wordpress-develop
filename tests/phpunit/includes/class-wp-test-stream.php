@@ -107,6 +107,48 @@ class WP_Test_Stream {
 	}
 
 	/**
+	 * Seeks to specific location in a stream.
+	 *
+	 * @see streamWrapper::stream_seek
+	 *
+	 * @param int $offset The stream offset to seek to.
+	 * @param int $whence Optional. Seek position.
+	 * @return bool Returns true when position is updated, else false.
+	 */
+	public function stream_seek( $offset, $whence = SEEK_SET ) {
+		if ( empty( $this->data_ref ) ) {
+			return false;
+		}
+
+		$new_offset = $this->position;
+		switch ( $whence ) {
+			case SEEK_CUR:
+				$new_offset += $offset;
+				break;
+
+			case SEEK_END:
+				$new_offset = strlen( $this->data_ref ) + $offset;
+				break;
+
+			case SEEK_SET:
+				$new_offset = $offset;
+				break;
+
+			default:
+				return false;
+		}
+
+		if ( $new_offset < 0 ) {
+			return false;
+		}
+
+		// Save the new position.
+		$this->position = $new_offset;
+
+		return true;
+	}
+
+	/**
 	 * Retrieves the current position of a stream.
 	 *
 	 * @see streamWrapper::stream_tell
