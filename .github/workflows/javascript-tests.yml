@@ -30,6 +30,7 @@ on:
       - 'tests/qunit/**'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
+  workflow_dispatch:
 
 jobs:
   # Runs the QUnit tests for WordPress.
