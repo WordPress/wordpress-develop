@@ -23,6 +23,7 @@ on:
       - '**.css'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/**.yml'
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
