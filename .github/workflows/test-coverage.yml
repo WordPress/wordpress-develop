@@ -47,9 +47,13 @@ jobs:
   # - Run the PHPUnit tests as a multisite.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
-    name: Generate a code coverage report
+    name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
     runs-on: ubuntu-latest
     if: ${{ github.repository == 'WordPress/wordpress-develop' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        multisite: [ false, true ]
 
     steps:
       - name: Configure environment variables
@@ -122,18 +126,22 @@ jobs:
         run: npm run env:install
 
       - name: Run tests as a single site
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
       - name: Upload single site report to Codecov
+        if: ${{ ! matrix.multisite }}
         uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
         with:
           file: wp-code-coverage-single-clover-${{ github.sha }}.xml
           flags: single,php
 
       - name: Run tests as a multisite install
+        if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
 
       - name: Upload multisite report to Codecov
+        if: ${{ matrix.multisite }}
         uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
         with:
           file: wp-code-coverage-multisite-clover-${{ github.sha }}.xml
