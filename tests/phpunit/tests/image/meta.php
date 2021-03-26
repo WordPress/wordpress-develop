@@ -6,6 +6,8 @@
  * @group upload
  * @requires extension gd
  * @requires extension exif
+ *
+ * @covers ::wp_read_image_metadata
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
 
