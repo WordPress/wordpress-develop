@@ -24,12 +24,12 @@ class WP_Test_Stream {
 	/**
 	 * In-memory storage for files and directories simulated by this wrapper.
 	 */
-	static $data = array();
+	public static $data = array();
 
-	var $position;
-	var $file;
-	var $bucket;
-	var $data_ref;
+	public $position;
+	public $file;
+	public $bucket;
+	public $data_ref;
 
 	/**
 	 * Initializes internal state for reading the given URL.
@@ -66,7 +66,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_open
 	 */
-	function stream_open( $path, $mode, $options, &$opened_path ) {
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
 		$this->open( $path );
 		return true;
 	}
@@ -76,7 +76,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_read
 	 */
-	function stream_read( $count ) {
+	public function stream_read( $count ) {
 		if ( ! isset( $this->data_ref ) ) {
 			return '';
 		}
@@ -92,7 +92,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_write
 	 */
-	function stream_write( $data ) {
+	public function stream_write( $data ) {
 		if ( ! isset( $this->data_ref ) ) {
 			$this->data_ref = '';
 		}
@@ -153,7 +153,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_tell
 	 */
-	function stream_tell() {
+	public function stream_tell() {
 		return $this->position;
 	}
 
@@ -162,7 +162,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_eof
 	 */
-	function stream_eof() {
+	public function stream_eof() {
 		if ( ! isset( $this->data_ref ) ) {
 			return true;
 		}
@@ -175,7 +175,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::stream_metadata
 	 */
-	function stream_metadata( $path, $option, $var ) {
+	public function stream_metadata( $path, $option, $var ) {
 		$this->open( $path );
 		if ( STREAM_META_TOUCH === $option ) {
 			if ( ! isset( $this->data_ref ) ) {
@@ -191,7 +191,7 @@ class WP_Test_Stream {
 	 *
 	 * @see streamWrapper::mkdir
 	 */
-	function mkdir( $path, $mode, $options ) {
+	public function mkdir( $path, $mode, $options ) {
 		$this->open( $path );
 		$plainfile = rtrim( $this->file, '/' );
 
