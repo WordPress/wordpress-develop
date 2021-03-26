@@ -3858,6 +3858,7 @@ function human_time_diff( $from, $to = 0 ) {
  *
  * @since 1.5.0
  * @since 5.2.0 Added the `$post` parameter.
+ * @since 5.8.0 Send the correct `$raw_excerpt` parameter.
  *
  * @param string             $text Optional. The excerpt. If set to empty, an excerpt is generated.
  * @param WP_Post|object|int $post Optional. WP_Post instance or Post ID/object. Default null.
@@ -3876,6 +3877,8 @@ function wp_trim_excerpt( $text = '', $post = null ) {
 		/** This filter is documented in wp-includes/post-template.php */
 		$text = apply_filters( 'the_content', $text );
 		$text = str_replace( ']]>', ']]&gt;', $text );
+
+		$raw_excerpt = $text;
 
 		/* translators: Maximum number of words used in a post excerpt. */
 		$excerpt_length = (int) _x( '55', 'excerpt_length' );

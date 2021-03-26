@@ -91,4 +91,56 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		$this->assertSame( 'Post content', wp_trim_excerpt( null, $post ) );
 		$this->assertSame( 'Post content', wp_trim_excerpt( false, $post ) );
 	}
+
+	/**
+	 * @ticket 52820
+	 */
+	public function test_raw_excerpt_should_return_untrimmed() {
+		$words_60 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' .
+		'Aenean vehicula nibh eget ligula sodales, id maximus erat semper. ' .
+		'Donec elementum lobortis est in elementum. Etiam tempor mauris felis, ' .
+		'non accumsan urna dignissim et. Donec sed tortor hendrerit, fermentum lacus non, ' .
+		'scelerisque ante. Integer nunc lacus, varius quis maximus sed, ornare eu nisl. ' .
+		'Vivamus egestas ipsum eget urna sollicitudin, feugiat placerat.';
+
+		$words_55 = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' .
+		'Aenean vehicula nibh eget ligula sodales, id maximus erat semper. ' .
+		'Donec elementum lobortis est in elementum. Etiam tempor mauris felis, ' .
+		'non accumsan urna dignissim et. Donec sed tortor hendrerit, fermentum lacus non, ' .
+		'scelerisque ante. Integer nunc lacus, varius quis maximus sed, ornare eu nisl. ' .
+		'Vivamus egestas ipsum';
+
+		$post = self::factory()->post->create(
+			array(
+				'post_content' => $words_60,
+			)
+		);
+
+		// Default behavior
+		add_filter( 'excerpt_more', array( $this, 'remove_excerpt_more') );
+		$this->assertSame( $words_55, wp_trim_excerpt( '', $post ) );
+		$this->assertSame( 'Overwrite', wp_trim_excerpt( 'Overwrite', $post ) );
+
+		// This filter will make use of `$raw_excerpt` as the excerpt.
+		add_filter( 'wp_trim_excerpt', array( $this, 'return_raw_excerpt' ), 10, 2 );
+		remove_filter( 'the_content', 'wpautop' );
+
+		$this->assertSame( $words_60, wp_trim_excerpt( '', $post ) );
+	}
+
+	/**
+	 * This filter removes the excerpt more.
+	 */
+	public function remove_excerpt_more() {
+		return '';
+	}
+
+	/**
+	 * @param string $trimmed The trimmed text.
+	 * @param string $raw     The text prior to trimming.
+	 * @see {wp_trim_excerpt}
+	 */
+	public function return_raw_excerpt( $trimmed, $raw ) {
+		return $raw;
+	}
 }
