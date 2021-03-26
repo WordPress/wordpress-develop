@@ -117,7 +117,7 @@ class Tests_Formatting_wpTrimExcerpt extends WP_UnitTestCase {
 		);
 
 		// Default behavior
-		add_filter( 'excerpt_more', array( $this, 'remove_excerpt_more') );
+		add_filter( 'excerpt_more', array( $this, 'remove_excerpt_more' ) );
 		$this->assertSame( $words_55, wp_trim_excerpt( '', $post ) );
 		$this->assertSame( 'Overwrite', wp_trim_excerpt( 'Overwrite', $post ) );
 
