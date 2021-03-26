@@ -1,9 +1,19 @@
 name: Code Coverage Report
 
 on:
+  # Verify
+  push:
+    branches:
+      - master
+      - trunk
+    paths:
+      - 'phpunit.xml.dist'
+      - 'tests/phpunit/multisite.xml'
   # Once daily at 00:00 UTC.
   schedule:
     - cron: '0 0 * * *'
+  # Allow manually triggering the workflow.
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
