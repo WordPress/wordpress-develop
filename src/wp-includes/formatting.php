@@ -3359,8 +3359,8 @@ function convert_smilies( $text ) {
 		// HTML loop taken from texturize function, could possible be consolidated.
 		$textarr = preg_split( '/(<.*>)/U', $text, -1, PREG_SPLIT_DELIM_CAPTURE ); // Capture the tags as well as in between.
 
-		if (preg_last_error() != PREG_NO_ERROR) {
-			trigger_error(preg_last_error_msg(),E_USER_WARNING);
+		if ( preg_last_error() != PREG_NO_ERROR ) {
+			trigger_error( preg_last_error_msg(), E_USER_WARNING );
 			return $text;
 		}
 
