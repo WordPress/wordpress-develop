@@ -1140,7 +1140,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'parent', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
-		$this->assertSame( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+		$this->assertSame( array( 'category' ), $properties['taxonomy']['enum'] );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -1180,12 +1180,6 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 
 	public function additional_field_get_callback( $object, $request ) {
 		return 123;
-	}
-
-	public function tearDown() {
-		_unregister_taxonomy( 'batman' );
-		_unregister_taxonomy( 'robin' );
-		parent::tearDown();
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {

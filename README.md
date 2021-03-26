@@ -29,6 +29,8 @@ Ensure [Docker](https://www.docker.com/products/docker-desktop) is running befor
 
 #### To start the development environment for the first time
 
+Clone the current repository using `git clone https://github.com/WordPress/wordpress-develop.git`. Then in your terminal move to the repository folder `cd wordpress-develop` and run the following commands:
+
 ```
 npm install
 npm run build:dev
@@ -43,7 +45,7 @@ Your WordPress site will accessible at http://localhost:8889. You can see or cha
 If you're making changes to WordPress core files, you should start the file watcher in order to build or copy the files as necessary:
 
 ```
-npm run watch
+npm run dev
 ```
 
 To stop the watcher, press `ctrl+c`.

@@ -4,8 +4,9 @@
  * Test the do_action method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::do_action
  */
-class Tests_WP_Hook_Do_Action extends WP_UnitTestCase {
+class Tests_Hooks_DoAction extends WP_UnitTestCase {
 	private $events        = array();
 	private $action_output = '';
 	private $hook;

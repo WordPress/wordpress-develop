@@ -6,7 +6,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 ?>
@@ -16,7 +16,7 @@
 	<header class="entry-header alignwide">
 		<?php the_title( '<h1 class="entry-title">', '</h1>' ); ?>
 		<?php twenty_twenty_one_post_thumbnail(); ?>
-	</header>
+	</header><!-- .entry-header -->
 
 	<div class="entry-content">
 		<?php
@@ -26,7 +26,7 @@
 			array(
 				'before'   => '<nav class="page-links" aria-label="' . esc_attr__( 'Page', 'twentytwentyone' ) . '">',
 				'after'    => '</nav>',
-				/* translators: %: page number. */
+				/* translators: %: Page number. */
 				'pagelink' => esc_html__( 'Page %', 'twentytwentyone' ),
 			)
 		);
@@ -41,4 +41,4 @@
 		<?php get_template_part( 'template-parts/post/author-bio' ); ?>
 	<?php endif; ?>
 
-</article><!-- #post-${ID} -->
+</article><!-- #post-<?php the_ID(); ?> -->

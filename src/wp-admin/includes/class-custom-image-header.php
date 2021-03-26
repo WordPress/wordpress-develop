@@ -791,7 +791,7 @@ endif;
 		}
 
 		if ( file_exists( $file ) ) {
-			list( $width, $height, $type, $attr ) = @getimagesize( $file );
+			list( $width, $height, $type, $attr ) = wp_getimagesize( $file );
 		} else {
 			$data   = wp_get_attachment_metadata( $attachment_id );
 			$height = isset( $data['height'] ) ? $data['height'] : 0;
@@ -860,10 +860,10 @@ endif;
 		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo $width; ?>" height="<?php echo $height; ?>" alt="" />
 	</div>
 
-	<input type="hidden" name="x1" id="x1" value="0"/>
-	<input type="hidden" name="y1" id="y1" value="0"/>
-	<input type="hidden" name="width" id="width" value="<?php echo esc_attr( $width ); ?>"/>
-	<input type="hidden" name="height" id="height" value="<?php echo esc_attr( $height ); ?>"/>
+	<input type="hidden" name="x1" id="x1" value="0" />
+	<input type="hidden" name="y1" id="y1" value="0" />
+	<input type="hidden" name="width" id="width" value="<?php echo esc_attr( $width ); ?>" />
+	<input type="hidden" name="height" id="height" value="<?php echo esc_attr( $height ); ?>" />
 	<input type="hidden" name="attachment_id" id="attachment_id" value="<?php echo esc_attr( $attachment_id ); ?>" />
 	<input type="hidden" name="oitar" id="oitar" value="<?php echo esc_attr( $oitar ); ?>" />
 		<?php if ( empty( $_POST ) && isset( $_GET['file'] ) ) { ?>
@@ -1223,7 +1223,7 @@ endif;
 		$parent_url = wp_get_attachment_url( $parent->ID );
 		$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
-		$size       = @getimagesize( $cropped );
+		$size       = wp_getimagesize( $cropped );
 		$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
 		$object = array(

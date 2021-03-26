@@ -104,6 +104,36 @@ class Tests_Term_GetTermLink extends WP_UnitTestCase {
 		$this->assertContains( 'term=bar', $actual );
 	}
 
+	/**
+	 * @ticket 52882
+	 */
+	public function test_taxonomy_with_rewrite_false_and_custom_permalink_structure() {
+		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
+
+		register_taxonomy(
+			'wptests_tax2',
+			'post',
+			array(
+				'rewrite' => false,
+			)
+		);
+
+		add_permastruct( 'wptests_tax2', 'foo/%wptests_tax2%' );
+
+		$t = self::factory()->term->create(
+			array(
+				'taxonomy' => 'wptests_tax2',
+				'slug'     => 'bar',
+			)
+		);
+
+		$actual = get_term_link( $t, 'wptests_tax2' );
+
+		remove_permastruct( 'wptests_tax2' );
+
+		$this->assertContains( '/foo/bar/', $actual );
+	}
+
 	public function test_taxonomy_permastruct_with_hierarchical_rewrite_should_put_term_ancestors_in_link() {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 

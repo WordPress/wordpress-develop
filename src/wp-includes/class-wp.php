@@ -405,9 +405,14 @@ class WP {
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
 		} elseif ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
-			// Unmoderated comments are only visible for one minute via the moderation hash.
-			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + MINUTE_IN_SECONDS );
-			$headers['Cache-Control'] = 'max-age=60, must-revalidate';
+			// Unmoderated comments are only visible for 10 minutes via the moderation hash.
+			$expires = 10 * MINUTE_IN_SECONDS;
+
+			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + $expires );
+			$headers['Cache-Control'] = sprintf(
+				'max-age=%d, must-revalidate',
+				$expires
+			);
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
@@ -485,7 +490,7 @@ class WP {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $headers Associative array of headers to be sent.
-		 * @param WP       $this    Current WordPress environment instance.
+		 * @param WP       $wp      Current WordPress environment instance.
 		 */
 		$headers = apply_filters( 'wp_headers', $headers, $this );
 
@@ -597,8 +602,8 @@ class WP {
 			$GLOBALS['single'] = 1;
 		}
 
-		if ( $wp_query->is_author() && isset( $wp_query->post ) ) {
-			$GLOBALS['authordata'] = get_userdata( $wp_query->post->post_author );
+		if ( $wp_query->is_author() ) {
+			$GLOBALS['authordata'] = get_userdata( get_queried_object_id() );
 		}
 	}
 

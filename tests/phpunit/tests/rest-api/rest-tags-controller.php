@@ -1233,7 +1233,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'name', $properties );
 		$this->assertArrayHasKey( 'slug', $properties );
 		$this->assertArrayHasKey( 'taxonomy', $properties );
-		$this->assertSame( array_keys( get_taxonomies() ), $properties['taxonomy']['enum'] );
+		$this->assertSame( array( 'post_tag' ), $properties['taxonomy']['enum'] );
 	}
 
 	public function test_get_item_schema_non_hierarchical() {
@@ -1398,12 +1398,6 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( 'returnError' === $value ) {
 			return new WP_Error( 'rest_invalid_param', 'Testing an error.', array( 'status' => 400 ) );
 		}
-	}
-
-	public function tearDown() {
-		_unregister_taxonomy( 'batman' );
-		_unregister_taxonomy( 'robin' );
-		parent::tearDown();
 	}
 
 	protected function check_get_taxonomy_terms_response( $response ) {

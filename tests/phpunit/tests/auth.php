@@ -38,13 +38,15 @@ class Tests_Auth extends WP_UnitTestCase {
 		$this->user = clone self::$_user;
 		wp_set_current_user( self::$user_id );
 		update_site_option( 'using_application_passwords', 1 );
+
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		// Cleanup all the global state.
-		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'] );
+		unset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'], $GLOBALS['wp_rest_application_password_status'], $GLOBALS['wp_rest_application_password_uuid'] );
+
+		parent::tearDown();
 	}
 
 	function test_auth_cookie_valid() {
@@ -442,7 +444,7 @@ class Tests_Auth extends WP_UnitTestCase {
 		);
 
 		// Create a new app-only password.
-		list( $user_app_password ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
+		list( $user_app_password, $item ) = WP_Application_Passwords::create_new_application_password( $user_id, array( 'name' => 'phpunit' ) );
 
 		// Fake a REST API request.
 		add_filter( 'application_password_is_api_request', '__return_true' );
@@ -452,11 +454,11 @@ class Tests_Auth extends WP_UnitTestCase {
 		$_SERVER['PHP_AUTH_USER'] = 'http_auth_login';
 		$_SERVER['PHP_AUTH_PW']   = 'http_auth_pass';
 
-		$this->assertSame(
-			null,
+		$this->assertNull(
 			wp_validate_application_password( null ),
 			'Regular user account password should not be allowed for API authentication'
 		);
+		$this->assertNull( rest_get_authenticated_app_password() );
 
 		// Not try with an App password instead.
 		$_SERVER['PHP_AUTH_PW'] = $user_app_password;
@@ -466,6 +468,7 @@ class Tests_Auth extends WP_UnitTestCase {
 			wp_validate_application_password( null ),
 			'Application passwords should be allowed for API authentication'
 		);
+		$this->assertSame( $item['uuid'], rest_get_authenticated_app_password() );
 	}
 
 	/**
@@ -614,5 +617,22 @@ class Tests_Auth extends WP_UnitTestCase {
 
 		$authenticated = wp_authenticate_application_password( null, 'idonotexist', 'password' );
 		$this->assertNull( $authenticated );
+	}
+
+	/**
+	 * @ticket 52003
+	 *
+	 * @covers ::wp_validate_application_password
+	 */
+	public function test_application_passwords_does_not_attempt_auth_if_missing_password() {
+		WP_Application_Passwords::create_new_application_password( self::$user_id, array( 'name' => 'phpunit' ) );
+
+		add_filter( 'application_password_is_api_request', '__return_true' );
+		add_filter( 'wp_is_application_passwords_available', '__return_true' );
+
+		$_SERVER['PHP_AUTH_USER'] = self::$_user->user_login;
+		unset( $_SERVER['PHP_AUTH_PW'] );
+
+		$this->assertNull( wp_validate_application_password( null ) );
 	}
 }

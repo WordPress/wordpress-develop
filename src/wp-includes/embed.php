@@ -99,7 +99,7 @@ function wp_embed_defaults( $url = '' ) {
  * @see WP_oEmbed
  *
  * @param string $url  The URL that should be embedded.
- * @param array  $args {
+ * @param array|string $args {
  *     Optional. Additional arguments for retrieving embed HTML. Default empty.
  *
  *     @type int|string $width    Optional. The `maxwidth` value passed to the provider URL.
@@ -509,7 +509,8 @@ JS;
  *
  * @param WP_Post|int $post  Post object or ID.
  * @param int         $width The requested width.
- * @return array|false Response data on success, false if post doesn't exist.
+ * @return array|false Response data on success, false if post doesn't exist
+ *                     or is not publicly viewable.
  */
 function get_oembed_response_data( $post, $width ) {
 	$post  = get_post( $post );
@@ -519,7 +520,7 @@ function get_oembed_response_data( $post, $width ) {
 		return false;
 	}
 
-	if ( 'publish' !== get_post_status( $post ) ) {
+	if ( ! is_post_publicly_viewable( $post ) ) {
 		return false;
 	}
 
@@ -1201,7 +1202,7 @@ function print_embed_sharing_dialog() {
  */
 function the_embed_site_title() {
 	$site_title = sprintf(
-		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon"/><span>%s</span></a>',
+		'<a href="%s" target="_top"><img src="%s" srcset="%s 2x" width="32" height="32" alt="" class="wp-embed-site-icon" /><span>%s</span></a>',
 		esc_url( home_url() ),
 		esc_url( get_site_icon_url( 32, includes_url( 'images/w-logo-blue.png' ) ) ),
 		esc_url( get_site_icon_url( 64, includes_url( 'images/w-logo-blue.png' ) ) ),

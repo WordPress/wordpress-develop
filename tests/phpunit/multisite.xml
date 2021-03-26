@@ -12,16 +12,10 @@
 		<!-- Default test suite to run all tests. -->
 		<testsuite name="default">
 			<directory suffix=".php">tests</directory>
-			<!-- Path relative to the checkout root, for PHPUnit 3.6.x. -->
-			<exclude>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</exclude>
-			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+. -->
 			<exclude>tests/rest-api/rest-autosaves-controller.php</exclude>
 		</testsuite>
 		<!-- Sets the DOING_AUTOSAVE constant, so needs to be run last. -->
 		<testsuite name="restapi-autosave">
-			<!-- Path relative to the checkout root, for PHPUnit 3.6.x. -->
-			<file>tests/phpunit/tests/rest-api/rest-autosaves-controller.php</file>
-			<!-- Same path relative to the configuration file, for PHPUnit 4.0.0+. -->
 			<file>tests/rest-api/rest-autosaves-controller.php</file>
 		</testsuite>
 	</testsuites>
@@ -45,4 +39,41 @@
 			</arguments>
 		</listener>
 	</listeners>
+	<filter>
+		<whitelist addUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">../../build</directory>
+			<exclude>
+				<!-- Third party library exclusions. -->
+				<directory suffix=".php">../../build/wp-includes/ID3</directory>
+				<directory suffix=".php">../../build/wp-includes/IXR</directory>
+				<directory suffix=".php">../../build/wp-includes/random_compat</directory>
+				<directory suffix=".php">../../build/wp-includes/PHPMailer</directory>
+				<directory suffix=".php">../../build/wp-includes/Requests</directory>
+				<directory suffix=".php">../../build/wp-includes/SimplePie</directory>
+				<directory suffix=".php">../../build/wp-includes/sodium_compat</directory>
+				<directory suffix=".php">../../build/wp-includes/Text</directory>
+
+				<!-- Plugins and themes. -->
+				<directory suffix=".php">../../build/wp-content/</directory>
+
+				<file>../../build/wp-admin/includes/class-ftp*</file>
+				<file>../../build/wp-admin/includes/class-pclzip.php</file>
+				<file>../../build/wp-admin/includes/deprecated.php</file>
+				<file>../../build/wp-admin/includes/ms-deprecated.php</file>
+
+				<file>../../build/wp-includes/atomlib.php</file>
+				<file>../../build/wp-includes/class-IXR.php</file>
+				<file>../../build/wp-includes/class-json.php</file>
+				<file>../../build/wp-includes/class-phpass.php</file>
+				<file>../../build/wp-includes/class-pop3.php</file>
+				<file>../../build/wp-includes/class-requests.php</file>
+				<file>../../build/wp-includes/class-simplepie.php</file>
+				<file>../../build/wp-includes/class-snoopy.php</file>
+				<file>../../build/wp-includes/deprecated.php</file>
+				<file>../../build/wp-includes/ms-deprecated.php</file>
+				<file>../../build/wp-includes/pluggable-deprecated.php</file>
+				<file>../../build/wp-includes/rss.php</file>
+			</exclude>
+		</whitelist>
+	</filter>
 </phpunit>

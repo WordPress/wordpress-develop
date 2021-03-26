@@ -813,7 +813,7 @@ function post_exists( $title, $content = '', $date = '', $type = '' ) {
  *
  * @global WP_User $current_user
  *
- * @return int|WP_Error
+ * @return int|WP_Error Post ID on success, WP_Error on failure.
  */
 function wp_write_post() {
 	if ( isset( $_POST['post_type'] ) ) {
@@ -889,7 +889,7 @@ function wp_write_post() {
  *
  * @since 2.0.0
  *
- * @return int|null
+ * @return int|void Post ID on success, void on failure.
  */
 function write_post() {
 	$result = wp_write_post();
@@ -1115,7 +1115,7 @@ function get_available_post_statuses( $type = 'post' ) {
  *
  * @since 2.5.0
  *
- * @param array|bool $q Array of query variables to use to build the query or false to use $_GET superglobal.
+ * @param array|false $q Array of query variables to use to build the query or false to use $_GET superglobal.
  * @return array
  */
 function wp_edit_posts_query( $q = false ) {
@@ -1168,8 +1168,11 @@ function wp_edit_posts_query( $q = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
 	 *
-	 * Some examples of filter hooks generated here include: 'edit_attachment_per_page',
-	 * 'edit_post_per_page', 'edit_page_per_page', etc.
+	 * Possible hook names include:
+	 *
+	 *  - `edit_post_per_page`
+	 *  - `edit_page_per_page`
+	 *  - `edit_attachment_per_page`
 	 *
 	 * @since 3.0.0
 	 *
@@ -1357,7 +1360,7 @@ function get_sample_permalink( $id, $title = null, $name = null ) {
 	$original_date   = $post->post_date;
 	$original_name   = $post->post_name;
 
-	// Hack: get_permalink() would return ugly permalink for drafts, so we will fake that our post is published.
+	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
 	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
 		$post->post_status = 'publish';
 		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
@@ -2204,6 +2207,11 @@ function get_block_categories( $post ) {
 			'icon'  => null,
 		),
 		array(
+			'slug'  => 'theme',
+			'title' => _x( 'Theme', 'block category' ),
+			'icon'  => null,
+		),
+		array(
 			'slug'  => 'embed',
 			'title' => _x( 'Embeds', 'block category' ),
 			'icon'  => null,
@@ -2240,19 +2248,21 @@ function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	$blocks         = array();
 	$fields_to_pick = array(
+		'api_version'      => 'apiVersion',
 		'title'            => 'title',
 		'description'      => 'description',
 		'icon'             => 'icon',
-		'category'         => 'category',
-		'keywords'         => 'keywords',
-		'parent'           => 'parent',
-		'supports'         => 'supports',
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'supports'         => 'supports',
+		'category'         => 'category',
 		'styles'           => 'styles',
 		'textdomain'       => 'textdomain',
+		'parent'           => 'parent',
+		'keywords'         => 'keywords',
 		'example'          => 'example',
+		'variations'       => 'variations',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
@@ -2303,7 +2313,7 @@ function the_block_editor_meta_boxes() {
 	<?php the_block_editor_meta_box_post_form_hidden_fields( $post ); ?>
 	</form>
 	<form id="toggle-custom-fields-form" method="post" action="<?php echo esc_attr( admin_url( 'post.php' ) ); ?>">
-		<?php wp_nonce_field( 'toggle-custom-fields' ); ?>
+		<?php wp_nonce_field( 'toggle-custom-fields', 'toggle-custom-fields-nonce' ); ?>
 		<input type="hidden" name="action" value="toggle-custom-fields" />
 	</form>
 	<?php foreach ( $locations as $location ) : ?>

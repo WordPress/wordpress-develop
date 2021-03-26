@@ -488,6 +488,14 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
 	}
 
+	public function get_current_commenter() {
+		return array(
+			'comment_author_email' => 'foo@bar.test',
+			'comment_author'       => 'Foo',
+			'comment_author_url'   => 'https://bar.test',
+		);
+	}
+
 	/**
 	 * @ticket 8973
 	 */
@@ -537,13 +545,5 @@ class Tests_Comment_GetPageOfComment extends WP_UnitTestCase {
 		$this->assertContains( $new_unapproved, wp_list_pluck( $comments, 'comment_ID' ) );
 
 		wp_set_current_user( $current_user );
-	}
-
-	public function get_current_commenter() {
-		return array(
-			'comment_author_email' => 'foo@bar.test',
-			'comment_author'       => 'Foo',
-			'comment_author_url'   => 'https://bar.test',
-		);
 	}
 }

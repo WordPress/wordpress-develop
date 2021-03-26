@@ -4,13 +4,13 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 /**
  * Customize Notice Control class.
  *
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  *
  * @see WP_Customize_Control
  */
@@ -18,7 +18,7 @@ class Twenty_Twenty_One_Customize_Notice_Control extends WP_Customize_Control {
 	/**
 	 * The control type.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @var string
 	 */
@@ -31,7 +31,7 @@ class Twenty_Twenty_One_Customize_Notice_Control extends WP_Customize_Control {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -39,7 +39,7 @@ class Twenty_Twenty_One_Customize_Notice_Control extends WP_Customize_Control {
 		?>
 		<div class="notice notice-warning">
 			<p><?php esc_html_e( 'To access the Dark Mode settings, select a light background color.', 'twentytwentyone' ); ?></p>
-			<p><a href="https://wordpress.org/support/article/twenty-twenty-one/">
+			<p><a href="<?php echo esc_url( __( 'https://wordpress.org/support/article/twenty-twenty-one/#dark-mode-support', 'twentytwentyone' ) ); ?>">
 				<?php esc_html_e( 'Learn more about Dark Mode.', 'twentytwentyone' ); ?>
 			</a></p>
 		</div>

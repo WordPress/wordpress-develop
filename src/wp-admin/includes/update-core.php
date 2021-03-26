@@ -798,6 +798,11 @@ $_old_files = array(
 	'wp-admin/css/ie.min.css',
 	'wp-admin/css/ie-rtl.css',
 	'wp-admin/css/ie-rtl.min.css',
+	// 5.6
+	'wp-includes/js/jquery/ui/position.min.js',
+	'wp-includes/js/jquery/ui/widget.min.js',
+	// 5.7
+	'wp-includes/blocks/classic/block.json',
 );
 
 /**
@@ -934,7 +939,7 @@ function update_core( $from, $to ) {
 	 * Import $wp_version, $required_php_version, and $required_mysql_version from the new version.
 	 * DO NOT globalise any variables imported from `version-current.php` in this function.
 	 *
-	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8
+	 * BC Note: $wp_filesystem->wp_content_dir() returned unslashed pre-2.8.
 	 */
 	$versions_file = trailingslashit( $wp_filesystem->wp_content_dir() ) . 'upgrade/version-current.php';
 	if ( ! $wp_filesystem->copy( $from . $distro . 'wp-includes/version.php', $versions_file ) ) {
@@ -943,6 +948,15 @@ function update_core( $from, $to ) {
 	}
 
 	$wp_filesystem->chmod( $versions_file, FS_CHMOD_FILE );
+
+	/*
+	 * `wp_opcache_invalidate()` only exists in WordPress 5.5 or later,
+	 * so don't run it when upgrading from older versions.
+	 */
+	if ( function_exists( 'wp_opcache_invalidate' ) ) {
+		wp_opcache_invalidate( $versions_file );
+	}
+
 	require WP_CONTENT_DIR . '/upgrade/version-current.php';
 	$wp_filesystem->delete( $versions_file );
 
@@ -964,8 +978,8 @@ function update_core( $from, $to ) {
 	$php_update_message = '';
 
 	if ( function_exists( 'wp_get_update_php_url' ) ) {
-		/* translators: %s: URL to Update PHP page. */
 		$php_update_message = '</p><p>' . sprintf(
+			/* translators: %s: URL to Update PHP page. */
 			__( '<a href="%s">Learn more about updating PHP</a>.' ),
 			esc_url( wp_get_update_php_url() )
 		);
@@ -1114,6 +1128,14 @@ function update_core( $from, $to ) {
 			$result = new WP_Error( 'copy_failed_for_version_file', __( 'The update cannot be installed because we will be unable to copy some files. This is usually due to inconsistent file permissions.' ), 'wp-includes/version.php' );
 		}
 		$wp_filesystem->chmod( $to . 'wp-includes/version.php', FS_CHMOD_FILE );
+
+		/*
+		 * `wp_opcache_invalidate()` only exists in WordPress 5.5 or later,
+		 * so don't run it when upgrading from older versions.
+		 */
+		if ( function_exists( 'wp_opcache_invalidate' ) ) {
+			wp_opcache_invalidate( $to . 'wp-includes/version.php' );
+		}
 	}
 
 	// Check to make sure everything copied correctly, ignoring the contents of wp-content.
@@ -1349,6 +1371,10 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
+	if ( false === $dirlist ) {
+		return new WP_Error( 'dirlist_failed__copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+	}
+
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
 
@@ -1366,7 +1392,10 @@ function _copy_dir( $from, $to, $skip_list = array() ) {
 				}
 			}
 
-			// `wp_opcache_invalidate()` only exists in WordPress 5.5, so don't run it when upgrading to 5.5.
+			/*
+			 * `wp_opcache_invalidate()` only exists in WordPress 5.5 or later,
+			 * so don't run it when upgrading from older versions.
+			 */
 			if ( function_exists( 'wp_opcache_invalidate' ) ) {
 				wp_opcache_invalidate( $to . $filename );
 			}

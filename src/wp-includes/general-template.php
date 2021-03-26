@@ -247,6 +247,7 @@ function get_search_form( $args = array() ) {
 	 * @link https://core.trac.wordpress.org/ticket/19321
 	 *
 	 * @param array $args The array of arguments for building the search form.
+	 *                    See get_search_form() for information on accepted arguments.
 	 */
 	do_action( 'pre_get_search_form', $args );
 
@@ -278,6 +279,7 @@ function get_search_form( $args = array() ) {
 	 * @since 5.2.0
 	 *
 	 * @param array $args The array of arguments for building the search form.
+	 *                    See get_search_form() for information on accepted arguments.
 	 */
 	$args = apply_filters( 'search_form_args', $args );
 
@@ -295,6 +297,7 @@ function get_search_form( $args = array() ) {
 	 * @param string $format The type of markup to use in the search form.
 	 *                       Accepts 'html5', 'xhtml'.
 	 * @param array  $args   The array of arguments for building the search form.
+	 *                       See get_search_form() for information on accepted arguments.
 	 */
 	$format = apply_filters( 'search_form_format', $format, $args );
 
@@ -343,6 +346,7 @@ function get_search_form( $args = array() ) {
 	 *
 	 * @param string $form The search form HTML output.
 	 * @param array  $args The array of arguments for building the search form.
+	 *                     See get_search_form() for information on accepted arguments.
 	 */
 	$result = apply_filters( 'get_search_form', $form, $args );
 
@@ -1081,7 +1085,7 @@ function get_custom_logo( $blog_id = 0 ) {
 	} elseif ( is_customize_preview() ) {
 		// If no logo is set but we're in the Customizer, leave a placeholder (needed for the live preview).
 		$html = sprintf(
-			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo"/></a>',
+			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo" alt="" /></a>',
 			esc_url( home_url( '/' ) )
 		);
 	}
@@ -3187,59 +3191,17 @@ function wlwmanifest_link() {
 }
 
 /**
- * Displays a noindex meta tag if required by the blog configuration.
+ * Displays a referrer strict-origin-when-cross-origin meta tag.
  *
- * If a blog is marked as not being public then the noindex meta tag will be
- * output to tell web robots not to index the page content. Add this to the
- * {@see 'wp_head'} action.
- *
- * Typical usage is as a {@see 'wp_head'} callback:
- *
- *     add_action( 'wp_head', 'noindex' );
- *
- * @see wp_no_robots()
- *
- * @since 2.1.0
- */
-function noindex() {
-	// If the blog is not public, tell robots to go away.
-	if ( '0' == get_option( 'blog_public' ) ) {
-		wp_no_robots();
-	}
-}
-
-/**
- * Display a noindex meta tag.
- *
- * Outputs a noindex meta tag that tells web robots not to index the page content.
- * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
- *
- * @since 3.3.0
- * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
- */
-function wp_no_robots() {
-	if ( get_option( 'blog_public' ) ) {
-		echo "<meta name='robots' content='noindex,follow' />\n";
-		return;
-	}
-
-	echo "<meta name='robots' content='noindex,nofollow' />\n";
-}
-
-/**
- * Display a noindex,noarchive meta tag and referrer origin-when-cross-origin meta tag.
- *
- * Outputs a noindex,noarchive meta tag that tells web robots not to index or cache the page content.
  * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
  * url as a referrer to other sites when cross-origin assets are loaded.
  *
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
  *
- * @since 5.0.1
+ * @since 5.7.0
  */
-function wp_sensitive_page_meta() {
+function wp_strict_cross_origin_referrer() {
 	?>
-	<meta name='robots' content='noindex,noarchive' />
 	<meta name='referrer' content='strict-origin-when-cross-origin' />
 	<?php
 }
@@ -3572,7 +3534,7 @@ function wp_enqueue_editor() {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the enqueued code editor, or false if the editor was not enqueued.
  */
@@ -3663,7 +3625,7 @@ function wp_enqueue_code_editor( $args ) {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the code editor.
  */
@@ -4000,7 +3962,7 @@ function wp_get_code_editor_settings( $args ) {
 	 *     @type array    $codemirror Additional CodeMirror setting overrides.
 	 *     @type array    $csslint    CSSLint rule overrides.
 	 *     @type array    $jshint     JSHint rule overrides.
-	 *     @type array    $htmlhint   JSHint rule overrides.
+	 *     @type array    $htmlhint   HTMLHint rule overrides.
 	 * }
 	 */
 	return apply_filters( 'wp_code_editor_settings', $settings, $args );
@@ -4111,7 +4073,7 @@ function language_attributes( $doctype = 'html' ) {
 }
 
 /**
- * Retrieve paginated link for archive post pages.
+ * Retrieves paginated links for archive post pages.
  *
  * Technically, the function can be used to create paginated link list for any
  * area. The 'base' argument is used to reference the url, which will be used to
@@ -4357,6 +4319,17 @@ function paginate_links( $args = '' ) {
 			break;
 	}
 
+	/**
+	 * Filters the HTML output of paginated links for archives.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $r    HTML output.
+	 * @param array  $args An array of arguments. See paginate_links()
+	 *                     for information on accepted arguments.
+	 */
+	$r = apply_filters( 'paginate_links_output', $r, $args );
+
 	return $r;
 }
 
@@ -4419,10 +4392,10 @@ function register_admin_color_schemes() {
 		'fresh',
 		_x( 'Default', 'admin color scheme' ),
 		false,
-		array( '#222', '#333', '#0073aa', '#00a0d2' ),
+		array( '#1d2327', '#2c3338', '#3582c4', '#72aee6' ),
 		array(
-			'base'    => '#a0a5aa',
-			'focus'   => '#00a0d2',
+			'base'    => '#a7aaad',
+			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)
 	);
@@ -4745,6 +4718,16 @@ function get_the_generator( $type = '' ) {
 	 * Filters the HTML for the retrieved generator type.
 	 *
 	 * The dynamic portion of the hook name, `$type`, refers to the generator type.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_the_generator_atom`
+	 *  - `get_the_generator_comment`
+	 *  - `get_the_generator_export`
+	 *  - `get_the_generator_html`
+	 *  - `get_the_generator_rdf`
+	 *  - `get_the_generator_rss2`
+	 *  - `get_the_generator_xhtml`
 	 *
 	 * @since 2.5.0
 	 *
