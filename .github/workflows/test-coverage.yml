@@ -7,6 +7,7 @@ on:
       - master
       - trunk
     paths:
+      - '.github/workflows/test-coverage.yml'
       - 'phpunit.xml.dist'
       - 'tests/phpunit/multisite.xml'
   # Once daily at 00:00 UTC.
