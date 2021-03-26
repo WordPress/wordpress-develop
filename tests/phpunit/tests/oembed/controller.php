@@ -34,6 +34,9 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 				'user_email' => 'administrator@example.com',
 			)
 		);
+
+		// `get_post_embed_html()` assumes `wp-includes/js/wp-embed.js` is present:
+		self::touch( ABSPATH . WPINC . '/js/wp-embed.js' );
 	}
 
 	public static function wpTearDownAfterClass() {
