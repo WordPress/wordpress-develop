@@ -11,8 +11,7 @@
  * 'DIRECTORY' to the static variable WP_Test_Stream::$data['bucket']['/foo/']
  * (note the trailing slash).
  *
- * This class can be used to test that code works with basic read/write streams,
- * as such, operations such as seeking are not supported.
+ * This class can be used to test that code works with basic read/write streams.
  *
  * This class does not register itself as a stream handler: test fixtures
  * should make the appropriate call to stream_wrapper_register().
