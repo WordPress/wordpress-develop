@@ -2941,6 +2941,7 @@ EOF;
 	function test_wp_iframe_tag_add_loading_attr_opt_out() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		$this->assertNotContains( ' loading=', $iframe );
 	}
