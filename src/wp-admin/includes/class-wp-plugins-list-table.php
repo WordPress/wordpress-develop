@@ -707,11 +707,18 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		static $checked_plugins = null;
 
 		if ( is_null( $checked_plugins ) ) {
-			$checked_plugins = get_transient( 'checked_plugins' );
-			delete_transient( 'checked_plugins' );
+			$transient = get_transient( 'checked_plugins' );
+
+			if ( ! is_array( $transient ) ) {
+				return array(); // None where found (nothing stored).
+			}
+
+			delete_transient( 'checked_plugins' ); // We don't need the DB record for the checked plugins anymore, since we have this cached locally.
+
+			$checked_plugins = $transient; // Keep the checked plugins in the variable now that we know.
 		}
 
-		return is_array( $checked_plugins ) ? $checked_plugins : array();
+		return $checked_plugins;
 	}
 
 	/**
