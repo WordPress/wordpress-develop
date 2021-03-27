@@ -699,6 +699,32 @@ class WP_Plugins_List_Table extends WP_List_Table {
 	}
 
 	/**
+	 * Get the plugins that were checked.
+	 *
+	 * @return array
+	 */
+	private function get_checked_plugins() {
+		static $checked_plugins = null;
+
+		if ( is_null( $checked_plugins ) ) {
+			$checked_plugins = get_transient( 'checked_plugins' );
+			delete_transient( 'checked_plugins' );
+		}
+
+		return is_array( $checked_plugins ) ? $checked_plugins : array();
+	}
+
+	/**
+	 * Was a plugin checked?
+	 *
+	 * @param  string $plugin_file Plugin file.
+	 * @return bool
+	 */
+	private function was_checked( $plugin_file ) {
+		return in_array( $plugin_file, $this->get_checked_plugins(), true );
+	}
+
+	/**
 	 * @global string $status
 	 * @global int $page
 	 * @global string $s
@@ -955,11 +981,12 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		} else {
 			$checkbox = sprintf(
 				'<label class="screen-reader-text" for="%1$s">%2$s</label>' .
-				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" />',
+				'<input type="checkbox" name="checked[]" value="%3$s" id="%1$s" %4$s />',
 				$checkbox_id,
 				/* translators: %s: Plugin name. */
 				sprintf( __( 'Select %s' ), $plugin_data['Name'] ),
-				esc_attr( $plugin_file )
+				esc_attr( $plugin_file ),
+				checked( $this->was_checked( $plugin_file ), true, false )
 			);
 		}
 

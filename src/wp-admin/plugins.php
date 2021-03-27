@@ -40,6 +40,10 @@ $_SERVER['REQUEST_URI'] = remove_query_arg( $query_args_to_remove, $_SERVER['REQ
 
 wp_enqueue_script( 'updates' );
 
+if ( isset( $_REQUEST['checked'] ) && is_array( $_REQUEST['checked'] ) ) {
+	set_transient( 'checked_plugins', $_REQUEST['checked'] );
+}
+
 if ( $action ) {
 
 	switch ( $action ) {
