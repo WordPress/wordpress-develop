@@ -2420,9 +2420,6 @@
 
 			event.preventDefault();
 
-			// Un-check the bulk checkboxes.
-			$bulkActionForm.find( '.manage-column [type="checkbox"]' ).prop( 'checked', false );
-
 			$document.trigger( 'wp-' + type + '-bulk-' + bulkAction, itemsSelected );
 
 			// Find all the checkboxes which have been checked.
@@ -2461,8 +2458,6 @@
 					error++;
 					errorMessages.push( itemName + ': ' + response.errorMessage );
 				}
-
-				$itemRow.find( 'input[name="checked[]"]:checked' ).prop( 'checked', false );
 
 				wp.updates.adminNotice = wp.template( 'wp-bulk-updates-admin-notice' );
 
