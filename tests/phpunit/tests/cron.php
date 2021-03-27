@@ -245,7 +245,7 @@ class Tests_Cron extends WP_UnitTestCase {
 		$hook           = __FUNCTION__;
 		$unrelated_hook = __FUNCTION__ . '_two';
 
-		// Attempt to clear schedule on non-existant hook.
+		// Attempt to clear schedule on non-existent hook.
 		$unschedule_hook = wp_unschedule_hook( $hook );
 		$this->assertSame( 0, $unschedule_hook );
 		$this->assertFalse( wp_next_scheduled( $hook ) );
