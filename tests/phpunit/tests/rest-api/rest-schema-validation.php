@@ -321,6 +321,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				true,
 			),
 			array(
+				1,
+				array(
+					'type' => 'integer',
+					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
 				2,
 				array(
 					'type' => 'integer',
@@ -391,6 +399,14 @@ class WP_Test_REST_Schema_Validation extends WP_UnitTestCase {
 				array(
 					'type' => 'number',
 					'enum' => array( 0.0, 1.0 ),
+				),
+				true,
+			),
+			array(
+				1,
+				array(
+					'type' => 'number',
+					'enum' => array( 0, 1 ),
 				),
 				true,
 			),
