@@ -301,12 +301,7 @@ abstract class WP_Image_Editor {
 	 *     }
 	 * @return array { filename|null, extension, mime-type }
 	 */
-	protected function get_output_format( $filename = null, $mime_type = null, $image_editor_mime_mapping = array(
-		'image/jpeg' => array(
-			'mime_type' => 'image/webp',
-			'extension' => 'webp',
-		),
-	) ) {
+	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
 		// By default, assume specified type takes priority.
@@ -348,7 +343,7 @@ abstract class WP_Image_Editor {
 		 *     }
 		 * }
 		 */
-		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', $image_editor_mime_mapping, $filename, $mime_type );
+		$image_editor_mime_mapping = apply_filters( 'image_editor_mime_mapping', false, $filename, $mime_type );
 
 		if (
 			$image_editor_mime_mapping &&

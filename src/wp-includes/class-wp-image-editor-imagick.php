@@ -677,22 +677,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @return array|WP_Error
 	 */
 	protected function _save( $image, $filename = null, $mime_type = null ) {
-		// Imagick supports animated images.
-		$imagick_mappings = array(
-			'image/jpeg' => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
-			'image/png'  => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
-			'image/gif'  => array(
-				'mime_type' => 'image/webp',
-				'extension' => 'webp',
-			),
-		);
-		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type, $imagick_mappings );
+		list( $filename, $extension, $mime_type ) = $this->get_output_format( $filename, $mime_type );
 
 		if ( ! $filename ) {
 			$filename = $this->generate_filename( null, null, $extension );

@@ -25,12 +25,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		foreach ( glob( $folder ) as $file ) {
 			unlink( $file );
 		}
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 	}
 
 	/**
@@ -65,10 +59,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.psd',
 			'test-image-zip.tiff',
 			'test-image.jpg',
-			'webp-animated.webp',
-			'webp-lossless.webp',
-			'webp-lossy.webp',
-			'webp-transparent.webp',
 		);
 
 		// IMAGETYPE_ICO is only defined in PHP 5.3+.
@@ -100,10 +90,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.gif',
 			'test-image.png',
 			'test-image.jpg',
-			'webp-animated.webp',
-			'webp-lossless.webp',
-			'webp-lossy.webp',
-			'webp-transparent.webp',
 		);
 
 		// IMAGETYPE_ICO is only defined in PHP 5.3+.
@@ -166,7 +152,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * @requires extension fileinfo
 	 */
 	public function test_wp_save_image_file() {
-		add_filter( 'image_editor_mime_mapping', '__return_false' );
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
 
 		foreach ( $classes as $key => $class ) {
@@ -187,7 +172,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'image/jpeg',
 			'image/gif',
 			'image/png',
-			'image/webp',
 		);
 
 		// Test each image editor engine.
@@ -286,8 +270,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'jpe'  => 'image/jpeg',
 			'gif'  => 'image/gif',
 			'png'  => 'image/png',
-			'webp' => 'image/webp',
-			'unk'  => 'image/jpeg',   // Default, unknown.
+			'unk'  => 'image/jpeg', // Default, unknown.
 		);
 
 		// Test each image editor engine.
