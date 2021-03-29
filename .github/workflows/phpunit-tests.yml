@@ -149,7 +149,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
-        uses: actions/download-artifact
+        uses: actions/download-artifact@4a7a711286f30c025902c28b541c10e147a9b843 # v2.0.8
         with:
           name: built-wp-${{ github.sha }}
 
