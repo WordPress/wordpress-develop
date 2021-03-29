@@ -5095,4 +5095,4 @@ function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 
 		return false;
 	}
- }
+}
