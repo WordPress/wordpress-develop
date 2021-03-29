@@ -346,7 +346,6 @@ abstract class WP_Image_Editor {
 			$new_ext   = $file_ext;
 		}
 
-
 		// Double-check that the mime-type selected is supported by the editor.
 		// If not, choose a default instead.
 		if ( ! $this->supports_mime_type( $mime_type ) ) {
