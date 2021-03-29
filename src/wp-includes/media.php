@@ -4988,7 +4988,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 		// Return without silencing errors when in debug mode.
 		defined( 'WP_DEBUG' ) && WP_DEBUG
 	) {
-		return _wp_get_image_size( $filename, $image_info );
+		return _wp_get_image_size( $filename );
 	}
 
 	/*
@@ -5012,11 +5012,15 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  * @access private
  *
  * @param string $filename  The file path.
- * @param array  $imageinfo Extended image information, passed by reference.
+ * @param array  $imageinfo Optional. Extended image information, passed by reference.
  */
-function _wp_get_image_size( $filename, &$imageinfo = array() ) {
+function _wp_get_image_size( $filename, array &$imageinfo = null ) {
 	// Try getimagesize() first.
-	$info = getimagesize( $filename, $imageinfo );
+	if ( 2 === func_num_args() ) {
+		$info = getimagesize( $filename, $image_info );
+	} else {
+		$info = getimagesize( $filename );
+	}
 	if ( false !== $info ) {
 		return $info;
 	}
