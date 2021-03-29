@@ -2793,7 +2793,7 @@ function wp_playlist_shortcode( $attr ) {
 <div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
 	<?php if ( 'audio' === $atts['type'] ) : ?>
 		<div class="wp-playlist-current-item"></div>
-	<?php endif ?>
+	<?php endif; ?>
 	<<?php echo $safe_type; ?> controls="controls" preload="none" width="<?php echo (int) $theme_width; ?>"
 		<?php
 		if ( 'video' === $safe_type ) {
@@ -4975,11 +4975,11 @@ function wp_show_heic_upload_error( $plupload_settings ) {
  *
  * @since 5.7.0
  *
- * @param string $filename  The file path.
- * @param array  $imageinfo Extended image information, passed by reference.
+ * @param string $filename   The file path.
+ * @param array  $image_info Optional. Extended image information (passed by reference).
  * @return array|false Array of image information or false on failure.
  */
-function wp_getimagesize( $filename, &$imageinfo = array() ) {
+function wp_getimagesize( $filename, array &$image_info = null ) {
 	if (
 		// Skip when running unit tests.
 		! defined( 'WP_RUN_CORE_TESTS' )
@@ -4987,7 +4987,11 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 		// Return without silencing errors when in debug mode.
 		defined( 'WP_DEBUG' ) && WP_DEBUG
 	) {
-		return getimagesize( $filename, $imageinfo );
+		if ( 2 === func_num_args() ) {
+			return getimagesize( $filename, $image_info );
+		} else {
+			return getimagesize( $filename );
+		}
 	}
 
 	/*
@@ -4998,8 +5002,12 @@ function wp_getimagesize( $filename, &$imageinfo = array() ) {
 	 * even when it's able to provide image size information.
 	 *
 	 * See https://core.trac.wordpress.org/ticket/42480
-	 *
-	 * phpcs:ignore WordPress.PHP.NoSilencedErrors
 	 */
-	return @getimagesize( $filename, $imageinfo );
+	if ( 2 === func_num_args() ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
+		return @getimagesize( $filename, $image_info );
+	} else {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
+		return @getimagesize( $filename );
+	}
 }

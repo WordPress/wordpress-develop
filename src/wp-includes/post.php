@@ -677,15 +677,15 @@ function get_children( $args = '', $output = OBJECT ) {
 		$kids[ $child->ID ] = $children[ $key ];
 	}
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $kids;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		$weeuns = array();
 		foreach ( (array) $kids as $kid ) {
 			$weeuns[ $kid->ID ] = get_object_vars( $kids[ $kid->ID ] );
 		}
 		return $weeuns;
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		$babes = array();
 		foreach ( (array) $kids as $kid ) {
 			$babes[ $kid->ID ] = array_values( get_object_vars( $kids[ $kid->ID ] ) );
@@ -788,9 +788,9 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 
 	$_post = $_post->filter( $filter );
 
-	if ( ARRAY_A == $output ) {
+	if ( ARRAY_A === $output ) {
 		return $_post->to_array();
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( $_post->to_array() );
 	}
 
@@ -1422,20 +1422,20 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                               ?{query_var_string}={post_slug} will be valid.
  *     @type bool         $can_export            Whether to allow this post type to be exported. Default true.
  *     @type bool         $delete_with_user      Whether to delete posts of this type when deleting a user.
- *                                               - If true, posts of this type belonging to the user will be moved
+ *                                               * If true, posts of this type belonging to the user will be moved
  *                                                 to Trash when the user is deleted.
- *                                               - If false, posts of this type belonging to the user will *not*
+ *                                               * If false, posts of this type belonging to the user will *not*
  *                                                 be trashed or deleted.
- *                                               - If not set (the default), posts are trashed if post type supports
+ *                                               * If not set (the default), posts are trashed if post type supports
  *                                                 the 'author' feature. Otherwise posts are not trashed or deleted.
  *                                               Default null.
  *     @type array        $template              Array of blocks to use as the default initial state for an editor
  *                                               session. Each item should be an array containing block name and
  *                                               optional attributes. Default empty array.
  *     @type string|false $template_lock         Whether the block template should be locked if $template is set.
- *                                               - If set to 'all', the user is unable to insert new blocks,
+ *                                               * If set to 'all', the user is unable to insert new blocks,
  *                                                 move existing blocks and delete blocks.
- *                                               - If set to 'insert', the user is able to move existing blocks
+ *                                               * If set to 'insert', the user is able to move existing blocks
  *                                                 but is unable to insert new blocks and delete blocks.
  *                                               Default false.
  *     @type bool         $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
@@ -3692,7 +3692,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	$results = get_posts( $parsed_args );
 
 	// Backward compatibility. Prior to 3.1 expected posts to be returned in array.
-	if ( ARRAY_A == $output ) {
+	if ( ARRAY_A === $output ) {
 		foreach ( $results as $key => $result ) {
 			$results[ $key ] = get_object_vars( $result );
 		}
