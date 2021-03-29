@@ -16,6 +16,7 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+  workflow_dispatch:
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'

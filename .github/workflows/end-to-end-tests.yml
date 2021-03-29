@@ -17,6 +17,7 @@ on:
       - trunk
       - '5.[3-9]'
       - '[6-9].[0-9]'
+  workflow_dispatch:
 
 env:
   LOCAL_DIR: build

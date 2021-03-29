@@ -23,6 +23,7 @@ on:
       - '**.css'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/**.yml'
+  workflow_dispatch:
 
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
@@ -52,8 +53,6 @@ jobs:
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
-  # - Builds WordPress to run from the `src` directory.
-  # - Cleans up after building WordPress to the `src` directory.
   test-npm:
     name: Test NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -108,12 +107,6 @@ jobs:
       - name: Clean after building
         run: npm run grunt clean
 
-      - name: Build WordPress in /src
-        run: npm run build:dev
-
-      - name: Clean after building in /src
-        run: npm run grunt clean --dev
-
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
   # This is a separate job in order to that more strict conditions can be used.
@@ -126,8 +119,6 @@ jobs:
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
-  # - Builds WordPress to run from the `src` directory.
-  # - Cleans up after building WordPress to the `src` directory.
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
@@ -165,9 +156,3 @@ jobs:
 
       - name: Clean after building
         run: npm run grunt clean
-
-      - name: Build WordPress in /src
-        run: npm run build:dev
-
-      - name: Clean after building in /src
-        run: npm run grunt clean --dev
