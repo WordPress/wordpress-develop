@@ -65,13 +65,13 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	}
 
 	function test_resize_webp() {
-		$image = $this->resize_helper( DIR_TESTDATA . '/images/webp-lossy.webp', 25, 25 );
+		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.webp', 25, 25 );
 
 		if ( ! is_string( $image ) ) {  // WP_Error, stop GLib-GObject-CRITICAL assertion.
 			$this->fail( sprintf( 'No WebP support in the editor engine %s on this system.', $this->editor_engine ) );
 		}
 
-		$this->assertSame( 'webp-lossy-25x25.png', wp_basename( $image ) );
+		$this->assertSame( 'test-image-25x25.webp', wp_basename( $image ) );
 		list($w, $h, $type) = wp_getimagesize( $image );
 		$this->assertSame( 25, $w );
 		$this->assertSame( 25, $h );
