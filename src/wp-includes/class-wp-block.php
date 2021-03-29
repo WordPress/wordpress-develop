@@ -259,4 +259,40 @@ class WP_Block {
 		return $block_content;
 	}
 
+	/**
+	 * Generates the transform output for the block.
+	 *
+	 * @since ?.?.?
+	 *
+	 * @param string Block name to transform to
+	 * @return string Rendered block output.
+	 */
+	public function transform( $to ) {
+
+		if ( null === $this->block_type ) {
+			return '';
+		}
+
+		if ( ! $this->block_type->has_dynamic_transform() ) {
+			return '';
+		}
+
+		global $post;
+
+		$global_post = $post;
+
+		$block_content = '';
+		$blocks        = call_user_func( $this->block_type->transform_callback, $to, $this->attributes, $block_content, $this );
+
+		$post = $global_post;
+
+		$output = '';
+
+		foreach ( $blocks as $block ) {
+			$output .= serialize_block( $block );
+		}
+
+		return $output;
+	}
+
 }

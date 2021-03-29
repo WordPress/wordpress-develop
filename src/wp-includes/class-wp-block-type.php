@@ -132,6 +132,14 @@ class WP_Block_Type {
 	public $render_callback = null;
 
 	/**
+	 * Block type transform callback.
+	 *
+	 * @since ?.?.?
+	 * @var callable
+	 */
+	public $transform_callback = null;
+
+	/**
 	 * Block type attributes property schemas.
 	 *
 	 * @since 5.0.0
@@ -202,27 +210,28 @@ class WP_Block_Type {
 	 *     however the ones described below are supported by default. Default empty array.
 	 *
 	 *
-	 *     @type string        $title            Human-readable block type label.
-	 *     @type string|null   $category         Block type category classification, used in
-	 *                                           search interfaces to arrange block types by category.
-	 *     @type array|null    $parent           Setting parent lets a block require that it is only
-	 *                                           available when nested within the specified blocks.
-	 *     @type string|null   $icon             Block type icon.
-	 *     @type string        $description      A detailed block type description.
-	 *     @type array         $keywords         Additional keywords to produce block type as
-	 *                                           result in search interfaces.
-	 *     @type string|null   $textdomain       The translation textdomain.
-	 *     @type array         $styles           Alternative block styles.
-	 *     @type array|null    $supports         Supported features.
-	 *     @type array|null    $example          Structured data for the block preview.
-	 *     @type callable|null $render_callback  Block type render callback.
-	 *     @type array|null    $attributes       Block type attributes property schemas.
-	 *     @type array         $uses_context     Context values inherited by blocks of this type.
-	 *     @type array|null    $provides_context Context provided by blocks of this type.
-	 *     @type string|null   $editor_script    Block type editor script handle.
-	 *     @type string|null   $script           Block type front end script handle.
-	 *     @type string|null   $editor_style     Block type editor style handle.
-	 *     @type string|null   $style            Block type front end style handle.
+	 *     @type string        $title               Human-readable block type label.
+	 *     @type string|null   $category            Block type category classification, used in
+	 *                                              search interfaces to arrange block types by category.
+	 *     @type array|null    $parent              Setting parent lets a block require that it is only
+	 *                                              available when nested within the specified blocks.
+	 *     @type string|null   $icon                Block type icon.
+	 *     @type string        $description         A detailed block type description.
+	 *     @type array         $keywords            Additional keywords to produce block type as
+	 *                                              result in search interfaces.
+	 *     @type string|null   $textdomain          The translation textdomain.
+	 *     @type array         $styles              Alternative block styles.
+	 *     @type array|null    $supports            Supported features.
+	 *     @type array|null    $example             Structured data for the block preview.
+	 *     @type callable|null $render_callback     Block type render callback.
+	 *     @type array|null    $attributes          Block type attributes property schemas.
+	 *     @type array         $uses_context        Context values inherited by blocks of this type.
+	 *     @type array|null    $provides_context    Context provided by blocks of this type.
+	 *     @type string|null   $editor_script       Block type editor script handle.
+	 *     @type string|null   $script              Block type front end script handle.
+	 *     @type string|null   $editor_style        Block type editor style handle.
+	 *     @type string|null   $style               Block type front end style handle.
+	 *     @type callable|null $transform_callback  Block type render callback.
 	 * }
 	 */
 	public function __construct( $block_type, $args = array() ) {
@@ -251,6 +260,25 @@ class WP_Block_Type {
 	}
 
 	/**
+	 * Transforms the block type output for given attributes.
+	 *
+	 * @since ?.?.?
+	 * @param string $to         Block name to transform to.
+	 * @param array  $attributes Optional. Block attributes. Default empty array.
+	 * @param string $content    Optional. Block content. Default empty string.
+	 * @return array[] Transformed blocks.
+	 */
+	public function transform( $to, $attributes = array(), $content = '' ) {
+		if ( ! $this->is_dynamic() ) {
+			return array();
+		}
+
+		$attributes = $this->prepare_attributes_for_render( $attributes );
+
+		return call_user_func( $this->transform_callback, $to, $attributes, $content );
+	}
+
+	/**
 	 * Returns true if the block type is dynamic, or false otherwise. A dynamic
 	 * block is one which defers its rendering to occur on-demand at runtime.
 	 *
@@ -260,6 +288,18 @@ class WP_Block_Type {
 	 */
 	public function is_dynamic() {
 		return is_callable( $this->render_callback );
+	}
+
+	/**
+	 * Returns true if the block type has a dynamic transform and is a dynamic block. A dynamic
+	 * transform transforms a dynamic block to other blocks in the server context.
+	 *
+	 * @since ?.?.?
+	 *
+	 * @return bool Whether block type is dynamic.
+	 */
+	public function has_dynamic_transform() {
+		return $this->is_dynamic() && is_callable( $this->transform_callback );
 	}
 
 	/**
@@ -318,10 +358,12 @@ class WP_Block_Type {
 	 *                           See WP_Block_Type::__construct() for information on accepted arguments.
 	 */
 	public function set_props( $args ) {
+
 		$args = wp_parse_args(
 			$args,
 			array(
-				'render_callback' => null,
+				'render_callback'    => null,
+				'transform_callback' => null,
 			)
 		);
 

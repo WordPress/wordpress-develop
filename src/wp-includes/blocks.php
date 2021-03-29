@@ -800,6 +800,82 @@ function render_block( $parsed_block ) {
 }
 
 /**
+ * Transform a single dynamic block into a HTML string.
+ *
+ * @since ?.?.?
+ *
+ * @global WP_Post  $post     The post to edit.
+ * @global WP_Query $wp_query WordPress Query object.
+ *
+ * @param array  $parsed_block A single parsed block object.
+ * @oaram string $to           The block name to transform to.
+ * @return string String of rendered HTML.
+ */
+function transform_block( $parsed_block, $to ) {
+	global $post, $wp_query;
+
+	/**
+	 * Allows render_block() to be short-circuited, by returning a non-null value.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param string|null $pre_render   The pre-rendered content. Default null.
+	 * @param array       $parsed_block The block being rendered.
+	 */
+	$pre_render = apply_filters( 'pre_render_block', null, $parsed_block );
+	if ( ! is_null( $pre_render ) ) {
+		return $pre_render;
+	}
+
+	$source_block = $parsed_block;
+
+	/**
+	 * Filters the block being rendered in render_block(), before it's processed.
+	 *
+	 * @since 5.1.0
+	 *
+	 * @param array $parsed_block The block being rendered.
+	 * @param array $source_block An un-modified copy of $parsed_block, as it appeared in the source content.
+	 */
+	$parsed_block = apply_filters( 'render_block_data', $parsed_block, $source_block );
+
+	$context = array();
+
+	if ( $post instanceof WP_Post ) {
+		$context['postId'] = $post->ID;
+
+		/*
+		 * The `postType` context is largely unnecessary server-side, since the ID
+		 * is usually sufficient on its own. That being said, since a block's
+		 * manifest is expected to be shared between the server and the client,
+		 * it should be included to consistently fulfill the expectation.
+		 */
+		$context['postType'] = $post->post_type;
+	}
+
+	if ( $wp_query instanceof WP_Query && isset( $wp_query->tax_query->queried_terms['category'] ) ) {
+		$context['query'] = array( 'categoryIds' => array() );
+		foreach ( $wp_query->tax_query->queried_terms['category']['terms'] as $category_slug_or_id ) {
+			$context['query']['categoryIds'][] = 'slug' === $wp_query->tax_query->queried_terms['category']['field'] ? get_cat_ID( $category_slug_or_id ) : $category_slug_or_id;
+		}
+	}
+
+	/**
+	 * Filters the default context provided to a rendered block.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param array $context      Default context.
+	 * @param array $parsed_block Block being rendered, filtered by `render_block_data`.
+	 */
+	$context = apply_filters( 'render_block_context', $context, $parsed_block );
+
+	$block = new WP_Block( $parsed_block, $context );
+
+	return $block->transform( $to );
+}
+
+/**
  * Parses blocks out of a content string.
  *
  * @since 5.0.0
