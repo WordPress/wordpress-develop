@@ -10,6 +10,10 @@ on:
       - '3.[7-9]*'
       - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - '3.[7-9]'
+      - '[4-9].[0-9]'
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'
@@ -43,7 +47,7 @@ jobs:
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.5.0
+        uses: styfle/cancel-workflow-action@0.8.0
         with:
           access_token: ${{ github.token }}
 
@@ -64,7 +68,7 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: 14
 
@@ -76,8 +80,6 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
@@ -124,16 +126,19 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        php: [ '5.5', '5.4', '5.3' ]
+        php: [ '5.3', '5.4', '5.5' ]
         os: [ ubuntu-latest ]
+        multisite: [ false, true ]
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
+      PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
     steps:
       - name: Configure environment variables
@@ -150,7 +155,7 @@ jobs:
         run: unzip built-wp-${{ github.sha }}.zip
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: 14
 
@@ -162,8 +167,6 @@ jobs:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Install Dependencies
         run: npx install-changed --install-command="npm ci"
@@ -176,8 +179,6 @@ jobs:
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-php-${{ matrix.php }}-composer-
 
       - name: Install Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
@@ -224,15 +225,14 @@ jobs:
         run: npm run env:install
 
       - name: Run PHPUnit tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group ajax
-
-      - name: Run tests as a multisite install
-        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml
+        if: ${{ ! matrix.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run external HTTP tests
+        if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
 
       - name: Checkout the WordPress Test Reporter
