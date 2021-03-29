@@ -25,6 +25,7 @@ env:
   # Controls which NPM script to use for running PHPUnit tests. Options ar `php` and `php-composer`.
   PHPUNIT_SCRIPT: php
   LOCAL_PHP_MEMCACHED: ${{ false }}
+  SLOW_TESTS: 'external-http,media'
 
 jobs:
   # Sets up WordPress for testing or development use.
@@ -126,7 +127,7 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }} ${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     needs: setup-wordpress
     runs-on: ${{ matrix.os }}
     strategy:
@@ -134,6 +135,7 @@ jobs:
       matrix:
         php: [ '5.3', '5.4', '5.5' ]
         os: [ ubuntu-latest ]
+        split_slow: [ false, true ]
         multisite: [ false, true ]
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
@@ -224,15 +226,28 @@ jobs:
       - name: Install WordPress
         run: npm run env:install
 
+      - name: Run slow PHPUnit tests
+        if: ${{ matrix.split_slow }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ${{ env.SLOW_TESTS }}
+
+      - name: Run PHPUnit tests for single site excluding slow tests
+        if: ${{ matrix.php < '7.0' && ! matrix.split_slow && ! matrix.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-required
+
+      - name: Run PHPUnit tests for Multisite excluding slow tests
+        if: ${{ matrix.php < '7.0' && ! matrix.split_slow && matrix.multisite }}
+        run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --exclude-group ${{ env.SLOW_TESTS }},ajax,ms-files,ms-excluded,oembed-headers
+
       - name: Run PHPUnit tests
+        if: ${{ matrix.php >= '7.0' }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }}
 
       - name: Run AJAX tests
-        if: ${{ ! matrix.multisite }}
+        if: ${{ ! matrix.multisite && ! matrix.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c ${{ env.PHPUNIT_CONFIG }} --group ajax
 
       - name: Run external HTTP tests
-        if: ${{ ! matrix.multisite }}
+        if: ${{ ! matrix.multisite && ! matrix.split_slow }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --group external-http
 
       - name: Checkout the WordPress Test Reporter
