@@ -165,7 +165,7 @@ jobs:
             memcached: false
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
-      LOCAL_PHPUNIT: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}
+      LOCAL_PHPUNIT: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
       SLOW_TESTS: 'external-http,media'
