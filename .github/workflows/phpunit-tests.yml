@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
     tags:
@@ -12,6 +13,7 @@ on:
   pull_request:
     branches:
       - master
+      - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
   # Once weekly On Sundays at 00:00 UTC.
@@ -48,12 +50,10 @@ jobs:
     steps:
       - name: Cancel previous runs of this workflow (pull requests only)
         if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@0.8.0
-        with:
-          access_token: ${{ github.token }}
+        uses: styfle/cancel-workflow-action@3d86a7cc43670094ac248017207be0295edbc31d # v0.8.0
 
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Log debug information
         run: |
@@ -69,12 +69,12 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
         with:
           node-version: 14
 
       - name: Cache NodeJS modules
-        uses: actions/cache@v2
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         env:
           cache-name: cache-node-modules
         with:
@@ -83,7 +83,7 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Build WordPress
         run: npm run build
@@ -95,7 +95,7 @@ jobs:
           exclusions: '*.git* /*node_modules/* packagehash.txt'
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
         with:
           name: built-wp-${{ github.sha }}
           path: built-wp-${{ github.sha }}.zip
@@ -149,7 +149,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact
         with:
           name: built-wp-${{ github.sha }}
 
@@ -157,12 +157,12 @@ jobs:
         run: unzip built-wp-${{ github.sha }}.zip
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
         with:
           node-version: 14
 
       - name: Use cached Node modules
-        uses: actions/cache@v2
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         env:
           cache-name: cache-node-modules
         with:
@@ -171,11 +171,11 @@ jobs:
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Cache Composer dependencies
         if: ${{ env.COMPOSER_INSTALL == true }}
-        uses: actions/cache@v2
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         env:
           cache-name: cache-composer-dependencies
         with:
@@ -252,7 +252,7 @@ jobs:
 
       - name: Checkout the WordPress Test Reporter
         if: ${{ github.repository == 'WordPress/wordpress-develop' && github.ref == 'refs/heads/master' && matrix.report }}
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
         with:
           repository: 'WordPress/phpunit-test-runner'
           path: 'test-runner'
