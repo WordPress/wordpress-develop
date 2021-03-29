@@ -306,6 +306,12 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 			case 'image/gif':
 				header( 'Content-Type: image/gif' );
 				return imagegif( $image );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					header( 'Content-Type: image/webp' );
+					return imagewebp( $image, null, 90 );
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -391,6 +397,18 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return imagepng( $image, $filename );
 			case 'image/gif':
 				return imagegif( $image, $filename );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					/**
+					 * Filters the WebP compression quality for image file saves.
+					 *
+					 * @since 5.8.0
+					 *
+					 * @param int    $quality Quality level between 0 (low) and 100 (high) of the WebP.
+					 */
+					return imagewebp( $image, null, apply_filters( 'webp_quality', 75 ) );
+				}
+				return false;
 			default:
 				return false;
 		}
