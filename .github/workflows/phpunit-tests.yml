@@ -16,6 +16,7 @@ on:
       - trunk
       - '3.[7-9]'
       - '[4-9].[0-9]'
+  workflow_dispatch:
   # Once weekly On Sundays at 00:00 UTC.
   schedule:
     - cron: '0 0 * * 0'
@@ -89,7 +90,7 @@ jobs:
         run: npm run build
 
       - name: Create ZIP artifact
-        uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e # v0.4.1
+        uses: thedoctor0/zip-release@0.4.1
         with:
           filename: built-wp-${{ github.sha }}.zip
           exclusions: '*.git* /*node_modules/* packagehash.txt'
