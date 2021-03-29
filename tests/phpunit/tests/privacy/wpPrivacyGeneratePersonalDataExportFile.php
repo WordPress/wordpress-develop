@@ -231,9 +231,12 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	public function data_export_data_grouped_invalid_type() {
 		return array(
 			array( 10 ),
-			array( '10' ),
+			array( 'WordPress' ),
+			array( null ),
 			array( true ),
+			array( false ),
 			array( new stdClass() ),
+			array( serialize( array( 10, 'WordPress', null, true, false ) ) ),
 			array(
 				json_encode(
 					array(
