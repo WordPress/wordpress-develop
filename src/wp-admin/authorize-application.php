@@ -88,7 +88,7 @@ if ( is_wp_error( $is_valid ) ) {
 	);
 }
 
-if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+if ( wp_is_site_protected_by_basic_auth( 'front' ) ) {
 	wp_die(
 		__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
 		__( 'Cannot Authorize Application' ),
@@ -141,7 +141,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php endif; ?>
 
 	<div class="card auth-app-card">
-		<h2 class="title"><?php __( 'An application would like to connect to your account.' ); ?></h2>
+		<h2 class="title"><?php _e( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
 			<p>
 				<?php
@@ -200,15 +200,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 			<?php
 			/**
-			 * Fires in the Authorize Application Password new password section.
+			 * Fires in the Authorize Application Password new password section in the no-JS version.
+			 *
+			 * In most cases, this should be used in combination with the {@see 'wp_application_passwords_approve_app_request_success'}
+			 * action to ensure that both the JS and no-JS variants are handled.
 			 *
 			 * @since 5.6.0
+			 * @since 5.6.1 Corrected action name and signature.
 			 *
 			 * @param string  $new_password The newly generated application password.
 			 * @param array   $request      The array of request data. All arguments are optional and may be empty.
 			 * @param WP_User $user         The user authorizing the application.
 			 */
-			do_action( 'wp_authorize_application_password_form', $request, $user );
+			do_action( 'wp_authorize_application_password_form_approved_no_js', $new_password, $request, $user );
 			?>
 		<?php else : ?>
 			<form action="<?php echo esc_url( admin_url( 'authorize-application.php' ) ); ?>" method="post" class="form-wrap">

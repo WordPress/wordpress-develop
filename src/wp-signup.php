@@ -3,7 +3,7 @@
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
 
-add_action( 'wp_head', 'wp_no_robots' );
+add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
 require __DIR__ . '/wp-blog-header.php';
 
@@ -984,13 +984,13 @@ if ( 'none' === $active_signup ) {
 				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				} else {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist.' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist.' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				}

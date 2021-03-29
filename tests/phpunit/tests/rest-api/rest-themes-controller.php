@@ -30,6 +30,15 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	protected static $contributor_id;
 
 	/**
+	 * Admin user ID.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @var int $admin_id
+	 */
+	protected static $admin_id;
+
+	/**
 	 * The current theme object.
 	 *
 	 * @since 5.0.0
@@ -91,6 +100,11 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$admin_id       = $factory->user->create(
+			array(
+				'role' => 'administrator',
+			)
+		);
 		self::$subscriber_id  = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -114,6 +128,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public static function wpTearDownAfterClass() {
 		self::delete_user( self::$subscriber_id );
 		self::delete_user( self::$contributor_id );
+		self::delete_user( self::$admin_id );
 	}
 
 	/**
@@ -136,6 +151,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( self::$themes_route, $routes );
+		$this->assertArrayHasKey( self::$themes_route . '/(?P<stylesheet>[\\w-]+)', $routes );
 	}
 
 	/**
@@ -151,6 +167,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->check_get_theme_response( $response );
 		$fields = array(
+			'_links',
 			'author',
 			'author_uri',
 			'description',
@@ -158,6 +175,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'requires_php',
 			'requires_wp',
 			'screenshot',
+			'status',
 			'stylesheet',
 			'tags',
 			'template',
@@ -170,23 +188,126 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket 46723
+	 * Test retrieving a collection of inactive themes.
+	 *
+	 * @ticket 50152
 	 */
-	public function test_get_items_logged_out() {
+	public function test_get_items_inactive() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', 'inactive' );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$fields = array(
+			'_links',
+			'author',
+			'author_uri',
+			'description',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'tags',
+			'template',
+			'textdomain',
+			'theme_uri',
+			'version',
+		);
+		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
+
+		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
+		$this->assertNotContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
+	 * Test retrieving a collection of inactive themes.
+	 *
+	 * @ticket 50152
+	 */
+	public function test_get_items_active_and_inactive() {
+		wp_set_current_user( self::$admin_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', array( 'active', 'inactive' ) );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data = $response->get_data();
+
+		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
+		$this->assertContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
+	}
+
+	/**
+	 * @ticket 46723
+	 * @ticket 50152
+	 * @dataProvider data_get_items_by_status
+	 */
+	public function test_get_items_logged_out( $status, $error_code ) {
 		wp_set_current_user( 0 );
-		$response = self::perform_active_theme_request();
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 401 );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', $status );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $error_code, $response, 401 );
 	}
 
 	/**
 	 * An error should be returned when the user does not have the edit_posts capability.
 	 *
 	 * @ticket 45016
+	 * @ticket 50152
+	 * @dataProvider data_get_items_by_status
 	 */
-	public function test_get_items_no_permission() {
+	public function test_get_items_no_permission( $status, $error_code ) {
 		wp_set_current_user( self::$subscriber_id );
-		$response = self::perform_active_theme_request();
-		$this->assertErrorResponse( 'rest_user_cannot_view', $response, 403 );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', $status );
+
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( $error_code, $response, 403 );
+	}
+
+	public function data_get_items_by_status() {
+		return array(
+			array( 'active', 'rest_cannot_view_active_theme' ),
+			array( 'active, inactive', 'rest_cannot_view_themes' ),
+			array( 'inactive', 'rest_cannot_view_themes' ),
+			array( '', 'rest_cannot_view_themes' ),
+		);
+	}
+
+	/**
+	 * @ticket 50152
+	 * @dataProvider data_get_items_by_status_for_contributor
+	 */
+	public function test_get_items_contributor( $status, $error_code ) {
+		wp_set_current_user( self::$contributor_id );
+		$request = new WP_REST_Request( 'GET', self::$themes_route );
+		$request->set_param( 'status', $status );
+
+		$response = rest_get_server()->dispatch( $request );
+
+		if ( $error_code ) {
+			$this->assertErrorResponse( $error_code, $response, 403 );
+		} else {
+			$this->assertSame( 200, $response->get_status() );
+		}
+	}
+
+	public function data_get_items_by_status_for_contributor() {
+		return array(
+			array( 'active', '' ),
+			array( 'active, inactive', 'rest_cannot_view_themes' ),
+			array( 'inactive', 'rest_cannot_view_themes' ),
+			array( '', 'rest_cannot_view_themes' ),
+		);
 	}
 
 	/**
@@ -221,7 +342,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = self::perform_active_theme_request( 'OPTIONS' );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 14, count( $properties ) );
+		$this->assertSame( 15, count( $properties ) );
 
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'raw', $properties['author']['properties'] );
@@ -242,6 +363,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'requires_php', $properties );
 		$this->assertArrayHasKey( 'requires_wp', $properties );
 		$this->assertArrayHasKey( 'screenshot', $properties );
+		$this->assertArrayHasKey( 'status', $properties );
 		$this->assertArrayHasKey( 'stylesheet', $properties );
 
 		$this->assertArrayHasKey( 'tags', $properties );
@@ -1083,9 +1205,81 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_update_item() {}
 
 	/**
-	 * The get_item() method does not exist for themes.
+	 * Test single theme.
+	 *
+	 * @ticket 50152
 	 */
-	public function test_get_item() {}
+	public function test_get_item() {
+		wp_set_current_user( self::$admin_id );
+		$route    = sprintf( '%s/%s', self::$themes_route, WP_DEFAULT_THEME );
+		$request  = new WP_REST_Request( 'GET', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$data         = $response->get_data();
+		$links        = $response->get_links();
+		$fields       = array(
+			'author',
+			'author_uri',
+			'description',
+			'name',
+			'requires_php',
+			'requires_wp',
+			'screenshot',
+			'status',
+			'stylesheet',
+			'tags',
+			'template',
+			'textdomain',
+			'theme_uri',
+			'version',
+		);
+		$fields_links = array( 'collection', 'self' );
+
+		$this->assertEqualSets( $fields, array_keys( $data ) );
+		$this->assertEqualSets( $fields_links, array_keys( $links ) );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_get_item_no_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/' . WP_DEFAULT_THEME );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_themes', $response, 403 );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_get_active_item_no_permission() {
+		wp_set_current_user( self::$subscriber_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/' . get_stylesheet() );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_cannot_view_active_theme', $response, 403 );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_get_item_invalid() {
+		wp_set_current_user( self::$admin_id );
+		$request  = new WP_REST_Request( 'GET', self::$themes_route . '/invalid' );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_theme_not_found', $response, 404 );
+	}
+
+	/**
+	 * @ticket 50152
+	 */
+	public function test_get_active_item_as_contributor() {
+		$route    = sprintf( '%s/%s', self::$themes_route, get_stylesheet() );
+		$request  = new WP_REST_Request( 'GET', $route );
+		$response = rest_get_server()->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
 
 	/**
 	 * The delete_item() method does not exist for themes.

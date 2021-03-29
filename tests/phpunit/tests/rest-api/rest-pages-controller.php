@@ -76,6 +76,8 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 				'exclude',
 				'include',
 				'menu_order',
+				'modified_after',
+				'modified_before',
 				'offset',
 				'order',
 				'orderby',
@@ -355,6 +357,51 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'after', '2016-01-15T00:00:00Z' );
 		$request->set_param( 'before', '2016-01-17T00:00:00Z' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertCount( 1, $data );
+		$this->assertSame( $post2, $data[0]['id'] );
+	}
+
+	/**
+	 * @ticket 50617
+	 */
+	public function test_get_items_invalid_modified_date() {
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'modified_after', rand_str() );
+		$request->set_param( 'modified_before', rand_str() );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
+	/**
+	 * @ticket 50617
+	 */
+	public function test_get_items_valid_modified_date() {
+		$post1 = $this->factory->post->create(
+			array(
+				'post_date' => '2016-01-01 00:00:00',
+				'post_type' => 'page',
+			)
+		);
+		$post2 = $this->factory->post->create(
+			array(
+				'post_date' => '2016-01-02 00:00:00',
+				'post_type' => 'page',
+			)
+		);
+		$post3 = $this->factory->post->create(
+			array(
+				'post_date' => '2016-01-03 00:00:00',
+				'post_type' => 'page',
+			)
+		);
+		$this->update_post_modified( $post1, '2016-01-15 00:00:00' );
+		$this->update_post_modified( $post2, '2016-01-16 00:00:00' );
+		$this->update_post_modified( $post3, '2016-01-17 00:00:00' );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'modified_after', '2016-01-15T00:00:00Z' );
+		$request->set_param( 'modified_before', '2016-01-17T00:00:00Z' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertCount( 1, $data );
@@ -715,11 +762,6 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertArrayHasKey( 'template', $properties );
 		$this->assertArrayHasKey( 'title', $properties );
 		$this->assertArrayHasKey( 'type', $properties );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'theme_page_templates', array( $this, 'filter_theme_page_templates' ) );
 	}
 
 	public function filter_theme_page_templates( $page_templates ) {

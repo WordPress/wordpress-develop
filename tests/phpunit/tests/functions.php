@@ -281,7 +281,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$callback_value = $property->getValue( $new_value );
 			$this->assertSame( null, $callback_value );
 		} else {
-			$this->assertEquals( $value->count(), unserialize( $serialized )->count() );
+			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
 		}
 	}
 

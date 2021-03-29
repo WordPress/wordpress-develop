@@ -11,11 +11,6 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 
-	function tearDown() {
-		remove_filter( 'home_url', array( $this, 'home_url' ) );
-		parent::tearDown();
-	}
-
 	function home_url() {
 		return 'http://example.com/';
 	}
@@ -63,7 +58,7 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @group 36998
+	 * @ticket 36998
 	 */
 	function test_wp_sanitize_redirect_should_encode_spaces() {
 		$this->assertSame( 'http://example.com/test%20spaces', wp_sanitize_redirect( 'http://example.com/test%20spaces' ) );

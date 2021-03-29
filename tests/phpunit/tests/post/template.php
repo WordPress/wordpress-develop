@@ -452,4 +452,65 @@ NO;
 		$this->assertRegExp( '/><li.*>|<\/li></U', $menu );
 
 	}
+
+	/**
+	 * @ticket 33045
+	 */
+	public function test_get_parent_post() {
+		$post = array(
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		);
+
+		// Insert two initial posts.
+		$parent_id = self::factory()->post->create( $post );
+		$child_id  = self::factory()->post->create( $post );
+
+		// Test if child get_parent_post() post returns Null by default.
+		$parent = get_post_parent( $child_id );
+		$this->assertNull( $parent );
+
+		// Update child post with a parent.
+		wp_update_post(
+			array(
+				'ID'          => $child_id,
+				'post_parent' => $parent_id,
+			)
+		);
+
+		// Test if child get_parent_post() post returns the parent object.
+		$parent = get_post_parent( $child_id );
+		$this->assertNotNull( $parent );
+		$this->assertSame( $parent_id, $parent->ID );
+	}
+
+	/**
+	 * @ticket 33045
+	 */
+	public function test_has_parent_post() {
+		$post = array(
+			'post_status' => 'publish',
+			'post_type'   => 'page',
+		);
+
+		// Insert two initial posts.
+		$parent_id = self::factory()->post->create( $post );
+		$child_id  = self::factory()->post->create( $post );
+
+		// Test if child has_parent_post() post returns False by default.
+		$parent = has_post_parent( $child_id );
+		$this->assertFalse( $parent );
+
+		// Update child post with a parent.
+		wp_update_post(
+			array(
+				'ID'          => $child_id,
+				'post_parent' => $parent_id,
+			)
+		);
+
+		// Test if child has_parent_post() returns True.
+		$parent = has_post_parent( $child_id );
+		$this->assertTrue( $parent );
+	}
 }

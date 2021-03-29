@@ -166,13 +166,13 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 		)
 	);
 
-	// Add Codex link.
+	// Add documentation link.
 	$wp_admin_bar->add_node(
 		array(
 			'parent' => 'wp-logo-external',
 			'id'     => 'documentation',
 			'title'  => __( 'Documentation' ),
-			'href'   => __( 'https://codex.wordpress.org/' ),
+			'href'   => __( 'https://wordpress.org/support/' ),
 		)
 	);
 
@@ -182,7 +182,7 @@ function wp_admin_bar_wp_menu( $wp_admin_bar ) {
 			'parent' => 'wp-logo-external',
 			'id'     => 'support-forums',
 			'title'  => __( 'Support' ),
-			'href'   => __( 'https://wordpress.org/support/' ),
+			'href'   => __( 'https://wordpress.org/support/forums/' ),
 		)
 	);
 
@@ -687,6 +687,7 @@ function wp_admin_bar_shortlink_menu( $wp_admin_bar ) {
  * Provide an edit link for posts and terms.
  *
  * @since 3.1.0
+ * @since 5.5.0 Added a "View Post" link on Comments screen for a single post.
  *
  * @global WP_Term  $tag
  * @global WP_Query $wp_the_query WordPress Query object.
@@ -1062,7 +1063,7 @@ function wp_admin_bar_search_menu( $wp_admin_bar ) {
 	$form  = '<form action="' . esc_url( home_url( '/' ) ) . '" method="get" id="adminbarsearch">';
 	$form .= '<input class="adminbar-input" name="s" id="adminbar-search" type="text" value="" maxlength="150" />';
 	$form .= '<label for="adminbar-search" class="screen-reader-text">' . __( 'Search' ) . '</label>';
-	$form .= '<input type="submit" class="adminbar-button" value="' . __( 'Search' ) . '"/>';
+	$form .= '<input type="submit" class="adminbar-button" value="' . __( 'Search' ) . '" />';
 	$form .= '</form>';
 
 	$wp_admin_bar->add_node(
