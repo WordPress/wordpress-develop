@@ -298,7 +298,7 @@ abstract class WP_Image_Editor {
 		/**
 		 * Filters the image editor output format.
 		 *
-		 * Enables filtering the mime type used to save images. Falsy by default -
+		 * Enables filtering the mime type used to save images. By default,
 		 * the mime type matches the source image.
 		 *
 		 * @see src/wp-includes/class-wp-image-editor.php -> get_output_format()
@@ -307,7 +307,7 @@ abstract class WP_Image_Editor {
 		 *
 		 * @param array $wp_image_editor_output_format {
 		 *     An array of mime type mappings. Maps a source mime type to a new
-		 *     destination mime type.
+		 *     destination mime type. Empty by default.
 		 *
 		 *     @type array $mime_type The source mime type {
 		 *         @type string $mime_type The new mime type.
@@ -316,10 +316,9 @@ abstract class WP_Image_Editor {
 		 * @param string $mime_type The source image mime type.
 		 * }
 		 */
-		$wp_image_editor_output_format = apply_filters( 'wp_image_editor_output_format', false, $filename, $mime_type );
+		$wp_image_editor_output_format = apply_filters( 'wp_image_editor_output_format', array(), $filename, $mime_type );
 
 		if (
-			$wp_image_editor_output_format &&
 			isset( $wp_image_editor_output_format[ $mime_type ] ) &&
 			this->supports_mime_type( $wp_image_editor_output_format[ $mime_type ] )
 		) {
