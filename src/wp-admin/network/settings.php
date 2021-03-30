@@ -259,8 +259,8 @@ if ( isset( $_GET['updated'] ) ) {
 					} else {
 						$limited_email_domains = str_replace( ' ', "\n", $limited_email_domains );
 
-						if ( ! empty( $limited_email_domains ) ) {
-							$limited_email_domains = implode( "\n", (array) $limited_email_domains );
+						if ( is_array( $limited_email_domains ) ) {
+							$limited_email_domains = implode( "\n", $limited_email_domains );
 						}
 					}
 					?>
