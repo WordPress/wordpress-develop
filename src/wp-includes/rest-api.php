@@ -828,14 +828,29 @@ function rest_filter_response_fields( $response, $server, $request ) {
 				$fields[] = "_links.{$embed_item}";
 			}
 		} else {
-			foreach ( $response->get_links() as $rel => $link ) {
-				foreach ( $link as $attributes ) {
-					if ( ! empty( $attributes['attributes']['embeddable'] ) ) {
-						$fields[] = "_links.{$rel}";
-						break;
+
+			if ( wp_is_numeric_array( $data ) ) {
+				foreach ( $data as $item ) {
+					foreach ($item['_links'] as $link_key => $link){
+						foreach ( $link as $link_item ) {
+							if ( ! empty( $link_item['embeddable'] ) ) {
+								$fields[] = "_links.{$link_key}";
+								break;
+							}
+						}
+					}
+				}
+			}else{
+				foreach ( $response->get_links() as $rel => $link ) {
+					foreach ( $link as $attributes ) {
+						if ( ! empty( $attributes['attributes']['embeddable'] ) ) {
+							$fields[] = "_links.{$rel}";
+							break;
+						}
 					}
 				}
 			}
+
 		}
 	}
 
