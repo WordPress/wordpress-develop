@@ -1053,7 +1053,7 @@ class WP_Test_REST_Post_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
-	 * Ensure deleting non-existant meta data behaves gracefully.
+	 * Ensure deleting non-existent meta data behaves gracefully.
 	 *
 	 * @ticket 52787
 	 * @dataProvider data_delete_does_not_trigger_error_if_no_meta_values
