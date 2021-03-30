@@ -54,7 +54,7 @@ jobs:
         uses: styfle/cancel-workflow-action@3d86a7cc43670094ac248017207be0295edbc31d # v0.8.0
 
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Log debug information
         run: |
@@ -70,12 +70,12 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
         with:
           node-version: 14
 
       - name: Cache NodeJS modules
-        uses: actions/cache@v2
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         env:
           cache-name: cache-node-modules
         with:
@@ -90,13 +90,13 @@ jobs:
         run: npm run build
 
       - name: Create ZIP artifact
-        uses: thedoctor0/zip-release@0.4.1
+        uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e # v0.4.1
         with:
           filename: built-wp-${{ github.sha }}.zip
           exclusions: '*.git* /*node_modules/* packagehash.txt'
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
         with:
           name: built-wp-${{ github.sha }}
           path: built-wp-${{ github.sha }}.zip
@@ -145,14 +145,14 @@ jobs:
             phpunit: '4-php-5.6'
             os: ubuntu-latest
             memcached: false
-            multisite: true
+            multisite: false
             split_slow: true
           - php: '5.6'
             phpunit: '4-php-5.6'
             os: ubuntu-latest
             memcached: false
             multisite: true
-            split_slow: f
+            split_slow: true
           # Include job for specific PHPUnit versions.
           - php: '7.2'
             phpunit: '6-php-7.2'
@@ -223,7 +223,7 @@ jobs:
           echo "PHP_FPM_GID=$(id -g)" >> $GITHUB_ENV
 
       - name: Download the built WordPress artifact
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@4a7a711286f30c025902c28b541c10e147a9b843 # v2.0.8
         with:
           name: built-wp-${{ github.sha }}
 
