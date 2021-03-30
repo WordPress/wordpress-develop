@@ -76,9 +76,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
-		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
 		'moment.js': 'moment/moment.js',
@@ -100,8 +100,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
 	const dynamicBlockFolders = [
