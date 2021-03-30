@@ -254,6 +254,8 @@ if ( isset( $_GET['updated'] ) ) {
 				<td>
 					<?php
 					$limited_email_domains = get_site_option( 'limited_email_domains' );
+
+					// Guard for null to prevent PHP 8.1+ deprecation notice.
 					if ( is_null( $limited_email_domains ) ) {
 						$limited_email_domains = '';
 					} else {
