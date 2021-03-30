@@ -20,11 +20,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->post_type = rand_str( 20 );
 	}
 
-	function tearDown() {
-		unset( $GLOBALS['wp_post_types'][ $this->post_type ] );
-		parent::tearDown();
-	}
-
 	/**
 	 * Note: Test needs reviewing when #16215 is fixed because I'm not sure the test current tests the "correct" behavior
 	 *

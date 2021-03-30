@@ -73,8 +73,8 @@ final class WP_Block_Patterns_Registry {
 	 */
 	public function unregister( $pattern_name ) {
 		if ( ! $this->is_registered( $pattern_name ) ) {
-			/* translators: 1: Pattern name. */
-			$message = sprintf( __( 'Pattern "%1$s" not found.' ), $pattern_name );
+			/* translators: %s: Pattern name. */
+			$message = sprintf( __( 'Pattern "%s" not found.' ), $pattern_name );
 			_doing_it_wrong( __METHOD__, $message, '5.5.0' );
 			return false;
 		}
@@ -160,7 +160,7 @@ function register_block_pattern( $pattern_name, $pattern_properties ) {
  *
  * @since 5.5.0
  *
- * @param string $pattern_name       Pattern name including namespace.
+ * @param string $pattern_name Pattern name including namespace.
  * @return bool True if the pattern was unregistered with success and false otherwise.
  */
 function unregister_block_pattern( $pattern_name ) {

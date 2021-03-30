@@ -15,13 +15,9 @@
  * @param string|WP_Block_Type $name Block type name including namespace, or alternatively
  *                                   a complete WP_Block_Type instance. In case a WP_Block_Type
  *                                   is provided, the $args parameter will be ignored.
- * @param array                $args {
- *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
- *     Any arguments may be defined, however the ones described below are supported by default.
- *     Default empty array.
- *
- *     @type callable $render_callback Callback used to render blocks of this block type.
- * }
+ * @param array                $args Optional. Array of block type arguments. Accepts any public property
+ *                                   of `WP_Block_Type`. See WP_Block_Type::__construct() for information
+ *                                   on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type( $name, $args = array() ) {
@@ -134,7 +130,15 @@ function register_block_script_handle( $metadata, $field_name ) {
 		$script_asset['dependencies'],
 		$script_asset['version']
 	);
-	return $result ? $script_handle : false;
+	if ( ! $result ) {
+		return false;
+	}
+
+	if ( ! empty( $metadata['textdomain'] ) ) {
+		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
+	}
+
+	return $script_handle;
 }
 
 /**
@@ -144,7 +148,7 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @since 5.5.0
  *
- * @param array  $metadata Block metadata.
+ * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
  * @return string|false Style handle provided directly or created through
  *                      style's registration, or false on failure.
@@ -161,12 +165,17 @@ function register_block_style_handle( $metadata, $field_name ) {
 
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir    = dirname( $metadata['file'] );
+	$style_file   = realpath( "$block_dir/$style_path" );
 	$result       = wp_register_style(
 		$style_handle,
 		plugins_url( $style_path, $metadata['file'] ),
 		array(),
-		filemtime( realpath( "$block_dir/$style_path" ) )
+		filemtime( $style_file )
 	);
+	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
+		wp_style_add_data( $style_handle, 'rtl', 'replace' );
+	}
+
 	return $result ? $style_handle : false;
 }
 
@@ -177,13 +186,9 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
- * @param array  $args {
- *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
- *     Any arguments may be defined, however the ones described below are supported by default.
- *     Default empty array.
- *
- *     @type callable $render_callback Callback used to render blocks of this block type.
- * }
+ * @param array  $args           Optional. Array of block type arguments. Accepts any public property
+ *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
+ *                               on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
@@ -229,7 +234,48 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$settings[ $mapped_key ] = $metadata[ $key ];
+			$value = $metadata[ $key ];
+			if ( empty( $metadata['textdomain'] ) ) {
+				$settings[ $mapped_key ] = $value;
+				continue;
+			}
+			$textdomain = $metadata['textdomain'];
+			switch ( $key ) {
+				case 'title':
+				case 'description':
+					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
+					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
+					break;
+				case 'keywords':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $keyword ) {
+						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
+					}
+
+					break;
+				case 'styles':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $style ) {
+						if ( ! empty( $style['label'] ) ) {
+							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
+						}
+						$settings[ $mapped_key ][] = $style;
+					}
+
+					break;
+				default:
+					$settings[ $mapped_key ] = $value;
+			}
 		}
 	}
 
@@ -856,7 +902,7 @@ function register_block_style( $block_name, $style_properties ) {
  * @since 5.3.0
  *
  * @param string $block_name       Block type name including namespace.
- * @param array  $block_style_name Block style name.
+ * @param string $block_style_name Block style name.
  * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {

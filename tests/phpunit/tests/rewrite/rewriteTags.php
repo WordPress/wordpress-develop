@@ -7,24 +7,17 @@ class Tests_Rewrite_Tags extends WP_UnitTestCase {
 	protected $rewritecode;
 	protected $rewritereplace;
 	protected $queryreplace;
-	protected $wp_rewrite;
 
 	public function setUp() {
 		global $wp_rewrite;
 		parent::setUp();
 
-		$this->wp_rewrite = $wp_rewrite;
-		$wp_rewrite       = new WP_Rewrite();
+		$wp_rewrite = new WP_Rewrite();
 		$wp_rewrite->init();
 
 		$this->rewritecode    = $wp_rewrite->rewritecode;
 		$this->rewritereplace = $wp_rewrite->rewritereplace;
 		$this->queryreplace   = $wp_rewrite->queryreplace;
-	}
-
-	public function tearDown() {
-		global $wp_rewrite;
-		$wp_rewrite = $this->wp_rewrite;
 	}
 
 	public function _invalid_rewrite_tags() {

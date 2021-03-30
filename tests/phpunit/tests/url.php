@@ -203,21 +203,22 @@ class Tests_URL extends WP_UnitTestCase {
 
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
-		$home = get_option( 'home' );
+		$home       = get_option( 'home' );
+		$home_https = str_replace( 'http://', 'https://', $home );
 
-		// home_url() should return http when in the admin.
+		// is_ssl() should determine the scheme in the admin.
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertSame( $home, home_url() );
+		$this->assertSame( $home_https, home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
 		$this->assertSame( $home, home_url() );
 
-		// If not in the admin, is_ssl() should determine the scheme.
+		// is_ssl() should determine the scheme on front end too.
 		set_current_screen( 'front' );
 		$this->assertSame( $home, home_url() );
+
 		$_SERVER['HTTPS'] = 'on';
-		$home             = str_replace( 'http://', 'https://', $home );
-		$this->assertSame( $home, home_url() );
+		$this->assertSame( $home_https, home_url() );
 
 		// Test with https in home.
 		update_option( 'home', set_url_scheme( $home, 'https' ) );
@@ -251,22 +252,22 @@ class Tests_URL extends WP_UnitTestCase {
 
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
-		$home = network_home_url();
+		$home       = network_home_url();
+		$home_https = str_replace( 'http://', 'https://', $home );
 
-		// home_url() should return http when in the admin.
+		// is_ssl() should determine the scheme in the admin.
 		$this->assertSame( 0, strpos( $home, 'http://' ) );
 		$_SERVER['HTTPS'] = 'on';
-		$this->assertSame( $home, network_home_url() );
+		$this->assertSame( $home_https, network_home_url() );
 
 		$_SERVER['HTTPS'] = 'off';
 		$this->assertSame( $home, network_home_url() );
 
-		// If not in the admin, is_ssl() should determine the scheme.
+		// is_ssl() should determine the scheme on front end too.
 		set_current_screen( 'front' );
 		$this->assertSame( $home, network_home_url() );
 		$_SERVER['HTTPS'] = 'on';
-		$home             = str_replace( 'http://', 'https://', $home );
-		$this->assertSame( $home, network_home_url() );
+		$this->assertSame( $home_https, network_home_url() );
 
 		$GLOBALS['current_screen'] = $screen;
 	}

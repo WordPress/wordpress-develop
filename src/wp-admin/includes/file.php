@@ -757,7 +757,8 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * Filters the data for a file before it is uploaded to WordPress.
 	 *
 	 * The dynamic portion of the hook name, `$action`, refers to the post action.
-	 * Possible filter names include:
+	 *
+	 * Possible hook names include:
 	 *
 	 *  - `wp_handle_sideload_prefilter`
 	 *  - `wp_handle_upload_prefilter`
@@ -773,7 +774,8 @@ function _wp_handle_upload( &$file, $overrides, $time, $action ) {
 	 * Filters the override parameters for a file before it is uploaded to WordPress.
 	 *
 	 * The dynamic portion of the hook name, `$action`, refers to the post action.
-	 * Possible filter names include:
+	 *
+	 * Possible hook names include:
 	 *
 	 *  - `wp_handle_sideload_overrides`
 	 *  - `wp_handle_upload_overrides`
@@ -1776,6 +1778,10 @@ function copy_dir( $from, $to, $skip_list = array() ) {
 
 	$dirlist = $wp_filesystem->dirlist( $from );
 
+	if ( false === $dirlist ) {
+		return new WP_Error( 'dirlist_failed_copy_dir', __( 'Directory listing failed.' ), basename( $to ) );
+	}
+
 	$from = trailingslashit( $from );
 	$to   = trailingslashit( $to );
 
@@ -2246,12 +2252,10 @@ function request_filesystem_credentials( $form_post, $type = '', $error = false,
 	<label for="password">
 		<span class="field-title"><?php echo $label_pass; ?></span>
 		<input name="password" type="password" id="password" value="<?php echo $password_value; ?>"<?php disabled( defined( 'FTP_PASS' ) ); ?> />
-		<em>
 		<?php
 		if ( ! defined( 'FTP_PASS' ) ) {
 			_e( 'This password will not be stored on the server.' );}
 		?>
-</em>
 	</label>
 </div>
 <fieldset>

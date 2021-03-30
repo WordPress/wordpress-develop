@@ -156,8 +156,8 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 	);
 
 	function setUp() {
-		set_current_screen( 'front' );
 		parent::setUp();
+		set_current_screen( 'front' );
 	}
 
 	function tearDown() {

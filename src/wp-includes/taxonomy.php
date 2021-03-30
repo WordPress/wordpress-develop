@@ -414,6 +414,10 @@ function is_taxonomy_hierarchical( $taxonomy ) {
  *         @type string $slug         Slug for default term. Default empty.
  *         @type string $description  Description for default term. Default empty.
  *     }
+ *     @type bool          $sort                  Whether terms in this taxonomy should be sorted in the order they are
+ *                                                provided to `wp_set_object_terms()`. Default null which equates to false.
+ *     @type array         $args                  Array of arguments to automatically use inside `wp_get_object_terms()`
+ *                                                for this taxonomy.
  *     @type bool          $_builtin              This taxonomy is a "built-in" taxonomy. INTERNAL USE ONLY!
  *                                                Default false.
  * }
@@ -533,6 +537,8 @@ function unregister_taxonomy( $taxonomy ) {
  * @since 4.3.0 Added the `no_terms` label.
  * @since 4.4.0 Added the `items_list_navigation` and `items_list` labels.
  * @since 4.9.0 Added the `most_used` and `back_to_items` labels.
+ * @since 5.7.0 Added the `filter_by_item` label.
+ * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  *
  * @param WP_Taxonomy $tax Taxonomy object.
  * @return object {
@@ -565,10 +571,16 @@ function unregister_taxonomy( $taxonomy ) {
  *                                              the meta box and taxonomy list table.
  *     @type string $no_terms                   Default 'No tags'/'No categories', used in the posts and media
  *                                              list tables.
+ *     @type string $filter_by_item             This label is only used for hierarchical taxonomies. Default
+ *                                              'Filter by category', used in the posts list table.
  *     @type string $items_list_navigation      Label for the table pagination hidden heading.
  *     @type string $items_list                 Label for the table hidden heading.
  *     @type string $most_used                  Title for the Most Used tab. Default 'Most Used'.
  *     @type string $back_to_items              Label displayed after a term has been updated.
+ *     @type string $item_link                  Used in the block editor. Title for a navigation link block variation.
+ *                                              Default 'Tag Link'/'Category Link'.
+ *     @type string $item_link_description      Used in the block editor. Description for a navigation link block
+ *                                              variation. Default 'A link to a tag'/'A link to a category'.
  * }
  */
 function get_taxonomy_labels( $tax ) {
@@ -600,12 +612,22 @@ function get_taxonomy_labels( $tax ) {
 		'choose_from_most_used'      => array( __( 'Choose from the most used tags' ), null ),
 		'not_found'                  => array( __( 'No tags found.' ), __( 'No categories found.' ) ),
 		'no_terms'                   => array( __( 'No tags' ), __( 'No categories' ) ),
+		'filter_by_item'             => array( null, __( 'Filter by category' ) ),
 		'items_list_navigation'      => array( __( 'Tags list navigation' ), __( 'Categories list navigation' ) ),
 		'items_list'                 => array( __( 'Tags list' ), __( 'Categories list' ) ),
 		/* translators: Tab heading when selecting from the most used terms. */
 		'most_used'                  => array( _x( 'Most Used', 'tags' ), _x( 'Most Used', 'categories' ) ),
 		'back_to_items'              => array( __( '&larr; Go to Tags' ), __( '&larr; Go to Categories' ) ),
+		'item_link'                  => array(
+			_x( 'Tag Link', 'navigation link block title' ),
+			_x( 'Category Link', 'navigation link block description' ),
+		),
+		'item_link_description'      => array(
+			_x( 'A link to a tag.', 'navigation link block description' ),
+			_x( 'A link to a category.', 'navigation link block description' ),
+		),
 	);
+
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $tax, $nohier_vs_hier_defaults );
@@ -618,6 +640,11 @@ function get_taxonomy_labels( $tax ) {
 	 * Filters the labels of a specific taxonomy.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `taxonomy_labels_category`
+	 *  - `taxonomy_labels_post_tag`
 	 *
 	 * @since 4.4.0
 	 *
@@ -1935,6 +1962,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	$object_ids = (array) $wpdb->get_col( $wpdb->prepare( "SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id = %d", $tt_id ) );
 
 	foreach ( $object_ids as $object_id ) {
+		if ( ! isset( $default ) ) {
+			wp_remove_object_terms( $object_id, $term, $taxonomy );
+			continue;
+		}
+
 		$terms = wp_get_object_terms(
 			$object_id,
 			$taxonomy,
@@ -1943,6 +1975,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 				'orderby' => 'none',
 			)
 		);
+
 		if ( 1 === count( $terms ) && isset( $default ) ) {
 			$terms = array( $default );
 		} else {
@@ -1951,6 +1984,7 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 				$terms = array_merge( $terms, array( $default ) );
 			}
 		}
+
 		$terms = array_map( 'intval', $terms );
 		wp_set_object_terms( $object_id, $terms, $taxonomy );
 	}
@@ -2015,6 +2049,11 @@ function wp_delete_term( $term, $taxonomy, $args = array() ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the specific
 	 * taxonomy the term belonged to.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `delete_category`
+	 *  - `delete_post_tag`
 	 *
 	 * @since 2.3.0
 	 * @since 4.5.0 Introduced the `$object_ids` argument.
@@ -2459,6 +2498,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * The dynamic portion of the hook name, `$taxonomy`, refers
 	 * to the slug of the taxonomy the term was created for.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `create_category`
+	 *  - `create_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -2498,6 +2542,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `created_category`
+	 *  - `created_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -2525,6 +2574,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	 * cache has been cleared.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `saved_category`
+	 *  - `saved_post_tag`
 	 *
 	 * @since 5.5.0
 	 *
@@ -3171,6 +3225,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `edit_category`
+	 *  - `edit_post_tag`
+	 *
 	 * @since 2.3.0
 	 *
 	 * @param int $term_id Term ID.
@@ -3202,6 +3261,11 @@ function wp_update_term( $term_id, $taxonomy, $args = array() ) {
 	 * cache has been cleaned.
 	 *
 	 * The dynamic portion of the hook name, `$taxonomy`, refers to the taxonomy slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `edited_category`
+	 *  - `edited_post_tag`
 	 *
 	 * @since 2.3.0
 	 *
@@ -3883,17 +3947,30 @@ function _update_post_term_count( $terms, $taxonomy ) {
 		$object_types = esc_sql( array_filter( $object_types, 'post_type_exists' ) );
 	}
 
+	$post_statuses = array( 'publish' );
+
+	/**
+	 * Filters the post statuses for updating the term count.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string[]    $post_statuses List of post statuses to include in the count. Default is 'publish'.
+	 * @param WP_Taxonomy $taxonomy      Current taxonomy object.
+	 */
+	$post_statuses = esc_sql( apply_filters( 'update_post_term_count_statuses', $post_statuses, $taxonomy ) );
+
 	foreach ( (array) $terms as $term ) {
 		$count = 0;
 
 		// Attachments can be 'inherit' status, we need to base count off the parent's status if so.
 		if ( $check_attachments ) {
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status = 'publish' OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) = 'publish' ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts p1 WHERE p1.ID = $wpdb->term_relationships.object_id AND ( post_status IN ('" . implode( "', '", $post_statuses ) . "') OR ( post_status = 'inherit' AND post_parent > 0 AND ( SELECT post_status FROM $wpdb->posts WHERE ID = p1.post_parent ) IN ('" . implode( "', '", $post_statuses ) . "') ) ) AND post_type = 'attachment' AND term_taxonomy_id = %d", $term ) );
 		}
 
 		if ( $object_types ) {
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.QuotedDynamicPlaceholderGeneration
-			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status = 'publish' AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
+			$count += (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->term_relationships, $wpdb->posts WHERE $wpdb->posts.ID = $wpdb->term_relationships.object_id AND post_status IN ('" . implode( "', '", $post_statuses ) . "') AND post_type IN ('" . implode( "', '", $object_types ) . "') AND term_taxonomy_id = %d", $term ) );
 		}
 
 		/** This action is documented in wp-includes/taxonomy.php */
@@ -4376,7 +4453,7 @@ function get_term_link( $term, $taxonomy = '' ) {
 	$termlink = $wp_rewrite->get_extra_permastruct( $taxonomy );
 
 	/**
-	 * Filters the permalink structure for a terms before token replacement occurs.
+	 * Filters the permalink structure for a term before token replacement occurs.
 	 *
 	 * @since 4.9.0
 	 *
@@ -4398,7 +4475,7 @@ function get_term_link( $term, $taxonomy = '' ) {
 		}
 		$termlink = home_url( $termlink );
 	} else {
-		if ( $t->rewrite['hierarchical'] ) {
+		if ( ! empty( $t->rewrite['hierarchical'] ) ) {
 			$hierarchical_slugs = array();
 			$ancestors          = get_ancestors( $term->term_id, $taxonomy, 'taxonomy' );
 			foreach ( (array) $ancestors as $ancestor ) {
@@ -4724,7 +4801,7 @@ function get_ancestors( $object_id = 0, $object_type = '', $resource_type = '' )
  *
  * @param int    $term_id  Term ID.
  * @param string $taxonomy Taxonomy name.
- * @return int|false False on error.
+ * @return int|false Parent term ID on success, false on failure.
  */
 function wp_get_term_taxonomy_parent_id( $term_id, $taxonomy ) {
 	$term = get_term( $term_id, $taxonomy );

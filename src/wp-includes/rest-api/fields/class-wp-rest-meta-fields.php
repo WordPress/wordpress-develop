@@ -145,11 +145,15 @@ abstract class WP_REST_Meta_Fields {
 				continue;
 			}
 
+			$value = $meta[ $name ];
+
 			/*
 			 * A null value means reset the field, which is essentially deleting it
 			 * from the database and then relying on the default value.
+			 *
+			 * Non-single meta can also be removed by passing an empty array.
 			 */
-			if ( is_null( $meta[ $name ] ) ) {
+			if ( is_null( $value ) || ( array() === $value && ! $args['single'] ) ) {
 				$args = $this->get_registered_fields()[ $meta_key ];
 
 				if ( $args['single'] ) {
@@ -171,8 +175,6 @@ abstract class WP_REST_Meta_Fields {
 				}
 				continue;
 			}
-
-			$value = $meta[ $name ];
 
 			if ( ! $args['single'] && is_array( $value ) && count( array_filter( $value, 'is_null' ) ) ) {
 				return new WP_Error(
@@ -228,6 +230,10 @@ abstract class WP_REST_Meta_Fields {
 					'status' => rest_authorization_required_code(),
 				)
 			);
+		}
+
+		if ( null === get_metadata_raw( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {
+			return true;
 		}
 
 		if ( ! delete_metadata( $meta_type, $object_id, wp_slash( $meta_key ) ) ) {

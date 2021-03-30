@@ -1,6 +1,7 @@
 <?php
 /**
  * @group link
+ * @covers ::get_post_comments_feed_link
  */
 class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 

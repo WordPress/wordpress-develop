@@ -403,7 +403,7 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_vb_insert_invalid_date() {
 		$post = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => rand_str(),
 			'post_date'    => '2012-02-30 00:00:00',
@@ -785,7 +785,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$title          = rand_str();
 		$post_data      = array(
 			'post_author'  => self::$editor_id,
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => rand_str(),
 			'post_title'   => $title,
 			'tax_input'    => array(
@@ -971,7 +971,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 			)
@@ -989,7 +989,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => 'page',
@@ -1010,7 +1010,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,
@@ -1032,7 +1032,7 @@ class Tests_Post extends WP_UnitTestCase {
 		$post_id = self::factory()->post->create(
 			array(
 				'post_author'  => self::$editor_id,
-				'post_status'  => 'public',
+				'post_status'  => 'publish',
 				'post_content' => rand_str(),
 				'post_title'   => rand_str(),
 				'post_type'    => $post_type,
@@ -1394,5 +1394,406 @@ class Tests_Post extends WP_UnitTestCase {
 
 		$tags = wp_get_post_tags( $post->ID, array( 'fields' => 'ids' ) );
 		$this->assertSameSets( array( $tag_2['term_id'], $tag_3['term_id'] ), $tags );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_empty_post_date() {
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_status' => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( get_gmt_from_date( $post->post_date ) ), 2, 'The dates should be equal' );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $post->post_date ), 2, 'The dates should be equal' );
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( get_gmt_from_date( $post->post_date ) ), 2, 'The dates should be equal' );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( '1970-01-01 00:00:00', $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_valid_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $post_date,
+				'post_status' => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $post_date,
+				'post_status' => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( get_gmt_from_date( $post_date ), $post->post_date_gmt );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( $post_date_gmt, $post->post_date_gmt );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $post_date,
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$post    = get_post( $post_id );
+		$this->assertSame( $post_date, $post->post_date );
+		$this->assertSame( '0000-00-00 00:00:00', $post->post_date_gmt );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	public function test_insert_invalid_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		// Empty post_date_gmt with floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $invalid_date,
+				'post_status' => 'draft',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'draft',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Empty post_date_gmt without floating status
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'   => $invalid_date,
+				'post_status' => 'publish',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => '0000-00-00 00:00:00',
+				'post_status'   => 'publish',
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Valid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => $post_date_gmt,
+			)
+		);
+		$this->assertSame( 0, $post_id );
+
+		// Invalid post_date_gmt
+		$post_id = self::factory()->post->create(
+			array(
+				'post_date'     => $invalid_date,
+				'post_date_gmt' => $invalid_date,
+			)
+		);
+		$this->assertSame( 0, $post_id );
+	}
+
+	/**
+	 * @ticket 52187
+	 */
+	function test_wp_resolve_post_date() {
+		$post_date     = '2020-12-28 11:26:35';
+		$post_date_gmt = '2020-12-29 10:11:45';
+		$invalid_date  = '2020-12-41 14:15:27';
+
+		$resolved_post_date = wp_resolve_post_date();
+		$this->assertEqualsWithDelta( strtotime( gmdate( 'Y-m-d H:i:s' ) ), strtotime( $resolved_post_date ), 2, 'The dates should be equal' );
+
+		$resolved_post_date = wp_resolve_post_date( '', $post_date_gmt );
+		$this->assertSame( get_date_from_gmt( $post_date_gmt ), $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( '', $invalid_date );
+		$this->assertSame( '1970-01-01 00:00:00', $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date, $post_date_gmt );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $post_date, $invalid_date );
+		$this->assertSame( $post_date, $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date );
+		$this->assertFalse( $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date, $post_date_gmt );
+		$this->assertFalse( $resolved_post_date );
+
+		$resolved_post_date = wp_resolve_post_date( $invalid_date, $invalid_date );
+		$this->assertFalse( $resolved_post_date );
+	}
+
+	/**
+	 * Ensure sticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::stick_post
+	 */
+	function test_stick_post_updates_option() {
+		stick_post( 1 );
+		$this->assertSameSets( array( 1 ), get_option( 'sticky_posts' ) );
+
+		stick_post( 2 );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure sticking a post does not duplicate post IDs in the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 * @dataProvider data_stick_post_does_not_duplicate_post_ids
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_stick_post_does_not_duplicate_post_ids( $stick ) {
+		update_option( 'sticky_posts', array( 1, 2 ) );
+
+		stick_post( $stick );
+		$this->assertSameSets( array( 1, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_stick_post_does_not_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type mixed $stick Value to pass to stick_post().
+	 * }
+	 */
+	function data_stick_post_does_not_duplicate_post_ids() {
+		return array(
+			array( 1 ),
+			array( '1' ),
+			array( 2.0 ),
+		);
+	}
+
+	/**
+	 * Ensure sticking a post removes other duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 *
+	 * @param mixed $stick Value to pass to stick_post().
+	 */
+	function test_stick_post_removes_duplicate_post_ids_when_adding_new_value() {
+		update_option( 'sticky_posts', array( 1, 1, 2, 2 ) );
+
+		stick_post( 3 );
+		$this->assertSameSets( array( 1, 2, 3 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a post updates the `sticky_posts` option.
+	 *
+	 * @covers ::unstick_post
+	 */
+	function test_unstick_post_updates_option() {
+		update_option( 'sticky_posts', array( 1 ) );
+		unstick_post( 1 );
+		$this->assertEmpty( get_option( 'sticky_posts' ) );
+
+		update_option( 'sticky_posts', array( 1, 2 ) );
+		unstick_post( 1 );
+		$this->assertSameSets( array( 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a post removes duplicate post IDs from the option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 *
+	 * @dataProvider data_unstick_post_removes_duplicate_post_ids
+	 *
+	 * @param array $starting_option Original value of `sticky_posts` option.
+	 * @param mixed $unstick         Parameter passed to `unstick_post()`
+	 * @param array $expected
+	 */
+	function test_unstick_post_removes_duplicate_post_ids( $starting_option, $unstick, $expected ) {
+		update_option( 'sticky_posts', $starting_option );
+		unstick_post( $unstick );
+		$this->assertSameSets( $expected, get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Data provider for test_unstick_post_removes_duplicate_post_ids().
+	 *
+	 * @return array[] {
+	 *     Arguments passed to test.
+	 *
+	 *     @type array $starting_option Original value of `sticky_posts` option.
+	 *     @type mixed $unstick         Parameter passed to `unstick_post()`
+	 *     @type array $expected
+	 * }
+	 */
+	function data_unstick_post_removes_duplicate_post_ids() {
+		return array(
+			array(
+				array( 1, 1 ),
+				1,
+				array(),
+			),
+			array(
+				array( 1, 1 ),
+				'1',
+				array(),
+			),
+			array(
+				array( 1, 2, 1 ),
+				1,
+				array( 2 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2,
+				array( 1 ),
+			),
+			array(
+				array( 1, 2, 1 ),
+				2.0,
+				array( 1 ),
+			),
+		);
+	}
+
+	/**
+	 * Ensure sticking a duplicate post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::stick_post
+	 */
+	function test_stick_post_with_duplicate_post_id_does_not_update_option() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		stick_post( 2 );
+		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+	}
+
+	/**
+	 * Ensure unsticking a non-sticky post does not update the `sticky_posts` option.
+	 *
+	 * @ticket 52007
+	 * @covers ::unstick_post
+	 */
+	function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
+		update_option( 'sticky_posts', array( 1, 2, 2 ) );
+		unstick_post( 3 );
+		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 }

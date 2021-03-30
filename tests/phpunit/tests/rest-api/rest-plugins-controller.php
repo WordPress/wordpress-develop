@@ -83,11 +83,11 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
+
+		parent::tearDown();
 	}
 
 	/**

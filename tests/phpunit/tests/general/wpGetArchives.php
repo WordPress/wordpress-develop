@@ -2,8 +2,10 @@
 
 /**
  * @group general
+ * @group template
+ * @covers ::wp_get_archives
  */
-class Tests_General_Archives extends WP_UnitTestCase {
+class Tests_General_wpGetArchives extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 

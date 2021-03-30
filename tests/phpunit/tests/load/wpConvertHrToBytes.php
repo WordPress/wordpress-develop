@@ -4,8 +4,9 @@
  * Tests for wp_convert_hr_to_bytes().
  *
  * @group load.php
+ * @covers ::wp_convert_hr_to_bytes
  */
-class Tests_Functions_Convert_Hr_To_Bytes extends WP_UnitTestCase {
+class Tests_Load_wpConvertHrToBytes extends WP_UnitTestCase {
 	/**
 	 * Tests converting (PHP ini) byte values to integer byte values.
 	 *

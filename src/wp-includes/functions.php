@@ -1568,7 +1568,13 @@ function do_feed() {
 	 * Fires once the given feed is loaded.
 	 *
 	 * The dynamic portion of the hook name, `$feed`, refers to the feed template name.
-	 * Possible values include: 'rdf', 'rss', 'rss2', and 'atom'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `do_feed_atom`
+	 *  - `do_feed_rdf`
+	 *  - `do_feed_rss`
+	 *  - `do_feed_rss2`
 	 *
 	 * @since 2.1.0
 	 * @since 4.4.0 The `$feed` parameter was added.
@@ -1640,7 +1646,8 @@ function do_feed_atom( $for_comments ) {
  *
  * @since 2.1.0
  * @since 5.3.0 Remove the "Disallow: /" output if search engine visiblity is
- *              discouraged in favor of robots meta HTML tag in wp_no_robots().
+ *              discouraged in favor of robots meta HTML tag via wp_robots_no_robots()
+ *              filter callback.
  */
 function do_robots() {
 	header( 'Content-Type: text/plain; charset=utf-8' );
@@ -3051,7 +3058,7 @@ function wp_get_image_mime( $file ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
 		} elseif ( function_exists( 'getimagesize' ) ) {
-			$imagesize = @getimagesize( $file );
+			$imagesize = wp_getimagesize( $file );
 			$mime      = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
 		} else {
 			$mime = false;
@@ -3491,8 +3498,9 @@ function _default_wp_die_handler( $message, $title = '', $args = array() ) {
 	<meta http-equiv="Content-Type" content="text/html; charset=<?php echo $parsed_args['charset']; ?>" />
 	<meta name="viewport" content="width=device-width">
 		<?php
-		if ( function_exists( 'wp_no_robots' ) ) {
-			wp_no_robots();
+		if ( function_exists( 'wp_robots' ) && function_exists( 'wp_robots_no_robots' ) && function_exists( 'add_filter' ) ) {
+			add_filter( 'wp_robots', 'wp_robots_no_robots' );
+			wp_robots();
 		}
 		?>
 	<title><?php echo $title; ?></title>
@@ -7396,7 +7404,7 @@ function wp_privacy_delete_old_export_files() {
 	}
 
 	require_once ABSPATH . 'wp-admin/includes/file.php';
-	$export_files = list_files( $exports_dir, 100, array( 'index.html' ) );
+	$export_files = list_files( $exports_dir, 100, array( 'index.php' ) );
 
 	/**
 	 * Filters the lifetime, in seconds, of a personal data export file.
@@ -7576,6 +7584,91 @@ function wp_direct_php_update_button() {
 		__( '(opens in a new tab)' )
 	);
 	echo '</p>';
+}
+
+/**
+ * Gets the URL to learn more about updating the site to use HTTPS.
+ *
+ * This URL can be overridden by specifying an environment variable `WP_UPDATE_HTTPS_URL` or by using the
+ * {@see 'wp_update_https_url'} filter. Providing an empty string is not allowed and will result in the
+ * default URL being used. Furthermore the page the URL links to should preferably be localized in the
+ * site language.
+ *
+ * @since 5.7.0
+ *
+ * @return string URL to learn more about updating to HTTPS.
+ */
+function wp_get_update_https_url() {
+	$default_url = wp_get_default_update_https_url();
+
+	$update_url = $default_url;
+	if ( false !== getenv( 'WP_UPDATE_HTTPS_URL' ) ) {
+		$update_url = getenv( 'WP_UPDATE_HTTPS_URL' );
+	}
+
+	/**
+	 * Filters the URL to learn more about updating the HTTPS version the site is running on.
+	 *
+	 * Providing an empty string is not allowed and will result in the default URL being used. Furthermore
+	 * the page the URL links to should preferably be localized in the site language.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $update_url URL to learn more about updating HTTPS.
+	 */
+	$update_url = apply_filters( 'wp_update_https_url', $update_url );
+	if ( empty( $update_url ) ) {
+		$update_url = $default_url;
+	}
+
+	return $update_url;
+}
+
+/**
+ * Gets the default URL to learn more about updating the site to use HTTPS.
+ *
+ * Do not use this function to retrieve this URL. Instead, use {@see wp_get_update_https_url()} when relying on the URL.
+ * This function does not allow modifying the returned URL, and is only used to compare the actually used URL with the
+ * default one.
+ *
+ * @since 5.7.0
+ * @access private
+ *
+ * @return string Default URL to learn more about updating to HTTPS.
+ */
+function wp_get_default_update_https_url() {
+	/* translators: Documentation explaining HTTPS and why it should be used. */
+	return __( 'https://wordpress.org/support/article/why-should-i-use-https/' );
+}
+
+/**
+ * Gets the URL for directly updating the site to use HTTPS.
+ *
+ * A URL will only be returned if the `WP_DIRECT_UPDATE_HTTPS_URL` environment variable is specified or
+ * by using the {@see 'wp_direct_update_https_url'} filter. This allows hosts to send users directly to
+ * the page where they can update their site to use HTTPS.
+ *
+ * @since 5.7.0
+ *
+ * @return string URL for directly updating to HTTPS or empty string.
+ */
+function wp_get_direct_update_https_url() {
+	$direct_update_url = '';
+
+	if ( false !== getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' ) ) {
+		$direct_update_url = getenv( 'WP_DIRECT_UPDATE_HTTPS_URL' );
+	}
+
+	/**
+	 * Filters the URL for directly updating the PHP version the site is running on from the host.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $direct_update_url URL for directly updating PHP.
+	 */
+	$direct_update_url = apply_filters( 'wp_direct_update_https_url', $direct_update_url );
+
+	return $direct_update_url;
 }
 
 /**

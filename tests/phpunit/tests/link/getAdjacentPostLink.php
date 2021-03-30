@@ -2,6 +2,9 @@
 
 /**
  * @group link
+ * @covers ::get_adjacent_post_link
+ * @covers ::get_next_post_link
+ * @covers ::get_previous_post_link
  */
 class Tests_Link_GetAdjacentPostLink extends WP_UnitTestCase {
 

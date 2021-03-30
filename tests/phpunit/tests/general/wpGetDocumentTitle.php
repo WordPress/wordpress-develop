@@ -3,10 +3,13 @@
 /**
  * A set of unit tests for functions in wp-includes/general-template.php
  *
+ * @group general
  * @group template
  * @group document-title
+ * @covers ::wp_get_document_title
+ * @covers ::_wp_render_title_tag
  */
-class Tests_General_DocumentTitle extends WP_UnitTestCase {
+class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 
 	public $blog_name;
 	public static $category_id;
@@ -48,11 +51,6 @@ class Tests_General_DocumentTitle extends WP_UnitTestCase {
 		$this->blog_name = get_option( 'blogname' );
 
 		setup_postdata( get_post( self::$post_id ) );
-	}
-
-	function tearDown() {
-		wp_reset_postdata();
-		parent::tearDown();
 	}
 
 	function _add_title_tag_support() {
