@@ -212,7 +212,7 @@ jobs:
 
     env:
       LOCAL_PHP: ${{ matrix.php }}-fpm
-      LOCAL_PHPUNIT: ${{ matrix.phpunit && matrix.phpunit || matrix.phpunit }}-fpm
+      LOCAL_PHPUNIT: ${{ matrix.phpunit && matrix.phpunit || matrix.php }}-fpm
       LOCAL_PHP_MEMCACHED: ${{ matrix.memcached }}
       PHPUNIT_CONFIG: ${{ matrix.multisite && 'tests/phpunit/multisite.xml' || 'phpunit.xml.dist' }}
 
