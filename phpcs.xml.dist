@@ -344,12 +344,4 @@
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/widgets\.php</exclude-pattern>
 		<exclude-pattern>/src/wp-content/themes/twentyfourteen/inc/featured-content\.php</exclude-pattern>
 	</rule>
-
-	<!-- Exclude old sniffs that complain about lack of WebP support. -->
-	<rule ref="PHPCompatibility.Constants">
-		<exclude-pattern>/src/wp-admin/includes/image\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/compat\.php</exclude-pattern>
-		<exclude-pattern>/src/wp-includes/media\.php</exclude-pattern>
-	</rule>
-
 </ruleset>

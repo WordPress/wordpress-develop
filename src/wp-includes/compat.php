@@ -376,5 +376,5 @@ if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
 	define( 'IMAGETYPE_WEBP', 18 );
 }
 if ( ! defined( 'IMG_WEBP' ) ) {
-	define( 'IMG_WEBP', IMAGETYPE_WEBP );
+	define( 'IMG_WEBP', IMAGETYPE_WEBP ); // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
 }
