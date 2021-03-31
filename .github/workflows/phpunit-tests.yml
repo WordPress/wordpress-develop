@@ -90,13 +90,13 @@ jobs:
         run: npm run build
 
       - name: Create ZIP artifact
-          uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e # v0.4.1
+        uses: thedoctor0/zip-release@a1afcab9c664c9976ac398fa831eac67bed1eb0e # v0.4.1
         with:
           filename: built-wp-${{ github.sha }}.zip
           exclusions: '*.git* /*node_modules/* packagehash.txt'
 
       - name: Upload build artifact
-          uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
+        uses: actions/upload-artifact@e448a9b857ee2131e752b06002bf0e093c65e571 # v2.2.2
         with:
           name: built-wp-${{ github.sha }}
           path: built-wp-${{ github.sha }}.zip
