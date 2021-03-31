@@ -532,6 +532,104 @@ class Tests_REST_API extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Ensure that result fields are allowed if request['_embed'] is present and _links are inside each item.
+	 *
+	 * @ticket 49985
+	 */
+	public function test_rest_filter_response_fields_has_all_embeds_links_inside_each_item() {
+		$response = new WP_REST_Response();
+		$response->set_data(
+			array(
+				array(
+					'id'     => 1,
+					'author' => 1,
+					'_links' => array(
+						'self'   => array(
+							array(
+								'href' => 'd_link',
+							),
+						),
+						'author' => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'author_link',
+							),
+						),
+					),
+				),
+				array(
+					'id'     => 1,
+					'author' => 1,
+					'_links' => array(
+						'self'    => array(
+							array(
+								'href' => 'd_link',
+							),
+						),
+						'author'  => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'author_link',
+							),
+						),
+						'about'   => array(
+							array(
+								'href' => 'about_link',
+							),
+						),
+						'replies' => array(
+							array(
+								'embeddable' => true,
+								'href'       => 'replies_link',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$request = new WP_REST_Request();
+		$request->set_param( '_fields', 'id,author' );
+		$request->set_param( '_embed', '1' );
+
+		$response = rest_filter_response_fields( $response, null, $request );
+		$expected = array(
+			array(
+				'id'     => 1,
+				'author' => 1,
+				'_links' => array(
+					'author' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+				),
+			),
+			array(
+				'id'     => 1,
+				'author' => 1,
+				'_links' => array(
+					'author'  => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'author_link',
+						),
+					),
+					'replies' => array(
+						array(
+							'embeddable' => true,
+							'href'       => 'replies_link',
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertSame( $expected, $response->get_data() );
+	}
+
+	/**
 	 * Ensure that multiple comma-separated fields may be allowed with request['_fields'].
 	 */
 	public function test_rest_filter_response_fields_multi_field_filter() {
