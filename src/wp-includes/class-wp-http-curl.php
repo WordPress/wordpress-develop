@@ -78,6 +78,7 @@ class WP_Http_Curl {
 			'body'        => null,
 			'cookies'     => array(),
 			'decompress'  => false,
+			'stream'      => null,
 			'filename'    => '',
 		);
 
