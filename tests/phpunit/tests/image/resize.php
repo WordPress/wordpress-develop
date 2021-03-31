@@ -65,14 +65,14 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	}
 
 	function test_resize_webp() {
-		$file = DIR_TESTDATA . '/images/test-image.webp';
+		$file   = DIR_TESTDATA . '/images/test-image.webp';
 		$editor = wp_get_image_editor( $file );
 
 		// Check if the editor supports the webp mime type.
 		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
 			$this->markTestSkipped( sprintf( 'Skipping test: no WebP support in the editor engine %s on this system.', $this->editor_engine ) );
 		} else {
-			$image = $this->resize_helper( $file, 25, 25 );
+			$image         = $this->resize_helper( $file, 25, 25 );
 			$output_format = $editor->get_output_format( $file, 'image/webp' );
 			error_log( json_encode( $output_format, JSON_PRETTY_PRINT ) );
 			$this->assertSame( 'test-image-25x25.webp', wp_basename( $image ) );
