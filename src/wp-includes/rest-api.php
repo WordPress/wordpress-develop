@@ -827,6 +827,12 @@ function rest_filter_response_fields( $response, $server, $request ) {
 			foreach ( $embed as $embed_item ) {
 				$fields[] = "_links.{$embed_item}";
 			}
+
+			foreach ( $response->get_links() as $rel => $link ) {
+				if ( ! in_array( "_links.{$rel}", $fields, true ) ) {
+					$response->remove_link( $rel );
+				}
+			}
 		} else {
 
 			if ( wp_is_numeric_array( $data ) ) {
