@@ -318,12 +318,6 @@ abstract class WP_Image_Editor {
 		 */
 		$wp_image_editor_output_format = apply_filters( 'wp_image_editor_output_format', array(), $filename, $mime_type );
 
-		if (
-			isset( $wp_image_editor_output_format[ $mime_type ] ) &&
-			this->supports_mime_type( $wp_image_editor_output_format[ $mime_type ] )
-		) {
-			$mime_type = $wp_image_editor_output_format[ $mime_type ];
-		}
 
 		// By default, assume specified type takes priority.
 		if ( $mime_type ) {
@@ -344,6 +338,18 @@ abstract class WP_Image_Editor {
 		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
 			$mime_type = $file_mime;
 			$new_ext   = $file_ext;
+		}
+
+		error_log( 'wp_image_editor_output_format' );
+		error_log( json_encode( $wp_image_editor_output_format, JSON_PRETTY_PRINT ) );
+		error_log( json_encode( $wp_image_editor_output_format[ $mime_type ], JSON_PRETTY_PRINT ) );
+
+		if (
+			isset( $wp_image_editor_output_format[ $mime_type ] ) &&
+			$this->supports_mime_type( $wp_image_editor_output_format[ $mime_type ] )
+		) {
+			$mime_type = $wp_image_editor_output_format[ $mime_type ];
+			$new_ext = $this->get_extension( $mime_type );
 		}
 
 		// Double-check that the mime-type selected is supported by the editor.
