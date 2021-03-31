@@ -295,6 +295,27 @@ abstract class WP_Image_Editor {
 	protected function get_output_format( $filename = null, $mime_type = null ) {
 		$new_ext = null;
 
+		// By default, assume specified type takes priority.
+		if ( $mime_type ) {
+			$new_ext = $this->get_extension( $mime_type );
+		}
+
+		if ( $filename ) {
+			$file_ext  = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+			$file_mime = $this->get_mime_type( $file_ext );
+		} else {
+			// If no file specified, grab editor's current extension and mime-type.
+			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
+			$file_mime = $this->mime_type;
+		}
+
+		// Check to see if specified mime-type is the same as type implied by
+		// file extension. If so, prefer extension from file.
+		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
+			$mime_type = $file_mime;
+			$new_ext   = $file_ext;
+		}
+
 		/**
 		 * Filters the image editor output format.
 		 *
@@ -317,32 +338,6 @@ abstract class WP_Image_Editor {
 		 * }
 		 */
 		$wp_image_editor_output_format = apply_filters( 'wp_image_editor_output_format', array(), $filename, $mime_type );
-
-
-		// By default, assume specified type takes priority.
-		if ( $mime_type ) {
-			$new_ext = $this->get_extension( $mime_type );
-		}
-
-		if ( $filename ) {
-			$file_ext  = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
-			$file_mime = $this->get_mime_type( $file_ext );
-		} else {
-			// If no file specified, grab editor's current extension and mime-type.
-			$file_ext  = strtolower( pathinfo( $this->file, PATHINFO_EXTENSION ) );
-			$file_mime = $this->mime_type;
-		}
-
-		// Check to see if specified mime-type is the same as type implied by
-		// file extension. If so, prefer extension from file.
-		if ( ! $mime_type || ( $file_mime == $mime_type ) ) {
-			$mime_type = $file_mime;
-			$new_ext   = $file_ext;
-		}
-
-		error_log( 'wp_image_editor_output_format' );
-		error_log( json_encode( $wp_image_editor_output_format, JSON_PRETTY_PRINT ) );
-		error_log( json_encode( $wp_image_editor_output_format[ $mime_type ], JSON_PRETTY_PRINT ) );
 
 		if (
 			isset( $wp_image_editor_output_format[ $mime_type ] ) &&
