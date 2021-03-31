@@ -822,7 +822,7 @@ function rest_filter_response_fields( $response, $server, $request ) {
 
 	$embed = isset( $request['_embed'] ) ? rest_parse_embed_param( $request['_embed'] ) : false;
 
-	if ( $embed && ! isset( $fields['_links'] ) ) {
+	if ( $embed && ! in_array( '_links', $fields, true ) ) {
 		if ( is_array( $embed ) ) {
 			foreach ( $embed as $embed_item ) {
 				$fields[] = "_links.{$embed_item}";
