@@ -94,11 +94,19 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 			'test-image.gif',
 			'test-image.png',
 			'test-image.jpg',
-			'webp-animated.webp',
-			'webp-lossless.webp',
-			'webp-lossy.webp',
-			'webp-transparent.webp',
 		);
+
+		// Add WebP images if the image editor supports them.
+		$file = DIR_TESTDATA . '/images/test-image.webp';
+		$editor = wp_get_image_editor( $file );
+ 		if ( ( ! is_wp_error( $editor ) ) && $editor->supports_mime_type( 'image/webp' ) ) {
+			array_push( $files, array(
+				'webp-animated.webp',
+				'webp-lossless.webp',
+				'webp-lossy.webp',
+				'webp-transparent.webp',
+			) );
+		}
 
 		// IMAGETYPE_ICO is only defined in PHP 5.3+.
 		if ( defined( 'IMAGETYPE_ICO' ) ) {
