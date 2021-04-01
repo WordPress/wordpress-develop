@@ -5013,6 +5013,84 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 	}
 }
 
+function _wp_webp_is_lossy( $filename ) {
+	$webp_info = wp_get_webp_info( $filename );
+	$type      = isset( $webp_info['type'] ) ? $webp_info['type'] : false;
+	if ( $type && 'lossy' === $type ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Extract meta information about a webp file: width, height and type.
+ *
+ * @param [type] $filename Path to a WebP file.
+ * @return array $webp_info {
+ *     An array of WebP image information.
+ *
+ *     @type array $size {
+ *         @type int  $width  Image width.
+ *         @type int  $height Image height.
+ *         @type bool $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
+ *     }
+
+ */
+function wp_get_webp_info( $filename ) {
+try {
+	$handle = fopen( $filename, 'rb' );
+	if ( $handle ) {
+		$magic = fread( $handle, 40 );
+		fclose( $handle );
+
+		// Make sure we got enough bytes.
+		if ( strlen( $magic ) < 40 ) {
+			return false;
+		}
+
+		$width  = false;
+		$height = false;
+		$type   = false;
+
+		// The headers are a little different for each of the three formats.
+		switch ( substr( $magic, 12, 4 ) ) {
+			// Lossy WebP.
+			case 'VP8 ':
+				$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
+				$width  = (int) ( $parts[1] & 0x3FFF );
+				$height = (int) ( $parts[2] & 0x3FFF );
+				$type   = 'lossy';
+				break;
+			// Lossless WebP.
+			case 'VP8L':
+				$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
+				$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
+				$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
+				$type   = 'lossless';
+				break;
+			// Animated/alpha WebP.
+			case 'VP8X':
+				// Pad 24-bit int.
+				$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
+				$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
+				// Pad 24-bit int.
+				$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
+				$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
+				$type   = 'animated-alpha';
+				break;
+			if ( $width && $height && $type ) {
+				return array(
+					'width'  => $width,
+					'height' => $height,
+					'type'   => $type,
+				);
+			}
+		}
+	} catch ( Exception $e ) {
+	}
+	return array();
+}
+
 /**
  * Get the image size, with support for WebP images.
  *
@@ -5031,68 +5109,26 @@ function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 	// For PHP versions that don't support WebP images, extract the image
 	// size info from the file headers.
 	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
-		try {
-			$handle = fopen( $filename, 'rb' );
-			if ( $handle ) {
-				$magic = fread( $handle, 40 );
-				fclose( $handle );
+		$webp_info = wp_get_webp_info( $filename );
+		$width     = isset( $webp_info['width'] ) ? $webp_info['width'] : false;
+		$height    = isset( $webp_info['height'] ) ? $webp_info['height'] : false;
 
-				// Make sure we got enough bytes.
-				if ( strlen( $magic ) < 40 ) {
-					return false;
-				}
-
-				$width  = false;
-				$height = false;
-
-				// The headers are a little different for each of the three formats.
-				switch ( substr( $magic, 12, 4 ) ) {
-					// Lossy WebP.
-					case 'VP8 ':
-						$parts  = unpack( 'v2', substr( $magic, 26, 4 ) );
-						$width  = (int) ( $parts[1] & 0x3FFF );
-						$height = (int) ( $parts[2] & 0x3FFF );
-						break;
-					// Lossless WebP.
-					case 'VP8L':
-						$parts  = unpack( 'C4', substr( $magic, 21, 4 ) );
-						$width  = (int) ( $parts[1] | ( ( $parts[2] & 0x3F ) << 8 ) ) + 1;
-						$height = (int) ( ( ( $parts[2] & 0xC0 ) >> 6 ) | ( $parts[3] << 2 ) | ( ( $parts[4] & 0x03 ) << 10 ) ) + 1;
-						break;
-					// Animated/alpha WebP.
-					case 'VP8X':
-						// Pad 24-bit int.
-						$width = unpack( 'V', substr( $magic, 24, 3 ) . "\x00" );
-						$width = (int) ( $width[1] & 0xFFFFFF ) + 1;
-
-						// Pad 24-bit int.
-						$height = unpack( 'V', substr( $magic, 27, 3 ) . "\x00" );
-						$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
-						break;
-				}
-
-				// Mimic the native return format.
-				if ( $width && $height ) {
-					return array(
-						$width,
-						$height,
-						IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
-						sprintf(
-							'width="%d" height="%d"',
-							$width,
-							$height
-						),
-						'mime' => 'image/webp',
-					);
-				}
-
-				// The image could not be parsed.
-				return false;
-			}
-		} catch ( Exception $e ) {
-			return false;
+			// Mimic the native return format.
+		if ( $width && $height ) {
+			return array(
+				$width,
+				$height,
+				IMAGETYPE_WEBP, // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
+				sprintf(
+					'width="%d" height="%d"',
+					$width,
+					$height
+				),
+				'mime' => 'image/webp',
+			);
 		}
-
-		return false;
 	}
+
+	// The image could not be parsed.
+	return false;
 }
