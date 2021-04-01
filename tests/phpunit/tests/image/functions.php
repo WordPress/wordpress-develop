@@ -100,7 +100,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$file   = DIR_TESTDATA . '/images/test-image.webp';
 		$editor = wp_get_image_editor( $file );
 		if ( ( ! is_wp_error( $editor ) ) && $editor->supports_mime_type( 'image/webp' ) ) {
-			array_push(
+			$files = array_merge(
 				$files,
 				array(
 					'webp-animated.webp',
