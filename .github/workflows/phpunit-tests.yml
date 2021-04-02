@@ -154,18 +154,6 @@ jobs:
             multisite: true
             split_slow: true
           # Include job for specific PHPUnit versions.
-          - php: '7.0'
-            phpunit: '5-php-7.0'
-            os: ubuntu-latest
-            memcached: false
-            multisite: false
-            split_slow: false
-          - php: '7.0'
-            phpunit: '5-php-7.0'
-            os: ubuntu-latest
-            memcached: false
-            multisite: true
-            split_slow: false
           - php: '5.6'
             phpunit: '4-php-5.6'
             os: ubuntu-latest
@@ -177,13 +165,6 @@ jobs:
             os: ubuntu-latest
             memcached: false
             multisite: true
-            split_slow: false
-          # Include job for PHP 7.0 with memcached.
-          - php: '7.0'
-            phpunit: '5-php-7.0'
-            os: ubuntu-latest
-            memcached: true
-            multisite: false
             split_slow: false
 
     env:
