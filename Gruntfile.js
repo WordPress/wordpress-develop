@@ -1126,6 +1126,26 @@ module.exports = function(grunt) {
 						dest: BUILD_DIR + 'wp-includes/'
 					}
 				]
+			},
+			sourceMaps: {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/underscore.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/'
+					}
+				]
 			}
 		},
 		_watch: {
@@ -1569,6 +1589,7 @@ module.exports = function(grunt) {
 				'includes:emoji',
 				'includes:embed',
 				'replace:emojiBannerText',
+				'replace:sourceMaps',
 				'verify:build'
 			] );
 		}
