@@ -1779,7 +1779,7 @@ function the_archive_description( $before = '', $after = '' ) {
 function get_the_archive_description() {
 	if ( is_author() ) {
 		$description = get_the_author_meta( 'description' );
-	} elseif ( is_post_type_archive() ) {
+	} elseif ( is_post_type_archive() || is_home() ) {
 		$description = get_the_post_type_description();
 	} else {
 		$description = term_description();
@@ -1807,6 +1807,8 @@ function get_the_post_type_description() {
 
 	if ( is_array( $post_type ) ) {
 		$post_type = reset( $post_type );
+	} else {
+		$post_type = 'post';
 	}
 
 	$post_type_obj = get_post_type_object( $post_type );
