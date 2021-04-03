@@ -1035,7 +1035,7 @@ module.exports = function(grunt) {
 			}
 		},
 		replace: {
-			emojiRegex: {
+			'emoji-regex': {
 				options: {
 					patterns: [
 						{
@@ -1107,7 +1107,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			emojiBannerText: {
+			'emoji-banner-text': {
 				options: {
 					patterns: [
 						{
@@ -1127,7 +1127,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			sourceMaps: {
+			'source-maps': {
 				options: {
 					patterns: [
 						{
@@ -1288,7 +1288,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:emoji', [
-		'replace:emojiRegex'
+		'replace:emoji-regex'
 	] );
 
 	grunt.registerTask( 'precommit', 'Runs test and build tasks in preparation for a commit', function() {
@@ -1588,8 +1588,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText',
-				'replace:sourceMaps',
+				'replace:emoji-banner-text',
+				'replace:source-maps',
 				'verify:build'
 			] );
 		}
