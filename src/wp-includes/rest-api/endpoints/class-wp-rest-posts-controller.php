@@ -1873,6 +1873,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			}
 		}
 
+		wp_reset_postdata();
+
 		/**
 		 * Filters the post data for a REST API response.
 		 *
