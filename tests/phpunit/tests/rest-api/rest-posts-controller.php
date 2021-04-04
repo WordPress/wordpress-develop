@@ -4100,7 +4100,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 26, count( $properties ) );
+		$this->assertSame( 27, count( $properties ) );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );
@@ -4169,6 +4169,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'meta',
 			'modified',
 			'modified_gmt',
+			'old_slug',
 			'ping_status',
 			'slug',
 			'status',
@@ -4208,6 +4209,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'meta',
 			'modified',
 			'modified_gmt',
+			'old_slug',
 			'password',
 			'permalink_template',
 			'ping_status',
@@ -4237,6 +4239,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 			'featured_media',
 			'id',
 			'link',
+			'old_slug',
 			'slug',
 			'title',
 			'type',
