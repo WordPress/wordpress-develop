@@ -1035,7 +1035,7 @@ module.exports = function(grunt) {
 			}
 		},
 		replace: {
-			emojiRegex: {
+			'emoji-regex': {
 				options: {
 					patterns: [
 						{
@@ -1107,7 +1107,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			emojiBannerText: {
+			'emoji-banner-text': {
 				options: {
 					patterns: [
 						{
@@ -1124,6 +1124,26 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/formatting.php'
 						],
 						dest: BUILD_DIR + 'wp-includes/'
+					}
+				]
+			},
+			'source-maps': {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/underscore.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/'
 					}
 				]
 			}
@@ -1268,7 +1288,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:emoji', [
-		'replace:emojiRegex'
+		'replace:emoji-regex'
 	] );
 
 	grunt.registerTask( 'precommit', 'Runs test and build tasks in preparation for a commit', function() {
@@ -1568,7 +1588,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText',
+				'replace:emoji-banner-text',
+				'replace:source-maps',
 				'verify:build'
 			] );
 		}
