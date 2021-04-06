@@ -71,6 +71,7 @@ jobs:
     name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }} ${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     needs: setup-workflow
     runs-on: ${{ matrix.os }}
+    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
       matrix:
         php: [ '5.6', '7.0', '7.1', '7.2', '7.3' ]
