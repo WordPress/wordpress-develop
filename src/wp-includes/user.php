@@ -149,7 +149,7 @@ function wp_authenticate_username_password( $user, $username, $password ) {
 	if ( ! $user ) {
 		return new WP_Error(
 			'invalid_username',
-			__( 'Unknown username. Check again or try your email address.' )
+			__( '<strong>Error</strong>: Unknown username. Check again or try your email address.' )
 		);
 	}
 
@@ -347,12 +347,12 @@ function wp_authenticate_application_password( $input_user, $username, $password
 		if ( is_email( $username ) ) {
 			$error = new WP_Error(
 				'invalid_email',
-				__( 'Unknown email address. Check again or try your username.' )
+				__( '<strong>Error</strong>: Unknown email address. Check again or try your username.' )
 			);
 		} else {
 			$error = new WP_Error(
 				'invalid_username',
-				__( 'Unknown username. Check again or try your email address.' )
+				__( '<strong>Error</strong>: Unknown username. Check again or try your email address.' )
 			);
 		}
 	} elseif ( ! wp_is_application_passwords_available() ) {
@@ -1008,10 +1008,12 @@ function delete_user_meta( $user_id, $meta_key, $meta_value = '' ) {
  * @param string $key     Optional. The meta key to retrieve. By default,
  *                        returns data for all keys.
  * @param bool   $single  Optional. Whether to return a single value.
- *                        This parameter has no effect if $key is not specified.
+ *                        This parameter has no effect if `$key` is not specified.
  *                        Default false.
- * @return mixed An array if $single is false. The value of meta data field
- *               if $single is true. False for an invalid $user_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of meta data field if `$single` is true.
+ *               False for an invalid `$user_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing user ID is passed.
  */
 function get_user_meta( $user_id, $key = '', $single = false ) {
 	return get_metadata( 'user', $user_id, $key, $single );

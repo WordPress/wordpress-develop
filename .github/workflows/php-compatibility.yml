@@ -26,6 +26,7 @@ on:
       - 'phpcompat.xml.dist'
       # Changes to workflow files should always verify all workflows are successful.
       - '.github/workflows/*.yml'
+  workflow_dispatch:
 
 jobs:
 
