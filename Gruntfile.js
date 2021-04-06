@@ -132,23 +132,6 @@ module.exports = function(grunt) {
 			},
 			qunit: ['tests/qunit/compiled.html']
 		},
-		file_append: {
-			// grunt-file-append supports only strings for input and output.
-			default_options: {
-				files: [
-					{
-						append: 'jQuery.noConflict();',
-						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.js',
-						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.js'
-					},
-					{
-						append: 'jQuery.noConflict();',
-						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js',
-						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js'
-					}
-				]
-			}
-		},
 		copy: {
 			files: {
 				files: [
@@ -1430,7 +1413,6 @@ module.exports = function(grunt) {
 		'clean:js',
 		'build:webpack',
 		'copy:js',
-		'file_append',
 		'uglify:all',
 		'concat:tinymce',
 		'concat:emoji',
