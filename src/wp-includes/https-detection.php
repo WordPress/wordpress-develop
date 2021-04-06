@@ -107,17 +107,12 @@ function wp_update_https_detection_errors() {
 
 	$support_errors = new WP_Error();
 
-	$headers = array( 'Cache-Control' => 'no-cache' );
-
-	// Include Basic auth if currently in use.
-	if ( isset( $_SERVER['PHP_AUTH_USER'] ) && isset( $_SERVER['PHP_AUTH_PW'] ) ) {
-		$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
-	}
-
 	$response = wp_remote_request(
 		home_url( '/', 'https' ),
 		array(
-			'headers'   => $headers,
+			'headers'   => array(
+				'Cache-Control' => 'no-cache',
+			),
 			'sslverify' => true,
 		)
 	);
@@ -126,7 +121,9 @@ function wp_update_https_detection_errors() {
 		$unverified_response = wp_remote_request(
 			home_url( '/', 'https' ),
 			array(
-				'headers'   => $headers,
+				'headers'   => array(
+					'Cache-Control' => 'no-cache',
+				),
 				'sslverify' => false,
 			)
 		);
