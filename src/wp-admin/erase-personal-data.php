@@ -32,7 +32,7 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Default Data' ),
 		'content' =>
 					'<p>' . __( 'Personal data that is collected by WordPress and is deleted or anonymized include:' ) . '</p>' .
-					'<p>' . __( '<strong>Comments</strong> &mdash; Comments are not deleted, but user data is anonymized, including Email Address, IP Address, and User Agent (Browser/OS).' ) . '</p>' .
+					'<p>' . __( '<strong>Comments</strong> &mdash; Comments are not deleted, but user data is anonymized, including Email Address, IP Address, and User Agent (Browser/OS).' ) . '</p>',
 	)
 );
 
