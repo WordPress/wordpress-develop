@@ -5019,15 +5019,6 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 	}
 }
 
-function _wp_webp_is_lossy( $filename ) {
-	$webp_info = wp_get_webp_info( $filename );
-	$type      = isset( $webp_info['type'] ) ? $webp_info['type'] : false;
-	if ( $type && 'lossy' === $type ) {
-		return true;
-	}
-	return false;
-}
-
 /**
  * Extract meta information about a webp file: width, height and type.
  *
@@ -5095,6 +5086,18 @@ try {
 	} catch ( Exception $e ) {
 	}
 	return array();
+}
+
+/**
+ * Determine if a passed image is a lossy WebP image.
+ *
+ * @param [type] $filename
+ * @return void
+ */
+function _wp_webp_is_lossy( $filename ) {
+	$webp_info = wp_get_webp_info( $filename );
+	$type      = isset( $webp_info['type'] ) ? $webp_info['type'] : false;
+	return $type && 'lossy' === $type;
 }
 
 /**
