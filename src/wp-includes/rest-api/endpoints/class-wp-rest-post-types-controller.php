@@ -229,16 +229,18 @@ class WP_REST_Post_Types_Controller extends WP_REST_Controller {
 		// Wrap the data in a response object.
 		$response = rest_ensure_response( $data );
 
-		$response->add_links(
-			array(
-				'collection'              => array(
-					'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
-				),
-				'https://api.w.org/items' => array(
-					'href' => rest_url( sprintf( 'wp/v2/%s', $base ) ),
-				),
-			)
-		);
+		if ( rest_is_field_included( '_links', $fields ) || rest_is_field_included( '_embedded', $fields ) ) {
+			$response->add_links(
+				array(
+					'collection'              => array(
+						'href' => rest_url( sprintf( '%s/%s', $this->namespace, $this->rest_base ) ),
+					),
+					'https://api.w.org/items' => array(
+						'href' => rest_url( sprintf( 'wp/v2/%s', $base ) ),
+					),
+				)
+			);
+		}
 
 		/**
 		 * Filters a post type returned from the REST API.
