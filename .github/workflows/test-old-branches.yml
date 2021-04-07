@@ -9,6 +9,7 @@ jobs:
   dispatch-workflows-for-old-branches:
     name: ${{ matrix.workflow }} for ${{ matrix.branch }}
     runs-on: ubuntu-latest
+    if: ${{ github.repository == 'WordPress/wordpress-develop' }}
     strategy:
       fail-fast: false
       matrix:

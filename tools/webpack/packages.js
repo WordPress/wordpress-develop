@@ -63,7 +63,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
+	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
 		.filter( ( packageName ) =>
  			! BUNDLED_PACKAGES.includes( packageName ) &&
