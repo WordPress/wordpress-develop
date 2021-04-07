@@ -63,10 +63,11 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_when_given_0_bookmark
+	 * @dataProvider data_test_scenarios
 	 */
-	public function test_should_return_null( $args ) {
-		$actual_bookmark = get_bookmark( ...$args );
+	public function test_should_return_null( $params ) {
+		$params          = $this->init_func_params( $params, 0 );
+		$actual_bookmark = get_bookmark( ...$params );
 
 		$this->assertArrayNotHasKey( 'link', $GLOBALS );
 		$this->assertNull( $actual_bookmark );
@@ -76,21 +77,14 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_when_given_0_bookmark
+	 * @dataProvider data_test_scenarios
 	 */
-	public function test_should_return_global_link_in_requested_output_format( $args ) {
+	public function test_should_return_global_link_in_requested_output_format( $params ) {
 		$GLOBALS['link'] = $this->bookmark;
-		$actual_bookmark = get_bookmark( ...$args );
+		$params          = $this->init_func_params( $params, 0 );
+		$actual_bookmark = get_bookmark( ...$params );
 
-		// When given, convert the instance into the expected array format.
-		if ( isset( $args[1] ) ) {
-			$expected = get_object_vars( $GLOBALS['link'] );
-			if ( ARRAY_N === $args[1] ) {
-				$expected = array_values( $expected );
-			}
-		} else {
-			$expected = $GLOBALS['link'];
-		}
+		$expected = $this->maybe_format_expected_data( $params, $GLOBALS['link'] );
 
 		$this->assertArrayHasKey( 'link', $GLOBALS );
 		$this->assertSame( $expected, $actual_bookmark );
@@ -98,22 +92,16 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
 	}
 
-	public function data_when_given_0_bookmark() {
-		return array(
-			'with default args'                  => array( array( 0 ) ),
-			'with non-default output'            => array( array( 0, ARRAY_A ) ),
-			'with non-default output and filter' => array( array( 0, ARRAY_N, 'edit' ) ),
-		);
-	}
-
 	/**
-	 * @dataProvider data_when_given_bookmark_instance
+	 * @dataProvider data_test_scenarios
 	 */
-	public function test_should_cache_bookmark_when_given_instance( $output = OBJECT, $filter = 'raw' ) {
+	public function test_should_cache_bookmark_when_given_instance( $params ) {
+		$params = $this->init_func_params( $params );
+
 		// Check the cache does not exist before the test.
 		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
 
-		get_bookmark( $this->bookmark, $output, $filter );
+		get_bookmark( ...$params );
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( $this->bookmark->link_id, 'bookmark' );
@@ -121,29 +109,88 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_when_given_bookmark_instance
+	 * @dataProvider data_test_scenarios
 	 */
-	public function test_should_return_in_requested_output_format_when_given_instance( $output = OBJECT, $filter = 'raw' ) {
-		// Convert the instance into the expected array format.
-		if ( in_array( $output, array( ARRAY_A, ARRAY_N ), true ) ) {
-			$expected = get_object_vars( $this->bookmark );
-			if ( ARRAY_N === $output ) {
-				$expected = array_values( $expected );
-			}
-		} else {
-			$expected = $this->bookmark;
-		}
+	public function test_should_return_in_requested_output_format_when_given_instance( $params ) {
+		$params = $this->init_func_params( $params );
 
-		$actual_bookmark = get_bookmark( $this->bookmark, $output, $filter );
+		$expected = $this->maybe_format_expected_data( $params );
+
+		$actual_bookmark = get_bookmark( ...$params );
 
 		$this->assertSame( $expected, $actual_bookmark );
 	}
 
-	public function data_when_given_bookmark_instance() {
+	public function data_test_scenarios() {
 		return array(
-			'with default args'                  => array(),
-			'with non-default output'            => array( ARRAY_A ),
-			'with non-default output and filter' => array( ARRAY_N, 'display' ),
+			'with defaults'                      => array(
+				array(),
+			),
+			'with non-default output'            => array(
+				array(
+					'output' => ARRAY_A,
+				),
+			),
+			'with non-default filter'            => array(
+				array(
+					'filter' => 'display',
+				),
+			),
+			'with non-default output and filter' => array(
+				array(
+					'output' => ARRAY_N,
+					'filter' => 'display',
+				),
+			),
 		);
+	}
+
+	/**
+	 * Initializes the get_bookmark's function parameters to match the order of the function's signature and
+	 * reduce code in the tests.
+	 *
+	 * @param array        $params   Array of given function parameters.
+	 * @param int|stdClass $bookmark Optional. Bookmark's cache key or instance.
+	 *
+	 * @return array An array of ordered parameter.
+	 */
+	private function init_func_params( array $params, $bookmark = null ) {
+		$defaults           = array(
+			'bookmark' => 0,
+			'output'   => OBJECT,
+			'filter'   => 'raw',
+		);
+		$params             = array_merge( $defaults, $params );
+		$params['bookmark'] = is_null( $bookmark ) ? $this->bookmark : $bookmark;
+
+		return array_values( $params );
+	}
+
+	/**
+	 * Maybe format the bookmark's expected data.
+	 *
+	 * @param array             $params   Array of given function parameters.
+	 * @param int|stdClass|null $bookmark Optional. Bookmark's cache key or instance.
+	 *
+	 * @return array|stdClass bookmark's data.
+	 */
+	private function maybe_format_expected_data( array $params, $bookmark = null ) {
+		if ( is_null( $bookmark ) ) {
+			$bookmark = $this->bookmark;
+		}
+
+		switch ( $params[1] ) {
+			case ARRAY_A:
+			case ARRAY_N:
+				$expected = get_object_vars( $bookmark );
+
+				if ( ARRAY_N === $params[1] ) {
+					$expected = array_values( $expected );
+				}
+
+				return $expected;
+			default:
+				return $bookmark;
+		}
 	}
 }
