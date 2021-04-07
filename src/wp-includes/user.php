@@ -1692,6 +1692,7 @@ function validate_username( $username ) {
  * @since 4.7.0 The user's locale can be passed to `$userdata`.
  * @since 5.3.0 The `user_activation_key` field can be passed to `$userdata`.
  * @since 5.3.0 The `spam` field can be passed to `$userdata` (Multisite only).
+ * @since 5.8.0 Added `meta_input` to allow addition of user meta data.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
@@ -1736,6 +1737,7 @@ function validate_username( $username ) {
  *                                        as a string literal, not boolean. Default 'true'.
  *     @type string $role                 User's role.
  *     @type string $locale               User's locale. Default empty.
+ *     @type array  $meta_input           Array of user meta values keyed by their user meta key. Default empty.
  * }
  * @return int|WP_Error The newly created user's ID or a WP_Error object if the user could not
  *                      be created.
@@ -2058,6 +2060,25 @@ function wp_insert_user( $userdata ) {
 	 * @param bool    $update Whether the user is being updated rather than created.
 	 */
 	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update );
+
+	$custom_meta = array();
+	if ( array_key_exists( 'meta_input', $userdata ) && is_array( $userdata['meta_input'] ) && ! empty( $userdata['meta_input'] ) ) {
+		$custom_meta = $userdata['meta_input'];
+	}
+
+	/**
+	 * Filters a user's custom meta values and keys immediately after the user is created or updated
+	 * and before any user meta is inserted or updated.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param array   $custom_meta Array of user meta values keyed by their user meta key. Default empty.
+	 * @param WP_User $user        User object.
+	 * @param bool    $update      Whether the user is being updated rather than created.
+	 */
+	$custom_meta = apply_filters( 'insert_user_custom_meta', $custom_meta, $user, $update );
+
+	$meta = array_merge( $meta, $custom_meta );
 
 	// Update user meta.
 	foreach ( $meta as $key => $value ) {
