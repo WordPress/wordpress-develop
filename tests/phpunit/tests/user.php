@@ -1855,7 +1855,7 @@ class Tests_User extends WP_UnitTestCase {
 				'test_meta_key' => 'test_meta_updated',
 				'custom_meta'   => 'updated_value',
 				'new_meta_k'    => 'new_meta_val',
-			)
+			),
 		);
 		$update_user = wp_insert_user( $update_data );
 		$this->assertEquals( 'test_meta_updated', get_user_meta( $update_user, 'test_meta_key', true ) );
