@@ -25,11 +25,11 @@
 		"last 2 Opera versions"
 	],
 	"devDependencies": {
-		"@wordpress/custom-templated-path-webpack-plugin": "2.0.1",
-		"@wordpress/dependency-extraction-webpack-plugin": "3.0.1",
-		"@wordpress/e2e-test-utils": "5.0.3",
-		"@wordpress/library-export-default-webpack-plugin": "2.0.1",
-		"@wordpress/scripts": "13.0.3",
+		"@wordpress/custom-templated-path-webpack-plugin": "2.0.2",
+		"@wordpress/dependency-extraction-webpack-plugin": "3.1.1",
+		"@wordpress/e2e-test-utils": "5.1.1",
+		"@wordpress/library-export-default-webpack-plugin": "2.0.2",
+		"@wordpress/scripts": "14.1.0",
 		"autoprefixer": "^9.8.6",
 		"chalk": "4.1.0",
 		"check-node-version": "4.1.0",
