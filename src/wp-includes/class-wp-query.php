@@ -2474,7 +2474,7 @@ class WP_Query {
 			$where .= $post_type_where;
 		} elseif ( ! empty( $q['post_status'] ) || ! $this->is_singular ) {
 
-			if ( empty( $q_status ) ) {
+			if ( empty( $q['post_status'] ) ) {
 				if ( empty( $q['perm'] ) ) {
 					$q['perm'] = 'readable';
 				}
