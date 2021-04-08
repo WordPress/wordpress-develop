@@ -127,30 +127,19 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	public function test_should_cache_bookmark_when_given_instance( $args ) {
 		$args     = $this->init_func_args( $args );
 		$bookmark = $args[0];
+		$expected = $this->maybe_format_expected_data( $args, $bookmark );
 
 		// Check the cache does not exist before the test.
 		$this->assertFalse( wp_cache_get( $bookmark->link_id, 'bookmark' ) );
 
 		// Run the function and test results.
-		get_bookmark( ...$args );
+		$actual_bookmark = get_bookmark( ...$args );
+
+		$this->assertSame( $expected, $actual_bookmark );
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( $bookmark->link_id, 'bookmark' );
 		$this->assertEquals( $bookmark, $actual_cache );
-	}
-
-	/**
-	 * @dataProvider data_when_instance_bookmark
-	 */
-	public function test_should_return_in_requested_output_format_when_given_instance( $args ) {
-		$args     = $this->init_func_args( $args );
-		$bookmark = $args[0];
-		$expected = $this->maybe_format_expected_data( $args, $bookmark );
-
-		// Run the function and test results.
-		$actual_bookmark = get_bookmark( ...$args );
-
-		$this->assertSame( $expected, $actual_bookmark );
 	}
 
 	/**
