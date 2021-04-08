@@ -187,6 +187,64 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_when_else
+	 *
+	 * @param array $args Function argument list.
+	 */
+	public function test_should_return_global_when_else( $args ) {
+		$args            = $this->init_func_args( $args, self::$bookmark->link_id );
+		$GLOBALS['link'] = self::$bookmark;
+
+		$actual_bookmark = get_bookmark( ...$args );
+
+		$expected = $this->maybe_format_expected_data( $args, $GLOBALS['link'] );
+
+		$this->assertSame( $expected, $actual_bookmark );
+
+		// Should not cache the bookmark.
+		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
+	}
+
+	/**
+	 * Data provider covers the "else" branch, i.e. when the bookmark argument is not empty and not an object.
+	 */
+	public function data_when_else() {
+		return array(
+			// Unhappy path.
+			'with invalid output'                => array(
+				array(
+					'output' => 'invalid',
+				),
+			),
+			'with invalid filter'                => array(
+				array(
+					'filter' => 'invalid',
+				),
+			),
+			// Happy path.
+			'with defaults'                      => array(
+				array(),
+			),
+			'with non-default output'            => array(
+				array(
+					'output' => ARRAY_A,
+				),
+			),
+			'with non-default filter'            => array(
+				array(
+					'filter' => 'display',
+				),
+			),
+			'with non-default output and filter' => array(
+				array(
+					'output' => ARRAY_N,
+					'filter' => 'display',
+				),
+			),
+		);
+	}
+
+	/**
 	 * Initialize the get_bookmark's function arguments to match the order of the function's signature and
 	 * reduce code in the tests.
 	 *
