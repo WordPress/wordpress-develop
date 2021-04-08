@@ -35,7 +35,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_scenarios
+	 * @dataProvider data_when_empty_bookmark
 	 */
 	public function test_should_return_null( $params ) {
 		$params          = $this->init_func_params( $params, 0 );
@@ -49,7 +49,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_scenarios
+	 * @dataProvider data_when_empty_bookmark
 	 */
 	public function test_should_return_global_link_in_requested_output_format( $params ) {
 		$GLOBALS['link'] = self::$bookmark;
@@ -64,8 +64,42 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 	}
 
+	public function data_when_empty_bookmark() {
+		return array(
+			'unhappy path with null bookmark'    => array(
+				array(
+					'bookmark' => null,
+				),
+			),
+			'with defaults'                      => array(
+				array(
+					'bookmark' => 0,
+				),
+			),
+			'with non-default output'            => array(
+				array(
+					'bookmark' => 0,
+					'output'   => ARRAY_A,
+				),
+			),
+			'with non-default filter'            => array(
+				array(
+					'bookmark' => 0,
+					'filter'   => 'display',
+				),
+			),
+			'with non-default output and filter' => array(
+				array(
+					'bookmark' => 0,
+					'output'   => ARRAY_N,
+					'filter'   => 'display',
+				),
+			),
+		);
+	}
+
 	/**
-	 * @dataProvider data_test_scenarios
+	 * @dataProvider data_when_instance_bookmark
 	 */
 	public function test_should_cache_bookmark_when_given_instance( $params ) {
 		$params = $this->init_func_params( $params );
@@ -81,7 +115,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_test_scenarios
+	 * @dataProvider data_when_instance_bookmark
 	 */
 	public function test_should_return_in_requested_output_format_when_given_instance( $params ) {
 		$params = $this->init_func_params( $params );
@@ -93,7 +127,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual_bookmark );
 	}
 
-	public function data_test_scenarios() {
+	public function data_when_instance_bookmark() {
 		return array(
 			'with defaults'                      => array(
 				array(),
