@@ -1205,7 +1205,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_update_item() {}
 
 	/**
-	 * Test single theme
+	 * Test single theme.
 	 *
 	 * @ticket 50152
 	 */

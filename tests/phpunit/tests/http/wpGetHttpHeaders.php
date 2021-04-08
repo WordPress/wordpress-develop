@@ -17,16 +17,6 @@ class Tests_HTTP_wpGetHttpHeaders extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Clean up environment
-	 */
-	public function tearDown() {
-		parent::tearDown();
-
-		// Clear the hook for the fake HTTP request response.
-		remove_filter( 'pre_http_request', array( $this, 'fake_http_request' ) );
-	}
-
-	/**
 	 * Test with a valid URL
 	 */
 	public function test_wp_get_http_headers_valid_url() {

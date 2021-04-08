@@ -3,7 +3,8 @@
 /**
  * Test wp_get_script_tag() and wp_print_script_tag().
  *
- * @group functions.php
+ * @group dependencies
+ * @group scripts
  */
 class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 
@@ -37,6 +38,9 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::wp_get_script_tag
+	 */
 	function test_get_script_tag_type_not_set() {
 		add_theme_support( 'html5', array( 'script' ) );
 
@@ -54,6 +58,9 @@ class Tests_Functions_wpScriptTag extends WP_UnitTestCase {
 		remove_theme_support( 'html5' );
 	}
 
+	/**
+	 * @covers ::wp_print_script_tag
+	 */
 	function test_print_script_tag_prints_get_script_tag() {
 		add_filter(
 			'wp_script_attributes',

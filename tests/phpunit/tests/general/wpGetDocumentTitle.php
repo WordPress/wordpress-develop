@@ -53,11 +53,6 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
-	function tearDown() {
-		wp_reset_postdata();
-		parent::tearDown();
-	}
-
 	function _add_title_tag_support() {
 		add_theme_support( 'title-tag' );
 	}

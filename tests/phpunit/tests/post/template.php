@@ -467,7 +467,7 @@ NO;
 		$child_id  = self::factory()->post->create( $post );
 
 		// Test if child get_parent_post() post returns Null by default.
-		$parent = get_parent_post( $child_id );
+		$parent = get_post_parent( $child_id );
 		$this->assertNull( $parent );
 
 		// Update child post with a parent.
@@ -479,7 +479,7 @@ NO;
 		);
 
 		// Test if child get_parent_post() post returns the parent object.
-		$parent = get_parent_post( $child_id );
+		$parent = get_post_parent( $child_id );
 		$this->assertNotNull( $parent );
 		$this->assertSame( $parent_id, $parent->ID );
 	}
@@ -498,7 +498,7 @@ NO;
 		$child_id  = self::factory()->post->create( $post );
 
 		// Test if child has_parent_post() post returns False by default.
-		$parent = has_parent_post( $child_id );
+		$parent = has_post_parent( $child_id );
 		$this->assertFalse( $parent );
 
 		// Update child post with a parent.
@@ -510,7 +510,7 @@ NO;
 		);
 
 		// Test if child has_parent_post() returns True.
-		$parent = has_parent_post( $child_id );
+		$parent = has_post_parent( $child_id );
 		$this->assertTrue( $parent );
 	}
 }

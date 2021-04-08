@@ -33,12 +33,6 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
-		remove_filter( 'import_allow_create_users', '__return_true' );
-
-		parent::tearDown();
-	}
-
 	function test_small_import() {
 		global $wpdb;
 

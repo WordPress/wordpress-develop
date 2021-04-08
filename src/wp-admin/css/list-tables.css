@@ -55,7 +55,7 @@
 	min-width: 24px;
 	height: 2em;
 	border-radius: 5px;
-	background-color: #787c82;
+	background-color: #646970;
 	color: #fff;
 	font-size: 11px;
 	line-height: 1.90909090;
@@ -71,7 +71,7 @@
 	margin-left: 8px;
 	width: 0;
 	height: 0;
-	border-top: 5px solid #787c82;
+	border-top: 5px solid #646970;
 	border-right: 5px solid transparent;
 }
 
@@ -1577,20 +1577,16 @@ div.action-links,
 /* ms */
 /* Background Color for Site Status */
 .wp-list-table .site-deleted,
-.wp-list-table tr.site-deleted {
-	background: #ff8085;
-}
-.wp-list-table .site-spammed,
-.wp-list-table tr.site-spammed {
-	background: #ffabaf;
-}
+.wp-list-table tr.site-deleted,
 .wp-list-table .site-archived,
 .wp-list-table tr.site-archived {
 	background: #fcf0f1;
 }
+.wp-list-table .site-spammed,
+.wp-list-table tr.site-spammed,
 .wp-list-table .site-mature,
 .wp-list-table tr.site-mature {
-	background: #facfd2;
+	background: #fcf9e8;
 }
 
 .sites.fixed .column-lastupdated,
@@ -2081,7 +2077,8 @@ div.action-links,
 		margin-left: 0;
 	}
 
-	.plugins .active.update + .plugin-update-tr:before {
+	.plugins .active.update + .plugin-update-tr:before,
+	.plugins .active.updated + .plugin-update-tr:before {
 		background-color: #f0f6fc;
 		border-left: 4px solid #72aee6;
 	}

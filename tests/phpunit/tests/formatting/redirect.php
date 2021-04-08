@@ -11,11 +11,6 @@ class Tests_Formatting_Redirect extends WP_UnitTestCase {
 		add_filter( 'home_url', array( $this, 'home_url' ) );
 	}
 
-	function tearDown() {
-		remove_filter( 'home_url', array( $this, 'home_url' ) );
-		parent::tearDown();
-	}
-
 	function home_url() {
 		return 'http://example.com/';
 	}

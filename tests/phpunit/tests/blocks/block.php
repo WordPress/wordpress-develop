@@ -36,9 +36,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->registry = null;
+
+		parent::tearDown();
 	}
 
 	function filter_render_block( $content, $parsed_block ) {
