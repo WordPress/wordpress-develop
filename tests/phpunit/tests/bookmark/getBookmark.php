@@ -7,18 +7,11 @@
  */
 class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
-	 * Capture preexisting state to restore when exiting this test class.
-	 *
-	 * @var array
-	 */
-	private static $pre_state = array();
-
-	/**
 	 * Instance of the bookmark object.
 	 *
 	 * @var stdClass
 	 */
-	private $bookmark;
+	private static $bookmark;
 
 	/**
 	 * Setup the test environment before running the tests in this class.
@@ -26,30 +19,9 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @param WP_UnitTest_Factory $factory Instance of the factory.
 	 */
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
-		// Capture the existing global link to restore when done.
-		if ( isset( $GLOBALS['link'] ) ) {
-			self::$pre_state['global_link'] = $GLOBALS['link'];
-			unset( $GLOBALS['link'] );
-		}
-	}
-
-	/**
-	 * Restore the global state before exiting this test class.
-	 */
-	public static function tearDownAfterClass() {
-		if ( array_key_exists( 'global_link', self::$pre_state ) ) {
-			$GLOBALS['link'] = self::$pre_state['global_link'];
-			unset( self::$pre_state['global_link'] );
-		}
-
-		parent::tearDownAfterClass();
-	}
-
-	public function setUp() {
-		parent::setUp();
-
-		$this->bookmark = $this->factory()->bookmark->create_and_get();
-		wp_cache_delete( $this->bookmark->link_id, 'bookmark' );
+		unset( $GLOBALS['link'] );
+		self::$bookmark = $factory->bookmark->create_and_get();
+		wp_cache_delete( self::$bookmark->link_id, 'bookmark' );
 	}
 
 	/**
@@ -57,7 +29,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 */
 	public function tearDown() {
 		unset( $GLOBALS['link'] );
-		wp_cache_delete( $this->bookmark->link_id, 'bookmark' );
+		wp_cache_delete( self::$bookmark->link_id, 'bookmark' );
 
 		parent::tearDown();
 	}
@@ -73,14 +45,14 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertNull( $actual_bookmark );
 
 		// Should bypass the cache.
-		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
+		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 	}
 
 	/**
 	 * @dataProvider data_test_scenarios
 	 */
 	public function test_should_return_global_link_in_requested_output_format( $params ) {
-		$GLOBALS['link'] = $this->bookmark;
+		$GLOBALS['link'] = self::$bookmark;
 		$params          = $this->init_func_params( $params, 0 );
 		$actual_bookmark = get_bookmark( ...$params );
 
@@ -89,7 +61,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'link', $GLOBALS );
 		$this->assertSame( $expected, $actual_bookmark );
 		// Should bypass the cache.
-		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
+		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 	}
 
 	/**
@@ -99,13 +71,13 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$params = $this->init_func_params( $params );
 
 		// Check the cache does not exist before the test.
-		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
+		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 
 		get_bookmark( ...$params );
 
 		// Check the bookmark was cached.
-		$actual_cache = wp_cache_get( $this->bookmark->link_id, 'bookmark' );
-		$this->assertEquals( $this->bookmark, $actual_cache );
+		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
 	/**
@@ -161,7 +133,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 			'filter'   => 'raw',
 		);
 		$params             = array_merge( $defaults, $params );
-		$params['bookmark'] = is_null( $bookmark ) ? $this->bookmark : $bookmark;
+		$params['bookmark'] = is_null( $bookmark ) ? self::$bookmark : $bookmark;
 
 		return array_values( $params );
 	}
@@ -176,7 +148,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 */
 	private function maybe_format_expected_data( array $params, $bookmark = null ) {
 		if ( is_null( $bookmark ) ) {
-			$bookmark = $this->bookmark;
+			$bookmark = self::$bookmark;
 		}
 
 		switch ( $params[1] ) {
