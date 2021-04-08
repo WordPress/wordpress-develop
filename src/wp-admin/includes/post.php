@@ -1212,7 +1212,7 @@ function wp_edit_posts_query( $q = false ) {
 
 	// To optimize the data loaded, we limit the query to retrive only ids
 	// In WP_Posts_List_Table::single_row, get_post($post) will retrive all post data
-	if(is_post_type_hierarchical( $post_type )) {
+	if ( is_post_type_hierarchical( $post_type ) ) {
 		$query['fields'] = 'id=>parent';
 	} else {
 		$query['fields'] = 'ids';

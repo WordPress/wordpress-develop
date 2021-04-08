@@ -751,7 +751,7 @@ class WP_Posts_List_Table extends WP_List_Table {
 			$post_ids = array();
 
 			foreach ( $posts as $a_post ) {
-				if(is_object($a_post)) {
+				if ( is_object( $a_post ) ) {
 					$post_ids[] = $a_post->ID;
 				} else {
 					$post_ids[] = $a_post;
