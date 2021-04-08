@@ -116,25 +116,27 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_instance_bookmark
 	 */
 	public function test_should_cache_bookmark_when_given_instance( $args ) {
-		$args = $this->init_func_args( $args );
+		$args     = $this->init_func_args( $args );
+		$bookmark = $args[0];
 
 		// Check the cache does not exist before the test.
-		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
+		$this->assertFalse( wp_cache_get( $bookmark->link_id, 'bookmark' ) );
 
 		get_bookmark( ...$args );
 
 		// Check the bookmark was cached.
-		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
-		$this->assertEquals( self::$bookmark, $actual_cache );
+		$actual_cache = wp_cache_get( $bookmark->link_id, 'bookmark' );
+		$this->assertEquals( $bookmark, $actual_cache );
 	}
 
 	/**
 	 * @dataProvider data_when_instance_bookmark
 	 */
 	public function test_should_return_in_requested_output_format_when_given_instance( $args ) {
-		$args = $this->init_func_args( $args );
+		$args     = $this->init_func_args( $args );
+		$bookmark = $args[0];
 
-		$expected = $this->maybe_format_expected_data( $args );
+		$expected = $this->maybe_format_expected_data( $args, $bookmark );
 
 		$actual_bookmark = get_bookmark( ...$args );
 
@@ -143,6 +145,25 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 	public function data_when_instance_bookmark() {
 		return array(
+			// Unhappy path.
+			'with incomplete bookmark data'      => array(
+				array(
+					'bookmark' => (object) array(
+						'link_id' => '100',
+					),
+				),
+			),
+			'with invalid output'                => array(
+				array(
+					'output' => 'invalid',
+				),
+			),
+			'with invalid filter'                => array(
+				array(
+					'filter' => 'invalid',
+				),
+			),
+			// Happy path.
 			'with defaults'                      => array(
 				array(),
 			),
