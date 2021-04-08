@@ -35,20 +35,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @dataProvider data_when_empty_bookmark
-	 */
-	public function test_should_return_null( $args ) {
-		$args            = $this->init_func_args( $args, 0 );
-		$actual_bookmark = get_bookmark( ...$args );
-
-		$this->assertArrayNotHasKey( 'link', $GLOBALS );
-		$this->assertNull( $actual_bookmark );
-
-		// Should bypass the cache.
-		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
-	}
-
-	/**
+	 * Path 1A: Given empty bookmark and global link exists.
+	 *
 	 * @dataProvider data_when_empty_bookmark
 	 */
 	public function test_should_return_global_link_in_requested_output_format( $args ) {
@@ -64,6 +52,25 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 	}
 
+	/**
+	 * Path 1B: Given empty bookmark and global link does not exist.
+	 *
+	 * @dataProvider data_when_empty_bookmark
+	 */
+	public function test_should_return_null( $args ) {
+		$args = $this->init_func_args( $args, 0 );
+
+		// Run the function and test results.
+		$actual_bookmark = get_bookmark( ...$args );
+
+		$this->assertArrayNotHasKey( 'link', $GLOBALS );
+		$this->assertNull( $actual_bookmark );
+		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
+	}
+
+	/**
+	 * Path 1 data provider, i.e. when given empty bookmark.
+	 */
 	public function data_when_empty_bookmark() {
 		return array(
 			// Unhappy path.
@@ -113,6 +120,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Path 2: Bookmark instance is given.
+	 *
 	 * @dataProvider data_when_instance_bookmark
 	 */
 	public function test_should_cache_bookmark_when_given_instance( $args ) {
@@ -122,6 +131,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		// Check the cache does not exist before the test.
 		$this->assertFalse( wp_cache_get( $bookmark->link_id, 'bookmark' ) );
 
+		// Run the function and test results.
 		get_bookmark( ...$args );
 
 		// Check the bookmark was cached.
@@ -135,14 +145,17 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	public function test_should_return_in_requested_output_format_when_given_instance( $args ) {
 		$args     = $this->init_func_args( $args );
 		$bookmark = $args[0];
-
 		$expected = $this->maybe_format_expected_data( $args, $bookmark );
 
+		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
 
 		$this->assertSame( $expected, $actual_bookmark );
 	}
 
+	/**
+	 * Path 2 data provider, i.e. when bookmark instance is given.
+	 */
 	public function data_when_instance_bookmark() {
 		return array(
 			// Unhappy path.
@@ -196,14 +209,12 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	public function test_should_return_global_when_else( $args ) {
 		$args            = $this->init_func_args( $args, self::$bookmark->link_id );
 		$GLOBALS['link'] = self::$bookmark;
+		$expected        = $this->maybe_format_expected_data( $args, $GLOBALS['link'] );
 
+		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
 
-		$expected = $this->maybe_format_expected_data( $args, $GLOBALS['link'] );
-
 		$this->assertSame( $expected, $actual_bookmark );
-
-		// Should not cache the bookmark.
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 	}
 
@@ -217,11 +228,11 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	public function test_should_return_cached_bookmark_when_given_existing_link_id( $args ) {
 		// Cache the bookmark instance to setup the test.
 		wp_cache_add( self::$bookmark->link_id, self::$bookmark, 'bookmark' );
-		$args = $this->init_func_args( $args, self::$bookmark->link_id );
-
-		$actual_bookmark = get_bookmark( ...$args );
-
+		$args     = $this->init_func_args( $args, self::$bookmark->link_id );
 		$expected = $this->maybe_format_expected_data( $args, self::$bookmark );
+
+		// Run the function and test results.
+		$actual_bookmark = get_bookmark( ...$args );
 
 		// For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
 		// property values but will be a different object than the expected object.
@@ -244,19 +255,16 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @param array $args Function argument list.
 	 */
 	public function test_should_return_existing_bookmark_from_database( $args ) {
-		$args = $this->init_func_args( $args, self::$bookmark->link_id );
+		$args     = $this->init_func_args( $args, self::$bookmark->link_id );
+		$expected = $this->maybe_format_expected_data( $args, self::$bookmark );
 
-		// Validate it will run path 5 by checking:
-		// - the bookmark is not cached
-		// - global link does not exist
-		// - a bookmark link ID is given
+		// Validate it will run path 5.
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 		$this->assertArrayNotHasKey( 'link', $GLOBALS );
 		$this->assertIsNumeric( $args[0] );
 
+		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
-
-		$expected = $this->maybe_format_expected_data( $args, self::$bookmark );
 
 		// For non-array output type, use assetEquals. Why? The object pulled from the database will have the same
 		// property values but will be a different object than the expected object.
@@ -297,7 +305,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider covers the "else" branch, i.e. when the bookmark argument is not empty and not an object.
+	 * Path 3+ data provider which covers the "else" branch, i.e. when the bookmark argument is not empty and
+	 * not an object.
 	 */
 	public function data_when_else() {
 		return array(
