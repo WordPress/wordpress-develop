@@ -4,7 +4,7 @@
  *
  * Tests to the Status Query that consider user permission
  *
- * @group query
+ * @group queryleo
  */
 class Tests_Query_PostStatus_Perm extends WP_UnitTestCase {
 
