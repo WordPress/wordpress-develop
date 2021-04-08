@@ -272,6 +272,31 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Path 6: Attempts to pull non-existent bookmark from database.
+	 *
+	 * @dataProvider data_when_else
+	 *
+	 * @param array $args Function argument list.
+	 */
+	public function test_should_return_null_when_bookmark_not_in_database( $args ) {
+		$bookmark_link_id = self::$bookmark->link_id * 100;
+		$args             = $this->init_func_args( $args, $bookmark_link_id );
+
+		// Validate it will run path 6.
+		$this->assertFalse( wp_cache_get( $bookmark_link_id, 'bookmark' ) );
+		$this->assertArrayNotHasKey( 'link', $GLOBALS );
+		global $wpdb;
+		$db_actual = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->links WHERE link_id = %d LIMIT 1", $bookmark_link_id ) );
+		$this->assertNull( $db_actual );
+
+		// Run the function and test results.
+		$actual_bookmark = get_bookmark( ...$args );
+
+		$this->assertNull( $actual_bookmark );
+		$this->assertFalse( wp_cache_get( $bookmark_link_id, 'bookmark' ) );
+	}
+
+	/**
 	 * Data provider covers the "else" branch, i.e. when the bookmark argument is not empty and not an object.
 	 */
 	public function data_when_else() {
