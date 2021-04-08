@@ -269,7 +269,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		// Validate it will run path 5.
 		$this->assertFalse( wp_cache_get( $this->bookmark->link_id, 'bookmark' ) );
 		$this->assertArrayNotHasKey( 'link', $GLOBALS );
-		$this->assertIsNumeric( $args[0] );
 
 		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
