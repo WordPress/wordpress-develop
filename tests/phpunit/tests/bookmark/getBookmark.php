@@ -37,9 +37,9 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_when_empty_bookmark
 	 */
-	public function test_should_return_null( $params ) {
-		$params          = $this->init_func_params( $params, 0 );
-		$actual_bookmark = get_bookmark( ...$params );
+	public function test_should_return_null( $args ) {
+		$args          = $this->init_func_args( $args, 0 );
+		$actual_bookmark = get_bookmark( ...$args );
 
 		$this->assertArrayNotHasKey( 'link', $GLOBALS );
 		$this->assertNull( $actual_bookmark );
@@ -51,12 +51,12 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_when_empty_bookmark
 	 */
-	public function test_should_return_global_link_in_requested_output_format( $params ) {
+	public function test_should_return_global_link_in_requested_output_format( $args ) {
 		$GLOBALS['link'] = self::$bookmark;
-		$params          = $this->init_func_params( $params, 0 );
-		$actual_bookmark = get_bookmark( ...$params );
+		$args          = $this->init_func_args( $args, 0 );
+		$actual_bookmark = get_bookmark( ...$args );
 
-		$expected = $this->maybe_format_expected_data( $params, $GLOBALS['link'] );
+		$expected = $this->maybe_format_expected_data( $args, $GLOBALS['link'] );
 
 		$this->assertArrayHasKey( 'link', $GLOBALS );
 		$this->assertSame( $expected, $actual_bookmark );
@@ -101,13 +101,13 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_when_instance_bookmark
 	 */
-	public function test_should_cache_bookmark_when_given_instance( $params ) {
-		$params = $this->init_func_params( $params );
+	public function test_should_cache_bookmark_when_given_instance( $args ) {
+		$args = $this->init_func_args( $args );
 
 		// Check the cache does not exist before the test.
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
 
-		get_bookmark( ...$params );
+		get_bookmark( ...$args );
 
 		// Check the bookmark was cached.
 		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
@@ -117,12 +117,12 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_when_instance_bookmark
 	 */
-	public function test_should_return_in_requested_output_format_when_given_instance( $params ) {
-		$params = $this->init_func_params( $params );
+	public function test_should_return_in_requested_output_format_when_given_instance( $args ) {
+		$args = $this->init_func_args( $args );
 
-		$expected = $this->maybe_format_expected_data( $params );
+		$expected = $this->maybe_format_expected_data( $args );
 
-		$actual_bookmark = get_bookmark( ...$params );
+		$actual_bookmark = get_bookmark( ...$args );
 
 		$this->assertSame( $expected, $actual_bookmark );
 	}
@@ -152,52 +152,52 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Initialize the get_bookmark's function parameters to match the order of the function's signature and
+	 * Initialize the get_bookmark's function arguments to match the order of the function's signature and
 	 * reduce code in the tests.
 	 *
-	 * @param array        $params   Array of given function parameters.
+	 * @param array        $args     Function argument list.
 	 * @param int|stdClass $bookmark Optional. Bookmark's cache key or instance.
 	 *
-	 * @return array An array of ordered parameters.
+	 * @return array Ordered argument list.
 	 */
-	private function init_func_params( array $params, $bookmark = null ) {
-		// The defaults sets the order to match the function's parameters as well as setting the default values.
+	private function init_func_args( array $args, $bookmark = null ) {
+		// The defaults sets the order to match the function's arguments as well as setting the default values.
 		$defaults = array(
 			'bookmark' => self::$bookmark,
 			'output'   => OBJECT,
 			'filter'   => 'raw',
 		);
-		$params   = array_merge( $defaults, $params );
+		$args   = array_merge( $defaults, $args );
 
 		// When given a bookmark, use it.
 		if ( ! is_null( $bookmark ) ) {
-			$params['bookmark'] = $bookmark;
+			$args['bookmark'] = $bookmark;
 		}
 
 		// Strip out the keys. Why? The splat operator (...) does not work with associative arrays,
 		// except for in PHP 8 where the keys are named arguments.
-		return array_values( $params );
+		return array_values( $args );
 	}
 
 	/**
 	 * Maybe format the bookmark's expected data.
 	 *
-	 * @param array             $params   Array of given function parameters.
+	 * @param array             $args     Function argument list.
 	 * @param int|stdClass|null $bookmark Optional. Bookmark's cache key or instance.
 	 *
 	 * @return array|stdClass bookmark's data.
 	 */
-	private function maybe_format_expected_data( array $params, $bookmark = null ) {
+	private function maybe_format_expected_data( array $args, $bookmark = null ) {
 		if ( is_null( $bookmark ) ) {
 			$bookmark = self::$bookmark;
 		}
 
-		switch ( $params[1] ) {
+		switch ( $args[1] ) {
 			case ARRAY_A:
 			case ARRAY_N:
 				$expected = get_object_vars( $bookmark );
 
-				if ( ARRAY_N === $params[1] ) {
+				if ( ARRAY_N === $args[1] ) {
 					$expected = array_values( $expected );
 				}
 
