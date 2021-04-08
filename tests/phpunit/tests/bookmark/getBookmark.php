@@ -38,7 +38,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 * @dataProvider data_when_empty_bookmark
 	 */
 	public function test_should_return_null( $args ) {
-		$args          = $this->init_func_args( $args, 0 );
+		$args            = $this->init_func_args( $args, 0 );
 		$actual_bookmark = get_bookmark( ...$args );
 
 		$this->assertArrayNotHasKey( 'link', $GLOBALS );
@@ -53,7 +53,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 */
 	public function test_should_return_global_link_in_requested_output_format( $args ) {
 		$GLOBALS['link'] = self::$bookmark;
-		$args          = $this->init_func_args( $args, 0 );
+		$args            = $this->init_func_args( $args, 0 );
 		$actual_bookmark = get_bookmark( ...$args );
 
 		$expected = $this->maybe_format_expected_data( $args, $GLOBALS['link'] );
@@ -66,11 +66,25 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 	public function data_when_empty_bookmark() {
 		return array(
-			'unhappy path with null bookmark'    => array(
+			// Unhappy path.
+			'with bookmark type mismatch'        => array(
 				array(
-					'bookmark' => null,
+					'bookmark' => '',
 				),
 			),
+			'with invalid output'                => array(
+				array(
+					'bookmark' => 0,
+					'output'   => 'invalid',
+				),
+			),
+			'with bookmark type mismatch and invalid output' => array(
+				array(
+					'bookmark' => null,
+					'output'   => 'invalid',
+				),
+			),
+			// Happy path.
 			'with defaults'                      => array(
 				array(
 					'bookmark' => 0,
@@ -167,7 +181,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 			'output'   => OBJECT,
 			'filter'   => 'raw',
 		);
-		$args   = array_merge( $defaults, $args );
+		$args     = array_merge( $defaults, $args );
 
 		// When given a bookmark, use it.
 		if ( ! is_null( $bookmark ) ) {
