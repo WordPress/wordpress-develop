@@ -187,6 +187,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Path 3: Uses the global link when exists and the given bookmark link ID matches the global link.
+	 *
 	 * @dataProvider data_when_else
 	 *
 	 * @param array $args Function argument list.
@@ -203,6 +205,35 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 		// Should not cache the bookmark.
 		$this->assertFalse( wp_cache_get( self::$bookmark->link_id, 'bookmark' ) );
+	}
+
+	/**
+	 * Path 4: Pulls from cache when given existing bookmark link ID.
+	 *
+	 * @dataProvider data_when_else
+	 *
+	 * @param array $args Function argument list.
+	 */
+	public function test_should_return_cached_bookmark_when_given_existing_link_id( $args ) {
+		// Cache the bookmark instance to setup the test.
+		wp_cache_add( self::$bookmark->link_id, self::$bookmark, 'bookmark' );
+		$args = $this->init_func_args( $args, self::$bookmark->link_id );
+
+		$actual_bookmark = get_bookmark( ...$args );
+
+		$expected = $this->maybe_format_expected_data( $args, self::$bookmark );
+
+		// For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
+		// property values but will be a different object than the expected object.
+		if ( is_object( $expected ) ) {
+			$this->assertEquals( $expected, $actual_bookmark );
+		} else {
+			$this->assertSame( $expected, $actual_bookmark );
+		}
+
+		// Check the bookmark was cached.
+		$actual_cache = wp_cache_get( self::$bookmark->link_id, 'bookmark' );
+		$this->assertEquals( self::$bookmark, $actual_cache );
 	}
 
 	/**
