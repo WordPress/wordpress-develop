@@ -48,7 +48,7 @@ function get_bookmark( $bookmark, $output = OBJECT, $filter = 'raw' ) {
 		}
 	}
 
-	if ( ! $_bookmark ) {
+	if ( empty( $_bookmark ) ) {
 		return $_bookmark;
 	}
 
