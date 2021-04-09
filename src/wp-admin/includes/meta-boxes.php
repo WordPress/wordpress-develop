@@ -244,8 +244,8 @@ function post_submit_meta_box( $post, $args = array() ) {
 			$stamp = __( 'Publish <b>immediately</b>' );
 			$date  = sprintf(
 				$date_string,
-				date_i18n( $date_format, strtotime( current_time( 'mysql' ) ) ),
-				date_i18n( $time_format, strtotime( current_time( 'mysql' ) ) )
+				get_date_from_gmt( $post->post_date_gmt, $date_format ),
+                		get_date_from_gmt( $post->post_date_gmt, $time_format )
 			);
 		}
 
