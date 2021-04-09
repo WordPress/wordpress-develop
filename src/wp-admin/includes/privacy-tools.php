@@ -409,7 +409,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 			? __( 'Unable to encode the export file (JSON report)' )
 			: json_last_error_msg();
 
-		_doing_it_wrong( 'privacy_export_personal_data_json_encode_error', $json_error_message, '5.8.0' );
+		_doing_it_wrong( __FUNCTION__, $json_error_message, '5.8.0' );
 	}
 
 	/*

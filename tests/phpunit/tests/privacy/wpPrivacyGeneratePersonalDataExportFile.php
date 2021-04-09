@@ -669,7 +669,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$metadata = get_post_meta( self::$export_request_id, '_export_data_grouped', true );
 		$this->assertFalse( wp_json_encode( $metadata ) );
 
-		$this->setExpectedIncorrectUsage( 'privacy_export_personal_data_json_encode_error' );
+		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
 		$this->expectOutputString( '' );
 
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
