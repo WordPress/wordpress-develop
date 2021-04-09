@@ -5075,17 +5075,14 @@ try {
 				$height = (int) ( $height[1] & 0xFFFFFF ) + 1;
 				$type   = 'animated-alpha';
 				break;
-			if ( $width && $height && $type ) {
-				return array(
-					'width'  => $width,
-					'height' => $height,
-					'type'   => $type,
-				);
-			}
 		}
 	} catch ( Exception $e ) {
 	}
-	return array();
+	return array(
+		'width'  => $width,
+		'height' => $height,
+		'type'   => $type,
+	);
 }
 
 /**
