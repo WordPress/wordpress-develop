@@ -658,39 +658,20 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	}
 
 	/**
-	 * Test should generate a valid JSON report when/if JSON encoding fails.
+	 * Test should generate JSON error when JSON encoding fails.
 	 *
-	 * @ticket 51423
+	 * @ticket 52892
 	 */
-	public function test_should_generate_valid_json_when_json_encoding_fails() {
+	public function test_should_generate_json_error_when_json_encoding_fails() {
 		add_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ), 10, 3 );
 
 		// Validate JSON encoding fails and returns `false`.
 		$metadata = get_post_meta( self::$export_request_id, '_export_data_grouped', true );
 		$this->assertFalse( wp_json_encode( $metadata ) );
 
-		$this->setExpectedIncorrectUsage( 'wp_privacy_generate_personal_data_export_file' );
-		$this->expectOutputString( '' );
-
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to encode the personal data for export."}' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
-
-		$this->assertTrue( file_exists( $this->export_file_name ) );
-
-		// Extract the JSON report's contents for testing.
-		$report_dir = trailingslashit( self::$exports_dir . 'test_contents' );
-		mkdir( $report_dir );
-		$zip        = new ZipArchive();
-		$opened_zip = $zip->open( $this->export_file_name );
-		$this->assertTrue( $opened_zip );
-		$zip->extractTo( $report_dir );
-		$zip->close();
-		$this->assertTrue( file_exists( $report_dir . 'export.json' ) );
-		$report_contents_json = file_get_contents( $report_dir . 'export.json' );
-
-		// Check valid JSON is created.
-		$request  = wp_get_user_request( self::$export_request_id );
-		$expected = '{"Personal Data Export for ' . $request->email . '":"null"}';
-		$this->assertSame( $expected, $report_contents_json );
 	}
 
 	public function filter_export_data_grouped_metadata( $value, $object_id, $meta_key ) {
