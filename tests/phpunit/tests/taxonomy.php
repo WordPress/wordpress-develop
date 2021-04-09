@@ -1102,8 +1102,8 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		// Test normal behavior `get_objects_in_term()`.
 		$this->assertEqualSets( array( $post1 ), get_objects_in_term( $batman['term_id'], $heroes ) );
-		$this->assertEqualSets( array( $post2, $post4, ), get_objects_in_term( $lex['term_id'], $villains ) );
-		$this->assertEqualSets( array( $post2, $post3, $post4, ), get_objects_in_term( $thinker['term_id'], $villains ) );
+		$this->assertEqualSets( array( $post2, $post4 ), get_objects_in_term( $lex['term_id'], $villains ) );
+		$this->assertEqualSets( array( $post2, $post3, $post4 ), get_objects_in_term( $thinker['term_id'], $villains ) );
 
 		// Test output with `format` on `$args`.
 		$this->assertEquals(
