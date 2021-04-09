@@ -1057,7 +1057,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 	 * @ticket 23635
 	 */
 	function test_get_objects_in_term_format() {
-		$heroes  = 'heroes';
+		$heroes   = 'heroes';
 		$villains = 'villains';
 
 		register_taxonomy( $heroes, 'post' );
