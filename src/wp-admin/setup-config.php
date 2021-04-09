@@ -460,10 +460,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 				}
 			}
 
-			if ( ! chmod( $path_to_wp_config, 0666 ) ) {
-				/* translators: %s: wp-config.php */
-				$error_message = sprintf( __( 'Unable to change the %s file permissions to 0666.' ), '<code>wp-config.php</code>' );
-			}
+			chmod( $path_to_wp_config, 0666 );
 			setup_config_display_header();
 
 			if ( false !== $handle ) :
