@@ -689,7 +689,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 
 		// Check valid JSON is created.
 		$request  = wp_get_user_request( self::$export_request_id );
-		$expected = '{"Personal Data Export for ' . $request->email . '":"false"}';
+		$expected = '{"Personal Data Export for ' . $request->email . '":"null"}';
 		$this->assertSame( $expected, $report_contents_json );
 	}
 

@@ -401,7 +401,7 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 	if ( false === $groups_json ) {
-		$groups_json = '"false"';
+		$groups_json = '"null"';
 
 		// Get the error message.
 		$last_error_code    = json_last_error();
