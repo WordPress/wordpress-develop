@@ -5034,6 +5034,13 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 
  */
 function wp_get_webp_info( $filename ) {
+	if ( ! 'image/webp' === wp_get_image_mime( $filename ) ) {
+		return array(
+			'width'  => false,
+			'height' => false,
+			'type'   => false,
+		);
+	}
 	try {
 		$handle = fopen( $filename, 'rb' );
 		if ( $handle ) {

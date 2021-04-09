@@ -3065,7 +3065,7 @@ function wp_get_image_mime( $file ) {
 			$mime = false;
 		}
 
-		// WebP support took longer to land in Exif than GD.
+		// Add WebP fallback detection when image library doesn't support WebP.
 		if ( ! $mime ) {
 			$handle = fopen( $file, 'rb' );
 			if ( $handle ) {
