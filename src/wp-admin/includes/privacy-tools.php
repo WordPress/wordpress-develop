@@ -401,13 +401,15 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 	if ( false === $groups_json ) {
-		// Get the error message.
-		$last_error_code    = json_last_error();
-		$json_error_message = JSON_ERROR_NONE === $last_error_code || empty( $last_error_code )
-			? __( 'Unable to encode the export file (JSON report)' )
-			: json_last_error_msg();
+		$error_message = __( 'Unable to encode the personal data for export.' );
 
-		wp_send_json_error( $json_error_message );
+		// Get the error message.
+		$last_error_code = json_last_error();
+		if ( JSON_ERROR_NONE === $last_error_code || empty( $last_error_code ) ) {
+			$error_message .= ' ' . json_last_error_msg();
+		}
+
+		wp_send_json_error( $error_message );
 	}
 
 	/*
