@@ -789,7 +789,7 @@ function get_objects_in_term( $term_ids, $taxonomies, $args = array() ) {
 
 	$defaults = array(
 		'order'  => 'ASC',
-		'format' => false
+		'format' => false,
 	);
 	$args     = wp_parse_args( $args, $defaults );
 
