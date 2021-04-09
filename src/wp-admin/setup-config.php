@@ -475,7 +475,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			endif;
 		endif;
 		break;
-} // end of the steps switch.
+} // End of the steps switch.
 ?>
 <?php wp_print_scripts( 'language-chooser' ); ?>
 </body>
