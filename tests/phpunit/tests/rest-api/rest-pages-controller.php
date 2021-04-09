@@ -282,6 +282,85 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
 	}
 
+	public function test_get_items_multiple_orderby_query() {
+		$id2 = $this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_title'  => 'Bacon',
+			)
+		);
+		// Keep this ordering to make sure ids are generated in this order.
+		$id1 = $this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_title'  => 'Apples',
+			)
+		);
+		$id3 = $this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_title'  => 'Cats',
+			)
+		);
+		$id4 = $this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_title'  => 'BBB',
+				'menu_order'  => 1,
+			)
+		);
+		$id5 = $this->factory->post->create(
+			array(
+				'post_status' => 'publish',
+				'post_type'   => 'page',
+				'post_title'  => 'AAA',
+				'menu_order'  => 2,
+			)
+		);
+
+		// Order by 'title'. Single string orderby values are still respected.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', 'title' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( array( $id5, $id1, $id2, $id4, $id3 ), wp_list_pluck( $data, 'id' ) );
+
+		// Order by 'menu order' and 'title' using comma separated values. Values may have arbitrary whitespace.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', ' menu_order  , title ' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( array( $id1, $id2, $id3, $id4, $id5 ), wp_list_pluck( $data, 'id' ) );
+
+		// Order by 'menu order' and 'title' using array
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', array( 'menu_order', 'title' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( array( $id1, $id2, $id3, $id4, $id5 ), wp_list_pluck( $data, 'id' ) );
+
+		// Can map orderby param to WP_Query param
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'order', 'asc' );
+		$request->set_param( 'orderby', 'id' ); //eg WP_Query uses ID internally
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertEquals( array( $id2, $id1, $id3, $id4, $id5 ), wp_list_pluck( $data, 'id' ) );
+
+		// Invalid 'orderby' should error when in array.
+		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
+		$request->set_param( 'orderby', array( 'title', 'bad-order' ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertErrorResponse( 'rest_invalid_param', $response, 400 );
+	}
+
 	public function test_get_items_min_max_pages_query() {
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$request->set_param( 'per_page', 0 );

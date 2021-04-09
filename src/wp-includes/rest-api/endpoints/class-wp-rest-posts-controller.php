@@ -198,22 +198,40 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 
-		// Ensure a search string is set in case the orderby is set to 'relevance'.
-		if ( ! empty( $request['orderby'] ) && 'relevance' === $request['orderby'] && empty( $request['search'] ) ) {
-			return new WP_Error(
-				'rest_no_search_term_defined',
-				__( 'You need to define a search term to order by relevance.' ),
-				array( 'status' => 400 )
-			);
+		// Process orderby first, to allow for an early exit when a request is a client error (400)
+		$orderby_array = array( 'date' );
+		if ( isset( $request['orderby'] ) ) {
+			$requested_orderby = wp_parse_list( $request['orderby'] );
+			// Trim off outside whitespace from the comma delimited list.
+			$requested_orderby = array_map( 'trim', $requested_orderby );
+			if ( 0 < count( $requested_orderby ) ) {
+				$orderby_array = $requested_orderby;
+			}
 		}
 
-		// Ensure an include parameter is set in case the orderby is set to 'include'.
-		if ( ! empty( $request['orderby'] ) && 'include' === $request['orderby'] && empty( $request['include'] ) ) {
-			return new WP_Error(
-				'rest_orderby_include_missing_include',
-				__( 'You need to define an include parameter to order by include.' ),
-				array( 'status' => 400 )
-			);
+		foreach ( $orderby_array as $order ) {
+			switch ( $order ) {
+				case 'relevance':
+					// Ensure a search string is set in case the orderby is set to 'relevance'.
+					if ( empty( $request['search'] ) ) {
+						return new WP_Error(
+							'rest_no_search_term_defined',
+							__( 'You need to define a search term to order by relevance.' ),
+							array( 'status' => 400 )
+						);
+					}
+					break;
+				case 'include':
+					// Ensure an include parameter is set in case the orderby is set to 'include'.
+					if ( empty( $request['include'] ) ) {
+						return new WP_Error(
+							'rest_orderby_include_missing_include',
+							__( 'You need to define an include parameter to order by include.' ),
+							array( 'status' => 400 )
+						);
+					}
+					break;
+			}
 		}
 
 		// Retrieve the list of registered collection query parameters.
@@ -254,6 +272,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Check for & assign any parameters which require special handling or setting.
+		$args['orderby'] = $orderby_array;
+
 		$args['date_query'] = array();
 
 		if ( isset( $registered['before'], $request['before'] ) ) {
@@ -346,9 +366,8 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		 * @param array           $args    Array of arguments to be passed to WP_Query.
 		 * @param WP_REST_Request $request The REST API request.
 		 */
-		$args       = apply_filters( "rest_{$this->post_type}_query", $args, $request );
-		$query_args = $this->prepare_items_query( $args, $request );
-
+		$args         = apply_filters( "rest_{$this->post_type}_query", $args, $request );
+		$query_args   = $this->prepare_items_query( $args, $request );
 		$posts_query  = new WP_Query();
 		$query_result = $posts_query->query( $query_args );
 
@@ -1036,6 +1055,27 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Given an orderby value defined in the REST API, returns the expected orderby value used in WP_Query
+	 * @param string $order Optional. The REST API orderby value
+	 *
+	 * @since ?.?.?
+	 *
+	 * @return string The WP_Query orderby value.
+	 */
+	protected function request_to_wp_query_orderby( $order = '' ) {
+		$orderby_mappings = array(
+			'id'            => 'ID',
+			'include'       => 'post__in',
+			'slug'          => 'post_name',
+			'include_slugs' => 'post_name__in',
+		);
+		if ( isset( $orderby_mappings[ $order ] ) ) {
+			return $orderby_mappings[ $order ];
+		}
+		return $order;
+	}
+
+	/**
 	 * Determines the allowed query_vars for a get_items() response and prepares
 	 * them for WP_Query.
 	 *
@@ -1066,17 +1106,10 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Map to proper WP_Query orderby param.
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
-			$orderby_mappings = array(
-				'id'            => 'ID',
-				'include'       => 'post__in',
-				'slug'          => 'post_name',
-				'include_slugs' => 'post_name__in',
-			);
-
-			if ( isset( $orderby_mappings[ $request['orderby'] ] ) ) {
-				$query_args['orderby'] = $orderby_mappings[ $request['orderby'] ];
-			}
+		if ( isset( $query_args['orderby'] ) ) {
+			$wp_query_orderby_parameters = array_map( array( $this, 'request_to_wp_query_orderby' ), $query_args['orderby'] );
+			// WP_Query expects orderby as a single string
+			$query_args['orderby'] = implode( ' ', $wp_query_orderby_parameters );
 		}
 
 		return $query_args;
@@ -2781,24 +2814,28 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 		$query_params['orderby'] = array(
 			'description' => __( 'Sort collection by object attribute.' ),
-			'type'        => 'string',
-			'default'     => 'date',
-			'enum'        => array(
-				'author',
-				'date',
-				'id',
-				'include',
-				'modified',
-				'parent',
-				'relevance',
-				'slug',
-				'include_slugs',
-				'title',
+			'type'        => 'array',
+			'items'       => array(
+				'type'    => 'string',
+				'default' => 'date',
+				'enum'    => array(
+					'author',
+					'date',
+					'id',
+					'include',
+					'modified',
+					'parent',
+					'relevance',
+					'slug',
+					'include_slugs',
+					'title',
+				),
 			),
+			'default'     => array(),
 		);
 
 		if ( 'page' === $this->post_type || post_type_supports( $this->post_type, 'page-attributes' ) ) {
-			$query_params['orderby']['enum'][] = 'menu_order';
+			$query_params['orderby']['items']['enum'][] = 'menu_order';
 		}
 
 		$post_type = get_post_type_object( $this->post_type );
