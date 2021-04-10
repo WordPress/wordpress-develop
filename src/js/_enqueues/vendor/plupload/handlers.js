@@ -361,7 +361,7 @@ function wpFileExtensionError( up, file, message ) {
 	up.removeFile( file );
 }
 
-jQuery( document ).ready( function( $ ) {
+jQuery( function( $ ) {
 	var tryAgainCount = {};
 	var tryAgain;
 

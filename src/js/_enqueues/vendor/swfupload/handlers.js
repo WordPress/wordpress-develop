@@ -33,7 +33,7 @@ function swfuploadLoadFailed() {
 	switchUploader();
 }
 
-jQuery(document).ready(function($){
+jQuery(function($){
 	$( 'input[type="radio"]', '#media-items' ).on( 'click', function(){
 		var tr = $(this).closest('tr');
 
