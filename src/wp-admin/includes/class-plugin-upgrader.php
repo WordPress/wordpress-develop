@@ -318,7 +318,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 		$this->update_current = 0;
 		foreach ( $plugins as $plugin ) {
 			if (isset($this->result)) {
-				$this->result = null;
+				unset($this->result);
 			}
 			$this->update_current++;
 			$this->skin->plugin_info = get_plugin_data( WP_PLUGIN_DIR . '/' . $plugin, false, true );

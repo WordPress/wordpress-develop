@@ -420,7 +420,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$this->update_current = 0;
 		foreach ( $themes as $theme ) {
 			if (isset($this->result)) {
-				$this->result = null;
+				unset($this->result);
 			}
 			$this->update_current++;
 
