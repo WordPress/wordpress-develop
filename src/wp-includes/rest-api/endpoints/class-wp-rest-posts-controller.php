@@ -1104,7 +1104,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				// Remaps values. Preserves value order.
 				foreach ( $query_args['orderby'] as $orderby ) {
 					if ( array_key_exists( $orderby, $orderby_mappings_in_request ) ) {
-							$new_arg[] = $orderby_mappings_in_request[ $orderby ];
+						$new_arg[] = $orderby_mappings_in_request[ $orderby ];
 					} else {
 						$new_arg[] = $orderby;
 					}
