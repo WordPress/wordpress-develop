@@ -1052,27 +1052,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Given an orderby value defined in the REST API, returns the expected orderby value used in WP_Query
-	 * @param string $order Optional. The REST API orderby value
-	 *
-	 * @since ?.?.?
-	 *
-	 * @return string The WP_Query orderby value.
-	 */
-	protected function request_to_wp_query_orderby( $order = '' ) {
-		$orderby_mappings = array(
-			'id'            => 'ID',
-			'include'       => 'post__in',
-			'slug'          => 'post_name',
-			'include_slugs' => 'post_name__in',
-		);
-		if ( isset( $orderby_mappings[ $order ] ) ) {
-			return $orderby_mappings[ $order ];
-		}
-		return $order;
-	}
-
-	/**
 	 * Determines the allowed query_vars for a get_items() response and prepares
 	 * them for WP_Query.
 	 *
