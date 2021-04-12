@@ -1084,7 +1084,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Map to proper WP_Query orderby param.
-		if ( isset( $query_args['orderby'] ) && isset( $request['orderby'] ) ) {
+		if ( isset( $query_args['orderby'] ) ) {
 			$orderby_mappings = array(
 				'id'            => 'ID',
 				'include'       => 'post__in',
@@ -1093,12 +1093,12 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			);
 
 			// The orderby query string parameter can look like ?orderby=menu_order, ?orderby[]=menu_order, or ?orderby[menu_order]=asc.
-			if ( rest_is_array( $request['orderby'] ) ) {
+			if ( rest_is_array( $query_args['orderby'] ) ) {
 				// An array: ?orderby[]=menu_order
 				// A fake array: ?orderby=menu_order,title
 				// A string: ?orderby=menu_order
 				// The latter two because rest_is_array() and rest_sanitize_array() pass scalars through wp_parse_list()
-				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, array_flip( $request['orderby'] ) );
+				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, array_flip( $query_args['orderby'] ) );
 
 				$new_arg = array();
 				// Remaps values. Preserves value order.
@@ -1114,7 +1114,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				$query_args['orderby'] = join( ' ', $new_arg );
 			} else {
 				// An object: ?orderby[menu_order]=asc
-				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, $request['orderby'] );
+				$orderby_mappings_in_request = array_intersect_key( $orderby_mappings, $query_args['orderby'] );
 
 				$new_arg = array();
 				// Remaps keys. Preserves key order.
