@@ -94,8 +94,6 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * @since 5.2.0
 	 */
 	public function tearDown() {
-		// Reset for `test_should_generate_valid_json_when_json_encoding_fails()`.
-		remove_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ) );
 		$this->remove_exports_dir();
 		error_reporting( $this->_error_level );
 		parent::tearDown();
