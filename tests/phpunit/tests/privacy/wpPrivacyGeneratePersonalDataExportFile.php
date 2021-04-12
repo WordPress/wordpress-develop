@@ -670,7 +670,7 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 		$this->assertFalse( wp_json_encode( $metadata ) );
 
 		$this->expectException( 'WPDieException' );
-		$this->expectOutputString( '{"success":false,"data":"Unable to encode the personal data for export."}' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to encode the personal data for export. Error: Type is not supported"}' );
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
 	}
 
