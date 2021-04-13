@@ -1114,7 +1114,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				// items are technically equal to one another (say all pages have a menu_order of 0), but would like to
 				// see a stable sort. This can especially help for pagination cases.
 				// See https://core.trac.wordpress.org/ticket/46294 and https://core.trac.wordpress.org/ticket/44349
-				if ( ! in_array( 'ID', $new_arg, true ) ) {
+				if ( ! in_array( 'ID', $new_arg, true ) && ! in_array( 'relevance', $new_arg, true ) ) {
 					$new_arg[] = 'ID';
 				}
 
@@ -1141,7 +1141,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 				// items are technically equal to one another (say all pages have a menu_order of 0), but would like to
 				// see a stable sort. This can especially help for pagination cases.
 				// See https://core.trac.wordpress.org/ticket/46294 and https://core.trac.wordpress.org/ticket/44349
-				if ( ! isset( $new_arg['ID'] ) ) {
+				if ( ! isset( $new_arg['ID'] ) && ! isset( $new_arg['relevance'] ) ) {
 					$new_arg['ID'] = 'desc';
 				}
 			}
