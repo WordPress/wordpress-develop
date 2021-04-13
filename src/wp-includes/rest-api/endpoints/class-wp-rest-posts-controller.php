@@ -1110,6 +1110,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 					}
 				}
 
+				// If ID is not set, try stabilizing the order. A client can see unexpected ordering when
+				// items are technically equal to one another (say all pages have a menu_order of 0), but would like to
+				// see a stable sort. This can especially help for pagination cases.
+				// See https://core.trac.wordpress.org/ticket/46294 and https://core.trac.wordpress.org/ticket/44349
+				if ( ! in_array( 'ID', $new_arg, true ) ) {
+					$new_arg[] = 'ID';
+				}
+
 				// WP_Query expects a space separated list.
 				$query_args['orderby'] = join( ' ', $new_arg );
 			} else {
@@ -1128,6 +1136,14 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 
 				// WP_Query expects an array with orderby (database table column) keys and order ("asc", "desc") values.
 				$query_args['orderby'] = $new_arg;
+
+				// If ID is not set, try stabilizing the order. A client can see unexpected ordering when
+				// items are technically equal to one another (say all pages have a menu_order of 0), but would like to
+				// see a stable sort. This can especially help for pagination cases.
+				// See https://core.trac.wordpress.org/ticket/46294 and https://core.trac.wordpress.org/ticket/44349
+				if ( ! isset( $new_arg['ID'] ) ) {
+					$new_arg['ID'] = 'desc';
+				}
 			}
 		}
 

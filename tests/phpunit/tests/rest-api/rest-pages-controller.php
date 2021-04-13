@@ -419,12 +419,12 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request->set_param(
 			'orderby',
 			array(
-				'id' => 'desc',
+				'id' => 'asc',
 			)
 		); //eg WP_Query uses ID internally
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( array( $id5, $id4, $id3, $id1, $id2 ), wp_list_pluck( $data, 'id' ) );
+		$this->assertEquals( array( $id2, $id1, $id3, $id4, $id5 ), wp_list_pluck( $data, 'id' ) );
 
 		// Invalid 'orderby' should error when in array.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/pages' );
