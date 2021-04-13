@@ -73,7 +73,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
-		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
+		'wp-polyfill-core-js.js': 'core-js/stable/index.js',
+		'wp-polyfill-regenerator.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
@@ -88,7 +89,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
@@ -98,6 +98,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const minifyVendors = {
+		'wp-polyfill-core-js.min.js': 'core-js/stable/index.js',
+		'wp-polyfill-regenerator.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',

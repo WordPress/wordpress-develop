@@ -77,7 +77,6 @@
 		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
-		"@babel/polyfill": "7.10.1",
 		"@wordpress/a11y": "2.14.3",
 		"@wordpress/annotations": "1.24.8",
 		"@wordpress/api-fetch": "3.21.5",
@@ -129,6 +128,7 @@
 		"@wordpress/wordcount": "2.14.1",
 		"backbone": "1.4.0",
 		"clipboard": "2.0.8",
+		"core-js": "3.10.1",
 		"core-js-url-browser": "3.6.4",
 		"element-closest": "^2.0.2",
 		"formdata-polyfill": "3.0.20",
@@ -145,6 +145,7 @@
 		"polyfill-library": "3.104.0",
 		"react": "16.13.1",
 		"react-dom": "16.13.1",
+		"regenerator-runtime": "0.13.7",
 		"twemoji": "13.0.2",
 		"underscore": "1.12.1",
 		"whatwg-fetch": "3.0.0"

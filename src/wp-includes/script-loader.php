@@ -91,7 +91,8 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
-		'wp-polyfill',
+		'wp-polyfill-regenerator',
+		'wp-polyfill-core-js',
 	);
 
 	$vendor_scripts_versions = array(
@@ -106,7 +107,8 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect'        => '3.104.0',
 		'wp-polyfill-element-closest' => '2.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
-		'wp-polyfill'                 => '7.4.4',
+		'wp-polyfill-regenerator'     => '0.13.7',
+		'wp-polyfill-core-js'         => '3.10.1',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -121,7 +123,7 @@ function wp_default_packages_vendor( $scripts ) {
 		$scripts->add( $handle, $path, $dependencies, $version, 1 );
 	}
 
-	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
+	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill-core-js', 'wp-polyfill-regenerator' ) );
 	did_action( 'init' ) && $scripts->add_inline_script(
 		'wp-polyfill',
 		wp_get_script_polyfill(
