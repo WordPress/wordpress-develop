@@ -353,15 +353,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$data     = $response->get_data();
 		$this->assertSame( 2, count( $data ) );
 		$this->assertSame( $id2, $data[0]['id'] );
-		$this->assertPostsOrderedBy( '{posts}.post_date DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_date DESC' );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 2, count( $data ) );
-		$this->assertSame( $id2, $data[0]['id'] );
-		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2) DESC, wptests_posts.ID DESC" );
+		$this->assertSame( $id1, $data[0]['id'] );
+		$this->assertPostsOrderedBy( "FIELD({posts}.ID,$id1,$id2)" );
 
 		// Invalid 'include' should error.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
@@ -402,7 +402,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( self::$editor_id, $data[1]['author'] );
 		$this->assertSame( self::$editor_id, $data[2]['author'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_author DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_author DESC' );
 	}
 
 	public function test_get_items_orderby_modified_query() {
@@ -426,7 +426,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( $id3, $data[1]['id'] );
 		$this->assertSame( $id2, $data[2]['id'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_modified DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_modified DESC' );
 	}
 
 	public function test_get_items_orderby_parent_query() {
@@ -464,7 +464,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 0, $data[1]['parent'] );
 		$this->assertSame( 0, $data[2]['parent'] );
 
-		$this->assertPostsOrderedBy( '{posts}.post_parent DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_parent DESC' );
 	}
 
 	public function test_get_items_exclude_query() {
@@ -768,14 +768,14 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Sauce', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title DESC' );
 
 		// 'order' => 'asc'.
 		$request->set_param( 'order', 'asc' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$this->assertSame( 'Apple Cobbler', $data[0]['title']['rendered'] );
-		$this->assertPostsOrderedBy( '{posts}.post_title ASC, wptests_posts.ID ASC' );
+		$this->assertPostsOrderedBy( '{posts}.post_title ASC' );
 
 		// 'order' => 'asc,id' should error.
 		$request->set_param( 'order', 'asc,id' );
@@ -860,7 +860,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		// Default ORDER is DESC.
 		$this->assertSame( 'xyz', $data[0]['slug'] );
 		$this->assertSame( 'abc', $data[1]['slug'] );
-		$this->assertPostsOrderedBy( '{posts}.post_name DESC, wptests_posts.ID DESC' );
+		$this->assertPostsOrderedBy( '{posts}.post_name DESC' );
 	}
 
 	public function test_get_items_with_orderby_slugs() {
@@ -876,7 +876,6 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		}
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
-		$request->set_param( 'order', 'asc' );
 		$request->set_param( 'orderby', 'include_slugs' );
 		$request->set_param( 'slug', array( 'taco', 'chalupa', 'burrito' ) );
 
