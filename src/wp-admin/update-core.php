@@ -254,7 +254,7 @@ function core_upgrade_preamble() {
 		echo '<div class="notice notice-warning inline"><p>';
 		printf(
 			/* translators: 1: Documentation on WordPress backups, 2: Documentation on updating WordPress. */
-			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> documentation page.' ),
+			__( '<strong>Important:</strong> Before updating, please <a href="%1$s">back up your database and files</a>. For help with updates, visit the <a href="%2$s">Updating WordPress</a> Documentation page.' ),
 			__( 'https://wordpress.org/support/article/wordpress-backups/' ),
 			__( 'https://wordpress.org/support/article/updating-wordpress/' )
 		);
@@ -608,7 +608,7 @@ function list_theme_updates() {
 <p>
 	<?php
 	printf(
-		/* translators: %s: Link to documentation on child themes. */
+		/* translators: %s: Link to Documentation on child themes. */
 		__( '<strong>Please Note:</strong> Any customizations you have made to theme files will be lost. Please consider using <a href="%s">child themes</a> for modifications.' ),
 		__( 'https://developer.wordpress.org/themes/advanced-topics/child-themes/' )
 	);
