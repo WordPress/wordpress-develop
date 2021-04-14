@@ -460,7 +460,7 @@ final class WP_Privacy_Policy_Content {
 
 		if ( $description ) {
 			/* translators: Privacy policy tutorial. */
-			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this section you should note your site URL, as well as the name of the company, organization, or individual behind it, and some accurate contact information.' ) . '</p>';
+			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'In this section you should note your Site URL, as well as the name of the company, organization, or individual behind it, and some accurate contact information.' ) . '</p>';
 			/* translators: Privacy policy tutorial. */
 			$strings[] = '<p class="privacy-policy-tutorial">' . __( 'The amount of information you may be required to show will vary depending on your local or national business regulations. You may, for example, be required to display a physical address, a registered address, or your company registration number.' ) . '</p>';
 		} else {
