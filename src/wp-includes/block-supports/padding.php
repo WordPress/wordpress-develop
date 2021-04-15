@@ -3,11 +3,13 @@
  * Padding block support flag.
  *
  * @package WordPress
+ * @since 5.8.0
  */
 
 /**
  * Registers the style block attribute for block types that support it.
- * 
+ *
+ * @since 5.8.0
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
@@ -30,7 +32,8 @@ function wp_register_padding_support( $block_type ) {
 /**
  * Add CSS classes for block padding to the incoming attributes array.
  * This will be applied to the block markup in the front-end.
- * 
+ *
+ * @since 5.8.0
  * @access private
  *
  * @param WP_Block_Type $block_type       Block Type.

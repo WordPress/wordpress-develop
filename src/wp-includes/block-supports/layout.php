@@ -1,15 +1,17 @@
 <?php
 /**
  * Layout block support flag.
- * 
+ *
  * @package WordPress
+ * @since 5.8.0
  */
 
 /**
  * For themes without theme.json file, make sure
  * to restore the inner div for the group block
  * to avoid breaking styles relying on that div.
- * 
+ *
+ * @since 5.8.0
  * @access private
  *
  * @param  string $block_content Rendered block content.

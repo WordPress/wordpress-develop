@@ -3,11 +3,13 @@
  * Typography block support flag.
  *
  * @package WordPress
+ * @since 5.6.0
  */
 
 /**
  * Registers the style and typography block attributes for block types that support it.
  *
+ * @since 5.6.0
  * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
@@ -52,7 +54,8 @@ function wp_register_typography_support( $block_type ) {
  * Add CSS classes and inline styles for typography features such as font sizes
  * to the incoming attributes array. This will be applied to the block markup in
  * the front-end.
- * 
+ *
+ * @since 5.6.0
  * @access private
  *
  * @param  WP_Block_Type $block_type       Block type.
@@ -163,7 +166,8 @@ function wp_apply_typography_support( $block_type, $block_attributes ) {
 /**
  * Generates an inline style for a typography feature e.g. text decoration,
  * text transform, and font style.
- * 
+ *
+ * @since 5.8.0
  * @access private
  *
  * @param array  $attributes   Block's attributes.

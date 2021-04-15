@@ -3,6 +3,7 @@
  * Generated classname block support flag.
  *
  * @package WordPress
+ * @since 5.6.0
  */
 
 /**

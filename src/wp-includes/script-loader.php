@@ -1507,7 +1507,7 @@ function wp_default_styles( $styles ) {
 	$styles->add(
 		'wp-reset-editor-styles',
 		"/wp-includes/css/dist/block-library/reset$suffix.css",
-		array( 'common', 'forms' ) // Make sure the reset is loaded after the default WP Adminn styles.
+		array( 'common', 'forms' ) // Make sure the reset is loaded after the default WP Admin styles.
 	);
 
 	$styles->add(
@@ -1528,7 +1528,7 @@ function wp_default_styles( $styles ) {
 		// This dependency shouldn't be added for themes with theme.json support
 		// It's here for backward compatibility only.
 		// A check should be added here when theme.json is backported to Core.
-		'wp-editor-classic-layout-styles'
+		'wp-editor-classic-layout-styles',
 	);
 	global $editor_styles;
 	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
@@ -1559,7 +1559,7 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-nux',
-			'wp-reusable-blocks'
+			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),

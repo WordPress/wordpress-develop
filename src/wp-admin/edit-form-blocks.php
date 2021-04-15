@@ -185,7 +185,7 @@ if ( ! $max_upload_size ) {
 $styles = array(
 	array(
 		'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-	)
+	),
 );
 if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 	foreach ( $editor_styles as $style ) {
