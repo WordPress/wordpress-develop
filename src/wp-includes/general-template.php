@@ -1954,10 +1954,10 @@ function wp_get_archives( $args = '' ) {
 	}
 
 	$output = '';
+	$after  = $parsed_args['after'];
 
 	if ( 'monthly' === $parsed_args['type'] ) {
-		$after = $parsed_args['after'];
-		foreach ( (array) $results as $result ) {
+		foreach ( $results as $result ) {
 			$url = get_month_link( $result->year, $result->month );
 			if ( 'post' !== $parsed_args['post_type'] ) {
 				$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
@@ -1971,16 +1971,8 @@ function wp_get_archives( $args = '' ) {
 			$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 		}
 
-		if ( $parsed_args['echo'] ) {
-			echo $output;
-			return;
-		}
-		return $output;
-	}
-
-	if ( 'yearly' === $parsed_args['type'] ) {
-		$after = $parsed_args['after'];
-		foreach ( (array) $results as $result ) {
+	} elseif ( 'yearly' === $parsed_args['type'] ) {
+		foreach ( $results as $result ) {
 			$url = get_year_link( $result->year );
 			if ( 'post' !== $parsed_args['post_type'] ) {
 				$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
@@ -1993,16 +1985,8 @@ function wp_get_archives( $args = '' ) {
 			$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 		}
 
-		if ( $parsed_args['echo'] ) {
-			echo $output;
-			return;
-		}
-		return $output;
-	}
-
-	if ( 'daily' === $parsed_args['type'] ) {
-		$after = $parsed_args['after'];
-		foreach ( (array) $results as $result ) {
+	} elseif ( 'daily' === $parsed_args['type'] ) {
+		foreach ( $results as $result ) {
 			$url = get_day_link( $result->year, $result->month, $result->dayofmonth );
 			if ( 'post' !== $parsed_args['post_type'] ) {
 				$url = add_query_arg( 'post_type', $parsed_args['post_type'], $url );
@@ -2016,19 +2000,11 @@ function wp_get_archives( $args = '' ) {
 			$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 		}
 
-		if ( $parsed_args['echo'] ) {
-			echo $output;
-			return;
-		}
-		return $output;
-	}
-
-	if ( 'weekly' === $parsed_args['type'] ) {
+	} elseif ( 'weekly' === $parsed_args['type'] ) {
 		$arc_w_last = '';
-		$after      = $parsed_args['after'];
 		// This is what will separate dates on weekly archive links.
 		$archive_week_separator = '&#8211;';
-		foreach ( (array) $results as $result ) {
+		foreach ( $results as $result ) {
 			if ( $result->week != $arc_w_last ) {
 				$arc_year       = $result->yr;
 				$arc_w_last     = $result->week;
@@ -2053,15 +2029,9 @@ function wp_get_archives( $args = '' ) {
 				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 			}
 		}
-		if ( $parsed_args['echo'] ) {
-			echo $output;
-			return;
-		}
-		return $output;
-	}
 
-	if ( ( 'postbypost' === $parsed_args['type'] ) || ( 'alpha' === $parsed_args['type'] ) ) {
-		foreach ( (array) $results as $result ) {
+	} elseif ( ( 'postbypost' === $parsed_args['type'] ) || ( 'alpha' === $parsed_args['type'] ) ) {
+		foreach ( $results as $result ) {
 			if ( '0000-00-00 00:00:00' !== $result->post_date ) {
 				$url = get_permalink( $result );
 				if ( $result->post_title ) {
@@ -2074,12 +2044,6 @@ function wp_get_archives( $args = '' ) {
 				$output  .= get_archives_link( $url, $text, $parsed_args['format'], $parsed_args['before'], $parsed_args['after'], $selected );
 			}
 		}
-
-		if ( $parsed_args['echo'] ) {
-			echo $output;
-			return;
-		}
-		return $output;
 	}
 
 	if ( $parsed_args['echo'] ) {
@@ -2089,6 +2053,19 @@ function wp_get_archives( $args = '' ) {
 	}
 }
 
+/**
+ * @param string|array $args {
+ *     Default.
+ *
+ *     @type string $type
+ *     @type string $limit
+ *     @type string $order
+ *     @type string $post_type
+ *     @type string $year
+ *     @type string $monthnum
+ *     @type string $w
+ * }
+ */
 function wp_get_archives_result_object( $args = '' ) {
 	global $wp_locale;
 
@@ -2324,7 +2301,15 @@ function wp_get_archives_result( $args = '' ) {
 		$orderby = ( 'alpha' === $parsed_args['type'] ) ? 'post_title ASC ' : 'post_date DESC, ID DESC ';
 		$query   = "SELECT * FROM $wpdb->posts $join $where ORDER BY $orderby $limit";
 	} else {
-		// TODO doing_it_wrong
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: %s: possible values */
+				__( '%s can only have one of these values: monthly, yearly, daily, weekly, postbypost, alpha' ),
+				'<code>$args["type"]</code>'
+			),
+			'5.8.0'
+		);
 		return $return;
 	}
 
