@@ -631,4 +631,46 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 			),
 		);
 	}
+
+	/**
+	 * Test should generate JSON error when JSON encoding fails.
+	 *
+	 * @ticket 52892
+	 */
+	public function test_should_generate_json_error_when_json_encoding_fails() {
+		add_filter( 'get_post_metadata', array( $this, 'filter_export_data_grouped_metadata' ), 10, 3 );
+
+		// Validate JSON encoding fails and returns `false`.
+		$metadata = get_post_meta( self::$export_request_id, '_export_data_grouped', true );
+		$this->assertFalse( wp_json_encode( $metadata ) );
+
+		$this->expectException( 'WPDieException' );
+		$this->expectOutputString( '{"success":false,"data":"Unable to encode the personal data for export. Error: Type is not supported"}' );
+		wp_privacy_generate_personal_data_export_file( self::$export_request_id );
+	}
+
+	public function filter_export_data_grouped_metadata( $value, $object_id, $meta_key ) {
+		if ( $object_id !== self::$export_request_id ) {
+			return $value;
+		}
+
+		if ( '_export_data_grouped' !== $meta_key ) {
+			return $value;
+		}
+
+		$file = fopen( __FILE__, 'r' );
+
+		$value = array(
+			'user' => array(
+				'group_label'       => 'User',
+				'group_description' => 'User&#8217;s profile data.',
+				'items'             => array(),
+				'resource'          => $file,
+			),
+		);
+
+		fclose( $file );
+
+		return array( $value );
+	}
 }
