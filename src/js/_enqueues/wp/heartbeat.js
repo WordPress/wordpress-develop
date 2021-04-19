@@ -121,7 +121,7 @@
 			if ( typeof window.ajaxurl === 'string' ) {
 				settings.url = window.ajaxurl;
                 if ( window.ajaxDebug === true ) {
-                    settings.url += "?debug=heartbeat"
+                    settings.url += '?debug=heartbeat'
                 }
 			}
 
