@@ -12,10 +12,8 @@
 class Tests_Image_Meta extends WP_UnitTestCase {
 
 	public static function setUpBeforeClass() {
-		if ( ! in_array( 'testimagemeta', stream_get_wrappers(), true ) ) {
-			require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
-			stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
-		}
+		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
+		stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
 
 		WP_Test_Stream::$data = array(
 			'wp_read_image_metadata' => array(
