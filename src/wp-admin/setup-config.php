@@ -451,12 +451,10 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			} else {
 				$wp_config_perms = fileperms( $path_to_wp_config );
 				if ( ! empty( $wp_config_perms ) && ! is_writable( $path_to_wp_config ) ) {
-					$wp_config_perms = substr( decoct( $wp_config_perms ), 2 );
 					$error_message   = sprintf(
-						/* translators: 1: wp-config.php, 2: wp-config.php file permission */
-						__( 'Unable to write to %1$s file due to the file permissions being too restrictive: %2$s. Please update the chmod file permissions to allow for write access.' ),
-						'<code>wp-config.php</code>',
-						"<code>{$wp_config_perms}</code>"
+						/* translators: 1 wp-config.php, 2: Documentation URL. */
+						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
+						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 					);
 				} else {
 					/* translators: %s: wp-config.php */
