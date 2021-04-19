@@ -12,9 +12,9 @@
 class Tests_Image_Meta extends WP_UnitTestCase {
 
 	public static function setUpBeforeClass() {
-		if ( ! in_array( 'wptest', stream_get_wrappers(), true ) ) {
+		if ( ! in_array( 'testimagemeta', stream_get_wrappers(), true ) ) {
 			require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
-			stream_wrapper_register( 'wptest', 'WP_Test_Stream' );
+			stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
 		}
 
 		WP_Test_Stream::$data = array(
@@ -187,7 +187,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 	public function data_stream() {
 		return array(
 			'Orientation only metadata'                => array(
-				'file'     => 'wptest://wp_read_image_metadata/image1.jpg',
+				'file'     => 'testimagemeta://wp_read_image_metadata/image1.jpg',
 				'metadata' => array(
 					'aperture'          => '0',
 					'credit'            => '',
@@ -204,7 +204,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 				),
 			),
 			'Exif from a Nikon D70 with IPTC data added later' => array(
-				'file'     => 'wptest://wp_read_image_metadata/image2.jpg',
+				'file'     => 'testimagemeta://wp_read_image_metadata/image2.jpg',
 				'metadata' => array(
 					'aperture'          => '6.3',
 					'credit'            => 'IPTC Creator',
@@ -221,7 +221,7 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 				),
 			),
 			'Exif from a DMC-LX2 camera with keywords' => array(
-				'file'     => 'wptest://wp_read_image_metadata/image3.jpg',
+				'file'     => 'testimagemeta://wp_read_image_metadata/image3.jpg',
 				'metadata' => array(
 					'aperture'          => '8',
 					'credit'            => 'Photoshop Author',
