@@ -28,6 +28,11 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		parent::setUpBeforeClass();
 	}
 
+	public static function tearDownAfterClass() {
+		stream_wrapper_unregister( 'testimagemeta' );
+		parent::tearDownAfterClass();
+	}
+
 	function test_exif_d70() {
 		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
