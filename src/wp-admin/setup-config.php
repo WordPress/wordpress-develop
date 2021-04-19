@@ -442,7 +442,6 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 			// Why check for the absence of false instead of checking for resource with is_resource()?
 			// To future-proof the check for when fopen returns object instead of resource, i.e. a known
 			// change coming in PHP.
-			// @see https://github.com/php/php-tasks/issues/6
 			if ( false !== $handle ) {
 				foreach ( $config_file as $line ) {
 					fwrite( $handle, $line );
