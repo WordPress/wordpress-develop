@@ -457,8 +457,11 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 					);
 				} else {
-					/* translators: %s: wp-config.php */
-					$error_message = sprintf( __( 'Unable to write to %s file.' ), '<code>wp-config.php</code>' );
+					$error_message = sprintf(
+						/* translators: %s: wp-config.php */
+						__( 'Unable to write to %s file.' ),
+						'<code>wp-config.php</code>'
+					);
 				}
 			}
 
