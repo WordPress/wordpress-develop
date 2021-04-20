@@ -3065,20 +3065,20 @@ function wp_get_image_mime( $file ) {
 			$mime = false;
 		}
 
-		if ( false === $mime ) {
-			return false;
+		if ( false !== $mime ) {
+			return $mime;
 		}
-		
+
 		$handle = fopen( $file, 'rb' );
 		if ( false === $handle ) {
 			return false;
 		}
-		
+
 		$magic = fread( $handle, 12 );
 		if ( false === $magic ) {
 			return false;
 		}
-		
+
 		// Add WebP fallback detection when image library doesn't support WebP.
 		$magic = bin2hex( $magic );
 		if (
@@ -3089,7 +3089,7 @@ function wp_get_image_mime( $file ) {
 		) {
 			$mime = 'image/webp';
 		}
-			
+
 		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
