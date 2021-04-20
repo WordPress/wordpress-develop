@@ -439,9 +439,11 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 
 			$error_message = '';
 			$handle        = fopen( $path_to_wp_config, 'w' );
-			// Why check for the absence of false instead of checking for resource with is_resource()?
-			// To future-proof the check for when fopen returns object instead of resource, i.e. a known
-			// change coming in PHP.
+			/*
+			 * Why check for the absence of false instead of checking for resource with is_resource()?
+			 * To future-proof the check for when fopen returns object instead of resource, i.e. a known
+			 * change coming in PHP.
+			 */
 			if ( false !== $handle ) {
 				foreach ( $config_file as $line ) {
 					fwrite( $handle, $line );
