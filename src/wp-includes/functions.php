@@ -3065,22 +3065,32 @@ function wp_get_image_mime( $file ) {
 			$mime = false;
 		}
 
-		// Add WebP fallback detection when image library doesn't support WebP.
-		if ( ! $mime ) {
-			$handle = fopen( $file, 'rb' );
-			if ( $handle ) {
-				$magic = bin2hex( fread( $handle, 12 ) );
-				if (
-					// RIFF.
-					( 0 === strpos( $magic, '52494646' ) ) &&
-					// WEBP.
-					( 16 === strpos( $magic, '57454250' ) )
-				) {
-					$mime = 'image/webp';
-				}
-				fclose( $handle );
-			}
+		if ( false === $mime ) {
+			return false;
 		}
+		
+		$handle = fopen( $file, 'rb' );
+		if ( false === $handle ) {
+			return false;
+		}
+		
+		$magic = fread( $handle, 12 );
+		if ( false === $magic ) {
+			return false;
+		}
+		
+		// Add WebP fallback detection when image library doesn't support WebP.
+		$magic = bin2hex( $magic );
+		if (
+			// RIFF.
+			( 0 === strpos( $magic, '52494646' ) ) &&
+			// WEBP.
+			( 16 === strpos( $magic, '57454250' ) )
+		) {
+			$mime = 'image/webp';
+		}
+			
+		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
