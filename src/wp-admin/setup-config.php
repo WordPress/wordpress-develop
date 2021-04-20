@@ -453,6 +453,7 @@ if ( ! /iPad|iPod|iPhone/.test( navigator.userAgent ) ) {
 					$error_message   = sprintf(
 						/* translators: 1 wp-config.php, 2: Documentation URL. */
 						__( 'You need to make the file %1$s writable before you can save your changes. See <a href="%2$s">Changing File Permissions</a> for more information.' ),
+						'<code>wp-config.php</code>',
 						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 					);
 				} else {
