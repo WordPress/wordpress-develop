@@ -1035,7 +1035,7 @@ module.exports = function(grunt) {
 			}
 		},
 		replace: {
-			emojiRegex: {
+			'emoji-regex': {
 				options: {
 					patterns: [
 						{
@@ -1107,7 +1107,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			emojiBannerText: {
+			'emoji-banner-text': {
 				options: {
 					patterns: [
 						{
@@ -1124,6 +1124,26 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/formatting.php'
 						],
 						dest: BUILD_DIR + 'wp-includes/'
+					}
+				]
+			},
+			'source-maps': {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/underscore.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/'
 					}
 				]
 			}
@@ -1268,7 +1288,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:emoji', [
-		'replace:emojiRegex'
+		'replace:emoji-regex'
 	] );
 
 	grunt.registerTask( 'precommit', 'Runs test and build tasks in preparation for a commit', function() {
@@ -1568,7 +1588,8 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText',
+				'replace:emoji-banner-text',
+				'replace:source-maps',
 				'verify:build'
 			] );
 		}
@@ -1618,15 +1639,9 @@ module.exports = function(grunt) {
 		var done = this.async();
 		var flags = this.flags;
 		var args = changedFiles.php;
-		if ( flags.travisErrors ) {
-			// We can check the entire codebase for coding standards errors.
-			args = [ 'lint:errors' ];
-		} else if ( flags.travisWarnings ) {
-			// We can check the tests directory for errors and warnings.
-			args = [ 'lint', 'tests' ];
-		} else {
-			args.unshift( 'lint' );
-		}
+
+		args.unshift( 'lint' );
+
 		grunt.util.spawn( {
 			cmd: 'composer',
 			args: args,
@@ -1639,11 +1654,6 @@ module.exports = function(grunt) {
 			}
 		} );
 	} );
-
-	// Travis CI tasks.
-	grunt.registerTask('travis:js', 'Runs JavaScript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
-	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
-	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travisErrors:error', 'lint:php:travisWarnings:error' ]);
 
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');

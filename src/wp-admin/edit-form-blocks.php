@@ -39,7 +39,6 @@ add_filter( 'screen_options_show_screen', '__return_false' );
 
 wp_enqueue_script( 'heartbeat' );
 wp_enqueue_script( 'wp-edit-post' );
-wp_enqueue_script( 'wp-format-library' );
 
 $rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 
@@ -185,18 +184,9 @@ if ( ! $max_upload_size ) {
 // Editor Styles.
 $styles = array(
 	array(
-		'css' => file_get_contents(
-			is_rtl()
-				? ABSPATH . WPINC . '/css/dist/editor/editor-styles-rtl.css'
-				: ABSPATH . WPINC . '/css/dist/editor/editor-styles.css'
-		),
+		'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
 	),
 );
-
-$styles[] = array(
-	'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-);
-
 if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 	foreach ( $editor_styles as $style ) {
 		if ( preg_match( '~^(https?:)?//~', $style ) ) {
@@ -217,17 +207,6 @@ if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 		}
 	}
 }
-
-// Default editor styles.
-$default_editor_styles = array(
-	array(
-		'css' => file_get_contents(
-			is_rtl()
-				? ABSPATH . WPINC . '/css/dist/editor/editor-styles-rtl.css'
-				: ABSPATH . WPINC . '/css/dist/editor/editor-styles.css'
-		),
-	),
-);
 
 // Image sizes.
 
@@ -302,11 +281,12 @@ if ( $user_id ) {
  * Filters the body placeholder text.
  *
  * @since 5.0.0
+ * @since 5.8.0 Changed the default placeholder text.
  *
- * @param string  $text Placeholder text. Default 'Start writing or type / to choose a block'.
+ * @param string  $text Placeholder text. Default 'Type / to choose a block'.
  * @param WP_Post $post Post object.
  */
-$body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block' ), $post );
+$body_placeholder = apply_filters( 'write_your_story', __( 'Type / to choose a block' ), $post );
 
 $editor_settings = array(
 	'alignWide'                            => $align_wide,
@@ -324,7 +304,6 @@ $editor_settings = array(
 	'maxUploadFileSize'                    => $max_upload_size,
 	'allowedMimeTypes'                     => get_allowed_mime_types(),
 	'styles'                               => $styles,
-	'defaultEditorStyles'                  => $default_editor_styles,
 	'imageSizes'                           => $available_image_sizes,
 	'imageDefaultSize'                     => $image_default_size,
 	'imageDimensions'                      => $image_dimensions,
@@ -346,7 +325,7 @@ $editor_settings = array(
 	'enableCustomSpacing'                  => $custom_spacing,
 );
 
-$autosave = wp_get_post_autosave( $post_ID );
+$autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {
 	if ( mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 		$editor_settings['autosave'] = array(
@@ -398,7 +377,6 @@ wp_enqueue_editor();
  * Styles
  */
 wp_enqueue_style( 'wp-edit-post' );
-wp_enqueue_style( 'wp-format-library' );
 
 /**
  * Fires after block assets have been enqueued for the editing interface.
