@@ -528,7 +528,6 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public function test_non_singular_queries_using_post_type_any_should_respect_post_type_read_private_posts_cap() {
 		$post_ids = self::$post_ids;
 
-
 		wp_set_current_user( 0 );
 
 		$q = new WP_Query(
