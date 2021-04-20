@@ -5092,7 +5092,7 @@ function wp_get_webp_info( $filename ) {
  */
 function _wp_webp_is_lossy( $filename ) {
 	$webp_info = wp_get_webp_info( $filename );
-	$type      = isset( $webp_info['type'] ) ? $webp_info['type'] : false;
+	$type      = $webp_info['type'];
 	return $type && 'lossy' === $type;
 }
 
@@ -5115,8 +5115,8 @@ function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 	// size info from the file headers.
 	if ( 'image/webp' === wp_get_image_mime( $filename ) ) {
 		$webp_info = wp_get_webp_info( $filename );
-		$width     = isset( $webp_info['width'] ) ? $webp_info['width'] : false;
-		$height    = isset( $webp_info['height'] ) ? $webp_info['height'] : false;
+		$width     = $webp_info['width'];
+		$height    = $webp_info['height'];
 
 			// Mimic the native return format.
 		if ( $width && $height ) {
