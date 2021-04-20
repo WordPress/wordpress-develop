@@ -970,7 +970,7 @@ function load_image_to_edit( $attachment_id, $mime_type, $size = 'full' ) {
 			$image = false;
 			if ( function_exists( 'imagecreatefromwebp' ) ) {
 				$image = imagecreatefromwebp( $filepath );
-			} 
+			}
 			break;
 		default:
 			$image = false;
