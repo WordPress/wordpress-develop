@@ -11,7 +11,7 @@
  */
 class Tests_Image_Meta extends WP_UnitTestCase {
 
-	public static function setUpBeforeClass() {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 		stream_wrapper_register( 'testimagemeta', 'WP_Test_Stream' );
 
@@ -22,13 +22,10 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 				'/image3.jpg' => file_get_contents( DIR_TESTDATA . '/images/33772.jpg' ),
 			),
 		);
-
-		parent::setUpBeforeClass();
 	}
 
-	public static function tearDownAfterClass() {
+	public static function wpTearDownAfterClass() {
 		stream_wrapper_unregister( 'testimagemeta' );
-		parent::tearDownAfterClass();
 	}
 
 	function test_exif_d70() {
