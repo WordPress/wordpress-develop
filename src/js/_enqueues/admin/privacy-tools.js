@@ -56,7 +56,7 @@ jQuery( function( $ ) {
 		});
 	}
 
-	$( '.export-personal-data-handle, .export-personal-data-failed' ).on( 'click', function( event ) {
+	$( '.export-personal-data-handle' ).on( 'click', function( event ) {
 		var $this          = $( this ),
 			$action        = $this.parents( '.export-personal-data' ),
 			$requestRow    = $this.parents( 'tr' ),
