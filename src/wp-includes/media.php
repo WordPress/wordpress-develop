@@ -5051,9 +5051,7 @@ function wp_get_webp_info( $filename ) {
 				return false;
 			}
 
-			$width  = false;
-			$height = false;
-			$type   = false;
+	
 
 			// The headers are a little different for each of the three formats.
 			switch ( substr( $magic, 12, 4 ) ) {
