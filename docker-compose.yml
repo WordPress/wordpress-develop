@@ -31,7 +31,7 @@ services:
   # The PHP container.
   ##
   php:
-    image: wordpressdevelop/php:${LOCAL_PHP-latest}
+    image: ghcr.io/wordpress/wpdev-docker-images/php:${LOCAL_PHP-latest}-63
 
     networks:
       - wpdevnet
@@ -75,7 +75,7 @@ services:
   # The WP CLI container.
   ##
   cli:
-    image: wordpressdevelop/cli:${LOCAL_PHP-latest}
+    image: ghcr.io/wordpress/wpdev-docker-images/cli:${LOCAL_PHP-latest}-63
 
     networks:
       - wpdevnet
@@ -96,7 +96,7 @@ services:
   # The PHPUnit container.
   ##
   phpunit:
-    image: wordpressdevelop/phpunit:${LOCAL_PHPUNIT-latest}
+    image: ghcr.io/wordpress/wpdev-docker-images/phpunit:${LOCAL_PHPUNIT-latest}-63
 
     networks:
       - wpdevnet
