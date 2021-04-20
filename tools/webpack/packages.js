@@ -144,7 +144,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'separator',
 		'social-links',
 		'spacer',
-		'subhead',
 		'table',
 		'text-columns',
 		'verse',
