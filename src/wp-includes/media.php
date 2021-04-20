@@ -5048,10 +5048,8 @@ function wp_get_webp_info( $filename ) {
 
 			// Make sure we got enough bytes.
 			if ( strlen( $magic ) < 40 ) {
-				return false;
+				return compact( 'width', 'height', 'type' );
 			}
-
-	
 
 			// The headers are a little different for each of the three formats.
 			switch ( substr( $magic, 12, 4 ) ) {
@@ -5083,11 +5081,7 @@ function wp_get_webp_info( $filename ) {
 		}
 	} catch ( Exception $e ) {
 	}
-	return array(
-		'width'  => $width,
-		'height' => $height,
-		'type'   => $type,
-	);
+	return compact( 'width', 'height', 'type' );
 }
 
 /**
