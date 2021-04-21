@@ -252,15 +252,6 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		function filter_allowed_block_types_my_editor() {
 			return array( 'test/filtered-my-block' );
 		}
-		function filter_block_categories_my_editor() {
-			return array(
-				array(
-					'slug'  => 'filtered-my-category',
-					'title' => 'Filtered My Category',
-					'icon'  => null,
-				),
-			);
-		}
 		function filter_block_editor_settings_my_editor( $editor_settings ) {
 			$editor_settings['maxUploadFileSize'] = 12345;
 
@@ -268,27 +259,61 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		}
 
 		add_filter( 'allowed_block_types_my-editor', 'filter_allowed_block_types_my_editor', 10, 1 );
-		add_filter( 'block_categories_my-editor', 'filter_block_categories_my_editor', 10, 1 );
 		add_filter( 'block_editor_settings_my-editor', 'filter_block_editor_settings_my_editor', 10, 1 );
 
 		$settings = get_block_editor_settings( 'my-editor' );
 
 		remove_filter( 'allowed_block_types_my-editor', 'filter_allowed_block_types_my_editor' );
-		remove_filter( 'block_categories_my-editor', 'filter_block_categories_my_editor' );
 		remove_filter( 'block_editor_settings_my-editor', 'filter_block_editor_settings_my_editor' );
 
 		$this->assertSameSets( array( 'test/filtered-my-block' ), $settings['allowedBlockTypes'] );
+		$this->assertSame( 12345, $settings['maxUploadFileSize'] );
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_get_block_editor_settings_overrides_default_settings_any_editor() {
+		function filter_allowed_block_types_any_editor() {
+			return array( 'test/filtered-any-block' );
+		}
+		function filter_block_categories_any_editor() {
+			return array(
+				array(
+					'slug'  => 'filtered-any-category',
+					'title' => 'Filtered Any Category',
+					'icon'  => null,
+				),
+			);
+		}
+		function filter_block_editor_settings_any_editor( $editor_settings ) {
+			$editor_settings['maxUploadFileSize'] = 54321;
+
+			return $editor_settings;
+		}
+
+		add_filter( 'allowed_block_types_all', 'filter_allowed_block_types_any_editor', 10, 1 );
+		add_filter( 'block_categories_all', 'filter_block_categories_any_editor', 10, 1 );
+		add_filter( 'block_editor_settings_all', 'filter_block_editor_settings_any_editor', 10, 1 );
+
+		$settings = get_block_editor_settings( 'any-editor' );
+
+		remove_filter( 'allowed_block_types_all', 'filter_allowed_block_types_any_editor' );
+		remove_filter( 'block_categories_all', 'filter_block_categories_any_editor' );
+		remove_filter( 'block_editor_settings_all', 'filter_block_editor_settings_any_editor' );
+
+		$this->assertSameSets( array( 'test/filtered-any-block' ), $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
 				array(
-					'slug'  => 'filtered-my-category',
-					'title' => 'Filtered My Category',
+					'slug'  => 'filtered-any-category',
+					'title' => 'Filtered Any Category',
 					'icon'  => null,
 				),
 			),
 			$settings['blockCategories']
 		);
-		$this->assertSame( 12345, $settings['maxUploadFileSize'] );
+		$this->assertSame( 54321, $settings['maxUploadFileSize'] );
 	}
 
 	/**
