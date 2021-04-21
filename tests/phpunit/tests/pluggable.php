@@ -333,16 +333,11 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		$new_user = self::factory()->user->create( array( 'role' => 'subscriber' ) );
 
 		// Set the test user as the current user
-		wp_set_current_user( $new_user );
+		$current_user = wp_set_current_user( $new_user );
 
 		// Get the test user using get_user_by()
 		$from_get_user_by = get_user_by( 'id', $new_user );
 
-		// Set the test user role as editor
-		$from_get_user_by->set_role( 'administrator' );
-
-		// current_user_can() should reflect the same changes applied to the instance returned
-		// by get_user_by().
-		$this->assertTrue( current_user_can( 'administrator' ) );
+		$this->assertSame( $current_user, $from_get_user_by );
 	}
 }
