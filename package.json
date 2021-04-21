@@ -146,7 +146,7 @@
 		"react": "16.13.1",
 		"react-dom": "16.13.1",
 		"twemoji": "13.0.2",
-		"underscore": "1.12.1",
+		"underscore": "1.13.1",
 		"whatwg-fetch": "3.0.0"
 	},
 	"scripts": {
