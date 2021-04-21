@@ -1589,7 +1589,7 @@ function clean_user_cache( $user ) {
 	 */
 	do_action( 'clean_user_cache', $user->ID, $user );
 
-	if ( get_current_user_id() == $user->ID ) {
+	if ( get_current_user_id() === (int) $user->ID ) {
 		wp_set_current_user( $user->ID, '', true );
 	}
 }

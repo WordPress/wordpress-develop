@@ -109,7 +109,7 @@ if ( ! function_exists( 'get_user_by' ) ) :
 			return false;
 		}
 
-		if ( $current_user instanceof WP_User && $current_user->ID == $userdata->ID ) {
+		if ( $current_user instanceof WP_User && $current_user->ID === (int) $userdata->ID ) {
 			return $current_user;
 		}
 
