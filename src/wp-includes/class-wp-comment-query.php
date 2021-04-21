@@ -126,6 +126,13 @@ class WP_Comment_Query {
 		if ( 'get_search_sql' === $name ) {
 			return $this->get_search_sql( ...$arguments );
 		}
+
+		$class = get_class($this);
+		$trace = debug_backtrace(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
+		$file = $trace[0]['file'];
+		$line = $trace[0]['line'];
+		trigger_error("Call to undefined method $class::$name() in $file on line $line", E_USER_ERROR);
+
 		return false;
 	}
 
