@@ -10,6 +10,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider make_absolute_url_testcases
+	 *
+	 * @covers WP_Http::make_absolute_url
 	 */
 	function test_make_absolute_url( $relative_url, $absolute_url, $expected ) {
 		$actual = WP_Http::make_absolute_url( $relative_url, $absolute_url );
@@ -69,6 +71,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider parse_url_testcases
+	 *
+	 * @covers ::wp_parse_url
 	 */
 	function test_wp_parse_url( $url, $expected ) {
 		$actual = wp_parse_url( $url );
@@ -180,6 +184,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36356
+	 *
+	 * @covers ::wp_parse_url
 	 */
 	function test_wp_parse_url_with_default_component() {
 		$actual = wp_parse_url( self::FULL_TEST_URL, -1 );
@@ -202,6 +208,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @ticket 36356
 	 *
 	 * @dataProvider parse_url_component_testcases
+	 *
+	 * @covers ::wp_parse_url
 	 */
 	function test_wp_parse_url_with_component( $url, $component, $expected ) {
 		$actual = wp_parse_url( $url, $component );
@@ -261,6 +269,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35426
+	 *
+	 * @covers ::get_status_header_desc
 	 */
 	public function test_http_response_code_constants() {
 		global $wp_header_to_desc;
@@ -277,6 +287,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37768
+	 *
+	 * @covers WP_Http::normalize_cookies
 	 */
 	public function test_normalize_cookies_scalar_values() {
 		$http = _wp_http_get_object();
@@ -312,6 +324,9 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @ticket 36356
 	 *
 	 * @dataProvider get_component_from_parsed_url_array_testcases
+	 *
+	 * @covers ::wp_parse_url
+	 * @covers ::_get_component_from_parsed_url_array
 	 */
 	function test_get_component_from_parsed_url_array( $url, $component, $expected ) {
 		$parts  = wp_parse_url( $url );
@@ -351,6 +366,8 @@ class Tests_HTTP_HTTP extends WP_UnitTestCase {
 	 * @ticket 36356
 	 *
 	 * @dataProvider wp_translate_php_url_constant_to_key_testcases
+	 *
+	 * @covers ::_wp_translate_php_url_constant_to_key
 	 */
 	function test_wp_translate_php_url_constant_to_key( $input, $expected ) {
 		$actual = _wp_translate_php_url_constant_to_key( $input );

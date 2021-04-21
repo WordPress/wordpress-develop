@@ -1,6 +1,6 @@
 {
 	"name": "twentytwenty",
-	"version": "1.6.0",
+	"version": "1.7.0",
 	"description": "Default WP Theme",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
@@ -18,12 +18,13 @@
 		"url": "https://github.com/wordpress/twentytwenty/issues"
 	},
 	"devDependencies": {
-		"@wordpress/browserslist-config": "^2.6.0",
-		"@wordpress/scripts": "^5.0.0",
-		"autoprefixer": "^9.6.1",
-		"concurrently": "^5.2.0",
-		"postcss-cli": "^7.0.0",
-		"rtlcss": "^2.5.0",
+		"@wordpress/browserslist-config": "^3.0.2",
+		"@wordpress/scripts": "^14.1.0",
+		"autoprefixer": "^9.8.6",
+		"concurrently": "^6.0.1",
+		"postcss-cli": "^8.3.1",
+		"postcss": "^8.2.9",
+		"rtlcss": "^3.1.2",
 		"stylelint-a11y": "^1.2.3"
 	},
 	"browserslist": [

@@ -96,7 +96,7 @@
 		</properties>
 	</rule>
 
-	<!-- Exclude the build folder in the current directory, as Travis puts the checkout in a build directory. -->
+	<!-- Exclude the build folder in the current directory. -->
 	<exclude-pattern type="relative">^build/*</exclude-pattern>
 
 	<!-- Directories and third party library exclusions. -->

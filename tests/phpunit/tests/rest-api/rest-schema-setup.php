@@ -27,13 +27,11 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		/** @var WP_REST_Server $wp_rest_server */
 		global $wp_rest_server;
 		$wp_rest_server = null;
 
-		remove_filter( 'pre_http_request', array( $this, 'mock_embed_request' ), 10, 3 );
+		parent::tearDown();
 	}
 
 	public function mock_embed_request( $preempt, $r, $url ) {
@@ -119,6 +117,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp/v2/users/(?P<id>[\\d]+)',
 			'/wp/v2/users/me',
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords',
+			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/introspect',
 			'/wp/v2/users/(?P<user_id>(?:[\\d]+|me))/application-passwords/(?P<uuid>[\\w\\-]+)',
 			'/wp/v2/comments',
 			'/wp/v2/comments/(?P<id>[\\d]+)',
@@ -136,6 +135,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 			'/wp-site-health/v1',
 			'/wp-site-health/v1/tests/background-updates',
 			'/wp-site-health/v1/tests/loopback-requests',
+			'/wp-site-health/v1/tests/https-status',
 			'/wp-site-health/v1/tests/dotorg-communication',
 			'/wp-site-health/v1/tests/authorization-header',
 			'/wp-site-health/v1/directory-sizes',

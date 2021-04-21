@@ -29,16 +29,6 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Cleanup after each test method.
-	 *
-	 * @since 5.3.0
-	 */
-	public function tearDown() {
-		parent::tearDown();
-		remove_filter( 'pre_http_request', array( $this, 'fake_http_request' ) );
-	}
-
-	/**
 	 * Test the function with an explicit content input.
 	 *
 	 * @since 5.3.0

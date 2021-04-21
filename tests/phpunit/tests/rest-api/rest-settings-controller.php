@@ -39,8 +39,6 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$settings_to_unregister = array(
 			'mycustomsetting',
 			'mycustomsetting1',
@@ -55,6 +53,8 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 				unregister_setting( 'somegroup', $setting );
 			}
 		}
+
+		parent::tearDown();
 	}
 
 	public function test_register_routes() {

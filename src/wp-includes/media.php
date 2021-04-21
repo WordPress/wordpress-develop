@@ -244,7 +244,7 @@ function image_downsize( $id, $size = 'medium' ) {
 		$info       = null;
 
 		if ( $thumb_file ) {
-			$info = @getimagesize( $thumb_file );
+			$info = wp_getimagesize( $thumb_file );
 		}
 
 		if ( $thumb_file && $info ) {
@@ -962,7 +962,7 @@ function wp_get_attachment_image_src( $attachment_id, $size = 'thumbnail', $icon
 				$icon_dir = apply_filters( 'icon_dir', ABSPATH . WPINC . '/images/media' );
 
 				$src_file               = $icon_dir . '/' . wp_basename( $src );
-				list( $width, $height ) = @getimagesize( $src_file );
+				list( $width, $height ) = wp_getimagesize( $src_file );
 			}
 		}
 
@@ -1124,7 +1124,8 @@ function wp_get_attachment_image( $attachment_id, $size = 'thumbnail', $icon = f
  * @param string|int[] $size          Optional. Image size. Accepts any registered image size name, or an array of
  *                                    width and height values in pixels (in that order). Default 'thumbnail'.
  * @param bool         $icon          Optional. Whether the image should be treated as an icon. Default false.
- * @return string|false Attachment URL or false if no image is available.
+ * @return string|false Attachment URL or false if no image is available. If `$size` does not match
+ *                      any registered image size, the original image URL will be returned.
  */
 function wp_get_attachment_image_url( $attachment_id, $size = 'thumbnail', $icon = false ) {
 	$image = wp_get_attachment_image_src( $attachment_id, $size, $icon );
@@ -1599,32 +1600,48 @@ function wp_image_file_matches_image_meta( $image_location, $image_meta, $attach
  *                     or false if dimensions cannot be determined.
  */
 function wp_image_src_get_dimensions( $image_src, $image_meta, $attachment_id = 0 ) {
-	if ( ! wp_image_file_matches_image_meta( $image_src, $image_meta, $attachment_id ) ) {
-		return false;
-	}
+	$dimensions = false;
 
 	// Is it a full size image?
-	if ( strpos( $image_src, $image_meta['file'] ) !== false ) {
-		return array(
+	if (
+		isset( $image_meta['file'] ) &&
+		strpos( $image_src, wp_basename( $image_meta['file'] ) ) !== false
+	) {
+		$dimensions = array(
 			(int) $image_meta['width'],
 			(int) $image_meta['height'],
 		);
 	}
 
-	if ( ! empty( $image_meta['sizes'] ) ) {
+	if ( ! $dimensions && ! empty( $image_meta['sizes'] ) ) {
 		$src_filename = wp_basename( $image_src );
 
 		foreach ( $image_meta['sizes'] as $image_size_data ) {
 			if ( $src_filename === $image_size_data['file'] ) {
-				return array(
+				$dimensions = array(
 					(int) $image_size_data['width'],
 					(int) $image_size_data['height'],
 				);
+
+				break;
 			}
 		}
 	}
 
-	return false;
+	/**
+	 * Filters the 'wp_image_src_get_dimensions' value.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array|false $dimensions    Array with first element being the width
+	 *                                   and second element being the height, or
+	 *                                   false if dimensions could not be determined.
+	 * @param string      $image_src     The image source file.
+	 * @param array       $image_meta    The image meta data as returned by
+	 *                                   'wp_get_attachment_metadata()'.
+	 * @param int         $attachment_id The image attachment ID. Default 0.
+	 */
+	return apply_filters( 'wp_image_src_get_dimensions', $dimensions, $image_src, $image_meta, $attachment_id );
 }
 
 /**
@@ -1852,6 +1869,11 @@ function wp_filter_content_tags( $content, $context = null ) {
  * @return string Converted `img` tag with `loading` attribute added.
  */
 function wp_img_tag_add_loading_attr( $image, $context ) {
+	// Images should have source and dimension attributes for the `loading` attribute to be added.
+	if ( false === strpos( $image, ' src="' ) || false === strpos( $image, ' width="' ) || false === strpos( $image, ' height="' ) ) {
+		return $image;
+	}
+
 	/**
 	 * Filters the `loading` attribute value to add to an image. Default `lazy`.
 	 *
@@ -1870,11 +1892,6 @@ function wp_img_tag_add_loading_attr( $image, $context ) {
 	if ( $value ) {
 		if ( ! in_array( $value, array( 'lazy', 'eager' ), true ) ) {
 			$value = 'lazy';
-		}
-
-		// Images should have source and dimension attributes for the `loading` attribute to be added.
-		if ( false === strpos( $image, ' src="' ) || false === strpos( $image, ' width="' ) || false === strpos( $image, ' height="' ) ) {
-			return $image;
 		}
 
 		return str_replace( '<img', '<img loading="' . esc_attr( $value ) . '"', $image );
@@ -1972,6 +1989,17 @@ function wp_img_tag_add_srcset_and_sizes_attr( $image, $context, $attachment_id 
  * @return string Converted `iframe` tag with `loading` attribute added.
  */
 function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
+	// Iframes with fallback content (see `wp_filter_oembed_result()`) should not be lazy-loaded because they are
+	// visually hidden initially.
+	if ( false !== strpos( $iframe, ' data-secret="' ) ) {
+		return $iframe;
+	}
+
+	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
+	if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
+		return $iframe;
+	}
+
 	/**
 	 * Filters the `loading` attribute value to add to an iframe. Default `lazy`.
 	 *
@@ -1990,11 +2018,6 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	if ( $value ) {
 		if ( ! in_array( $value, array( 'lazy', 'eager' ), true ) ) {
 			$value = 'lazy';
-		}
-
-		// Iframes should have source and dimension attributes for the `loading` attribute to be added.
-		if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
-			return $iframe;
 		}
 
 		return str_replace( '<iframe', '<iframe loading="' . esc_attr( $value ) . '"', $iframe );
@@ -2776,7 +2799,7 @@ function wp_playlist_shortcode( $attr ) {
 <div class="wp-playlist wp-<?php echo $safe_type; ?>-playlist wp-playlist-<?php echo $safe_style; ?>">
 	<?php if ( 'audio' === $atts['type'] ) : ?>
 		<div class="wp-playlist-current-item"></div>
-	<?php endif ?>
+	<?php endif; ?>
 	<<?php echo $safe_type; ?> controls="controls" preload="none" width="<?php echo (int) $theme_width; ?>"
 		<?php
 		if ( 'video' === $safe_type ) {
@@ -3424,7 +3447,8 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
 
 		if ( isset( $attachments[ $k ] ) ) {
 			$attachment_id = $attachments[ $k ]->ID;
-			$output        = wp_get_attachment_link( $attachment_id, $size, true, false, $text );
+			$attr          = array( 'alt' => get_the_title( $attachment_id ) );
+			$output        = wp_get_attachment_link( $attachment_id, $size, true, false, $text, $attr );
 		}
 	}
 
@@ -3435,6 +3459,11 @@ function adjacent_image_link( $prev = true, $size = 'thumbnail', $text = false )
 	 *
 	 * The dynamic portion of the hook name, `$adjacent`, refers to the type of adjacency,
 	 * either 'next', or 'previous'.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `next_image_link`
+	 *  - `previous_image_link`
 	 *
 	 * @since 3.5.0
 	 *
@@ -4945,4 +4974,46 @@ function _wp_add_additional_image_sizes() {
 function wp_show_heic_upload_error( $plupload_settings ) {
 	$plupload_settings['heic_upload_error'] = true;
 	return $plupload_settings;
+}
+
+/**
+ * Allows PHP's getimagesize() to be debuggable when necessary.
+ *
+ * @since 5.7.0
+ *
+ * @param string $filename   The file path.
+ * @param array  $image_info Optional. Extended image information (passed by reference).
+ * @return array|false Array of image information or false on failure.
+ */
+function wp_getimagesize( $filename, array &$image_info = null ) {
+	if (
+		// Skip when running unit tests.
+		! defined( 'WP_RUN_CORE_TESTS' )
+		&&
+		// Return without silencing errors when in debug mode.
+		defined( 'WP_DEBUG' ) && WP_DEBUG
+	) {
+		if ( 2 === func_num_args() ) {
+			return getimagesize( $filename, $image_info );
+		} else {
+			return getimagesize( $filename );
+		}
+	}
+
+	/*
+	 * Silencing notice and warning is intentional.
+	 *
+	 * getimagesize() has a tendency to generate errors, such as
+	 * "corrupt JPEG data: 7191 extraneous bytes before marker",
+	 * even when it's able to provide image size information.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/42480
+	 */
+	if ( 2 === func_num_args() ) {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
+		return @getimagesize( $filename, $image_info );
+	} else {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors
+		return @getimagesize( $filename );
+	}
 }

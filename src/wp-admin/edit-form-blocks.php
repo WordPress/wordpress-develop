@@ -39,7 +39,6 @@ add_filter( 'screen_options_show_screen', '__return_false' );
 
 wp_enqueue_script( 'heartbeat' );
 wp_enqueue_script( 'wp-edit-post' );
-wp_enqueue_script( 'wp-format-library' );
 
 $rest_base = ! empty( $post_type_object->rest_base ) ? $post_type_object->rest_base : $post_type_object->name;
 
@@ -147,6 +146,7 @@ $font_sizes         = current( (array) get_theme_support( 'editor-font-sizes' ) 
 $gradient_presets   = current( (array) get_theme_support( 'editor-gradient-presets' ) );
 $custom_line_height = get_theme_support( 'custom-line-height' );
 $custom_units       = get_theme_support( 'custom-units' );
+$custom_spacing     = get_theme_support( 'custom-spacing' );
 
 /**
  * Filters the allowed block types for the editor, defaulting to true (all
@@ -184,18 +184,9 @@ if ( ! $max_upload_size ) {
 // Editor Styles.
 $styles = array(
 	array(
-		'css' => file_get_contents(
-			ABSPATH . WPINC . '/css/dist/editor/editor-styles.css'
-		),
+		'css' => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
 	),
 );
-
-/* translators: Use this to specify the CSS font family for the default font. */
-$locale_font_family = esc_html_x( 'Noto Serif', 'CSS Font Family for Editor Font' );
-$styles[]           = array(
-	'css' => "body { font-family: '$locale_font_family' }",
-);
-
 if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
 	foreach ( $editor_styles as $style ) {
 		if ( preg_match( '~^(https?:)?//~', $style ) ) {
@@ -237,6 +228,9 @@ foreach ( $image_size_names as $image_size_slug => $image_size_name ) {
 		'name' => $image_size_name,
 	);
 }
+
+$default_size       = get_option( 'image_default_size', 'large' );
+$image_default_size = in_array( $default_size, array_keys( $image_size_names ), true ) ? $image_default_size : 'large';
 
 $image_dimensions = array();
 $all_sizes        = wp_get_registered_image_subsizes();
@@ -287,11 +281,12 @@ if ( $user_id ) {
  * Filters the body placeholder text.
  *
  * @since 5.0.0
+ * @since 5.8.0 Changed the default placeholder text.
  *
- * @param string  $text Placeholder text. Default 'Start writing or type / to choose a block'.
+ * @param string  $text Placeholder text. Default 'Type / to choose a block'.
  * @param WP_Post $post Post object.
  */
-$body_placeholder = apply_filters( 'write_your_story', __( 'Start writing or type / to choose a block' ), $post );
+$body_placeholder = apply_filters( 'write_your_story', __( 'Type / to choose a block' ), $post );
 
 $editor_settings = array(
 	'alignWide'                            => $align_wide,
@@ -310,6 +305,7 @@ $editor_settings = array(
 	'allowedMimeTypes'                     => get_allowed_mime_types(),
 	'styles'                               => $styles,
 	'imageSizes'                           => $available_image_sizes,
+	'imageDefaultSize'                     => $image_default_size,
 	'imageDimensions'                      => $image_dimensions,
 	'richEditingEnabled'                   => user_can_richedit(),
 	'postLock'                             => $lock_details,
@@ -326,9 +322,10 @@ $editor_settings = array(
 	'enableCustomFields'                   => (bool) get_user_meta( get_current_user_id(), 'enable_custom_fields', true ),
 	'enableCustomLineHeight'               => $custom_line_height,
 	'enableCustomUnits'                    => $custom_units,
+	'enableCustomSpacing'                  => $custom_spacing,
 );
 
-$autosave = wp_get_post_autosave( $post_ID );
+$autosave = wp_get_post_autosave( $post->ID );
 if ( $autosave ) {
 	if ( mysql2date( 'U', $autosave->post_modified_gmt, false ) > mysql2date( 'U', $post->post_modified_gmt, false ) ) {
 		$editor_settings['autosave'] = array(
@@ -380,7 +377,6 @@ wp_enqueue_editor();
  * Styles
  */
 wp_enqueue_style( 'wp-edit-post' );
-wp_enqueue_style( 'wp-format-library' );
 
 /**
  * Fires after block assets have been enqueued for the editing interface.

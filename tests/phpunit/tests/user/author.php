@@ -39,11 +39,6 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
-	function tearDown() {
-		wp_reset_postdata();
-		parent::tearDown();
-	}
-
 	function test_get_the_author() {
 		$author_name = get_the_author();
 		$user        = new WP_User( self::$author_id );

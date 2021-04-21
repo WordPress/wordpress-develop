@@ -42,9 +42,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->old_date_redirect_url = null;
+
+		parent::tearDown();
 	}
 
 	public function test_old_date_redirect() {

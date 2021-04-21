@@ -169,24 +169,27 @@ function _wp_translate_postdata( $update = false, $post_data = null ) {
 	}
 
 	if ( ! empty( $post_data['edit_date'] ) ) {
-		$aa                     = $post_data['aa'];
-		$mm                     = $post_data['mm'];
-		$jj                     = $post_data['jj'];
-		$hh                     = $post_data['hh'];
-		$mn                     = $post_data['mn'];
-		$ss                     = $post_data['ss'];
-		$aa                     = ( $aa <= 0 ) ? gmdate( 'Y' ) : $aa;
-		$mm                     = ( $mm <= 0 ) ? gmdate( 'n' ) : $mm;
-		$jj                     = ( $jj > 31 ) ? 31 : $jj;
-		$jj                     = ( $jj <= 0 ) ? gmdate( 'j' ) : $jj;
-		$hh                     = ( $hh > 23 ) ? $hh - 24 : $hh;
-		$mn                     = ( $mn > 59 ) ? $mn - 60 : $mn;
-		$ss                     = ( $ss > 59 ) ? $ss - 60 : $ss;
+		$aa = $post_data['aa'];
+		$mm = $post_data['mm'];
+		$jj = $post_data['jj'];
+		$hh = $post_data['hh'];
+		$mn = $post_data['mn'];
+		$ss = $post_data['ss'];
+		$aa = ( $aa <= 0 ) ? gmdate( 'Y' ) : $aa;
+		$mm = ( $mm <= 0 ) ? gmdate( 'n' ) : $mm;
+		$jj = ( $jj > 31 ) ? 31 : $jj;
+		$jj = ( $jj <= 0 ) ? gmdate( 'j' ) : $jj;
+		$hh = ( $hh > 23 ) ? $hh - 24 : $hh;
+		$mn = ( $mn > 59 ) ? $mn - 60 : $mn;
+		$ss = ( $ss > 59 ) ? $ss - 60 : $ss;
+
 		$post_data['post_date'] = sprintf( '%04d-%02d-%02d %02d:%02d:%02d', $aa, $mm, $jj, $hh, $mn, $ss );
-		$valid_date             = wp_checkdate( $mm, $jj, $aa, $post_data['post_date'] );
+
+		$valid_date = wp_checkdate( $mm, $jj, $aa, $post_data['post_date'] );
 		if ( ! $valid_date ) {
 			return new WP_Error( 'invalid_date', __( 'Invalid date.' ) );
 		}
+
 		$post_data['post_date_gmt'] = get_gmt_from_date( $post_data['post_date'] );
 	}
 
@@ -246,8 +249,9 @@ function edit_post( $post_data = null ) {
 	// Clear out any data in internal vars.
 	unset( $post_data['filter'] );
 
-	$post_ID                     = (int) $post_data['post_ID'];
-	$post                        = get_post( $post_ID );
+	$post_ID = (int) $post_data['post_ID'];
+	$post    = get_post( $post_ID );
+
 	$post_data['post_type']      = $post->post_type;
 	$post_data['post_mime_type'] = $post->post_mime_type;
 
@@ -1168,8 +1172,11 @@ function wp_edit_posts_query( $q = false ) {
 	 *
 	 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
 	 *
-	 * Some examples of filter hooks generated here include: 'edit_attachment_per_page',
-	 * 'edit_post_per_page', 'edit_page_per_page', etc.
+	 * Possible hook names include:
+	 *
+	 *  - `edit_post_per_page`
+	 *  - `edit_page_per_page`
+	 *  - `edit_attachment_per_page`
 	 *
 	 * @since 3.0.0
 	 *
@@ -1357,7 +1364,7 @@ function get_sample_permalink( $id, $title = null, $name = null ) {
 	$original_date   = $post->post_date;
 	$original_name   = $post->post_name;
 
-	// Hack: get_permalink() would return ugly permalink for drafts, so we will fake that our post is published.
+	// Hack: get_permalink() would return plain permalink for drafts, so we will fake that our post is published.
 	if ( in_array( $post->post_status, array( 'draft', 'pending', 'future' ), true ) ) {
 		$post->post_status = 'publish';
 		$post->post_name   = sanitize_title( $post->post_name ? $post->post_name : $post->post_title, $post->ID );
@@ -2204,6 +2211,11 @@ function get_block_categories( $post ) {
 			'icon'  => null,
 		),
 		array(
+			'slug'  => 'theme',
+			'title' => _x( 'Theme', 'block category' ),
+			'icon'  => null,
+		),
+		array(
 			'slug'  => 'embed',
 			'title' => _x( 'Embeds', 'block category' ),
 			'icon'  => null,
@@ -2240,19 +2252,21 @@ function get_block_editor_server_block_settings() {
 	$block_registry = WP_Block_Type_Registry::get_instance();
 	$blocks         = array();
 	$fields_to_pick = array(
+		'api_version'      => 'apiVersion',
 		'title'            => 'title',
 		'description'      => 'description',
 		'icon'             => 'icon',
-		'category'         => 'category',
-		'keywords'         => 'keywords',
-		'parent'           => 'parent',
-		'supports'         => 'supports',
 		'attributes'       => 'attributes',
 		'provides_context' => 'providesContext',
 		'uses_context'     => 'usesContext',
+		'supports'         => 'supports',
+		'category'         => 'category',
 		'styles'           => 'styles',
 		'textdomain'       => 'textdomain',
+		'parent'           => 'parent',
+		'keywords'         => 'keywords',
 		'example'          => 'example',
+		'variations'       => 'variations',
 	);
 
 	foreach ( $block_registry->get_all_registered() as $block_name => $block_type ) {
@@ -2303,7 +2317,7 @@ function the_block_editor_meta_boxes() {
 	<?php the_block_editor_meta_box_post_form_hidden_fields( $post ); ?>
 	</form>
 	<form id="toggle-custom-fields-form" method="post" action="<?php echo esc_attr( admin_url( 'post.php' ) ); ?>">
-		<?php wp_nonce_field( 'toggle-custom-fields' ); ?>
+		<?php wp_nonce_field( 'toggle-custom-fields', 'toggle-custom-fields-nonce' ); ?>
 		<input type="hidden" name="action" value="toggle-custom-fields" />
 	</form>
 	<?php foreach ( $locations as $location ) : ?>

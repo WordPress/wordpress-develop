@@ -59,8 +59,8 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tearDown() {
-		parent::tearDown();
 		$_REQUEST = array();
+		parent::tearDown();
 	}
 
 	/**
