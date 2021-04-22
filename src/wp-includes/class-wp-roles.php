@@ -109,8 +109,6 @@ class WP_Roles {
 		$file  = $trace[0]['file'];
 		$line  = $trace[0]['line'];
 		trigger_error( "Call to undefined method $class::$name() in $file on line $line", E_USER_ERROR );
-
-		return false;
 	}
 
 	/**
