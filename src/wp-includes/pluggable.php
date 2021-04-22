@@ -17,16 +17,14 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 	 * actions on users who aren't signed in.
 	 *
 	 * @since 2.0.3
-	 * @since 5.7.0 The `$force` param was added.
 	 *
 	 * @global WP_User $current_user The current user object which holds the user data.
 	 *
-	 * @param int    $id    User ID
-	 * @param string $name  User's username
-	 * @param bool   $force Set to true to force the re-setup of the current user object. Default false.
+	 * @param int    $id   User ID
+	 * @param string $name User's username
 	 * @return WP_User Current user User object
 	 */
-	function wp_set_current_user( $id, $name = '', $force = false ) {
+	function wp_set_current_user( $id, $name = '' ) {
 		global $current_user;
 
 		// If `$id` matches the current user, there is nothing to do.
@@ -34,7 +32,6 @@ if ( ! function_exists( 'wp_set_current_user' ) ) :
 		&& ( $current_user instanceof WP_User )
 		&& ( $id == $current_user->ID )
 		&& ( null !== $id )
-		&& ( ! $force )
 		) {
 			return $current_user;
 		}
