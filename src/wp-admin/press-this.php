@@ -11,6 +11,11 @@ const IFRAME_REQUEST = true;
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+/**
+ * Loads the Press This application.
+ *
+ * If Press This is not installed, it offers to install it for users with sufficient capabilities.
+ */
 function wp_load_press_this() {
 	/**
 	 * Press This Plugin Slug
@@ -122,6 +127,9 @@ function wp_load_press_this() {
 	}
 }
 
+/**
+ * Executes the default Press This application.
+ */
 function wp_execute_press_this() {
 	include WP_PLUGIN_DIR . '/press-this/class-wp-press-this-plugin.php';
 	$wp_press_this = new WP_Press_This_Plugin();
