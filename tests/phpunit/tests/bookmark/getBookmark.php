@@ -21,10 +21,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 
 	public function tearDown() {
 		unset( $GLOBALS['link'] );
-		if ( isset( $this->bookmark->link_id ) ) {
-			wp_cache_delete( $this->bookmark->link_id, 'bookmark' );
-		}
-
 		parent::tearDown();
 	}
 
