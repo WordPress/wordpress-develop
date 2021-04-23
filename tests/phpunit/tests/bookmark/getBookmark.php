@@ -213,8 +213,10 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
 
-		// For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
-		// property values but will be a different object than the expected object.
+		/*
+		 * For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
+		 * property values but will be a different object than the expected object.
+		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
@@ -269,8 +271,10 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		// Run the function and test results.
 		$actual_bookmark = get_bookmark( ...$args );
 
-		// For non-array output type, use assetEquals. Why? The object pulled from the database will have the same
-		// property values but will be a different object than the expected object.
+		/*
+		 * For non-array output type, use assetEquals. Why? The object pulled from the database will have the same
+		 * property values but will be a different object than the expected object.
+		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
@@ -328,7 +332,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @param array        $args     Function argument list.
 	 * @param int|stdClass $bookmark Optional. Bookmark's cache key or instance.
-	 *
 	 * @return array Ordered argument list.
 	 */
 	private function init_func_args( array $args, $bookmark = null ) {
@@ -345,8 +348,10 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 			$args['bookmark'] = $bookmark;
 		}
 
-		// Strip out the keys. Why? The splat operator (...) does not work with associative arrays,
-		// except for in PHP 8 where the keys are named arguments.
+		/*
+		 * Strip out the keys. Why? The splat operator (...) does not work with associative arrays,
+		 * except for in PHP 8 where the keys are named arguments.
+		 */
 		return array_values( $args );
 	}
 
@@ -355,7 +360,6 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	 *
 	 * @param array             $args     Function argument list.
 	 * @param int|stdClass|null $bookmark Optional. Bookmark's cache key or instance.
-	 *
 	 * @return array|stdClass bookmark's data.
 	 */
 	private function maybe_format_expected_data( array $args, $bookmark = null ) {
