@@ -234,7 +234,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
-			$this->assertSame( $expected, $actual_bookmark );
+			$this->assertSameSets( $expected, $actual_bookmark );
 		}
 
 		// Check the bookmark was cached.
@@ -292,7 +292,7 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
 		} else {
-			$this->assertSame( $expected, $actual_bookmark );
+			$this->assertSameSets( $expected, $actual_bookmark );
 		}
 
 		// Check the bookmark was cached.
