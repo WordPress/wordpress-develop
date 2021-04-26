@@ -91,7 +91,7 @@ if ( ! function_exists( 'get_user_by' ) ) :
 	 *
 	 * @since 2.8.0
 	 * @since 4.4.0 Added 'ID' as an alias of 'id' for the `$field` parameter.
-	 * @since 5.7.0 Returns the global $current_user if it's the user being fetched.
+	 * @since 5.8.0 Returns the global `$current_user` if it's the user being fetched.
 	 *
 	 * @param string     $field The field to retrieve the user with. id | ID | slug | email | login.
 	 * @param int|string $value A value for $field. A user ID, slug, email address, or login name.
