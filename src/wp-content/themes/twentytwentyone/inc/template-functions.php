@@ -388,11 +388,12 @@ function twenty_twenty_one_print_first_instance_of_block( $block_name, $content 
  *
  * @since Twenty Twenty-One 1.0
  *
- * @param int|WP_Post $post Optional. Post ID or WP_Post object. Default is global $post.
+ * @global WP_Post $post Global post object.
+ *
  * @return string HTML content for password form for password protected post.
  */
-function twenty_twenty_one_password_form( $post = 0 ) {
-	$post   = get_post( $post );
+function twenty_twenty_one_password_form() {
+	global $post;
 	$label  = 'pwbox-' . ( empty( $post->ID ) ? wp_rand() : $post->ID );
 	$output = '<p class="post-password-message">' . esc_html__( 'This content is password protected. Please enter a password to view.', 'twentytwentyone' ) . '</p>
 	<form action="' . esc_url( site_url( 'wp-login.php?action=postpass', 'login_post' ) ) . '" class="post-password-form" method="post">
