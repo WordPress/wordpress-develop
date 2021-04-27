@@ -262,7 +262,6 @@ textarea:focus {
 #adminmenu li.opensub > a.menu-top,
 #adminmenu li > a.menu-top:focus {
 	color: $menu-highlight-text;
-	background-color: $menu-highlight-background;
 }
 
 #adminmenu li.menu-top:hover div.wp-menu-image:before,
@@ -282,17 +281,8 @@ textarea:focus {
 
 
 /* Admin Menu: submenu */
-
-#adminmenu .wp-submenu,
-#adminmenu .wp-has-current-submenu .wp-submenu,
-#adminmenu .wp-has-current-submenu.opensub .wp-submenu,
-#adminmenu a.wp-has-current-submenu:focus + .wp-submenu {
-	background: $menu-submenu-background;
-}
-
-#adminmenu li.wp-has-submenu.wp-not-current-submenu.opensub:hover:after,
-#adminmenu li.wp-has-submenu.wp-not-current-submenu:focus-within:after {
-	border-right-color: $menu-submenu-background;
+#adminmenu .wp-submenu {
+	background-color: $menu-submenu-background;
 }
 
 #adminmenu .wp-submenu .wp-submenu-head {
@@ -333,7 +323,16 @@ ul#adminmenu > li.current > a.current:after {
 #adminmenu li.wp-has-current-submenu .wp-submenu .wp-submenu-head,
 .folded #adminmenu li.current.menu-top {
 	color: $menu-current-text;
+}
+
+#adminmenu .wp-submenu li.current,
+#adminmenu .wp-submenu li.current a,
+#adminmenu .opensub .wp-submenu li.current a,
+#adminmenu a.wp-has-current-submenu:focus + .wp-submenu li.current a,
+#adminmenu .wp-submenu li.current a:hover,
+#adminmenu .wp-submenu li.current a:focus {
 	background: $menu-current-background;
+	color: $menu-current-text;
 }
 
 #adminmenu li.wp-has-current-submenu div.wp-menu-image:before,
@@ -403,7 +402,6 @@ ul#adminmenu > li.current > a.current:after {
 #wpadminbar.nojs .ab-top-menu > li.menupop:hover > .ab-item,
 #wpadminbar .ab-top-menu > li.menupop.hover > .ab-item {
 	color: $menu-submenu-focus-text;
-	background: $menu-submenu-background;
 }
 
 #wpadminbar:not(.mobile) > #wp-toolbar li:hover span.ab-label,
