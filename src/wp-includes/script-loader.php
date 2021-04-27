@@ -84,17 +84,15 @@ function wp_default_packages_vendor( $scripts ) {
 		'react-dom' => array( 'react' ),
 		'moment',
 		'lodash',
-		'wp-polyfill-formdata',
 		'wp-polyfill',
 	);
 
 	$vendor_scripts_versions = array(
-		'react'                       => '16.13.1',
-		'react-dom'                   => '16.13.1',
-		'moment'                      => '2.29.1',
-		'lodash'                      => '4.17.19',
-		'wp-polyfill-formdata'        => '3.0.20',
-		'wp-polyfill'                 => '7.4.4',
+		'react'       => '16.13.1',
+		'react-dom'   => '16.13.1',
+		'moment'      => '2.29.1',
+		'lodash'      => '4.17.19',
+		'wp-polyfill' => '7.4.4',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -110,15 +108,6 @@ function wp_default_packages_vendor( $scripts ) {
 	}
 
 	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
-	did_action( 'init' ) && $scripts->add_inline_script(
-		'wp-polyfill',
-		wp_get_script_polyfill(
-			$scripts,
-			array(
-				'window.FormData && window.FormData.prototype.keys' => 'wp-polyfill-formdata',
-			)
-		)
-	);
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
 

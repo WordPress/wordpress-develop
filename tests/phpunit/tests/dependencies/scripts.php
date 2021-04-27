@@ -723,15 +723,9 @@ JS;
 
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill{$suffix}.js' id='wp-polyfill-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='wp-polyfill-js-after'>\n";
-		$expected .= "( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata.js\"></scr' + 'ipt>' );\n";
-		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready{$suffix}.js' id='wp-dom-ready-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/hooks{$suffix}.js' id='wp-hooks-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
 		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
 		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
