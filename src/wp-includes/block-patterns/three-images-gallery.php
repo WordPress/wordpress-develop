@@ -1,17 +1,17 @@
 <?php
 /**
- * Three Images gallery
+ * Three columns with offset images.
  *
  * @package WordPress
  */
 
 return array(
-	'title'       => __( 'Three Images gallery' ),
-	'categories'  => array( 'arquitecture' ),
-	'content'     => '<!-- wp:columns {"align":"wide","backgroundColor":"white"} -->
-	<div class="wp-block-columns alignwide has-white-background-color has-background"><!-- wp:column {"width":"25%"} -->
-	<div class="wp-block-column" style="flex-basis:25%"><!-- wp:image {"id":240,"sizeSlug":"large","linkDestination":"none","className":"is-style-default"} -->
-	<figure class="wp-block-image size-large is-style-default"><img src="https://blockpatterndesigns.mystagingwebsite.com/wp-content/uploads/2021/02/wing-light-architecture-structure-wood-white-714046-pxhere.com_-576x1024.jpg" alt="" class="wp-image-240"/></figure>
+	'title'       => _x( 'Three columns with offset images', 'Block pattern title', 'default' ),
+	'categories'  => array( 'gallery' ),
+	'content'     => '<!-- wp:columns {"align":"wide"} -->
+	<div class="wp-block-columns alignwide"><!-- wp:column {"width":"25%"} -->
+	<div class="wp-block-column" style="flex-basis:25%"><!-- wp:image {"id":null,"sizeSlug":"large","linkDestination":"none","className":"is-style-default"} -->
+	<figure class="wp-block-image size-large is-style-default"><img src="https://s.w.org/images/core/5.8/architecture-01.jpg" alt="' . esc_attr__( 'Close-up, abstract view of geometric architecture.', 'default' ) . '" /></figure>
 	<!-- /wp:image --></div>
 	<!-- /wp:column -->
 	
@@ -24,14 +24,14 @@ return array(
 	<div style="height:150px" aria-hidden="true" class="wp-block-spacer"></div>
 	<!-- /wp:spacer -->
 	
-	<!-- wp:image {"id":237,"sizeSlug":"large","linkDestination":"none"} -->
-	<figure class="wp-block-image size-large"><img src="https://blockpatterndesigns.mystagingwebsite.com/wp-content/uploads/2021/02/wing-architecture-structure-wood-white-house-997338-pxhere.com_-683x1024.jpg" alt="" class="wp-image-237"/></figure>
+	<!-- wp:image {"id":null,"sizeSlug":"large","linkDestination":"none"} -->
+	<figure class="wp-block-image size-large"><img src="https://s.w.org/images/core/5.8/architecture-02.jpg" alt="' . esc_attr__( 'Close-up, angled view of a window on a white building.', 'default' ) . '" /></figure>
 	<!-- /wp:image --></div>
 	<!-- /wp:column -->
 	
 	<!-- wp:column {"width":"45%"} -->
-	<div class="wp-block-column" style="flex-basis:45%"><!-- wp:image {"id":236,"sizeSlug":"large","linkDestination":"none","className":"is-style-default"} -->
-	<figure class="wp-block-image size-large is-style-default"><img src="https://blockpatterndesigns.mystagingwebsite.com/wp-content/uploads/2021/02/wing-architecture-structure-building-ceiling-geometric-99094-pxhere.com_-1024x683.jpg" alt="" class="wp-image-236"/></figure>
+	<div class="wp-block-column" style="flex-basis:45%"><!-- wp:image {"id":null,"sizeSlug":"large","linkDestination":"none","className":"is-style-default"} -->
+	<figure class="wp-block-image size-large is-style-default"><img src="https://s.w.org/images/core/5.8/architecture-03.jpg" alt="' . esc_attr__( 'Close-up of the corner of a white, geometric building with both sharp points and round corners.', 'default' ) . '" /></figure>
 	<!-- /wp:image -->
 	
 	<!-- wp:spacer {"height":285} -->
@@ -39,5 +39,5 @@ return array(
 	<!-- /wp:spacer --></div>
 	<!-- /wp:column --></div>
 	<!-- /wp:columns -->',
-	'description' => _x( 'Three Images gallery', 'Block pattern description' ),
+	'description' => _x( 'Three columns with offset images', 'Block pattern description', 'default' ),
 );

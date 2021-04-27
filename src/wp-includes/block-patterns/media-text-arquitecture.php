@@ -1,29 +1,21 @@
 <?php
 /**
- * Media + Text
+ * Media and text with image on the right.
  *
  * @package WordPress
  */
 
 return array(
-	'title'       => __( 'Media + text' ),
-	'categories'  => array( 'arquitecture' ),
-	'content'     => '<!-- wp:columns {"align":"full","backgroundColor":"white"} -->
-	<div class="wp-block-columns alignfull has-white-background-color has-background"><!-- wp:column -->
-	<div class="wp-block-column"><!-- wp:image {"align":"full","id":330,"sizeSlug":"large","linkDestination":"none"} -->
-	<figure class="wp-block-image alignfull size-large"><img src="https://blockpatterndesigns.mystagingwebsite.com/wp-content/uploads/2021/02/StockSnap_C7E4WYWEHZ-edited-768x1024.jpg" alt="" class="wp-image-330"/></figure>
-	<!-- /wp:image --></div>
-	<!-- /wp:column -->
-	
-	<!-- wp:column {"verticalAlignment":"center"} -->
-	<div class="wp-block-column is-vertically-aligned-center"><!-- wp:heading {"textAlign":"center","level":3,"textColor":"black"} -->
-	<h3 class="has-text-align-center has-black-color has-text-color"><strong>'. __("Open Spaces") .'</strong></h3>
+	'title'       => _x( 'Media and text with image on the right', 'Block pattern title', 'default' ),
+	'categories'  => array( 'header' ),
+	'content'     => '<!-- wp:media-text {"align":"full","mediaId":null,"mediaType":"image","verticalAlignment":"center"} -->
+	<div class="wp-block-media-text alignfull is-stacked-on-mobile is-vertically-aligned-center"><figure class="wp-block-media-text__media"><img src="https://s.w.org/images/core/5.8/architecture-04.jpg" alt="' . esc_attr__( 'Close-up, abstract view of architecture.', 'default' ) . '"/></figure><div class="wp-block-media-text__content"><!-- wp:heading {"textAlign":"center","level":3,"style":{"color":{"text":"#000000"}}} -->
+	<h3 class="has-text-align-center has-text-color" style="color:#000000"><strong>' . esc_html__( 'Open Spaces', 'default' ) . '</strong></h3>
 	<!-- /wp:heading -->
 	
-	<!-- wp:paragraph {"align":"center","style":{"color":{"text":"#0026ff"}},"fontSize":"extra-small"} -->
-	<p class="has-text-align-center has-text-color has-extra-small-font-size" style="color:#0026ff"><a href="https://blockpatterndesigns.mystagingwebsite.com">'. __("See case study ↗") .'</a></p>
-	<!-- /wp:paragraph --></div>
-	<!-- /wp:column --></div>
-	<!-- /wp:columns -->',
-	'description' => _x( 'Media and text block with image to the left and text to the right', 'Block pattern description' ),
+	<!-- wp:paragraph {"align":"center","fontSize":"extra-small"} -->
+	<p class="has-text-align-center has-extra-small-font-size"><a href="#">' . esc_html__( 'See case study ↗', 'default' ) . '</a></p>
+	<!-- /wp:paragraph --></div></div>
+	<!-- /wp:media-text -->',
+	'description' => _x( 'Media and text block with image to the left and text to the right', 'Block pattern description', 'default' ),
 );
