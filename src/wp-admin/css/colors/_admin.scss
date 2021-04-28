@@ -242,7 +242,6 @@ textarea:focus {
 
 
 /* Admin Menu */
-
 #adminmenuback,
 #adminmenuwrap,
 #adminmenu {
@@ -281,8 +280,16 @@ textarea:focus {
 
 
 /* Admin Menu: submenu */
-#adminmenu .wp-submenu {
+#adminmenu .wp-not-current-submenu .wp-submenu,
+.folded #adminmenu .wp-submenu {
 	background-color: $menu-submenu-background;
+}
+
+@media only screen and (max-width: 960px) {
+	.auto-fold #adminmenu a.wp-has-current-submenu:focus + .wp-submenu,
+	.auto-fold #adminmenu .wp-has-current-submenu .wp-submenu {
+		background-color: $menu-submenu-background;
+	}
 }
 
 #adminmenu .wp-submenu .wp-submenu-head {
@@ -300,9 +307,7 @@ textarea:focus {
 	}
 }
 
-
 /* Admin Menu: current */
-
 #adminmenu .wp-submenu li.current a,
 #adminmenu a.wp-has-current-submenu:focus + .wp-submenu li.current a,
 #adminmenu .wp-has-current-submenu.opensub .wp-submenu li.current a {
@@ -345,7 +350,6 @@ ul#adminmenu > li.current > a.current:after {
 #adminmenu li.opensub div.wp-menu-image:before {
 	color: $menu-current-icon;
 }
-
 
 /* Admin Menu: bubble */
 
