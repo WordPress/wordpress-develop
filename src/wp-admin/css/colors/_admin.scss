@@ -340,6 +340,11 @@ ul#adminmenu > li.current > a.current:after {
 	color: $menu-current-text;
 }
 
+#adminmenu li.current a.menu-top:not(.wp-has-current-submenu) {
+	background: $menu-current-background;
+	color: $menu-current-text;
+}
+
 #adminmenu li.wp-has-current-submenu div.wp-menu-image:before,
 #adminmenu a.current:hover div.wp-menu-image:before,
 #adminmenu li.current div.wp-menu-image:before,
