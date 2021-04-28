@@ -114,7 +114,7 @@ jobs:
         run: npm run build:dev
 
       - name: Clean after building in /src
-        run: npm run grunt clean --dev
+        run: npm run grunt clean -- --dev
 
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
@@ -172,4 +172,4 @@ jobs:
         run: npm run build:dev
 
       - name: Clean after building in /src
-        run: npm run grunt clean --dev
+        run: npm run grunt clean -- --dev
