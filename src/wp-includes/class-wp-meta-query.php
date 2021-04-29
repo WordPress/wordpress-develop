@@ -555,20 +555,17 @@ class WP_Meta_Query {
 			$alias = $i ? 'mt' . $i : $this->meta_table;
 
 			// JOIN clauses for NOT EXISTS have their own syntax.
-			if ( 'NOT EXISTS' === $meta_compare ) {
-				$join .= " LEFT JOIN $this->meta_table";
-				$join .= $i ? " AS $alias" : '';
+			$join_type = 'NOT EXISTS' === $meta_compare ? ' LEFT JOIN ' : ' INNER JOIN ';
+			$join .= $join_type.$this->meta_table;
+			$join .= $i ? " AS $alias" : '';
 
+			if ( !empty( $clause['key'] ) ) {
 				if ( 'LIKE' === $meta_compare_key ) {
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 				} else {
 					$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key = %s )", $clause['key'] );
 				}
-
-				// All other JOIN clauses.
 			} else {
-				$join .= " INNER JOIN $this->meta_table";
-				$join .= $i ? " AS $alias" : '';
 				$join .= " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column )";
 			}
 
