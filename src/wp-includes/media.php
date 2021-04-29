@@ -5053,6 +5053,7 @@ function wp_get_webp_info( $filename ) {
 			}
 
 			// The headers are a little different for each of the three formats.
+			// Header values based on WebP docs, see https://developers.google.com/speed/webp/docs/riff_container
 			switch ( substr( $magic, 12, 4 ) ) {
 				// Lossy WebP.
 				case 'VP8 ':
