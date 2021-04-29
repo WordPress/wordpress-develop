@@ -222,54 +222,54 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 			array(
 				DIR_TESTDATA . '/images/test-image.jpg',
 				array(
-					'width' => false,
+					'width'  => false,
 					'height' => false,
-					'type' => false,
+					'type'   => false,
 				),
 			),
 			// Standard GIF.
 			array(
 				DIR_TESTDATA . '/images/test-image.gif',
 				array(
-					'width' => false,
+					'width'  => false,
 					'height' => false,
-					'type' => false,
+					'type'   => false,
 				),
 			),
 			// Animated WebP.
 			array(
 				DIR_TESTDATA . '/images/webp-animated.webp',
 				array(
-					'width' => 100,
+					'width'  => 100,
 					'height' => 100,
-					'type' => 'animated-alpha',
+					'type'   => 'animated-alpha',
 				),
 			),
 			// Lossless WebP.
 			array(
 				DIR_TESTDATA . '/images/webp-lossless.webp',
 				array(
-					'width' => 1200,
+					'width'  => 1200,
 					'height' => 675,
-					'type' => 'lossless',
+					'type'   => 'lossless',
 				),
 			),
 			// Lossy WebP.
 			array(
 				DIR_TESTDATA . '/images/webp-lossy.webp',
 				array(
-					'width' => 1200,
+					'width'  => 1200,
 					'height' => 675,
-					'type' => 'lossy',
+					'type'   => 'lossy',
 				),
 			),
 			// Transparent WebP.
 			array(
 				DIR_TESTDATA . '/images/webp-transparent.webp',
 				array(
-					'width' => 1200,
+					'width'  => 1200,
 					'height' => 675,
-					'type' => 'animated-alpha',
+					'type'   => 'animated-alpha',
 				),
 			),
 		);
