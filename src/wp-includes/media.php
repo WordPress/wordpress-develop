@@ -5020,7 +5020,7 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 }
 
 /**
- * Extract meta information about a webp file: width, height and type.
+ * Extracts meta information about a webp file: width, height and type.
  *
  * @param [type] $filename Path to a WebP file.
  * @return array $webp_info {
