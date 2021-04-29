@@ -74,27 +74,53 @@ function tests_add_filter( $tag, $function_to_add, $priority = 10, $accepted_arg
  * @param callable $function The function to generate ID for.
  * @param int      $priority Unused. The order in which the functions
  *                           associated with a particular action are executed.
- * @return string Unique function ID for usage as array key.
+ * @return string Unique function ID.
  */
 function _test_filter_build_unique_id( $tag, $function, $priority ) {
 	if ( is_string( $function ) ) {
 		return $function;
 	}
 
-	if ( is_object( $function ) ) {
-		// Closures are currently implemented as objects.
-		$function = array( $function, '' );
-	} else {
-		$function = (array) $function;
+	// Just check syntax, to make sure we're dealing with something that looks like a callable.
+	if ( ! is_callable( $function, true ) ) {
+		return '';
 	}
 
-	if ( is_object( $function[0] ) ) {
-		// Object class calling.
-		return spl_object_hash( $function[0] ) . $function[1];
-	} elseif ( is_string( $function[0] ) ) {
-		// Static calling.
+	$is_array = is_array( $function );
+
+	// Static method, let's just return it
+	if ( $is_array && is_string( $function[0] ) ) {
 		return $function[0] . '::' . $function[1];
 	}
+
+	// Because we checked for 'is_callable', if not array, $function is either a closure or invokable.
+	if ( ! $is_array ) {
+		// Closures and invokable objects both use __invoke method.
+		$function = array( $function, '__invoke' );
+	}
+
+	$hash = spl_object_hash( $function[0] );
+	$class = get_class( $function[0] );
+
+	if ( false !== strpos( $class, '@anonymous' ) ) {
+		$ref = new \ReflectionClass( $class );
+		$class = 'class()';
+		$parent = $ref->getParentClass();
+		if ( $parent ) {
+			$class .= $parent;
+		}
+		$class .= '@' . basename( $ref->getFileName() );
+	}
+
+	if ( 'Closure' !== $class ) {
+		return $class . '->' . $function[1] . '##' . $hash;
+	}
+
+	$ref = new \ReflectionFunction( $function[0] );
+	$namespace = $ref->getNamespaceName() ? : '';
+	$name = ltrim( $namespace . '\function()', '\\' ) . '@' . basename( $ref->getFileName() );
+
+	return $name . '##' . $hash;
 }
 
 /**

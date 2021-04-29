@@ -20,7 +20,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		list( $function_index ) = _wp_filter_build_callback_key_and_hash( $callback );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
@@ -35,7 +35,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		list( $function_index ) = _wp_filter_build_callback_key_and_hash( $callback );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
@@ -49,7 +49,7 @@ class Tests_Hooks_AddFilter extends WP_UnitTestCase {
 
 		$hook->add_filter( $tag, $callback, $priority, $accepted_args );
 
-		$function_index = _wp_filter_build_unique_id( $tag, $callback, $priority );
+		list( $function_index ) = _wp_filter_build_callback_key_and_hash( $callback );
 		$this->assertSame( $callback, $hook->callbacks[ $priority ][ $function_index ]['function'] );
 		$this->assertSame( $accepted_args, $hook->callbacks[ $priority ][ $function_index ]['accepted_args'] );
 	}
