@@ -406,7 +406,7 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 					 *
 					 * @param int $quality Quality level between 0 (low) and 100 (high) of the WebP.
 					 */
-					return imagewebp( $image, null, apply_filters( 'webp_quality', 75 ) );
+					return imagewebp( $image, null, apply_filters( 'webp_quality', 75, 'edit_image' ) );
 				}
 				return false;
 			default:
