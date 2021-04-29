@@ -5086,7 +5086,7 @@ function wp_get_webp_info( $filename ) {
 }
 
 /**
- * Determine if a passed image is a lossy WebP image.
+ * Determines if a passed image is a lossy WebP image.
  *
  * @since 5.8.0
  *
