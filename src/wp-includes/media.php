@@ -5097,7 +5097,7 @@ function _wp_webp_is_lossy( $filename ) {
 }
 
 /**
- * Get the image size, with support for WebP images.
+ * Gets the image size, with support for WebP images.
  *
  * @since 5.8.0
  * @access private
