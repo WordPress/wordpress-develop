@@ -1227,7 +1227,7 @@ class Tests_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35725
-	 * @dataProvider _wp_getimagesize
+	 * @dataProvider data_wp_getimagesize
 	 */
 	public function test_wp_getimagesize( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
@@ -1369,7 +1369,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * Data profider for test_wp_getimagesize();
 	 */
-	public function _wp_getimagesize() {
+	public function data_wp_getimagesize() {
 		$data = array(
 			// Standard JPEG.
 			array(
