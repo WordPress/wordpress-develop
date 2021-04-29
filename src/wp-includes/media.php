@@ -5022,6 +5022,8 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
 /**
  * Extracts meta information about a webp file: width, height and type.
  *
+ * @since 5.8.0
+ *
  * @param [type] $filename Path to a WebP file.
  * @return array $webp_info {
  *     An array of WebP image information.
@@ -5031,7 +5033,6 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  *         @type int  $height Image height.
  *         @type bool $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
  *     }
-
  */
 function wp_get_webp_info( $filename ) {
 	$width  = false;
@@ -5087,8 +5088,10 @@ function wp_get_webp_info( $filename ) {
 /**
  * Determine if a passed image is a lossy WebP image.
  *
- * @param [type] $filename
- * @return void
+ * @since 5.8.0
+ *
+ * @param string $filename The file path.
+ * @return bool Whether the file is a lossy WebP file.
  */
 function _wp_webp_is_lossy( $filename ) {
 	$webp_info = wp_get_webp_info( $filename );
@@ -5104,6 +5107,7 @@ function _wp_webp_is_lossy( $filename ) {
  *
  * @param string $filename  The file path.
  * @param array  $imageinfo Extended image information, passed by reference.
+ * @return array|false Array of image information or false on failure.
  */
 function _wp_get_image_size( $filename, &$imageinfo = array() ) {
 	// Try getimagesize() first.
