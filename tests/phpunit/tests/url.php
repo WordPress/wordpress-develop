@@ -273,10 +273,6 @@ class Tests_URL extends WP_UnitTestCase {
 	}
 
 	function test_set_url_scheme() {
-		if ( ! function_exists( 'set_url_scheme' ) ) {
-			return;
-		}
-
 		$links = array(
 			'http://wordpress.org/',
 			'https://wordpress.org/',
