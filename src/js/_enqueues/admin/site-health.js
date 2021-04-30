@@ -6,12 +6,13 @@
 
 /* global ajaxurl, ClipboardJS, SiteHealth, wp */
 
-jQuery( document ).ready( function( $ ) {
+jQuery( function( $ ) {
 
 	var __ = wp.i18n.__,
 		_n = wp.i18n._n,
 		sprintf = wp.i18n.sprintf,
 		clipboard = new ClipboardJS( '.site-health-copy-buttons .copy-button' ),
+		isStatusTab = $( '.health-check-body.health-check-status-tab' ).length,
 		isDebugTab = $( '.health-check-body.health-check-debug-tab' ).length,
 		pathsSizesSection = $( '#health-check-accordion-block-wp-paths-sizes' ),
 		successTimeout;
@@ -24,7 +25,7 @@ jQuery( document ).ready( function( $ ) {
 		// Clear the selection and move focus back to the trigger.
 		e.clearSelection();
 		// Handle ClipboardJS focus bug, see https://github.com/zenorocha/clipboard.js/issues/680
-		triggerElement.focus();
+		triggerElement.trigger( 'focus' );
 
 		// Show success visual feedback.
 		clearTimeout( successTimeout );
@@ -66,6 +67,57 @@ jQuery( document ).ready( function( $ ) {
 	} );
 
 	/**
+	 * Validates the Site Health test result format.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param {Object} issue
+	 *
+	 * @return {boolean}
+	 */
+	function validateIssueData( issue ) {
+		// Expected minimum format of a valid SiteHealth test response.
+		var minimumExpected = {
+				test: 'string',
+				label: 'string',
+				description: 'string'
+			},
+			passed = true,
+			key, value, subKey, subValue;
+
+		// If the issue passed is not an object, return a `false` state early.
+		if ( 'object' !== typeof( issue ) ) {
+			return false;
+		}
+
+		// Loop over expected data and match the data types.
+		for ( key in minimumExpected ) {
+			value = minimumExpected[ key ];
+
+			if ( 'object' === typeof( value ) ) {
+				for ( subKey in value ) {
+					subValue = value[ subKey ];
+
+					if ( 'undefined' === typeof( issue[ key ] ) ||
+						'undefined' === typeof( issue[ key ][ subKey ] ) ||
+						subValue !== typeof( issue[ key ][ subKey ] )
+					) {
+						passed = false;
+					}
+				}
+			} else {
+				if ( 'undefined' === typeof( issue[ key ] ) ||
+					value !== typeof( issue[ key ] )
+				) {
+					passed = false;
+				}
+			}
+		}
+
+		return passed;
+	}
+
+	/**
 	 * Appends a new issue to the issue list.
 	 *
 	 * @since 5.2.0
@@ -77,6 +129,14 @@ jQuery( document ).ready( function( $ ) {
 			issueWrapper = $( '#health-check-issues-' + issue.status ),
 			heading,
 			count;
+
+		/*
+		 * Validate the issue data format before using it.
+		 * If the output is invalid, discard it.
+		 */
+		if ( ! validateIssueData( issue ) ) {
+			return false;
+		}
 
 		SiteHealth.site_status.issues[ issue.status ]++;
 
@@ -146,7 +206,7 @@ jQuery( document ).ready( function( $ ) {
 			val = 100;
 		}
 
-		pct = ( ( 100 - val ) / 100 ) * c;
+		pct = ( ( 100 - val ) / 100 ) * c + 'px';
 
 		$circle.css( { strokeDashoffset: pct } );
 
@@ -170,7 +230,7 @@ jQuery( document ).ready( function( $ ) {
 			wp.a11y.speak( __( 'All site health tests have finished running. There are items that should be addressed, and the results are now available on the page.' ) );
 		}
 
-		if ( ! isDebugTab ) {
+		if ( isStatusTab ) {
 			$.post(
 				ajaxurl,
 				{
@@ -212,7 +272,8 @@ jQuery( document ).ready( function( $ ) {
 
 				if ( 'undefined' !== typeof( this.has_rest ) && this.has_rest ) {
 					wp.apiRequest( {
-						url: this.test
+						url: wp.url.addQueryArgs( this.test, { _locale: 'user' } ),
+						headers: this.headers
 					} )
 						.done( function( response ) {
 							/** This filter is documented in wp-admin/includes/class-wp-site-health.php */
@@ -286,7 +347,7 @@ jQuery( document ).ready( function( $ ) {
 		appendIssue( wp.hooks.applyFilters( 'site_status_test_result', issue ) );
 	}
 
-	if ( 'undefined' !== typeof SiteHealth && ! isDebugTab ) {
+	if ( 'undefined' !== typeof SiteHealth ) {
 		if ( 0 === SiteHealth.site_status.direct.length && 0 === SiteHealth.site_status.async.length ) {
 			recalculateProgression();
 		} else {
@@ -383,4 +444,9 @@ jQuery( document ).ready( function( $ ) {
 			recalculateProgression();
 		}
 	}
+
+	// Trigger a class toggle when the extended menu button is clicked.
+	$( '.health-check-offscreen-nav-wrapper' ).on( 'click', function() {
+		$( this ).toggleClass( 'visible' );
+	} );
 } );

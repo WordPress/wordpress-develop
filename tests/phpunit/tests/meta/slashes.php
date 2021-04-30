@@ -11,7 +11,7 @@ class Tests_Meta_Slashes extends WP_UnitTestCase {
 	protected static $comment_id;
 	protected static $user_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$post_id    = $factory->post->create();
 		self::$comment_id = $factory->comment->create( array( 'comment_post_ID' => self::$post_id ) );

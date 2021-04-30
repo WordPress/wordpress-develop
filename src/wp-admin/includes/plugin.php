@@ -293,7 +293,7 @@ function get_plugins( $plugin_folder = '' ) {
 	}
 
 	// Files in wp-content/plugins directory.
-	$plugins_dir  = @ opendir( $plugin_root );
+	$plugins_dir  = @opendir( $plugin_root );
 	$plugin_files = array();
 
 	if ( $plugins_dir ) {
@@ -303,7 +303,7 @@ function get_plugins( $plugin_folder = '' ) {
 			}
 
 			if ( is_dir( $plugin_root . '/' . $file ) ) {
-				$plugins_subdir = @ opendir( $plugin_root . '/' . $file );
+				$plugins_subdir = @opendir( $plugin_root . '/' . $file );
 
 				if ( $plugins_subdir ) {
 					while ( ( $subfile = readdir( $plugins_subdir ) ) !== false ) {
@@ -661,14 +661,8 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 
 		ob_start();
 
-		if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
-			define( 'WP_SANDBOX_SCRAPING', true );
-		}
-
-		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
-		$_wp_plugin_file = $plugin;
-		include_once WP_PLUGIN_DIR . '/' . $plugin;
-		$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
+		// Load the plugin to test whether it throws any errors.
+		plugin_sandbox_scrape( $plugin );
 
 		if ( ! $silent ) {
 			/**
@@ -732,6 +726,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			$output = ob_get_clean();
 			return new WP_Error( 'unexpected_output', __( 'The plugin generated unexpected output.' ), $output );
 		}
+
 		ob_end_clean();
 	}
 
@@ -1231,7 +1226,8 @@ function is_uninstallable_plugin( $plugin ) {
  * @since 2.7.0
  *
  * @param string $plugin Path to the plugin file relative to the plugins directory.
- * @return true True if a plugin's uninstall.php file has been found and included.
+ * @return true|void True if a plugin's uninstall.php file has been found and included.
+ *                   Void otherwise.
  */
 function uninstall_plugin( $plugin ) {
 	$file = plugin_basename( $plugin );
@@ -1763,7 +1759,7 @@ function add_comments_page( $page_title, $menu_title, $capability, $menu_slug, $
  * @global array $menu
  *
  * @param string $menu_slug The slug of the menu.
- * @return array|bool The removed menu on success, false if not found.
+ * @return array|false The removed menu on success, false if not found.
  */
 function remove_menu_page( $menu_slug ) {
 	global $menu;
@@ -1787,7 +1783,7 @@ function remove_menu_page( $menu_slug ) {
  *
  * @param string $menu_slug    The slug for the parent menu.
  * @param string $submenu_slug The slug of the submenu.
- * @return array|bool The removed submenu on success, false if not found.
+ * @return array|false The removed submenu on success, false if not found.
  */
 function remove_submenu_page( $menu_slug, $submenu_slug ) {
 	global $submenu;
@@ -2296,7 +2292,7 @@ function plugin_sandbox_scrape( $plugin ) {
 	}
 
 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
-	include WP_PLUGIN_DIR . '/' . $plugin;
+	include_once WP_PLUGIN_DIR . '/' . $plugin;
 }
 
 /**
@@ -2462,6 +2458,8 @@ function resume_plugin( $plugin, $redirect = '' ) {
  * Renders an admin notice in case some plugins have been paused due to errors.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  */
 function paused_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {

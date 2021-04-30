@@ -49,7 +49,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber_id = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -83,11 +83,14 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		if ( file_exists( WP_PLUGIN_DIR . '/test-plugin/test-plugin.php' ) ) {
 			$this->rmdir( WP_PLUGIN_DIR . '/test-plugin' );
 		}
+		if ( file_exists( DIR_TESTDATA . '/link-manager.zip' ) ) {
+			unlink( DIR_TESTDATA . '/link-manager.zip' );
+		}
+
+		parent::tearDown();
 	}
 
 	/**
@@ -443,6 +446,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
@@ -466,6 +470,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		}
 
 		wp_set_current_user( self::$super_admin );
+		$this->setup_plugin_download();
 
 		$request = new WP_REST_Request( 'POST', self::BASE );
 		$request->set_body_params(
@@ -1023,6 +1028,13 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 			10,
 			3
 		);
+
+		// Remove upgrade hooks which are not required for plugin installation tests
+		// and may interfere with the results due to a timeout in external HTTP requests.
+		remove_action( 'upgrader_process_complete', array( 'Language_Pack_Upgrader', 'async_upgrade' ), 20 );
+		remove_action( 'upgrader_process_complete', 'wp_version_check' );
+		remove_action( 'upgrader_process_complete', 'wp_update_plugins' );
+		remove_action( 'upgrader_process_complete', 'wp_update_themes' );
 	}
 
 	/**

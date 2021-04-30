@@ -11,7 +11,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 	public static $editor_privatefoo_post;
 	public static $author_privatefoo_post;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
 

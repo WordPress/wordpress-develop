@@ -98,7 +98,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 *
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id = $factory->user->create(
 			array(
 				'role' => 'editor',
@@ -133,11 +133,12 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 	 * @since 5.0.0
 	 */
 	public function setUp() {
+		parent::setUp();
+
 		$this->register_test_block();
 		$this->register_post_context_test_block();
 		$this->register_non_dynamic_block();
 		$this->register_dynamic_block_with_boolean_attributes();
-		parent::setUp();
 	}
 
 	/**

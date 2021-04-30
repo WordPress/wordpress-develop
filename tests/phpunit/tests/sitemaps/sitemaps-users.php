@@ -23,7 +23,7 @@ class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory A WP_UnitTest_Factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$users     = $factory->user->create_many( 10, array( 'role' => 'editor' ) );
 		self::$editor_id = self::$users[0];
 	}

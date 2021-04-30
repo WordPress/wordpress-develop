@@ -40,7 +40,7 @@ class WP_User {
 	 * User data container.
 	 *
 	 * @since 2.0.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $data;
 
@@ -167,6 +167,9 @@ class WP_User {
 	 * @param int    $site_id Optional. The site ID to initialize for.
 	 */
 	public function init( $data, $site_id = '' ) {
+		if ( ! isset( $data->ID ) ) {
+			$data->ID = 0;
+		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
 

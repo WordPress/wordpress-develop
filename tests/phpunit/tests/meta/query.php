@@ -766,7 +766,6 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 				'meta_compare_key' => 'REGEXP',
 				'meta_type_key'    => 'BINARY',
 				'fields'           => 'ids',
-				'fields'           => 'ids',
 			)
 		);
 

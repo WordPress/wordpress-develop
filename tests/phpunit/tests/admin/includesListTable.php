@@ -19,7 +19,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$this->table = _get_list_table( 'WP_Posts_List_Table', array( 'screen' => 'edit-page' ) );
 	}
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// Note that our top/children/grandchildren arrays are 1-indexed.
 
 		// Create top-level pages.
@@ -375,17 +375,16 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 		$table->bulk_actions();
 		$output = ob_get_clean();
 
-		$this->assertContains(
-			<<<'OPTIONS'
+		$expected = <<<'OPTIONS'
 <option value="delete">Delete</option>
 	<optgroup label="Change State">
 		<option value="feature">Featured</option>
 		<option value="sale">On Sale</option>
 	</optgroup>
-OPTIONS
-			,
-			$output
-		);
+OPTIONS;
+		$expected = str_replace( "\r\n", "\n", $expected );
+
+		$this->assertContains( $expected, $output );
 	}
 
 	/**

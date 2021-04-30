@@ -252,7 +252,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int|null $max_w Image width.
 	 * @param int|null $max_h Image height.
 	 * @param bool     $crop
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function resize( $max_w, $max_h, $crop = false ) {
 		if ( ( $this->size['width'] == $max_w ) && ( $this->size['height'] == $max_h ) ) {
@@ -291,7 +291,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int    $dst_h       The destination height.
 	 * @param string $filter_name Optional. The Imagick filter to use when resizing. Default 'FILTER_TRIANGLE'.
 	 * @param bool   $strip_meta  Optional. Strip all profiles, excluding color profiles, from the image. Default true.
-	 * @return bool|WP_Error
+	 * @return void|WP_Error
 	 */
 	protected function thumbnail_image( $dst_w, $dst_h, $filter_name = 'FILTER_TRIANGLE', $strip_meta = true ) {
 		$allowed_filters = array(
@@ -524,7 +524,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @param int  $dst_w   Optional. The destination width.
 	 * @param int  $dst_h   Optional. The destination height.
 	 * @param bool $src_abs Optional. If the source crop points are absolute.
-	 * @return bool|WP_Error
+	 * @return true|WP_Error
 	 */
 	public function crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		if ( $src_abs ) {
@@ -735,12 +735,32 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 			 * Checks for exact type due to: https://www.php.net/manual/en/function.file-put-contents.php
 			 */
 			if ( file_put_contents( $filename, $image->getImageBlob() ) === false ) {
-				/* translators: %s: PHP function name. */
-				return new WP_Error( 'image_save_error', sprintf( __( '%s failed while writing image to stream.' ), '<code>file_put_contents()</code>' ), $filename );
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: PHP function name. */
+						__( '%s failed while writing image to stream.' ),
+						'<code>file_put_contents()</code>'
+					),
+					$filename
+				);
 			} else {
 				return true;
 			}
 		} else {
+			$dirname = dirname( $filename );
+
+			if ( ! wp_mkdir_p( $dirname ) ) {
+				return new WP_Error(
+					'image_save_error',
+					sprintf(
+						/* translators: %s: Directory path. */
+						__( 'Unable to create directory %s. Is its parent directory writable by the server?' ),
+						esc_html( $dirname )
+					)
+				);
+			}
+
 			try {
 				return $image->writeImage( $filename );
 			} catch ( Exception $e ) {
@@ -755,7 +775,7 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	 * @since 3.5.0
 	 *
 	 * @param string $mime_type The mime type of the image.
-	 * @return bool|WP_Error True on success, WP_Error object on failure.
+	 * @return true|WP_Error True on success, WP_Error object on failure.
 	 */
 	public function stream( $mime_type = null ) {
 		list( $filename, $extension, $mime_type ) = $this->get_output_format( null, $mime_type );
@@ -787,13 +807,25 @@ class WP_Image_Editor_Imagick extends WP_Image_Editor {
 	protected function strip_meta() {
 
 		if ( ! is_callable( array( $this->image, 'getImageProfiles' ) ) ) {
-			/* translators: %s: ImageMagick method name. */
-			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::getImageProfiles()</code>' ) );
+			return new WP_Error(
+				'image_strip_meta_error',
+				sprintf(
+					/* translators: %s: ImageMagick method name. */
+					__( '%s is required to strip image meta.' ),
+					'<code>Imagick::getImageProfiles()</code>'
+				)
+			);
 		}
 
 		if ( ! is_callable( array( $this->image, 'removeImageProfile' ) ) ) {
-			/* translators: %s: ImageMagick method name. */
-			return new WP_Error( 'image_strip_meta_error', sprintf( __( '%s is required to strip image meta.' ), '<code>Imagick::removeImageProfile()</code>' ) );
+			return new WP_Error(
+				'image_strip_meta_error',
+				sprintf(
+					/* translators: %s: ImageMagick method name. */
+					__( '%s is required to strip image meta.' ),
+					'<code>Imagick::removeImageProfile()</code>'
+				)
+			);
 		}
 
 		/*

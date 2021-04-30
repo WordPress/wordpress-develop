@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 $blog_info    = get_bloginfo( 'name' );
@@ -34,7 +34,7 @@ $header_class = $show_title ? 'site-title' : 'screen-reader-text';
 		<?php endif; ?>
 	<?php endif; ?>
 
-	<?php if ( $description && get_theme_mod( 'display_title_and_tagline', true ) === true ) : ?>
+	<?php if ( $description && true === get_theme_mod( 'display_title_and_tagline', true ) ) : ?>
 		<p class="site-description">
 			<?php echo $description; // phpcs:ignore WordPress.Security.EscapeOutput ?>
 		</p>

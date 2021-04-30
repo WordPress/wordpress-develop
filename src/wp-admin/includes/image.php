@@ -11,15 +11,15 @@
  *
  * @since 2.1.0
  *
- * @param string|int $src      The source file or Attachment ID.
- * @param int        $src_x    The start x position to crop from.
- * @param int        $src_y    The start y position to crop from.
- * @param int        $src_w    The width to crop.
- * @param int        $src_h    The height to crop.
- * @param int        $dst_w    The destination width.
- * @param int        $dst_h    The destination height.
- * @param bool       $src_abs  Optional. If the source crop points are absolute.
- * @param string     $dst_file Optional. The destination file to write to.
+ * @param string|int   $src      The source file or Attachment ID.
+ * @param int          $src_x    The start x position to crop from.
+ * @param int          $src_y    The start y position to crop from.
+ * @param int          $src_w    The width to crop.
+ * @param int          $src_h    The height to crop.
+ * @param int          $dst_w    The destination width.
+ * @param int          $dst_h    The destination height.
+ * @param bool|false   $src_abs  Optional. If the source crop points are absolute.
+ * @param string|false $dst_file Optional. The destination file to write to.
  * @return string|WP_Error New filepath on success, WP_Error on failure.
  */
 function wp_crop_image( $src, $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs = false, $dst_file = false ) {
@@ -93,7 +93,7 @@ function wp_get_missing_image_subsizes( $attachment_id ) {
 	// Use the originally uploaded image dimensions as full_width and full_height.
 	if ( ! empty( $image_meta['original_image'] ) ) {
 		$image_file = wp_get_original_image_path( $attachment_id );
-		$imagesize  = @getimagesize( $image_file );
+		$imagesize  = wp_getimagesize( $image_file );
 	}
 
 	if ( ! empty( $imagesize ) ) {
@@ -224,7 +224,7 @@ function _wp_image_meta_replace_original( $saved_data, $original_file, $image_me
  * @return array The image attachment meta data.
  */
 function wp_create_image_subsizes( $file, $attachment_id ) {
-	$imagesize = @getimagesize( $file );
+	$imagesize = wp_getimagesize( $file );
 
 	if ( empty( $imagesize ) ) {
 		// File is not an image.
@@ -680,14 +680,14 @@ function wp_exif_date2ts( $str ) {
  * @since 2.5.0
  *
  * @param string $file
- * @return bool|array False on failure. Image metadata array on success.
+ * @return array|false Image metadata array on success, false on failure.
  */
 function wp_read_image_metadata( $file ) {
 	if ( ! file_exists( $file ) ) {
 		return false;
 	}
 
-	list( , , $image_type ) = @getimagesize( $file );
+	list( , , $image_type ) = wp_getimagesize( $file );
 
 	/*
 	 * EXIF contains a bunch of data we'll probably never need formatted in ways
@@ -711,15 +711,27 @@ function wp_read_image_metadata( $file ) {
 	);
 
 	$iptc = array();
+	$info = array();
 	/*
 	 * Read IPTC first, since it might contain data not available in exif such
 	 * as caption, description etc.
 	 */
 	if ( is_callable( 'iptcparse' ) ) {
-		@getimagesize( $file, $info );
+		wp_getimagesize( $file, $info );
 
 		if ( ! empty( $info['APP13'] ) ) {
-			$iptc = @iptcparse( $info['APP13'] );
+			if (
+				// Skip when running unit tests.
+				! defined( 'WP_RUN_CORE_TESTS' )
+				&&
+				// Process without silencing errors when in debug mode.
+				defined( 'WP_DEBUG' ) && WP_DEBUG
+			) {
+				$iptc = iptcparse( $info['APP13'] );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+				$iptc = @iptcparse( $info['APP13'] );
+			}
 
 			// Headline, "A brief synopsis of the caption".
 			if ( ! empty( $iptc['2#105'][0] ) ) {
@@ -779,7 +791,18 @@ function wp_read_image_metadata( $file ) {
 	$exif_image_types = apply_filters( 'wp_read_image_metadata_types', array( IMAGETYPE_JPEG, IMAGETYPE_TIFF_II, IMAGETYPE_TIFF_MM ) );
 
 	if ( is_callable( 'exif_read_data' ) && in_array( $image_type, $exif_image_types, true ) ) {
-		$exif = @exif_read_data( $file );
+		if (
+			// Skip when running unit tests.
+			! defined( 'WP_RUN_CORE_TESTS' )
+			&&
+			// Process without silencing errors when in debug mode.
+			defined( 'WP_DEBUG' ) && WP_DEBUG
+		) {
+			$exif = exif_read_data( $file );
+		} else {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors -- Silencing notice and warning is intentional. See https://core.trac.wordpress.org/ticket/42480
+			$exif = @exif_read_data( $file );
+		}
 
 		if ( ! empty( $exif['ImageDescription'] ) ) {
 			mbstring_binary_safe_encoding();
@@ -877,7 +900,7 @@ function wp_read_image_metadata( $file ) {
  * @return bool True if valid image, false if not valid image.
  */
 function file_is_valid_image( $path ) {
-	$size = @getimagesize( $path );
+	$size = wp_getimagesize( $path );
 	return ! empty( $size );
 }
 
@@ -892,7 +915,7 @@ function file_is_valid_image( $path ) {
 function file_is_displayable_image( $path ) {
 	$displayable_image_types = array( IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_BMP, IMAGETYPE_ICO );
 
-	$info = @getimagesize( $path );
+	$info = wp_getimagesize( $path );
 	if ( empty( $info ) ) {
 		$result = false;
 	} elseif ( ! in_array( $info[2], $displayable_image_types, true ) ) {
@@ -1014,7 +1037,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param string       $image_url     Current image URL.
+		 * @param string|false $image_url     Current image URL.
 		 * @param int          $attachment_id Attachment ID.
 		 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 		 *                                    an array of width and height values in pixels (in that order).
@@ -1027,7 +1050,7 @@ function _load_image_to_edit_path( $attachment_id, $size = 'full' ) {
 	 *
 	 * @since 2.9.0
 	 *
-	 * @param string|bool  $filepath      File path or URL to current image, or false.
+	 * @param string|false $filepath      File path or URL to current image, or false.
 	 * @param int          $attachment_id Attachment ID.
 	 * @param string|int[] $size          Requested image size. Can be any registered image size name, or
 	 *                                    an array of width and height values in pixels (in that order).

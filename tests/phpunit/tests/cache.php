@@ -115,7 +115,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		global $_wp_using_ext_object_cache;
 
 		if ( $_wp_using_ext_object_cache ) {
-			return;
+			$this->markTestSkipped( 'This test requires that an external object cache is not in use.' );
 		}
 
 		$key = __FUNCTION__;
@@ -324,7 +324,7 @@ class Tests_Cache extends WP_UnitTestCase {
 		wp_cache_replace( $key, $val2 );
 		$this->assertSame( $val2, wp_cache_get( $key ) );
 
-		// Non-existant key should fail.
+		// Non-existent key should fail.
 		$this->assertFalse( wp_cache_replace( $fake_key, $val1 ) );
 
 		// Make sure $fake_key is not stored.

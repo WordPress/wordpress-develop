@@ -9,7 +9,7 @@ class Tests_Comment_Slashes extends WP_UnitTestCase {
 	protected static $author_id;
 	protected static $post_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		// We need an admin user to bypass comment flood protection.
 		self::$author_id = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$post_id   = $factory->post->create();

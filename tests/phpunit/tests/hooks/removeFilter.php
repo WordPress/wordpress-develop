@@ -4,8 +4,9 @@
  * Test the remove_filter method of WP_Hook
  *
  * @group hooks
+ * @covers WP_Hook::remove_filter
  */
-class Tests_WP_Hook_Remove_Filter extends WP_UnitTestCase {
+class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 
 	public function test_remove_filter_with_function() {
 		$callback      = '__return_null';

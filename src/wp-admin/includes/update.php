@@ -240,23 +240,25 @@ function core_update_footer( $msg = '' ) {
 		$cur->current = '';
 	}
 
-	if ( ! isset( $cur->url ) ) {
-		$cur->url = '';
-	}
-
 	if ( ! isset( $cur->response ) ) {
 		$cur->response = '';
 	}
 
-	switch ( $cur->response ) {
-		case 'development':
-			return sprintf(
-				/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
-				__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
-				get_bloginfo( 'version', 'display' ),
-				network_admin_url( 'update-core.php' )
-			);
+	// Include an unmodified $wp_version.
+	require ABSPATH . WPINC . '/version.php';
 
+	$is_development_version = preg_match( '/alpha|beta|RC/', $wp_version );
+
+	if ( $is_development_version ) {
+		return sprintf(
+			/* translators: 1: WordPress version number, 2: URL to WordPress Updates screen. */
+			__( 'You are using a development version (%1$s). Cool! Please <a href="%2$s">stay updated</a>.' ),
+			get_bloginfo( 'version', 'display' ),
+			network_admin_url( 'update-core.php' )
+		);
+	}
+
+	switch ( $cur->response ) {
 		case 'upgrade':
 			return sprintf(
 				'<strong><a href="%s">%s</a></strong>',

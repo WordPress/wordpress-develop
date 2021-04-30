@@ -39,7 +39,7 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber = $factory->user->create(
 			array(
 				'role' => 'subscriber',
@@ -97,6 +97,6 @@ class WP_Test_REST_Site_Health_Controller extends WP_Test_REST_TestCase {
 	public function test() {
 		wp_set_current_user( self::$admin );
 		$response = rest_do_request( '/wp-site-health/v1/tests/dotorg-communication' );
-		$this->assertEquals( 'dotorg_communication', $response->get_data()['test'] );
+		$this->assertSame( 'dotorg_communication', $response->get_data()['test'] );
 	}
 }

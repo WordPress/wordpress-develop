@@ -17,6 +17,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
+		// This needs to come after the mock image editor class is loaded.
 		parent::setUp();
 	}
 
@@ -88,7 +89,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 		$resized = $gd_image_editor->multi_resize( $sizes_array );
 
-		# First, check to see if returned array is as expected
+		// First, check to see if returned array is as expected.
 		$expected_array = array(
 			array(
 				'file'      => 'waffles-50x33.jpg',
@@ -113,7 +114,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Ensure multi_resize doesn't create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize_does_not_create() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -181,7 +182,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	/**
 	 * Test multi_resize with multiple sizes
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -216,7 +217,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 * By aspect, should be 30x20 output.
 			 */
 			array(
-				'width'  => 9999, # Arbitrary High Value
+				'width'  => 9999, // Arbitrary high value.
 				'height' => 20,
 				'crop'   => false,
 			),
@@ -227,7 +228,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 45,
-				'height' => 9999, # Arbitrary High Value
+				'height' => 9999, // Arbitrary high value.
 				'crop'   => true,
 			),
 
@@ -270,7 +271,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 * By aspect, should be 105x70 output.
 			 */
 			array(
-				'width'  => -9999, # Arbitrary Negative Value
+				'width'  => -9999, // Arbitrary negative value.
 				'height' => 70,
 			),
 
@@ -280,7 +281,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 200,
-				'height' => -9999, # Arbitrary Negative Value
+				'height' => -9999, // Arbitrary negative value.
 			),
 		);
 
@@ -405,22 +406,125 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	}
 
 	/**
-	 * Test cropping an image
+	 * Test cropping an image.
+	 *
+	 * @ticket 51937
+	 *
+	 * @dataProvider data_crop
 	 */
-	public function test_crop() {
+	public function test_crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
 
 		$gd_image_editor = new WP_Image_Editor_GD( $file );
 		$gd_image_editor->load();
 
-		$gd_image_editor->crop( 0, 0, 50, 50 );
+		$gd_image_editor->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs );
 
 		$this->assertSame(
 			array(
-				'width'  => 50,
-				'height' => 50,
+				'width'  => (int) $src_w,
+				'height' => (int) $src_h,
 			),
 			$gd_image_editor->get_size()
+		);
+	}
+
+	public function data_crop() {
+		return array(
+			'src height and width must be greater than 0' => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => 50,
+				'src_h' => 50,
+			),
+			'src height and width can be string but must be greater than 0' => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => '50',
+				'src_h' => '50',
+			),
+			'dst height and width must be greater than 0' => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => 150,
+				'src_h' => 150,
+				'dst_w' => 150,
+				'dst_h' => 150,
+			),
+			'dst height and width can be string but must be greater than 0' => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => 150,
+				'src_h' => 150,
+				'dst_w' => '150',
+				'dst_h' => '150',
+			),
+		);
+	}
+
+	/**
+	 * Test should return WP_Error when dimensions are not integer or are <= 0.
+	 *
+	 * @ticket 51937
+	 *
+	 * @dataProvider data_crop_invalid_dimensions
+	 */
+	public function test_crop_invalid_dimensions( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
+		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+
+		$actual = $gd_image_editor->crop( $src_x, $src_y, $src_w, $src_h, $dst_w, $dst_h, $src_abs );
+
+		$this->assertInstanceOf( 'WP_Error', $actual );
+		$this->assertSame( 'image_crop_error', $actual->get_error_code() );
+	}
+
+	public function data_crop_invalid_dimensions() {
+		return array(
+			'src height must be greater than 0' => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => 100,
+				'src_h' => 0,
+			),
+			'src width must be greater than 0'  => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => 0,
+				'src_h' => 100,
+			),
+			'src height must be numeric and greater than 0' => array(
+				'src_x' => 10,
+				'src_y' => '10',
+				'src_w' => 100,
+				'src_h' => 'NaN',
+			),
+			'dst height must be numeric and greater than 0' => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => 100,
+				'src_h' => 50,
+				'dst_w' => '100',
+				'dst_h' => 'NaN',
+			),
+			'src and dst height and width must be greater than 0' => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => 0,
+				'src_h' => 0,
+				'dst_w' => 0,
+				'dst_h' => 0,
+			),
+			'src and dst height and width can be string but must be greater than 0' => array(
+				'src_x' => 0,
+				'src_y' => 0,
+				'src_w' => '0',
+				'src_h' => '0',
+				'dst_w' => '0',
+				'dst_h' => '0',
+			),
 		);
 	}
 
@@ -531,7 +635,6 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		$expected = imagecolorsforindex( $image, $rgb );
 
 		$editor = new WP_Image_Editor_GD( $file );
-				$this->assertNotWPError( $editor );
 				$editor->load();
 				$editor->rotate( 180 );
 				$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';

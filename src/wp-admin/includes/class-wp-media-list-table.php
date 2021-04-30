@@ -71,9 +71,11 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$mode = empty( $_REQUEST['mode'] ) ? 'list' : $_REQUEST['mode'];
 
-		// Exclude attachments scheduled for deletion in the next two hours
-		// if they are for zip packages for interrupted or failed updates.
-		// See File_Upload_Upgrader class.
+		/*
+		 * Exclude attachments scheduled for deletion in the next two hours
+		 * if they are for zip packages for interrupted or failed updates.
+		 * See File_Upload_Upgrader class.
+		 */
 		$not_in = array();
 
 		foreach ( _get_cron_array() as $cron ) {
@@ -196,20 +198,20 @@ class WP_Media_List_Table extends WP_List_Table {
 		}
 		?>
 		<div class="actions">
-		<?php
-		if ( ! $this->is_trash ) {
-			$this->months_dropdown( 'attachment' );
-		}
+			<?php
+			if ( ! $this->is_trash ) {
+				$this->months_dropdown( 'attachment' );
+			}
 
-		/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
-		do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
+			/** This action is documented in wp-admin/includes/class-wp-posts-list-table.php */
+			do_action( 'restrict_manage_posts', $this->screen->post_type, $which );
 
-		submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
+			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 
-		if ( $this->is_trash && current_user_can( 'edit_others_posts' ) && $this->has_items() ) {
-			submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
-		}
-		?>
+			if ( $this->is_trash && current_user_can( 'edit_others_posts' ) && $this->has_items() ) {
+				submit_button( __( 'Empty Trash' ), 'apply', 'delete_all', false );
+			}
+			?>
 		</div>
 		<?php
 	}
@@ -262,42 +264,43 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		$this->screen->render_screen_reader_content( 'heading_views' );
 		?>
-<div class="wp-filter">
-	<div class="filter-items">
-		<?php $this->view_switcher( $mode ); ?>
+		<div class="wp-filter">
+			<div class="filter-items">
+				<?php $this->view_switcher( $mode ); ?>
 
-		<label for="attachment-filter" class="screen-reader-text"><?php _e( 'Filter by type' ); ?></label>
-		<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
-			<?php
-			if ( ! empty( $views ) ) {
-				foreach ( $views as $class => $view ) {
-					echo "\t$view\n";
+				<label for="attachment-filter" class="screen-reader-text"><?php _e( 'Filter by type' ); ?></label>
+				<select class="attachment-filters" name="attachment-filter" id="attachment-filter">
+					<?php
+					if ( ! empty( $views ) ) {
+						foreach ( $views as $class => $view ) {
+							echo "\t$view\n";
+						}
+					}
+					?>
+				</select>
+
+				<?php
+				$this->extra_tablenav( 'bar' );
+
+				/** This filter is documented in wp-admin/inclues/class-wp-list-table.php */
+				$views = apply_filters( "views_{$this->screen->id}", array() );
+
+				// Back compat for pre-4.0 view links.
+				if ( ! empty( $views ) ) {
+					echo '<ul class="filter-links">';
+					foreach ( $views as $class => $view ) {
+						echo "<li class='$class'>$view</li>";
+					}
+					echo '</ul>';
 				}
-			}
-			?>
-		</select>
+				?>
+			</div>
 
-		<?php
-		$this->extra_tablenav( 'bar' );
-
-		/** This filter is documented in wp-admin/inclues/class-wp-list-table.php */
-		$views = apply_filters( "views_{$this->screen->id}", array() );
-
-		// Back compat for pre-4.0 view links.
-		if ( ! empty( $views ) ) {
-			echo '<ul class="filter-links">';
-			foreach ( $views as $class => $view ) {
-				echo "<li class='$class'>$view</li>";
-			}
-			echo '</ul>';
-		}
-		?>
-	</div>
-
-	<div class="search-form">
-		<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
-		<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>"></div>
-	</div>
+			<div class="search-form">
+				<label for="media-search-input" class="media-search-input-label"><?php esc_html_e( 'Search' ); ?></label>
+				<input type="search" id="media-search-input" class="search" name="s" value="<?php _admin_search_query(); ?>">
+			</div>
+		</div>
 		<?php
 	}
 
@@ -512,14 +515,9 @@ class WP_Media_List_Table extends WP_List_Table {
 			$parent_type = get_post_type_object( $parent->post_type );
 
 			if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $post->post_parent ) ) {
-				?>
-				<strong><a href="<?php echo get_edit_post_link( $post->post_parent ); ?>">
-					<?php echo $title; ?></a></strong>
-								<?php
+				printf( '<strong><a href="%s">%s</a></strong>', get_edit_post_link( $post->post_parent ), $title );
 			} elseif ( $parent_type && current_user_can( 'read_post', $post->post_parent ) ) {
-				?>
-				<strong><?php echo $title; ?></strong>
-									<?php
+				printf( '<strong>%s</strong>', $title );
 			} else {
 				_e( '(Private post)' );
 			}
@@ -650,13 +648,14 @@ class WP_Media_List_Table extends WP_List_Table {
 
 		while ( have_posts() ) :
 			the_post();
-			if (
-				( $this->is_trash && 'trash' !== $post->post_status )
-				|| ( ! $this->is_trash && 'trash' === $post->post_status )
+
+			if ( $this->is_trash && 'trash' !== $post->post_status
+				|| ! $this->is_trash && 'trash' === $post->post_status
 			) {
 				continue;
 			}
-			$post_owner = ( get_current_user_id() == $post->post_author ) ? 'self' : 'other';
+
+			$post_owner = ( get_current_user_id() === (int) $post->post_author ) ? 'self' : 'other';
 			?>
 			<tr id="post-<?php echo $post->ID; ?>" class="<?php echo trim( ' author-' . $post_owner . ' status-' . $post->post_status ); ?>">
 				<?php $this->single_row_columns( $post ); ?>
@@ -694,6 +693,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					__( 'Edit' )
 				);
 			}
+
 			if ( current_user_can( 'delete_post', $post->ID ) ) {
 				if ( EMPTY_TRASH_DAYS && MEDIA_TRASH ) {
 					$actions['trash'] = sprintf(
@@ -715,6 +715,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					);
 				}
 			}
+
 			$actions['view'] = sprintf(
 				'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',
 				get_permalink( $post->ID ),
@@ -742,6 +743,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					__( 'Edit' )
 				);
 			}
+
 			if ( current_user_can( 'delete_post', $post->ID ) ) {
 				if ( $this->is_trash ) {
 					$actions['untrash'] = sprintf(
@@ -760,6 +762,7 @@ class WP_Media_List_Table extends WP_List_Table {
 						_x( 'Trash', 'verb' )
 					);
 				}
+
 				if ( $this->is_trash || ! EMPTY_TRASH_DAYS || ! MEDIA_TRASH ) {
 					$delete_ays        = ( ! $this->is_trash && ! MEDIA_TRASH ) ? " onclick='return showNotice.warn();'" : '';
 					$actions['delete'] = sprintf(
@@ -772,6 +775,7 @@ class WP_Media_List_Table extends WP_List_Table {
 					);
 				}
 			}
+
 			if ( ! $this->is_trash ) {
 				$actions['view'] = sprintf(
 					'<a href="%s" aria-label="%s" rel="bookmark">%s</a>',

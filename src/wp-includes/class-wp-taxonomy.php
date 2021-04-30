@@ -38,7 +38,7 @@ final class WP_Taxonomy {
 	 * @see get_taxonomy_labels()
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $labels;
 
@@ -152,7 +152,7 @@ final class WP_Taxonomy {
 	 * Capabilities for this taxonomy.
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $cap;
 
@@ -179,14 +179,6 @@ final class WP_Taxonomy {
 	 * @var callable
 	 */
 	public $update_count_callback;
-
-	/**
-	 * Function that will be called when the count is modified by an amount.
-	 *
-	 * @since 5.6.0
-	 * @var callable
-	 */
-	public $update_count_by_callback;
 
 	/**
 	 * Whether this taxonomy should appear in the REST API.
@@ -218,6 +210,16 @@ final class WP_Taxonomy {
 	public $rest_controller_class;
 
 	/**
+	 * The controller instance for this taxonomy's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
+
+	/**
 	 * The default term name for this taxonomy. If you pass an array you have
 	 * to set 'name' and optionally 'slug' and 'description'.
 	 *
@@ -227,14 +229,22 @@ final class WP_Taxonomy {
 	public $default_term;
 
 	/**
-	 * The controller instance for this taxonomy's REST API endpoints.
+	 * Whether terms in this taxonomy should be sorted in the order they are provided to `wp_set_object_terms()`.
 	 *
-	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 * Use this in combination with `'orderby' => 'term_order'` when fetching terms.
 	 *
-	 * @since 5.5.0
-	 * @var WP_REST_Controller $rest_controller
+	 * @since 2.5.0
+	 * @var bool|null
 	 */
-	public $rest_controller;
+	public $sort = null;
+
+	/**
+	 * Array of arguments to automatically use inside `wp_get_object_terms()` for this taxonomy.
+	 *
+	 * @since 2.6.0
+	 * @var array|null
+	 */
+	public $args = null;
 
 	/**
 	 * Whether it is a built-in taxonomy.
@@ -246,6 +256,8 @@ final class WP_Taxonomy {
 
 	/**
 	 * Constructor.
+	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
 	 *
 	 * @since 4.7.0
 	 *
@@ -265,6 +277,8 @@ final class WP_Taxonomy {
 	/**
 	 * Sets taxonomy properties.
 	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
+	 *
 	 * @since 4.7.0
 	 *
 	 * @param array|string $object_type Name of the object type for the taxonomy object.
@@ -279,35 +293,37 @@ final class WP_Taxonomy {
 		 * @since 4.4.0
 		 *
 		 * @param array    $args        Array of arguments for registering a taxonomy.
+		 *                              See the register_taxonomy() function for accepted arguments.
 		 * @param string   $taxonomy    Taxonomy key.
 		 * @param string[] $object_type Array of names of object types for the taxonomy.
 		 */
 		$args = apply_filters( 'register_taxonomy_args', $args, $this->name, (array) $object_type );
 
 		$defaults = array(
-			'labels'                   => array(),
-			'description'              => '',
-			'public'                   => true,
-			'publicly_queryable'       => null,
-			'hierarchical'             => false,
-			'show_ui'                  => null,
-			'show_in_menu'             => null,
-			'show_in_nav_menus'        => null,
-			'show_tagcloud'            => null,
-			'show_in_quick_edit'       => null,
-			'show_admin_column'        => false,
-			'meta_box_cb'              => null,
-			'meta_box_sanitize_cb'     => null,
-			'capabilities'             => array(),
-			'rewrite'                  => true,
-			'query_var'                => $this->name,
-			'update_count_callback'    => '',
-			'update_count_by_callback' => '',
-			'show_in_rest'             => false,
-			'rest_base'                => false,
-			'rest_controller_class'    => false,
-			'default_term'             => null,
-			'_builtin'                 => false,
+			'labels'                => array(),
+			'description'           => '',
+			'public'                => true,
+			'publicly_queryable'    => null,
+			'hierarchical'          => false,
+			'show_ui'               => null,
+			'show_in_menu'          => null,
+			'show_in_nav_menus'     => null,
+			'show_tagcloud'         => null,
+			'show_in_quick_edit'    => null,
+			'show_admin_column'     => false,
+			'meta_box_cb'           => null,
+			'meta_box_sanitize_cb'  => null,
+			'capabilities'          => array(),
+			'rewrite'               => true,
+			'query_var'             => $this->name,
+			'update_count_callback' => '',
+			'show_in_rest'          => false,
+			'rest_base'             => false,
+			'rest_controller_class' => false,
+			'default_term'          => null,
+			'sort'                  => null,
+			'args'                  => null,
+			'_builtin'              => false,
 		);
 
 		$args = array_merge( $defaults, $args );
@@ -418,17 +434,6 @@ final class WP_Taxonomy {
 					'description' => '',
 				)
 			);
-		}
-
-		// If generic update callback is defined but increment/decrement callback is not.
-		if (
-			! empty( $args['update_count_callback'] ) &&
-			is_callable( $args['update_count_callback'] ) &&
-			empty( $args['update_count_by_callback'] )
-		) {
-			$args['update_count_by_callback'] = function( $tt_ids, $taxonomy ) use ( $args ) {
-				return call_user_func( $args['update_count_callback'], $tt_ids, $taxonomy );
-			};
 		}
 
 		foreach ( $args as $property_name => $property_value ) {

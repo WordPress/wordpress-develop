@@ -16,7 +16,7 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	protected static $post_id;
 	protected static $post_id_2;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$author = $factory->user->create_and_get( array( 'role' => 'editor' ) );
 
 		self::$post_id = $factory->post->create(

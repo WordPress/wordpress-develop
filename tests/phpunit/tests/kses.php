@@ -8,11 +8,27 @@
 class Tests_Kses extends WP_UnitTestCase {
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_address
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
 	 */
-	function test_wp_filter_post_kses_address() {
+	function test_wp_filter_post_kses_address( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_address.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_address() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -25,21 +41,43 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $values ) {
 			foreach ( (array) $values as $value ) {
 				$string        = "<address $name='$value'>1 WordPress Avenue, The Internet.</address>";
 				$expect_string = "<address $name='" . str_replace( '; ', ';', trim( $value, ';' ) ) . "'>1 WordPress Avenue, The Internet.</address>";
-				$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+
+				$data[] = array( $string, $expect_string );
 			}
 		}
+
+		return $data;
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_a
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_a() {
+	function test_wp_filter_post_kses_a( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for test_wp_filter_post_kses_a.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_a() {
 		$attributes = array(
 			'class'    => 'classname',
 			'id'       => 'id',
@@ -53,6 +91,8 @@ class Tests_Kses extends WP_UnitTestCase {
 			'download' => '',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			if ( $value ) {
 				$attr          = "$name='$value'";
@@ -63,8 +103,10 @@ class Tests_Kses extends WP_UnitTestCase {
 			}
 			$string        = "<a $attr>I link this</a>";
 			$expect_string = "<a $expected_attr>I link this</a>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	/**
@@ -122,11 +164,28 @@ class Tests_Kses extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @dataProvider data_wp_filter_post_kses_abbr
 	 * @ticket 20210
+	 *
+	 * @param string $string        Test string for kses.
+	 * @param string $expect_string Expected result after passing through kses.
+	 * @return void
 	 */
-	function test_wp_filter_post_kses_abbr() {
+	function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;
 
+		$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+	}
+
+	/**
+	 * Data provider for data_wp_filter_post_kses_abbr.
+	 *
+	 * @return array[] Arguments {
+	 *     @type string $string        Test string for kses.
+	 *     @type string $expect_string Expected result after passing through kses.
+	 * }
+	 */
+	function data_wp_filter_post_kses_abbr() {
 		$attributes = array(
 			'class' => 'classname',
 			'id'    => 'id',
@@ -134,11 +193,15 @@ class Tests_Kses extends WP_UnitTestCase {
 			'title' => 'title',
 		);
 
+		$data = array();
+
 		foreach ( $attributes as $name => $value ) {
 			$string        = "<abbr $name='$value'>WP</abbr>";
 			$expect_string = "<abbr $name='" . trim( $value, ';' ) . "'>WP</abbr>";
-			$this->assertSame( $expect_string, wp_kses( $string, $allowedposttags ) );
+			$data[]        = array( $string, $expect_string );
 		}
+
+		return $data;
 	}
 
 	function test_feed_links() {

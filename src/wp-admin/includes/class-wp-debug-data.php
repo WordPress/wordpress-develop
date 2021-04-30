@@ -48,12 +48,14 @@ class WP_Debug_Data {
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
 
-		foreach ( $core_updates as $core => $update ) {
-			if ( 'upgrade' === $update->response ) {
-				/* translators: %s: Latest WordPress version number. */
-				$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
-			} else {
-				$core_update_needed = '';
+		if ( is_array( $core_updates ) ) {
+			foreach ( $core_updates as $core => $update ) {
+				if ( 'upgrade' === $update->response ) {
+					/* translators: %s: Latest WordPress version number. */
+					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
+				} else {
+					$core_update_needed = '';
+				}
 			}
 		}
 
@@ -267,6 +269,10 @@ class WP_Debug_Data {
 				'WP_PLUGIN_DIR'       => array(
 					'label' => 'WP_PLUGIN_DIR',
 					'value' => WP_PLUGIN_DIR,
+				),
+				'WP_MEMORY_LIMIT'     => array(
+					'label' => 'WP_MEMORY_LIMIT',
+					'value' => WP_MEMORY_LIMIT,
 				),
 				'WP_MAX_MEMORY_LIMIT' => array(
 					'label' => 'WP_MAX_MEMORY_LIMIT',
@@ -974,7 +980,7 @@ class WP_Debug_Data {
 						'requires_php'  => '',
 						'compatibility' => new stdClass(),
 					);
-					$item = array_merge( $item, array_intersect_key( $plugin, $item ) );
+					$item = wp_parse_args( $plugin, $item );
 				}
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );

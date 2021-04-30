@@ -27,7 +27,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 	 *
 	 * @param WP_UnitTest_Factory $factory WordPress unit test factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
@@ -153,7 +153,7 @@ class WP_REST_Block_Directory_Controller_Test extends WP_Test_REST_Controller_Te
 		$expected = array(
 			'name'                => 'sortabrilliant/guidepost',
 			'title'               => 'Guidepost',
-			'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come. How does it work? Guideposts are magic, no they...',
+			'description'         => 'A guidepost gives you directions. It lets you know where you’re going. It gives you a preview of what’s to come.',
 			'id'                  => 'guidepost',
 			'rating'              => 4.3,
 			'rating_count'        => 90,

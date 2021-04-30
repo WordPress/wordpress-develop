@@ -13,7 +13,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 
 	protected static $contributor_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$contributor_id = $factory->user->create(
 			array(
 				'role' => 'contributor',
@@ -230,10 +230,6 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'types', $properties );
 		$this->assertArrayHasKey( 'visibility', $properties );
 		$this->assertArrayHasKey( 'rest_base', $properties );
-	}
-
-	public function tearDown() {
-		parent::tearDown();
 	}
 
 	/**

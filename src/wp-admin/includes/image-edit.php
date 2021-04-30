@@ -11,9 +11,9 @@
  *
  * @since 2.9.0
  *
- * @param int         $post_id Attachment post ID.
- * @param bool|object $msg     Optional. Message to display for image editor updates or errors.
- *                             Default false.
+ * @param int          $post_id Attachment post ID.
+ * @param false|object $msg     Optional. Message to display for image editor updates or errors.
+ *                              Default false.
  */
 function wp_image_editor( $post_id, $msg = false ) {
 	$nonce     = wp_create_nonce( "image_editor-$post_id" );
@@ -117,7 +117,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 			);
 			?>
 		</p>
-		<?php endif ?>
+		<?php endif; ?>
 		<div class="imgedit-submit">
 
 		<fieldset class="imgedit-scale">

@@ -55,8 +55,8 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * Tear down the test case.
 	 */
 	function tearDown() {
-		parent::tearDown();
 		$this->setting = null;
+		parent::tearDown();
 	}
 
 	/**

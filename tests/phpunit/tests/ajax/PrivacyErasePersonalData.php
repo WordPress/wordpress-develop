@@ -113,7 +113,7 @@ class Tests_Ajax_PrivacyErasePersonalData extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$request_email        = 'requester@example.com';
 		self::$request_id           = wp_create_user_request( self::$request_email, 'remove_personal_data' );
 		self::$action               = 'wp-privacy-erase-personal-data';
