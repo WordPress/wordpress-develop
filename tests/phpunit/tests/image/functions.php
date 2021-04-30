@@ -154,7 +154,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_wp_save_image_file() {
 		$classes = $this->get_image_editor_engine_classes();
 		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Neither WP_Image_Editor_GD or WP_Image_Editor_Imagick image editor engine is not supported on this system.' );
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
@@ -202,7 +202,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_mime_overrides_filename() {
 		$classes = $this->get_image_editor_engine_classes();
 		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Neither WP_Image_Editor_GD or WP_Image_Editor_Imagick image editor engine is not supported on this system.' );
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
 		// Test each image editor engine.
@@ -236,7 +236,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	public function test_inferred_mime_types() {
 		$classes = $this->get_image_editor_engine_classes();
 		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Neither WP_Image_Editor_GD or WP_Image_Editor_Imagick image editor engines are not supported on this system.' );
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
 		// Mime types.
@@ -294,7 +294,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		$classes = $this->get_image_editor_engine_classes();
 		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Neither WP_Image_Editor_GD or WP_Image_Editor_Imagick image editor engine is not supported on this system.' );
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
 		// Then, test with editors.
