@@ -95,11 +95,8 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->assertSame( $id_base, $widget->id_base );
 		$this->assertSame( $name, $widget->name );
 
-		// Method assertArraySubset doesn't exist in phpunit versions compatible with PHP 5.2.
-		if ( method_exists( $this, 'assertArraySubset' ) ) {
-			$this->assertArraySubset( $widget_options, $widget->widget_options );
-			$this->assertArraySubset( $control_options, $widget->control_options );
-		}
+		$this->assertArraySubset( $widget_options, $widget->widget_options );
+		$this->assertArraySubset( $control_options, $widget->control_options );
 	}
 
 	/**
