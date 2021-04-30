@@ -247,7 +247,7 @@ add_action( 'after_setup_theme', 'twentysixteen_content_width', 0 );
  * @return array URLs to print for resource hints.
  */
 function twentysixteen_resource_hints( $urls, $relation_type ) {
-	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
+	if ( wp_style_is( 'twentysixteen-fonts', 'queue' ) && ( 'preconnect' === $relation_type || 'dns-prefetch' === $relation_type ) ) {
 		$urls[] = array(
 			'href' => 'https://fonts.gstatic.com',
 			'crossorigin',
