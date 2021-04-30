@@ -20,11 +20,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		if ( is_callable( array( 'WP_Http', '_getTransport' ) ) ) {
-			$this->markTestSkipped( 'The WP_Http tests require a class-http.php file of r17550 or later.' );
-			return;
-		}
-
 		$class = 'WP_Http_' . ucfirst( $this->transport );
 		if ( ! call_user_func( array( $class, 'test' ) ) ) {
 			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system.', $this->transport ) );
