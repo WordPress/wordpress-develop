@@ -132,6 +132,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 * Test is_attachment_with_mime_type method.
 	 *
 	 * @covers WP_Widget_Media::is_attachment_with_mime_type
+	 * @requires function imagejpeg
 	 */
 	function test_is_attachment_with_mime_type() {
 

@@ -541,6 +541,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Manager::import_theme_starter_content
 	 * @covers WP_Customize_Manager::_save_starter_content_changeset
+	 * @requires function imagejpeg
 	 */
 	function test_import_theme_starter_content() {
 		wp_set_current_user( self::$admin_user_id );

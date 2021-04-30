@@ -1722,6 +1722,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_no_width() {
 		$file       = get_attached_file( self::$large_id );

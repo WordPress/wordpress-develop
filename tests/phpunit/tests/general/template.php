@@ -35,6 +35,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::get_site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_get_site_icon_url() {
 		$this->assertEmpty( get_site_icon_url() );
@@ -49,6 +50,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::site_icon_url
+	 * @requires function imagejpeg
 	 */
 	function test_site_icon_url() {
 		$this->expectOutputString( '' );
@@ -62,6 +64,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::has_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_has_site_icon() {
 		$this->assertFalse( has_site_icon() );
@@ -103,6 +106,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon() {
 		$this->expectOutputString( '' );
@@ -125,6 +129,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 	/**
 	 * @group site_icon
 	 * @covers ::wp_site_icon
+	 * @requires function imagejpeg
 	 */
 	function test_wp_site_icon_with_filter() {
 		$this->expectOutputString( '' );

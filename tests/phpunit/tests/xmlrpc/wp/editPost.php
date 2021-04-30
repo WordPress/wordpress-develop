@@ -132,6 +132,9 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $editor_id, $out->post_author );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
