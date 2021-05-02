@@ -344,9 +344,10 @@ class WP {
 			}
 		}
 
-		// Limit publicly queried post_types to those that are 'publicly_queryable'.
+		// Limit publicly queried post_types to those that are 'publicly_queryable' or 'has_archive'.
 		if ( isset( $this->query_vars['post_type'] ) ) {
-			$queryable_post_types = get_post_types( array( 'publicly_queryable' => true ) );
+			$criterion = isset( $this->query_vars['name'] ) ? 'publicly_queryable' : 'has_archive';
+			$queryable_post_types = get_post_types( array( $criterion => true ) );
 			if ( ! is_array( $this->query_vars['post_type'] ) ) {
 				if ( ! in_array( $this->query_vars['post_type'], $queryable_post_types, true ) ) {
 					unset( $this->query_vars['post_type'] );
