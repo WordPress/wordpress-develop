@@ -1,7 +1,5 @@
 # WordPress
 
-[![Build Status](https://img.shields.io/travis/com/WordPress/wordpress-develop/master.svg)](https://travis-ci.com/WordPress/wordpress-develop)
-
 Welcome to the WordPress development repository! Please check out the [contributor handbook](https://make.wordpress.org/core/handbook/) for information about how to open bug reports, contribute patches, test changes, write documentation, or get involved in any way you can.
 
 * [Getting Started](#getting-started)

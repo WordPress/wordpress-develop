@@ -748,7 +748,7 @@ class PHPMailer
      *
      * @var string
      */
-    const VERSION = '6.3.0';
+    const VERSION = '6.4.1';
 
     /**
      * Error severity: message only, continue processing.
@@ -1199,7 +1199,11 @@ class PHPMailer
                     )
                 ) {
                     //Decode the name part if it's present and encoded
-                    if (property_exists($address, 'personal') && preg_match('/^=\?.*\?=$/', $address->personal)) {
+                    if (
+                        property_exists($address, 'personal') &&
+                        extension_loaded('mbstring') &&
+                        preg_match('/^=\?.*\?=$/', $address->personal)
+                    ) {
                         $address->personal = mb_decode_mimeheader($address->personal);
                     }
 
@@ -1682,16 +1686,11 @@ class PHPMailer
         //Sendmail docs: http://www.sendmail.org/~ca/email/man/sendmail.html
         //Qmail docs: http://www.qmail.org/man/man8/qmail-inject.html
         //Example problem: https://www.drupal.org/node/1057954
-        //CVE-2016-10033, CVE-2016-10045: Don't pass -f if characters will be escaped.
-        if ('' === $this->Sender) {
-            $this->Sender = $this->From;
-        }
         if (empty($this->Sender) && !empty(ini_get('sendmail_from'))) {
             //PHP config has a sender address we can use
             $this->Sender = ini_get('sendmail_from');
         }
         //CVE-2016-10033, CVE-2016-10045: Don't pass -f if characters will be escaped.
-        //But sendmail requires this param, so fail without it
         if (!empty($this->Sender) && static::validateAddress($this->Sender) && self::isShellSafe($this->Sender)) {
             if ($this->Mailer === 'qmail') {
                 $sendmailFmt = '%s -f%s';
@@ -1699,8 +1698,12 @@ class PHPMailer
                 $sendmailFmt = '%s -oi -f%s -t';
             }
         } else {
-            $this->edebug('Sender address unusable or missing: ' . $this->Sender);
-            return false;
+            //allow sendmail to choose a default envelope sender. It may
+            //seem preferable to force it to use the From header as with
+            //SMTP, but that introduces new problems (see
+            //<https://github.com/PHPMailer/PHPMailer/issues/2298>), and
+            //it has historically worked this way.
+            $sendmailFmt = '%s -oi -t';
         }
 
         $sendmail = sprintf($sendmailFmt, escapeshellcmd($this->Sendmail), $this->Sender);
@@ -1720,9 +1723,10 @@ class PHPMailer
                 fwrite($mail, $header);
                 fwrite($mail, $body);
                 $result = pclose($mail);
+                $addrinfo = static::parseAddresses($toAddr);
                 $this->doCallback(
                     ($result === 0),
-                    [$toAddr],
+                    [[$addrinfo['address'], $addrinfo['name']]],
                     $this->cc,
                     $this->bcc,
                     $this->Subject,
@@ -1809,7 +1813,8 @@ class PHPMailer
      */
     protected static function isPermittedPath($path)
     {
-        return !preg_match('#^[a-z]+://#i', $path);
+        //Matches scheme definition from https://tools.ietf.org/html/rfc3986#section-3.1
+        return !preg_match('#^[a-z][a-z\d+.-]*://#i', $path);
     }
 
     /**
@@ -1821,12 +1826,15 @@ class PHPMailer
      */
     protected static function fileIsAccessible($path)
     {
+        if (!static::isPermittedPath($path)) {
+            return false;
+        }
         $readable = file_exists($path);
         //If not a UNC path (expected to start with \\), check read permission, see #2069
         if (strpos($path, '\\\\') !== 0) {
             $readable = $readable && is_readable($path);
         }
-        return static::isPermittedPath($path) && $readable;
+        return  $readable;
     }
 
     /**
@@ -1860,9 +1868,6 @@ class PHPMailer
         //Qmail docs: http://www.qmail.org/man/man8/qmail-inject.html
         //Example problem: https://www.drupal.org/node/1057954
         //CVE-2016-10033, CVE-2016-10045: Don't pass -f if characters will be escaped.
-        if ('' === $this->Sender) {
-            $this->Sender = $this->From;
-        }
         if (empty($this->Sender) && !empty(ini_get('sendmail_from'))) {
             //PHP config has a sender address we can use
             $this->Sender = ini_get('sendmail_from');
@@ -1878,7 +1883,17 @@ class PHPMailer
         if ($this->SingleTo && count($toArr) > 1) {
             foreach ($toArr as $toAddr) {
                 $result = $this->mailPassthru($toAddr, $this->Subject, $body, $header, $params);
-                $this->doCallback($result, [$toAddr], $this->cc, $this->bcc, $this->Subject, $body, $this->From, []);
+                $addrinfo = static::parseAddresses($toAddr);
+                $this->doCallback(
+                    $result,
+                    [[$addrinfo['address'], $addrinfo['name']]],
+                    $this->cc,
+                    $this->bcc,
+                    $this->Subject,
+                    $body,
+                    $this->From,
+                    []
+                );
             }
         } else {
             $result = $this->mailPassthru($to, $this->Subject, $body, $header, $params);
@@ -1967,7 +1982,7 @@ class PHPMailer
                     $isSent = true;
                 }
 
-                $callbacks[] = ['issent' => $isSent, 'to' => $to[0]];
+                $callbacks[] = ['issent' => $isSent, 'to' => $to[0], 'name' => $to[1]];
             }
         }
 
@@ -1988,7 +2003,7 @@ class PHPMailer
         foreach ($callbacks as $cb) {
             $this->doCallback(
                 $cb['issent'],
-                [$cb['to']],
+                [[$cb['to'], $cb['name']]],
                 [],
                 [],
                 $this->Subject,

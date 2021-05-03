@@ -97,15 +97,15 @@ function wp_default_packages_vendor( $scripts ) {
 	$vendor_scripts_versions = array(
 		'react'                       => '16.13.1',
 		'react-dom'                   => '16.13.1',
-		'moment'                      => '2.26.0',
+		'moment'                      => '2.29.1',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.0.0',
-		'wp-polyfill-formdata'        => '3.0.12',
-		'wp-polyfill-node-contains'   => '3.42.0',
+		'wp-polyfill-formdata'        => '3.0.20',
+		'wp-polyfill-node-contains'   => '3.104.0',
 		'wp-polyfill-url'             => '3.6.4',
-		'wp-polyfill-dom-rect'        => '3.42.0',
+		'wp-polyfill-dom-rect'        => '3.104.0',
 		'wp-polyfill-element-closest' => '2.0.2',
-		'wp-polyfill-object-fit'      => '2.3.4',
+		'wp-polyfill-object-fit'      => '2.3.5',
 		'wp-polyfill'                 => '7.4.4',
 	);
 
@@ -1505,15 +1505,41 @@ function wp_default_styles( $styles ) {
 	$styles->add( 'wp-block-library-theme', "/wp-includes/css/dist/block-library/theme$suffix.css" );
 
 	$styles->add(
+		'wp-reset-editor-styles',
+		"/wp-includes/css/dist/block-library/reset$suffix.css",
+		array( 'common', 'forms' ) // Make sure the reset is loaded after the default WP Admin styles.
+	);
+
+	$styles->add(
+		'wp-editor-classic-layout-styles',
+		"/wp-includes/css/dist/edit-post/classic$suffix.css",
+		array()
+	);
+
+	$wp_edit_blocks_dependencies = array(
+		'wp-components',
+		'wp-editor',
+		// This need to be added before the block library styles,
+		// The block library styles override the "reset" styles.
+		'wp-reset-editor-styles',
+		'wp-block-library',
+		'wp-reusable-blocks',
+
+		// This dependency shouldn't be added for themes with theme.json support
+		// It's here for backward compatibility only.
+		// A check should be added here when theme.json is backported to Core.
+		'wp-editor-classic-layout-styles',
+	);
+	global $editor_styles;
+	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
+		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
+		$wp_edit_blocks_dependencies[] = 'wp-block-library-theme';
+	}
+
+	$styles->add(
 		'wp-edit-blocks',
 		"/wp-includes/css/dist/block-library/editor$suffix.css",
-		array(
-			'wp-components',
-			'wp-editor',
-			'wp-block-library',
-			// Always include visual styles so the editor never appears broken.
-			'wp-block-library-theme',
-		)
+		$wp_edit_blocks_dependencies
 	);
 
 	$package_styles = array(
@@ -1533,9 +1559,11 @@ function wp_default_styles( $styles ) {
 			'wp-components',
 			'wp-block-editor',
 			'wp-nux',
+			'wp-reusable-blocks',
 		),
 		'format-library'       => array(),
 		'list-reusable-blocks' => array( 'wp-components' ),
+		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 	);
 
@@ -1580,6 +1608,8 @@ function wp_default_styles( $styles ) {
 		'wp-pointer',
 		'wp-jquery-ui-dialog',
 		// Package styles.
+		'wp-reset-editor-styles',
+		'wp-editor-classic-layout-styles',
 		'wp-block-library-theme',
 		'wp-edit-blocks',
 		'wp-block-editor',
@@ -1590,6 +1620,7 @@ function wp_default_styles( $styles ) {
 		'wp-editor',
 		'wp-format-library',
 		'wp-list-reusable-blocks',
+		'wp-reusable-blocks',
 		'wp-nux',
 		// Deprecated CSS.
 		'deprecated-media',
@@ -2303,15 +2334,17 @@ function enqueue_editor_block_styles_assets() {
 	$register_script_lines = array( '( function() {' );
 	foreach ( $block_styles as $block_name => $styles ) {
 		foreach ( $styles as $style_properties ) {
+			$block_style = array(
+				'name'  => $style_properties['name'],
+				'label' => $style_properties['label'],
+			);
+			if ( isset( $style_properties['is_default'] ) ) {
+				$block_style['isDefault'] = $style_properties['is_default'];
+			}
 			$register_script_lines[] = sprintf(
 				'	wp.blocks.registerBlockStyle( \'%s\', %s );',
 				$block_name,
-				wp_json_encode(
-					array(
-						'name'  => $style_properties['name'],
-						'label' => $style_properties['label'],
-					)
-				)
+				wp_json_encode( $block_style )
 			);
 		}
 	}
@@ -2331,6 +2364,16 @@ function enqueue_editor_block_styles_assets() {
 function wp_enqueue_editor_block_directory_assets() {
 	wp_enqueue_script( 'wp-block-directory' );
 	wp_enqueue_style( 'wp-block-directory' );
+}
+
+/**
+ * Enqueues the assets required for the format library within the block editor.
+ *
+ * @since 5.8.0
+ */
+function wp_enqueue_editor_format_library_assets() {
+	wp_enqueue_script( 'wp-format-library' );
+	wp_enqueue_style( 'wp-format-library' );
 }
 
 /**
