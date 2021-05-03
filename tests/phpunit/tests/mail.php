@@ -21,12 +21,17 @@ class Tests_Mail extends WP_UnitTestCase {
 	 * when it encounters a line longer than 999 characters. But PHPMailer doesn't clean up after itself / presets
 	 * all variables, which means that following tests would fail. To solve this issue we set `$this->Encoding`
 	 * back to 8bit in `MockPHPMailer::preSend`.
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_break_it() {
 		$content = str_repeat( 'A', 1000 );
 		$this->assertTrue( wp_mail( WP_TESTS_EMAIL, 'Looong line testing', $content ) );
 	}
 
+	/**
+	 * @covers ::wp_mail
+	 */
 	function test_wp_mail_custom_boundaries() {
 		$to       = 'user@example.com';
 		$subject  = 'Test email with custom boundaries';
@@ -87,6 +92,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17305
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_rfc2822_addresses() {
 		$to        = 'Name <address@tld.com>';
@@ -117,6 +124,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17305
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_multiple_rfc2822_to_addresses() {
 		$to      = 'Name <address@tld.com>, Another Name <another_address@different-tld.com>';
@@ -135,6 +144,9 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertSameIgnoreEOL( $message . "\n", $mailer->get_sent()->body );
 	}
 
+	/**
+	 * @covers ::wp_mail
+	 */
 	function test_wp_mail_multiple_to_addresses() {
 		$to      = 'address@tld.com, another_address@different-tld.com';
 		$subject = 'RFC2822 Testing';
@@ -150,6 +162,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18463
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_to_address_no_name() {
 		$to      = '<address@tld.com>';
@@ -165,6 +179,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23642
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_return_value() {
 		// No errors.
@@ -179,6 +195,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_valid_from_header() {
 		$to       = 'address@tld.com';
@@ -195,6 +213,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_empty_from_header() {
 		$to       = 'address@tld.com';
@@ -211,6 +231,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_empty_from_name_for_the_from_header() {
 		$to       = 'address@tld.com';
@@ -227,6 +249,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_valid_content_type_header() {
 		$to       = 'address@tld.com';
@@ -243,6 +267,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_empty_content_type_header() {
 		$to       = 'address@tld.com';
@@ -259,6 +285,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30266
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_with_empty_charset_for_the_content_type_header() {
 		$to       = 'address@tld.com';
@@ -275,6 +303,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43542
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_does_not_duplicate_mime_version_header() {
 		$to       = 'user@example.com';
@@ -308,6 +338,8 @@ class Tests_Mail extends WP_UnitTestCase {
 	 * https://tools.ietf.org/html/rfc2045#section-6.1
 	 *
 	 * @ticket 28039
+	 *
+	 * @covers ::wp_mail
 	 */
 	function test_wp_mail_content_transfer_encoding_in_quoted_printable_multipart() {
 		add_action( 'phpmailer_init', array( $this, 'wp_mail_quoted_printable' ) );
@@ -325,6 +357,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21659
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_addresses_arent_encoded() {
 		$to      = 'Lukáš To <to@example.org>';
@@ -367,6 +401,8 @@ class Tests_Mail extends WP_UnitTestCase {
 	 * set it correctly.
 	 *
 	 * @ticket 37736
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_sender_not_set() {
 		wp_mail( 'user@example.org', 'Testing the Sender field', 'The Sender field should not have been set.' );
@@ -378,6 +414,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35598
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_phpmailer_exception_thrown() {
 		$to      = 'an_invalid_address';
@@ -410,6 +448,8 @@ class Tests_Mail extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50720
+	 *
+	 * @coversNothing
 	 */
 	function test_phpmailer_validator() {
 		$phpmailer = $GLOBALS['phpmailer'];
@@ -420,6 +460,8 @@ class Tests_Mail extends WP_UnitTestCase {
 	 * Test for short-circuiting wp_mail().
 	 *
 	 * @ticket 35069
+	 *
+	 * @covers ::wp_mail
 	 */
 	public function test_wp_mail_can_be_shortcircuited() {
 		$result1 = wp_mail( WP_TESTS_EMAIL, 'Foo', 'Bar' );

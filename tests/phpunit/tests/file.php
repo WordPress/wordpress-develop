@@ -16,6 +16,8 @@ class Tests_File extends WP_UnitTestCase {
 	/**
 	 * @group plugins
 	 * @group themes
+	 *
+	 * @cover ::get_file_data
 	 */
 	function test_get_file_data() {
 		$theme_headers = array(
@@ -46,6 +48,8 @@ class Tests_File extends WP_UnitTestCase {
 	/**
 	 * @group plugins
 	 * @group themes
+	 *
+	 * @cover ::get_file_data
 	 */
 	function test_get_file_data_cr_line_endings() {
 		$headers  = array(
@@ -88,6 +92,9 @@ class Tests_File extends WP_UnitTestCase {
 		return $result;
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_is_valid() {
 		// Make sure it produces a valid, writable, unique filename.
 		$filename = wp_unique_filename( $this->dir, __FUNCTION__ . '.txt' );
@@ -97,6 +104,9 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_is_unique() {
 		// Make sure it produces two unique filenames.
 		$name = __FUNCTION__;
@@ -113,6 +123,9 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename2 );
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_is_sanitized() {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . $this->badchars . '.txt' );
@@ -125,6 +138,9 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_with_slashes() {
 		$name = __FUNCTION__;
 		// "foo/foo.txt"
@@ -138,6 +154,9 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_multiple_ext() {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name . '.php.txt' );
@@ -150,6 +169,9 @@ class Tests_File extends WP_UnitTestCase {
 		unlink( $this->dir . DIRECTORY_SEPARATOR . $filename );
 	}
 
+	/**
+	 * @cover ::wp_unique_filename
+	 */
 	function test_unique_filename_no_ext() {
 		$name     = __FUNCTION__;
 		$filename = wp_unique_filename( $this->dir, $name );
@@ -163,6 +185,8 @@ class Tests_File extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_wp_tempnam_filenames
+	 *
+	 * @cover ::wp_tempnam
 	 */
 	function test_wp_tempnam( $case ) {
 		$file = wp_tempnam( $case );
@@ -183,6 +207,8 @@ class Tests_File extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47186
+	 *
+	 * @cover ::verify_file_signature
 	 */
 	function test_file_signature_functions_as_expected() {
 		$file = wp_tempnam();
@@ -216,6 +242,8 @@ class Tests_File extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47186
+	 *
+	 * @cover ::verify_file_signature
 	 */
 	function test_file_signature_expected_failure() {
 		$file = wp_tempnam();

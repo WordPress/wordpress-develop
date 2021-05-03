@@ -14,6 +14,9 @@ class Tests_WP extends WP_UnitTestCase {
 		$this->wp = new WP();
 	}
 
+	/**
+	 * @covers WP::add_query_var
+	 */
 	public function test_add_query_var() {
 		$public_qv_count = count( $this->wp->public_query_vars );
 
@@ -26,6 +29,9 @@ class Tests_WP extends WP_UnitTestCase {
 		$this->assertTrue( in_array( 'test2', $this->wp->public_query_vars, true ) );
 	}
 
+	/**
+	 * @covers WP::remove_query_var
+	 */
 	public function test_remove_query_var() {
 		$public_qv_count = count( $this->wp->public_query_vars );
 

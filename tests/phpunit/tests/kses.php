@@ -13,6 +13,8 @@ class Tests_Kses extends WP_UnitTestCase {
 	 *
 	 * @param string $string        Test string for kses.
 	 * @param string $expect_string Expected result after passing through kses.
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wp_filter_post_kses_address( $string, $expect_string ) {
 		global $allowedposttags;
@@ -62,6 +64,8 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $string        Test string for kses.
 	 * @param string $expect_string Expected result after passing through kses.
 	 * @return void
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wp_filter_post_kses_a( $string, $expect_string ) {
 		global $allowedposttags;
@@ -119,6 +123,8 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $source   Source HTML.
 	 * @param string $context  Context to use for parsing source.
 	 * @param string $expected Expected output following KSES parsing.
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wp_kses_video( $source, $context, $expected ) {
 		$actual = wp_kses( $source, $context );
@@ -170,6 +176,8 @@ class Tests_Kses extends WP_UnitTestCase {
 	 * @param string $string        Test string for kses.
 	 * @param string $expect_string Expected result after passing through kses.
 	 * @return void
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wp_filter_post_kses_abbr( $string, $expect_string ) {
 		global $allowedposttags;
@@ -204,6 +212,9 @@ class Tests_Kses extends WP_UnitTestCase {
 		return $data;
 	}
 
+	/**
+	 * @covers ::wp_kses
+	 */
 	function test_feed_links() {
 		global $allowedposttags;
 
@@ -238,6 +249,9 @@ EOF;
 		$this->assertSame( $expected, wp_kses( $content, $allowedposttags ) );
 	}
 
+	/**
+	 * @covers ::wp_kses_bad_protocol
+	 */
 	function test_wp_kses_bad_protocol() {
 		$bad = array(
 			'dummy:alert(1)',
@@ -340,6 +354,9 @@ EOF;
 		}
 	}
 
+	/**
+	 * @covers ::wp_kses_data
+	 */
 	public function test_hackers_attacks() {
 		$xss = simplexml_load_file( DIR_TESTDATA . '/formatting/xssAttacks.xml' );
 		foreach ( $xss->attack as $attack ) {
@@ -484,6 +501,8 @@ EOF;
 
 	/**
 	 * @ticket 20210
+	 *
+	 * @covers ::wp_kses
 	 */
 	public function test_wp_kses_allowed_html() {
 		global $allowedposttags, $allowedtags, $allowedentitynames;
@@ -533,6 +552,9 @@ EOF;
 		$this->assertSame( $allowedtags, wp_kses_allowed_html( 'data' ) );
 	}
 
+	/**
+	 * @covers ::wp_kses_post
+	 */
 	function test_hyphenated_tag() {
 		$string                 = '<hyphenated-tag attribute="value" otherattribute="value2">Alot of hyphens.</hyphenated-tag>';
 		$custom_tags            = array(
@@ -549,6 +571,8 @@ EOF;
 
 	/**
 	 * @ticket 26290
+	 *
+	 * @covers ::wp_kses_normalize_entities
 	 */
 	public function test_wp_kses_normalize_entities() {
 		$this->assertSame( '&spades;', wp_kses_normalize_entities( '&spades;' ) );
@@ -567,6 +591,8 @@ EOF;
 	 *
 	 * @ticket 28506
 	 * @dataProvider data_ctrl_removal
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_ctrl_removal( $input, $output ) {
 		global $allowedposttags;
@@ -604,6 +630,8 @@ EOF;
 	 *
 	 * @ticket 28699
 	 * @dataProvider data_slash_zero_removal
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_slash_zero_removal( $input, $output ) {
 		global $allowedposttags;
@@ -656,6 +684,8 @@ EOF;
 	 * Test new function wp_kses_hair_parse().
 	 *
 	 * @dataProvider data_hair_parse
+	 *
+	 * @covers ::wp_kses_hair_parse
 	 */
 	function test_hair_parse( $input, $output ) {
 		return $this->assertSame( $output, wp_kses_hair_parse( $input ) );
@@ -722,6 +752,8 @@ EOF;
 	 * Test new function wp_kses_attr_parse().
 	 *
 	 * @dataProvider data_attr_parse
+	 *
+	 * @covers ::wp_kses_attr_parse
 	 */
 	function test_attr_parse( $input, $output ) {
 		return $this->assertSame( $output, wp_kses_attr_parse( $input ) );
@@ -780,6 +812,8 @@ EOF;
 	 * Test new function wp_kses_one_attr().
 	 *
 	 * @dataProvider data_one_attr
+	 *
+	 * @covers ::wp_kses_one_attr
 	 */
 	function test_one_attr( $element, $input, $output ) {
 		return $this->assertSame( $output, wp_kses_one_attr( $input, $element ) );
@@ -857,6 +891,8 @@ EOF;
 
 	/**
 	 * @ticket 34063
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_bdo() {
 		global $allowedposttags;
@@ -868,6 +904,8 @@ EOF;
 
 	/**
 	 * @ticket 35079
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_ol_reversed() {
 		global $allowedposttags;
@@ -879,6 +917,8 @@ EOF;
 
 	/**
 	 * @ticket 40680
+	 *
+	 * @covers ::wp_kses_attr
 	 */
 	function test_wp_kses_attr_no_attributes_allowed_with_empty_array() {
 		$element   = 'foo';
@@ -889,6 +929,8 @@ EOF;
 
 	/**
 	 * @ticket 40680
+	 *
+	 * @covers ::wp_kses_attr
 	 */
 	function test_wp_kses_attr_no_attributes_allowed_with_true() {
 		$element   = 'foo';
@@ -899,6 +941,8 @@ EOF;
 
 	/**
 	 * @ticket 40680
+	 *
+	 * @covers ::wp_kses_attr
 	 */
 	function test_wp_kses_attr_single_attribute_is_allowed() {
 		$element   = 'foo';
@@ -909,6 +953,8 @@ EOF;
 
 	/**
 	 * @ticket 43312
+	 *
+	 * @covers ::wp_kses_attr
 	 */
 	function test_wp_kses_attr_no_attributes_allowed_with_false() {
 		$element   = 'foo';
@@ -927,6 +973,8 @@ EOF;
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
+	 *
+	 * @covers ::safecss_filter_attr
 	 */
 	public function test_safecss_filter_attr( $css, $expected ) {
 		$this->assertSame( $expected, safecss_filter_attr( $css ) );
@@ -1115,6 +1163,8 @@ EOF;
 	 * Data attributes are globally accepted.
 	 *
 	 * @ticket 33121
+	 *
+	 * @covers ::wp_kses_post
 	 */
 	function test_wp_kses_attr_data_attribute_is_allowed() {
 		$test     = '<div data-foo="foo" data-bar="bar" datainvalid="gone" data--invaild="gone"  data-also-invaild-="gone" data-two-hyphens="remains">Pens and pencils</div>';
@@ -1127,6 +1177,8 @@ EOF;
 	 * Ensure wildcard attributes block unprefixed wildcard uses.
 	 *
 	 * @ticket 33121
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wildcard_requires_hyphen_after_prefix() {
 		$allowed_html = array(
@@ -1148,6 +1200,8 @@ EOF;
 	 * Ensure wildcard allows two hyphen.
 	 *
 	 * @ticket 33121
+	 *
+	 * @covers ::wp_kses
 	 */
 	function test_wildcard_allows_two_hyphens() {
 		$allowed_html = array(
@@ -1170,6 +1224,8 @@ EOF;
 	 * @dataProvider data_wildcard_attribute_prefixes
 	 *
 	 * @ticket 33121
+	 *
+	 * @covers ::wp_kses_attr_check
 	 */
 	function test_wildcard_attribute_prefixes( $wildcard_attribute, $expected ) {
 		$allowed_html = array(
@@ -1215,6 +1271,8 @@ EOF;
 	 *
 	 * @param $input string The style attribute saved in the editor.
 	 * @param $expected string The sanitized style attribute.
+	 *
+	 * @covers ::safecss_filter_attr
 	 */
 	function test_kses_style_attr_with_url( $input, $expected ) {
 		$actual = safecss_filter_attr( $input );
@@ -1362,6 +1420,8 @@ EOF;
 	 *
 	 * @param string $css      A string of CSS rules.
 	 * @param string $expected Expected string of CSS rules.
+	 *
+	 * @covers ::safecss_filter_attr
 	 */
 	public function test_safecss_filter_attr_filtered( $css, $expected ) {
 		add_filter( 'safecss_filter_attr_allow_css', '__return_true' );
@@ -1429,6 +1489,8 @@ EOF;
 	 * Test filtering a standard img tag.
 	 *
 	 * @ticket 50731
+	 *
+	 * @covers ::wp_kses_post
 	 */
 	function test_wp_kses_img_tag_standard_attributes() {
 		$html = array(

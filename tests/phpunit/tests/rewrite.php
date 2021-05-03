@@ -27,6 +27,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16840
+	 *
+	 * @covers ::add_rule
 	 */
 	public function test_add_rule() {
 		global $wp_rewrite;
@@ -45,6 +47,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16840
+	 *
+	 * @covers ::add_rule
 	 */
 	public function test_add_rule_redirect_array() {
 		global $wp_rewrite;
@@ -69,6 +73,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16840
+	 *
+	 * @covers ::add_rule
 	 */
 	public function test_add_rule_top() {
 		global $wp_rewrite;
@@ -85,6 +91,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertContains( $redirect, $extra_rules_top[ $pattern ] );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid() {
 
 		$id = self::factory()->post->create();
@@ -94,6 +103,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $id, url_to_postid( get_permalink( $id ) ) );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 * @covers ::set_url_scheme
+	 */
 	function test_url_to_postid_set_url_scheme_https_to_http() {
 		$post_id   = self::factory()->post->create();
 		$permalink = get_permalink( $post_id );
@@ -104,6 +117,10 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $post_id, url_to_postid( set_url_scheme( $permalink, 'https' ) ) );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 * @covers ::set_url_scheme
+	 */
 	function test_url_to_postid_set_url_scheme_http_to_https() {
 		$_SERVER['HTTPS'] = 'on';
 
@@ -123,6 +140,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * @ticket 35531
 	 * @group multisite
 	 * @group ms-required
+	 *
+	 * @covers ::url_to_postid
 	 */
 	function test_url_to_postid_of_http_site_when_current_site_uses_https() {
 		$_SERVER['HTTPS'] = 'on';
@@ -170,6 +189,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		return $url;
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid_custom_post_type() {
 		delete_option( 'rewrite_rules' );
 
@@ -182,6 +204,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		_unregister_post_type( $post_type );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid_hierarchical() {
 
 		$parent_id = self::factory()->post->create(
@@ -202,6 +227,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $child_id, url_to_postid( get_permalink( $child_id ) ) );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid_hierarchical_with_matching_leaves() {
 
 		$parent_id       = self::factory()->post->create(
@@ -245,6 +273,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( $grandchild_id_2, url_to_postid( get_permalink( $grandchild_id_2 ) ) );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid_home_has_path() {
 
 		update_option( 'home', home_url( '/example/' ) );
@@ -270,6 +301,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30438
+	 *
+	 * @covers ::home_url
 	 */
 	function test_parse_request_home_path() {
 		$home_url = home_url( '/path/' );
@@ -290,6 +323,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30438
+	 *
+	 * @covers ::home_url
 	 */
 	function test_parse_request_home_path_with_regex_character() {
 		$home_url       = home_url( '/ma.ch/' );
@@ -327,6 +362,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30018
+	 *
+	 * @covers ::home_url
 	 */
 	function test_parse_request_home_path_non_public_type() {
 		register_post_type( 'foo', array( 'public' => false ) );
@@ -340,6 +377,9 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->assertSame( array(), $GLOBALS['wp']->query_vars );
 	}
 
+	/**
+	 * @covers ::url_to_postid
+	 */
 	function test_url_to_postid_dupe_path() {
 		update_option( 'home', home_url( '/example/' ) );
 
@@ -359,6 +399,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * Reveals bug introduced in WP 3.0
+	 *
+	 * @covers ::url_to_postid
 	 */
 	function test_url_to_postid_home_url_collision() {
 		update_option( 'home', home_url( '/example' ) );
@@ -380,6 +422,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	 * Reveals bug introduced in WP 3.0
 	 *
 	 * @group ms-required
+	 *
+	 * @covers ::network_home_url
 	 */
 	function test_url_to_postid_ms_home_url_collision() {
 		$blog_id = self::factory()->blog->create( array( 'path' => '/example' ) );
@@ -401,6 +445,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21970
+	 *
+	 * @covers ::url_to_postid
 	 */
 	function test_url_to_postid_with_post_slug_that_clashes_with_a_trashed_page() {
 		$this->set_permalink_structure( '/%postname%/' );
@@ -418,6 +464,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
+	 *
+	 * @covers ::url_to_postid
 	 */
 	function test_url_to_postid_static_front_page() {
 		$post_id = self::factory()->post->create( array( 'post_type' => 'page' ) );
@@ -438,6 +486,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39373
+	 *
+	 * @covers ::url_to_postid
 	 */
 	public function test_url_to_postid_should_bail_when_host_does_not_match() {
 		$this->set_permalink_structure( '/%postname%/' );
@@ -452,6 +502,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21970
+	 *
+	 * @covers ::get_permalink
 	 */
 	function test_parse_request_with_post_slug_that_clashes_with_a_trashed_page() {
 		$this->set_permalink_structure( '/%postname%/' );
@@ -472,6 +524,8 @@ class Tests_Rewrite extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29107
+	 *
+	 * @covers ::flush_rules
 	 */
 	public function test_flush_rules_does_not_delete_option() {
 		$this->set_permalink_structure( '' );

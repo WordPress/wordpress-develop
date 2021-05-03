@@ -34,6 +34,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_string_lengths
+	 *
+	 * @covers ::_mb_strlen
 	 */
 	function test_mb_strlen( $string, $expected_character_length ) {
 		$this->assertSame( $expected_character_length, _mb_strlen( $string, 'UTF-8' ) );
@@ -41,6 +43,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_string_lengths
+	 *
+	 * @covers ::_mb_strlen
 	 */
 	function test_mb_strlen_via_regex( $string, $expected_character_length ) {
 		_wp_can_use_pcre_u( false );
@@ -50,6 +54,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_string_lengths
+	 *
+	 * @covers ::_mb_strlen
 	 */
 	function test_8bit_mb_strlen( $string, $expected_character_length, $expected_byte_length ) {
 		$this->assertSame( $expected_byte_length, _mb_strlen( $string, '8bit' ) );
@@ -57,6 +63,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_substrings
+	 *
+	 * @covers ::_mb_substr
 	 */
 	function test_mb_substr( $string, $start, $length, $expected_character_substring ) {
 		$this->assertSame( $expected_character_substring, _mb_substr( $string, $start, $length, 'UTF-8' ) );
@@ -64,6 +72,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_substrings
+	 *
+	 * @covers ::_mb_substr
 	 */
 	function test_mb_substr_via_regex( $string, $start, $length, $expected_character_substring ) {
 		_wp_can_use_pcre_u( false );
@@ -73,6 +83,8 @@ class Tests_Compat extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider utf8_substrings
+	 *
+	 * @covers ::_mb_substr
 	 */
 	function test_8bit_mb_substr( $string, $start, $length, $expected_character_substring, $expected_byte_substring ) {
 		$this->assertSame( $expected_byte_substring, _mb_substr( $string, $start, $length, '8bit' ) );
@@ -164,21 +176,34 @@ EOT;
 
 	}
 
+	/**
+	 * @covers ::_hash_hmac
+	 */
 	function test_hash_hmac_simple() {
 		$this->assertSame( '140d1cb79fa12e2a31f32d35ad0a2723', _hash_hmac( 'md5', 'simple', 'key' ) );
 		$this->assertSame( '993003b95758e0ac2eba451a4c5877eb1bb7b92a', _hash_hmac( 'sha1', 'simple', 'key' ) );
 	}
 
+	/**
+	 * @covers ::_hash_hmac
+	 */
 	function test_hash_hmac_padding() {
 		$this->assertSame( '3c1399103807cf12ec38228614416a8c', _hash_hmac( 'md5', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
 		$this->assertSame( '4428826d20003e309d6c2a6515891370daf184ea', _hash_hmac( 'sha1', 'simple', '65 character key 65 character key 65 character key 65 character k' ) );
 	}
 
+	/**
+	 * @covers ::unpack
+	 */
 	function test_hash_hmac_output() {
 		$this->assertSame( array( 1 => '140d1cb79fa12e2a31f32d35ad0a2723' ), unpack( 'H32', _hash_hmac( 'md5', 'simple', 'key', true ) ) );
 		$this->assertSame( array( 1 => '993003b95758e0ac2eba451a4c5877eb1bb7b92a' ), unpack( 'H40', _hash_hmac( 'sha1', 'simple', 'key', true ) ) );
 	}
 
+	/**
+	 * @covers Services_JSON::encodeUnsafe
+	 * @covers Services_JSON::decode
+	 */
 	function test_json_encode_decode() {
 		$this->expectException( 'PHPUnit_Framework_Error_Deprecated' );
 
@@ -193,6 +218,8 @@ EOT;
 	 * Test that is_countable() is always available (either from PHP or WP).
 	 *
 	 * @ticket 43583
+	 *
+	 * @covers ::is_countable
 	 */
 	function test_is_countable_availability() {
 		$this->assertTrue( function_exists( 'is_countable' ) );
@@ -207,6 +234,8 @@ EOT;
 	 *
 	 * @param mixed $variable     Variable to check.
 	 * @param bool  $is_countable The expected return value of PHP 7.3 is_countable() function.
+	 *
+	 * @covers ::is_countable
 	 */
 	function test_is_countable_functionality( $variable, $is_countable ) {
 		$this->assertSame( is_countable( $variable ), $is_countable );
@@ -242,6 +271,8 @@ EOT;
 	 * Test is_countable() polyfill for ResourceBundle.
 	 *
 	 * @ticket 43583
+	 *
+	 * @covers ::is_countable
 	 */
 	function test_is_countable_ResourceBundle() {
 		if ( ! class_exists( 'ResourceBundle' ) ) {
@@ -255,6 +286,8 @@ EOT;
 	 * Test is_countable() polyfill for SimpleXMLElement.
 	 *
 	 * @ticket 43583
+	 *
+	 * @covers ::is_countable
 	 */
 	function test_is_countable_SimpleXMLElement() {
 		if ( ! class_exists( 'SimpleXMLElement' ) ) {
@@ -268,6 +301,8 @@ EOT;
 	 * Test that is_iterable() is always available (either from PHP or WP).
 	 *
 	 * @ticket 43619
+	 *
+	 * @covers ::is_iterable
 	 */
 	function test_is_iterable_availability() {
 		$this->assertTrue( function_exists( 'is_iterable' ) );
@@ -282,6 +317,8 @@ EOT;
 	 *
 	 * @param mixed $variable    Variable to check.
 	 * @param bool  $is_iterable The expected return value of PHP 7.1 is_iterable() function.
+	 *
+	 * @covers ::is_iterable
 	 */
 	function test_is_iterable_functionality( $variable, $is_iterable ) {
 		$this->assertSame( is_iterable( $variable ), $is_iterable );

@@ -3,10 +3,15 @@
 /**
  * just make sure the test framework is working
  *
+ * No Covers as this checks for content in files
+ *
  * @group testsuite
  */
 class Tests_Basic extends WP_UnitTestCase {
 
+	/**
+	 * @coversNothing
+	 */
 	function test_license() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
@@ -17,6 +22,9 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertSame( $this_year, trim( $matches[1] ), "license.txt's year needs to be updated to $this_year." );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	function test_security_md() {
 		// This test is designed to only run on trunk/master.
 		$this->skipOnAutomatedBranches();
@@ -28,6 +36,9 @@ class Tests_Basic extends WP_UnitTestCase {
 		$this->assertSame( $latest_stable, trim( $matches[0] ), "SECURITY.md's version needs to be updated to $latest_stable." );
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	function test_package_json() {
 		$package_json    = file_get_contents( dirname( ABSPATH ) . '/package.json' );
 		$package_json    = json_decode( $package_json, true );
@@ -42,14 +53,19 @@ class Tests_Basic extends WP_UnitTestCase {
 
 	/**
 	 * @depends test_package_json
+	 *
+	 * @coversNothing
 	 */
 	function test_package_json_node_engine( $package_json ) {
 		$this->assertArrayHasKey( 'engines', $package_json );
 		$this->assertArrayHasKey( 'node', $package_json['engines'] );
 	}
 
-	// Test some helper utility functions.
-
+	/**
+	 * Test some helper utility functions.
+	 *
+	 * @coversNothing
+	 */
 	function test_strip_ws() {
 		$this->assertSame( '', strip_ws( '' ) );
 		$this->assertSame( 'foo', strip_ws( 'foo' ) );
@@ -77,6 +93,9 @@ class Tests_Basic extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @coversNothing
+	 */
 	function test_mask_input_value() {
 		$in = <<<EOF
 <h2>Assign Authors</h2>

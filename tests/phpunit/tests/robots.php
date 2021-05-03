@@ -9,6 +9,8 @@
  * Tests for robots template functions and filters.
  *
  * @group robots
+ *
+ * @covers ::wp_robots
  */
 class Tests_Robots extends WP_UnitTestCase {
 

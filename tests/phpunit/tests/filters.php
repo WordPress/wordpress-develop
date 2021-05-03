@@ -7,6 +7,9 @@
  */
 class Tests_Filters extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::add_filter
+	 */
 	function test_simple_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -25,6 +28,9 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( array( $val ), $args );
 	}
 
+	/**
+	 * @covers ::remove_filter
+	 */
 	function test_remove_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -45,6 +51,9 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::has_filter
+	 */
 	function test_has_filter() {
 			$tag  = __FUNCTION__;
 			$func = __FUNCTION__ . '_func';
@@ -59,7 +68,11 @@ class Tests_Filters extends WP_UnitTestCase {
 			$this->assertFalse( has_filter( $tag ) );
 	}
 
-	// One tag with multiple filters.
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_multiple_filters() {
 		$a1  = new MockAction();
 		$a2  = new MockAction();
@@ -77,6 +90,11 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( 1, $a2->get_call_count() );
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_filter_args_1() {
 		$a    = new MockAction();
 		$tag  = __FUNCTION__;
@@ -92,6 +110,11 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( array( $val, $arg1 ), array_pop( $argsvar ) );
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_filter_args_2() {
 		$a1   = new MockAction();
 		$a2   = new MockAction();
@@ -117,6 +140,11 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( array( $val ), array_pop( $argsvar2 ) );
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_filter_priority() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -148,6 +176,11 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( $expected, $a->get_events() );
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_all_filter() {
 		$a    = new MockAction();
 		$tag1 = __FUNCTION__ . '_1';
@@ -172,6 +205,11 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 *
+	 * @covers ::add_filter
+	 */
 	function test_remove_all_filter() {
 		$a   = new MockAction();
 		$tag = __FUNCTION__;
@@ -198,6 +236,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20920
+	 *
+	 * @covers ::add_filter
 	 */
 	function test_remove_all_filters_should_respect_the_priority_argument() {
 		$a   = new MockAction();
@@ -217,6 +257,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9886
+	 *
+	 * @covers ::add_filter
 	 */
 	function test_filter_ref_array() {
 		$obj = new stdClass();
@@ -236,6 +278,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12723
+	 *
+	 * @covers ::add_filter
 	 */
 	function test_filter_ref_array_result() {
 		$obj = new stdClass();
@@ -271,6 +315,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29070
+	 *
+	 * @covers ::has_filter
 	 */
 	function test_has_filter_after_remove_all_filters() {
 		$a   = new MockAction();
@@ -298,6 +344,8 @@ class Tests_Filters extends WP_UnitTestCase {
 	/**
 	 * @ticket 10441
 	 * @expectedDeprecated tests_apply_filters_deprecated
+	 *
+	 * @covers ::apply_filters_deprecated
 	 */
 	public function test_apply_filters_deprecated() {
 		$p = 'Foo';
@@ -317,6 +365,8 @@ class Tests_Filters extends WP_UnitTestCase {
 	/**
 	 * @ticket 10441
 	 * @expectedDeprecated tests_apply_filters_deprecated
+	 *
+	 * @covers ::apply_filters_deprecated
 	 */
 	public function test_apply_filters_deprecated_with_multiple_params() {
 		$p1 = 'Foo1';
@@ -341,6 +391,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10441
+	 *
+	 * @covers ::apply_filters_deprecated
 	 */
 	public function test_apply_filters_deprecated_without_filter() {
 		$val = 'Foobar';
@@ -351,6 +403,8 @@ class Tests_Filters extends WP_UnitTestCase {
 	private $current_priority;
 	/**
 	 * @ticket 39007
+	 *
+	 * @covers ::add_action
 	 */
 	public function test_current_priority() {
 		add_action( 'test_current_priority', array( $this, '_current_priority_action' ), 99 );
@@ -360,6 +414,9 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( 99, $this->current_priority );
 	}
 
+	/**
+	 * One tag with multiple filters.
+	 */
 	public function _current_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter[ current_filter() ]->current_priority();
@@ -367,6 +424,8 @@ class Tests_Filters extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39007
+	 *
+	 * @covers ::add_action
 	 */
 	public function test_other_priority() {
 		add_action( 'test_current_priority', array( $this, '_other_priority_action' ), 99 );

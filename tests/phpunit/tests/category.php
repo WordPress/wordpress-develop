@@ -18,6 +18,8 @@ class Tests_Category extends WP_UnitTestCase {
 	 * Validate get_all_category_ids
 	 *
 	 * @expectedDeprecated get_all_category_ids
+	 *
+	 * @covers ::get_all_category_ids
 	 */
 	function test_get_all_category_ids() {
 		// Ccreate categories.
@@ -34,6 +36,8 @@ class Tests_Category extends WP_UnitTestCase {
 
 	/**
 	 * Validate get_category_by_slug function
+	 *
+	 * @covers ::get_category_by_slug
 	 */
 	function test_get_category_by_slug() {
 
@@ -64,6 +68,8 @@ class Tests_Category extends WP_UnitTestCase {
 
 	/**
 	 * Validate _make_cat_compat function
+	 *
+	 * @covers ::_make_cat_compat
 	 */
 	function test__make_cat_compat() {
 
@@ -141,6 +147,8 @@ class Tests_Category extends WP_UnitTestCase {
 
 	/**
 	 * Validate get_cat_name function
+	 *
+	 * @covers ::get_cat_name
 	 */
 	function test_get_cat_name() {
 
@@ -161,6 +169,8 @@ class Tests_Category extends WP_UnitTestCase {
 
 	/**
 	 * Validate get_cat_name function
+	 *
+	 * @covers ::get_cat_ID
 	 */
 	function test_get_cat_ID() {
 
@@ -181,6 +191,8 @@ class Tests_Category extends WP_UnitTestCase {
 
 	/**
 	 * Validate get_category_by_path function
+	 *
+	 * @covers ::get_category_by_path
 	 */
 	function test_get_category_by_path() {
 

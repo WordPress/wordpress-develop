@@ -22,6 +22,9 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
+		/**
+		 * @covers ::wpmu_log_new_registrations
+		 */
 		function test_wpmu_log_new_registrations() {
 			global $wpdb;
 
@@ -37,6 +40,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 37392
+		 *
+		 * @covers ::wp_count_sites
 		 */
 		function test_wp_count_sites() {
 			// Create a random number of sites with each status.

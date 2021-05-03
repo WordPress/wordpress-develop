@@ -17,6 +17,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		return 'sanitized';
 	}
 
+	/**
+	 *
+	 * @covers ::sanitize_meta
+	 */
 	function test_sanitize_meta() {
 		$meta = sanitize_meta( 'some_meta', 'unsanitized', 'post' );
 		$this->assertSame( 'unsanitized', $meta );
@@ -26,6 +30,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'sanitized', $meta );
 	}
 
+	/**
+	 *
+	 * @covers ::delete_metadata_by_mid
+	 */
 	function test_delete_metadata_by_mid() {
 		// Let's try and delete a non-existing ID, non existing meta.
 		$this->assertFalse( delete_metadata_by_mid( 'user', 0 ) );
@@ -41,6 +49,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->assertFalse( (bool) get_user_meta( $this->author->ID, 'delete_meta_key' ) );
 	}
 
+	/**
+	 *
+	 * @covers ::delete_metadata_by_mid
+	 */
 	function test_update_metadata_by_mid() {
 		// Setup.
 		$meta = get_metadata_by_mid( 'user', $this->meta_id );
@@ -80,6 +92,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 11683
+	 *
+	 * @covers ::add_metadata
 	 */
 	public function test_update_metadata_hooks_for_multiple_updated_rows() {
 		add_metadata( 'post', 1, 'test_key', 'value_1' );
@@ -104,6 +118,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 *
+	 * @covers ::metadata_exists
+	 */
 	function test_metadata_exists() {
 		$this->assertFalse( metadata_exists( 'user', $this->author->ID, 'foobarbaz' ) );
 		$this->assertTrue( metadata_exists( 'user', $this->author->ID, 'meta_key' ) );
@@ -113,6 +131,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22746
+	 *
+	 * @covers ::metadata_exists
 	 */
 	function test_metadata_exists_with_filter() {
 		// Let's see if it returns the correct value when adding a filter.
@@ -124,6 +144,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18158
+	 *
+	 * @covers ::get_users
 	 */
 	function test_user_metadata_not_exists() {
 		$u = get_users(
@@ -198,6 +220,10 @@ class Tests_Meta extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 *
+	 * @covers ::get_metadata
+	 */
 	function test_metadata_slashes() {
 		$key       = __FUNCTION__;
 		$value     = 'Test\\singleslash';
@@ -230,6 +256,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16814
+	 *
+	 * @covers ::add_post_meta
 	 */
 	function test_meta_type_cast() {
 		$post_id1 = self::factory()->post->create();
@@ -320,6 +348,12 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28315
+	 *
+	 * @covers ::add_post_meta
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
+	 * @covers ::get_metadata
+	 * @covers ::metadata_exists
 	 */
 	function test_non_numeric_object_id() {
 		$this->assertFalse( add_metadata( 'user', array( 1 ), 'meta_key', 'meta_value' ) );
@@ -331,6 +365,10 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28315
+	 *
+	 * @covers ::add_post_meta
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
 	 */
 	function test_non_numeric_meta_id() {
 		$this->assertFalse( get_metadata_by_mid( 'user', array( 1 ) ) );
@@ -340,6 +378,10 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37746
+	 *
+	 * @covers ::add_post_meta
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
 	 */
 	function test_negative_meta_id() {
 		$negative_mid = $this->meta_id * -1;
@@ -352,6 +394,10 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37746
+	 *
+	 * @covers ::add_post_meta
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
 	 */
 	function test_floating_meta_id() {
 		$floating_mid = $this->meta_id + 0.1337;
@@ -364,6 +410,10 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37746
+	 *
+	 * @covers ::add_post_meta
+	 * @covers ::update_metadata
+	 * @covers ::delete_metadata
 	 */
 	function test_string_point_zero_meta_id() {
 		$meta_id = add_metadata( 'user', $this->author->ID, 'meta_key', 'meta_value_2' );
@@ -379,6 +429,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15030
+	 *
+	 * @covers ::get_metadata
 	 */
 	public function test_get_metadata_with_empty_key_array_value() {
 		$data  = array( 1, 2 );
@@ -391,6 +443,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15030
+	 *
+	 * @covers ::get_metadata
 	 */
 	public function test_get_metadata_with_empty_key_object_value() {
 		$data      = new stdClass;
@@ -404,6 +458,8 @@ class Tests_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15030
+	 *
+	 * @covers ::get_metadata
 	 */
 	public function test_get_metadata_with_empty_key_nested_array_value() {
 		$data  = array(
