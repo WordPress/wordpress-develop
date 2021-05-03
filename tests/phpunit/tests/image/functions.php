@@ -153,9 +153,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_wp_save_image_file() {
 		$classes = $this->get_image_editor_engine_classes();
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
 
 		require_once ABSPATH . 'wp-admin/includes/image-edit.php';
 
@@ -201,9 +198,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_mime_overrides_filename() {
 		$classes = $this->get_image_editor_engine_classes();
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
 
 		// Test each image editor engine.
 		foreach ( $classes as $class ) {
@@ -235,9 +229,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 */
 	public function test_inferred_mime_types() {
 		$classes = $this->get_image_editor_engine_classes();
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
 
 		// Mime types.
 		$mime_types = array(
@@ -293,9 +284,6 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		$this->assertInstanceOf( 'WP_Error', $editor2 );
 
 		$classes = $this->get_image_editor_engine_classes();
-		if ( empty( $classes ) ) {
-			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
-		}
 
 		// Then, test with editors.
 		foreach ( $classes as $class ) {
@@ -320,6 +308,10 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 				// If the image editor isn't available, skip it.
 				unset( $classes[ $key ] );
 			}
+		}
+
+		if ( empty( $classes ) ) {
+			$this->markTestSkipped( 'Image editor engines WP_Image_Editor_GD and WP_Image_Editor_Imagick are not supported on this system.' );
 		}
 
 		return $classes;
