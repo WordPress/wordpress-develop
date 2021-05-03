@@ -22,9 +22,10 @@ class WP_Widget_Recent_Posts extends WP_Widget {
 	 * @since 2.8.0
 	 */
 	public function __construct() {
+		$widget_description = html_entity_decode( 'Your site&#8217;s most recent Posts.' );
 		$widget_ops = array(
 			'classname'                   => 'widget_recent_entries',
-			'description'                 => __( html_entity_decode( 'Your site&#8217;s most recent Posts.' ) ),
+			'description'                 => __( $widget_description ),
 			'customize_selective_refresh' => true,
 		);
 		parent::__construct( 'recent-posts', __( 'Recent Posts' ), $widget_ops );
