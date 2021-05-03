@@ -9,6 +9,9 @@ class Tests_Actions_Closures extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10493
+	 *
+	 * @covers ::has_action
+	 * @covers ::do_action
 	 */
 	function test_action_closure() {
 		$tag     = 'test_action_closure';
