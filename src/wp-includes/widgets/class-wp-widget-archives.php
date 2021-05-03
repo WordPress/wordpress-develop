@@ -24,7 +24,7 @@ class WP_Widget_Archives extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'                   => 'widget_archive',
-			'description'                 => __( 'A monthly archive of your site&#8217;s Posts.' ),
+			'description'                 => __( html_entity_decode( 'A monthly archive of your site&#8217;s Posts.' ) ),
 			'customize_selective_refresh' => true,
 		);
 		parent::__construct( 'archives', __( 'Archives' ), $widget_ops );

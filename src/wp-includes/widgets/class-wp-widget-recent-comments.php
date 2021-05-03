@@ -24,7 +24,7 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'                   => 'widget_recent_comments',
-			'description'                 => __( 'Your site&#8217;s most recent comments.' ),
+			'description'                 => __( html_entity_decode( 'Your site&#8217;s most recent comments.' ) ),
 			'customize_selective_refresh' => true,
 		);
 		parent::__construct( 'recent-comments', __( 'Recent Comments' ), $widget_ops );
