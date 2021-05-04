@@ -18,7 +18,6 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::sanitize_meta
 	 */
 	function test_sanitize_meta() {
@@ -31,7 +30,6 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::delete_metadata_by_mid
 	 */
 	function test_delete_metadata_by_mid() {
@@ -50,7 +48,6 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::delete_metadata_by_mid
 	 */
 	function test_update_metadata_by_mid() {
@@ -119,7 +116,6 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::metadata_exists
 	 */
 	function test_metadata_exists() {
@@ -221,7 +217,6 @@ class Tests_Meta extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::get_metadata
 	 */
 	function test_metadata_slashes() {

@@ -990,7 +990,6 @@ class Tests_DB extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21212
-	 *
 	 */
 	function data_process_field_formats() {
 		$core_db_fields_no_format_specified = array(

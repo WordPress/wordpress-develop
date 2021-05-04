@@ -8,7 +8,6 @@
 class Tests_Actions extends WP_UnitTestCase {
 
 	/**
-	 *
 	 * @covers ::do_action
 	 */
 	function test_simple_action() {

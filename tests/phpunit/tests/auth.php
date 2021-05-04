@@ -216,7 +216,6 @@ class Tests_Auth extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36361
-	/**
 	 *
 	 * @covers ::check_ajax_referer
 	 */

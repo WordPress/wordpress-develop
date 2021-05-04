@@ -252,7 +252,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return mixed
+	 * @return WP_Admin_Bar
 	 */
 	protected function get_standard_admin_bar() {
 		global $wp_admin_bar;
