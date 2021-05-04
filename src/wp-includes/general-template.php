@@ -2269,10 +2269,10 @@ function wp_get_archives_result_object( $args = '' ) {
  * }
  *
  * `$type` = 'postbypost`
- * array {} // TODO
+ * Array of posts.
  *
  * `$type` = 'alpha`
- * array {} // TODO
+ * Array of posts.
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
