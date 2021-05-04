@@ -337,7 +337,7 @@ abstract class WP_Image_Editor {
 		 * @param string $mime_type The source image mime type.
 		 * }
 		 */
-		$wp_image_editor_output_format = apply_filters( 'wp_image_editor_output_format', array(), $filename, $mime_type );
+		$wp_image_editor_output_format = apply_filters( 'image_editor_output_format', array(), $filename, $mime_type );
 
 		if (
 			isset( $wp_image_editor_output_format[ $mime_type ] ) &&
