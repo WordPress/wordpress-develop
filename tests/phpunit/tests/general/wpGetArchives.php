@@ -175,7 +175,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 99999
+	 * @ticket 34058
 	 */
 	function test_wp_get_archives_result_object() {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );

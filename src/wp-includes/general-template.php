@@ -1907,7 +1907,6 @@ function get_archives_link( $url, $text, $format = 'html', $before = '', $after 
  *
  * @see get_archives_link()
  *
- * @global wpdb      $wpdb      WordPress database abstraction object.
  * @global WP_Locale $wp_locale WordPress date and time locale object.
  *
  * @param string|array $args {
@@ -2054,17 +2053,27 @@ function wp_get_archives( $args = '' ) {
 }
 
 /**
- * @param string|array $args {
- *     Default.
+ * Get archive links based on type and format.
  *
- *     @type string $type
- *     @type string $limit
- *     @type string $order
- *     @type string $post_type
- *     @type string $year
- *     @type string $monthnum
- *     @type string $w
+ * @see wp_get_archives_result()
+ *
+ * @global WP_Locale $wp_locale WordPress date and time locale object.
+ *
+ * @param string|array $args {
+ *     Default archive links arguments. Optional.
+ *
+ *     @type string     $type       Type of archive to retrieve. Accepts 'daily', 'weekly', 'monthly',
+ *                                  'yearly', 'postbypost', or 'alpha'. Both 'postbypost' and 'alpha'
+ *                                  display the same archive link list as well as post titles instead
+ *                                  of displaying dates. The difference between the two is that 'alpha'
+ *                                  will order by post title and 'postbypost' will order by post date.
+ *                                  Default 'monthly'.
+ *     @type string|int $limit      Number of links to limit the query to. Default empty (no limit).
+ *     @type string     $order      Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
+ *                                  Default 'DESC'.
+ *     @type string     $post_type  Post type. Default 'post'.
  * }
+ * @return array Array of archive links in object form.
  */
 function wp_get_archives_result_object( $args = '' ) {
 	global $wp_locale;
@@ -2211,23 +2220,70 @@ function wp_get_archives_result_object( $args = '' ) {
 	return array();
 }
 
+/**
+ * Retrives an array of archive data including the number of posts.
+ *
+ * Returns.
+ *
+ * `$type` = 'daily'
+ * array {
+ *     'year', // Year of the post. (e.g. 2021)
+ *     'month' // Month of the post. (e.g. 1)
+ *     'dayofmonth', // Day of the month of the post. (e.g. 24)
+ *     'posts', // Number of posts in the `year`, `month`, `dayofmonth`. (e.g. 1)
+ * }
+ *
+ * `$type` = 'weekly'
+ * array {
+ *     'week', // Week number of the post. (e.g. 18)
+ *     'yr', // Year of the post. (e.g. 2021)
+ *     'yyyymmdd', // Date of the post. (e.g. 2021-05-04)
+ *     'posts', //  Number of posts of that date. (e.g. 1)
+ * }
+ *
+ * `$type` = 'monthly`
+ * array {
+ *     'year', // Year of the post. (e.g. 2021)
+ *     'month', // Month of the post. (e.g. 1)
+ *     'posts', // Number of posts in that month. (e.g. 3)
+ * }
+ *
+ * `$type` = 'yearly`
+ * array {
+ *     'year', // Year of the posts. (e.g. 2021)
+ *     'posts', // Number of posts in that year.
+ * }
+ *
+ * `$type` = 'postbypost`
+ * array {} // TODO
+ *
+ * `$type` = 'alpha`
+ * array {} // TODO
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
+ *
+ * @param string|array $args {
+ *     Default archive links arguments. Optional.
+ *
+ *     @type string     $type       Type of archive to retrieve. Accepts 'daily', 'weekly', 'monthly',
+ *                                  'yearly', 'postbypost', or 'alpha'. 'alpha' will order by post title
+ *                                  and 'postbypost' will order by post date.
+ *                                  Default 'monthly'.
+ *     @type string|int $limit      Number of links to limit the query to. Default empty (no limit).
+ *     @type string     $order      Whether to use ascending or descending order. Accepts 'ASC', or 'DESC'.
+ *                                  Default 'DESC'.
+ *     @type string     $post_type  Post type. Default 'post'.
+ * }
+ * @return array
+ */
 function wp_get_archives_result( $args = '' ) {
 	global $wpdb;
 
 	$defaults = array(
 		'type'            => 'monthly',
 		'limit'           => '',
-		'format'          => 'html',
-		'before'          => '',
-		'after'           => '',
-		'show_post_count' => false,
-		'echo'            => 1,
 		'order'           => 'DESC',
 		'post_type'       => 'post',
-		'year'            => get_query_var( 'year' ),
-		'monthnum'        => get_query_var( 'monthnum' ),
-		'day'             => get_query_var( 'day' ),
-		'w'               => get_query_var( 'w' ),
 	);
 
 	$parsed_args = wp_parse_args( $args, $defaults );
@@ -2279,11 +2335,6 @@ function wp_get_archives_result( $args = '' ) {
 
 	$limit = $parsed_args['limit'];
 
-	$return = array(
-		'results'     => array(),
-		'parsed_args' => $parsed_args,
-	);
-
 	if ( 'monthly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 	}
@@ -2310,7 +2361,7 @@ function wp_get_archives_result( $args = '' ) {
 			),
 			'5.8.0'
 		);
-		return $return;
+		return array();
 	}
 
 	$key     = md5( $query );
@@ -2322,9 +2373,7 @@ function wp_get_archives_result( $args = '' ) {
 		wp_cache_set( $key, $results, 'posts' );
 	}
 
-	$return['results'] = $results;
-
-	return $return;
+	return $results;
 }
 
 /**
