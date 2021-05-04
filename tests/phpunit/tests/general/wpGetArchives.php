@@ -181,23 +181,29 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%postname%/' );
 
 		// Create multiple posts spread to different post data
-		$p1 = wp_insert_post( array(
-			'post_date'    => '2021-04-11 13:19:06',
-			'post_title'   => 'Post sample 1',
-			'post_status'  => 'publish',
-		) );
+		$p1 = wp_insert_post(
+			array(
+				'post_date'   => '2021-04-11 13:19:06',
+				'post_title'  => 'Post sample 1',
+				'post_status' => 'publish',
+			)
+		);
 
-		$p2 = wp_insert_post( array(
-			'post_date'    => '2021-04-11 19:44:42',
-			'post_title'   => 'Post sample 2',
-			'post_status'  => 'publish',
-		) );
+		$p2 = wp_insert_post(
+			array(
+				'post_date'   => '2021-04-11 19:44:42',
+				'post_title'  => 'Post sample 2',
+				'post_status' => 'publish',
+			)
+		);
 
-		$p3 = wp_insert_post( array(
-			'post_date'    => '2020-09-21 11:01:44',
-			'post_title'   => 'Post sample 6',
-			'post_status'  => 'publish',
-		) );
+		$p3 = wp_insert_post(
+			array(
+				'post_date'   => '2020-09-21 11:01:44',
+				'post_title'  => 'Post sample 6',
+				'post_status' => 'publish',
+			)
+		);
 
 		// Default. 'type' = 'monthly', 'order' = 'DESC'
 		$results1 = wp_get_archives_result_object();
@@ -260,10 +266,13 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		$results4 = wp_get_archives_result_object( array( 'type' => 'weekly' ) );
 
 		$res4exp1             = new stdClass;
-		$res4exp1->url        = add_query_arg( array(
-			'm' => '2021',
-			'w' => '14'
-		), get_site_url() . '/' );
+		$res4exp1->url        = add_query_arg(
+			array(
+				'm' => '2021',
+				'w' => '14',
+			),
+			get_site_url() . '/'
+		);
 		$res4exp1->label      = 'April 5, 2021&#8211;April 11, 2021';
 		$res4exp1->post_count = '2';
 		$res4exp1->year       = '2021';
@@ -272,10 +281,13 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		$res4exp1->week_end   = 'April 11, 2021';
 
 		$res4exp2             = new stdClass;
-		$res4exp2->url        = add_query_arg( array(
-			'm' => '2020',
-			'w' => '39'
-		), get_site_url() . '/' );
+		$res4exp2->url        = add_query_arg(
+			array(
+				'm' => '2020',
+				'w' => '39',
+			),
+			get_site_url() . '/'
+		);
 		$res4exp2->label      = 'September 21, 2020&#8211;September 27, 2020';
 		$res4exp2->post_count = '1';
 		$res4exp2->year       = '2020';
@@ -311,12 +323,15 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		$results1 = wp_get_archives_result();
 
 		$this->assertEquals( 1, count( $results1['results'] ) );
-		$this->assertEquals( array(
-			'type'            => 'monthly',
-			'limit'           => '',
-			'order'           => 'DESC',
-			'post_type'       => 'post',
-		), $results1['parsed_args'] );
+		$this->assertEquals(
+			array(
+			'type'      => 'monthly',
+			'limit'     => '',
+			'order'     => 'DESC',
+			'post_type' => 'post',
+			),
+			$results1['parsed_args']
+		);
 
 		$results2 = wp_get_archives_result( array( 'type' => 'postbypost' ) );
 		$this->assertEquals( 3, count( $results2['results'] ) );
