@@ -17,6 +17,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor.php';
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-gd.php';
 
+		add_filter( 'image_editor_mime_mapping', '__return_false' );
+
 		// This needs to come after the mock image editor class is loaded.
 		parent::setUp();
 	}
@@ -29,6 +31,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		}
 
 		$this->remove_added_uploads();
+		remove_filter( 'image_editor_mime_mapping', '__return_false' );
 
 		parent::tearDown();
 	}
@@ -109,6 +112,50 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 			$expected_array[0]['height']
 		);
 	}
+
+	/**
+	 * Test multi_resize with single image resize and no crop, with auto conversion
+	 * to the webp format.
+	 */
+	public function test_single_multi_resize_to_webp() {
+		remove_filter( 'image_editor_mime_mapping', '__return_false' );
+
+		$file = DIR_TESTDATA . '/images/waffles.jpg';
+
+		$gd_image_editor = new WP_Image_Editor_GD( $file );
+		$gd_image_editor->load();
+
+		$sizes_array = array(
+			array(
+				'width'  => 50,
+				'height' => 50,
+			),
+		);
+
+		$resized = $gd_image_editor->multi_resize( $sizes_array );
+
+		// First, check to see if returned array is as expected.
+		$expected_array = array(
+			array(
+				'file'      => 'waffles-50x33.webp',
+				'width'     => 50,
+				'height'    => 33,
+				'mime-type' => 'image/webp',
+			),
+		);
+
+		$this->assertSame( $expected_array, $resized );
+
+		// Now, verify real dimensions are as expected.
+		$image_path = DIR_TESTDATA . '/images/' . $resized[0]['file'];
+		$this->assertImageDimensions(
+			$image_path,
+			$expected_array[0]['width'],
+			$expected_array[0]['height']
+		);
+		add_filter( 'image_editor_mime_mapping', '__return_false' );
+	}
+
 
 	/**
 	 * Ensure multi_resize doesn't create an image when
