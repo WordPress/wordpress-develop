@@ -3081,7 +3081,7 @@ function wp_get_image_mime( $file ) {
 
 		// Add WebP fallback detection when image library doesn't support WebP.
 		// Note: detection values come from LibWebP, see
-		// https://github.com/webmproject/libwebp/blob/b6513fbaa8a3e21d1d726f6c63bbfa76f157b9a2/imageio/image_dec.c#L30
+		// https://github.com/webmproject/libwebp/blob/master/imageio/image_dec.c#L30
 		$magic = bin2hex( $magic );
 		if (
 			// RIFF.
