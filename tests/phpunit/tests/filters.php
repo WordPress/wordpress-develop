@@ -414,9 +414,6 @@ class Tests_Filters extends WP_UnitTestCase {
 		$this->assertSame( 99, $this->current_priority );
 	}
 
-	/**
-	 * One tag with multiple filters.
-	 */
 	public function _current_priority_action() {
 		global $wp_filter;
 		$this->current_priority = $wp_filter[ current_filter() ]->current_priority();

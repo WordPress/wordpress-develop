@@ -6,7 +6,6 @@
 class Tests_Functions extends WP_UnitTestCase {
 
 	/**
-	 *
 	 * @covers ::wp_parse_args
 	 */
 	function test_wp_parse_args_object() {
