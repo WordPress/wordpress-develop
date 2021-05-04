@@ -68,7 +68,7 @@ jobs:
   # - Submit the test results to the WordPress.org host test results.
   # - todo: Configure Slack notifications for failing tests.
   test-php:
-    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }} ${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
+    name: ${{ matrix.php }}${{ matrix.multisite && ' multisite' || '' }}${{ matrix.split_slow && ' slow tests' || '' }}${{ matrix.memcached && ' with memcached' || '' }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
     strategy:
