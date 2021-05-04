@@ -317,10 +317,10 @@ abstract class WP_Image_Editor {
 		}
 
 		/**
-		 * Filters the image editor output format.
+		 * Filters the image editor output format mapping.
 		 *
 		 * Enables filtering the mime type used to save images. By default,
-		 * the mime type matches the source image.
+		 * the mapping array is empty, so the mime type matches the source image.
 		 *
 		 * @see src/wp-includes/class-wp-image-editor.php -> get_output_format()
 		 *
