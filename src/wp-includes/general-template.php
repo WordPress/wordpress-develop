@@ -1952,6 +1952,20 @@ function wp_get_archives( $args = '' ) {
 		return '';
 	}
 
+	$extended_default_args = array(
+		'format'          => 'html',
+		'before'          => '',
+		'after'           => '',
+		'show_post_count' => false,
+		'echo'            => 1,
+		'year'            => get_query_var( 'year' ),
+		'monthnum'        => get_query_var( 'monthnum' ),
+		'day'             => get_query_var( 'day' ),
+		'w'               => get_query_var( 'w' ),
+	);
+
+	$parsed_args = wp_parse_args( $parsed_args, $extended_default_args );
+
 	$output = '';
 	$after  = $parsed_args['after'];
 
@@ -2274,7 +2288,11 @@ function wp_get_archives_result_object( $args = '' ) {
  *                                  Default 'DESC'.
  *     @type string     $post_type  Post type. Default 'post'.
  * }
- * @return array
+ *
+ * @return array|null Array with elements 'results' and 'parsed_args'.
+ *                    'results' is an array of archive data including the number of posts.
+ *                    'parsed_args' is an array of merged passed arguments and defaults.
+ *                    Returns `null` if the given `$args['post_type']` isn't "viewable".
  */
 function wp_get_archives_result( $args = '' ) {
 	global $wpdb;
@@ -2335,6 +2353,11 @@ function wp_get_archives_result( $args = '' ) {
 
 	$limit = $parsed_args['limit'];
 
+	$return = array(
+		'results'     => array(),
+		'parsed_args' => $parsed_args,
+	);
+
 	if ( 'monthly' === $parsed_args['type'] ) {
 		$query   = "SELECT YEAR(post_date) AS `year`, MONTH(post_date) AS `month`, count(ID) as posts FROM $wpdb->posts $join $where GROUP BY YEAR(post_date), MONTH(post_date) ORDER BY post_date $order $limit";
 	}
@@ -2361,7 +2384,7 @@ function wp_get_archives_result( $args = '' ) {
 			),
 			'5.8.0'
 		);
-		return array();
+		return $return;
 	}
 
 	$key     = md5( $query );
@@ -2373,7 +2396,9 @@ function wp_get_archives_result( $args = '' ) {
 		wp_cache_set( $key, $results, 'posts' );
 	}
 
-	return $results;
+	$return['results'] = $results;
+
+	return $return;
 }
 
 /**

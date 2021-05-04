@@ -314,17 +314,8 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 		$this->assertEquals( array(
 			'type'            => 'monthly',
 			'limit'           => '',
-			'format'          => 'html',
-			'before'          => '',
-			'after'           => '',
-			'show_post_count' => false,
-			'echo'            => 1,
 			'order'           => 'DESC',
 			'post_type'       => 'post',
-			'year'            => get_query_var( 'year' ),
-			'monthnum'        => get_query_var( 'monthnum' ),
-			'day'             => get_query_var( 'day' ),
-			'w'               => get_query_var( 'w' ),
 		), $results1['parsed_args'] );
 
 		$results2 = wp_get_archives_result( array( 'type' => 'postbypost' ) );
