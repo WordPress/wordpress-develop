@@ -12,6 +12,9 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		self::_restore_mu_plugins();
 	}
 
+	/**
+	 * @covers ::get_plugin_data
+	 */
 	function test_get_plugin_data() {
 		$data = get_plugin_data( DIR_TESTDATA . '/plugins/hello.php' );
 
@@ -35,6 +38,9 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::menu_page_url
+	 */
 	function test_menu_page_url() {
 		$current_user = get_current_user_id();
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -76,6 +82,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
 	 * @dataProvider data_submenu_position
+	 *
+	 * @covers ::add_submenu_page
 	 */
 	function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
@@ -126,6 +134,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
 	 * @dataProvider data_submenu_position
+	 *
+	 * @covers ::add_menu_page
 	 */
 	function test_submenu_helpers_position( $position, $expected_position ) {
 		global $submenu;
@@ -271,6 +281,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * Test that when a submenu has the same slug as a parent item, that it's just appended and ignores the position.
 	 *
 	 * @ticket 48599
+	 *
+	 * @covers ::add_submenu_page
 	 */
 	function test_position_when_parent_slug_child_slug_are_the_same() {
 		global $submenu, $menu;
@@ -305,6 +317,8 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * Passing a string as position will fail.
 	 *
 	 * @ticket 48599
+	 *
+	 * @covers ::add_submenu_page
 	 */
 	function test_passing_string_as_position_fires_doing_it_wrong() {
 		$this->setExpectedIncorrectUsage( 'add_submenu_page' );
@@ -332,6 +346,9 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$this->assertSame( 'submenu_page_1', $submenu['main_slug'][1][2] );
 	}
 
+	/**
+	 * @covers ::is_plugin_active
+	 */
 	function test_is_plugin_active_true() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
@@ -340,18 +357,27 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		deactivate_plugins( 'hello.php' );
 	}
 
+	/**
+	 * @covers ::is_plugin_active
+	 */
 	function test_is_plugin_active_false() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_active( 'hello.php' );
 		$this->assertFalse( $test );
 	}
 
+	/**
+	 * @covers ::is_plugin_inactive
+	 */
 	function test_is_plugin_inactive_true() {
 		deactivate_plugins( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );
 		$this->assertTrue( $test );
 	}
 
+	/**
+	 * @covers ::is_plugin_inactive
+	 */
 	function test_is_plugin_inactive_false() {
 		activate_plugin( 'hello.php' );
 		$test = is_plugin_inactive( 'hello.php' );

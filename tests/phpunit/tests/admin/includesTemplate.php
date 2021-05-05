@@ -23,6 +23,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	/**
 	 * @ticket 51147
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 *
+	 * @covers ::wp_terms_checklist
 	 */
 	public function test_wp_terms_checklist_with_popular_cats( $term_id ) {
 		$output = wp_terms_checklist(
@@ -43,6 +45,9 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers :: add_meta_box
+	 */
 	public function test_add_meta_box() {
 		global $wp_meta_boxes;
 
@@ -51,6 +56,9 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'testbox1', $wp_meta_boxes['post']['advanced']['default'] );
 	}
 
+	/**
+	 * @covers ::remove_meta_box
+	 */
 	public function test_remove_meta_box() {
 		global $wp_meta_boxes;
 
@@ -69,6 +77,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15000
+	 *
+	 * @covers :: add_meta_box
 	 */
 	public function test_add_meta_box_on_multiple_screens() {
 		global $wp_meta_boxes;
@@ -83,6 +93,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15000
+	 *
+	 * @covers ::remove_meta_box
 	 */
 	public function test_remove_meta_box_from_multiple_screens() {
 		global $wp_meta_boxes;
@@ -107,6 +119,9 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50019
+	 *
+	 * @covers :: add_meta_box
+	 * @covers ::remove_meta_box
 	 */
 	public function test_add_meta_box_with_previously_removed_box_and_sorted_priority() {
 		global $wp_meta_boxes;
@@ -128,8 +143,9 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	 * Test calling get_settings_errors() with variations on where it gets errors from.
 	 *
 	 * @ticket 42498
-	 * @covers ::get_settings_errors
 	 * @global array $wp_settings_errors
+	 *
+	 * @covers ::get_settings_errors
 	 */
 	public function test_get_settings_errors_sources() {
 		global $wp_settings_errors;
@@ -168,9 +184,10 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44941
-	 * @covers ::settings_errors
 	 * @global array $wp_settings_errors
 	 * @dataProvider settings_errors_css_classes_provider
+	 *
+	 * @covers ::settings_errors
 	 */
 	public function test_settings_errors_css_classes( $type, $expected ) {
 		global $wp_settings_errors;
@@ -203,6 +220,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42791
+	 *
+	 * @covers ::wp_add_dashboard_widget
 	 */
 	public function test_wp_add_dashboard_widget() {
 		global $wp_meta_boxes;

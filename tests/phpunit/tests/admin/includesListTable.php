@@ -75,6 +75,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_list_hierarchical_pages_first_page() {
 		$this->_test_list_hierarchical_page(
@@ -91,6 +93,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_list_hierarchical_pages_second_page() {
 		$this->_test_list_hierarchical_page(
@@ -108,6 +112,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_search_hierarchical_pages_first_page() {
 		$this->_test_list_hierarchical_page(
@@ -125,6 +131,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_search_hierarchical_pages_second_page() {
 		$this->_test_list_hierarchical_page(
@@ -142,6 +150,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_grandchildren_hierarchical_pages_first_page() {
 		// Page 6 is the first page with grandchildren.
@@ -161,6 +171,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15459
+	 *
+	 * @covers WP_Posts_List_Table::display_rows
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
 		// Page 7 is the second page with grandchildren.
@@ -227,6 +239,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37407
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	function test_filter_button_should_not_be_shown_if_there_are_no_posts() {
 		// Set post type to a non-existent one.
@@ -241,6 +255,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37407
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	function test_months_dropdown_should_not_be_shown_if_there_are_no_posts() {
 		// Set post type to a non-existent one.
@@ -255,6 +271,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37407
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	function test_category_dropdown_should_not_be_shown_if_there_are_no_posts() {
 		// Set post type to a non-existent one.
@@ -269,6 +287,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38341
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	public function test_empty_trash_button_should_not_be_shown_if_there_are_no_posts() {
 		// Set post type to a non-existent one.
@@ -283,6 +303,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40188
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	public function test_filter_button_should_not_be_shown_if_there_are_no_comments() {
 		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
@@ -296,6 +318,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40188
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	public function test_filter_button_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
@@ -318,6 +342,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40188
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	public function test_filter_comment_type_dropdown_should_be_shown_if_there_are_comments() {
 		$post_id    = self::factory()->post->create();
@@ -341,6 +367,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38341
+	 *
+	 * @covers WP_Posts_List_Table::extra_tablenav
 	 */
 	public function test_empty_trash_button_should_not_be_shown_if_there_are_no_comments() {
 		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
@@ -354,6 +382,8 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19278
+	 *
+	 * @covers WP_Posts_List_Table::bulk_actions
 	 */
 	public function test_bulk_action_menu_supports_options_and_optgroups() {
 		$table = _get_list_table( 'WP_Comments_List_Table', array( 'screen' => 'edit-comments' ) );
@@ -389,6 +419,8 @@ OPTIONS;
 
 	/**
 	 * @ticket 45089
+	 *
+	 * @covers WP_Posts_List_Table::get_sortable_columns
 	 */
 	public function test_sortable_columns() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
@@ -423,6 +455,8 @@ OPTIONS;
 
 	/**
 	 * @ticket 45089
+	 *
+	 * @covers WP_Posts_List_Table::get_sortable_columns
 	 */
 	public function test_sortable_columns_with_current_ordering() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
