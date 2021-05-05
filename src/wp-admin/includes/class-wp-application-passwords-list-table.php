@@ -237,7 +237,7 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 						'<button type="button" class="button delete" aria-label="%1$s">%2$s</button>',
 						/* translators: %s: the application password's given name. */
 						esc_attr( sprintf( __( 'Revoke "%s"' ), '{{ data.name }}' ) ),
-						esc_attr( __( 'Revoke' ) )
+						esc_html__( 'Revoke' )
 					);
 					break;
 				default:
