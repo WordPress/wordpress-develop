@@ -1240,11 +1240,11 @@ class Tests_Functions extends WP_UnitTestCase {
 		// let's restrict comparison to expected keys only.
 		if ( is_array( $expected ) ) {
 			foreach ( $expected as $k => $v ) {
-				$this->assertEquals( true, isset( $result[ $k ] ) );
-				$this->assertEquals( $expected[ $k ], $result[ $k ] );
+				$this->assertArrayHasKey( $k, $result );
+				$this->assertSame( $expected[ $k ], $result[ $k ] );
 			}
 		} else {
-			$this->assertEquals( $expected, $result );
+			$this->assertSame( $expected, $result );
 		}
 	}
 
@@ -1312,7 +1312,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_get_image_mime();
+	 * Data provider for test_wp_get_image_mime().
 	 */
 	public function _wp_get_image_mime() {
 		$data = array(
@@ -1367,7 +1367,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data profider for test_wp_getimagesize();
+	 * Data profider for test_wp_getimagesize().
 	 */
 	public function data_wp_getimagesize() {
 		$data = array(
