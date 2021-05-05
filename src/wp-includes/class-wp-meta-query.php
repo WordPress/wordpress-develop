@@ -573,8 +573,6 @@ class WP_Meta_Query {
 				$join .= " INNER JOIN $this->meta_table";
 				$join .= $i ? " AS $alias" : '';
 
-				$join .= ' /* '.$has_or_condition.' */ ';
-
 				$key_join_compatible_operators = array(
 					'=',
 					'!=',
@@ -592,7 +590,7 @@ class WP_Meta_Query {
 					'EXISTS',
 				);
 
-				if ( !$has_or_condition && ! empty( $clause['key'] ) && in_array( $meta_compare, $key_join_compatible_operators ) && in_array( $meta_compare_key, $key_join_compatible_key_operators ) ) {
+				if ( ! $has_or_condition && ! empty( $clause['key'] ) && in_array( $meta_compare, $key_join_compatible_operators ) && in_array( $meta_compare_key, $key_join_compatible_key_operators ) ) {
 					if ( 'LIKE' === $meta_compare_key ) {
 						$join .= $wpdb->prepare( " ON ( $this->primary_table.$this->primary_id_column = $alias.$this->meta_id_column AND $alias.meta_key LIKE %s )", '%' . $wpdb->esc_like( $clause['key'] ) . '%' );
 					} else {
