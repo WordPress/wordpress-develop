@@ -116,8 +116,8 @@ class WP_Application_Passwords_List_Table extends WP_List_Table {
 			esc_attr( $name ),
 			esc_attr( $name ),
 			/* translators: %s: the application password's given name. */
-			sprintf( esc_html__( 'Revoke "%s"' ), esc_attr( $item['name'] ) ),
-			esc_html__( 'Revoke' )
+			esc_attr( sprintf( __( 'Revoke "%s"' ), ( $item['name'] ) ),
+			__( 'Revoke' )
 		);
 	}
 
