@@ -470,7 +470,12 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} elseif ( 'image/webp' == $mime_type ) {
-			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $this->get_quality() ) ) ) {
+			$quality = $this->get_quality();
+			if ( ! _wp_webp_is_lossy(  $filename ) ) {
+				$quality = 101; // WebP lossless.
+			}
+
+			if ( ! function_exists( 'imagewebp' ) || ! $this->make_image( $filename, 'imagewebp', array( $image, $filename, $quality ) ) ) {
 				return new WP_Error( 'image_save_error', __( 'Image Editor Save Failed' ) );
 			}
 		} else {
@@ -519,7 +524,11 @@ class WP_Image_Editor_GD extends WP_Image_Editor {
 			case 'image/webp':
 				if ( function_exists( 'imagewebp' ) ) {
 					header( 'Content-Type: image/webp' );
-					return imagewebp( $this->image, null, $this->get_quality() );
+					$quality = $this->get_quality();
+					if ( ! _wp_webp_is_lossy( $this->file ) ) {
+						$quality = 101; // WebP lossless.
+					}
+					return imagewebp( $this->image, null, $quality );
 				}
 				// Fall back to the default if webp isn't supported.
 			default:
