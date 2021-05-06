@@ -53,5 +53,22 @@ describe( 'Add new category', () => {
 		expect( newCategoryTitle.length ).toBe( 1 );
 	} );
 
-	// To do next: edit a category using the Edit button
+	it( 'allows an existing category to be edited using the Edit button', async () => {
+		await page.waitForSelector( '#the-list tr' );
+		// Click the first (new created) category title (edit) link
+		const [ editLink ] = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+		);
+		await editLink.click();
+
+		await page.waitForNavigation();
+
+		await page.waitForSelector( '.term-name-wrap input#name' );
+		// Expect to now be in the category editor with the correct category title shown.
+		const editorCategoryTitleInput = await page.$x(
+			`//input[contains(@id, "name")][@value = "${ title }"]`
+		);
+		expect( editorCategoryTitleInput.length ).toBe( 1 );
+	} );
+
 } );
