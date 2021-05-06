@@ -18,8 +18,6 @@ class Tests_Comment_GetCommentAuthorEmailLink extends WP_UnitTestCase {
 	public function tearDown() {
 		unset( $GLOBALS['comment'] );
 		parent::tearDown();
-
-		add_filter( 'comment_email', 'antispambot' );
 	}
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {

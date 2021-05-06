@@ -63,6 +63,11 @@ wp-tests-config.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
 
+# Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentynineteen/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
+/src/wp-content/themes/twentytwenty/node_modules
+
 # Operating system specific files
 .DS_Store
 

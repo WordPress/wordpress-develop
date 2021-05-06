@@ -1141,7 +1141,7 @@ final class WP_Theme implements ArrayAccess {
 			return false;
 		}
 
-		foreach ( array( 'png', 'gif', 'jpg', 'jpeg' ) as $ext ) {
+		foreach ( array( 'png', 'gif', 'jpg', 'jpeg', 'webp' ) as $ext ) {
 			if ( file_exists( $this->get_stylesheet_directory() . "/screenshot.$ext" ) ) {
 				$this->cache_add( 'screenshot', 'screenshot.' . $ext );
 				if ( 'relative' === $uri ) {
@@ -1268,6 +1268,12 @@ final class WP_Theme implements ArrayAccess {
 		 * Filters list of page templates for a theme.
 		 *
 		 * The dynamic portion of the hook name, `$post_type`, refers to the post type.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `theme_post_templates`
+		 *  - `theme_page_templates`
+		 *  - `theme_attachment_templates`
 		 *
 		 * @since 3.9.0
 		 * @since 4.4.0 Converted to allow complete control over the `$page_templates` array.

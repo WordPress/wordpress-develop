@@ -196,41 +196,13 @@ class WP_REST_Server {
 	 * list in JSON rather than an object/map.
 	 *
 	 * @since 4.4.0
+	 * @since 5.7.0 Converted to a wrapper of {@see rest_convert_error_to_response()}.
 	 *
 	 * @param WP_Error $error WP_Error instance.
 	 * @return WP_REST_Response List of associative arrays with code and message keys.
 	 */
 	protected function error_to_response( $error ) {
-		$error_data = $error->get_error_data();
-
-		if ( is_array( $error_data ) && isset( $error_data['status'] ) ) {
-			$status = $error_data['status'];
-		} else {
-			$status = 500;
-		}
-
-		$errors = array();
-
-		foreach ( (array) $error->errors as $code => $messages ) {
-			foreach ( (array) $messages as $message ) {
-				$errors[] = array(
-					'code'    => $code,
-					'message' => $message,
-					'data'    => $error->get_error_data( $code ),
-				);
-			}
-		}
-
-		$data = $errors[0];
-		if ( count( $errors ) > 1 ) {
-			// Remove the primary error.
-			array_shift( $errors );
-			$data['additional_errors'] = $errors;
-		}
-
-		$response = new WP_REST_Response( $data, $status );
-
-		return $response;
+		return rest_convert_error_to_response( $error );
 	}
 
 	/**
@@ -292,7 +264,21 @@ class WP_REST_Server {
 			$current_user = null;
 		}
 
-		$content_type = isset( $_GET['_jsonp'] ) ? 'application/javascript' : 'application/json';
+		/**
+		 * Filters whether JSONP is enabled for the REST API.
+		 *
+		 * @since 4.4.0
+		 *
+		 * @param bool $jsonp_enabled Whether JSONP is enabled. Default true.
+		 */
+		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
+
+		$jsonp_callback = false;
+		if ( isset( $_GET['_jsonp'] ) ) {
+			$jsonp_callback = $_GET['_jsonp'];
+		}
+
+		$content_type = ( $jsonp_callback && $jsonp_enabled ) ? 'application/javascript' : 'application/json';
 		$this->send_header( 'Content-Type', $content_type . '; charset=' . get_option( 'blog_charset' ) );
 		$this->send_header( 'X-Robots-Tag', 'noindex' );
 
@@ -383,24 +369,12 @@ class WP_REST_Server {
 			)
 		);
 
-		/**
-		 * Filters whether JSONP is enabled for the REST API.
-		 *
-		 * @since 4.4.0
-		 *
-		 * @param bool $jsonp_enabled Whether JSONP is enabled. Default true.
-		 */
-		$jsonp_enabled = apply_filters( 'rest_jsonp_enabled', true );
-
-		$jsonp_callback = null;
-
-		if ( isset( $_GET['_jsonp'] ) ) {
+		if ( $jsonp_callback ) {
 			if ( ! $jsonp_enabled ) {
 				echo $this->json_error( 'rest_callback_disabled', __( 'JSONP support is disabled on this site.' ), 400 );
 				return false;
 			}
 
-			$jsonp_callback = $_GET['_jsonp'];
 			if ( ! wp_check_jsonp_callback( $jsonp_callback ) ) {
 				echo $this->json_error( 'rest_callback_invalid', __( 'Invalid JSONP callback function.' ), 400 );
 				return false;

@@ -76,7 +76,6 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 	 * @since 4.9.9
 	 */
 	public function tearDown() {
-		delete_option( 'WPLANG' );
 		reset_phpmailer_instance();
 
 		unset( $GLOBALS['locale'] );

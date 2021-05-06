@@ -171,7 +171,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body' ) );
 
 		// Non-fatal errors.
-		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existant-file.html' ) );
+		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existent-file.html' ) );
 
 		// Fatal errors.
 		$this->assertFalse( wp_mail( 'invalid.address', 'subject', 'body', '', array() ) );

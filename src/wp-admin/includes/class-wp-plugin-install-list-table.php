@@ -213,7 +213,14 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		 * Filters API request arguments for each Add Plugins screen tab.
 		 *
 		 * The dynamic portion of the hook name, `$tab`, refers to the plugin install tabs.
-		 * Default tabs include 'featured', 'popular', 'recommended', 'favorites', and 'upload'.
+		 *
+		 * Possible hook names include:
+		 *
+		 *  - `install_plugins_table_api_args_favorites`
+		 *  - `install_plugins_table_api_args_featured`
+		 *  - `install_plugins_table_api_args_popular`
+		 *  - `install_plugins_table_api_args_recommended`
+		 *  - `install_plugins_table_api_args_upload`
 		 *
 		 * @since 3.7.0
 		 *
@@ -702,7 +709,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<h3>
 						<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox open-plugin-details-modal">
 						<?php echo $title; ?>
-						<img src="<?php echo esc_attr( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
+						<img src="<?php echo esc_url( $plugin_icon_url ); ?>" class="plugin-icon" alt="" />
 						</a>
 					</h3>
 				</div>

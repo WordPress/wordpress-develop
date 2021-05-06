@@ -18,11 +18,11 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$_SERVER['HTTP_REFERER']      = '';
 		$_SERVER['REQUEST_URI']       = '';
 		$_REQUEST['_wp_http_referer'] = '';
+
+		parent::tearDown();
 	}
 
 	public function _fake_subfolder_install() {

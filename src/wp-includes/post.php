@@ -259,27 +259,27 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Reusable Blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Reusable Block', 'post type singular name' ),
-				'menu_name'                => _x( 'Reusable Blocks', 'admin menu' ),
-				'name_admin_bar'           => _x( 'Reusable Block', 'add new on admin bar' ),
-				'add_new'                  => _x( 'Add New', 'Reusable Block' ),
-				'add_new_item'             => __( 'Add New Reusable Block' ),
-				'new_item'                 => __( 'New Reusable Block' ),
-				'edit_item'                => __( 'Edit Reusable Block' ),
-				'view_item'                => __( 'View Reusable Block' ),
-				'all_items'                => __( 'All Reusable Blocks' ),
-				'search_items'             => __( 'Search Reusable Blocks' ),
+				'name'                     => _x( 'Reusable blocks', 'post type general name' ),
+				'singular_name'            => _x( 'Reusable block', 'post type singular name' ),
+				'menu_name'                => _x( 'Reusable blocks', 'admin menu' ),
+				'name_admin_bar'           => _x( 'Reusable block', 'add new on admin bar' ),
+				'add_new'                  => _x( 'Add New', 'Reusable block' ),
+				'add_new_item'             => __( 'Add new Reusable block' ),
+				'new_item'                 => __( 'New Reusable block' ),
+				'edit_item'                => __( 'Edit Reusable block' ),
+				'view_item'                => __( 'View Reusable block' ),
+				'all_items'                => __( 'All Reusable blocks' ),
+				'search_items'             => __( 'Search Reusable blocks' ),
 				'not_found'                => __( 'No reusable blocks found.' ),
 				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
 				'filter_items_list'        => __( 'Filter reusable blocks list' ),
-				'items_list_navigation'    => __( 'Reusable Blocks list navigation' ),
-				'items_list'               => __( 'Reusable Blocks list' ),
-				'item_published'           => __( 'Reusable Block published.' ),
-				'item_published_privately' => __( 'Reusable Block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Reusable Block reverted to draft.' ),
-				'item_scheduled'           => __( 'Reusable Block scheduled.' ),
-				'item_updated'             => __( 'Reusable Block updated.' ),
+				'items_list_navigation'    => __( 'Reusable blocks list navigation' ),
+				'items_list'               => __( 'Reusable blocks list' ),
+				'item_published'           => __( 'Reusable block published.' ),
+				'item_published_privately' => __( 'Reusable block published privately.' ),
+				'item_reverted_to_draft'   => __( 'Reusable block reverted to draft.' ),
+				'item_scheduled'           => __( 'Reusable block scheduled.' ),
+				'item_updated'             => __( 'Reusable block updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -677,15 +677,15 @@ function get_children( $args = '', $output = OBJECT ) {
 		$kids[ $child->ID ] = $children[ $key ];
 	}
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $kids;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		$weeuns = array();
 		foreach ( (array) $kids as $kid ) {
 			$weeuns[ $kid->ID ] = get_object_vars( $kids[ $kid->ID ] );
 		}
 		return $weeuns;
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		$babes = array();
 		foreach ( (array) $kids as $kid ) {
 			$babes[ $kid->ID ] = array_values( get_object_vars( $kids[ $kid->ID ] ) );
@@ -751,7 +751,9 @@ function get_extended( $post ) {
  *
  * @global WP_Post $post Global post object.
  *
- * @param int|WP_Post|null $post   Optional. Post ID or post object. Defaults to global $post.
+ * @param int|WP_Post|null $post   Optional. Post ID or post object. `null`, `false`, `0` and other PHP falsey
+ *                                 values return the current global post inside the loop. A numerically valid post
+ *                                 ID that points to a non-existent post returns `null`. Defaults to global $post.
  * @param string           $output Optional. The required return type. One of OBJECT, ARRAY_A, or ARRAY_N, which
  *                                 correspond to a WP_Post object, an associative array, or a numeric array,
  *                                 respectively. Default OBJECT.
@@ -786,9 +788,9 @@ function get_post( $post = null, $output = OBJECT, $filter = 'raw' ) {
 
 	$_post = $_post->filter( $filter );
 
-	if ( ARRAY_A == $output ) {
+	if ( ARRAY_A === $output ) {
 		return $_post->to_array();
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( $_post->to_array() );
 	}
 
@@ -1420,20 +1422,20 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                               ?{query_var_string}={post_slug} will be valid.
  *     @type bool         $can_export            Whether to allow this post type to be exported. Default true.
  *     @type bool         $delete_with_user      Whether to delete posts of this type when deleting a user.
- *                                               - If true, posts of this type belonging to the user will be moved
+ *                                               * If true, posts of this type belonging to the user will be moved
  *                                                 to Trash when the user is deleted.
- *                                               - If false, posts of this type belonging to the user will *not*
+ *                                               * If false, posts of this type belonging to the user will *not*
  *                                                 be trashed or deleted.
- *                                               - If not set (the default), posts are trashed if post type supports
+ *                                               * If not set (the default), posts are trashed if post type supports
  *                                                 the 'author' feature. Otherwise posts are not trashed or deleted.
  *                                               Default null.
  *     @type array        $template              Array of blocks to use as the default initial state for an editor
  *                                               session. Each item should be an array containing block name and
  *                                               optional attributes. Default empty array.
  *     @type string|false $template_lock         Whether the block template should be locked if $template is set.
- *                                               - If set to 'all', the user is unable to insert new blocks,
+ *                                               * If set to 'all', the user is unable to insert new blocks,
  *                                                 move existing blocks and delete blocks.
- *                                               - If set to 'insert', the user is able to move existing blocks
+ *                                               * If set to 'insert', the user is able to move existing blocks
  *                                                 but is unable to insert new blocks and delete blocks.
  *                                               Default false.
  *     @type bool         $_builtin              FOR INTERNAL USE ONLY! True if this post type is a native or
@@ -1689,6 +1691,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `menu_name` - Label for the menu name. Default is the same as `name`.
  * - `filter_items_list` - Label for the table views hidden heading. Default is 'Filter posts list' /
  *                       'Filter pages list'.
+ * - `filter_by_date` - Label for the date filter in list tables. Default is 'Filter by date'.
  * - `items_list_navigation` - Label for the table pagination hidden heading. Default is 'Posts list navigation' /
  *                           'Pages list navigation'.
  * - `items_list` - Label for the table hidden heading. Default is 'Posts list' / 'Pages list'.
@@ -1700,6 +1703,9 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * - `item_scheduled` - Label used when an item is scheduled for publishing. Default is 'Post scheduled.' /
  *                    'Page scheduled.'
  * - `item_updated` - Label used when an item is updated. Default is 'Post updated.' / 'Page updated.'
+ * - `item_link` - Title for a navigation link block variation. Default is 'Post Link' / 'Page Link'.
+ * - `item_link_description` - Description for a navigation link block variation. Default is 'A link to a post.' /
+ *                             'A link to a page.'
  *
  * Above, the first default value is for non-hierarchical post types (like posts)
  * and the second one is for hierarchical post types (like pages).
@@ -1715,6 +1721,8 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @since 4.7.0 Added the `view_items` and `attributes` labels.
  * @since 5.0.0 Added the `item_published`, `item_published_privately`, `item_reverted_to_draft`,
  *              `item_scheduled`, and `item_updated` labels.
+ * @since 5.7.0 Added the `filter_by_date` label.
+ * @since 5.8.0 Added the `item_link` and `item_link_description` labels.
  *
  * @access private
  *
@@ -1722,7 +1730,7 @@ function _post_type_meta_capabilities( $capabilities = null ) {
  * @return object Object with all the labels as member variables.
  */
 function get_post_type_labels( $post_type_object ) {
-	$nohier_vs_hier_defaults              = array(
+	$nohier_vs_hier_defaults = array(
 		'name'                     => array( _x( 'Posts', 'post type general name' ), _x( 'Pages', 'post type general name' ) ),
 		'singular_name'            => array( _x( 'Post', 'post type singular name' ), _x( 'Page', 'post type singular name' ) ),
 		'add_new'                  => array( _x( 'Add New', 'post' ), _x( 'Add New', 'page' ) ),
@@ -1745,6 +1753,7 @@ function get_post_type_labels( $post_type_object ) {
 		'remove_featured_image'    => array( _x( 'Remove featured image', 'post' ), _x( 'Remove featured image', 'page' ) ),
 		'use_featured_image'       => array( _x( 'Use as featured image', 'post' ), _x( 'Use as featured image', 'page' ) ),
 		'filter_items_list'        => array( __( 'Filter posts list' ), __( 'Filter pages list' ) ),
+		'filter_by_date'           => array( __( 'Filter by date' ), __( 'Filter by date' ) ),
 		'items_list_navigation'    => array( __( 'Posts list navigation' ), __( 'Pages list navigation' ) ),
 		'items_list'               => array( __( 'Posts list' ), __( 'Pages list' ) ),
 		'item_published'           => array( __( 'Post published.' ), __( 'Page published.' ) ),
@@ -1752,7 +1761,16 @@ function get_post_type_labels( $post_type_object ) {
 		'item_reverted_to_draft'   => array( __( 'Post reverted to draft.' ), __( 'Page reverted to draft.' ) ),
 		'item_scheduled'           => array( __( 'Post scheduled.' ), __( 'Page scheduled.' ) ),
 		'item_updated'             => array( __( 'Post updated.' ), __( 'Page updated.' ) ),
+		'item_link'                => array(
+			_x( 'Post Link', 'navigation link block title' ),
+			_x( 'Page Link', 'navigation link block title' ),
+		),
+		'item_link_description'    => array(
+			_x( 'A link to a post.', 'navigation link block description' ),
+			_x( 'A link to a page.', 'navigation link block description' ),
+		),
 	);
+
 	$nohier_vs_hier_defaults['menu_name'] = $nohier_vs_hier_defaults['name'];
 
 	$labels = _get_custom_object_labels( $post_type_object, $nohier_vs_hier_defaults );
@@ -1766,6 +1784,12 @@ function get_post_type_labels( $post_type_object ) {
 	 *
 	 * The dynamic portion of the hook name, `$post_type`, refers to
 	 * the post type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `post_type_labels_post`
+	 *  - `post_type_labels_page`
+	 *  - `post_type_labels_attachment`
 	 *
 	 * @since 3.5.0
 	 *
@@ -2016,16 +2040,82 @@ function is_post_type_viewable( $post_type ) {
 		}
 	}
 
+	if ( ! is_object( $post_type ) ) {
+		return false;
+	}
+
 	return $post_type->publicly_queryable || ( $post_type->_builtin && $post_type->public );
+}
+
+/**
+ * Determine whether a post status is considered "viewable".
+ *
+ * For built-in post statuses such as publish and private, the 'public' value will be evaluted.
+ * For all others, the 'publicly_queryable' value will be used.
+ *
+ * @since 5.7.0
+ *
+ * @param string|stdClass $post_status Post status name or object.
+ * @return bool Whether the post status should be considered viewable.
+ */
+function is_post_status_viewable( $post_status ) {
+	if ( is_scalar( $post_status ) ) {
+		$post_status = get_post_status_object( $post_status );
+		if ( ! $post_status ) {
+			return false;
+		}
+	}
+
+	if (
+		! is_object( $post_status ) ||
+		$post_status->internal ||
+		$post_status->protected
+	) {
+		return false;
+	}
+
+	return $post_status->publicly_queryable || ( $post_status->_builtin && $post_status->public );
+}
+
+/**
+ * Determine whether a post is publicly viewable.
+ *
+ * Posts are considered publicly viewable if both the post status and post type
+ * are viewable.
+ *
+ * @since 5.7.0
+ *
+ * @param int|WP_Post|null $post Optional. Post ID or post object. Defaults to global $post.
+ * @return bool Whether the post is publicly viewable.
+ */
+function is_post_publicly_viewable( $post = null ) {
+	$post = get_post( $post );
+
+	if ( ! $post ) {
+		return false;
+	}
+
+	$post_type   = get_post_type( $post );
+	$post_status = get_post_status( $post );
+
+	return is_post_type_viewable( $post_type ) && is_post_status_viewable( $post_status );
 }
 
 /**
  * Retrieves an array of the latest posts, or posts matching the given criteria.
  *
+ * For more information on the accepted arguments, see the
+ * {@link https://developer.wordpress.org/reference/classes/wp_query/
+ * WP_Query} documentation in the Developer Handbook.
+ *
+ * The `$ignore_sticky_posts` and `$no_found_rows` arguments are ignored by
+ * this function and both are set to `true`.
+ *
  * The defaults are as follows:
  *
  * @since 1.2.0
  *
+ * @see WP_Query
  * @see WP_Query::parse_query()
  *
  * @param array $args {
@@ -2146,10 +2236,12 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * @param string $key     Optional. The meta key to retrieve. By default,
  *                        returns data for all keys. Default empty.
  * @param bool   $single  Optional. Whether to return a single value.
- *                        This parameter has no effect if $key is not specified.
+ *                        This parameter has no effect if `$key` is not specified.
  *                        Default false.
- * @return mixed An array if $single is false. The value of the meta field
- *               if $single is true. False for an invalid $post_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of the meta field if `$single` is true.
+ *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing post ID is passed.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2555,18 +2647,18 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 function stick_post( $post_id ) {
 	$post_id  = (int) $post_id;
 	$stickies = get_option( 'sticky_posts' );
+	$updated  = false;
 
 	if ( ! is_array( $stickies ) ) {
-		$stickies = array();
+		$stickies = array( $post_id );
+	} else {
+		$stickies = array_unique( array_map( 'intval', $stickies ) );
 	}
-
-	$stickies = array_map( 'intval', $stickies );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		$stickies[] = $post_id;
+		$updated    = update_option( 'sticky_posts', array_values( $stickies ) );
 	}
-
-	$updated = update_option( 'sticky_posts', $stickies );
 
 	if ( $updated ) {
 		/**
@@ -2597,7 +2689,7 @@ function unstick_post( $post_id ) {
 		return;
 	}
 
-	$stickies = array_map( 'intval', $stickies );
+	$stickies = array_values( array_unique( array_map( 'intval', $stickies ) ) );
 
 	if ( ! in_array( $post_id, $stickies, true ) ) {
 		return;
@@ -3602,7 +3694,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
 	$results = get_posts( $parsed_args );
 
 	// Backward compatibility. Prior to 3.1 expected posts to be returned in array.
-	if ( ARRAY_A == $output ) {
+	if ( ARRAY_A === $output ) {
 		foreach ( $results as $key => $result ) {
 			$results[ $key ] = get_object_vars( $result );
 		}
@@ -3666,6 +3758,8 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
  *     @type string $guid                  Global Unique ID for referencing the post. Default empty.
+ *     @type int    $import_id             The post ID to be used when inserting a new post.
+ *                                         If specified, must not match any existing post ID. Default 0.
  *     @type int[]  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
@@ -4960,6 +5054,23 @@ function wp_transition_post_status( $new_status, $old_status, $post ) {
 	 * The dynamic portions of the hook name, `$new_status` and `$post->post_type`,
 	 * refer to the new post status and post type, respectively.
 	 *
+	 * Possible hook names include:
+	 *
+	 *  - `draft_post`
+	 *  - `future_post`
+	 *  - `pending_post`
+	 *  - `private_post`
+	 *  - `publish_post`
+	 *  - `trash_post`
+	 *  - `draft_page`
+	 *  - `future_page`
+	 *  - `pending_page`
+	 *  - `private_page`
+	 *  - `publish_page`
+	 *  - `trash_page`
+	 *  - `publish_attachment`
+	 *  - `trash_attachment`
+	 *
 	 * Please note: When this action is hooked using a particular post status (like
 	 * 'publish', as `publish_{$post->post_type}`), it will fire both when a post is
 	 * first transitioned to that status from something else, as well as upon
@@ -6206,6 +6317,8 @@ function wp_update_attachment_metadata( $attachment_id, $data ) {
  * @return string|false Attachment URL, otherwise false.
  */
 function wp_get_attachment_url( $attachment_id = 0 ) {
+	global $pagenow;
+
 	$attachment_id = (int) $attachment_id;
 
 	$post = get_post( $attachment_id );
@@ -6248,7 +6361,7 @@ function wp_get_attachment_url( $attachment_id = 0 ) {
 	}
 
 	// On SSL front end, URLs should be HTTPS.
-	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $GLOBALS['pagenow'] ) {
+	if ( is_ssl() && ! is_admin() && 'wp-login.php' !== $pagenow ) {
 		$url = set_url_scheme( $url );
 	}
 
@@ -6426,7 +6539,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':

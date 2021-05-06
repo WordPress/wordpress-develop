@@ -36,14 +36,6 @@ class Tests_DB extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Tear down the test fixture
-	 */
-	public function tearDown() {
-		remove_filter( 'query', array( $this, 'query_filter' ) );
-		parent::tearDown();
-	}
-
-	/**
 	 * Log each query
 	 *
 	 * @param string $sql
