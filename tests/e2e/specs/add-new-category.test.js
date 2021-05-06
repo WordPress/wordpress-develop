@@ -7,37 +7,27 @@ import {
 } from '@wordpress/e2e-test-utils'
 import { addQueryArgs } from '@wordpress/url';
 
-
-/** Test scenario
- * Go to the page /edit-tags.php?taxonomy=category
- * If there is any other existing categorie apart from "Uncategorized", delete it
- * Add a category name
- * Click on the "Add New Category" button
- * Check if there are now two categories: the new created and "Uncategorized"
- * Check if the new category title is correct
- */
-
 describe( 'Add new category', () => {
+	const title = 'New Category';
 	const query = addQueryArgs( '', {
 		taxonomy: 'category',
 	} );
 
-	it( 'shows the new created category with the correct title', async () => {
-		await visitAdminPage( 'edit-tags.php', query );
-
+	beforeEach( async () => {
 		/**
 		 * Delete all categories before anything
 		 * This is useful because after running more than one test
 		 * there could be existing categories
 		 */
-		const bulkSelector = await page.$( '#bulk-action-selector-top' );
+		await visitAdminPage( 'edit-tags.php', query );
+		await page.$( '#bulk-action-selector-top' );
 		await page.waitForSelector( '[id^=cb-select-all-]' );
 		await page.click( '[id^=cb-select-all-]' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
 		await page.click( '#doaction' );
 
 		/**
-		 * Create a new category
+		 * Create a new category with the title 'New Category'
 		 */
 		const title = 'New Category';
 		await page.waitForSelector('#tag-name');
@@ -47,6 +37,10 @@ describe( 'Add new category', () => {
 		await page.click( '#submit' );
 
 		await page.reload();
+	} );
+
+	it( 'shows the new created category with the correct title', async () => {
+		await visitAdminPage( 'edit-tags.php', query );
 
 		// Expect there to be two rows in the categories list.
 		const categories = await page.$$( '#the-list tr' );
