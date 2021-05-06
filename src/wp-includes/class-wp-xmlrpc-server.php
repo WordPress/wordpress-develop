@@ -175,6 +175,11 @@ class wp_xmlrpc_server extends IXR_Server {
 		$this->set_is_enabled();
 	}
 
+	/**
+	 * Set wp_xmlrpc_server::$is_enabled property.
+	 * Determine whether the xmlrpc server is enabled on this WordPress install * and set the is_enabled property accordingly.
+	 * @since 5.7.2
+	 */
 	private function set_is_enabled() {
 		/*
 		 * Respect old get_option() filters left for back-compat when the 'enable_xmlrpc'
