@@ -3,7 +3,8 @@
  */
 import {
 	visitAdminPage,
-	pressKeyWithModifier
+	pressKeyWithModifier,
+	pressKeyTimes
 } from '@wordpress/e2e-test-utils'
 import { addQueryArgs } from '@wordpress/url';
 
@@ -41,16 +42,17 @@ describe( 'Add new category', () => {
 
 	it( 'shows the new created category with the correct title', async () => {
 		// Expect there to be two rows in the categories list.
+		// The new created category and the default Uncategorized"
 		await page.waitForSelector( '#the-list tr' );
 		const categories = await page.$$( '#the-list tr' );
-		expect( categories.length ).toBe( 2 )
+		expect( categories.length ).toBe( 2 );
 
 		// Expect the new created category title to be correct.
-		const newCategory = categories[0];
-		const newCategoryTitle = await newCategory.$x(
+		const firstRowCategory = categories[0];
+		const firstRowCategoryTitle = await firstRowCategory.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
 		);
-		expect( newCategoryTitle.length ).toBe( 1 );
+		expect( firstRowCategoryTitle.length ).toBe( 1 );
 	} );
 
 	it( 'allows an existing category to be edited using the Edit button', async () => {
@@ -71,4 +73,37 @@ describe( 'Add new category', () => {
 		expect( editorCategoryTitleInput.length ).toBe( 1 );
 	} );
 
+	it( 'allows an existing category to be quick edited using the Quick Edit button', async () => {
+		await page.waitForSelector( '#the-list tr' );
+		// Focus on the first (new created) category title (edit) link
+		const [ editLink ] = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+		);
+		await editLink.focus();
+
+		// Tab to the Quick Edit button and press Enter to quick edit.
+		await pressKeyTimes( 'Tab', 2 );
+		await page.keyboard.press( 'Enter' );
+
+		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
+		await page.keyboard.type( ' Edited' );
+
+		// Update the category.
+		await page.click( '.button.save' );
+
+		// Wait for the quick edit button to reappear.
+		await page.waitForSelector( 'button.editinline', { visible: true } );
+
+		// Expect there to be two rows in the categories list.
+		// The new created category and the default Uncategorized"
+		const categories = await page.$$( '#the-list tr' );
+		expect( categories.length ).toBe( 2 );
+
+		// Expect the category title to be correct.
+		const firstRowCategory = categories[0];
+		const firstRowCategoryTitle = await firstRowCategory.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
+		);
+		expect( firstRowCategoryTitle.length ).toBe( 1 );
+	} );
 } );
