@@ -115,7 +115,5 @@ class Tests_XMLRPC_Basic extends WP_XMLRPC_UnitTestCase {
 
 		$this->assertIXRError( $result );
 		$this->assertSame( 405, $result->code );
-
-		remove_filter( 'xmlrpc_enabled', '__return_false' );
 	}
 }
