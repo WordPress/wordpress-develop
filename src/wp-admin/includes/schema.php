@@ -1209,7 +1209,7 @@ We hope you enjoy your new site. Thanks!
 --The Team @ SITE_NAME'
 	);
 
-	$allowed_file_types = [];
+	$allowed_file_types = array();
 	$all_mime_types     = get_allowed_mime_types();
 
 	foreach ( $all_mime_types as $ext => $mime ) {
