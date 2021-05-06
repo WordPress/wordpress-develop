@@ -176,7 +176,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 
 	$result = false;
 	if ( file_exists( $style_file ) ) {
-		$result       = wp_register_style(
+		$result = wp_register_style(
 			$style_handle,
 			$style_uri,
 			array(),
