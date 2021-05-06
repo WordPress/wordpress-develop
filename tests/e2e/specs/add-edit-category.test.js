@@ -40,9 +40,8 @@ describe( 'Add new category', () => {
 	} );
 
 	it( 'shows the new created category with the correct title', async () => {
-		await visitAdminPage( 'edit-tags.php', query );
-
 		// Expect there to be two rows in the categories list.
+		await page.waitForSelector( '#the-list tr' );
 		const categories = await page.$$( '#the-list tr' );
 		expect( categories.length ).toBe( 2 )
 
@@ -53,4 +52,6 @@ describe( 'Add new category', () => {
 		);
 		expect( newCategoryTitle.length ).toBe( 1 );
 	} );
+
+	// To do next: edit a category using the Edit button
 } );
