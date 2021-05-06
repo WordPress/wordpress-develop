@@ -356,7 +356,7 @@ class wp_xmlrpc_server extends IXR_Server {
 			$error = new IXR_Error( $error, $message );
 		}
 
-		if ( function_exists( 'status_header' ) && ! $this->is_enabled ) {
+		if ( ! $this->is_enabled ) {
 			status_header( $error->code );
 		}
 
