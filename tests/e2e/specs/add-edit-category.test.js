@@ -49,7 +49,7 @@ describe( 'Add new category', () => {
 
 		// Expect the new created category title to be correct.
 		const firstRowCategory = categories[0];
-		const firstRowCategoryTitle = await firstRowCategory.$x(
+		const firstRowCategoryTitle = await page.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
 		);
 		expect( firstRowCategoryTitle.length ).toBe( 1 );
@@ -101,9 +101,35 @@ describe( 'Add new category', () => {
 
 		// Expect the category title to be correct.
 		const firstRowCategory = categories[0];
-		const firstRowCategoryTitle = await firstRowCategory.$x(
+		const firstRowCategoryTitle = await page.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
 		);
 		expect( firstRowCategoryTitle.length ).toBe( 1 );
+	} );
+
+	it( 'allows an existing category to be deleted using the Delete button', async () => {
+		await page.waitForSelector( '#the-list tr' );
+
+		// Focus on the first (new created) category title (edit) link
+		const [ editLink ] = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+		);
+		await editLink.focus();
+
+		// Tab to the Delete button and press Enter to delete the category.
+		await pressKeyTimes( 'Tab', 3 );
+		await page.keyboard.press( 'Enter' );
+
+		await page.reload();
+		
+		// Expect there to be only one row in the categories list.
+		const categories = await page.$$( '#the-list tr' );
+		expect( categories.length ).toBe( 1 );
+
+		// Expect to remaining category to be the default "Uncategorized"
+		const uncategorizedCategoryTitle = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "Uncategorized")]`
+		);
+		expect( uncategorizedCategoryTitle.length ).toBe( 1 );
 	} );
 } );
