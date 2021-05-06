@@ -163,6 +163,15 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			return files;
 		} , {} ),
 	};
+	const blockStylesheetFiles = {
+		...blockFolders.reduce( ( files, blockName ) => {
+			files[ `block-library/build-style/${ blockName }/style.css` ] = `${ blockName }/style.css`;
+			files[ `block-library/build-style/${ blockName }/style-rtl.css` ] = `${ blockName }/style-rtl.css`;
+			files[ `block-library/build-style/${ blockName }/editor.css` ] = `${ blockName }/editor.css`;
+			files[ `block-library/build-style/${ blockName }/editor-rtl.css` ] = `${ blockName }/editor-rtl.css`;
+			return files;
+		} , {} ),
+	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
@@ -211,6 +220,32 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const blockMetadataCopies = Object.keys( blockMetadataFiles ).map( ( filename ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
 		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
+	} ) );
+
+	const blockStylesheetCopies = Object.keys( blockStylesheetFiles ).map( ( filename ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
+		to: join( baseDir, `${ buildTarget }/css/dist/block-library/${ blockStylesheetFiles[ filename ] }` ),
+		flatten: true,
+		transform: ( content ) => {
+			if ( mode === 'production' ) {
+				return postcss( [
+					require( 'cssnano' )( {
+						preset: 'default',
+					} ),
+				] )
+					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+					.then( ( result ) => result.css );
+			}
+
+			return content;
+		},
+		transformPath: ( targetPath, sourcePath ) => {
+			if ( mode === 'production' ) {
+				return targetPath.replace( /\.css$/, '.min.css' );
+			}
+
+			return targetPath;
+		}
 	} ) );
 
 	const config = {
@@ -301,6 +336,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...cssCopies,
 					...phpCopies,
 					...blockMetadataCopies,
+					...blockStylesheetCopies,
 				],
 			),
 		],
