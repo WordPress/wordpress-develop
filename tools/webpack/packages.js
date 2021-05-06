@@ -224,7 +224,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const blockStylesheetCopies = Object.keys( blockStylesheetFiles ).map( ( filename ) => ( {
 		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `${ buildTarget }/css/dist/block-library/${ blockStylesheetFiles[ filename ] }` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockStylesheetFiles[ filename ] }` ),
 		flatten: true,
 		transform: ( content ) => {
 			if ( mode === 'production' ) {
