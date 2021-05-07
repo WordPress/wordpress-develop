@@ -1502,7 +1502,9 @@ function wp_default_styles( $styles ) {
 	}
 	$styles->add( 'wp-editor-font', $fonts_url ); // No longer used in core as of 5.7.
 
-	$styles->add( 'wp-block-library-theme', "/wp-includes/css/dist/block-library/theme$suffix.css" );
+	$block_library_theme_path = "/wp-includes/css/dist/block-library/theme$suffix.css";
+	$styles->add( 'wp-block-library-theme', $block_library_theme_path );
+	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
 	$styles->add(
 		'wp-reset-editor-styles',
@@ -1575,6 +1577,7 @@ function wp_default_styles( $styles ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
 		$styles->add( $handle, $path, $dependencies );
+		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
 
 	// RTL CSS.
