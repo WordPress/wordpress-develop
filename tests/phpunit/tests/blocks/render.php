@@ -308,27 +308,6 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 50263
-	 */
-	public function test_render_block_separate_stylesheets_enqueued() {
-		add_filter( 'load_separate_block_assets', '__return_true' );
-		$post = self::factory()->post->create_and_get(
-			array(
-				'post_content' => '<!-- wp:buttons -->
-<div class="wp-block-buttons"><!-- wp:button -->
-<div class="wp-block-button"><a class="wp-block-button__link">Button text</a></div>
-<!-- /wp:button --></div>
-<!-- /wp:buttons -->',
-			)
-		);
-
-		setup_postdata( $post );
-		the_content();
-
-		$this->assertContains( 'wp-block-button', wp_styles()->queue );
-	}
-
-	/**
 	 * @ticket 45109
 	 */
 	public function test_dynamic_block_renders_string() {
