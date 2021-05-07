@@ -2283,6 +2283,10 @@ function wp_should_load_block_editor_scripts_and_styles() {
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
 
+	if ( should_load_separate_block_assets() ) {
+		return;
+	}
+
 	$load_editor_scripts = is_admin() && wp_should_load_block_editor_scripts_and_styles();
 
 	$block_registry = WP_Block_Type_Registry::get_instance();
