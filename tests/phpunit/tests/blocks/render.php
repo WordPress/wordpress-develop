@@ -53,6 +53,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::do_blocks
 	 */
 	public function test_do_blocks_removes_comments() {
 		$original_html = file_get_contents( DIR_TESTDATA . '/blocks/do-blocks-original.html' );
@@ -65,6 +67,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_the_content() {
 		add_shortcode( 'someshortcode', array( $this, 'handle_shortcode' ) );
@@ -89,6 +93,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45495
+	 *
+	 * @covers ::the_content
 	 */
 	function test_nested_calls_to_the_content() {
 		register_block_type(
@@ -113,6 +119,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		return $content;
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_can_nest_at_least_so_deep() {
 		$minimum_depth = 99;
 
@@ -124,6 +133,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( 'deep inside', do_blocks( $content ) );
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_can_nest_at_least_so_deep_with_dynamic_blocks() {
 		$minimum_depth = 99;
 
@@ -151,6 +163,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45290
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_blocks_arent_autopeed() {
 		$expected_content = 'test';
@@ -208,6 +222,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_do_block_test_filenames
 	 * @ticket 45109
+	 *
+	 * @covers ::do_blocks
 	 */
 	public function test_do_block_output( $html_filename, $server_html_filename ) {
 		$html_path        = self::$fixtures_dir . '/' . $html_filename;
@@ -231,6 +247,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::do_blocks
 	 */
 	public function test_dynamic_block_rendering() {
 		$settings = array(
@@ -266,6 +284,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::do_blocks
 	 */
 	public function test_global_post_persistence() {
 		global $post;
@@ -289,6 +309,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( $global_post, $post );
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_render_latest_comments_on_password_protected_post() {
 		$post_id      = self::factory()->post->create(
 			array(
@@ -309,6 +332,8 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_dynamic_block_renders_string() {
 		$settings = array(
@@ -327,6 +352,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertInternalType( 'string', $rendered );
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_dynamic_block_gets_inner_html() {
 		register_block_type(
 			'core/dynamic',
@@ -345,6 +373,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( 'inner', $data[1] );
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_dynamic_block_gets_rendered_inner_blocks() {
 		register_block_type(
 			'core/test',
@@ -373,6 +404,9 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 		$this->assertSame( 'before10after', $data[1] );
 	}
 
+	/**
+	 * @covers ::do_blocks
+	 */
 	public function test_dynamic_block_gets_rendered_inner_dynamic_blocks() {
 		register_block_type(
 			'core/dynamic',

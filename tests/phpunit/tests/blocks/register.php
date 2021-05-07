@@ -71,6 +71,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::register_block_type
 	 */
 	function test_register_affects_main_registry() {
 		$name     = 'core/test-static';
@@ -86,6 +88,9 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::register_block_type	 *
+	 * @covers ::unregister_block_type
 	 */
 	function test_unregister_affects_main_registry() {
 		$name     = 'core/test-static';
@@ -102,6 +107,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::remove_block_asset_path_prefix
 	 */
 	function test_does_not_remove_block_asset_path_prefix() {
 		$result = remove_block_asset_path_prefix( 'script-handle' );
@@ -111,6 +118,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::remove_block_asset_path_prefix
 	 */
 	function test_removes_block_asset_path_prefix() {
 		$result = remove_block_asset_path_prefix( 'file:./block.js' );
@@ -120,6 +129,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::generate_block_asset_handle
 	 */
 	function test_generate_block_asset_handle() {
 		$block_name = 'unit-tests/my-block';
@@ -144,6 +155,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50328
+	 *
+	 * @covers ::generate_block_asset_handle
 	 */
 	function test_generate_block_asset_handle_core_block() {
 		$block_name = 'core/paragraph';
@@ -168,6 +181,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_field_not_found_register_block_script_handle() {
 		$result = register_block_script_handle( array(), 'script' );
@@ -177,6 +192,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_empty_value_register_block_script_handle() {
 		$metadata = array( 'script' => '' );
@@ -188,6 +205,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	/**
 	 * @expectedIncorrectUsage register_block_script_handle
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_missing_asset_file_register_block_script_handle() {
 		$metadata = array(
@@ -202,6 +221,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_handle_passed_register_block_script_handle() {
 		$metadata = array(
@@ -214,6 +235,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_success_register_block_script_handle() {
 		$metadata = array(
@@ -228,6 +251,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_field_not_found_register_block_style_handle() {
 		$result = register_block_style_handle( array(), 'style' );
@@ -237,6 +262,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_empty_value_found_register_block_style_handle() {
 		$metadata = array( 'style' => '' );
@@ -247,6 +274,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_handle_passed_register_block_style_handle() {
 		$metadata = array(
@@ -259,6 +288,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_success_register_block_style_handle() {
 		$metadata = array(
@@ -277,6 +308,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * in the WordPress core.
 	 *
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_metadata_not_found_in_wordpress_core() {
 		$result = register_block_type_from_metadata( 'unknown' );
@@ -289,6 +322,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * in the current directory.
 	 *
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_metadata_not_found_in_the_current_directory() {
 		$result = register_block_type_from_metadata( __DIR__ );
@@ -301,6 +336,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * is found in the fixtures directory.
 	 *
 	 * @ticket 50263
+	 *
+	 * @covers ::register_block_script_handle
 	 */
 	function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -370,6 +407,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52301
+	 *
+	 * @covers ::register_block_type_from_metadata
 	 */
 	function test_block_registers_with_metadata_i18n_support() {
 		function filter_set_locale_to_polish() {
@@ -408,6 +447,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::get_dynamic_block_names
 	 */
 	function test_get_dynamic_block_names() {
 		register_block_type( 'core/test-static', array() );
@@ -421,6 +462,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45109
+	 *
+	 * @covers ::has_blocks
 	 */
 	function test_has_blocks() {
 		// Test with passing post ID.
@@ -445,6 +488,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49615
+	 *
+	 * @covers ::register_block_type
 	 */
 	public function test_filter_block_registration() {
 		$filter_registration = function( $args, $name ) {
@@ -463,6 +508,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52138
+	 *
+	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata() {
 		$filter_metadata_registration = function( $metadata ) {
@@ -481,6 +528,8 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52138
+	 *
+	 * @covers ::register_block_type_from_metadata
 	 */
 	public function test_filter_block_registration_metadata_settings() {
 		$filter_metadata_registration = function( $settings, $metadata ) {

@@ -66,6 +66,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_categories
+	 *
+	 * @covers ::get_block_categories
 	 */
 	function test_get_block_categories_deprecated_filter_post_object() {
 		add_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ), 10, 2 );
@@ -89,6 +91,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_categories
+	 *
+	 * @covers ::get_block_categories
 	 */
 	function test_get_block_categories_deprecated_filter_post_editor() {
 		add_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ), 10, 2 );
@@ -111,6 +115,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_allowed_block_types
 	 */
 	function test_get_allowed_block_types_default() {
 		$allowed_block_types = get_allowed_block_types( 'post-editor' );
@@ -121,6 +127,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated allowed_block_types
+	 *
+	 * @covers ::get_allowed_block_types
 	 */
 	function test_get_allowed_block_types_deprecated_filter_post_editor() {
 		add_filter( 'allowed_block_types', array( $this, 'filter_set_allowed_block_types_post' ), 10, 2 );
@@ -134,6 +142,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_default_block_editor_settings
 	 */
 	function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
@@ -237,6 +247,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	function test_get_block_editor_settings_returns_default_settings() {
 		$this->assertSameSets(
@@ -247,6 +259,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	function test_get_block_editor_settings_overrides_default_settings_my_editor() {
 		function filter_allowed_block_types_my_editor() {
@@ -272,6 +286,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	function test_get_block_editor_settings_overrides_default_settings_any_editor() {
 		function filter_allowed_block_types_any_editor() {
@@ -319,6 +335,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 * @expectedDeprecated block_editor_settings
+	 *
+	 * @covers ::get_block_editor_settings
 	 */
 	function test_get_block_editor_settings_deprecated_filter_post_editor() {
 		add_filter( 'block_editor_settings', array( $this, 'filter_set_block_editor_settings_post' ), 10, 2 );

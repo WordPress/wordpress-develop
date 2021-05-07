@@ -44,6 +44,8 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block_List::__construct
 	 */
 	function test_array_access() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example /-->' );
@@ -68,6 +70,8 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block_List::__construct
 	 */
 	function test_iterable() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example --><!-- wp:example /--><!-- /wp:example -->' );
@@ -100,6 +104,8 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block_List::__construct
 	 */
 	function test_countable() {
 		$parsed_blocks = parse_blocks( '<!-- wp:example /-->' );

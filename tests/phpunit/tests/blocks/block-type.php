@@ -69,6 +69,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::__construct
 	 */
 	public function test_set_props() {
 		$name = 'core/fake';
@@ -86,6 +88,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render() {
 		$attributes = array(
@@ -105,6 +109,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_with_content() {
 		$attributes = array(
@@ -128,6 +134,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_for_static_block() {
 		$block_type = new WP_Block_Type( 'core/fake', array() );
@@ -138,6 +146,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::is_dynamic
 	 */
 	public function test_is_dynamic_for_static_block() {
 		$block_type = new WP_Block_Type( 'core/fake', array() );
@@ -161,6 +171,8 @@ class WP_Test_Block_Type extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 45097
+	 *
+	 * @covers WP_Block_Type::prepare_attributes_for_render
 	 */
 	public function test_prepare_attributes() {
 		$attributes = array(

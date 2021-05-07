@@ -52,6 +52,8 @@ class WP_Test_Block_Parser extends WP_UnitTestCase {
 	/**
 	 * @dataProvider data_parsing_test_filenames
 	 * @ticket 45109
+	 *
+	 * @covers WP_Block_Parser::parse
 	 */
 	public function test_default_parser_output( $html_filename, $parsed_json_filename ) {
 		$html_path        = self::$fixtures_dir . '/' . $html_filename;

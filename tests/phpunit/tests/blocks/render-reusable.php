@@ -82,6 +82,9 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 		self::delete_user( self::$user_id );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_render() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array( 'ref' => self::$block_id ) );
@@ -92,6 +95,8 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 	 * Make sure that a reusable block can be rendered twice in a row.
 	 *
 	 * @ticket 52364
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_render_subsequent() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
@@ -104,6 +109,8 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 	 * Throw a warning if blocks are recursively nested.
 	 *
 	 * @ticket 52364
+	 *
+	 * @covers WP_Block_Type::render
 	 */
 	public function test_recursive_render_warning() {
 		$recursive_reusable_block = array(
@@ -120,12 +127,18 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 		$block_type->render( array( 'ref' => self::$block_id ) );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_ref_empty() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array() );
 		$this->assertSame( '', $output );
 	}
 
+	/**
+	 * @covers WP_Block_Type::render
+	 */
 	public function test_ref_wrong_post_type() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array( 'ref' => self::$post_id ) );
