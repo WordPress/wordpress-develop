@@ -423,8 +423,10 @@ CSS;
 
 	/**
 	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt-in to load_separate_block_assets.
+	 *
+	 * @ticket 50263
 	 */
-	function test_block_styles_for_viewing_without_split_styles() {
+	function test_common_block_styles_for_viewing_without_split_styles() {
 		add_filter( 'load_separate_block_assets', '__return_false' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
@@ -436,7 +438,19 @@ CSS;
 
 	/**
 	 * Tests that the "common.css" file gets enqueued when the site opts-in to load_separate_block_assets.
+	 *
+	 * @ticket 50263
 	 */
+	function test_common_block_styles_for_viewing_with_split_styles() {
+		add_filter( 'load_separate_block_assets', '__return_true' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
+			'/' . WPINC . '/css/dist/block-library/common.css'
+		);
+	}
+
 	function test_block_styles_for_viewing_with_split_styles() {
 		add_filter( 'load_separate_block_assets', '__return_true' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
