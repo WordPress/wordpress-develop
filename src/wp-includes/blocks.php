@@ -988,9 +988,11 @@ function should_load_separate_block_assets() {
 	/**
 	 * Determine if separate styles & scripts will be loaded for blocks on-render or not.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param bool $load_separate_styles Whether separate styles will be loaded or not.
 	 *
-	 * @return bool
+	 * @return bool Whether separate styles will be loaded or not.
 	 */
 	return apply_filters( 'load_separate_block_assets', false );
 }
