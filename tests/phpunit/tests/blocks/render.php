@@ -318,7 +318,7 @@ class WP_Test_Block_Render extends WP_UnitTestCase {
 <div class="wp-block-buttons"><!-- wp:button -->
 <div class="wp-block-button"><a class="wp-block-button__link">Button text</a></div>
 <!-- /wp:button --></div>
-<!-- /wp:buttons -->'
+<!-- /wp:buttons -->',
 			)
 		);
 
