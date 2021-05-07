@@ -959,6 +959,12 @@ function block_has_support( $block_type, $feature, $default = false ) {
  * @return bool
  */
 function should_load_separate_block_assets() {
+
+	// Early exit if not a frontend request.
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return false;
+	}
+
 	/**
 	 * Determine if separate styles & scripts will be loaded for blocks on-render or not.
 	 *
