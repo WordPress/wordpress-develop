@@ -188,31 +188,35 @@ function register_block_style_handle( $metadata, $field_name ) {
 		: plugins_url( $style_path, $metadata['file'] );
 
 	// Check if the stylesheet exists and if it should be registered or not.
-	$should_register = file_exists( $style_file ) &&
-		( ! $is_core_block || ( $is_core_block && should_load_separate_block_assets() ) );
+	$should_register = ! $is_core_block || ( $is_core_block && should_load_separate_block_assets() );
 
 	// Early exit if the stylesheet does not exist or should not be registered.
 	if ( ! $should_register ) {
 		return false;
 	}
 
+	// The version.
+	$version = file_exists( $style_file ) ? filemtime( $style_file ) : false;
+
 	// Register the stylesheet.
 	$result = wp_register_style(
 		$style_handle,
 		$style_uri,
 		array(),
-		filemtime( $style_file )
+		$version
 	);
 
 	// Add path data.
-	wp_style_add_data( $style_handle, 'path', $style_file );
+	if ( file_exists( $style_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $style_file );
+	}
 
 	// Add RTL data.
 	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
 	if ( file_exists( $rtl_file ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 
-		if ( is_rtl() ) {
+		if ( is_rtl() && file_exists( $rtl_file ) ) {
 			wp_style_add_data( $style_handle, 'path', $rtl_file );
 		}
 	}
