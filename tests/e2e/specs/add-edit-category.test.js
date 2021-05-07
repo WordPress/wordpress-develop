@@ -30,7 +30,6 @@ describe( 'Add new category', () => {
 		/**
 		 * Create a new category with the title 'New Category'
 		 */
-		const title = 'New Category';
 		await page.waitForSelector('#tag-name');
 		await page.focus( '#tag-name' );
 		await pressKeyWithModifier( 'primary', 'a' );
@@ -48,7 +47,6 @@ describe( 'Add new category', () => {
 		expect( categories.length ).toBe( 2 );
 
 		// Expect the new created category title to be correct.
-		const firstRowCategory = categories[0];
 		const firstRowCategoryTitle = await page.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
 		);
@@ -100,7 +98,6 @@ describe( 'Add new category', () => {
 		expect( categories.length ).toBe( 2 );
 
 		// Expect the category title to be correct.
-		const firstRowCategory = categories[0];
 		const firstRowCategoryTitle = await page.$x(
 			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
 		);
@@ -131,5 +128,49 @@ describe( 'Add new category', () => {
 			`//a[contains(@class, "row-title")][contains(text(), "Uncategorized")]`
 		);
 		expect( uncategorizedCategoryTitle.length ).toBe( 1 );
+	} );
+
+	it( 'should return the appropriate results on a category search', async () => {
+		const searchQuery = addQueryArgs( '', {
+			taxonomy: 'category',
+			s: title
+		} );
+
+		await visitAdminPage( 'edit-tags.php', searchQuery );
+		await page.waitForSelector( '#the-list tr' );
+
+		// Expect the new category created category to be the only one 
+		// returned by the search
+		const categories = await page.$$( '#the-list tr' );
+		expect( categories.length ).toBe( 1 );
+
+		// Expect the title of the category returned by the search to match
+		// the new created category title
+		const firstRowCategoryTitle = await page.$x(
+			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+		);
+		expect( firstRowCategoryTitle.length ).toBe( 1 );
+	} );
+
+	it( 'should return "No categories found." if the searched category is not found', async () => {
+		const searchQuery = addQueryArgs( '', {
+			taxonomy: 'category',
+			s: "Non existing category"
+		} );
+
+		await visitAdminPage( 'edit-tags.php', searchQuery );
+		await page.waitForSelector( '#the-list tr' );
+
+		// Expect the categories table to have only one row with the class "no-items"
+		const notFoundRow = await page.$x(
+			`//tr[contains(@class, "no-items")]`
+		);
+		expect( notFoundRow.length ).toBe( 1 );
+
+		// Expect the row of the categories table to contain the text "No categories found."
+		const notFoundText = await page.$x(
+			`//td[contains(text(), "No categories found.")]`
+		);
+		expect( notFoundText.length ).toBe( 1 );
 	} );
 } );
