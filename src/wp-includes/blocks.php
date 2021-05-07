@@ -982,11 +982,7 @@ function block_has_support( $block_type, $feature, $default = false ) {
  * @return bool
  */
 function should_load_separate_block_assets() {
-
-	// Early exit if not a frontend request.
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return false;
-	}
+	$load_separate_styles = ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) );
 
 	/**
 	 * Determine if separate styles & scripts will be loaded for blocks on-render or not.
@@ -995,5 +991,5 @@ function should_load_separate_block_assets() {
 	 *
 	 * @return bool
 	 */
-	return apply_filters( 'load_separate_block_assets', false );
+	return apply_filters( 'load_separate_block_assets', $load_separate_styles );
 }

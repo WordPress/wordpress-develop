@@ -420,4 +420,30 @@ CSS;
 		wp_common_block_scripts_and_styles();
 		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
 	}
+
+	/**
+	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt-in to load_separate_block_assets.
+	 */
+	function test_block_styles_for_viewing_without_split_styles() {
+		add_filter( 'load_separate_block_assets', '__return_false' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
+			'/' . WPINC . '/css/dist/block-library/style.css'
+		);
+	}
+
+	/**
+	 * Tests that the "common.css" file gets enqueued when the site opts-in to load_separate_block_assets.
+	 */
+	function test_block_styles_for_viewing_with_split_styles() {
+		add_filter( 'load_separate_block_assets', '__return_true' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
+			'/' . WPINC . '/css/dist/block-library/common.css'
+		);
+	}
 }
