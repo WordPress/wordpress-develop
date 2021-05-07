@@ -26,7 +26,7 @@ class WP_Widget_Meta extends WP_Widget {
 	public function __construct() {
 		$widget_ops = array(
 			'classname'                   => 'widget_meta',
-			'description'                 => __( html_entity_decode( 'Login, RSS, &amp; WordPress.org links.' ) ),
+			'description'                 => html_entity_decode( __( 'Login, RSS, &amp; WordPress.org links.' ) ),
 			'customize_selective_refresh' => true,
 		);
 		parent::__construct( 'meta', __( 'Meta' ), $widget_ops );
