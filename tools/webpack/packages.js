@@ -163,15 +163,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			return files;
 		} , {} ),
 	};
-	const blockStylesheetFiles = {
-		...blockFolders.reduce( ( files, blockName ) => {
-			files[ `block-library/build-style/${ blockName }/style.css` ] = `${ blockName }/style.css`;
-			files[ `block-library/build-style/${ blockName }/style-rtl.css` ] = `${ blockName }/style-rtl.css`;
-			files[ `block-library/build-style/${ blockName }/editor.css` ] = `${ blockName }/editor.css`;
-			files[ `block-library/build-style/${ blockName }/editor-rtl.css` ] = `${ blockName }/editor-rtl.css`;
-			return files;
-		} , {} ),
-	};
 
 	const developmentCopies = mapVendorCopies( vendors, buildTarget );
 	const minifiedCopies = mapVendorCopies( minifiedVendors, buildTarget );
@@ -222,9 +213,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
-	const blockStylesheetCopies = Object.keys( blockStylesheetFiles ).map( ( filename ) => ( {
-		from: join( baseDir, `node_modules/@wordpress/${ filename }` ),
-		to: join( baseDir, `${ buildTarget }/blocks/${ blockStylesheetFiles[ filename ] }` ),
+	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
 		flatten: true,
 		transform: ( content ) => {
 			if ( mode === 'production' ) {
