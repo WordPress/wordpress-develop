@@ -8,7 +8,7 @@ import {
 } from '@wordpress/e2e-test-utils'
 import { addQueryArgs } from '@wordpress/url';
 
-describe( 'Add new category', () => {
+describe( 'Categories tests', () => {
 	const title = 'New Category';
 	const query = addQueryArgs( '', {
 		taxonomy: 'category',
