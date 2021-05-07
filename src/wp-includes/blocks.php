@@ -175,16 +175,26 @@ function register_block_style_handle( $metadata, $field_name ) {
 		: plugins_url( $style_path, $metadata['file'] );
 
 	$result = false;
-	if ( file_exists( $style_file ) ) {
+
+	$should_register = ! $is_core_block || ( $is_core_block && should_load_separate_block_assets() );
+	if ( $should_register && file_exists( $style_file ) ) {
 		$result = wp_register_style(
 			$style_handle,
 			$style_uri,
 			array(),
 			filemtime( $style_file )
 		);
+
+		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
-	if ( file_exists( str_replace( array( '.min.css', '.css' ), array( '-rtl.min.css', '-rtl.css' ), $style_file ) ) ) {
+
+	$rtl_file = str_replace( array( '.min.css', '.css' ), array( '-rtl.min.css', '-rtl.css' ), $style_file );
+	if ( file_exists( $rtl_file ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
+
+		if ( is_rtl() ) {
+			wp_style_add_data( $style_handle, 'path', $rtl_file );
+		}
 	}
 
 	return $result ? $style_handle : false;
@@ -938,4 +948,22 @@ function block_has_support( $block_type, $feature, $default = false ) {
 	}
 
 	return true === $block_support || is_array( $block_support );
+}
+
+/**
+ * Checks whether separate assets should be loaded for core blocks.
+ *
+ * @since 5.8
+ *
+ * @return bool
+ */
+function should_load_separate_block_assets() {
+	/**
+	 * Determine if separate styles & scripts will be loaded for blocks on-render or not.
+	 *
+	 * @param bool $load_separate_styles Whether separate styles will be loaded or not.
+	 *
+	 * @return bool
+	 */
+	return apply_filters( 'load_separate_block_assets', false );
 }
