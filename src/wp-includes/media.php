@@ -5056,9 +5056,10 @@ function wp_getimagesize( $filename, array &$image_info = null ) {
  *     An array of WebP image information.
  *
  *     @type array $size {
- *         @type int  $width  Image width.
- *         @type int  $height Image height.
- *         @type bool $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
+ *         @type int|false    $width  Image width on success, false on failure.
+ *         @type int|false    $height Image height on success, false on failure.
+ *         @type string|false $type   The WebP type: one of 'lossy', 'lossless' or 'animated-alpha'.
+ *                                    False on failure.
  *     }
  */
 function wp_get_webp_info( $filename ) {
@@ -5066,7 +5067,7 @@ function wp_get_webp_info( $filename ) {
 	$height = false;
 	$type   = false;
 
-	if ( ! 'image/webp' === wp_get_image_mime( $filename ) ) {
+	if ( 'image/webp' !== wp_get_image_mime( $filename ) ) {
 		return compact( 'width', 'height', 'type' );
 	}
 
@@ -5114,19 +5115,4 @@ function wp_get_webp_info( $filename ) {
 	}
 
 	return compact( 'width', 'height', 'type' );
-}
-
-/**
- * Determines if a passed image is a lossy WebP image.
- *
- * @since 5.8.0
- *
- * @param string $filename The file path.
- * @return bool Whether the file is a lossy WebP file.
- */
-function _wp_webp_is_lossy( $filename ) {
-	$webp_info = wp_get_webp_info( $filename );
-	$type      = $webp_info['type'];
-
-	return $type && 'lossy' === $type;
 }
