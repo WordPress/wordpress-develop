@@ -157,38 +157,57 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
-	$suffix        = SCRIPT_DEBUG ? '' : '.min';
+
+	// Check whether styles should have a ".min" suffix or not.
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+
+	// Check whether this is a core block or not.
 	$is_core_block = 0 === strpos( $metadata['name'], 'core/' );
-	$style_handle  = $metadata[ $field_name ];
-	$style_path    = $is_core_block
+
+	// Get the stylesheet handle.
+	$style_handle = $metadata[ $field_name ];
+
+	// Get the stylesheet path.
+	$style_path = $is_core_block
 		? "style$suffix.css"
 		: remove_block_asset_path_prefix( $metadata[ $field_name ] );
 
+	// Early return if this is not a core block and the defined handle is the same as the file path.
 	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
 	}
 
+	// Generate the handle.
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir    = dirname( $metadata['file'] );
-	$style_file   = $is_core_block ? "$block_dir/style$suffix.css" : realpath( "$block_dir/$style_path" );
-	$style_uri    = $is_core_block
+
+	// Get the style path & URI.
+	$block_dir  = dirname( $metadata['file'] );
+	$style_file = $is_core_block ? "$block_dir/style$suffix.css" : realpath( "$block_dir/$style_path" );
+	$style_uri  = $is_core_block
 		? includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" )
 		: plugins_url( $style_path, $metadata['file'] );
 
-	$result = false;
+	// Check if the stylesheet exists and if it should be registered or not.
+	$should_register = file_exists( $style_file ) &&
+		( ! $is_core_block || ( $is_core_block && should_load_separate_block_assets() ) );
 
-	$should_register = ! $is_core_block || ( $is_core_block && should_load_separate_block_assets() );
-	if ( $should_register && file_exists( $style_file ) ) {
-		$result = wp_register_style(
-			$style_handle,
-			$style_uri,
-			array(),
-			filemtime( $style_file )
-		);
-
-		wp_style_add_data( $style_handle, 'path', $style_file );
+	// Early exit if the stylesheet does not exist or should not be registered.
+	if ( ! $should_register ) {
+		return false;
 	}
 
+	// Register the stylesheet.
+	$result = wp_register_style(
+		$style_handle,
+		$style_uri,
+		array(),
+		filemtime( $style_file )
+	);
+
+	// Add path data.
+	wp_style_add_data( $style_handle, 'path', $style_file );
+
+	// Add RTL data.
 	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
 	if ( file_exists( $rtl_file ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
