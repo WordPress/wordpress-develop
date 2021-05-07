@@ -270,8 +270,30 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
 		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
+	/**
+	 * @ticket 50328
+	 */
+	function test_success_core_block_path_register_block_style_handle() {
+		$result = register_block_style_handle(
+			array(
+				'file'  => ABSPATH . WPINC . '/blocks/button/block.json',
+				'style' => 'wp-block-button',
+			),
+			'style'
+		);
+		$this->assertSame(
+			wp_normalize_path( ABSPATH . WPINC . '/blocks/button/style.css' ),
+			wp_normalize_path( wp_styles()->get_data( 'wp-block-button', 'path' ) )
+		);
+	}
 	/**
 	 * Tests that the function returns false when the `block.json` is not found
 	 * in the WordPress core.
@@ -366,6 +388,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests-notice-script', $result->script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
 	/**
