@@ -36,6 +36,8 @@ Attachments = View.extend(/** @lends wp.media.view.Attachments.prototype */{
 		this.el.id = _.uniqueId('__attachments-view-');
 
 		/**
+		 * @since 5.8.0 Added the `infiniteScrolling` parameter.
+		 *
 		 * @param infiniteScrolling  Whether to enable infinite scrolling or use
 		 *                           the default "load more" button.
 		 * @param refreshSensitivity The time in milliseconds to throttle the scroll
