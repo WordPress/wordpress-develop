@@ -162,7 +162,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
 	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
-	$should_register = ! $is_core_block || should_load_separate_block_assets();
+	$should_register = ! $is_core_block || should_load_separate_core_block_assets();
 
 	$style_handle = $metadata[ $field_name ];
 	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
@@ -963,7 +963,7 @@ function block_has_support( $block_type, $feature, $default = false ) {
  *
  * @return bool
  */
-function should_load_separate_block_assets() {
+function should_load_separate_core_block_assets() {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}

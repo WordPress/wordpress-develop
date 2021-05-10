@@ -1573,7 +1573,7 @@ function wp_default_styles( $styles ) {
 		$handle = 'wp-' . $package;
 		$path   = "/wp-includes/css/dist/$package/style$suffix.css";
 
-		if ( 'block-library' === $package && should_load_separate_block_assets() ) {
+		if ( 'block-library' === $package && should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
 		$styles->add( $handle, $path, $dependencies );
@@ -2283,7 +2283,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
 
-	if ( should_load_separate_block_assets() ) {
+	if ( should_load_separate_core_block_assets() ) {
 		return;
 	}
 
