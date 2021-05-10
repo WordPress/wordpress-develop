@@ -157,22 +157,19 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	if ( $is_core_block && ! should_load_separate_core_block_assets() ) {
+		return false;
+	}
 
 	// Check whether styles should have a ".min" suffix or not.
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
-
-	$is_core_block   = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
-	$should_register = ! $is_core_block || should_load_separate_core_block_assets();
 
 	$style_handle = $metadata[ $field_name ];
 	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
 
 	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
-	}
-
-	if ( ! $should_register ) {
-		return false;
 	}
 
 	$style_uri = plugins_url( $style_path, $metadata['file'] );
