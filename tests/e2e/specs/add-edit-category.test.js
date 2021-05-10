@@ -21,8 +21,6 @@ describe( 'Categories tests', () => {
 		 * there could be existing categories
 		 */
 		await visitAdminPage( 'edit-tags.php', query );
-		await page.$( '#bulk-action-selector-top' );
-		await page.waitForSelector( '[id^=cb-select-all-]' );
 		await page.click( '[id^=cb-select-all-]' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
 		await page.click( '#doaction' );
