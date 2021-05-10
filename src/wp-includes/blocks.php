@@ -162,7 +162,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$suffix = SCRIPT_DEBUG ? '' : '.min';
 
 	// Check whether this is a core block or not.
-	$is_core_block = isset( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' );
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
 
 	// Get the stylesheet handle.
 	$style_handle = $metadata[ $field_name ];
