@@ -976,5 +976,5 @@ function should_load_separate_core_block_assets() {
 	 *
 	 * @return bool Whether separate styles will be loaded or not.
 	 */
-	return apply_filters( 'load_separate_block_assets', false );
+	return apply_filters( 'separate_core_block_assets', false );
 }
