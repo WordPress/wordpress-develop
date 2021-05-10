@@ -196,11 +196,11 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 	if ( file_exists( $style_file ) ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
+	}
 
-		$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
-		if ( is_rtl() && file_exists( $rtl_file ) ) {
-			wp_style_add_data( $style_handle, 'path', $rtl_file );
-		}
+	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
+	if ( is_rtl() && file_exists( $rtl_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $rtl_file );
 	}
 
 	return $result ? $style_handle : false;
