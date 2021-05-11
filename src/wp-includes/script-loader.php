@@ -1501,9 +1501,8 @@ function wp_default_styles( $styles ) {
 		$fonts_url = 'https://fonts.googleapis.com/css?family=' . urlencode( $font_family );
 	}
 	$styles->add( 'wp-editor-font', $fonts_url ); // No longer used in core as of 5.7.
-
-	$block_library_theme_path = "/wp-includes/css/dist/block-library/theme$suffix.css";
-	$styles->add( 'wp-block-library-theme', $block_library_theme_path );
+	$block_library_theme_path = WPINC . "/css/dist/block-library/theme$suffix.css";
+	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
 	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
 	$styles->add(
@@ -1568,6 +1567,10 @@ function wp_default_styles( $styles ) {
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 	);
+
+	if ( ! function_exists( 'should_load_separate_core_block_assets' ) ) {
+		require_once ABSPATH . WPINC . '/blocks.php';
+	}
 
 	foreach ( $package_styles as $package => $dependencies ) {
 		$handle = 'wp-' . $package;
@@ -2282,6 +2285,10 @@ function wp_should_load_block_editor_scripts_and_styles() {
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
+
+	if ( ! function_exists( 'should_load_separate_core_block_assets' ) ) {
+		require_once ABSPATH . WPINC . '/blocks.php';
+	}
 
 	if ( should_load_separate_core_block_assets() ) {
 		return;
