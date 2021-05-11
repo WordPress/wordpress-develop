@@ -46,7 +46,7 @@ describe( 'Categories tests', () => {
 
 		// Expect the new created category title to be correct.
 		const firstRowCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 		expect( firstRowCategoryTitle.length ).toBe( 1 );
 	} );
@@ -55,7 +55,7 @@ describe( 'Categories tests', () => {
 		await page.waitForSelector( '#the-list tr' );
 		// Click the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 		await editLink.click();
 
@@ -64,7 +64,7 @@ describe( 'Categories tests', () => {
 		await page.waitForSelector( '.term-name-wrap input#name' );
 		// Expect to now be in the category editor with the correct category title shown.
 		const editorCategoryTitleInput = await page.$x(
-			`//input[contains(@id, "name")][@value = "${ title }"]`
+			`//input[contains( @id, "name" )][@value = "${ title }"]`
 		);
 		expect( editorCategoryTitleInput.length ).toBe( 1 );
 	} );
@@ -74,7 +74,7 @@ describe( 'Categories tests', () => {
 		await page.waitForSelector( '#the-list tr' );
 		// Click the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 
 		await editLink.click();
@@ -88,7 +88,7 @@ describe( 'Categories tests', () => {
 
 		// Expect the edited category title to be correct.
 		const editedCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ newCategoryEditedTitle }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ newCategoryEditedTitle }" )]`
 		);
 		expect( editedCategoryTitle.length ).toBe( 1 );
 
@@ -98,7 +98,7 @@ describe( 'Categories tests', () => {
 		await page.waitForSelector( '#the-list tr' );
 		// Focus on the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 		await editLink.focus();
 
@@ -122,7 +122,7 @@ describe( 'Categories tests', () => {
 
 		// Expect the category title to be correct.
 		const firstRowCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title } Edited")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title } Edited" )]`
 		);
 		expect( firstRowCategoryTitle.length ).toBe( 1 );
 	} );
@@ -132,7 +132,7 @@ describe( 'Categories tests', () => {
 
 		// Focus on the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 		await editLink.focus();
 
@@ -148,7 +148,7 @@ describe( 'Categories tests', () => {
 
 		// Expect to remaining category to be the default "Uncategorized"
 		const uncategorizedCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "Uncategorized")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "Uncategorized" )]`
 		);
 		expect( uncategorizedCategoryTitle.length ).toBe( 1 );
 	} );
@@ -170,7 +170,7 @@ describe( 'Categories tests', () => {
 		// Expect the title of the category returned by the search to match
 		// the new created category title
 		const firstRowCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "${ title }")]`
+			`//a[contains( @class, "row-title" )][contains( text(), "${ title }" )]`
 		);
 		expect( firstRowCategoryTitle.length ).toBe( 1 );
 	} );
@@ -186,13 +186,13 @@ describe( 'Categories tests', () => {
 
 		// Expect the categories table to have only one row with the class "no-items"
 		const notFoundRow = await page.$x(
-			`//tr[contains(@class, "no-items")]`
+			`//tr[contains( @class, "no-items" )]`
 		);
 		expect( notFoundRow.length ).toBe( 1 );
 
 		// Expect the row of the categories table to contain the text "No categories found."
 		const notFoundText = await page.$x(
-			`//td[contains(text(), "No categories found.")]`
+			`//td[contains( text(), "No categories found." )]`
 		);
 		expect( notFoundText.length ).toBe( 1 );
 	} );
