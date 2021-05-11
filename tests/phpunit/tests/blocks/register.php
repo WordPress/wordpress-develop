@@ -270,6 +270,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
 		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
 	/**
@@ -366,6 +372,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests-notice-script', $result->script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
 	/**
