@@ -1365,6 +1365,29 @@ function wp_default_scripts( $scripts ) {
 }
 
 /**
+ * Checks whether separate assets should be loaded for core blocks.
+ *
+ * @since 5.8
+ *
+ * @return bool
+ */
+function should_load_separate_core_block_assets() {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return false;
+	}
+	/**
+	 * Determine if separate styles & scripts will be loaded for blocks on-render or not.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param bool $load_separate_styles Whether separate styles will be loaded or not.
+	 *
+	 * @return bool Whether separate styles will be loaded or not.
+	 */
+	return apply_filters( 'separate_core_block_assets', false );
+}
+
+/**
  * Assign default styles to $styles object.
  *
  * Nothing is returned, because the $styles parameter is passed by reference.
@@ -1567,10 +1590,6 @@ function wp_default_styles( $styles ) {
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
 	);
-
-	if ( ! function_exists( 'should_load_separate_core_block_assets' ) ) {
-		require_once ABSPATH . WPINC . '/blocks.php';
-	}
 
 	foreach ( $package_styles as $package => $dependencies ) {
 		$handle = 'wp-' . $package;
@@ -2285,10 +2304,6 @@ function wp_should_load_block_editor_scripts_and_styles() {
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
-
-	if ( ! function_exists( 'should_load_separate_core_block_assets' ) ) {
-		require_once ABSPATH . WPINC . '/blocks.php';
-	}
 
 	if ( should_load_separate_core_block_assets() ) {
 		return;
