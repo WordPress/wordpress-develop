@@ -70,6 +70,7 @@ describe( 'Categories tests', () => {
 	} );
 
 	it( 'allows the title of the category to be updated on the edit page', async () => {
+		const newCategoryEditedTitle = "New Category Edited Title"
 		await page.waitForSelector( '#the-list tr' );
 		// Click the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
@@ -80,14 +81,14 @@ describe( 'Categories tests', () => {
 		await page.waitForNavigation();
 		await page.focus( '.term-name-wrap input#name' );
 		await pressKeyWithModifier( 'primary', 'a' );
-		await page.type( '.term-name-wrap input#name', 'New Category Edited Title' );
+		await page.type( '.term-name-wrap input#name', newCategoryEditedTitle );
 		await page.click( 'input.button' );
 
 		await visitAdminPage( 'edit-tags.php', query );
 
 		// Expect the edited category title to be correct.
 		const editedCategoryTitle = await page.$x(
-			`//a[contains(@class, "row-title")][contains(text(), "New Category Edited Title")]`
+			`//a[contains(@class, "row-title")][contains(text(), "${ newCategoryEditedTitle }")]`
 		);
 		expect( editedCategoryTitle.length ).toBe( 1 );
 
