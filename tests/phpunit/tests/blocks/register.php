@@ -259,6 +259,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 * @ticket 50328
 	 */
 	function test_success_register_block_style_handle() {
 		$metadata = array(
@@ -307,6 +308,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * is found in the fixtures directory.
 	 *
 	 * @ticket 50263
+	 * @ticket 50328
 	 */
 	function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(

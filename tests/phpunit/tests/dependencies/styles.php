@@ -422,42 +422,36 @@ CSS;
 	}
 
 	/**
-	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt-in to separate_core_block_assets.
+	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt in to separate core block assets.
 	 *
 	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
 	 */
-	function test_common_block_styles_for_viewing_without_split_styles() {
+	function test_block_styles_for_viewing_without_split_styles() {
 		add_filter( 'separate_core_block_assets', '__return_false' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
 		$this->assertSame(
-			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
-			'/' . WPINC . '/css/dist/block-library/style.css'
+			'/' . WPINC . '/css/dist/block-library/style.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
 		);
 	}
 
 	/**
-	 * Tests that the "common.css" file gets enqueued when the site opts-in to separate_core_block_assets.
+	 * Tests that the "common.css" file gets enqueued when the site opts in to separate core block assets.
 	 *
 	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
 	 */
-	function test_common_block_styles_for_viewing_with_split_styles() {
-		add_filter( 'separate_core_block_assets', '__return_false' );
-		wp_default_styles( $GLOBALS['wp_styles'] );
-
-		$this->assertSame(
-			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
-			'/' . WPINC . '/css/dist/block-library/style.css'
-		);
-	}
-
 	function test_block_styles_for_viewing_with_split_styles() {
 		add_filter( 'separate_core_block_assets', '__return_true' );
 		wp_default_styles( $GLOBALS['wp_styles'] );
 
 		$this->assertSame(
-			$GLOBALS['wp_styles']->registered['wp-block-library']->src,
-			'/' . WPINC . '/css/dist/block-library/common.css'
+			'/' . WPINC . '/css/dist/block-library/common.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
 		);
 	}
 }
