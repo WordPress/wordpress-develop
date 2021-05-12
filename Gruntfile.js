@@ -1554,6 +1554,7 @@ module.exports = function(grunt) {
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
 		const files = buildFiles.reduce( ( acc, path ) => {
+			// Skip excluded paths and any path that isn't a file.
 			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
 				return acc;
 			}
