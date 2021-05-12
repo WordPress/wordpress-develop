@@ -1553,8 +1553,13 @@ module.exports = function(grunt) {
 	 * @ticket 46218
 	 */
 	grunt.registerTask( 'verify:source-maps', function() {
-		const path = `${ BUILD_DIR }**/*.js`;
-		const files = glob.sync( path );
+		const files = buildFiles.reduce( ( acc, path ) => {
+			if ( '!' === path[0] || '**' !== path.substr( -2 ) ) {
+				return acc;
+			}
+			acc.push( ...glob.sync( `${ BUILD_DIR }/${ path }/*.js` ) );
+			return acc;
+		}, [] );
 
 		assert(
 			files.length > 0,
