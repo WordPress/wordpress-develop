@@ -148,9 +148,9 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 			)
 		);
 
-		$add = wp_add_object_terms( $bookmarks[0], $categories[0], 'link_category' );
-		$add = wp_add_object_terms( $bookmarks[1], $categories[1], 'link_category' );
-		$add = wp_add_object_terms( $bookmarks[2], $categories[2], 'link_category' );
+		wp_add_object_terms( $bookmarks[0], $categories[0], 'link_category' );
+		wp_add_object_terms( $bookmarks[1], $categories[1], 'link_category' );
+		wp_add_object_terms( $bookmarks[2], $categories[2], 'link_category' );
 
 		$found = get_bookmarks(
 			array(
