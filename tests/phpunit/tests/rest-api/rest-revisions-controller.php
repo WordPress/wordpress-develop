@@ -16,7 +16,7 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 	protected static $editor_id;
 	protected static $contributor_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
 		self::$page_id = $factory->post->create( array( 'post_type' => 'page' ) );
 
@@ -74,12 +74,6 @@ class WP_Test_REST_Revisions_Controller extends WP_Test_REST_Controller_Testcase
 		$this->revision_id2    = $this->revision_2->ID;
 		$this->revision_3      = array_pop( $revisions );
 		$this->revision_id3    = $this->revision_3->ID;
-	}
-
-	public function tearDown() {
-		parent::tearDown();
-
-		remove_filter( 'map_meta_cap', array( $this, '_filter_map_meta_cap_remove_no_allow_revisions' ) );
 	}
 
 	public function _filter_map_meta_cap_remove_no_allow_revisions( $caps, $cap, $user_id, $args ) {

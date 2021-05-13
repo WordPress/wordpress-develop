@@ -12,8 +12,7 @@
 //
 
 /**
- * Ajax handler for the Heartbeat API in
- * the no-privilege context.
+ * Ajax handler for the Heartbeat API in the no-privilege context.
  *
  * Runs when the user is not logged in.
  *
@@ -2928,6 +2927,8 @@ function wp_ajax_get_attachment() {
  * Ajax handler for querying attachments.
  *
  * @since 3.5.0
+ * @since 5.8.0 The response returns the attachments under `response.attachments` and
+ *              `response.totalAttachments` holds the total number of attachments found.
  */
 function wp_ajax_query_attachments() {
 	if ( ! current_user_can( 'upload_files' ) ) {
@@ -2994,7 +2995,12 @@ function wp_ajax_query_attachments() {
 	$posts = array_map( 'wp_prepare_attachment_for_js', $query->posts );
 	$posts = array_filter( $posts );
 
-	wp_send_json_success( $posts );
+	$result = array(
+		'attachments'      => $posts,
+		'totalAttachments' => $query->found_posts,
+	);
+
+	wp_send_json_success( $result );
 }
 
 /**
@@ -3699,7 +3705,7 @@ function wp_ajax_parse_embed() {
 		$mce_styles = wpview_media_sandbox_styles();
 
 		foreach ( $mce_styles as $style ) {
-			$styles .= sprintf( '<link rel="stylesheet" href="%s"/>', $style );
+			$styles .= sprintf( '<link rel="stylesheet" href="%s" />', $style );
 		}
 
 		$html = do_shortcode( $parsed );
@@ -3927,7 +3933,7 @@ function wp_ajax_crop_image() {
 			$parent_url = wp_get_attachment_url( $attachment_id );
 			$url        = str_replace( wp_basename( $parent_url ), wp_basename( $cropped ), $parent_url );
 
-			$size       = @getimagesize( $cropped );
+			$size       = wp_getimagesize( $cropped );
 			$image_type = ( $size ) ? $size['mime'] : 'image/jpeg';
 
 			$object = array(
@@ -3973,6 +3979,15 @@ function wp_ajax_crop_image() {
  * @since 4.4.0
  */
 function wp_ajax_generate_password() {
+	wp_send_json_success( wp_generate_password( 24 ) );
+}
+
+/**
+ * Ajax handler for generating a password in the no-privilege context.
+ *
+ * @since 5.7.0
+ */
+function wp_ajax_nopriv_generate_password() {
 	wp_send_json_success( wp_generate_password( 24 ) );
 }
 
@@ -5397,4 +5412,34 @@ function wp_ajax_toggle_auto_updates() {
 	update_site_option( $option, $auto_updates );
 
 	wp_send_json_success();
+}
+
+/**
+ * Ajax handler sends a password reset link.
+ *
+ * @since 5.7.0
+ */
+function wp_ajax_send_password_reset() {
+
+	// Validate the nonce for this action.
+	$user_id = isset( $_POST['user_id'] ) ? (int) $_POST['user_id'] : 0;
+	check_ajax_referer( 'reset-password-for-' . $user_id, 'nonce' );
+
+	// Verify user capabilities.
+	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		wp_send_json_error( __( 'Cannot send password reset, permission denied.' ) );
+	}
+
+	// Send the password reset link.
+	$user    = get_userdata( $user_id );
+	$results = retrieve_password( $user->user_login );
+
+	if ( true === $results ) {
+		wp_send_json_success(
+			/* translators: %s: User's display name. */
+			sprintf( __( 'A password reset link was emailed to %s.' ), $user->display_name )
+		);
+	} else {
+		wp_send_json_error( $results->get_error_message() );
+	}
 }

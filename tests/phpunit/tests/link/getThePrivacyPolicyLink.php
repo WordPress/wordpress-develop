@@ -54,7 +54,7 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory The base factory object.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$privacy_policy_page_id = $factory->post->create(
 			array(
 				'post_type'  => 'page',

@@ -42,7 +42,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param WP_UnitTest_Factory $factory Factory.
 	 */
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$subscriber_user_id = $factory->user->create( array( 'role' => 'subscriber' ) );
 		self::$admin_user_id      = $factory->user->create( array( 'role' => 'administrator' ) );
 	}
@@ -59,8 +59,8 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 	 * Tear down.
 	 */
 	public function tearDown() {
-		parent::tearDown();
 		$_REQUEST = array();
+		parent::tearDown();
 	}
 
 	/**

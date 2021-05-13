@@ -23,7 +23,7 @@ class Tests_User_ListAuthors extends WP_UnitTestCase {
 		'style'         => 'list',
 		'html'          => true );
 		*/
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_ids[] = $factory->user->create(
 			array(
 				'user_login'   => 'zack',

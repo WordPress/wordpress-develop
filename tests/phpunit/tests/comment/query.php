@@ -9,12 +9,8 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 	protected static $post_id;
 	protected $comment_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create();
-	}
-
-	function setUp() {
-		parent::setUp();
 	}
 
 	public function test_query() {
@@ -4926,7 +4922,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$q       = new WP_Comment_Query();
 		$results = $q->query( array() );
 
-		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10, 2 );
+		remove_filter( 'comments_pre_query', array( __CLASS__, 'filter_comments_pre_query_and_set_comments' ), 10 );
 
 		// Make sure the comments property is the same as the results.
 		$this->assertSame( $results, $q->comments );

@@ -334,6 +334,19 @@ function wp_is_maintenance_mode() {
 }
 
 /**
+ * Get the time elapsed so far during this PHP script.
+ *
+ * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
+ *
+ * @since 5.8.0
+ *
+ * @return float Seconds since the PHP script started.
+ */
+function timer_float() {
+	return microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'];
+}
+
+/**
  * Start the WordPress micro-timer.
  *
  * @since 0.71
@@ -416,6 +429,24 @@ function wp_debug_mode() {
 	 * non-web run-times. Returning false causes the `WP_DEBUG` and related
 	 * constants to not be checked and the default PHP values for errors
 	 * will be used unless you take care to update them yourself.
+	 *
+	 * To use this filter you must define a `$wp_filter` global before
+	 * WordPress loads, usually in `wp-config.php`.
+	 *
+	 * Example:
+	 *
+	 *     $GLOBALS['wp_filter'] = array(
+	 *         'enable_wp_debug_mode_checks' => array(
+	 *             10 => array(
+	 *                 array(
+	 *                     'accepted_args' => 0,
+	 *                     'function'      => function() {
+	 *                         return false;
+	 *                     },
+	 *                 ),
+	 *             ),
+	 *         ),
+	 *     );
 	 *
 	 * @since 4.6.0
 	 *
@@ -919,6 +950,8 @@ function wp_is_recovery_mode() {
  * Determines whether we are currently on an endpoint that should be protected against WSODs.
  *
  * @since 5.2.0
+ *
+ * @global string $pagenow
  *
  * @return bool True if the current endpoint should be protected.
  */
@@ -1505,13 +1538,13 @@ function is_wp_error( $thing ) {
 
 	if ( $is_wp_error ) {
 		/**
-		 * Fires when `is_wp_error()` is called and it's an instance of `WP_Error`.
+		 * Fires when `is_wp_error()` is called and its parameter is an instance of `WP_Error`.
 		 *
 		 * @since 5.6.0
 		 *
 		 * @param WP_Error $thing The error object passed to `is_wp_error()`.
 		 */
-		do_action( 'wp_error_checked', $thing );
+		do_action( 'is_wp_error_instance', $thing );
 	}
 
 	return $is_wp_error;
@@ -1595,11 +1628,11 @@ function wp_finalize_scraping_edited_file_errors( $scrape_key ) {
  */
 function wp_is_json_request() {
 
-	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && false !== strpos( $_SERVER['HTTP_ACCEPT'], 'application/json' ) ) {
+	if ( isset( $_SERVER['HTTP_ACCEPT'] ) && wp_is_json_media_type( $_SERVER['HTTP_ACCEPT'] ) ) {
 		return true;
 	}
 
-	if ( isset( $_SERVER['CONTENT_TYPE'] ) && 'application/json' === $_SERVER['CONTENT_TYPE'] ) {
+	if ( isset( $_SERVER['CONTENT_TYPE'] ) && wp_is_json_media_type( $_SERVER['CONTENT_TYPE'] ) ) {
 		return true;
 	}
 
@@ -1636,6 +1669,24 @@ function wp_is_jsonp_request() {
 }
 
 /**
+ * Checks whether a string is a valid JSON Media Type.
+ *
+ * @since 5.6.0
+ *
+ * @param string $media_type A Media Type string to check.
+ * @return bool True if string is a valid JSON Media Type.
+ */
+function wp_is_json_media_type( $media_type ) {
+	static $cache = array();
+
+	if ( ! isset( $cache[ $media_type ] ) ) {
+		$cache[ $media_type ] = (bool) preg_match( '/(^|\s|,)application\/([\w!#\$&-\^\.\+]+\+)?json(\+oembed)?($|\s|;|,)/i', $media_type );
+	}
+
+	return $cache[ $media_type ];
+}
+
+/**
  * Checks whether current request is an XML request, or is expecting an XML response.
  *
  * @since 5.2.0
@@ -1666,4 +1717,48 @@ function wp_is_xml_request() {
 	}
 
 	return false;
+}
+
+/**
+ * Checks if this site is protected by HTTP Basic Auth.
+ *
+ * At the moment, this merely checks for the present of Basic Auth credentials. Therefore, calling
+ * this function with a context different from the current context may give inaccurate results.
+ * In a future release, this evaluation may be made more robust.
+ *
+ * Currently, this is only used by Application Passwords to prevent a conflict since it also utilizes
+ * Basic Auth.
+ *
+ * @since 5.6.1
+ *
+ * @global string $pagenow The current page.
+ *
+ * @param string $context The context to check for protection. Accepts 'login', 'admin', and 'front'.
+ *                        Defaults to the current context.
+ * @return bool Whether the site is protected by Basic Auth.
+ */
+function wp_is_site_protected_by_basic_auth( $context = '' ) {
+	global $pagenow;
+
+	if ( ! $context ) {
+		if ( 'wp-login.php' === $pagenow ) {
+			$context = 'login';
+		} elseif ( is_admin() ) {
+			$context = 'admin';
+		} else {
+			$context = 'front';
+		}
+	}
+
+	$is_protected = ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] );
+
+	/**
+	 * Filters whether a site is protected by HTTP Basic Auth.
+	 *
+	 * @since 5.6.1
+	 *
+	 * @param bool $is_protected Whether the site is protected by Basic Auth.
+	 * @param string $context    The context to check for protection. One of 'login', 'admin', or 'front'.
+	 */
+	return apply_filters( 'wp_is_site_protected_by_basic_auth', $is_protected, $context );
 }

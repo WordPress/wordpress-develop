@@ -171,7 +171,7 @@ class Tests_Mail extends WP_UnitTestCase {
 		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body' ) );
 
 		// Non-fatal errors.
-		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existant-file.html' ) );
+		$this->assertTrue( wp_mail( 'valid@address.com', 'subject', 'body', "Cc: invalid-address\nBcc: @invalid.address", ABSPATH . '/non-existent-file.html' ) );
 
 		// Fatal errors.
 		$this->assertFalse( wp_mail( 'invalid.address', 'subject', 'body', '', array() ) );
@@ -414,5 +414,21 @@ class Tests_Mail extends WP_UnitTestCase {
 	function test_phpmailer_validator() {
 		$phpmailer = $GLOBALS['phpmailer'];
 		$this->assertTrue( $phpmailer->validateAddress( 'foo@192.168.1.1' ), 'Assert PHPMailer accepts IP address email addresses' );
+	}
+
+	/**
+	 * Test for short-circuiting wp_mail().
+	 *
+	 * @ticket 35069
+	 */
+	public function test_wp_mail_can_be_shortcircuited() {
+		$result1 = wp_mail( WP_TESTS_EMAIL, 'Foo', 'Bar' );
+
+		add_filter( 'pre_wp_mail', '__return_false' );
+		$result2 = wp_mail( WP_TESTS_EMAIL, 'Foo', 'Bar' );
+		remove_filter( 'pre_wp_mail', '__return_false' );
+
+		$this->assertTrue( $result1 );
+		$this->assertFalse( $result2 );
 	}
 }

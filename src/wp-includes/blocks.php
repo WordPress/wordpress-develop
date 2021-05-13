@@ -15,13 +15,9 @@
  * @param string|WP_Block_Type $name Block type name including namespace, or alternatively
  *                                   a complete WP_Block_Type instance. In case a WP_Block_Type
  *                                   is provided, the $args parameter will be ignored.
- * @param array                $args {
- *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
- *     Any arguments may be defined, however the ones described below are supported by default.
- *     Default empty array.
- *
- *     @type callable $render_callback Callback used to render blocks of this block type.
- * }
+ * @param array                $args Optional. Array of block type arguments. Accepts any public property
+ *                                   of `WP_Block_Type`. See WP_Block_Type::__construct() for information
+ *                                   on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type( $name, $args = array() ) {
@@ -71,6 +67,14 @@ function remove_block_asset_path_prefix( $asset_handle_or_path ) {
  * @return string Generated asset name for the block's field.
  */
 function generate_block_asset_handle( $block_name, $field_name ) {
+	if ( 0 === strpos( $block_name, 'core/' ) ) {
+		$asset_handle = str_replace( 'core/', 'wp-block-', $block_name );
+		if ( 0 === strpos( $field_name, 'editor' ) ) {
+			$asset_handle .= '-editor';
+		}
+		return $asset_handle;
+	}
+
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
@@ -91,8 +95,8 @@ function generate_block_asset_handle( $block_name, $field_name ) {
  *
  * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
- * @return string|bool Script handle provided directly or created through
- *                     script's registration, or false on failure.
+ * @return string|false Script handle provided directly or created through
+ *                      script's registration, or false on failure.
  */
 function register_block_script_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
@@ -126,7 +130,15 @@ function register_block_script_handle( $metadata, $field_name ) {
 		$script_asset['dependencies'],
 		$script_asset['version']
 	);
-	return $result ? $script_handle : false;
+	if ( ! $result ) {
+		return false;
+	}
+
+	if ( ! empty( $metadata['textdomain'] ) ) {
+		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
+	}
+
+	return $script_handle;
 }
 
 /**
@@ -136,29 +148,58 @@ function register_block_script_handle( $metadata, $field_name ) {
  *
  * @since 5.5.0
  *
- * @param array  $metadata Block metadata.
+ * @param array  $metadata   Block metadata.
  * @param string $field_name Field name to pick from metadata.
- * @return string|boolean Style handle provided directly or created through
- *                        style's registration, or false on failure.
+ * @return string|false Style handle provided directly or created through
+ *                      style's registration, or false on failure.
  */
 function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	if ( $is_core_block && ! should_load_separate_core_block_assets() ) {
+		return false;
+	}
+
+	// Check whether styles should have a ".min" suffix or not.
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+
 	$style_handle = $metadata[ $field_name ];
 	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
-	if ( $style_handle === $style_path ) {
+
+	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
+	}
+
+	$style_uri = plugins_url( $style_path, $metadata['file'] );
+	if ( $is_core_block ) {
+		$style_path = "style$suffix.css";
+		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir    = dirname( $metadata['file'] );
+	$style_file   = realpath( "$block_dir/$style_path" );
+	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
 	$result       = wp_register_style(
 		$style_handle,
-		plugins_url( $style_path, $metadata['file'] ),
+		$style_uri,
 		array(),
-		filemtime( realpath( "$block_dir/$style_path" ) )
+		$version
 	);
+	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
+		wp_style_add_data( $style_handle, 'rtl', 'replace' );
+	}
+	if ( file_exists( $style_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $style_file );
+	}
+
+	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
+	if ( is_rtl() && file_exists( $rtl_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $rtl_file );
+	}
+
 	return $result ? $style_handle : false;
 }
 
@@ -169,13 +210,9 @@ function register_block_style_handle( $metadata, $field_name ) {
  *
  * @param string $file_or_folder Path to the JSON file with metadata definition for
  *                               the block or path to the folder where the `block.json` file is located.
- * @param array  $args {
- *     Optional. Array of block type arguments. Accepts any public property of `WP_Block_Type`.
- *     Any arguments may be defined, however the ones described below are supported by default.
- *     Default empty array.
- *
- *     @type callable $render_callback Callback used to render blocks of this block type.
- * }
+ * @param array  $args           Optional. Array of block type arguments. Accepts any public property
+ *                               of `WP_Block_Type`. See WP_Block_Type::__construct() for information
+ *                               on accepted arguments. Default empty array.
  * @return WP_Block_Type|false The registered block type on success, or false on failure.
  */
 function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
@@ -192,6 +229,15 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		return false;
 	}
 	$metadata['file'] = $metadata_file;
+
+	/**
+	 * Filters the metadata provided for registering a block type.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $metadata Metadata for registering a block type.
+	 */
+	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
 	$settings          = array();
 	$property_mappings = array(
@@ -212,7 +258,48 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	foreach ( $property_mappings as $key => $mapped_key ) {
 		if ( isset( $metadata[ $key ] ) ) {
-			$settings[ $mapped_key ] = $metadata[ $key ];
+			$value = $metadata[ $key ];
+			if ( empty( $metadata['textdomain'] ) ) {
+				$settings[ $mapped_key ] = $value;
+				continue;
+			}
+			$textdomain = $metadata['textdomain'];
+			switch ( $key ) {
+				case 'title':
+				case 'description':
+					// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralContext,WordPress.WP.I18n.NonSingularStringLiteralDomain
+					$settings[ $mapped_key ] = translate_with_gettext_context( $value, sprintf( 'block %s', $key ), $textdomain );
+					break;
+				case 'keywords':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $keyword ) {
+						// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+						$settings[ $mapped_key ][] = translate_with_gettext_context( $keyword, 'block keyword', $textdomain );
+					}
+
+					break;
+				case 'styles':
+					$settings[ $mapped_key ] = array();
+					if ( ! is_array( $value ) ) {
+						continue 2;
+					}
+
+					foreach ( $value as $style ) {
+						if ( ! empty( $style['label'] ) ) {
+							// phpcs:ignore WordPress.WP.I18n.LowLevelTranslationFunction,WordPress.WP.I18n.NonSingularStringLiteralText,WordPress.WP.I18n.NonSingularStringLiteralDomain
+							$style['label'] = translate_with_gettext_context( $style['label'], 'block style label', $textdomain );
+						}
+						$settings[ $mapped_key ][] = $style;
+					}
+
+					break;
+				default:
+					$settings[ $mapped_key ] = $value;
+			}
 		}
 	}
 
@@ -244,12 +331,26 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		);
 	}
 
-	return register_block_type(
-		$metadata['name'],
+	/**
+	 * Filters the settings determined from the block type metadata.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param array $settings Array of determined settings for registering a block type.
+	 * @param array $metadata Metadata provided for registering a block type.
+	 */
+	$settings = apply_filters(
+		'block_type_metadata_settings',
 		array_merge(
 			$settings,
 			$args
-		)
+		),
+		$metadata
+	);
+
+	return register_block_type(
+		$metadata['name'],
+		$settings
 	);
 }
 
@@ -648,32 +749,18 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
 }
 
 /**
- * Block currently being parsed.
- *
- * @type array
-*/
-global $current_parsed_block;
-
-$current_parsed_block = array(
-	'blockName'  => null,
-	'attributes' => null,
-);
-
-/**
  * Renders a single block into a HTML string.
  *
  * @since 5.0.0
  *
- * @global array    $current_parsed_block Block currently being parsed.
- * @global WP_Post  $post                 The post to edit.
- * @global WP_Query $wp_query             WordPress Query object.
- * @global WP_Query $wp_query             WordPress Query object.
+ * @global WP_Post  $post     The post to edit.
+ * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array $parsed_block A single parsed block object.
  * @return string String of rendered HTML.
  */
 function render_block( $parsed_block ) {
-	global $post, $wp_query, $current_parsed_block;
+	global $post, $wp_query;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
@@ -687,8 +774,6 @@ function render_block( $parsed_block ) {
 	if ( ! is_null( $pre_render ) ) {
 		return $pre_render;
 	}
-
-	$current_parsed_block = $parsed_block;
 
 	$source_block = $parsed_block;
 
@@ -841,9 +926,29 @@ function register_block_style( $block_name, $style_properties ) {
  * @since 5.3.0
  *
  * @param string $block_name       Block type name including namespace.
- * @param array  $block_style_name Block style name.
+ * @param string $block_style_name Block style name.
  * @return bool True if the block style was unregistered with success and false otherwise.
  */
 function unregister_block_style( $block_name, $block_style_name ) {
 	return WP_Block_Styles_Registry::get_instance()->unregister( $block_name, $block_style_name );
+}
+
+/**
+ * Checks whether the current block type supports the feature requested.
+ *
+ * @since 5.8.0
+ *
+ * @param WP_Block_Type $block_type Block type to check for support.
+ * @param string        $feature    Name of the feature to check support for.
+ * @param mixed         $default    Fallback value for feature support, defaults to false.
+ *
+ * @return boolean                  Whether or not the feature is supported.
+ */
+function block_has_support( $block_type, $feature, $default = false ) {
+	$block_support = $default;
+	if ( $block_type && property_exists( $block_type, 'supports' ) ) {
+		$block_support = _wp_array_get( $block_type->supports, $feature, $default );
+	}
+
+	return true === $block_support || is_array( $block_support );
 }

@@ -11,7 +11,7 @@ class Tests_Comment_Submission extends WP_UnitTestCase {
 
 	protected $preprocess_comment_data = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post = $factory->post->create_and_get();
 
 		self::$author_id = $factory->user->create(

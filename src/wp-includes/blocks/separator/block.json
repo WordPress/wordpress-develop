@@ -12,6 +12,8 @@
 	},
 	"supports": {
 		"anchor": true,
-		"align": ["center","wide","full"]
-	}
+		"align": [ "center", "wide", "full" ]
+	},
+	"editorStyle": "wp-block-separator-editor",
+	"style": "wp-block-separator"
 }

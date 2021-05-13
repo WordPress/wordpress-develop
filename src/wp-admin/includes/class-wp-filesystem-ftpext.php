@@ -450,7 +450,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 		$cwd    = $this->cwd();
 		$result = @ftp_chdir( $this->link, trailingslashit( $path ) );
 
-		if ( $result && $path == $this->cwd() || $this->cwd() != $cwd ) {
+		if ( $result && $path === $this->cwd() || $this->cwd() !== $cwd ) {
 			@ftp_chdir( $this->link, $cwd );
 			return true;
 		}
@@ -541,13 +541,13 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string     $path  Path for new directory.
-	 * @param int|false  $chmod Optional. The permissions as octal number (or false to skip chmod).
-	 *                          Default false.
-	 * @param string|int $chown Optional. A user name or number (or false to skip chown).
-	 *                          Default false.
-	 * @param string|int $chgrp Optional. A group name or number (or false to skip chgrp).
-	 *                          Default false.
+	 * @param string           $path  Path for new directory.
+	 * @param int|false        $chmod Optional. The permissions as octal number (or false to skip chmod).
+	 *                                Default false.
+	 * @param string|int|false $chown Optional. A user name or number (or false to skip chown).
+	 *                                Default false.
+	 * @param string|int|false $chgrp Optional. A group name or number (or false to skip chgrp).
+	 *                                Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
@@ -614,7 +614,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 			$b['year']   = $lucifer[3];
 			$b['hour']   = $lucifer[4];
 			$b['minute'] = $lucifer[5];
-			$b['time']   = mktime( $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) == 0 ? 12 : 0 ), $lucifer[5], 0, $lucifer[1], $lucifer[2], $lucifer[3] );
+			$b['time']   = mktime( $lucifer[4] + ( strcasecmp( $lucifer[6], 'PM' ) === 0 ? 12 : 0 ), $lucifer[5], 0, $lucifer[1], $lucifer[2], $lucifer[3] );
 			$b['am/pm']  = $lucifer[6];
 			$b['name']   = $lucifer[8];
 		} elseif ( ! $is_windows ) {
@@ -647,7 +647,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				$b['group']  = $lucifer[3];
 				$b['size']   = $lucifer[4];
 
-				if ( 8 == $lcount ) {
+				if ( 8 === $lcount ) {
 					sscanf( $lucifer[5], '%d-%d-%d', $b['year'], $b['month'], $b['day'] );
 					sscanf( $lucifer[6], '%d:%d', $b['hour'], $b['minute'] );
 
@@ -745,7 +745,7 @@ class WP_Filesystem_FTPext extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( $limit_file && $entry['name'] != $limit_file ) {
+			if ( $limit_file && $entry['name'] !== $limit_file ) {
 				continue;
 			}
 

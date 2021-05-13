@@ -9,7 +9,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	protected static $editor_user_id;
 	protected static $author_user_id;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_user_id  = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$editor_user_id = $factory->user->create( array( 'role' => 'editor' ) );
 		self::$author_user_id = $factory->user->create( array( 'role' => 'author' ) );
@@ -18,11 +18,6 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		$this->post_type = rand_str( 20 );
-	}
-
-	function tearDown() {
-		unset( $GLOBALS['wp_post_types'][ $this->post_type ] );
-		parent::tearDown();
 	}
 
 	/**

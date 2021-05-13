@@ -4,11 +4,7 @@
  * @group post
  */
 
-class Tests_Post_getPages extends WP_UnitTestCase {
-	function setUp() {
-		parent::setUp();
-	}
-
+class Tests_Post_GetPages extends WP_UnitTestCase {
 	/**
 	 * @ticket 23167
 	 */

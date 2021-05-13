@@ -505,11 +505,11 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 * @return bool True on success, false on failure.
 	 */
 	public function touch( $file, $time = 0, $atime = 0 ) {
-		if ( 0 == $time ) {
+		if ( 0 === $time ) {
 			$time = time();
 		}
 
-		if ( 0 == $atime ) {
+		if ( 0 === $atime ) {
 			$atime = time();
 		}
 
@@ -521,13 +521,13 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 	 *
 	 * @since 2.5.0
 	 *
-	 * @param string     $path  Path for new directory.
-	 * @param int|false  $chmod Optional. The permissions as octal number (or false to skip chmod).
-	 *                          Default false.
-	 * @param string|int $chown Optional. A user name or number (or false to skip chown).
-	 *                          Default false.
-	 * @param string|int $chgrp Optional. A group name or number (or false to skip chgrp).
-	 *                          Default false.
+	 * @param string           $path  Path for new directory.
+	 * @param int|false        $chmod Optional. The permissions as octal number (or false to skip chmod).
+	 *                                Default false.
+	 * @param string|int|false $chown Optional. A user name or number (or false to skip chown).
+	 *                                Default false.
+	 * @param string|int|false $chgrp Optional. A group name or number (or false to skip chgrp).
+	 *                                Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {
@@ -630,7 +630,7 @@ class WP_Filesystem_Direct extends WP_Filesystem_Base {
 				continue;
 			}
 
-			if ( $limit_file && $struc['name'] != $limit_file ) {
+			if ( $limit_file && $struc['name'] !== $limit_file ) {
 				continue;
 			}
 

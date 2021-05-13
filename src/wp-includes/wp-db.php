@@ -1887,11 +1887,11 @@ class wpdb {
 	/**
 	 * Performs a MySQL database query, using current database connection.
 	 *
-	 * More information can be found on the Codex page.
+	 * More information can be found on the documentation page.
 	 *
 	 * @since 0.71
 	 *
-	 * @link https://codex.wordpress.org/Function_Reference/wpdb_Class
+	 * @link https://developer.wordpress.org/reference/classes/wpdb/
 	 *
 	 * @param string $query Database query.
 	 * @return int|bool Boolean true for CREATE, ALTER, TRUNCATE and DROP queries. Number of rows
@@ -2083,11 +2083,10 @@ class wpdb {
 	 */
 	public function log_query( $query, $query_time, $query_callstack, $query_start, $query_data ) {
 		/**
-		 * Filters the custom query data being logged.
+		 * Filters the custom data to log alongside a query.
 		 *
 		 * Caution should be used when modifying any of this data, it is recommended that any additional
-		 * information you need to store about a query be added as a new associative entry to the fourth
-		 * element $query_data.
+		 * information you need to store about a query be added as a new associative array element.
 		 *
 		 * @since 5.3.0
 		 *
@@ -3646,10 +3645,7 @@ class wpdb {
 	}
 
 	/**
-	 * Retrieves the name of the function that called wpdb.
-	 *
-	 * Searches up the list of functions until it reaches the one that would
-	 * most logically had called this method.
+	 * Retrieves a comma-separated list of the names of the functions that called wpdb.
 	 *
 	 * @since 2.5.0
 	 *

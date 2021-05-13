@@ -26,7 +26,7 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$network_ids = array(
 				'wordpress.org/'      => array(
 					'domain' => 'wordpress.org',
@@ -1094,6 +1094,28 @@ if ( is_multisite() ) :
 			$query->found_sites = 1;
 
 			return array( 555 );
+		}
+
+		/**
+		 * @ticket 51333
+		 */
+		public function test_sites_pre_query_filter_should_set_sites_property() {
+			add_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query_and_set_sites' ), 10, 2 );
+
+			$q       = new WP_Site_Query();
+			$results = $q->query( array() );
+
+			remove_filter( 'sites_pre_query', array( __CLASS__, 'filter_sites_pre_query_and_set_sites' ), 10 );
+
+			// Make sure the sites property is the same as the results.
+			$this->assertSame( $results, $q->sites );
+
+			// Make sure the site domain is `wordpress.org`.
+			$this->assertSame( 'wordpress.org', $q->sites[0]->domain );
+		}
+
+		public static function filter_sites_pre_query_and_set_sites( $sites, $query ) {
+			return array( get_site( self::$site_ids['wordpress.org/'] ) );
 		}
 	}
 

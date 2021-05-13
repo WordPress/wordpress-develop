@@ -65,7 +65,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 	 *
 	 * @since 5.5.0
 	 *
-	 * @param WP_Error $wp_error WP_Error.
+	 * @param WP_Error $wp_error WP_Error object.
 	 * @return bool
 	 */
 	public function hide_process_failed( $wp_error ) {
@@ -155,13 +155,13 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'theme-install.php' ),
-				__( 'Return to Theme Installer' )
+				__( 'Go to Theme Installer' )
 			);
 		} elseif ( current_user_can( 'switch_themes' ) || current_user_can( 'edit_theme_options' ) ) {
 			$install_actions['themes_page'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				self_admin_url( 'themes.php' ),
-				__( 'Return to Themes page' )
+				__( 'Go to Themes page' )
 			);
 		}
 
@@ -245,7 +245,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		$table  = '<table class="update-from-upload-comparison"><tbody>';
-		$table .= '<tr><th></th><th>' . esc_html( __( 'Current' ) ) . '</th><th>' . esc_html( __( 'Uploaded' ) ) . '</th></tr>';
+		$table .= '<tr><th></th><th>' . esc_html_x( 'Current', 'theme' ) . '</th><th>' . esc_html_x( 'Uploaded', 'theme' ) . '</th></tr>';
 
 		$is_same_theme = true; // Let's consider only these rows.
 
@@ -345,7 +345,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['overwrite_theme'] = sprintf(
 				'<a class="button button-primary update-from-upload-overwrite" href="%s" target="_parent">%s</a>',
 				wp_nonce_url( add_query_arg( 'overwrite', $overwrite, $this->url ), 'theme-upload' ),
-				__( 'Replace current with uploaded' )
+				_x( 'Replace current with uploaded', 'theme' )
 			);
 		} else {
 			echo $blocked_message;
@@ -360,8 +360,8 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 		);
 
 		/**
-		 * Filters the list of action links available following a single theme installation
-		 * failure when overwriting is allowed.
+		 * Filters the list of action links available following a single theme installation failure
+		 * when overwriting is allowed.
 		 *
 		 * @since 5.5.0
 		 *

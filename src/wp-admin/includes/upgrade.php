@@ -874,6 +874,10 @@ function upgrade_all() {
 		upgrade_550();
 	}
 
+	if ( $wp_current_db_version < 49752 ) {
+		upgrade_560();
+	}
+
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2237,6 +2241,60 @@ function upgrade_550() {
 }
 
 /**
+ * Executes changes made in WordPress 5.6.0.
+ *
+ * @ignore
+ * @since 5.6.0
+ */
+function upgrade_560() {
+	global $wp_current_db_version, $wpdb;
+
+	if ( $wp_current_db_version < 49572 ) {
+		/*
+		 * Clean up the `post_category` column removed from schema in version 2.8.0.
+		 * Its presence may conflict with `WP_Post::__get()`.
+		 */
+		$post_category_exists = $wpdb->get_var( "SHOW COLUMNS FROM $wpdb->posts LIKE 'post_category'" );
+		if ( ! is_null( $post_category_exists ) ) {
+			$wpdb->query( "ALTER TABLE $wpdb->posts DROP COLUMN `post_category`" );
+		}
+
+		/*
+		 * When upgrading from WP < 5.6.0 set the core major auto-updates option to `unset` by default.
+		 * This overrides the same option from populate_options() that is intended for new installs.
+		 * See https://core.trac.wordpress.org/ticket/51742.
+		 */
+		update_option( 'auto_update_core_major', 'unset' );
+	}
+
+	if ( $wp_current_db_version < 49632 ) {
+		/*
+		 * Regenerate the .htaccess file to add the `HTTP_AUTHORIZATION` rewrite rule.
+		 * See https://core.trac.wordpress.org/ticket/51723.
+		 */
+		save_mod_rewrite_rules();
+	}
+
+	if ( $wp_current_db_version < 49735 ) {
+		delete_transient( 'dirsize_cache' );
+	}
+
+	if ( $wp_current_db_version < 49752 ) {
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$wpdb->usermeta} WHERE meta_key = %s LIMIT 1",
+				WP_Application_Passwords::USERMETA_KEY_APPLICATION_PASSWORDS
+			)
+		);
+
+		if ( ! empty( $results ) ) {
+			$network_id = get_main_network_id();
+			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
+		}
+	}
+}
+
+/**
  * Executes network-level upgrade routines.
  *
  * @since 3.0.0
@@ -3489,6 +3547,8 @@ function wp_should_upgrade_global_tables() {
 
 	/**
 	 * Filters if upgrade routines should be run on global tables.
+	 *
+	 * @since 4.3.0
 	 *
 	 * @param bool $should_upgrade Whether to run the upgrade routines on global tables.
 	 */

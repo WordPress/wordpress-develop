@@ -2481,17 +2481,41 @@ function get_theme_starter_content() {
  *              by adding it to the function signature.
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
+ * @since 5.6.0 The `post-formats` feature warns if no array is passed.
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature being added. Likely core values include 'post-formats', 'post-thumbnails',
- *                        'custom-header', 'custom-background', 'custom-logo', 'menus', 'automatic-feed-links',
- *                        'html5', 'title-tag', 'customize-selective-refresh-widgets', 'starter-content',
- *                        'responsive-embeds', 'align-wide', 'dark-editor-style', 'disable-custom-colors',
- *                        'disable-custom-font-sizes', 'editor-color-palette', 'editor-font-sizes',
- *                        'editor-styles', 'wp-block-styles', and 'core-block-patterns'.
+ * @param string $feature The feature being added. Likely core values include:
+ *                          - 'admin-bar'
+ *                          - 'align-wide'
+ *                          - 'automatic-feed-links'
+ *                          - 'core-block-patterns'
+ *                          - 'custom-background'
+ *                          - 'custom-header'
+ *                          - 'custom-line-height'
+ *                          - 'custom-logo'
+ *                          - 'customize-selective-refresh-widgets'
+ *                          - 'custom-spacing'
+ *                          - 'custom-units'
+ *                          - 'dark-editor-style'
+ *                          - 'disable-custom-colors'
+ *                          - 'disable-custom-font-sizes'
+ *                          - 'editor-color-palette'
+ *                          - 'editor-gradient-presets'
+ *                          - 'editor-font-sizes'
+ *                          - 'editor-styles'
+ *                          - 'featured-content'
+ *                          - 'html5'
+ *                          - 'menus'
+ *                          - 'post-formats'
+ *                          - 'post-thumbnails'
+ *                          - 'responsive-embeds'
+ *                          - 'starter-content'
+ *                          - 'title-tag'
+ *                          - 'wp-block-styles'
+ *                          - 'widgets'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
- * @return void|bool False on failure, void otherwise.
+ * @return void|false Void on success, false on failure.
  */
 function add_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;
@@ -2523,6 +2547,9 @@ function add_theme_support( $feature, ...$args ) {
 				unset( $post_formats['standard'] );
 
 				$args[0] = array_intersect( $args[0], array_keys( $post_formats ) );
+			} else {
+				_doing_it_wrong( "add_theme_support( 'post-formats' )", __( 'You need to pass an array of post formats.' ), '5.6.0' );
+				return false;
 			}
 			break;
 

@@ -218,11 +218,11 @@ function get_comment( $comment = null, $output = OBJECT ) {
 	 */
 	$_comment = apply_filters( 'get_comment', $_comment );
 
-	if ( OBJECT == $output ) {
+	if ( OBJECT === $output ) {
 		return $_comment;
-	} elseif ( ARRAY_A == $output ) {
+	} elseif ( ARRAY_A === $output ) {
 		return $_comment->to_array();
-	} elseif ( ARRAY_N == $output ) {
+	} elseif ( ARRAY_N === $output ) {
 		return array_values( $_comment->to_array() );
 	}
 	return $_comment;
@@ -454,7 +454,7 @@ function get_comment_count( $post_id = 0 ) {
  * @param mixed  $meta_value Metadata value. Must be serializable if non-scalar.
  * @param bool   $unique     Optional. Whether the same key should not be added.
  *                           Default false.
- * @return int|bool Meta ID on success, false on failure.
+ * @return int|false Meta ID on success, false on failure.
  */
 function add_comment_meta( $comment_id, $meta_key, $meta_value, $unique = false ) {
 	return add_metadata( 'comment', $comment_id, $meta_key, $meta_value, $unique );
@@ -493,10 +493,12 @@ function delete_comment_meta( $comment_id, $meta_key, $meta_value = '' ) {
  * @param string $key        Optional. The meta key to retrieve. By default,
  *                           returns data for all keys.
  * @param bool   $single     Optional. Whether to return a single value.
- *                           This parameter has no effect if $key is not specified.
+ *                           This parameter has no effect if `$key` is not specified.
  *                           Default false.
- * @return mixed An array if $single is false. The value of meta data field
- *               if $single is true. False for an invalid $comment_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of meta data field if `$single` is true.
+ *               False for an invalid `$comment_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing comment ID is passed.
  */
 function get_comment_meta( $comment_id, $key = '', $single = false ) {
 	return get_metadata( 'comment', $comment_id, $key, $single );
@@ -615,9 +617,10 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_cookie The comment author name cookie.
 		 */
-		$comment_author                            = apply_filters( 'pre_comment_author_name', $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
-		$comment_author                            = wp_unslash( $comment_author );
-		$comment_author                            = esc_attr( $comment_author );
+		$comment_author = apply_filters( 'pre_comment_author_name', $_COOKIE[ 'comment_author_' . COOKIEHASH ] );
+		$comment_author = wp_unslash( $comment_author );
+		$comment_author = esc_attr( $comment_author );
+
 		$_COOKIE[ 'comment_author_' . COOKIEHASH ] = $comment_author;
 	}
 
@@ -632,9 +635,10 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_email_cookie The comment author email cookie.
 		 */
-		$comment_author_email                            = apply_filters( 'pre_comment_author_email', $_COOKIE[ 'comment_author_email_' . COOKIEHASH ] );
-		$comment_author_email                            = wp_unslash( $comment_author_email );
-		$comment_author_email                            = esc_attr( $comment_author_email );
+		$comment_author_email = apply_filters( 'pre_comment_author_email', $_COOKIE[ 'comment_author_email_' . COOKIEHASH ] );
+		$comment_author_email = wp_unslash( $comment_author_email );
+		$comment_author_email = esc_attr( $comment_author_email );
+
 		$_COOKIE[ 'comment_author_email_' . COOKIEHASH ] = $comment_author_email;
 	}
 
@@ -649,8 +653,9 @@ function sanitize_comment_cookies() {
 		 *
 		 * @param string $author_url_cookie The comment author URL cookie.
 		 */
-		$comment_author_url                            = apply_filters( 'pre_comment_author_url', $_COOKIE[ 'comment_author_url_' . COOKIEHASH ] );
-		$comment_author_url                            = wp_unslash( $comment_author_url );
+		$comment_author_url = apply_filters( 'pre_comment_author_url', $_COOKIE[ 'comment_author_url_' . COOKIEHASH ] );
+		$comment_author_url = wp_unslash( $comment_author_url );
+
 		$_COOKIE[ 'comment_author_url_' . COOKIEHASH ] = $comment_author_url;
 	}
 }
@@ -1922,6 +1927,8 @@ function wp_get_current_commenter() {
  * Used to allow the commenter to see their pending comment.
  *
  * @since 5.1.0
+ * @since 5.7.0 The window within which the author email for an unapproved comment
+ *              can be retrieved was extended to 10 minutes.
  *
  * @return string The unapproved comment author's email (when supplied).
  */
@@ -1933,8 +1940,8 @@ function wp_get_unapproved_comment_author_email() {
 		$comment    = get_comment( $comment_id );
 
 		if ( $comment && hash_equals( $_GET['moderation-hash'], wp_hash( $comment->comment_date_gmt ) ) ) {
-			// The comment will only be viewable by the comment author for 1 minute.
-			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+1 minute' );
+			// The comment will only be viewable by the comment author for 10 minutes.
+			$comment_preview_expires = strtotime( $comment->comment_date_gmt . '+10 minutes' );
 
 			if ( time() < $comment_preview_expires ) {
 				$commenter_email = $comment->comment_author_email;
@@ -2406,9 +2413,9 @@ function wp_set_comment_status( $comment_id, $comment_status, $wp_error = false 
 	 *
 	 * @since 1.5.0
 	 *
-	 * @param int         $comment_id     Comment ID.
-	 * @param string|bool $comment_status Current comment status. Possible values include
-	 *                                    'hold', 'approve', 'spam', 'trash', or false.
+	 * @param int    $comment_id     Comment ID.
+	 * @param string $comment_status Current comment status. Possible values include
+	 *                               'hold', '0', 'approve', '1', 'spam', and 'trash'.
 	 */
 	do_action( 'wp_set_comment_status', $comment->comment_ID, $comment_status );
 
@@ -2716,7 +2723,7 @@ function wp_update_comment_count_now( $post_id ) {
  * @since 1.5.0
  *
  * @param string $url        URL to ping.
- * @param int    $deprecated Not Used.
+ * @param string $deprecated Not Used.
  * @return string|false String containing URI on success, false on failure.
  */
 function discover_pingback_server_uri( $url, $deprecated = '' ) {

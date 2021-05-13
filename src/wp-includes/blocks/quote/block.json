@@ -8,13 +8,15 @@
 			"source": "html",
 			"selector": "blockquote",
 			"multiline": "p",
-			"default": ""
+			"default": "",
+			"__experimentalRole": "content"
 		},
 		"citation": {
 			"type": "string",
 			"source": "html",
 			"selector": "cite",
-			"default": ""
+			"default": "",
+			"__experimentalRole": "content"
 		},
 		"align": {
 			"type": "string"
@@ -22,5 +24,7 @@
 	},
 	"supports": {
 		"anchor": true
-	}
+	},
+	"editorStyle": "wp-block-quote-editor",
+	"style": "wp-block-quote"
 }

@@ -1911,6 +1911,7 @@ function get_attachment_icon_src( $id = 0, $fullsize = false ) {
 	} elseif ( $src = wp_mime_type_icon( $post->ID ) ) {
 		// No thumb, no image. We'll look for a mime-related icon instead.
 
+		/** This filter is documented in wp-includes/post.php */
 		$icon_dir = apply_filters( 'icon_dir', get_template_directory() . '/images' );
 		$src_file = $icon_dir . '/' . wp_basename($src);
 	}
@@ -1947,7 +1948,7 @@ function get_attachment_icon( $id = 0, $fullsize = false, $max_dims = false ) {
 	// Do we need to constrain the image?
 	if ( ($max_dims = apply_filters('attachment_max_dims', $max_dims)) && file_exists($src_file) ) {
 
-		$imagesize = @getimagesize($src_file);
+		$imagesize = wp_getimagesize($src_file);
 
 		if (($imagesize[0] > $max_dims[0]) || $imagesize[1] > $max_dims[1] ) {
 			$actual_aspect = $imagesize[0] / $imagesize[1];
@@ -3339,6 +3340,8 @@ function gd_edit_image_support($mime_type) {
 				return (imagetypes() & IMG_PNG) != 0;
 			case 'image/gif':
 				return (imagetypes() & IMG_GIF) != 0;
+			case 'image/webp':
+				return (imagetypes() & IMG_WEBP) != 0; // phpcs:ignore PHPCompatibility.Constants.NewConstants.img_webpFound
 		}
 	} else {
 		switch( $mime_type ) {
@@ -3348,6 +3351,8 @@ function gd_edit_image_support($mime_type) {
 				return function_exists('imagecreatefrompng');
 			case 'image/gif':
 				return function_exists('imagecreatefromgif');
+			case 'image/webp':
+				return function_exists('imagecreatefromwebp');
 		}
 	}
 	return false;
@@ -4136,83 +4141,69 @@ function addslashes_strings_only( $value ) {
 }
 
 /**
- * Gets the path to a translation file for loading a textdomain just in time.
+ * Displays a noindex meta tag if required by the blog configuration.
  *
- * Caches the retrieved results internally.
+ * If a blog is marked as not being public then the noindex meta tag will be
+ * output to tell web robots not to index the page content. Add this to the
+ * {@see 'wp_head'} action.
  *
- * @since 4.7.0
- * @deprecated 5.6.0
- * @access private
+ * Typical usage is as a {@see 'wp_head'} callback:
  *
- * @see _load_textdomain_just_in_time()
+ *     add_action( 'wp_head', 'noindex' );
  *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @param bool   $reset  Whether to reset the internal cache. Used by the switch to locale functionality.
- * @return string|false The path to the translation file or false if no translation file was found.
+ * @see wp_no_robots()
+ *
+ * @since 2.1.0
+ * @deprecated 5.7.0 Use wp_robots_noindex() instead on 'wp_robots' filter.
  */
-function _get_path_to_translation( $domain, $reset = false ) {
-	_deprecated_function( __FUNCTION__, '5.6.0', 'WP_Textdomain_Registry' );
+function noindex() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_noindex()' );
 
-	static $available_translations = array();
-
-	if ( true === $reset ) {
-		$available_translations = array();
+	// If the blog is not public, tell robots to go away.
+	if ( '0' == get_option( 'blog_public' ) ) {
+		wp_no_robots();
 	}
-
-	if ( ! isset( $available_translations[ $domain ] ) ) {
-		$available_translations[ $domain ] = _get_path_to_translation_from_lang_dir( $domain );
-	}
-
-	return $available_translations[ $domain ];
 }
 
 /**
- * Gets the path to a translation file in the languages directory for the current locale.
+ * Display a noindex meta tag.
  *
- * Holds a cached list of available .mo files to improve performance.
+ * Outputs a noindex meta tag that tells web robots not to index the page content.
+ * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
  *
- * @since 4.7.0
- * @deprecated 5.6.0
- * @access private
- *
- * @see _get_path_to_translation()
- *
- * @param string $domain Text domain. Unique identifier for retrieving translated strings.
- * @return string|false The path to the translation file or false if no translation file was found.
+ * @since 3.3.0
+ * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
+ * @deprecated 5.7.0 Use wp_robots_no_robots() instead on 'wp_robots' filter.
  */
-function _get_path_to_translation_from_lang_dir( $domain ) {
-	_deprecated_function( __FUNCTION__, '5.6.0', 'WP_Textdomain_Registry' );
+function wp_no_robots() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_no_robots()' );
 
-	static $cached_mofiles = null;
-
-	if ( null === $cached_mofiles ) {
-		$cached_mofiles = array();
-
-		$locations = array(
-			WP_LANG_DIR . '/plugins',
-			WP_LANG_DIR . '/themes',
-		);
-
-		foreach ( $locations as $location ) {
-			$mofiles = glob( $location . '/*.mo' );
-			if ( $mofiles ) {
-				$cached_mofiles = array_merge( $cached_mofiles, $mofiles );
-			}
-		}
+	if ( get_option( 'blog_public' ) ) {
+		echo "<meta name='robots' content='noindex,follow' />\n";
+		return;
 	}
 
-	$locale = determine_locale();
-	$mofile = "{$domain}-{$locale}.mo";
+	echo "<meta name='robots' content='noindex,nofollow' />\n";
+}
 
-	$path = WP_LANG_DIR . '/plugins/' . $mofile;
-	if ( in_array( $path, $cached_mofiles, true ) ) {
-		return $path;
-	}
+/**
+ * Display a noindex,noarchive meta tag and referrer origin-when-cross-origin meta tag.
+ *
+ * Outputs a noindex,noarchive meta tag that tells web robots not to index or cache the page content.
+ * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
+ * url as a referrer to other sites when cross-origin assets are loaded.
+ *
+ * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ *
+ * @since 5.0.1
+ * @deprecated 5.7.0 Use wp_robots_sensitive_page() instead on 'wp_robots' filter
+ *                   and wp_strict_cross_origin_referrer() on 'wp_head' action.
+ */
+function wp_sensitive_page_meta() {
+	_deprecated_function( __FUNCTION__, '5.7.0', 'wp_robots_sensitive_page()' );
 
-	$path = WP_LANG_DIR . '/themes/' . $mofile;
-	if ( in_array( $path, $cached_mofiles, true ) ) {
-		return $path;
-	}
-
-	return false;
+	?>
+	<meta name='robots' content='noindex,noarchive' />
+	<?php
+	wp_strict_cross_origin_referrer();
 }

@@ -12,7 +12,7 @@ class Tests_Post_Thumbnail_Template extends WP_UnitTestCase {
 	protected $current_size_filter_data   = null;
 	protected $current_size_filter_result = null;
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post           = $factory->post->create_and_get();
 		self::$different_post = $factory->post->create_and_get();
 

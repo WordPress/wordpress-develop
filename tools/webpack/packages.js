@@ -63,7 +63,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
+	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
 		.filter( ( packageName ) =>
  			! BUNDLED_PACKAGES.includes( packageName ) &&
@@ -76,10 +76,11 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
-		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
+		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
@@ -90,6 +91,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
+		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
 		'moment.min.js': 'moment/min/moment.min.js',
 		'react.min.js': 'react/umd/react.production.min.js',
 		'react-dom.min.js': 'react-dom/umd/react-dom.production.min.js',
@@ -98,8 +100,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
 	const dynamicBlockFolders = [
@@ -107,6 +109,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block',
 		'calendar',
 		'categories',
+		'file',
 		'latest-comments',
 		'latest-posts',
 		'rss',
@@ -119,12 +122,12 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'audio',
 		'button',
 		'buttons',
-		'classic',
 		'code',
 		'column',
 		'columns',
+		'cover',
 		'embed',
-		'file',
+		'freeform',
 		'gallery',
 		'group',
 		'heading',
@@ -142,7 +145,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'separator',
 		'social-links',
 		'spacer',
-		'subhead',
 		'table',
 		'text-columns',
 		'verse',
@@ -212,6 +214,32 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
+	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
+		flatten: true,
+		transform: ( content ) => {
+			if ( mode === 'production' ) {
+				return postcss( [
+					require( 'cssnano' )( {
+						preset: 'default',
+					} ),
+				] )
+					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+					.then( ( result ) => result.css );
+			}
+
+			return content;
+		},
+		transformPath: ( targetPath, sourcePath ) => {
+			if ( mode === 'production' ) {
+				return targetPath.replace( /\.css$/, '.min.css' );
+			}
+
+			return targetPath;
+		}
+	} ) );
+
 	const config = {
 		mode,
 
@@ -251,6 +279,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			new DefinePlugin( {
 				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
 				'process.env.GUTENBERG_PHASE': 1,
+				// Inject the `COMPONENT_SYSTEM_PHASE` global, used for controlling Component System roll-out.
+				'process.env.COMPONENT_SYSTEM_PHASE': 0,
 				'process.env.FORCE_REDUCED_MOTION': JSON.stringify(
 					process.env.FORCE_REDUCED_MOTION
 				),
@@ -298,6 +328,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...cssCopies,
 					...phpCopies,
 					...blockMetadataCopies,
+					...blockStylesheetCopies,
 				],
 			),
 		],

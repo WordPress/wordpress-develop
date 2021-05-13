@@ -14,10 +14,7 @@
 					"source": "html"
 				}
 			},
-			"default": [
-				{},
-				{}
-			]
+			"default": [ {}, {} ]
 		},
 		"columns": {
 			"type": "number",
@@ -29,5 +26,7 @@
 	},
 	"supports": {
 		"inserter": false
-	}
+	},
+	"editorStyle": "wp-block-text-columns-editor",
+	"style": "wp-block-text-columns"
 }

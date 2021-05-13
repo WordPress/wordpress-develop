@@ -132,6 +132,16 @@ class Tests_Theme_Support extends WP_UnitTestCase {
 		$this->assertFalse( current_theme_supports( 'html5' ) );
 	}
 
+	/**
+	 * @ticket 51390
+	 *
+	 * @expectedIncorrectUsage add_theme_support( 'post-formats' )
+	 */
+	function test_supports_post_formats_doing_it_wrong() {
+		// The second parameter should be an array.
+		$this->assertFalse( add_theme_support( 'post-formats' ) );
+	}
+
 	function supports_foobar( $yesno, $args, $feature ) {
 		if ( $args[0] === $feature[0] ) {
 			return true;

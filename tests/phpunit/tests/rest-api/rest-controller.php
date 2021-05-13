@@ -53,10 +53,10 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		global $wp_rest_additional_fields;
 		$wp_rest_additional_fields = array();
+
+		parent::tearDown();
 	}
 
 	public function test_validate_schema_type_integer() {
@@ -164,7 +164,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		);
 
 		$this->assertErrorResponse(
-			'rest_invalid_param',
+			'rest_not_in_enum',
 			rest_validate_request_arg( 'd', $this->request, 'someenum' )
 		);
 	}
@@ -248,7 +248,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$controller = new WP_REST_Test_Controller();
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
-		$this->assertEquals( 'A pretty string.', $args['somestring']['description'] );
+		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
 		$this->assertFalse( isset( $args['someinteger']['description'] ) );
 	}
 

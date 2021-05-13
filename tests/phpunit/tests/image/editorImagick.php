@@ -18,6 +18,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-image-editor-imagick.php';
 		require_once DIR_TESTROOT . '/includes/class-wp-test-stream.php';
 
+		// This needs to come after the mock image editor class is loaded.
 		parent::setUp();
 	}
 
@@ -82,7 +83,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$resized = $imagick_image_editor->multi_resize( $sizes_array );
 
-		# First, check to see if returned array is as expected
+		// First, check to see if returned array is as expected.
 		$expected_array = array(
 			array(
 				'file'      => 'waffles-50x33.jpg',
@@ -107,7 +108,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	 * Ensure multi_resize doesn't create an image when
 	 * both height and weight are missing, null, or 0.
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize_does_not_create() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -175,7 +176,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 	/**
 	 * Test multi_resize with multiple sizes
 	 *
-	 * ticket 26823
+	 * @ticket 26823
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -210,7 +211,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 * By aspect, should be 30x20 output.
 			 */
 			array(
-				'width'  => 9999, # Arbitrary High Value
+				'width'  => 9999, // Arbitrary high value.
 				'height' => 20,
 				'crop'   => false,
 			),
@@ -221,7 +222,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 45,
-				'height' => 9999, # Arbitrary High Value
+				'height' => 9999, // Arbitrary high value.
 				'crop'   => true,
 			),
 
@@ -264,7 +265,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 * By aspect, should be 105x70 output.
 			 */
 			array(
-				'width'  => -9999, # Arbitrary Negative Value
+				'width'  => -9999, // Arbitrary negative value.
 				'height' => 70,
 			),
 
@@ -274,7 +275,7 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			 */
 			array(
 				'width'  => 200,
-				'height' => -9999, # Arbitrary Negative Value
+				'height' => -9999, // Arbitrary negative value.
 			),
 		);
 
@@ -465,9 +466,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
 		$editor = new WP_Image_Editor_Imagick( $file );
-
-		$this->assertNotWPError( $editor );
-
 		$editor->load();
 		$editor->resize( 5, 5 );
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
@@ -492,9 +490,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 		$file = DIR_TESTDATA . '/images/transparent.png';
 
 		$editor = new WP_Image_Editor_Imagick( $file );
-
-		$this->assertNotWPError( $editor );
-
 		$editor->load();
 
 		$save_to_file = tempnam( get_temp_dir(), '' ) . '.png';
@@ -525,7 +520,6 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 
 		$image_editor = new WP_Image_Editor_Imagick( $save_to_file );
 		$image_editor->load();
-		$this->assertNotWPError( $image_editor );
 		$image_editor->rotate( 180 );
 		$image_editor->save( $save_to_file );
 
@@ -603,5 +597,28 @@ class Tests_Image_Editor_Imagick extends WP_Image_UnitTestCase {
 			unlink( $ret['path'] );
 		}
 		unlink( $temp_file );
+	}
+
+	/**
+	 * @ticket 51665
+	 */
+	public function test_directory_creation() {
+		$file      = realpath( DIR_TESTDATA ) . '/images/a2-small.jpg';
+		$directory = realpath( DIR_TESTDATA ) . '/images/nonexistent-directory';
+		$editor    = new WP_Image_Editor_Imagick( $file );
+
+		$this->assertFileNotExists( $directory );
+
+		$loaded = $editor->load();
+		$this->assertNotWPError( $loaded );
+
+		$resized = $editor->resize( 100, 100, true );
+		$this->assertNotWPError( $resized );
+
+		$saved = $editor->save( $directory . '/a2-small-cropped.jpg' );
+		$this->assertNotWPError( $saved );
+
+		unlink( $directory . '/a2-small-cropped.jpg' );
+		rmdir( $directory );
 	}
 }

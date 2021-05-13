@@ -48,12 +48,14 @@ class WP_Debug_Data {
 		$core_updates           = get_core_updates();
 		$core_update_needed     = '';
 
-		foreach ( $core_updates as $core => $update ) {
-			if ( 'upgrade' === $update->response ) {
-				/* translators: %s: Latest WordPress version number. */
-				$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
-			} else {
-				$core_update_needed = '';
+		if ( is_array( $core_updates ) ) {
+			foreach ( $core_updates as $core => $update ) {
+				if ( 'upgrade' === $update->response ) {
+					/* translators: %s: Latest WordPress version number. */
+					$core_update_needed = ' ' . sprintf( __( '(Latest version: %s)' ), $update->version );
+				} else {
+					$core_update_needed = '';
+				}
 			}
 		}
 
@@ -267,6 +269,10 @@ class WP_Debug_Data {
 				'WP_PLUGIN_DIR'       => array(
 					'label' => 'WP_PLUGIN_DIR',
 					'value' => WP_PLUGIN_DIR,
+				),
+				'WP_MEMORY_LIMIT'     => array(
+					'label' => 'WP_MEMORY_LIMIT',
+					'value' => WP_MEMORY_LIMIT,
 				),
 				'WP_MAX_MEMORY_LIMIT' => array(
 					'label' => 'WP_MAX_MEMORY_LIMIT',
@@ -509,20 +515,27 @@ class WP_Debug_Data {
 		// Get ImageMagic information, if available.
 		if ( class_exists( 'Imagick' ) ) {
 			// Save the Imagick instance for later use.
-			$imagick         = new Imagick();
-			$imagick_version = $imagick->getVersion();
+			$imagick             = new Imagick();
+			$imagemagick_version = $imagick->getVersion();
 		} else {
-			$imagick_version = __( 'Not available' );
+			$imagemagick_version = __( 'Not available' );
 		}
 
 		$info['wp-media']['fields']['imagick_module_version'] = array(
 			'label' => __( 'ImageMagick version number' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionNumber'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionNumber'] : $imagemagick_version ),
 		);
 
 		$info['wp-media']['fields']['imagemagick_version'] = array(
 			'label' => __( 'ImageMagick version string' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionString'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionString'] : $imagemagick_version ),
+		);
+
+		$imagick_version = phpversion( 'imagick' );
+
+		$info['wp-media']['fields']['imagick_version'] = array(
+			'label' => __( 'Imagick version' ),
+			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
@@ -590,6 +603,18 @@ class WP_Debug_Data {
 				'label' => __( 'Imagick Resource Limits' ),
 				'value' => $limits,
 				'debug' => $limits_debug,
+			);
+
+			try {
+				$formats = Imagick::queryFormats( '*' );
+			} catch ( Exception $e ) {
+				$formats = array();
+			}
+
+			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+				'label' => __( 'ImageMagick supported file formats' ),
+				'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
+				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
 			);
 		}
 
@@ -974,7 +999,7 @@ class WP_Debug_Data {
 						'requires_php'  => '',
 						'compatibility' => new stdClass(),
 					);
-					$item = array_merge( $item, array_intersect_key( $plugin, $item ) );
+					$item = wp_parse_args( $plugin, $item );
 				}
 
 				$auto_update_forced = wp_is_auto_update_forced_for_item( 'plugin', null, (object) $item );

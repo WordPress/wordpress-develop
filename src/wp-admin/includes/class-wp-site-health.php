@@ -50,6 +50,21 @@ class WP_Site_Health {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_site_health_scheduled_check', array( $this, 'wp_cron_scheduled_check' ) );
+
+		add_action( 'site_health_tab_content', array( $this, 'show_site_health_tab' ) );
+	}
+
+	/**
+	 * Output the content of a tab in the Site Health screen.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $tab Slug of the current tab being displayed.
+	 */
+	public function show_site_health_tab( $tab ) {
+		if ( 'debug' === $tab ) {
+			require_once ABSPATH . '/wp-admin/site-health-info.php';
+		}
 	}
 
 	/**
@@ -103,12 +118,12 @@ class WP_Site_Health {
 			$health_check_js_variables['site_status']['issues'] = $issue_counts;
 		}
 
-		if ( 'site-health' === $screen->id && ! isset( $_GET['tab'] ) ) {
+		if ( 'site-health' === $screen->id && ( ! isset( $_GET['tab'] ) || empty( $_GET['tab'] ) ) ) {
 			$tests = WP_Site_Health::get_tests();
 
 			// Don't run https test on development environments.
 			if ( $this->is_development_environment() ) {
-				unset( $tests['direct']['https_status'] );
+				unset( $tests['async']['https_status'] );
 			}
 
 			foreach ( $tests['direct'] as $test ) {
@@ -135,6 +150,7 @@ class WP_Site_Health {
 						'test'      => $test['test'],
 						'has_rest'  => ( isset( $test['has_rest'] ) ? $test['has_rest'] : false ),
 						'completed' => false,
+						'headers'   => isset( $test['headers'] ) ? $test['headers'] : array(),
 					);
 				}
 			}
@@ -725,7 +741,7 @@ class WP_Site_Health {
 				'<p>%s</p>',
 				sprintf(
 					/* translators: %s: The minimum recommended PHP version. */
-					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are faster and more secure, so staying up to date will help your site&#8217;s overall performance and security. The minimum recommended version of PHP is %s.' ),
+					__( 'PHP is the programming language used to build and maintain WordPress. Newer versions of PHP are created with increased performance in mind, so you may see a positive effect on your site&#8217;s performance. The minimum recommended version of PHP is %s.' ),
 					$response ? $response['recommended_version'] : ''
 				)
 			),
@@ -1492,12 +1508,19 @@ class WP_Site_Health {
 	 * enabled, but only if you visit the right site address.
 	 *
 	 * @since 5.2.0
+	 * @since 5.7.0 Updated to rely on {@see wp_is_using_https()} and {@see wp_is_https_supported()}.
 	 *
 	 * @return array The test results.
 	 */
 	public function get_test_https_status() {
+		// Enforce fresh HTTPS detection results. This is normally invoked by using cron, but for Site Health it should
+		// always rely on the latest results.
+		wp_update_https_detection_errors();
+
+		$default_update_url = wp_get_default_update_https_url();
+
 		$result = array(
-			'label'       => __( 'Your website is using an active HTTPS connection.' ),
+			'label'       => __( 'Your website is using an active HTTPS connection' ),
 			'status'      => 'good',
 			'badge'       => array(
 				'label' => __( 'Security' ),
@@ -1508,9 +1531,8 @@ class WP_Site_Health {
 				__( 'An HTTPS connection is a more secure way of browsing the web. Many services now have HTTPS as a requirement. HTTPS allows you to take advantage of new features that can increase site speed, improve search rankings, and gain the trust of your visitors by helping to protect their online privacy.' )
 			),
 			'actions'     => sprintf(
-				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
-				/* translators: Documentation explaining HTTPS and why it should be used. */
-				esc_url( __( 'https://wordpress.org/support/article/why-should-i-use-https/' ) ),
+				'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				esc_url( $default_update_url ),
 				__( 'Learn more about why you should use HTTPS' ),
 				/* translators: Accessibility text. */
 				__( '(opens in a new tab)' )
@@ -1518,34 +1540,111 @@ class WP_Site_Health {
 			'test'        => 'https_status',
 		);
 
-		if ( is_ssl() ) {
-			$wp_url   = get_bloginfo( 'wpurl' );
-			$site_url = get_bloginfo( 'url' );
-
-			if ( 'https' !== substr( $wp_url, 0, 5 ) || 'https' !== substr( $site_url, 0, 5 ) ) {
-				$result['status'] = 'recommended';
-
-				$result['label'] = __( 'Only parts of your site are using HTTPS' );
-
-				$result['description'] = sprintf(
-					'<p>%s</p>',
-					sprintf(
-						/* translators: %s: URL to General Settings screen. */
-						__( 'You are accessing this website using HTTPS, but your <a href="%s">WordPress Address</a> is not set up to use HTTPS by default.' ),
-						esc_url( admin_url( 'options-general.php' ) )
-					)
-				);
-
-				$result['actions'] .= sprintf(
-					'<p><a href="%s">%s</a></p>',
-					esc_url( admin_url( 'options-general.php' ) ),
-					__( 'Update your site addresses' )
-				);
-			}
-		} else {
+		if ( ! wp_is_using_https() ) {
+			// If the website is not using HTTPS, provide more information about whether it is supported and how it can
+			// be enabled.
 			$result['status'] = 'recommended';
+			$result['label']  = __( 'Your website does not use HTTPS' );
 
-			$result['label'] = __( 'Your site does not use HTTPS' );
+			if ( wp_is_site_url_using_https() ) {
+				if ( is_ssl() ) {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: URL to Settings > General > Site Address. */
+							__( 'You are accessing this website using HTTPS, but your <a href="%s">Site Address</a> is not set up to use HTTPS by default.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				} else {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: %s: URL to Settings > General > Site Address. */
+							__( 'Your <a href="%s">Site Address</a> is not set up to use HTTPS.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				}
+			} else {
+				if ( is_ssl() ) {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
+							__( 'You are accessing this website using HTTPS, but your <a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS by default.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				} else {
+					$result['description'] = sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: 1: URL to Settings > General > WordPress Address, 2: URL to Settings > General > Site Address. */
+							__( 'Your <a href="%1$s">WordPress Address</a> and <a href="%2$s">Site Address</a> are not set up to use HTTPS.' ),
+							esc_url( admin_url( 'options-general.php' ) . '#siteurl' ),
+							esc_url( admin_url( 'options-general.php' ) . '#home' )
+						)
+					);
+				}
+			}
+
+			if ( wp_is_https_supported() ) {
+				$result['description'] .= sprintf(
+					'<p>%s</p>',
+					__( 'HTTPS is already supported for your website.' )
+				);
+
+				if ( defined( 'WP_HOME' ) || defined( 'WP_SITEURL' ) ) {
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						sprintf(
+							/* translators: 1: wp-config.php, 2: WP_HOME, 3: WP_SITEURL */
+							__( 'However, your WordPress Address is currently controlled by a PHP constant and therefore cannot be updated. You need to edit your %1$s and remove or update the definitions of %2$s and %3$s.' ),
+							'<code>wp-config.php</code>',
+							'<code>WP_HOME</code>',
+							'<code>WP_SITEURL</code>'
+						)
+					);
+				} elseif ( current_user_can( 'update_https' ) ) {
+					$default_direct_update_url = add_query_arg( 'action', 'update_https', wp_nonce_url( admin_url( 'site-health.php' ), 'wp_update_https' ) );
+					$direct_update_url         = wp_get_direct_update_https_url();
+
+					if ( ! empty( $direct_update_url ) ) {
+						$result['actions'] = sprintf(
+							'<p class="button-container"><a class="button button-primary" href="%1$s" target="_blank" rel="noopener">%2$s<span class="screen-reader-text"> %3$s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+							esc_url( $direct_update_url ),
+							__( 'Update your site to use HTTPS' ),
+							/* translators: Accessibility text. */
+							__( '(opens in a new tab)' )
+						);
+					} else {
+						$result['actions'] = sprintf(
+							'<p class="button-container"><a class="button button-primary" href="%1$s">%2$s</a></p>',
+							esc_url( $default_direct_update_url ),
+							__( 'Update your site to use HTTPS' )
+						);
+					}
+				}
+			} else {
+				// If host-specific "Update HTTPS" URL is provided, include a link.
+				$update_url = wp_get_update_https_url();
+				if ( $update_url !== $default_update_url ) {
+					$result['description'] .= sprintf(
+						'<p><a href="%s" target="_blank" rel="noopener">%s<span class="screen-reader-text"> %s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+						esc_url( $update_url ),
+						__( 'Talk to your web host about supporting HTTPS for your website.' ),
+						/* translators: Accessibility text. */
+						__( '(opens in a new tab)' )
+					);
+				} else {
+					$result['description'] .= sprintf(
+						'<p>%s</p>',
+						__( 'Talk to your web host about supporting HTTPS for your website.' )
+					);
+				}
+			}
 		}
 
 		return $result;
@@ -2062,17 +2161,87 @@ class WP_Site_Health {
 				'post_max_size',
 				'upload_max_filesize'
 			);
-			$result['status']      = 'recommended';
-			$result['description'] = sprintf(
-				'<p>%s</p>',
-				sprintf(
-					/* translators: 1: post_max_size, 2: upload_max_filesize */
-					__( 'The setting for %1$s is smaller than %2$s, this could cause some problems when trying to upload files.' ),
-					'<code>post_max_size</code>',
-					'<code>upload_max_filesize</code>'
-				)
-			);
+			$result['status'] = 'recommended';
+
+			if ( 0 === wp_convert_hr_to_bytes( $post_max_size ) ) {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: 1: post_max_size, 2: upload_max_filesize */
+						__( 'The setting for %1$s is currently configured as 0, this could cause some problems when trying to upload files through plugin or theme features that rely on various upload methods. It is recommended to configure this setting to a fixed value, ideally matching the value of %2$s, as some upload methods read the value 0 as either unlimited, or disabled.' ),
+						'<code>post_max_size</code>',
+						'<code>upload_max_filesize</code>'
+					)
+				);
+			} else {
+				$result['description'] = sprintf(
+					'<p>%s</p>',
+					sprintf(
+						/* translators: 1: post_max_size, 2: upload_max_filesize */
+						__( 'The setting for %1$s is smaller than %2$s, this could cause some problems when trying to upload files.' ),
+						'<code>post_max_size</code>',
+						'<code>upload_max_filesize</code>'
+					)
+				);
+			}
+
 			return $result;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Tests if the Authorization header has the expected values.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @return array
+	 */
+	public function get_test_authorization_header() {
+		$result = array(
+			'label'       => __( 'The Authorization header is working as expected.' ),
+			'status'      => 'good',
+			'badge'       => array(
+				'label' => __( 'Security' ),
+				'color' => 'blue',
+			),
+			'description' => sprintf(
+				'<p>%s</p>',
+				__( 'The Authorization header comes from the third-party applications you approve. Without it, those apps cannot connect to your site.' )
+			),
+			'actions'     => '',
+			'test'        => 'authorization_header',
+		);
+
+		if ( ! isset( $_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'] ) ) {
+			$result['label'] = __( 'The authorization header is missing.' );
+		} elseif ( 'user' !== $_SERVER['PHP_AUTH_USER'] || 'pwd' !== $_SERVER['PHP_AUTH_PW'] ) {
+			$result['label'] = __( 'The authorization header is invalid.' );
+		} else {
+			return $result;
+		}
+
+		$result['status'] = 'recommended';
+
+		if ( ! function_exists( 'got_mod_rewrite' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/misc.php';
+		}
+
+		if ( got_mod_rewrite() ) {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s">%s</a></p>',
+				esc_url( admin_url( 'options-permalink.php' ) ),
+				__( 'Flush permalinks' )
+			);
+		} else {
+			$result['actions'] .= sprintf(
+				'<p><a href="%s" target="_blank" rel="noopener">%s <span class="screen-reader-text">%s</span><span aria-hidden="true" class="dashicons dashicons-external"></span></a></p>',
+				__( 'https://developer.wordpress.org/rest-api/frequently-asked-questions/#why-is-authentication-not-working' ),
+				__( 'Learn how to configure the Authorization header.' ),
+				/* translators: Accessibility text. */
+				__( '(opens in a new tab)' )
+			);
 		}
 
 		return $result;
@@ -2129,10 +2298,6 @@ class WP_Site_Health {
 					'label' => __( 'MySQL utf8mb4 support' ),
 					'test'  => 'utf8mb4_support',
 				),
-				'https_status'              => array(
-					'label' => __( 'HTTPS status' ),
-					'test'  => 'https_status',
-				),
 				'ssl_support'               => array(
 					'label' => __( 'Secure communication' ),
 					'test'  => 'ssl_support',
@@ -2177,6 +2342,19 @@ class WP_Site_Health {
 					'has_rest'          => true,
 					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_loopback_requests' ),
 				),
+				'https_status'         => array(
+					'label'             => __( 'HTTPS status' ),
+					'test'              => rest_url( 'wp-site-health/v1/tests/https-status' ),
+					'has_rest'          => true,
+					'async_direct_test' => array( WP_Site_Health::get_instance(), 'get_test_https_status' ),
+				),
+				'authorization_header' => array(
+					'label'     => __( 'Authorization header' ),
+					'test'      => rest_url( 'wp-site-health/v1/tests/authorization-header' ),
+					'has_rest'  => true,
+					'headers'   => array( 'Authorization' => 'Basic ' . base64_encode( 'user:pwd' ) ),
+					'skip_cron' => true,
+				),
 			),
 		);
 
@@ -2203,6 +2381,7 @@ class WP_Site_Health {
 		 *
 		 * @since 5.2.0
 		 * @since 5.6.0 Added the `async_direct_test` array key.
+		 *              Added the `skip_cron` array key.
 		 *
 		 * @param array $test_type {
 		 *     An associative array, where the `$test_type` is either `direct` or
@@ -2217,6 +2396,7 @@ class WP_Site_Health {
 		 *         @type mixed    $test              A callable to perform a direct test, or a string AJAX action
 		 *                                           to be called to perform an async test.
 		 *         @type boolean  $has_rest          Optional. Denote if `$test` has a REST API endpoint.
+		 *         @type boolean  $skip_cron         Whether to skip this test when running as cron.
 		 *         @type callable $async_direct_test A manner of directly calling the test marked as asynchronous,
 		 *                                           as the scheduled event can not authenticate, and endpoints
 		 *                                           may require authentication.
@@ -2452,6 +2632,7 @@ class WP_Site_Health {
 	 * @return object The test results.
 	 */
 	function can_perform_loopback() {
+		$body    = array( 'site-health' => 'loopback-test' );
 		$cookies = wp_unslash( $_COOKIE );
 		$timeout = 10;
 		$headers = array(
@@ -2465,9 +2646,19 @@ class WP_Site_Health {
 			$headers['Authorization'] = 'Basic ' . base64_encode( wp_unslash( $_SERVER['PHP_AUTH_USER'] ) . ':' . wp_unslash( $_SERVER['PHP_AUTH_PW'] ) );
 		}
 
-		$url = admin_url();
+		$url = site_url( 'wp-cron.php' );
 
-		$r = wp_remote_get( $url, compact( 'cookies', 'headers', 'timeout', 'sslverify' ) );
+		/*
+		 * A post request is used for the wp-cron.php loopback test to cause the file
+		 * to finish early without triggering cron jobs. This has two benefits:
+		 * - cron jobs are not triggered a second time on the site health page,
+		 * - the loopback request finishes sooner providing a quicker result.
+		 *
+		 * Using a POST request causes the loopback to differ slightly to the standard
+		 * GET request WordPress uses for wp-cron.php loopback requests but is close
+		 * enough. See https://core.trac.wordpress.org/ticket/52547
+		 */
+		$r = wp_remote_post( $url, compact( 'body', 'cookies', 'headers', 'timeout', 'sslverify' ) );
 
 		if ( is_wp_error( $r ) ) {
 			return (object) array(
@@ -2534,7 +2725,7 @@ class WP_Site_Health {
 
 		// Don't run https test on development environments.
 		if ( $this->is_development_environment() ) {
-			unset( $tests['direct']['https_status'] );
+			unset( $tests['async']['https_status'] );
 		}
 
 		foreach ( $tests['direct'] as $test ) {
@@ -2557,6 +2748,10 @@ class WP_Site_Health {
 		}
 
 		foreach ( $tests['async'] as $test ) {
+			if ( ! empty( $test['skip_cron'] ) ) {
+				continue;
+			}
+
 			// Local endpoints may require authentication, so asynchronous tests can pass a direct test runner as well.
 			if ( ! empty( $test['async_direct_test'] ) && is_callable( $test['async_direct_test'] ) ) {
 				// This test is callable, do so and continue to the next asynchronous check.

@@ -4,7 +4,7 @@
  *
  * @package WordPress
  * @subpackage Twenty_Twenty_One
- * @since 1.0.0
+ * @since Twenty Twenty-One 1.0
  */
 
 /**
@@ -17,7 +17,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
 
@@ -38,7 +38,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @param string $background_color The background color.
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return string (hex color)
 	 */
@@ -55,7 +55,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string|null $context Can be "editor" or null.
 	 *
@@ -74,8 +74,8 @@ class Twenty_Twenty_One_Custom_Colors {
 			$theme_css .= '--button--color-text-hover: ' . $this->custom_get_readable_color( $background_color ) . ';';
 
 			if ( '#fff' === $this->custom_get_readable_color( $background_color ) ) {
-				$theme_css .= '--table--stripes-border-color: var(--global--color-dark-gray);';
-				$theme_css .= '--table--stripes-background-color: var(--global--color-dark-gray);';
+				$theme_css .= '--table--stripes-border-color: rgba(240, 240, 240, 0.15);';
+				$theme_css .= '--table--stripes-background-color: rgba(240, 240, 240, 0.15);';
 			}
 		}
 
@@ -89,7 +89,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -104,7 +104,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @return void
 	 */
@@ -120,12 +120,6 @@ class Twenty_Twenty_One_Custom_Colors {
 		if ( 'd1e4dd' !== strtolower( $background_color ) ) {
 			wp_add_inline_style( 'twenty-twenty-one-custom-color-overrides', $this->generate_custom_color_variables( 'editor' ) );
 		}
-
-		$should_respect_color_scheme = get_theme_mod( 'respect_user_color_preference', true ); // @phpstan-ignore-line. Passing true instead of default value of false to get_theme_mod.
-		if ( $should_respect_color_scheme && self::get_relative_luminance_from_hex( $background_color ) > 127 ) {
-			// Add dark mode variable overrides.
-			wp_add_inline_style( 'twenty-twenty-one-custom-color-overrides', '@media (prefers-color-scheme: dark) { :root .editor-styles-wrapper { --global--color-background: var(--global--color-dark-gray); --global--color-primary: var(--global--color-light-gray); --global--color-secondary: var(--global--color-light-gray); } }' );
-		}
 	}
 
 	/**
@@ -135,7 +129,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param string $hex The HEX color.
 	 *
@@ -166,7 +160,7 @@ class Twenty_Twenty_One_Custom_Colors {
 	 *
 	 * @access public
 	 *
-	 * @since 1.0.0
+	 * @since Twenty Twenty-One 1.0
 	 *
 	 * @param array $classes The existing body classes.
 	 *
@@ -174,10 +168,16 @@ class Twenty_Twenty_One_Custom_Colors {
 	 */
 	public function body_class( $classes ) {
 		$background_color = get_theme_mod( 'background_color', 'D1E4DD' );
-		if ( 127 > self::get_relative_luminance_from_hex( $background_color ) ) {
-			$classes[] = 'is-background-dark';
+		$luminance        = self::get_relative_luminance_from_hex( $background_color );
+
+		if ( 127 > $luminance ) {
+			$classes[] = 'is-dark-theme';
 		} else {
-			$classes[] = 'is-background-light';
+			$classes[] = 'is-light-theme';
+		}
+
+		if ( 225 <= $luminance ) {
+			$classes[] = 'has-background-white';
 		}
 
 		return $classes;
