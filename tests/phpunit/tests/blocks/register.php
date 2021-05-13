@@ -288,6 +288,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 * @ticket 50328
 	 *
 	 * @covers ::register_block_script_handle
 	 */
@@ -336,6 +337,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * is found in the fixtures directory.
 	 *
 	 * @ticket 50263
+	 * @ticket 50328
 	 *
 	 * @covers ::register_block_script_handle
 	 */
@@ -403,6 +405,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests-notice-script', $result->script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
 	/**
