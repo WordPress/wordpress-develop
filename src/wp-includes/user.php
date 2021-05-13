@@ -4476,18 +4476,18 @@ function wp_list_users( $args = array() ) {
 	$output = rtrim( $return, ', ' );
 	
 	/**
-     	* Filters the HTML output of the pages to list.
-     	*
-     	* @since 5.8.0
-     	*
-     	* @see wp_list_users()
-     	*
-     	* @param string    $output      HTML output of the users list.
-     	* @param array     $parsed_args An array of user-listing arguments. See wp_list_users()
-     	*                               for information on accepted arguments.
-     	* @param WP_User[] $users       Array of the user objects.
-     	*/
-    	$html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
+        * Filters the HTML output of the pages to list.
+        *
+        * @since 5.8.0
+        *
+        * @see wp_list_users()
+        *
+        * @param string    $output      HTML output of the users list.
+        * @param array     $parsed_args An array of user-listing arguments. See wp_list_users()
+        *                               for information on accepted arguments.
+        * @param WP_User[] $users       Array of the user objects.
+        */
+        $html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
 
 	if ( ! $args['echo'] ) {
 		return $output;
