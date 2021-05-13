@@ -221,6 +221,9 @@ class Tests_Canonical_PostStatus extends WP_Canonical_UnitTestCase {
 	 * @param string $user_role User role.
 	 * @param string $requested Requested URL.
 	 * @param string $expected  Expected URL.
+	 *
+	 * @covers ::redirect_canonical
+	 * @covers ::home_url
 	 */
 	public function test_canonical_redirects_to_plain_permalinks( $post_key, $user_role, $requested, $expected ) {
 		wp_set_current_user( self::$users[ $user_role ] );

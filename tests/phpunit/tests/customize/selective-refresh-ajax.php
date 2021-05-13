@@ -66,6 +66,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request().
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_for_unauthenticated_user() {
 		$_POST[ WP_Customize_Selective_Refresh::RENDER_QUERY_VAR ] = '1';
@@ -134,6 +136,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() for an unrecognized partial.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_for_unrecognized_partial() {
 		$this->setup_valid_render_partials_request_environment();
@@ -171,6 +175,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() for a partial that does not render.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_for_non_rendering_partial() {
 		$this->setup_valid_render_partials_request_environment();
@@ -210,6 +216,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() for a partial the user doesn't have the capability to edit.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_rendering_disallowed_partial() {
 		$this->setup_valid_render_partials_request_environment();
@@ -246,6 +254,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() for a partial for which an associated setting does not exist.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_rendering_partial_with_missing_settings() {
 		$this->setup_valid_render_partials_request_environment();
@@ -303,6 +313,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() for a partial that does render.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_with_single_valid_placement() {
 		$this->setup_valid_render_partials_request_environment();
@@ -419,6 +431,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request()dynamic partials are recognized.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_for_dynamic_partial() {
 		$this->setup_valid_render_partials_request_environment();
@@ -457,6 +471,8 @@ class Test_WP_Customize_Selective_Refresh_Ajax extends WP_UnitTestCase {
 	 * Test WP_Customize_Selective_Refresh::handle_render_partials_request() to multiple partials can be requested at once.
 	 *
 	 * @see WP_Customize_Selective_Refresh::handle_render_partials_request()
+	 *
+	 * @covers WP_Customize_Selective_Refresh::handle_render_partials_request
 	 */
 	function test_handle_render_partials_request_for_multiple_partials_placements() {
 		$this->setup_valid_render_partials_request_environment();
