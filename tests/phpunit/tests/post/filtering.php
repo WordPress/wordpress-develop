@@ -8,6 +8,8 @@
  *
  * @group post
  * @group formatting
+ *
+ * @covers ::wp_insert_post
  */
 class Tests_Post_Filtering extends WP_UnitTestCase {
 	function setUp() {
@@ -22,7 +24,11 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
-	// A simple test to make sure unclosed tags are fixed.
+	/**
+	 * A simple test to make sure unclosed tags are fixed.
+	 *
+	 * @covers ::wp_insert_post
+	 */
 	function test_post_content_unknown_tag() {
 
 		$content = <<<EOF
@@ -39,7 +45,11 @@ EOF;
 		$this->assertSame( $expected, $post->post_content );
 	}
 
-	// A simple test to make sure unbalanced tags are fixed.
+	/**
+	 * A simple test to make sure unbalanced tags are fixed.
+	 *
+	 * @covers ::wp_insert_post
+	 */
 	function test_post_content_unbalanced_tag() {
 
 		$content = <<<EOF
@@ -56,7 +66,12 @@ EOF;
 		$this->assertSame( $expected, $post->post_content );
 	}
 
-	// Test KSES filtering of disallowed attribute.
+	/**
+	 * Test KSES filtering of disallowed attribute.
+	 *
+	 * @covers ::wp_insert_post
+	 */
+
 	function test_post_content_disallowed_attr() {
 
 		$content = <<<EOF
@@ -77,6 +92,8 @@ EOF;
 	 * test kses bug. xhtml does not require space before closing empty element
 	 *
 	 * @ticket 12394
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	function test_post_content_xhtml_empty_elem() {
 		$content = <<<EOF
@@ -93,7 +110,14 @@ EOF;
 		$this->assertSame( $expected, $post->post_content );
 	}
 
-	// Make sure unbalanced tags are untouched when the balance option is off.
+	//
+
+	/**
+	 * Make sure unbalanced tags are untouched when the balance option is off.
+	 *
+	 *
+	 * @covers ::wp_insert_post
+	 */
 	function test_post_content_nobalance_nextpage_more() {
 
 		update_option( 'use_balanceTags', 0 );

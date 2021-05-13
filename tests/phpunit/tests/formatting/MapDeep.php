@@ -3,13 +3,21 @@
 /**
  * @group formatting
  * @ticket 22300
+ *
+ * @covers ::map_deep
  */
 class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_with_any_function_over_empty_array_should_return_empty_array() {
 		$this->assertSame( array(), map_deep( array(), array( $this, 'append_baba' ) ) );
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_element_of_array_one_level_deep() {
 		$this->assertSame(
 			array(
@@ -26,6 +34,9 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_element_of_array_two_levels_deep() {
 		$this->assertSame(
 			array(
@@ -46,6 +57,9 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_object_element_of_an_array() {
 		$this->assertEquals(
 			array(
@@ -66,14 +80,23 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_apply_the_function_to_a_string() {
 		$this->assertSame( 'xbaba', map_deep( 'x', array( $this, 'append_baba' ) ) );
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_apply_the_function_to_an_integer() {
 		$this->assertSame( '5baba', map_deep( 5, array( $this, 'append_baba' ) ) );
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_property_of_an_object() {
 		$this->assertEquals(
 			(object) array(
@@ -90,6 +113,9 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_array_property_of_an_object() {
 		$this->assertEquals(
 			(object) array(
@@ -110,6 +136,9 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::map_deep
+	 */
 	public function test_map_deep_should_map_each_object_property_of_an_object() {
 		$this->assertEquals(
 			(object) array(
@@ -132,6 +161,8 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35058
+	 *
+	 * @covers ::map_deep
 	 */
 	public function test_map_deep_should_map_object_properties_passed_by_reference() {
 		$object_a = (object) array( 'var0' => 'a' );
@@ -150,6 +181,8 @@ class Tests_Formatting_MapDeep extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35058
+	 *
+	 * @covers ::map_deep
 	 */
 	public function test_map_deep_should_map_array_elements_passed_by_reference() {
 		$array_a = array( 'var0' => 'a' );

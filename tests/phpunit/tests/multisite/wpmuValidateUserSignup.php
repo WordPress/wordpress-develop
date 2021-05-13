@@ -30,6 +30,9 @@ if ( is_multisite() ) :
 			);
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_illegal_names() {
 			$illegal = array( 'foo123', 'bar123' );
 			update_site_option( 'illegal_names', $illegal );
@@ -40,6 +43,9 @@ if ( is_multisite() ) :
 			}
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_unsafe_email_address() {
 			add_filter( 'is_email_address_unsafe', '__return_true' );
 			$v = wpmu_validate_user_signup( 'foo123', 'foo@example.com' );
@@ -47,6 +53,9 @@ if ( is_multisite() ) :
 			remove_filter( 'is_email_address_unsafe', '__return_true' );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_invalid_email_address() {
 			add_filter( 'is_email', '__return_false' );
 			$v = wpmu_validate_user_signup( 'foo123', 'foo@example.com' );
@@ -54,6 +63,9 @@ if ( is_multisite() ) :
 			remove_filter( 'is_email', '__return_false' );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_emails_from_disallowed_domains() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
@@ -62,6 +74,9 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_not_fail_for_emails_from_allowed_domains_with_mixed_case() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
@@ -70,18 +85,27 @@ if ( is_multisite() ) :
 			$this->assertNotContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_existing_user_name() {
 			$u = self::factory()->user->create( array( 'user_login' => 'foo123' ) );
 			$v = wpmu_validate_user_signup( 'foo123', 'foo@example.com' );
 			$this->assertContains( 'user_name', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_existing_user_email() {
 			$u = self::factory()->user->create( array( 'user_email' => 'foo@example.com' ) );
 			$v = wpmu_validate_user_signup( 'foo123', 'foo@example.com' );
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_existing_signup_with_same_username() {
 			// Don't send notifications.
 			add_filter( 'wpmu_signup_user_notification', '__return_false' );
@@ -92,6 +116,9 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_name', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_not_fail_for_existing_signup_with_same_username_if_signup_is_old() {
 			// Don't send notifications.
 			add_filter( 'wpmu_signup_user_notification', '__return_false' );
@@ -106,6 +133,9 @@ if ( is_multisite() ) :
 			$this->assertNotContains( 'user_name', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_fail_for_existing_signup_with_same_email() {
 			// Don't send notifications.
 			add_filter( 'wpmu_signup_user_notification', '__return_false' );
@@ -116,6 +146,9 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_should_not_fail_for_existing_signup_with_same_email_if_signup_is_old() {
 			// Don't send notifications.
 			add_filter( 'wpmu_signup_user_notification', '__return_false' );
@@ -132,6 +165,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 43232
+		 *
+		 *  @covers ::wpmu_validate_user_signup
 		 */
 		public function test_should_not_fail_for_data_used_by_a_deleted_user() {
 			global $wpdb;
@@ -161,6 +196,9 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $valid['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_invalid_email_address_with_banned_domains_results_in_error() {
 			update_site_option( 'banned_email_domains', 'bar.com' );
 			$valid = wpmu_validate_user_signup( 'validusername', 'invalid-email' );
@@ -169,12 +207,18 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $valid['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_incomplete_email_address_with_no_banned_domains_results_in_error() {
 			$valid = wpmu_validate_user_signup( 'validusername', 'incomplete@email' );
 
 			$this->assertContains( 'user_email', $valid['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_valid_email_address_matching_banned_domain_results_in_error() {
 			update_site_option( 'banned_email_domains', 'bar.com' );
 			$valid = wpmu_validate_user_signup( 'validusername', 'email@bar.com' );
@@ -183,6 +227,9 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $valid['errors']->get_error_codes() );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_user_signup
+		 */
 		public function test_valid_email_address_not_matching_banned_domain_returns_in_success() {
 			update_site_option( 'banned_email_domains', 'bar.com' );
 			$valid = wpmu_validate_user_signup( 'validusername', 'email@example.com' );
@@ -193,6 +240,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 43667
+		 *
+		 *  @covers ::wpmu_validate_user_signup
 		 */
 		public function test_signup_nonce_check() {
 			$original_php_self       = $_SERVER['PHP_SELF'];
@@ -208,6 +257,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 43667
+		 *
+		 *  @covers ::wpmu_validate_user_signup
 		 */
 		public function test_signup_nonce_check_invalid() {
 			$original_php_self       = $_SERVER['PHP_SELF'];

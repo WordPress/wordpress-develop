@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_slash
  */
 class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 
@@ -12,6 +14,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 	 *
 	 * @param string $value
 	 * @param string $expected
+	 *
+	 * @covers ::wp_slash
 	 */
 	public function test_wp_slash( $value, $expected ) {
 		$this->assertSame( $expected, wp_slash( $value ) );
@@ -53,6 +57,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24106
+	 *
+	 * @covers ::wp_slash
 	 */
 	function test_adds_slashes() {
 		$old = "I can't see, isn't that it?";
@@ -65,6 +71,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24106
+	 *
+	 * @covers ::wp_slash
 	 */
 	function test_preserves_original_datatype() {
 
@@ -91,6 +99,8 @@ class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24106
+	 *
+	 * @covers ::wp_slash
 	 */
 	function test_add_even_more_slashes() {
 		$old = 'single\\slash double\\\\slash triple\\\\\\slash';

@@ -1,6 +1,8 @@
 <?php
 /**
  * @group formatting
+ *
+ * @covers ::links_add_target
  */
 class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 	/**
@@ -95,6 +97,8 @@ class Tests_Formatting_LinksAddTarget extends WP_UnitTestCase {
 	 * Validate the normalize_whitespace function
 	 *
 	 * @dataProvider get_input_output
+	 *
+	 * @covers ::links_add_target
 	 */
 	function test_normalize_whitespace( $content, $target, $tags, $exp_str ) {
 		if ( true === is_null( $target ) ) {

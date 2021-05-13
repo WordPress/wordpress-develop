@@ -161,6 +161,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param int|string $field     Field from the object to place instead of the entire object
 	 * @param int|string $index_key Field from the object to use as keys for the new array.
 	 * @param array      $expected  Expected result.
+	 *
+	 * @covers ::wp_list_pluck
 	 */
 	public function test_wp_list_pluck( $list, $field, $index_key, $expected ) {
 		$this->assertSameSetsWithIndex( $expected, wp_list_pluck( $list, $field, $index_key ) );
@@ -368,6 +370,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 *                         against each object.
 	 * @param string $operator The logical operation to perform.
 	 * @param array  $expected Expected result.
+	 *
+	 * @covers ::wp_list_filter
 	 */
 	public function test_wp_list_filter( $list, $args, $operator, $expected ) {
 		$this->assertEqualSetsWithIndex( $expected, wp_list_filter( $list, $args, $operator ) );
@@ -695,6 +699,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as $orderby => $order.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
+	 *
+	 * @covers ::wp_list_sort
 	 */
 	public function test_wp_list_sort( $list, $orderby, $order, $expected ) {
 		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order ) );
@@ -1022,6 +1028,8 @@ class Tests_Functions_wpListUtil extends WP_UnitTestCase {
 	 * @param string|array $orderby Either the field name to order by or an array
 	 *                              of multiple orderby fields as $orderby => $order.
 	 * @param string       $order   Either 'ASC' or 'DESC'.
+	 *
+	 * @covers ::wp_list_sort
 	 */
 	public function test_wp_list_sort_preserve_keys( $list, $orderby, $order, $expected ) {
 		$this->assertSame( $expected, wp_list_sort( $list, $orderby, $order, true ) );

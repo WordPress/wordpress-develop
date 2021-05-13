@@ -63,6 +63,8 @@ class Tests_Functions_IsSerializedString extends WP_UnitTestCase {
 	 *
 	 * @param array|object|int|string $data     Data value to test.
 	 * @param bool                    $expected Expected function result.
+	 *
+	 * @covers ::is_serialized_string
 	 */
 	public function test_is_serialized_string( $data, $expected ) {
 		$this->assertSame( $expected, is_serialized_string( $data ) );

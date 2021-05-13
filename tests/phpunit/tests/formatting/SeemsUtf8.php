@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::seems_utf8
  */
 class Tests_Formatting_SeemsUtf8 extends WP_UnitTestCase {
 
@@ -9,6 +11,8 @@ class Tests_Formatting_SeemsUtf8 extends WP_UnitTestCase {
 	 * `seems_utf8` returns true for utf-8 strings, false otherwise.
 	 *
 	 * @dataProvider utf8_strings
+	 *
+	 * @covers ::seems_utf8
 	 */
 	function test_returns_true_for_utf8_strings( $utf8_string ) {
 		// From http://www.i18nguy.com/unicode-example.html
@@ -26,6 +30,8 @@ class Tests_Formatting_SeemsUtf8 extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider big5_strings
+	 *
+	 * @covers ::seems_utf8
 	 */
 	function test_returns_false_for_non_utf8_strings( $big5_string ) {
 		$this->assertFalse( seems_utf8( $big5_string ) );

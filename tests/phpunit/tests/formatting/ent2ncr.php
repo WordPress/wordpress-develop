@@ -2,10 +2,14 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::ent2ncr
  */
 class Tests_Formatting_Ent2NCR extends WP_UnitTestCase {
 	/**
 	 * @dataProvider entities
+	 *
+	 * @covers ::ent2ncr
 	 */
 	function test_converts_named_entities_to_numeric_character_references( $entity, $ncr ) {
 		$entity = '&' . $entity . ';';

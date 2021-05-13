@@ -16,6 +16,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->events = array();
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_callback() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
@@ -31,6 +34,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertSame( 1, $a->get_call_count() );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_multiple_calls() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'filter' );
@@ -47,6 +53,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertSame( 2, $a->get_call_count() );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_multiple_callbacks_on_same_priority() {
 		$a             = new MockAction();
 		$b             = new MockAction();
@@ -66,6 +75,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertSame( 1, $a->get_call_count() );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_multiple_callbacks_on_different_priorities() {
 		$a             = new MockAction();
 		$b             = new MockAction();
@@ -85,6 +97,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertSame( 1, $a->get_call_count() );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_no_accepted_args() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
@@ -99,6 +114,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertEmpty( $this->events[0]['args'] );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_one_accepted_arg() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
@@ -113,6 +131,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertCount( 1, $this->events[0]['args'] );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_with_more_accepted_args() {
 		$callback      = array( $this, '_action_callback' );
 		$hook          = new WP_Hook();
@@ -127,6 +148,9 @@ class Tests_Hooks_DoAction extends WP_UnitTestCase {
 		$this->assertCount( 1, $this->events[0]['args'] );
 	}
 
+	/*
+	* @covers WP_Hook::do_action
+	*/
 	public function test_do_action_doesnt_change_value() {
 		$this->hook          = new WP_Hook();
 		$this->action_output = '';

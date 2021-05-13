@@ -21,6 +21,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$this->assertFalse( isset( $hook->callbacks[ $priority ] ) );
 	}
 
+	/*
+	* @covers WP_Hook::remove_filter
+	*/
 	public function test_remove_filter_with_object() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
@@ -35,6 +38,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$this->assertFalse( isset( $hook->callbacks[ $priority ] ) );
 	}
 
+	/*
+	* @covers WP_Hook::remove_filter
+	*/
 	public function test_remove_filter_with_static_method() {
 		$callback      = array( 'MockAction', 'action' );
 		$hook          = new WP_Hook();
@@ -48,6 +54,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$this->assertFalse( isset( $hook->callbacks[ $priority ] ) );
 	}
 
+	/*
+	* @covers WP_Hook::remove_filter
+	*/
 	public function test_remove_filters_with_another_at_same_priority() {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';
@@ -64,6 +73,9 @@ class Tests_Hooks_RemoveFilter extends WP_UnitTestCase {
 		$this->assertCount( 1, $hook->callbacks[ $priority ] );
 	}
 
+	/*
+	* @covers WP_Hook::remove_filter
+	*/
 	public function test_remove_filter_with_another_at_different_priority() {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';

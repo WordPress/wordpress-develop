@@ -32,6 +32,8 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data.
+	 *
+	 * @covers ::edit_post
 	 */
 	function test_edit_post() {
 		$post_id = self::$post_id;
@@ -69,6 +71,8 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	function test_wp_insert_post() {
 		$post_id = wp_insert_post(
@@ -105,6 +109,8 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_update_post
 	 */
 	function test_wp_update_post() {
 		$post_id = self::$post_id;
@@ -140,6 +146,9 @@ class Tests_Post_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27550
+	 *
+	 * @covers ::wp_trash_post
+	 * @covers ::wp_untrash_post
 	 */
 	function test_wp_trash_untrash() {
 		$post    = array(

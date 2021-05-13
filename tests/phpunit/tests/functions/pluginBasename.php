@@ -36,6 +36,8 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29154
+	 *
+	 * @covers ::plugin_basename
 	 */
 	function test_return_correct_basename_for_symlinked_plugins() {
 		global $wp_plugin_paths;
@@ -50,6 +52,8 @@ class Tests_Functions_PluginBasename extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28441
+	 *
+	 * @covers ::plugin_basename
 	 */
 	function test_return_correct_basename_for_symlinked_plugins_with_path_conflicts() {
 		global $wp_plugin_paths;

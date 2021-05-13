@@ -9,6 +9,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34378
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_current_time_with_date_format_string() {
 		update_option( 'gmt_offset', 6 );
@@ -23,6 +25,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34378
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_current_time_with_mysql_format() {
 		update_option( 'gmt_offset', 6 );
@@ -37,6 +41,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34378
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_current_time_with_timestamp() {
 		update_option( 'gmt_offset', 6 );
@@ -52,6 +58,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37440
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_should_work_with_changed_timezone() {
 		$format          = 'Y-m-d H:i:s';
@@ -79,6 +87,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40653
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_should_return_wp_timestamp() {
 		update_option( 'timezone_string', 'Europe/Kiev' );
@@ -104,6 +114,8 @@ class Tests_Date_CurrentTime extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40653
+	 *
+	 * @covers ::current_time
 	 */
 	public function test_should_return_correct_local_time() {
 		update_option( 'timezone_string', 'Europe/Kiev' );

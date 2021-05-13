@@ -5,12 +5,20 @@
  */
 class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link() {
 		$post = self::factory()->post->create();
 
 		$this->assertSame( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link( $post ) );
 	}
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link_should_add_additional_query_vars() {
 		$post = self::factory()->post->create();
 
@@ -35,6 +43,10 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link_should_use_custom_base_preview_link() {
 		$post = self::factory()->post->create();
 
@@ -53,12 +65,20 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link_should_return_null_for_non_existent_post() {
 		$this->assertNull( get_preview_post_link() );
 		$this->assertNull( get_preview_post_link( 9999 ) );
 		$this->assertNull( get_preview_post_link( 'foo' ) );
 	}
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link_for_global_post() {
 		$post = self::factory()->post->create_and_get();
 
@@ -67,6 +87,10 @@ class Tests_Link_GetPreviewPostLink extends WP_UnitTestCase {
 		$this->assertSame( add_query_arg( 'preview', 'true', get_permalink( $post ) ), get_preview_post_link() );
 	}
 
+	/**
+	 *
+	 * @covers ::get_preview_post_link
+	 */
 	public function test_get_preview_post_link_should_return_empty_string_for_non_viewable_post_type() {
 		$post_type = register_post_type(
 			'non_viewable_cpt',

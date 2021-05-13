@@ -27,6 +27,8 @@ if ( is_multisite() ) :
 		 * Test whether dirsize_cache values are used correctly with a more complex dirsize cache mock.
 		 *
 		 * @ticket 19879
+		 *
+		 * @covers ::recurse_dirsize
 		 */
 		function test_get_dirsize_cache_in_recurse_dirsize_mock() {
 			$blog_id = self::factory()->blog->create();
@@ -76,6 +78,8 @@ if ( is_multisite() ) :
 		 * Test whether the dirsize_cache invalidation works given a file path as input.
 		 *
 		 * @ticket 19879
+		 *
+		 * @covers ::clean_dirsize_cache
 		 */
 		function test_clean_dirsize_cache_file_input_mock() {
 			$blog_id = self::factory()->blog->create();
@@ -124,6 +128,8 @@ if ( is_multisite() ) :
 		 * Test whether the dirsize_cache invalidation works given a directory path as input.
 		 *
 		 * @ticket 19879
+		 *
+		 * @covers ::clean_dirsize_cache
 		 */
 		function test_clean_dirsize_cache_folder_input_mock() {
 			$blog_id = self::factory()->blog->create();
@@ -172,6 +178,8 @@ if ( is_multisite() ) :
 		 * Test whether dirsize_cache values are used correctly with a simple real upload.
 		 *
 		 * @ticket 19879
+		 *
+		 * @covers ::recurse_dirsize
 		 */
 		function test_get_dirsize_cache_in_recurse_dirsize_upload() {
 			$blog_id = self::factory()->blog->create();

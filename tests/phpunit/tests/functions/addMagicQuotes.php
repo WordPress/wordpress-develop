@@ -14,6 +14,8 @@ class Tests_Functions_AddMagicQuotes extends WP_UnitTestCase {
 	 *
 	 * @param array $test_array Test value.
 	 * @param array $expected   Expected return value.
+	 *
+	 * @covers ::test_add_magic_quotes
 	 */
 	function test_add_magic_quotes( $test_array, $expected ) {
 		$this->assertSame( $expected, add_magic_quotes( $test_array ) );

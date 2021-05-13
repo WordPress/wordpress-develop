@@ -1,6 +1,7 @@
 <?php
 /**
  * @group link
+ *
  * @covers ::get_adjacent_post
  */
 class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
@@ -8,6 +9,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17807
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post() {
 		// Need some sample posts to test adjacency.
@@ -88,6 +91,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22112
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	function test_get_adjacent_post_exclude_self_term() {
 		// Bump term_taxonomy to mimic shared term offsets.
@@ -175,6 +180,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32833
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_excluded_terms() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -209,6 +216,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 32833
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_excluded_terms_should_not_require_posts_to_have_terms_in_any_taxonomy() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -246,6 +255,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35211
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_excluded_terms_filter() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -280,6 +291,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43521
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_excluded_terms_filter_should_apply_to_empty_excluded_terms_parameter() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -314,6 +327,8 @@ class Tests_Link_GetAdjacentPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43521
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_excluded_terms_filter_empty() {
 		register_taxonomy( 'wptests_tax', 'post' );

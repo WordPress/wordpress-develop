@@ -33,18 +33,27 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * @covers WP_Image_Editor_GD::supports_mime_type
+	 */
 	public function test_supports_mime_type_jpeg() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
 		$expected        = (bool) ( imagetypes() & IMG_JPG );
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/jpeg' ) );
 	}
 
+	/**
+	 * @covers WP_Image_Editor_GD::supports_mime_type
+	 */
 	public function test_supports_mime_type_png() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
 		$expected        = (bool) ( imagetypes() & IMG_PNG );
 		$this->assertSame( $expected, $gd_image_editor->supports_mime_type( 'image/png' ) );
 	}
 
+	/**
+	 * @covers WP_Image_Editor_GD::supports_mime_type
+	 */
 	public function test_supports_mime_type_gif() {
 		$gd_image_editor = new WP_Image_Editor_GD( null );
 		$expected        = (bool) ( imagetypes() & IMG_GIF );
@@ -53,6 +62,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image, not using crop
+	 *
+	 * @covers WP_Image_Editor_GD::resize
 	 */
 	public function test_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -73,6 +84,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test multi_resize with single image resize and no crop
+	 *
+	 * @covers WP_Image_Editor_GD::multi_resize
 	 */
 	public function test_single_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -387,6 +400,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image with cropping
+	 *
+	 * @covers WP_Image_Editor_GD::resize
 	 */
 	public function test_resize_and_crop() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -530,6 +545,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test rotating an image 180 deg
+	 *
+	 * @covers WP_Image_Editor_GD::rotate
 	 */
 	public function test_rotate() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -549,6 +566,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test flipping an image
+	 *
+	 * @covers WP_Image_Editor_GD::flip
 	 */
 	public function test_flip() {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -570,6 +589,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test the image created with WP_Image_Editor_GD preserves alpha when resizing
 	 *
 	 * @ticket 23039
+	 *
+	 * @covers WP_Image_Editor_GD::resize
 	 */
 	public function test_image_preserves_alpha_on_resize() {
 		if ( ! ( imagetypes() & IMG_PNG ) ) {
@@ -597,6 +618,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test the image created with WP_Image_Editor_GD preserves alpha with no resizing etc
 	 *
 	 * @ticket 23039
+	 *
+	 * @covers WP_Image_Editor_GD::load
 	 */
 	public function test_image_preserves_alpha() {
 		if ( ! ( imagetypes() & IMG_PNG ) ) {
@@ -622,6 +645,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * @ticket 30596
+	 *
+	 * @covers WP_Image_Editor_GD::rotate
 	 */
 	public function test_image_preserves_alpha_on_rotate() {
 		if ( ! ( imagetypes() & IMG_PNG ) ) {
@@ -650,6 +675,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test WP_Image_Editor_GD handles extension-less images
 	 *
 	 * @ticket 39195
+	 *
+	 * @covers WP_Image_Editor_GD::load
 	 */
 	public function test_image_non_existent_extension() {
 		$image_editor = new WP_Image_Editor_GD( DIR_TESTDATA . '/images/test-image-no-extension' );

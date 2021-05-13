@@ -5,6 +5,10 @@
  */
 class Tests_POMO_MO extends WP_UnitTestCase {
 
+	/**
+	 * @covers MO::headers
+	 * @covers MO::import_from_file
+	 */
 	function test_mo_simple() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/simple.mo' );
@@ -20,6 +24,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array( 'yes' ), $mo->entries["kuku\nruku"]->translations );
 	}
 
+	/**
+	 * @covers MO::translate_plural
+	 */
 	function test_mo_plural() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/plural.mo' );
@@ -46,6 +53,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( 'twoey dragoney', $mo->translate_plural( 'one dragon', '%d dragons', -8 ) );
 	}
 
+	/**
+	 * @covers Translation_Entry::context
+	 */
 	function test_mo_context() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/context.mo' );
@@ -73,6 +83,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers Translation_Entry::merge_with
+	 */
 	function test_translations_merge() {
 		$host = new Translations();
 		$host->add_entry( new Translation_Entry( array( 'singular' => 'pink' ) ) );
@@ -85,6 +98,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array(), array_diff( array( 'pink', 'green', 'red' ), array_keys( $host->entries ) ) );
 	}
 
+	/**
+	 * @covers MO::export_to_file
+	 */
 	function test_export_mo_file() {
 		$entries              = array();
 		$entries[]            = new Translation_Entry(
@@ -143,6 +159,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers MO::export_to_file
+	 */
 	function test_export_should_not_include_empty_translations() {
 		$entries = array();
 		$mo      = new MO;
@@ -162,6 +181,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( 0, count( $again->entries ) );
 	}
 
+	/**
+	 * @covers MO::translate_plural
+	 */
 	function test_nplurals_with_backslashn() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/bad_nplurals.mo' );
@@ -170,6 +192,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( '%d foros', $mo->translate_plural( '%d forum', '%d forums', -1 ) );
 	}
 
+	/**
+	 * @covers MO::import_from_file
+	 */
 	function disabled_test_performance() {
 		$start = microtime( true );
 		$mo    = new MO();
@@ -177,6 +202,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		// echo "\nPerformance: ".(microtime(true) - $start)."\n";
 	}
 
+	/**
+	 * @covers Translation_Entry::translations
+	 */
 	function test_overloaded_mb_functions() {
 		if ( ( ini_get( 'mbstring.func_overload' ) & 2 ) === 0 ) {
 			$this->markTestSkipped( __METHOD__ . ' only runs when mbstring.func_overload is enabled.' );
@@ -187,6 +215,9 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$this->assertSame( array( 'Табло' ), $mo->entries['Dashboard']->translations );
 	}
 
+	/**
+	 * @covers MO::import_from_file
+	 */
 	function test_load_pot_file() {
 		$mo = new MO();
 		$this->assertFalse( $mo->import_from_file( DIR_TESTDATA . '/pomo/mo.pot' ) );

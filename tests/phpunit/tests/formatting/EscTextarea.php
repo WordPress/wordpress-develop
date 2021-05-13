@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_textarea
  */
 class Tests_Formatting_EscTextarea extends WP_UnitTestCase {
 
@@ -12,6 +14,8 @@ class Tests_Formatting_EscTextarea extends WP_UnitTestCase {
 	/*
 	 * Only fails in PHP 5.4 onwards
 	 * @ticket 23688
+	 *
+	 * @covers ::esc_textarea
 	 */
 	function test_esc_textarea_charset_iso_8859_1() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_iso_8859_1' ) );
@@ -26,6 +30,8 @@ class Tests_Formatting_EscTextarea extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 23688
+	 *
+	 * @covers ::esc_textarea
 	 */
 	function test_esc_textarea_charset_utf_8() {
 		add_filter( 'pre_option_blog_charset', array( $this, '_charset_utf_8' ) );

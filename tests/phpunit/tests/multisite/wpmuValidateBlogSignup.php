@@ -52,6 +52,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @dataProvider data_validate_blogname
+		 *
+		 * @covers ::wpmu_validate_blog_signup
 		 */
 		public function test_validate_blogname( $blog_name, $error_message ) {
 			$result = wpmu_validate_blog_signup( $blog_name, 'Foo Site Title', get_userdata( self::$super_admin_id ) );
@@ -81,11 +83,17 @@ if ( is_multisite() ) :
 			return $data;
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_blog_signup
+		 */
 		public function test_validate_empty_blog_title() {
 			$result = wpmu_validate_blog_signup( 'uniqueblogname1234', '', get_userdata( self::$super_admin_id ) );
 			$this->assertContains( 'blog_title', $result['errors']->get_error_codes(), 'Site titles must not be empty.' );
 		}
 
+		/**
+		 *  @covers ::wpmu_validate_blog_signup
+		 */
 		public function test_validate_blogname_from_same_existing_user() {
 			$result = wpmu_validate_blog_signup( self::$existing_user_login, 'Foo Site Title', get_userdata( self::$existing_user_id ) );
 			$this->assertEmpty( $result['errors']->get_error_codes() );
@@ -95,6 +103,8 @@ if ( is_multisite() ) :
 		 * @ticket 39676
 		 *
 		 * @dataProvider data_filter_minimum_site_name_length
+		 *
+		 * @covers ::wpmu_validate_blog_signup
 		 */
 		public function test_filter_minimum_site_name_length( $site_name, $minimum_length, $expect_error ) {
 			$this->minimum_site_name_length = $minimum_length;
@@ -129,6 +139,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 43667
+		 *
+		 * @covers ::wpmu_validate_blog_signup
 		 */
 		public function test_signup_nonce_check() {
 			$original_php_self       = $_SERVER['PHP_SELF'];
@@ -144,6 +156,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 43667
+		 *
+		 * @covers ::wpmu_validate_blog_signup
 		 */
 		public function test_signup_nonce_check_invalid() {
 			$original_php_self       = $_SERVER['PHP_SELF'];

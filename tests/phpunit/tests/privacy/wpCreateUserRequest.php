@@ -84,6 +84,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Ensure a WP_Error is returned when an invalid email is passed.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_invalid_email() {
 		$actual = wp_create_user_request( 'not-a-valid-email', 'export_personal_data' );
@@ -96,6 +98,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Ensure a WP_Error is returned when no action is passed.
 	 *
 	 * @ticket 46536
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_missing_action() {
 		$actual = wp_create_user_request( self::$registered_user_email, false );
@@ -109,6 +113,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 *
 	 * @ticket 44707
 	 * @ticket 46536
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_invalid_action() {
 		$actual = wp_create_user_request( self::$registered_user_email, 'invalid_action_name' );
@@ -121,6 +127,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * When there are incomplete requests for a registered user, a WP_Error should be returned.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_failure_due_to_incomplete_registered_user() {
 		// Second request (duplicated).
@@ -134,6 +142,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * When there are incomplete requests for an non-registered user, a WP_Error should be returned.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_failure_due_to_incomplete_unregistered_user() {
 		// Update first request.
@@ -156,6 +166,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Ensure emails are properly sanitized.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_sanitized_email() {
 		$actual = wp_create_user_request( 'some(email<withinvalid\characters@local.test', 'export_personal_data' );
@@ -172,6 +184,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Ensure action names are properly sanitized.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_sanitized_action_name() {
 		$actual = wp_create_user_request( self::$non_registered_user_email, 'export[_person*al_\data' );
@@ -188,6 +202,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Test a user request is created successfully for a registered user.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_create_request_registered_user() {
 		wp_delete_post( self::$request_id, true );
@@ -215,6 +231,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Test a user request is created successfully for an non-registered user.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_create_request_unregistered_user() {
 		wp_delete_post( self::$request_id, true );
@@ -243,6 +261,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * block a new request.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_completed_request_does_not_block_new_request() {
 		// Update first request.
@@ -270,6 +290,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * block a new request.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_completed_request_does_not_block_new_request_for_unregistered_user() {
 		wp_update_post(
@@ -298,6 +320,8 @@ class Tests_WpCreateUserRequest extends WP_UnitTestCase {
 	 * Test that an error from `wp_insert_post()` is returned.
 	 *
 	 * @ticket 44707
+	 *
+	 * @covers ::wp_create_user_request
 	 */
 	public function test_wp_error_returned_from_wp_insert_post() {
 		wp_delete_post( self::$request_id, true );

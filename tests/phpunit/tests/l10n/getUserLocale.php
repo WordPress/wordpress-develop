@@ -26,49 +26,75 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_user_locale_property() {
 		set_current_screen( 'dashboard' );
 		$this->assertSame( 'de_DE', get_user_locale() );
 		$this->assertSame( get_user_by( 'id', $this->user_id )->locale, get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_update_user_locale() {
 		set_current_screen( 'dashboard' );
 		update_user_meta( $this->user_id, 'locale', 'fr_FR' );
 		$this->assertSame( 'fr_FR', get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_returns_site_locale_if_empty() {
 		set_current_screen( 'dashboard' );
 		update_user_meta( $this->user_id, 'locale', '' );
 		$this->assertSame( get_locale(), get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_returns_site_locale_if_no_user() {
 		wp_set_current_user( 0 );
 		$this->assertSame( get_locale(), get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_returns_correct_user_locale() {
 		set_current_screen( 'dashboard' );
 		$this->assertSame( 'de_DE', get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_returns_correct_user_locale_on_frontend() {
 		$this->assertSame( 'de_DE', get_user_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_site_locale_is_not_affected() {
 		set_current_screen( 'dashboard' );
 		$this->assertSame( 'en_US', get_locale() );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_site_locale_is_not_affected_on_frontend() {
 		$this->assertSame( 'en_US', get_locale() );
 	}
 
 	/**
 	 * @group ms-required
+	 *
+	 * @covers ::get_user_locale
 	 */
 	public function test_user_locale_is_same_across_network() {
 		if ( ! is_multisite() ) {
@@ -85,6 +111,9 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$this->assertSame( $user_locale, $user_locale_2 );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_user_id_argument_with_id() {
 		$user_id = $this->factory()->user->create(
 			array(
@@ -102,6 +131,9 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$this->assertSame( get_locale(), $user_locale2 );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_user_id_argument_with_wp_user_object() {
 		$user_id = $this->factory()->user->create(
 			array(
@@ -121,6 +153,9 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$this->assertSame( get_locale(), $user_locale2 );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_user_id_argument_with_nonexistent_user() {
 		global $wpdb;
 
@@ -131,6 +166,9 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		$this->assertSame( get_locale(), $user_locale );
 	}
 
+	/**
+	 * @covers ::get_user_locale
+	 */
 	public function test_user_id_argument_with_invalid_type() {
 		$user_locale = get_user_locale( 'string' );
 		$this->assertSame( get_locale(), $user_locale );

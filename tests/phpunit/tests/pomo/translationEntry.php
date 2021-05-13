@@ -5,6 +5,14 @@
  */
 class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 
+	/**
+	 * @covers Translation_Entry::singular
+	 * @covers Translation_Entry::plural
+	 * @covers Translation_Entry::is_plural
+	 * @covers Translation_Entry::translations
+	 * @covers Translation_Entry::references
+	 * @covers Translation_Entry::flags
+	 */
 	function test_create_entry() {
 		// No singular => empty object.
 		$entry = new Translation_Entry();
@@ -29,6 +37,9 @@ class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 		$this->assertSame( array(), $entry->flags );
 	}
 
+	/**
+	 * @covers Translation_Entry::key
+	 */
 	function test_key() {
 		$entry_baba        = new Translation_Entry( array( 'singular' => 'baba' ) );
 		$entry_dyado       = new Translation_Entry( array( 'singular' => 'dyado' ) );

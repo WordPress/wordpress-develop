@@ -48,6 +48,8 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 	 * @param $bytes
 	 * @param $decimals
 	 * @param $expected
+	 *
+	 * @covers ::size_format
 	 */
 	public function test_size_format( $bytes, $decimals, $expected ) {
 		$this->assertSame( $expected, size_format( $bytes, $decimals ) );

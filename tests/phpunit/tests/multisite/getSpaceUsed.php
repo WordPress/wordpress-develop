@@ -4,7 +4,6 @@ if ( is_multisite() ) :
 
 	/**
 	 * @group multisite
-	 * @covers ::get_space_used
 	 */
 	class Tests_Multisite_Get_Space_Used extends WP_UnitTestCase {
 		protected $suppress = false;
@@ -21,6 +20,9 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
+		/**
+		 * @covers ::get_space_used
+		 */
 		function test_get_space_used_switched_site() {
 			$blog_id = self::factory()->blog->create();
 			switch_to_blog( $blog_id );
@@ -54,6 +56,8 @@ if ( is_multisite() ) :
 		/**
 		 * Directories of sub sites on a network should not count against the same spaced used total for
 		 * the main site.
+		 *
+		 * @covers ::get_space_used
 		 */
 		function test_get_space_used_main_site() {
 			$space_used = get_space_used();
@@ -89,6 +93,9 @@ if ( is_multisite() ) :
 			restore_current_blog();
 		}
 
+		/**
+		 * @covers ::get_space_used
+		 */
 		function test_get_space_used_pre_get_spaced_used_filter() {
 			add_filter( 'pre_get_space_used', array( $this, '_filter_space_used' ) );
 

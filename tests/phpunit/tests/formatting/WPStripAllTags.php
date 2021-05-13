@@ -3,9 +3,14 @@
  * Test wp_strip_all_tags()
  *
  * @group formatting
+ *
+ * @covers ::wp_strip_all_tags
  */
 class Tests_Formatting_WPStripAllTags extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::wp_strip_all_tags
+	 */
 	function test_wp_strip_all_tags() {
 
 		$text = 'lorem<br />ipsum';

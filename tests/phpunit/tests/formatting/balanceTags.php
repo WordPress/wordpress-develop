@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::balanceTags
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
@@ -150,6 +152,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 47014
 	 * @dataProvider supported_traditional_tag_names
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_detects_traditional_tag_names( $tag ) {
 		$normalized = strtolower( $tag );
@@ -160,6 +164,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 47014
 	 * @dataProvider supported_custom_element_tag_names
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_detects_supported_custom_element_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
@@ -168,6 +174,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 47014
 	 * @dataProvider invalid_tag_names
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_ignores_invalid_tag_names( $input, $output ) {
 		$this->assertSame( $output, balanceTags( $input, true ) );
@@ -176,6 +184,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 47014
 	 * @dataProvider unsupported_valid_tag_names
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_ignores_unsupported_custom_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside", balanceTags( "<$tag>inside", true ) );
@@ -184,6 +194,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	/**
 	 * @ticket 47014
 	 * @dataProvider supported_invalid_tag_names
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_detects_supported_invalid_tag_names( $tag ) {
 		$this->assertSame( "<$tag>inside</$tag>", balanceTags( "<$tag>inside", true ) );
@@ -194,6 +206,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @ticket 1597
 	 * @dataProvider single_tags
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_selfcloses_unclosed_known_single_tags( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag>", true ) );
@@ -205,6 +219,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @ticket 1597
 	 * @dataProvider single_tags
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_selfcloses_known_single_tags_having_closing_tag( $tag ) {
 		$this->assertSame( "<$tag />", balanceTags( "<$tag></$tag>", true ) );
@@ -212,6 +228,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 1597
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_closes_unknown_single_tags_with_closing_tag() {
 
@@ -236,6 +254,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_closes_unclosed_single_tags_having_attributes() {
 		$inputs   = array(
 			'<img src="/images/example.png">',
@@ -251,6 +272,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_allows_validly_closed_single_tags() {
 		$inputs = array(
 			'<br />',
@@ -266,6 +290,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider nestable_tags
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_balances_nestable_tags( $tag ) {
 		$inputs   = array(
@@ -284,6 +310,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_allows_adjacent_nestable_tags() {
 		$inputs = array(
 			'<blockquote><blockquote>Example quote</blockquote></blockquote>',
@@ -300,12 +329,17 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20401
+	 *
+	 * @covers ::balanceTags
 	 */
 	function test_allows_immediately_nested_object_tags() {
 		$object = '<object id="obj1"><param name="param1"/><object id="obj2"><param name="param2"/></object></object>';
 		$this->assertSame( $object, balanceTags( $object, true ) );
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_balances_nested_non_nestable_tags() {
 		$inputs   = array(
 			'<b><b>This is bold</b></b>',
@@ -321,6 +355,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_fixes_improper_closing_tag_sequence() {
 		$inputs   = array(
 			'<p>Here is a <strong class="part">bold <em>and emphasis</p></em></strong>',
@@ -336,6 +373,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_adds_missing_closing_tags() {
 		$inputs   = array(
 			'<b><i>Test</b>',
@@ -357,6 +397,9 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::balanceTags
+	 */
 	function test_removes_extraneous_closing_tags() {
 		$inputs   = array(
 			'<b>Test</b></b>',
@@ -436,6 +479,8 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 	 *
 	 * @param string $source   Source.
 	 * @param string $expected Expected.
+	 *
+	 * @covers ::balanceTags
 	 */
 	public function test_custom_elements( $source, $expected ) {
 		$this->assertSame( $expected, balanceTags( $source, true ) );

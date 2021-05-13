@@ -4,12 +4,18 @@
  * @group formatting
  */
 class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::remove_accents
+	 */
 	public function test_remove_accents_simple() {
 		$this->assertSame( 'abcdefghijkl', remove_accents( 'abcdefghijkl' ) );
 	}
 
 	/**
 	 * @ticket 9591
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_accents_latin1_supplement() {
 		$input  = 'ªºÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ';
@@ -18,6 +24,9 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin-1 Supplement' );
 	}
 
+	/**
+	 * @covers ::remove_accents
+	 */
 	public function test_remove_accents_latin_extended_a() {
 		$input  = 'ĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽžſ';
 		$output = 'AaAaAaCcCcCcCcDdDdEeEeEeEeEeGgGgGgGgHhHhIiIiIiIiIiIJijJjKkkLlLlLlLlLlNnNnNnnNnOoOoOoOEoeRrRrRrSsSsSsSsTtTtTtUuUuUuUuUuUuWwYyYZzZzZzs';
@@ -25,15 +34,24 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 		$this->assertSame( $output, remove_accents( $input ), 'remove_accents replaces Latin Extended A' );
 	}
 
+	/**
+	 * @covers ::remove_accents
+	 */
 	public function test_remove_accents_latin_extended_b() {
 		$this->assertSame( 'SsTt', remove_accents( 'ȘșȚț' ), 'remove_accents replaces Latin Extended B' );
 	}
 
+	/**
+	 * @covers ::remove_accents
+	 */
 	public function test_remove_accents_euro_pound_signs() {
 		$this->assertSame( 'E', remove_accents( '€' ), 'remove_accents replaces euro sign' );
 		$this->assertSame( '', remove_accents( '£' ), 'remove_accents replaces pound sign' );
 	}
 
+	/**
+	 * @covers ::remove_accents
+	 */
 	public function test_remove_accents_iso8859() {
 		// File is Latin1-encoded.
 		$file   = DIR_TESTDATA . '/formatting/remove_accents.01.input.txt';
@@ -46,6 +64,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17738
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_accents_vowels_diacritic() {
 		// Vowels with diacritic.
@@ -65,6 +85,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20772
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_accents_hanyu_pinyin() {
 		// Vowels with diacritic (Chinese, Hanyu Pinyin).
@@ -86,6 +108,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 3782
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_accents_germanic_umlauts() {
 		add_filter( 'locale', array( $this, '_remove_accents_germanic_umlauts_cb' ) );
@@ -101,6 +125,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23907
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_danish_accents() {
 		add_filter( 'locale', array( $this, '_set_locale_to_danish' ) );
@@ -116,6 +142,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37086
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_remove_catalan_middot() {
 		add_filter( 'locale', array( $this, '_set_locale_to_catalan' ) );
@@ -133,6 +161,8 @@ class Tests_Formatting_RemoveAccents extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38078
+	 *
+	 * @covers ::remove_accents
 	 */
 	public function test_transcribe_serbian_crossed_d() {
 		add_filter( 'locale', array( $this, '_set_locale_to_serbian' ) );

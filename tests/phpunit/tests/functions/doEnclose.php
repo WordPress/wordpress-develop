@@ -4,8 +4,10 @@
  *
  * @package WordPress\UnitTests
  *
- * @since 5.3.0
- */
+	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
+	 */
 
 /**
  * Tests_Functions_DoEnclose class.
@@ -22,6 +24,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * Setup before each test method.
 	 *
 	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -34,6 +38,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 *
 	 * @dataProvider data_test_do_enclose
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_with_explicit_content_input( $content, $expected ) {
 		$post_id = self::factory()->post->create();
@@ -50,6 +56,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * @since 5.3.0
 	 *
 	 * @dataProvider data_test_do_enclose
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_with_implicit_content_input( $content, $expected ) {
 		$post_id = self::factory()->post->create(
@@ -136,6 +144,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * The function should return false when the post ID input is invalid.
 	 *
 	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_should_return_false_when_invalid_post_id() {
 		$post_id = null;
@@ -147,6 +157,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * The function should delete an enclosed link when it's no longer in the post content.
 	 *
 	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_should_delete_enclosed_link_when_no_longer_in_post_content() {
 		$data = $this->data_test_do_enclose();
@@ -181,6 +193,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * The function should support a post object input.
 	 *
 	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_should_support_post_object_input() {
 		$data = $this->data_test_do_enclose();
@@ -201,6 +215,8 @@ class Tests_Functions_DoEnclose extends WP_UnitTestCase {
 	 * The enclosure links should be filterable with the `enclosure_links` filter.
 	 *
 	 * @since 5.3.0
+	 *
+	 * @covers ::do_enclose
 	 */
 	public function test_function_enclosure_links_should_be_filterable() {
 		$data = $this->data_test_do_enclose();

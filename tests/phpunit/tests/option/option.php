@@ -9,6 +9,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		return 'foo';
 	}
 
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::update_option
+	 * @covers ::delete_option
+	 */
 	function test_the_basics() {
 		$key    = 'key1';
 		$key2   = 'key2';
@@ -34,6 +40,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertFalse( get_option( $key2 ) );
 	}
 
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::delete_option
+	 */
 	function test_default_filter() {
 		$value = 'value';
 
@@ -61,6 +72,9 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31047
+	 *
+	 * @covers ::get_option
+	 * @covers ::add_option
 	 */
 	public function test_add_option_should_respect_default_option_filter() {
 		add_filter( 'default_option_doesnotexist', array( $this, '__return_foo' ) );
@@ -71,6 +85,12 @@ class Tests_Option_Option extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_option( 'doesnotexist' ) );
 	}
 
+	/**
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::delete_option
+	 * @covers ::update_option
+	 */
 	function test_serialized_data() {
 		$key   = __FUNCTION__;
 		$value = array(
@@ -89,6 +109,11 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @covers ::get_option
+	 * @covers ::add_option
+	 * @covers ::delete_option
+	 * @covers ::update_option
 	 */
 	function test_bad_option_names() {
 		foreach ( array( '', '0', ' ', 0, false, null ) as $empty ) {
@@ -101,6 +126,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @covers ::delete_option
 	 */
 	function test_special_option_name_alloption() {
 		$this->expectException( 'WPDieException' );
@@ -109,6 +136,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23289
+	 *
+	 * @covers ::delete_option
 	 */
 	function test_special_option_name_notoptions() {
 		$this->expectException( 'WPDieException' );
@@ -131,6 +160,8 @@ class Tests_Option_Option extends WP_UnitTestCase {
 	 *
 	 * @ticket 31119
 	 * @dataProvider data_option_autoloading
+	 *
+	 * @covers ::add_option
 	 */
 	function test_option_autoloading( $name, $autoload_value, $expected ) {
 		global $wpdb;

@@ -12,6 +12,9 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$this->post_id = self::factory()->post->create();
 	}
 
+	/**
+	 * @covers ::get_post_class
+	 */
 	public function test_with_tags() {
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'post_tag' );
 
@@ -21,6 +24,9 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$this->assertContains( 'tag-bar', $found );
 	}
 
+	/**
+	 * @covers ::get_post_class
+	 */
 	public function test_with_categories() {
 		$cats = self::factory()->category->create_many( 2 );
 		wp_set_post_terms( $this->post_id, $cats, 'category' );
@@ -34,6 +40,9 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 		$this->assertContains( 'category-' . $cat1->slug, $found );
 	}
 
+	/**
+	 * @covers ::get_post_class
+	 */
 	public function test_with_custom_taxonomy() {
 		register_taxonomy( 'wptests_tax', 'post' );
 		wp_set_post_terms( $this->post_id, array( 'foo', 'bar' ), 'wptests_tax' );
@@ -46,6 +55,8 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22271
+	 *
+	 * @covers ::get_post_class
 	 */
 	public function test_with_custom_classes_and_no_post() {
 		$this->assertSame( array(), get_post_class( '', null ) );
@@ -55,6 +66,8 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30883
+	 *
+	 * @covers ::get_post_class
 	 */
 	public function test_with_utf8_category_slugs() {
 		$cat_id1 = self::factory()->category->create( array( 'name' => 'Первая рубрика' ) );
@@ -71,6 +84,8 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30883
+	 *
+	 * @covers ::get_post_class
 	 */
 	public function test_with_utf8_tag_slugs() {
 		$tag_id1 = self::factory()->tag->create( array( 'name' => 'Первая метка' ) );
@@ -87,6 +102,8 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30883
+	 *
+	 * @covers ::get_post_class
 	 */
 	public function test_with_utf8_term_slugs() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -119,6 +136,8 @@ class Tests_Post_GetPostClass extends WP_UnitTestCase {
 
 	/**
 	 * @group cache
+	 *
+	 * @covers ::get_post_class
 	 */
 	public function test_taxonomy_classes_hit_cache() {
 		global $wpdb;

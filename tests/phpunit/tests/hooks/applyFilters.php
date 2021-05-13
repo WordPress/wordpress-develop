@@ -25,6 +25,9 @@ class Tests_Hooks_ApplyFilters extends WP_UnitTestCase {
 		$this->assertSame( 1, $a->get_call_count() );
 	}
 
+	/*
+	* @covers WP_Hook::apply_filters
+	*/
 	public function test_apply_filters_with_multiple_calls() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'filter' );

@@ -21,6 +21,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test when a single data item is passed.
 	 *
 	 * @ticket 44044
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_group_html_generation_single_data_item() {
 		$data = array(
@@ -51,6 +53,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 *
 	 * @ticket 44044
 	 * @ticket 46895 Updated to remove </h2> from test to avoid Count introducing failure.
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_group_html_generation_multiple_data_items() {
 		$data = array(
@@ -95,6 +99,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Values that appear to be links should be wrapped in `<a>` tags.
 	 *
 	 * @ticket 44044
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_links_become_anchors() {
 		$data = array(
@@ -128,6 +134,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * HTML in group labels should be escaped.
 	 *
 	 * @ticket 44044
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_group_labels_escaped() {
 		$data = array(
@@ -144,6 +152,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test that the exported data should contain allowed HTML.
 	 *
 	 * @ticket 44044
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_allowed_html_not_stripped() {
 		$data = array(
@@ -171,6 +181,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test that the exported data should not contain disallowed HTML.
 	 *
 	 * @ticket 44044
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_disallowed_html_is_stripped() {
 		$data = array(
@@ -202,6 +214,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test group count is displayed for multiple items.
 	 *
 	 * @ticket 46895
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_group_html_generation_should_display_group_count_when_multiple_items() {
 		$data = array(
@@ -233,6 +247,8 @@ class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_Unit
 	 * Test group count is not displayed for a single item.
 	 *
 	 * @ticket 46895
+	 *
+	 * @covers ::wp_privacy_generate_personal_data_export_group_html
 	 */
 	public function test_group_html_generation_should_not_display_group_count_when_single_item() {
 		$data = array(

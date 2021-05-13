@@ -2,12 +2,16 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::get_bloginfo
  */
 class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider locales
 	 * @ticket 28303
+	 *
+	 * @covers ::get_bloginfo
 	 */
 	function test_get_bloginfo_language( $test_locale, $expected ) {
 		global $locale;
@@ -35,6 +39,8 @@ class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27942
+	 *
+	 * @covers ::get_bloginfo
 	 */
 	function test_bloginfo_sanitize_option() {
 		$old_values = array(

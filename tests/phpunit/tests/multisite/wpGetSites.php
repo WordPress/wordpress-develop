@@ -51,6 +51,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @expectedDeprecated wp_get_sites
+		 *
+		 * @covers ::wp_get_sites
 		 */
 		public function test_wp_get_sites_site_is_expected_array() {
 
@@ -82,6 +84,8 @@ if ( is_multisite() ) :
 		 * @param $expected
 		 * @param $args
 		 * @param $error
+		 *
+		 * @covers ::wp_get_sites
 		 */
 		public function test_wp_get_sites( $expected, $args, $error ) {
 			$this->assertCount( $expected, wp_get_sites( $args ), $error );

@@ -26,6 +26,8 @@ if ( is_multisite() ) :
 		/**
 		 * When no option exists for the site or the network, a fallback of
 		 * 100 is expected.
+		 *
+		 * @covers ::get_space_allowed
 		 */
 		public function test_get_space_allowed_default() {
 			delete_option( 'blog_upload_space' );
@@ -37,6 +39,8 @@ if ( is_multisite() ) :
 		/**
 		 * If an individual site's option is not available, the default network
 		 * level option is used as a fallback.
+		 *
+		 * @covers ::get_space_allowed
 		 */
 		public function test_get_space_allowed_no_site_option_fallback_to_network_option() {
 			delete_site_option( 'blog_upload_space' );
@@ -51,6 +55,8 @@ if ( is_multisite() ) :
 		 * @param mixed $site_option    Option to assign to the site's `blog_upload_space`.
 		 * @param mixed $network_option Option to assign to the network's `blog_upload_space`.
 		 * @param int   $expected       Expected return value.
+		 *
+		 * @covers ::get_space_allowed
 		 */
 		public function test_get_space_allowed( $site_option, $network_option, $expected ) {
 			update_option( 'blog_upload_space', $site_option );
@@ -83,6 +89,9 @@ if ( is_multisite() ) :
 			);
 		}
 
+		/**
+		 * @covers ::get_space_allowed
+		 */
 		public function test_get_space_allowed_filtered() {
 			update_option( 'blog_upload_space', 777 );
 			update_site_option( 'blog_upload_space', 888 );

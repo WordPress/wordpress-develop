@@ -20,6 +20,9 @@ class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_has_filter_with_object() {
 		$a             = new MockAction();
 		$callback      = array( $a, 'action' );
@@ -33,6 +36,9 @@ class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_has_filter_with_static_method() {
 		$callback      = array( 'MockAction', 'action' );
 		$hook          = new WP_Hook();
@@ -45,6 +51,9 @@ class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 		$this->assertSame( $priority, $hook->has_filter( $tag, $callback ) );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_has_filter_without_callback() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -57,11 +66,17 @@ class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 		$this->assertTrue( $hook->has_filter() );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_not_has_filter_without_callback() {
 		$hook = new WP_Hook();
 		$this->assertFalse( $hook->has_filter() );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_not_has_filter_with_callback() {
 		$callback = '__return_null';
 		$hook     = new WP_Hook();
@@ -70,6 +85,9 @@ class Tests_Hooks_HasFilter extends WP_UnitTestCase {
 		$this->assertFalse( $hook->has_filter( $tag, $callback ) );
 	}
 
+	/*
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_has_filter_with_wrong_callback() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();

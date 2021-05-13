@@ -5,20 +5,33 @@
  */
 class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::get_theme_mod
+	 */
 	function test_theme_mod_default() {
 		$this->assertFalse( get_theme_mod( 'non_existent' ) );
 	}
 
+	/**
+	 * @covers ::get_theme_mod
+	 */
 	function test_theme_mod_defined_default() {
 		$this->assertSame( 'default', get_theme_mod( 'non_existent', 'default' ) );
 	}
 
+	/**
+	 * @covers ::get_theme_mod
+	 */
 	function test_theme_mod_set() {
 		$expected = 'value';
 		set_theme_mod( 'test_name', $expected );
 		$this->assertSame( $expected, get_theme_mod( 'test_name' ) );
 	}
 
+	/**
+	 * @covers ::get_theme_mod
+	 * @covers ::set_theme_mod
+	 */
 	function test_theme_mod_update() {
 		set_theme_mod( 'test_update', 'first_value' );
 		$expected = 'updated_value';
@@ -26,6 +39,11 @@ class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_theme_mod( 'test_update' ) );
 	}
 
+	/**
+	 * @covers ::set_theme_mod
+	 * @covers ::remove_theme_mod
+	 * @covers ::get_theme_mod
+	 */
 	function test_theme_mod_remove() {
 		set_theme_mod( 'test_remove', 'value' );
 		remove_theme_mod( 'test_remove' );
@@ -36,6 +54,8 @@ class Tests_Option_Theme_Mods extends WP_UnitTestCase {
 	 * @ticket 34290
 	 *
 	 * @dataProvider data_theme_mod_default_value_with_percent_symbols
+	 *
+	 * @covers ::get_theme_mod
 	 */
 	function test_theme_mod_default_value_with_percent_symbols( $default, $expected ) {
 		$this->assertSame( $expected, get_theme_mod( 'test_name', $default ) );

@@ -9,6 +9,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845
+	 *
+	 * @covers ::wp_remote_fopen
 	 */
 	public function test_wp_remote_fopen_empty() {
 		$this->assertFalse( wp_remote_fopen( '' ) );
@@ -16,6 +18,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845
+	 *
+	 * @covers ::wp_remote_fopen
 	 */
 	public function test_wp_remote_fopen_bad_url() {
 		$this->assertFalse( wp_remote_fopen( 'wp.com' ) );
@@ -23,6 +27,8 @@ class Tests_Functions_wpRemoteFopen extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48845
+	 *
+	 * @covers ::wp_remote_fopen
 	 */
 	public function test_wp_remote_fopen() {
 		// This URL gives a direct 200 response.

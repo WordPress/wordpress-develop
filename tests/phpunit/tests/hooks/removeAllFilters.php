@@ -22,6 +22,10 @@ class Tests_Hooks_RemoveAllFilters extends WP_UnitTestCase {
 		$this->assertFalse( $hook->has_filters() );
 	}
 
+	/*
+	* @covers WP_Hook::remove_all_filters
+	* @covers WP_Hook::has_filter
+	*/
 	public function test_remove_all_filters_with_priority() {
 		$callback_one  = '__return_null';
 		$callback_two  = '__return_false';

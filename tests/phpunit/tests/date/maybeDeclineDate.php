@@ -42,6 +42,8 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 	 * @ticket 48606
 	 * @ticket 48934
 	 * @dataProvider data_wp_maybe_decline_date
+	 *
+	 * @covers ::wp_maybe_decline_date
 	 */
 	public function test_wp_maybe_decline_date( $test_locale, $format, $input, $output ) {
 		global $locale, $wp_locale;
@@ -60,6 +62,7 @@ class Tests_Date_MaybeDeclineDate extends WP_UnitTestCase {
 
 		$this->assertSame( $output, $declined_date );
 	}
+
 
 	public function filter__enable_months_names_declension( $translation, $text, $context ) {
 		if ( 'decline months names: on or off' === $context ) {

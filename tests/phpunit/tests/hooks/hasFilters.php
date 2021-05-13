@@ -20,11 +20,17 @@ class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 		$this->assertTrue( $hook->has_filters() );
 	}
 
+	/*
+	* @covers WP_Hook::has_filters
+	*/
 	public function test_has_filters_without_callback() {
 		$hook = new WP_Hook();
 		$this->assertFalse( $hook->has_filters() );
 	}
 
+	/*
+	* @covers WP_Hook::has_filters
+	*/
 	public function test_not_has_filters_with_removed_callback() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();
@@ -37,6 +43,9 @@ class Tests_Hooks_HasFilters extends WP_UnitTestCase {
 		$this->assertFalse( $hook->has_filters() );
 	}
 
+	/*
+	* @covers WP_Hook::has_filters
+	*/
 	public function test_not_has_filter_with_directly_removed_callback() {
 		$callback      = '__return_null';
 		$hook          = new WP_Hook();

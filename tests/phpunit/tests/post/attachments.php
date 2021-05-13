@@ -13,6 +13,9 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		parent::tearDown();
 	}
 
+	/**
+	 * @covers ::wp_upload_bits
+	 */
 	function test_insert_bogus_image() {
 		$filename = rand_str() . '.jpg';
 		$contents = rand_str();
@@ -21,6 +24,9 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertTrue( empty( $upload['error'] ) );
 	}
 
+	/**
+	 * @covers ::wp_insert_attachment
+	 */
 	function test_insert_image_no_thumb() {
 
 		// This image is smaller than the thumbnail size so it won't have one.
@@ -56,6 +62,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_insert_attachment
 	 */
 	function test_insert_image_thumb_only() {
 		update_option( 'medium_size_w', 0 );
@@ -107,6 +115,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_insert_attachment
 	 */
 	function test_insert_image_medium_sizes() {
 		update_option( 'medium_size_w', 400 );
@@ -164,6 +174,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_insert_attachment
 	 */
 	function test_insert_image_delete() {
 		update_option( 'medium_size_w', 400 );
@@ -212,6 +224,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 *
 	 * @ticket 18310
 	 * @ticket 21963
+	 *
+	 * @covers ::wp_insert_attachment
 	 */
 	function test_insert_image_without_guid() {
 		// This image is smaller than the thumbnail size so it won't have one.
@@ -256,6 +270,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29646
+	 *
+	 * @covers ::wp_insert_attachment
 	 */
 	function test_update_orphan_attachment_parent() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
@@ -285,6 +301,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15928
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_should_not_force_https_when_current_page_is_non_ssl_and_siteurl_is_non_ssl() {
 		$siteurl = get_option( 'siteurl' );
@@ -310,6 +328,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 15928
 	 *
 	 * This situation (current request is non-SSL but siteurl is https) should never arise.
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_should_not_force_https_when_current_page_is_non_ssl_and_siteurl_is_ssl() {
 		$siteurl = get_option( 'siteurl' );
@@ -335,6 +355,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 	 * @ticket 15928
 	 *
 	 * Canonical siteurl is non-SSL, but SSL support is available/optional.
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_should_force_https_with_https_on_same_host_when_siteurl_is_non_ssl_but_ssl_is_available() {
 		$siteurl = get_option( 'siteurl' );
@@ -363,6 +385,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15928
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_with_https_on_same_host_when_siteurl_is_https() {
 		$siteurl = get_option( 'siteurl' );
@@ -391,6 +415,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15928
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_should_not_force_https_when_administering_over_https_but_siteurl_is_not_https() {
 		$siteurl = get_option( 'siteurl' );
@@ -418,6 +444,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15928
+	 *
+	 * @covers ::wp_get_attachment_url
 	 */
 	public function test_wp_get_attachment_url_should_force_https_when_administering_over_https_and_siteurl_is_https() {
 		// Set https upload URL.
@@ -444,6 +472,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
 	}
 
+	/**
+	 * @covers ::wp_attachment_is_image
+	 * @covers ::wp_attachment_is
+	 */
 	public function test_wp_attachment_is() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
@@ -479,6 +511,9 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::wp_upload_bits
+	 */
 	public function test_upload_mimes_filter_is_applied() {
 		$filename = DIR_TESTDATA . '/images/test-image.jpg';
 		$contents = file_get_contents( $filename );
@@ -508,6 +543,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33012
+	 *
+	 * @covers ::wp_mime_type_icon
 	 */
 	public function test_wp_mime_type_icon() {
 		$icon = wp_mime_type_icon();
@@ -517,6 +554,8 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33012
+	 *
+	 * @covers ::wp_mime_type_icon
 	 */
 	public function test_wp_mime_type_icon_video() {
 		$icon = wp_mime_type_icon( 'video/mp4' );

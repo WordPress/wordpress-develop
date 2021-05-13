@@ -4,11 +4,18 @@
  * @group formatting
  */
 class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
+
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_mailto_xss() {
 		$in = 'testzzz@"STYLE="behavior:url(\'#default#time2\')"onBegin="alert(\'refresh-XSS\')"';
 		$this->assertSame( $in, make_clickable( $in ) );
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_valid_mailto() {
 		$valid_emails = array(
 			'foo@example.com',
@@ -22,6 +29,9 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_invalid_mailto() {
 		$invalid_emails = array(
 			'foo',
@@ -39,6 +49,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * Tests that make_clickable() will not link trailing periods, commas,
 	 * and (semi-)colons in URLs with protocol (i.e. http://wordpress.org).
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_strip_trailing_with_protocol() {
 		$urls_before   = array(
@@ -66,6 +78,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * Tests that make_clickable() will not link trailing periods, commas,
 	 * and (semi-)colons in URLs with protocol (i.e. http://wordpress.org).
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_strip_trailing_with_protocol_nothing_afterwards() {
 		$urls_before   = array(
@@ -95,6 +109,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * Tests that make_clickable() will not link trailing periods, commas,
 	 * and (semi-)colons in URLs without protocol (i.e. www.wordpress.org).
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_strip_trailing_without_protocol() {
 		$urls_before   = array(
@@ -122,6 +138,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * Tests that make_clickable() will not link trailing periods, commas,
 	 * and (semi-)colons in URLs without protocol (i.e. www.wordpress.org).
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_strip_trailing_without_protocol_nothing_afterwards() {
 		$urls_before   = array(
@@ -148,6 +166,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 4570
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_iri() {
 		$urls_before   = array(
@@ -167,6 +187,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10990
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_brackets_in_urls() {
 		$urls_before   = array(
@@ -206,6 +228,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	 * Based on real comments which were incorrectly linked.
 	 *
 	 * @ticket 11211
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_real_world_examples() {
 		$urls_before   = array(
@@ -227,6 +251,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14993
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_twitter_hash_bang() {
 		$urls_before   = array(
@@ -244,6 +270,9 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_wrapped_in_angles() {
 		$before   = array(
 			'URL wrapped in angle brackets <http://example.com/>',
@@ -260,6 +289,9 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_preceded_by_punctuation() {
 		$before   = array(
 			'Comma then URL,http://example.com/',
@@ -282,6 +314,9 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_dont_break_attributes() {
 		$urls_before   = array(
 			"<img src='http://trunk.domain/wp-includes/images/smilies/icon_smile.gif' alt=':)' class='wp-smiley'>",
@@ -308,6 +343,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23756
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_no_links_inside_pre_or_code() {
 		$before = array(
@@ -349,6 +386,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16892
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_click_inside_html() {
 		$urls_before   = array(
@@ -364,6 +403,9 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::make_clickable
+	 */
 	function test_no_links_within_links() {
 		$in = array(
 			'Some text with a link <a href="http://example.com">http://example.com</a>',
@@ -376,6 +418,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16892
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_no_segfault() {
 		$in  = str_repeat( 'http://example.com/2011/03/18/post-title/', 256 );
@@ -385,6 +429,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19028
+	 *
+	 * @covers ::make_clickable
 	 */
 	function test_line_break_in_existing_clickable_link() {
 		$html = "<a
@@ -395,6 +441,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * @ticket 30162
 	 * @dataProvider data_script_and_style_tags
+	 *
+	 * @covers ::make_clickable
 	 */
 	public function test_dont_link_script_and_style_tags( $tag ) {
 		$this->assertSame( $tag, make_clickable( $tag ) );
@@ -420,6 +468,8 @@ class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
 	/**
 	 * @ticket 48022
 	 * @dataProvider data_add_rel_ugc_in_comments
+	 *
+	 * @covers ::make_clickable
 	 */
 	public function test_add_rel_ugc_in_comments( $content, $expected ) {
 		$comment_id = self::factory()->comment->create(

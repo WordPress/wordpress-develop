@@ -102,6 +102,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 
 	/**
 	 * The function should send an export link to the requester when the user request is confirmed.
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_function_should_send_export_link_to_requester() {
 		$exports_url      = wp_privacy_exports_url();
@@ -124,6 +126,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should error when the request ID is invalid.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_function_should_error_when_request_id_invalid() {
 		$request_id = 0;
@@ -141,6 +145,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The function should error when the email was not sent.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_return_wp_error_when_send_fails() {
 		add_filter( 'wp_mail_from', '__return_empty_string' ); // Cause `wp_mail()` to return false.
@@ -154,6 +160,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The export expiration should be filterable.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_export_expiration_should_be_filterable() {
 		add_filter( 'wp_privacy_export_expiration', array( $this, 'modify_export_expiration' ) );
@@ -180,6 +188,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The email address of the recipient of the personal data export notification should be filterable.
 	 *
 	 * @ticket 46303
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_email_address_of_recipient_should_be_filterable() {
 		add_filter( 'wp_privacy_personal_data_email_to', array( $this, 'filter_email_address' ) );
@@ -206,6 +216,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The email subject of the personal data export notification should be filterable.
 	 *
 	 * @ticket 46303
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_email_subject_should_be_filterable() {
 		add_filter( 'wp_privacy_personal_data_email_subject', array( $this, 'filter_email_subject' ) );
@@ -232,6 +244,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The email content should be filterable.
 	 *
 	 * @since 4.9.6
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_email_content_should_be_filterable() {
 		add_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content' ), 10, 2 );
@@ -260,6 +274,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.4.0
 	 *
 	 * @ticket 44501
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_email_headers_should_be_filterable() {
 		add_filter( 'wp_privacy_personal_data_email_headers', array( $this, 'modify_email_headers' ) );
@@ -290,6 +306,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * The email content should be filterable using the $email_data
 	 *
 	 * @ticket 46303
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_email_content_should_be_filterable_using_email_data() {
 		add_filter( 'wp_privacy_personal_data_email_content', array( $this, 'modify_email_content_with_email_data' ), 10, 3 );
@@ -333,6 +351,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_user_locale() {
 		update_user_meta( self::$request_user->ID, 'locale', 'es_ES' );
@@ -351,6 +371,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_user_locale_when_site_is_not_en_us() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -373,6 +395,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_user_locale_when_admin_and_site_have_different_locales() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -395,6 +419,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_user_locale_when_both_have_different_locales_than_site() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -419,6 +445,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_site_locale() {
 		update_user_meta( self::$admin_user->ID, 'locale', 'es_ES' );
@@ -441,6 +469,8 @@ class Tests_Privacy_WpPrivacySendPersonalDataExportEmail extends WP_UnitTestCase
 	 * @since 5.2.0
 	 * @ticket 46056
 	 * @group l10n
+	 *
+	 * @covers ::wp_privacy_send_personal_data_export_email
 	 */
 	public function test_should_send_personal_data_export_email_in_site_locale_when_not_en_us_and_admin_has_different_locale() {
 		update_option( 'WPLANG', 'es_ES' );

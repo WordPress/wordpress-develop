@@ -7,6 +7,8 @@ class Tests_Link_GetPostTypeArchiveLink extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19902
+	 *
+	 * @covers get_post_type_archive_link
 	 */
 	public function test_get_post_archive_link_with_post_archive_on_front_page() {
 		update_option( 'show_on_front', 'posts' );
@@ -17,6 +19,8 @@ class Tests_Link_GetPostTypeArchiveLink extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19902
+	 *
+	 * @covers get_post_type_archive_link
 	 */
 	public function test_get_post_archive_link_with_post_archive_on_a_blog_page() {
 		$page_for_posts = $this->factory->post->create(

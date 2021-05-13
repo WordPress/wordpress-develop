@@ -27,6 +27,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test wp_get_image_editor() where load returns true
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_get_editor_load_returns_true() {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );
@@ -38,6 +40,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test wp_get_image_editor() where load returns false
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_get_editor_load_returns_false() {
 		WP_Image_Editor_Mock::$load_return = new WP_Error();
@@ -67,6 +71,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test test_quality
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_set_quality() {
 
@@ -114,6 +120,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test generate_filename
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_generate_filename() {
 
@@ -153,6 +161,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test get_size
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_get_size() {
 
@@ -177,6 +187,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * Test get_suffix
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers ::wp_get_image_editor
 	 */
 	public function test_get_suffix() {
 		$editor = wp_get_image_editor( DIR_TESTDATA . '/images/canola.jpg' );

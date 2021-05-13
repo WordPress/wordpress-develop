@@ -33,6 +33,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers WP_Import::import
+	 */
 	function test_small_import() {
 		global $wpdb;
 
@@ -201,6 +204,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 1, count( $cats ) );
 	}
 
+	/**
+	 * @covers WP_Import::import
+	 */
 	function test_double_import() {
 		$authors = array(
 			'admin'  => false,
@@ -267,6 +273,8 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 
 	/**
 	 * @ticket 21007
+	 *
+	 * @covers WP_Import::import
 	 */
 	public function test_slashes_should_not_be_stripped() {
 		global $wpdb;

@@ -2,6 +2,8 @@
 
 /**
  * @group query
+ *
+ * @covers WP_Query
  */
 class Tests_Query_NoFoundRows extends WP_UnitTestCase {
 	public function test_no_found_rows_default() {

@@ -25,6 +25,8 @@ class Tests_Post_Walker_Page extends WP_UnitTestCase {
 	 * @ticket 47720
 	 *
 	 * @dataProvider data_start_el_with_empty_attributes
+	 *
+	 * @covers Walker_Page::start_el
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output = '';

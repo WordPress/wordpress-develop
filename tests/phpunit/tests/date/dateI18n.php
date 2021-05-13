@@ -9,6 +9,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28636
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_should_return_current_time_on_invalid_timestamp() {
 		$timezone = 'Europe/Kiev';
@@ -22,6 +24,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28636
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_should_handle_zero_timestamp() {
 		$timezone = 'Europe/Kiev';
@@ -68,6 +72,9 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( '2012-12-01 00:00:00', date_i18n( 'Y-m-d H:i:s', strtotime( '2012-12-01 00:00:00' ) ) );
 	}
 
+	/*
+	* @covers ::date_i18n
+	*/
 	public function test_adjusts_format_based_on_locale() {
 		$original_locale = $GLOBALS['wp_locale'];
 		/* @var WP_Locale $locale */
@@ -91,6 +98,9 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
+	/*
+	* @covers ::date_i18n
+	*/
 	public function test_adjusts_format_based_on_timezone_string() {
 		update_option( 'timezone_string', 'America/Regina' );
 
@@ -99,6 +109,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34835
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_gmt_offset_should_output_correct_timezone() {
 		$timezone_formats = 'P I O T Z e';
@@ -114,10 +126,12 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $datetime->format( $timezone_formats ), date_i18n( $timezone_formats ) );
 	}
 
-	/**
+/**
 	 * @ticket 20973
 	 *
 	 * @dataProvider data_formats
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_date_i18n_handles_shorthand_formats( $short, $full ) {
 		update_option( 'timezone_string', 'America/Regina' );
@@ -141,6 +155,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25768
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_should_return_wp_timestamp() {
 		update_option( 'timezone_string', 'Europe/Kiev' );
@@ -156,6 +172,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 43530
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_swatch_internet_time_with_wp_timestamp() {
 		update_option( 'timezone_string', 'America/Regina' );
@@ -165,6 +183,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25768
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_should_handle_escaped_formats() {
 		$format = 'D | \D | \\D | \\\D | \\\\D | \\\\\D | \\\\\\D';
@@ -179,6 +199,8 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 	 *
 	 * @param string $time     Time to test in Y-m-d H:i:s format.
 	 * @param string $timezone PHP timezone string to use.
+	 *
+	 * @covers ::date_i18n
 	 */
 	public function test_should_handle_dst( $time, $timezone ) {
 		update_option( 'timezone_string', $timezone );

@@ -2,11 +2,15 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_rel_nofollow
  */
 class Tests_Rel_No_Follow extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9959
+	 *
+	 * @covers ::wp_rel_nofollow
 	 */
 	public function test_add_no_follow() {
 		$content  = '<p>This is some cool <a href="/">Code</a></p>';
@@ -16,6 +20,8 @@ class Tests_Rel_No_Follow extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9959
+	 *
+	 * @covers ::wp_rel_nofollow
 	 */
 	public function test_convert_no_follow() {
 		$content  = '<p>This is some cool <a href="/" rel="weird">Code</a></p>';
@@ -26,6 +32,8 @@ class Tests_Rel_No_Follow extends WP_UnitTestCase {
 	/**
 	 * @ticket 11360
 	 * @dataProvider data_wp_rel_nofollow
+	 *
+	 * @covers ::wp_rel_nofollow
 	 */
 	public function test_wp_rel_nofollow( $input, $output ) {
 		return $this->assertSame( wp_slash( $output ), wp_rel_nofollow( $input ) );

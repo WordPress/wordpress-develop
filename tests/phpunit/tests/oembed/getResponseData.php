@@ -44,6 +44,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 	/**
 	 * Test get_oembed_response_data with an author.
+	 *
+	 * @covers ::get_oembed_response_data
+	 * @covers ::get_post_embed_html
 	 */
 	function test_get_oembed_response_data_author() {
 		$user_id = self::factory()->user->create(
@@ -78,6 +81,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_link() {
 		remove_filter( 'oembed_response_data', 'get_oembed_response_data_rich' );
 
@@ -105,6 +111,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		add_filter( 'oembed_response_data', 'get_oembed_response_data_rich', 10, 4 );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_with_draft_post() {
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -115,6 +124,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_with_scheduled_post() {
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -126,6 +138,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_with_private_post() {
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -181,6 +196,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertFalse( get_oembed_response_data( $post, 100 ) );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_maxwidth_too_high() {
 		$post = self::factory()->post->create_and_get();
 
@@ -190,6 +208,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertSame( 338, $data['height'] );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_maxwidth_too_low() {
 		$post = self::factory()->post->create_and_get();
 
@@ -199,6 +220,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertSame( 200, $data['height'] );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_maxwidth_invalid() {
 		$post = self::factory()->post->create_and_get();
 
@@ -213,6 +237,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertSame( 200, $data['height'] );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_with_thumbnail() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';
@@ -233,6 +260,9 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 		$this->assertTrue( 400 >= $data['thumbnail_width'] );
 	}
 
+	/**
+	 * @covers ::get_oembed_response_data
+	 */
 	function test_get_oembed_response_data_for_attachment() {
 		$parent = self::factory()->post->create();
 		$file   = DIR_TESTDATA . '/images/canola.jpg';

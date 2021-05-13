@@ -12,7 +12,6 @@
  *
  * @group link
  * @group privacy
- * @covers ::get_the_privacy_policy_link
  *
  * @since 4.9.6
  */
@@ -73,6 +72,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 * The function should return a valid link if a privacy policy page has been
 	 * created and set as the `wp_page_for_privacy_policy`. The post title should
 	 * be used as the link text.
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_get_the_privacy_policy_link_should_return_valid_link_when_privacy_page_set() {
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
@@ -87,6 +88,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**
 	 * The function should prepend the supplied `$before` markup and append the
 	 * supplied `$after` markup when the `wp_page_for_privacy_policy` is configured.
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_get_the_privacy_policy_link_should_prepend_and_append_supplied_markup_when_privacy_page_set() {
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );
@@ -101,6 +104,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**
 	 * The function should _not_ prepend the supplied `$before` markup and append
 	 * the supplied `$after` markup when the `wp_page_for_privacy_policy` is _not_ configured.
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_get_the_privacy_policy_link_should_not_prepend_and_append_supplied_markup_when_privacy_page_not_set() {
 		$actual_link = get_the_privacy_policy_link( self::$before, self::$after );
@@ -113,6 +118,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	 * for the privacy policy.
 	 *
 	 * @ticket 44192
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_function_should_return_empty_string_when_privacy_page_title_empty() {
 		$nameless_page_id = $this->factory->post->create(
@@ -129,6 +136,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 
 	/**
 	 * The function should return an empty string when `wp_page_for_privacy_policy` is _not_ configured.
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_get_the_privacy_policy_link_should_return_empty_string_when_privacy_page_not_set() {
 		$this->assertSame( '', get_the_privacy_policy_link() );
@@ -136,6 +145,8 @@ class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 
 	/**
 	 * The output of the get_the_privacy_policy_link() function should be filterable with the 'privacy_policy_link' filter.
+	 *
+	 * @covers ::get_the_privacy_policy_link
 	 */
 	public function test_get_the_privacy_policy_link_should_be_filterable() {
 		update_option( 'wp_page_for_privacy_policy', self::$privacy_policy_page_id );

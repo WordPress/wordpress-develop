@@ -3,6 +3,8 @@
 /**
  * @group query
  * @covers ::setup_postdata
+ *
+ * @covers WP_Query
  */
 class Tests_Query_SetupPostdata extends WP_UnitTestCase {
 	protected $global_keys = array( 'id', 'authordata', 'currentday', 'currentmonth', 'page', 'pages', 'multipage', 'more', 'numpages' );

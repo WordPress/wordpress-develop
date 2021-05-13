@@ -31,6 +31,10 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
+		/**
+		 * @covers ::switch_to_blog
+		 * @covers ::wp_upload_dir
+		 */
 		function test_switch_upload_dir() {
 			$this->assertTrue( is_main_site() );
 
@@ -58,6 +62,8 @@ if ( is_multisite() ) :
 		 * When a site is deleted with wpmu_delete_blog(), only the files associated with
 		 * that site should be removed. When wpmu_delete_blog() is run a second time, nothing
 		 * should change with upload directories.
+		 *
+		 * @covers ::wpmu_delete_blog
 		 */
 		function test_upload_directories_after_multiple_wpmu_delete_blog_with_ms_files() {
 			$filename = __FUNCTION__ . '.jpg';

@@ -35,6 +35,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * Test search returns results for pages.
 	 *
 	 * @ticket 27042
+	 *
+	 * @covers ::_wp_ajax_menu_quick_search
 	 */
 	public function test_search_returns_results_for_pages() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
@@ -70,6 +72,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * Test that search only returns results for published posts.
 	 *
 	 * @ticket 33742
+	 *
+	 * @covers ::_wp_ajax_menu_quick_search
 	 */
 	public function test_search_returns_results_for_published_posts() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
@@ -126,6 +130,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * Test that search displays terms that are not assigned to any posts.
 	 *
 	 * @ticket 45298
+	 *
+	 * @covers ::_wp_ajax_menu_quick_search
 	 */
 	public function test_search_should_return_unassigned_term_items() {
 		register_taxonomy( 'wptests_tax', 'post' );

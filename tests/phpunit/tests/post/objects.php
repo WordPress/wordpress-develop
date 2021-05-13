@@ -5,6 +5,9 @@
  */
 class Tests_Post_Objects extends WP_UnitTestCase {
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_post() {
 		$id = self::factory()->post->create();
 
@@ -66,6 +69,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertNull( get_post( false ) );
 	}
 
+	/**
+	 * @covers ::get_post_ancestors
+	 */
 	function test_get_post_ancestors() {
 		$parent_id     = self::factory()->post->create();
 		$child_id      = self::factory()->post->create();
@@ -100,6 +106,8 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22882
+	 *
+	 * @covers ::get_post_ancestors
 	 */
 	function test_get_post_ancestors_with_falsey_values() {
 		foreach ( array( null, 0, false, '0', '' ) as $post_id ) {
@@ -108,6 +116,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_post_category_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
@@ -127,6 +138,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
 	}
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_tags_input_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
@@ -144,6 +158,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post['tags_input'] );
 	}
 
+	/**
+	 * @covers ::get_post_meta
+	 */
 	function test_get_page_template_property() {
 		$post_id = self::factory()->post->create();
 		$post    = get_post( $post_id );
@@ -157,6 +174,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( $template, $post->page_template );
 	}
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_post_filter() {
 		$post = get_post(
 			self::factory()->post->create(
@@ -184,6 +204,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( esc_js( "Mary's home" ), $raw_post->post_title );
 	}
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_post_identity() {
 		$post = get_post( self::factory()->post->create() );
 
@@ -193,6 +216,9 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertSame( 'bar', get_post( $post, OBJECT, 'display' )->foo );
 	}
 
+	/**
+	 * @covers ::get_post
+	 */
 	function test_get_post_array() {
 		$id = self::factory()->post->create();
 
@@ -205,6 +231,8 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22223
+	 *
+	 * @covers ::get_post
 	 */
 	function test_get_post_cache() {
 		global $wpdb;

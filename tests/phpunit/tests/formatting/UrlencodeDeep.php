@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @ticket 22300
+ *
+ * @covers ::urlencode_deep
  */
 class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
@@ -26,6 +28,8 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 	 *
 	 * @param string $actual
 	 * @param string $expected
+	 *
+	 * @covers ::urlencode_deep
 	 */
 	public function test_urlencode_deep_should_encode_individual_value( $actual, $expected ) {
 		$this->assertSame( $expected, urlencode_deep( $actual ) );
@@ -33,6 +37,8 @@ class Tests_Formatting_UrlencodeDeep extends WP_UnitTestCase {
 
 	/**
 	 * Test the whole array as input
+	 *
+	 * @covers ::urlencode_deep
 	 */
 	public function test_urlencode_deep_should_encode_all_values_in_array() {
 		$data = $this->data_test_values();

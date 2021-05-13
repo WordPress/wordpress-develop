@@ -25,6 +25,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 * @ticket 20982
 	 * @ticket 16215
+	 *
+	 * @covers ::wp_restore_post_revision
 	 */
 	function test_revision_restore_updates_edit_last_post_meta() {
 		// Create a post as Author.
@@ -68,6 +70,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	/**
 	 * @ticket 7392
 	 * @ticket 9843
+	 *
+	 * @covers ::wp_update_post
 	 */
 	function test_revision_dont_save_revision_if_unchanged() {
 		$post    = get_default_post_to_edit( 'post', true );
@@ -138,6 +142,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	/**
 	 * @ticket 7392
 	 * @ticket 9843
+	 *
+	 * @covers ::wp_update_post
 	 */
 	function test_revision_force_save_revision_even_if_unchanged() {
 		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
@@ -213,6 +219,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=view case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_view_caps_post() {
 		$post_id = self::factory()->post->create(
@@ -246,6 +254,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=restore case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_restore_caps_post() {
 		$post_id = self::factory()->post->create(
@@ -277,6 +287,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=diff case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_diff_caps_post() {
 		$post_id = self::factory()->post->create(
@@ -315,6 +327,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=view case of wp-admin/revision.php with a CPT with Custom Capabilities
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_view_caps_cpt() {
 		register_post_type(
@@ -357,6 +371,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=restore case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_restore_caps_cpt() {
 		register_post_type(
@@ -403,6 +419,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=restore case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_restore_caps_before_publish() {
 		register_post_type(
@@ -463,6 +481,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * Tests the Caps used in the action=diff case of wp-admin/revision.php
 	 *
 	 * @ticket 16847
+	 *
+	 * @covers ::user_can
 	 */
 	function test_revision_diff_caps_cpt() {
 		register_post_type(
@@ -508,6 +528,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26042
+	 *
+	 * @covers ::wp_get_post_revisions
 	 */
 	function test_wp_get_post_revisions_should_order_by_post_date() {
 		global $wpdb;
@@ -544,6 +566,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26042
+	 *
+	 * @covers ::wp_get_post_revisions
 	 */
 	function test_wp_get_post_revisions_should_order_by_ID_when_post_date_matches() {
 		$post = self::factory()->post->create_and_get(

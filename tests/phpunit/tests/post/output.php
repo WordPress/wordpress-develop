@@ -39,6 +39,9 @@ class Tests_Post_Output extends WP_UnitTestCase {
 		return "<p class='{$processed_atts['class']}'>$content</p>\n";
 	}
 
+	/**
+	 * @covers ::the_content
+	 */
 	function test_the_content() {
 		$post_content = <<<EOF
 <i>This is the excerpt.</i>
@@ -62,6 +65,9 @@ EOF;
 		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
+	/**
+	 * @covers ::the_content
+	 */
 	function test_the_content_shortcode() {
 		$post_content = <<<EOF
 [dumptag foo="bar" baz="123"]
@@ -128,6 +134,9 @@ EOF;
 		$this->assertSame( strip_ws( $expected ), strip_ws( get_echo( 'the_content' ) ) );
 	}
 
+	/**
+	 * @covers ::the_content
+	 */
 	function test_the_content_attribute_filtering() {
 		kses_init_filters();
 
@@ -152,6 +161,9 @@ EOF;
 		kses_remove_filters();
 	}
 
+	/**
+	 * @covers ::the_content
+	 */
 	function test_the_content_attribute_value_with_colon() {
 		kses_init_filters();
 
@@ -182,6 +194,8 @@ EOF;
 	 * @ticket 46471
 	 *
 	 * @group blocks
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_the_content_should_handle_more_block_on_singular() {
 		$post_content = <<<EOF
@@ -231,6 +245,8 @@ EOF;
 	 * @ticket 46471
 	 *
 	 * @group blocks
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_the_content_should_handle_more_block_when_noteaser_on_singular() {
 		$post_content = <<<EOF
@@ -275,6 +291,8 @@ EOF;
 	 * @ticket 46471
 	 *
 	 * @group blocks
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_the_content_should_handle_more_block_when_non_singular() {
 		$post_content = <<<EOF
@@ -320,6 +338,8 @@ EOF;
 	 * @ticket 46471
 	 *
 	 * @group blocks
+	 *
+	 * @covers ::the_content
 	 */
 	public function test_the_content_should_handle_more_block_when_noteaser_on_non_singular() {
 		$post_content = <<<EOF

@@ -7,6 +7,10 @@
  */
 class Tests_Functions_WP extends WP_UnitTestCase {
 
+	/**
+	 *
+	 * @covers ::wp
+	 */
 	public function test_wp_sets_global_vars() {
 		global $wp, $wp_query, $wp_the_query;
 

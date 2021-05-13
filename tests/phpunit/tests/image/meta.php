@@ -28,6 +28,9 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		stream_wrapper_unregister( 'testimagemeta' );
 	}
 
+	/**
+	 * @covers ::wp_read_image_metadata
+	 */
 	function test_exif_d70() {
 		// Exif from a Nikon D70.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0008.jpg' );
@@ -44,6 +47,9 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
+	/**
+	 * @covers ::wp_read_image_metadata
+	 */
 	function test_exif_d70_mf() {
 		// Exif from a Nikon D70 - manual focus lens, so some data is unavailable.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG' );
@@ -61,6 +67,9 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		// $this->assertSame( array( 'Flowers' ), $out['keywords'] );
 	}
 
+	/**
+	 * @covers ::wp_read_image_metadata
+	 */
 	function test_exif_d70_iptc() {
 		// Exif from a Nikon D70 with IPTC data added later.
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/2004-07-22-DSC_0007.jpg' );
@@ -77,6 +86,9 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( 'IPTC Headline', $out['title'] );
 	}
 
+	/**
+	 * @covers ::wp_read_image_metadata
+	 */
 	function test_exif_fuji() {
 		// Exif from a Fuji FinePix S5600 (thanks Mark).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/a2-small.jpg' );
@@ -96,6 +108,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 6571
+	 *
+	 * @covers ::wp_read_image_metadata
 	 */
 	function test_exif_error() {
 		// https://core.trac.wordpress.org/ticket/6571
@@ -114,6 +128,9 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', $out['title'] );
 	}
 
+	/**
+	 * @covers ::wp_read_image_metadata
+	 */
 	function test_exif_no_data() {
 		// No Exif data in this image (from burningwell.org).
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/canola.jpg' );
@@ -132,6 +149,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9417
+	 *
+	 * @covers ::wp_read_image_metadata
 	 */
 	function test_utf8_iptc_tags() {
 		// Trilingual UTF-8 text in the ITPC caption-abstract field.
@@ -142,6 +161,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 
 	/**
 	 * wp_read_image_metadata() should return false if the image file doesn't exist.
+	 *
+	 * @covers ::wp_read_image_metadata
 	 */
 	public function test_missing_image_file() {
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/404_image.png' );
@@ -151,6 +172,8 @@ class Tests_Image_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33772
+	 *
+	 * @covers ::wp_read_image_metadata
 	 */
 	public function test_exif_keywords() {
 		$out = wp_read_image_metadata( DIR_TESTDATA . '/images/33772.jpg' );

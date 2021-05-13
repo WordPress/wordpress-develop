@@ -20,6 +20,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		return array( $this->editor_engine );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_jpg() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 25, 25 );
 
@@ -32,6 +35,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_png() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.png', 25, 25 );
 
@@ -48,6 +54,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_gif() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.gif', 25, 25 );
 
@@ -82,6 +91,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_larger() {
 		// image_resize() should refuse to make an image larger.
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-image.jpg', 100, 100 );
@@ -90,6 +102,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$this->assertSame( 'error_getting_dimensions', $image->get_error_code() );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_128x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 96 );
 
@@ -102,6 +117,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_128x0() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 128, 0 );
 
@@ -114,6 +132,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_0x96() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 0, 96 );
 
@@ -126,6 +147,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_150x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 150, true );
 
@@ -138,6 +162,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_150x100_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 150, 100, true );
 
@@ -150,6 +177,9 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		unlink( $image );
 	}
 
+	/**
+	 * @covers WP_Image_Editor::resize
+	 */
 	function test_resize_thumb_50x150_crop() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/2007-06-17DSC_4173.JPG', 50, 150, true );
 
@@ -166,6 +196,8 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 	 * Try resizing a non-existent image
 	 *
 	 * @ticket 6821
+	 *
+	 * @covers WP_Image_Editor::resize
 	 */
 	public function test_resize_non_existent_image() {
 		$image = $this->resize_helper( DIR_TESTDATA . '/images/test-non-existent-image.jpg', 25, 25 );

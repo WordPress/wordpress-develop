@@ -4,6 +4,9 @@
  * @group formatting
  */
 class Tests_Formatting_EscAttr extends WP_UnitTestCase {
+	/**
+	 * @covers ::esc_attr
+	 */
 	function test_esc_attr_quotes() {
 		$attr = '"double quotes"';
 		$this->assertSame( '&quot;double quotes&quot;', esc_attr( $attr ) );
@@ -24,7 +27,9 @@ class Tests_Formatting_EscAttr extends WP_UnitTestCase {
 		$attr = "'mixed' " . '"quotes"';
 		$this->assertSame( '&#039;mixed&#039; &quot;quotes&quot;', esc_attr( esc_attr( $attr ) ) );
 	}
-
+	/**
+	 * @covers ::esc_attr
+	 */
 	function test_esc_attr_amp() {
 		$out = esc_attr( 'foo & bar &baz; &nbsp;' );
 		$this->assertSame( 'foo &amp; bar &amp;baz; &nbsp;', $out );

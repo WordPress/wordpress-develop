@@ -127,6 +127,9 @@ class Tests_Formatting_SanitizeTextField extends WP_UnitTestCase {
 	/**
 	 * @ticket 32257
 	 * @dataProvider data_sanitize_text_field
+	 *
+	 * @covers ::sanitize_text_field
+	 * @covers ::sanitize_textarea_field
 	 */
 	function test_sanitize_text_field( $string, $expected ) {
 		if ( is_array( $expected ) ) {

@@ -38,6 +38,8 @@ class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
 	 * The function should return error for invalid request ID.
 	 *
 	 * @ticket 43913
+	 *
+	 * @covers ::_wp_privacy_completed_request
 	 */
 	public function test_wp_privacy_completed_request_should_return_error_for_invalid_request_id() {
 		$actual = _wp_privacy_completed_request( 0 );
@@ -53,6 +55,8 @@ class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
 	 * The function should mark a request as completed.
 	 *
 	 * @ticket 43913
+	 *
+	 * @covers ::_wp_privacy_completed_request
 	 */
 	public function test_wp_privacy_completed_request_should_mark_request_completed() {
 		$this->assertSame( 'request-pending', get_post_status( self::$request_id ) );
@@ -64,6 +68,8 @@ class Tests_WpPrivacyCompletedRequest extends WP_UnitTestCase {
 	 * The function should log the request timestamp.
 	 *
 	 * @ticket 43913
+	 *
+	 * @covers ::_wp_privacy_completed_request
 	 */
 	public function test_wp_privacy_completed_request_should_log_request_timestamp() {
 		$this->assertEmpty( get_post_meta( self::$request_id, '_wp_user_request_completed_timestamp', true ) );

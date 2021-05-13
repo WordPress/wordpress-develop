@@ -12,12 +12,18 @@ class Tests_Post_PostClass extends WP_UnitTestCase {
 		$this->post_id = self::factory()->post->create();
 	}
 
+	/**
+	 * @covers ::post_class
+	 */
 	public function test_post_class() {
 		$expected = 'class="' . implode( ' ', get_post_class( '', $this->post_id ) ) . '"';
 		$this->expectOutputString( $expected );
 		post_class( '', $this->post_id );
 	}
 
+	/**
+	 * @covers ::post_class
+	 */
 	public function test_post_class_extra_esc_attr() {
 		$classes              = get_post_class( '', $this->post_id );
 		$escaped_again        = array_map( 'esc_attr', $classes );
