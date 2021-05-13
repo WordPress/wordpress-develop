@@ -1074,8 +1074,6 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			 *
 			 * @param string $value The query_var value.
 			 */
-			// TODO: Do not merge without auditing filters
-			// BREAKING CHANGE! Other filters too? orderby was a string but is now a PHP array (either a REST array or a REST object).
 			$query_args[ $key ] = apply_filters( "rest_query_var-{$key}", $value ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 		}
 
