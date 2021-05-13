@@ -4367,6 +4367,8 @@ function wp_is_application_passwords_available_for_user( $user ) {
   * @param string|array $args {
   *     Optional. Array or string of default arguments.
   *
+  *     @since 5.8.0
+  *
   *     @type string $orderby       How to sort the users. Accepts 'nicename', 'email', 'url', 'registered',
   *                                 'user_nicename', 'user_email', 'user_url', 'user_registered', 'name',
   *                                 'display_name', 'post_count', 'ID', 'meta_value', 'user_login'. Default 'name'.
@@ -4472,6 +4474,20 @@ function wp_list_users( $args = array() ) {
 	}
 
 	$output = rtrim( $return, ', ' );
+	
+	/**
+     	* Filters the HTML output of the pages to list.
+     	*
+     	* @since 5.8.0
+     	*
+     	* @see wp_list_users()
+     	*
+     	* @param string    $output      HTML output of the users list.
+     	* @param array     $parsed_args An array of user-listing arguments. See wp_list_users()
+     	*                               for information on accepted arguments.
+     	* @param WP_User[] $users       Array of the user objects.
+     	*/
+    	$html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
 
 	if ( ! $args['echo'] ) {
 		return $output;
