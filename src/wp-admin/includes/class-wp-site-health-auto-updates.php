@@ -278,6 +278,11 @@ class WP_Site_Health_Auto_Updates {
 			require_once ABSPATH . '/wp-admin/includes/file.php';
 		}
 
+		// Make sure the `submit_button` function is available during our REST call.
+		if ( ! function_exists( 'submit_button' ) ) {
+			require_once ABSPATH . '/wp-admin/includes/template.php';
+		}
+
 		$skin    = new Automatic_Upgrader_Skin;
 		$success = $skin->request_filesystem_credentials( false, ABSPATH );
 
