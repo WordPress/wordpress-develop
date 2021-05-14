@@ -10,7 +10,7 @@ if ( is_multisite() ) :
 	class Tests_Multisite_WP_Get_Sites extends WP_UnitTestCase {
 		protected static $site_ids;
 
-		public static function wpSetUpBeforeClass( $factory ) {
+		public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 			self::$site_ids = array(
 				'w.org/'      => array(
 					'domain'     => 'w.org',
@@ -72,7 +72,7 @@ if ( is_multisite() ) :
 
 			$missing_keys = array_diff_key( array_flip( $keys ), $sites[0] );
 
-			$this->assertEquals( array(), $missing_keys, 'Keys are missing from site arrays.' );
+			$this->assertSame( array(), $missing_keys, 'Keys are missing from site arrays.' );
 		}
 
 		/**

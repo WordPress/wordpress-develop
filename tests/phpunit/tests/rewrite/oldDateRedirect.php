@@ -10,15 +10,15 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 
 	public static $attachment_id;
 
-	public static function wpSetUpBeforeClass() {
-		self::$post_id = self::factory()->post->create(
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$post_id = $factory->post->create(
 			array(
 				'post_title' => 'Foo Bar',
 				'post_name'  => 'foo-bar',
 			)
 		);
 
-		self::$attachment_id = self::factory()->attachment->create_object(
+		self::$attachment_id = $factory->attachment->create_object(
 			array(
 				'file'           => DIR_TESTDATA . '/images/canola.jpg',
 				'post_mime_type' => 'image/jpeg',
@@ -42,9 +42,9 @@ class Tests_Rewrite_OldDateRedirect extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->old_date_redirect_url = null;
+
+		parent::tearDown();
 	}
 
 	public function test_old_date_redirect() {

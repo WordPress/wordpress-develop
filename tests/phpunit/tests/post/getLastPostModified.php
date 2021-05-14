@@ -103,7 +103,7 @@ class Tests_Post_GetLastPostModified extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals( $post_post_modified_last, get_lastpostmodified( 'blog', 'post' ) );
-		$this->assertEquals( $book_post_modified_last, get_lastpostmodified( 'blog', 'book' ) );
+		$this->assertSame( $post_post_modified_last, get_lastpostmodified( 'blog', 'post' ) );
+		$this->assertSame( $book_post_modified_last, get_lastpostmodified( 'blog', 'book' ) );
 	}
 }

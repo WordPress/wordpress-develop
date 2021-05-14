@@ -76,12 +76,12 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$dep->enqueue( 'one?arg' );
 		$this->assertTrue( $dep->query( 'one', 'queue' ) );
 		$this->assertFalse( $dep->query( 'two', 'queue' ) );
-		$this->assertEquals( 'arg', $dep->args['one'] );
+		$this->assertSame( 'arg', $dep->args['one'] );
 
 		$dep->enqueue( 'two?arg' );
 		$this->assertTrue( $dep->query( 'one', 'queue' ) );
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
-		$this->assertEquals( 'arg', $dep->args['two'] );
+		$this->assertSame( 'arg', $dep->args['two'] );
 	}
 
 	function test_dequeue_args() {
@@ -94,8 +94,8 @@ class Tests_Dependencies extends WP_UnitTestCase {
 		$dep->enqueue( 'two?arg' );
 		$this->assertTrue( $dep->query( 'one', 'queue' ) );
 		$this->assertTrue( $dep->query( 'two', 'queue' ) );
-		$this->assertEquals( 'arg', $dep->args['one'] );
-		$this->assertEquals( 'arg', $dep->args['two'] );
+		$this->assertSame( 'arg', $dep->args['one'] );
+		$this->assertSame( 'arg', $dep->args['two'] );
 
 		$dep->dequeue( 'one' );
 		$this->assertFalse( $dep->query( 'one', 'queue' ) );

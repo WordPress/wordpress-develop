@@ -20,10 +20,10 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$this->assertFalse( get_site_transient( 'doesnotexist' ) );
 		$this->assertTrue( set_site_transient( $key, $value ) );
-		$this->assertEquals( $value, get_site_transient( $key ) );
+		$this->assertSame( $value, get_site_transient( $key ) );
 		$this->assertFalse( set_site_transient( $key, $value ) );
 		$this->assertTrue( set_site_transient( $key, $value2 ) );
-		$this->assertEquals( $value2, get_site_transient( $key ) );
+		$this->assertSame( $value2, get_site_transient( $key ) );
 		$this->assertTrue( delete_site_transient( $key ) );
 		$this->assertFalse( get_site_transient( $key ) );
 		$this->assertFalse( delete_site_transient( $key ) );
@@ -37,7 +37,7 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 		);
 
 		$this->assertTrue( set_site_transient( $key, $value ) );
-		$this->assertEquals( $value, get_site_transient( $key ) );
+		$this->assertSame( $value, get_site_transient( $key ) );
 
 		$value = (object) $value;
 		$this->assertTrue( set_site_transient( $key, $value ) );

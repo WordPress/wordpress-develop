@@ -144,9 +144,9 @@ class WP_User_Query {
 	 *     @type string|array $role                An array or a comma-separated list of role names that users must match
 	 *                                             to be included in results. Note that this is an inclusive list: users
 	 *                                             must match *each* role. Default empty.
-	 *     @type array        $role__in            An array of role names. Matched users must have at least one of these
+	 *     @type string[]     $role__in            An array of role names. Matched users must have at least one of these
 	 *                                             roles. Default empty array.
-	 *     @type array        $role__not_in        An array of role names to exclude. Users matching one or more of these
+	 *     @type string[]     $role__not_in        An array of role names to exclude. Users matching one or more of these
 	 *                                             roles will not be included in results. Default empty array.
 	 *     @type string       $meta_key            User meta key. Default empty.
 	 *     @type string       $meta_value          User meta value. Default empty.
@@ -154,12 +154,12 @@ class WP_User_Query {
 	 *                                             '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN',
 	 *                                             'BETWEEN', 'NOT BETWEEN', 'EXISTS', 'NOT EXISTS', 'REGEXP',
 	 *                                             'NOT REGEXP', or 'RLIKE'. Default '='.
-	 *     @type array        $include             An array of user IDs to include. Default empty array.
-	 *     @type array        $exclude             An array of user IDs to exclude. Default empty array.
+	 *     @type int[]        $include             An array of user IDs to include. Default empty array.
+	 *     @type int[]        $exclude             An array of user IDs to exclude. Default empty array.
 	 *     @type string       $search              Search keyword. Searches for possible string matches on columns.
 	 *                                             When `$search_columns` is left empty, it tries to determine which
 	 *                                             column to search in based on search string. Default empty.
-	 *     @type array        $search_columns      Array of column names to be searched. Accepts 'ID', 'user_login',
+	 *     @type string[]     $search_columns      Array of column names to be searched. Accepts 'ID', 'user_login',
 	 *                                             'user_email', 'user_url', 'user_nicename', 'display_name'.
 	 *                                             Default empty array.
 	 *     @type string|array $orderby             Field(s) to sort the retrieved users by. May be a single value,
@@ -197,14 +197,14 @@ class WP_User_Query {
 	 *                                             published posts in those post types. `true` is an alias for all
 	 *                                             public post types.
 	 *     @type string       $nicename            The user nicename. Default empty.
-	 *     @type array        $nicename__in        An array of nicenames to include. Users matching one of these
+	 *     @type string[]     $nicename__in        An array of nicenames to include. Users matching one of these
 	 *                                             nicenames will be included in results. Default empty array.
-	 *     @type array        $nicename__not_in    An array of nicenames to exclude. Users matching one of these
+	 *     @type string[]     $nicename__not_in    An array of nicenames to exclude. Users matching one of these
 	 *                                             nicenames will not be included in results. Default empty array.
 	 *     @type string       $login               The user login. Default empty.
-	 *     @type array        $login__in           An array of logins to include. Users matching one of these
+	 *     @type string[]     $login__in           An array of logins to include. Users matching one of these
 	 *                                             logins will be included in results. Default empty array.
-	 *     @type array        $login__not_in       An array of logins to exclude. Users matching one of these
+	 *     @type string[]     $login__not_in       An array of logins to exclude. Users matching one of these
 	 *                                             logins will not be included in results. Default empty array.
 	 * }
 	 */
@@ -219,15 +219,14 @@ class WP_User_Query {
 		/**
 		 * Fires before the WP_User_Query has been parsed.
 		 *
-		 * The passed WP_User_Query object contains the query variables, not
-		 * yet passed into SQL.
+		 * The passed WP_User_Query object contains the query variables,
+		 * not yet passed into SQL.
 		 *
 		 * @since 4.0.0
 		 *
-		 * @param WP_User_Query $this The current WP_User_Query instance,
-		 *                            passed by reference.
+		 * @param WP_User_Query $query Current instance of WP_User_Query (passed by reference).
 		 */
-		do_action( 'pre_get_users', $this );
+		do_action_ref_array( 'pre_get_users', array( &$this ) );
 
 		// Ensure that query vars are filled after 'pre_get_users'.
 		$qv =& $this->query_vars;
@@ -279,7 +278,7 @@ class WP_User_Query {
 			}
 
 			$posts_table        = $wpdb->get_blog_prefix( $blog_id ) . 'posts';
-			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . join( ', ', $post_types ) . ' ) )';
+			$this->query_where .= " AND $wpdb->users.ID IN ( SELECT DISTINCT $posts_table.post_author FROM $posts_table WHERE $posts_table.post_status = 'publish' AND $posts_table.post_type IN ( " . implode( ', ', $post_types ) . ' ) )';
 		}
 
 		// nicename
@@ -545,7 +544,7 @@ class WP_User_Query {
 			 *
 			 * @param string[]      $search_columns Array of column names to be searched.
 			 * @param string        $search         Text being searched.
-			 * @param WP_User_Query $this           The current WP_User_Query instance.
+			 * @param WP_User_Query $query          The current WP_User_Query instance.
 			 */
 			$search_columns = apply_filters( 'user_search_columns', $search_columns, $search, $this );
 
@@ -576,8 +575,7 @@ class WP_User_Query {
 		 *
 		 * @since 3.1.0
 		 *
-		 * @param WP_User_Query $this The current WP_User_Query instance,
-		 *                            passed by reference.
+		 * @param WP_User_Query $query Current instance of WP_User_Query (passed by reference).
 		 */
 		do_action_ref_array( 'pre_user_query', array( &$this ) );
 	}
@@ -597,7 +595,8 @@ class WP_User_Query {
 		/**
 		 * Filters the users array before the query takes place.
 		 *
-		 * Return a non-null value to bypass WordPress's default user queries.
+		 * Return a non-null value to bypass WordPress' default user queries.
+		 *
 		 * Filtering functions that require pagination information are encouraged to set
 		 * the `total_users` property of the WP_User_Query object, passed to the filter
 		 * by reference. If WP_User_Query does not perform a database query, it will not
@@ -605,9 +604,9 @@ class WP_User_Query {
 		 *
 		 * @since 5.1.0
 		 *
-		 * @param array|null $results Return an array of user data to short-circuit WP's user query
-		 *                            or null to allow WP to run its normal queries.
-		 * @param WP_User_Query $this The WP_User_Query instance (passed by reference).
+		 * @param array|null    $results Return an array of user data to short-circuit WP's user query
+		 *                               or null to allow WP to run its normal queries.
+		 * @param WP_User_Query $query   The WP_User_Query instance (passed by reference).
 		 */
 		$this->results = apply_filters_ref_array( 'users_pre_query', array( null, &$this ) );
 
@@ -629,8 +628,8 @@ class WP_User_Query {
 				 *
 				 * @global wpdb $wpdb WordPress database abstraction object.
 				 *
-				 * @param string $sql         The SELECT FOUND_ROWS() query for the current WP_User_Query.
-				 * @param WP_User_Query $this The current WP_User_Query instance.
+				 * @param string        $sql   The SELECT FOUND_ROWS() query for the current WP_User_Query.
+				 * @param WP_User_Query $query The current WP_User_Query instance.
 				 */
 				$found_users_query = apply_filters( 'found_users_query', 'SELECT FOUND_ROWS()', $this );
 

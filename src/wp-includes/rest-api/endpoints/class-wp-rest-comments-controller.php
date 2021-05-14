@@ -449,7 +449,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 			}
 
 			/**
-			 * Filter whether comments can be created without authentication.
+			 * Filters whether comments can be created via the REST API without authentication.
 			 *
 			 * Enables creating comments for anonymous users.
 			 *
@@ -587,11 +587,11 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 
 		$prepared_comment['comment_type'] = 'comment';
 
-		/*
-		 * Do not allow a comment to be created with missing or empty
-		 * comment_content. See wp_handle_comment_submission().
-		 */
-		if ( empty( $prepared_comment['comment_content'] ) ) {
+		if ( ! isset( $prepared_comment['comment_content'] ) ) {
+			$prepared_comment['comment_content'] = '';
+		}
+
+		if ( ! $this->check_is_comment_content_allowed( $prepared_comment ) ) {
 			return new WP_Error(
 				'rest_comment_content_invalid',
 				__( 'Invalid comment content.' ),
@@ -955,14 +955,14 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$force = isset( $request['force'] ) ? (bool) $request['force'] : false;
 
 		/**
-		 * Filters whether a comment can be trashed.
+		 * Filters whether a comment can be trashed via the REST API.
 		 *
-		 * Return false to disable Trash support for the post.
+		 * Return false to disable trash support for the comment.
 		 *
 		 * @since 4.7.0
 		 *
-		 * @param bool    $supports_trash Whether the post type support trashing.
-		 * @param WP_Post $comment        The comment object being considered for trashing support.
+		 * @param bool       $supports_trash Whether the comment supports trashing.
+		 * @param WP_Comment $comment        The comment object being considered for trashing support.
 		 */
 		$supports_trash = apply_filters( 'rest_comment_trashable', ( EMPTY_TRASH_DAYS > 0 ), $comment );
 
@@ -1120,7 +1120,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $comment ) );
 
 		/**
-		 * Filters a comment returned from the API.
+		 * Filters a comment returned from the REST API.
 		 *
 		 * Allows modification of the comment right before it is returned.
 		 *
@@ -1159,14 +1159,12 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		if ( 0 !== (int) $comment->comment_post_ID ) {
-			$post = get_post( $comment->comment_post_ID );
+			$post       = get_post( $comment->comment_post_ID );
+			$post_route = rest_get_route_for_post( $post );
 
-			if ( ! empty( $post->ID ) ) {
-				$obj  = get_post_type_object( $post->post_type );
-				$base = ! empty( $obj->rest_base ) ? $obj->rest_base : $obj->name;
-
+			if ( ! empty( $post->ID ) && $post_route ) {
 				$links['up'] = array(
-					'href'       => rest_url( 'wp/v2/' . $base . '/' . $comment->comment_post_ID ),
+					'href'       => rest_url( $post_route ),
 					'embeddable' => true,
 					'post_type'  => $post->post_type,
 				);
@@ -1282,9 +1280,9 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		 * the 'content.raw' properties of the Request object.
 		 */
 		if ( isset( $request['content'] ) && is_string( $request['content'] ) ) {
-			$prepared_comment['comment_content'] = $request['content'];
+			$prepared_comment['comment_content'] = trim( $request['content'] );
 		} elseif ( isset( $request['content']['raw'] ) && is_string( $request['content']['raw'] ) ) {
-			$prepared_comment['comment_content'] = $request['content']['raw'];
+			$prepared_comment['comment_content'] = trim( $request['content']['raw'] );
 		}
 
 		if ( isset( $request['post'] ) ) {
@@ -1353,7 +1351,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters a comment after it is prepared for the database.
+		 * Filters a comment added via the REST API after it is prepared for insertion into the database.
 		 *
 		 * Allows modification of the comment right after it is prepared for the database.
 		 *
@@ -1676,7 +1674,7 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the comments controller.
+		 * Filters REST API collection parameters for the comments controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_Comment_Query parameter. Use the
@@ -1867,5 +1865,40 @@ class WP_REST_Comments_Controller extends WP_REST_Controller {
 		}
 
 		return $email;
+	}
+
+	/**
+	 * If empty comments are not allowed, checks if the provided comment content is not empty.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $prepared_comment The prepared comment data.
+	 * @return bool True if the content is allowed, false otherwise.
+	 */
+	protected function check_is_comment_content_allowed( $prepared_comment ) {
+		$check = wp_parse_args(
+			$prepared_comment,
+			array(
+				'comment_post_ID'      => 0,
+				'comment_parent'       => 0,
+				'user_ID'              => 0,
+				'comment_author'       => null,
+				'comment_author_email' => null,
+				'comment_author_url'   => null,
+			)
+		);
+
+		/** This filter is documented in wp-includes/comment.php */
+		$allow_empty = apply_filters( 'allow_empty_comment', false, $check );
+
+		if ( $allow_empty ) {
+			return true;
+		}
+
+		/*
+		 * Do not allow a comment to be created with missing or empty
+		 * comment_content. See wp_handle_comment_submission().
+		 */
+		return '' !== $check['comment_content'];
 	}
 }

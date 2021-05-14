@@ -960,4 +960,124 @@ class Tests_Comment_CommentsTemplate extends WP_UnitTestCase {
 		$found_cids = array_map( 'intval', $matches[1] );
 		$this->assertSame( array( $comment_3 ), $found_cids );
 	}
+
+	/**
+	 * @ticket 38074
+	 * @dataProvider data_comments_template_top_level_query_args
+	 *
+	 * @param array $expected             Array of expected values.
+	 * @param array $query_args           Args for the 'comments_template_query_args' filter.
+	 * @param array $top_level_query_args Args for the 'comments_template_top_level_query_args' filter.
+	 */
+	public function test_comments_template_top_level_query_args( $expected, $query_args, $top_level_query_args ) {
+		$now         = time();
+		$offset      = 0;
+		$p           = self::factory()->post->create();
+		$comment_ids = array();
+
+		for ( $num = 1; $num <= 6; $num++ ) {
+			$comment_ids[ $num ] = self::factory()->comment->create(
+				array(
+					'comment_post_ID'  => $p,
+					'comment_content'  => "{$num}",
+					'comment_date_gmt' => gmdate( 'Y-m-d H:i:s', $now - 100 * $num ),
+				)
+			);
+			add_comment_meta( $comment_ids[ $num ], 'featured', $num > 3 ? '1' : '0' );
+		}
+
+		update_option( 'comment_order', 'asc' );
+		update_option( 'comments_per_page', 3 );
+		update_option( 'page_comments', 1 );
+		update_option( 'default_comments_page', 'newest' );
+
+		add_filter(
+			'comments_template_query_args',
+			function ( $args ) use ( &$offset, $query_args ) {
+				$offset = $args['offset'];
+
+				return array_merge( $args, $query_args );
+			}
+		);
+
+		if ( ! empty( $top_level_query_args ) ) {
+			add_filter(
+				'comments_template_top_level_query_args',
+				function ( $args ) use ( $top_level_query_args ) {
+					return array_merge( $args, $top_level_query_args );
+				}
+			);
+		}
+
+		$this->go_to( get_permalink( $p ) );
+
+		$found = get_echo( 'comments_template' );
+		preg_match_all( '/id="comment-([0-9]+)"/', $found, $matches );
+
+		$expected_ids = array();
+		foreach ( $expected['ids'] as $index ) {
+			$expected_ids[] = $comment_ids[ $index ];
+		}
+
+		$this->assertSame( $expected_ids, array_map( 'intval', $matches[1] ) );
+		$this->assertEquals( $expected['offset'], $offset );
+	}
+
+	public function data_comments_template_top_level_query_args() {
+		return array(
+			array(
+				array(
+					'ids'    => array(),
+					'offset' => 3,
+				),
+				array(
+					'meta_key'   => 'featured',
+					'meta_value' => '1',
+				),
+				array(),
+			),
+			array(
+				array(
+					'ids'    => array(),
+					'offset' => 3,
+				),
+				array(
+					'order'      => 'DESC',
+					'meta_key'   => 'featured',
+					'meta_value' => '0',
+				),
+				array(),
+			),
+			array(
+				array(
+					'ids'    => array( 6, 5, 4 ),
+					'offset' => 0,
+				),
+				array(
+					'meta_key'   => 'featured',
+					'meta_value' => '1',
+				),
+				array(
+					'meta_key'   => 'featured',
+					'meta_value' => '1',
+				),
+			),
+			array(
+				array(
+					'ids'    => array( 4, 5, 6 ),
+					'offset' => 0,
+				),
+				array(
+					'order'      => 'DESC',
+					'meta_key'   => 'featured',
+					'meta_value' => '1',
+				),
+				array(
+					'order'      => 'DESC',
+					'meta_key'   => 'featured',
+					'meta_value' => '1',
+				),
+			),
+		);
+	}
 }

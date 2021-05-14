@@ -66,9 +66,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Check the meta data.
-		$this->assertEquals( -1, (string) $xml->response[0]->edit_comment['position'] );
-		$this->assertEquals( $comment->comment_ID, (string) $xml->response[0]->edit_comment['id'] );
-		$this->assertEquals( 'edit-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
+		$this->assertSame( '-1', (string) $xml->response[0]->edit_comment['position'] );
+		$this->assertSame( $comment->comment_ID, (string) $xml->response[0]->edit_comment['id'] );
+		$this->assertSame( 'edit-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
 
 		// Check the payload.
 		$this->assertNotEmpty( (string) $xml->response[0]->edit_comment[0]->response_data );
@@ -114,9 +114,9 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$xml = simplexml_load_string( $this->_last_response, 'SimpleXMLElement', LIBXML_NOCDATA );
 
 		// Check the meta data.
-		$this->assertEquals( -1, (string) $xml->response[0]->edit_comment['position'] );
-		$this->assertEquals( $comment->comment_ID, (string) $xml->response[0]->edit_comment['id'] );
-		$this->assertEquals( 'edit-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
+		$this->assertSame( '-1', (string) $xml->response[0]->edit_comment['position'] );
+		$this->assertSame( $comment->comment_ID, (string) $xml->response[0]->edit_comment['id'] );
+		$this->assertSame( 'edit-comment_' . $comment->comment_ID, (string) $xml->response['action'] );
 
 		// Check the payload.
 		$this->assertNotEmpty( (string) $xml->response[0]->edit_comment[0]->response_data );
@@ -149,7 +149,8 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 
@@ -177,7 +178,8 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'get-comments' );
 	}
 
@@ -197,7 +199,8 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		$_POST['content']                     = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', '-1' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( '-1' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 
@@ -225,7 +228,8 @@ class Tests_Ajax_EditComment extends WP_Ajax_UnitTestCase {
 		add_filter( 'wp_update_comment_data', array( $this, '_wp_update_comment_data_filter' ), 10, 3 );
 
 		// Make the request.
-		$this->setExpectedException( 'WPAjaxDieStopException', 'wp_update_comment_data filter fails for this comment.' );
+		$this->expectException( 'WPAjaxDieStopException' );
+		$this->expectExceptionMessage( 'wp_update_comment_data filter fails for this comment.' );
 		$this->_handleAjax( 'edit-comment' );
 	}
 

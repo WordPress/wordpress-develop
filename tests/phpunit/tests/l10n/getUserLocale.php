@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Tests_Get_User_Locale extends WP_UnitTestCase {
+class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 	protected $user_id;
 
 	public function setUp() {
@@ -21,7 +21,6 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		delete_user_meta( $this->user_id, 'locale' );
 		set_current_screen( 'front' );
 
 		parent::tearDown();
@@ -73,7 +72,7 @@ class Tests_Get_User_Locale extends WP_UnitTestCase {
 	 */
 	public function test_user_locale_is_same_across_network() {
 		if ( ! is_multisite() ) {
-			$this->markTestSkipped( __METHOD__ . ' requires multisite' );
+			$this->markTestSkipped( __METHOD__ . ' requires Multisite.' );
 		}
 
 		$user_locale = get_user_locale();

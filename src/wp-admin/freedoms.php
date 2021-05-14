@@ -24,17 +24,21 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-title">
-			<p>
-				<?php _e( 'WordPress' ); ?>
-				<span><?php echo $display_version; ?></span>
-			</p>
+		<div class="about__header-image">
+			<img alt="<?php _e( 'Code is Poetry' ); ?>" src="<?php echo admin_url( 'images/about-badge.svg' ); ?>" />
 		</div>
 
-		<div class="about__header-text">
-			<p>
-				<?php _e( 'Building more with blocks, faster and easier.' ); ?>
-			</p>
+		<div class="about__header-container">
+			<div class="about__header-title">
+				<p>
+					<?php _e( 'WordPress' ); ?>
+					<?php echo $display_version; ?>
+				</p>
+			</div>
+
+			<div class="about__header-text">
+				<?php _e( 'Jazz up your stories in an editor that’s cleaner, crisper, and does more to get out of your way.' ); ?>
+			</div>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -84,9 +88,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 	</div>
 
-	<hr />
-
-	<div class="about__section">
+	<div class="about__section has-1-column">
 		<div class="column">
 			<p>
 			<?php

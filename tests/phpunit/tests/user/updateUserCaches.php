@@ -24,7 +24,7 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 
 		update_user_caches( $data );
 
-		$this->assertEquals( 12345, wp_cache_get( 'foo', 'userlogins' ) );
+		$this->assertSame( 12345, wp_cache_get( 'foo', 'userlogins' ) );
 	}
 
 	public function test_should_store_user_id_in_useremail_bucket() {
@@ -36,7 +36,7 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 
 		update_user_caches( $data );
 
-		$this->assertEquals( 12345, wp_cache_get( 'foo@example.com', 'useremail' ) );
+		$this->assertSame( 12345, wp_cache_get( 'foo@example.com', 'useremail' ) );
 	}
 
 	public function test_should_store_user_id_in_userslugs_bucket() {
@@ -48,7 +48,7 @@ class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 
 		update_user_caches( $data );
 
-		$this->assertEquals( 12345, wp_cache_get( 'bar', 'userslugs' ) );
+		$this->assertSame( 12345, wp_cache_get( 'bar', 'userslugs' ) );
 	}
 
 	/**

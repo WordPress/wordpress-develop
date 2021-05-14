@@ -10,6 +10,7 @@ require ABSPATH . WPINC . '/blocks/archives.php';
 require ABSPATH . WPINC . '/blocks/block.php';
 require ABSPATH . WPINC . '/blocks/calendar.php';
 require ABSPATH . WPINC . '/blocks/categories.php';
+require ABSPATH . WPINC . '/blocks/file.php';
 require ABSPATH . WPINC . '/blocks/latest-comments.php';
 require ABSPATH . WPINC . '/blocks/latest-posts.php';
 require ABSPATH . WPINC . '/blocks/rss.php';
@@ -29,11 +30,11 @@ function register_core_block_types_from_metadata() {
 		'audio',
 		'button',
 		'buttons',
-		'classic',
 		'code',
 		'column',
 		'columns',
-		'file',
+		'embed',
+		'freeform',
 		'gallery',
 		'group',
 		'heading',
@@ -51,7 +52,6 @@ function register_core_block_types_from_metadata() {
 		'separator',
 		'social-links',
 		'spacer',
-		'subhead',
 		'table',
 		'text-columns',
 		'verse',

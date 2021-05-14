@@ -35,7 +35,7 @@ if ( ! empty( $_REQUEST['paged'] ) ) {
 	$referer = add_query_arg( 'paged', (int) $_REQUEST['paged'], $referer );
 }
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
 	wp_die( __( 'Invalid site ID.' ) );
@@ -140,12 +140,7 @@ if ( $action ) {
 		case 'promote':
 			check_admin_referer( 'bulk-users' );
 			$editable_roles = get_editable_roles();
-			$role           = false;
-			if ( ! empty( $_REQUEST['new_role2'] ) ) {
-				$role = $_REQUEST['new_role2'];
-			} elseif ( ! empty( $_REQUEST['new_role'] ) ) {
-				$role = $_REQUEST['new_role'];
-			}
+			$role           = $_REQUEST['new_role'];
 
 			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
@@ -220,7 +215,7 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 
 <script type="text/javascript">
-var current_site_id = <?php echo $id; ?>;
+var current_site_id = <?php echo absint( $id ); ?>;
 </script>
 
 

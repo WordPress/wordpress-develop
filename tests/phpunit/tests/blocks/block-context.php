@@ -44,12 +44,12 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		while ( ! empty( $this->registered_block_names ) ) {
 			$block_name = array_pop( $this->registered_block_names );
 			unregister_block_type( $block_name );
 		}
+
+		parent::tearDown();
 	}
 
 	/**
@@ -131,7 +131,7 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 
 		render_block( $parsed_blocks[0] );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'gutenberg/contextWithDefault'  => 0,
 				'gutenberg/contextWithAssigned' => 10,
@@ -167,7 +167,7 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 
 		render_block( $parsed_blocks[0] );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'postId'   => $post->ID,
 				'postType' => $post->post_type,
@@ -209,7 +209,7 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 
 		remove_filter( 'render_block_context', $filter_block_context );
 
-		$this->assertEquals( array( 'example' => 'ok' ), $provided_context[0] );
+		$this->assertSame( array( 'example' => 'ok' ), $provided_context[0] );
 	}
 
 }

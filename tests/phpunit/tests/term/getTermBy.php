@@ -232,7 +232,7 @@ class Tests_Term_GetTermBy extends WP_UnitTestCase {
 		get_term_by( 'name', 'burrito', 'post_tag' );
 		remove_filter( 'get_terms', array( $action, 'filter' ) );
 
-		$this->assertEquals( 0, $action->get_call_count() );
+		$this->assertSame( 0, $action->get_call_count() );
 	}
 
 	/**

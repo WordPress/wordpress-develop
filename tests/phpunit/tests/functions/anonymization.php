@@ -10,12 +10,14 @@
 /**
  * Class Tests_Functions_Anonymization.
  *
+ * @since 4.9.6
+ *
  * @group functions.php
  * @group privacy
- *
- * @since 4.9.6
+ * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
+
 	/**
 	 * Test that wp_privacy_anonymize_ip() properly anonymizes all possible IP address formats.
 	 *
@@ -23,20 +25,18 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @ticket 41083
 	 * @ticket 43545
+	 * @requires function inet_ntop
+	 * @requires function inet_pton
 	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.
 	 */
 	public function test_wp_privacy_anonymize_ip( $raw_ip, $expected_result ) {
-		if ( ! function_exists( 'inet_ntop' ) || ! function_exists( 'inet_pton' ) ) {
-			$this->markTestSkipped( 'This test requires both the inet_ntop() and inet_pton() functions.' );
-		}
-
 		$actual_result = wp_privacy_anonymize_data( 'ip', $raw_ip );
 
 		/* Todo test ipv6_fallback mode if keeping it.*/
 
-		$this->assertEquals( $expected_result, $actual_result );
+		$this->assertSame( $expected_result, $actual_result );
 	}
 
 	/**
@@ -226,7 +226,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * Test date anonymization of `wp_privacy_anonymize_data()`.
 	 */
 	public function test_anonymize_date() {
-		$this->assertEquals( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
+		$this->assertSame( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
 	}
 
 	/**
@@ -234,7 +234,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertEquals( '[deleted]', wp_privacy_anonymize_data( 'text', $text ) );
+		$this->assertSame( '[deleted]', wp_privacy_anonymize_data( 'text', $text ) );
 	}
 
 	/**
@@ -242,7 +242,7 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 */
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
-		$this->assertEquals( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
+		$this->assertSame( 'This content was deleted by the author.', wp_privacy_anonymize_data( 'longtext', $text ) );
 	}
 
 	/**
