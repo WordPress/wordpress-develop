@@ -15,9 +15,6 @@ describe( 'Users tests', () => {
 		await page.type( '#user_login', username );
 		await page.focus( '#email' );
 		await page.type( '#email', email );
-		await page.focus( '#pass1' );
-		await pressKeyWithModifier( 'primary', 'a' );
-		await page.type( '#pass1', password );
 		await page.click( "#createusersub" );
 
 		const nodes = await page.$x(
