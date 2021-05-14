@@ -78,7 +78,7 @@ class Tests_Post_wpInsertPost extends WP_UnitTestCase {
 				'post_status' => 'publish',
 			)
 		);
-		( $trashed_about_page_id );
+		wp_trash_post( $trashed_about_page_id );
 		$this->assertSame( 'about__trashed', get_post( $trashed_about_page_id )->post_name );
 	}
 

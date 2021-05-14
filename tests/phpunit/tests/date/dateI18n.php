@@ -98,9 +98,9 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	/*
-	* @covers ::date_i18n
-	*/
+	/**
+	 * @covers ::date_i18n
+	 */
 	public function test_adjusts_format_based_on_timezone_string() {
 		update_option( 'timezone_string', 'America/Regina' );
 
@@ -126,7 +126,7 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 		$this->assertSame( $datetime->format( $timezone_formats ), date_i18n( $timezone_formats ) );
 	}
 
-/**
+	/**
 	 * @ticket 20973
 	 *
 	 * @dataProvider data_formats
@@ -197,8 +197,10 @@ class Tests_Date_DateI18n extends WP_UnitTestCase {
 	 *
 	 * @dataProvider dst_times
 	 *
-	 * @param string $time     Time to test in Y-m-d H:i:s format.
+	 * @param string $time Time to test in Y-m-d H:i:s format.
 	 * @param string $timezone PHP timezone string to use.
+	 *
+	 * @throws Exception
 	 *
 	 * @covers ::date_i18n
 	 */
