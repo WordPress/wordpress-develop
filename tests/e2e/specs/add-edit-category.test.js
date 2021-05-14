@@ -69,7 +69,7 @@ describe( 'Categories tests', () => {
 		expect( editorCategoryTitleInput.length ).toBe( 1 );
 	} );
 
-	it( 'allows the title of the category to be updated on the edit page', async () => {
+	/* it( 'allows the title of the category to be updated on the edit page', async () => {
 		const newCategoryEditedTitle = "New Category Edited Title"
 		await page.waitForSelector( '#the-list tr' );
 		// Click the first (new created) category title (edit) link
@@ -92,7 +92,7 @@ describe( 'Categories tests', () => {
 		);
 		expect( editedCategoryTitle.length ).toBe( 1 );
 
-	} );
+	} ); */
 
 	it( 'allows an existing category to be quick edited using the Quick Edit button', async () => {
 		await page.waitForSelector( '#the-list tr' );
