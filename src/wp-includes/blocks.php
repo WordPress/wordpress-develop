@@ -157,23 +157,47 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( empty( $metadata[ $field_name ] ) ) {
 		return false;
 	}
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	if ( $is_core_block && ! should_load_separate_core_block_assets() ) {
+		return false;
+	}
+
+	// Check whether styles should have a ".min" suffix or not.
+	$suffix = SCRIPT_DEBUG ? '' : '.min';
+
 	$style_handle = $metadata[ $field_name ];
 	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
-	if ( $style_handle === $style_path ) {
+
+	if ( $style_handle === $style_path && ! $is_core_block ) {
 		return $style_handle;
+	}
+
+	$style_uri = plugins_url( $style_path, $metadata['file'] );
+	if ( $is_core_block ) {
+		$style_path = "style$suffix.css";
+		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir    = dirname( $metadata['file'] );
 	$style_file   = realpath( "$block_dir/$style_path" );
+	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
 	$result       = wp_register_style(
 		$style_handle,
-		plugins_url( $style_path, $metadata['file'] ),
+		$style_uri,
 		array(),
-		filemtime( $style_file )
+		$version
 	);
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
+	}
+	if ( file_exists( $style_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $style_file );
+	}
+
+	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
+	if ( is_rtl() && file_exists( $rtl_file ) ) {
+		wp_style_add_data( $style_handle, 'path', $rtl_file );
 	}
 
 	return $result ? $style_handle : false;

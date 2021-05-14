@@ -1501,8 +1501,9 @@ function wp_default_styles( $styles ) {
 		$fonts_url = 'https://fonts.googleapis.com/css?family=' . urlencode( $font_family );
 	}
 	$styles->add( 'wp-editor-font', $fonts_url ); // No longer used in core as of 5.7.
-
-	$styles->add( 'wp-block-library-theme', "/wp-includes/css/dist/block-library/theme$suffix.css" );
+	$block_library_theme_path = WPINC . "/css/dist/block-library/theme$suffix.css";
+	$styles->add( 'wp-block-library-theme', "/$block_library_theme_path" );
+	$styles->add_data( 'wp-block-library-theme', 'path', ABSPATH . $block_library_theme_path );
 
 	$styles->add(
 		'wp-reset-editor-styles',
@@ -1571,7 +1572,11 @@ function wp_default_styles( $styles ) {
 		$handle = 'wp-' . $package;
 		$path   = "/wp-includes/css/dist/$package/style$suffix.css";
 
+		if ( 'block-library' === $package && should_load_separate_core_block_assets() ) {
+			$path = "/wp-includes/css/dist/$package/common$suffix.css";
+		}
 		$styles->add( $handle, $path, $dependencies );
+		$styles->add_data( $handle, 'path', ABSPATH . $path );
 	}
 
 	// RTL CSS.
@@ -2248,7 +2253,7 @@ function wp_common_block_scripts_and_styles() {
  *
  * @since 5.6.0
  *
- * @return bool
+ * @return bool Whether scripts and styles should be enqueued.
  */
 function wp_should_load_block_editor_scripts_and_styles() {
 	global $current_screen;
@@ -2256,14 +2261,38 @@ function wp_should_load_block_editor_scripts_and_styles() {
 	$is_block_editor_screen = ( $current_screen instanceof WP_Screen ) && $current_screen->is_block_editor();
 
 	/**
-	 * Filters the flag that decides whether or not block editor scripts and
-	 * styles are going to be enqueued on the current screen.
+	 * Filters the flag that decides whether or not block editor scripts and styles
+	 * are going to be enqueued on the current screen.
 	 *
 	 * @since 5.6.0
 	 *
 	 * @param bool $is_block_editor_screen Current value of the flag.
 	 */
 	return apply_filters( 'should_load_block_editor_scripts_and_styles', $is_block_editor_screen );
+}
+
+/**
+ * Checks whether separate assets should be loaded for core blocks on-render.
+ *
+ * @since 5.8.0
+ *
+ * @return bool Whether separate assets will be loaded or not.
+ */
+function should_load_separate_core_block_assets() {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return false;
+	}
+
+	/**
+	 * Filters the flag that decides whether or not separate scripts and styles
+	 * will be loaded for core blocks on-render or not.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param bool $load_separate_assets Whether separate assets will be loaded or not.
+	 *                                   Default false.
+	 */
+	return apply_filters( 'separate_core_block_assets', false );
 }
 
 /**
@@ -2276,6 +2305,10 @@ function wp_should_load_block_editor_scripts_and_styles() {
  */
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
+
+	if ( should_load_separate_core_block_assets() ) {
+		return;
+	}
 
 	$load_editor_scripts = is_admin() && wp_should_load_block_editor_scripts_and_styles();
 
@@ -2494,4 +2527,81 @@ function wp_get_inline_script_tag( $javascript, $attributes = array() ) {
  */
 function wp_print_inline_script_tag( $javascript, $attributes = array() ) {
 	echo wp_get_inline_script_tag( $javascript, $attributes );
+}
+
+/**
+ * Allows small styles to be inlined.
+ *
+ * This improves performance and sustainability, and is opt-in. Stylesheets can opt in
+ * by adding `path` data using `wp_style_add_data`, and defining the file's absolute path:
+ *
+ *     wp_style_add_data( $style_handle, 'path', $file_path );
+ *
+ * @since 5.8.0
+ *
+ * @global WP_Styles $wp_styles
+ */
+function wp_maybe_inline_styles() {
+	global $wp_styles;
+
+	$total_inline_limit = 20000;
+	/**
+	 * The maximum size of inlined styles in bytes.
+	 *
+	 * @param int $total_inline_limit The file-size threshold, in bytes. Defaults to 20000.
+	 */
+	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
+
+	$styles = array();
+
+	// Build an array of styles that have a path defined.
+	foreach ( $wp_styles->queue as $handle ) {
+		if ( wp_styles()->get_data( $handle, 'path' ) && file_exists( $wp_styles->registered[ $handle ]->extra['path'] ) ) {
+			$styles[] = array(
+				'handle' => $handle,
+				'path'   => $wp_styles->registered[ $handle ]->extra['path'],
+				'size'   => filesize( $wp_styles->registered[ $handle ]->extra['path'] ),
+			);
+		}
+	}
+
+	if ( ! empty( $styles ) ) {
+		// Reorder styles array based on size.
+		usort(
+			$styles,
+			function( $a, $b ) {
+				return ( $a['size'] <= $b['size'] ) ? -1 : 1;
+			}
+		);
+
+		/*
+		 * The total inlined size.
+		 *
+		 * On each iteration of the loop, if a style gets added inline the value of this var increases
+		 * to reflect the total size of inlined styles.
+		 */
+		$total_inline_size = 0;
+
+		// Loop styles.
+		foreach ( $styles as $style ) {
+
+			// Size check. Since styles are ordered by size, we can break the loop.
+			if ( $total_inline_size + $style['size'] > $total_inline_limit ) {
+				break;
+			}
+
+			// Get the styles if we don't already have them.
+			$style['css'] = file_get_contents( $style['path'] );
+
+			// Set `src` to `false` and add styles inline.
+			$wp_styles->registered[ $style['handle'] ]->src = false;
+			if ( empty( $wp_styles->registered[ $style['handle'] ]->extra['after'] ) ) {
+				$wp_styles->registered[ $style['handle'] ]->extra['after'] = array();
+			}
+			array_unshift( $wp_styles->registered[ $style['handle'] ]->extra['after'], $style['css'] );
+
+			// Add the styles size to the $total_inline_size var.
+			$total_inline_size += (int) $style['size'];
+		}
+	}
 }
