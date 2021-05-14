@@ -33,8 +33,7 @@ describe( 'Categories tests', () => {
 		await pressKeyWithModifier( 'primary', 'a' );
 		await page.type( '#tag-name', title );
 		await page.click( '#submit' );
-
-		await page.reload();
+		await page.waitForSelector( '#the-list tr + tr' )
 	} );
 
 	it( 'shows the new created category with the correct title', async () => {
@@ -139,7 +138,6 @@ describe( 'Categories tests', () => {
 		// Tab to the Delete button and press Enter to delete the category.
 		await pressKeyTimes( 'Tab', 3 );
 		await page.keyboard.press( 'Enter' );
-
 		await page.reload();
 		
 		// Expect there to be only one row in the categories list.
