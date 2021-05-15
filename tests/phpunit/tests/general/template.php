@@ -568,6 +568,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9862
+	 * @ticket 51166
 	 * @dataProvider data_selected_and_checked_with_equal_values
 	 *
 	 * @covers ::selected
@@ -595,6 +596,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 9862
+	 * @ticket 51166
 	 * @dataProvider data_selected_and_checked_with_non_equal_values
 	 *
 	 * @covers ::selected
