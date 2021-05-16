@@ -165,10 +165,12 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
 function apply_filters( $hook_name, $value, ...$args ) {
 	global $wp_filter, $wp_current_filter;
 
+	$all_args = array_merge( array( $value ), $args );
+
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $hook_name;
-		_wp_call_all_hook( array( $hook_name, $value, ...$args ) );
+		_wp_call_all_hook( array_merge( array( $hook_name ), $all_args ) );
 	}
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
@@ -183,7 +185,7 @@ function apply_filters( $hook_name, $value, ...$args ) {
 		$wp_current_filter[] = $hook_name;
 	}
 
-	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, array( $value, ...$args ) );
+	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $all_args );
 
 	array_pop( $wp_current_filter );
 
