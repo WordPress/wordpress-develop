@@ -780,14 +780,19 @@ class WP_Posts_List_Table extends WP_List_Table {
 	private function _display_rows( $posts, $level = 0 ) {
 		$post_type = $this->screen->post_type;
 
-		// Create array of post IDs.
-		$post_ids = array();
-
-		foreach ( $posts as $a_post ) {
-			$post_ids[] = $a_post->ID;
-		}
-
 		if ( post_type_supports( $post_type, 'comments' ) ) {
+
+			// Create array of post IDs.
+			$post_ids = array();
+
+			foreach ( $posts as $a_post ) {
+				if ( is_object( $a_post ) ) {
+					$post_ids[] = $a_post->ID;
+				} else {
+					$post_ids[] = $a_post;
+				}
+			}
+
 			$this->comment_pending_count = get_pending_comments_num( $post_ids );
 		}
 
