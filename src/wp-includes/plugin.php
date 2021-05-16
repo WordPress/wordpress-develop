@@ -160,15 +160,13 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  * @param mixed  ...$args   Additional parameters to pass to the callback functions.
  * @return mixed The filtered value after all hooked functions are applied to it.
  */
-function apply_filters( $hook_name, $value ) {
+function apply_filters( $hook_name, $value, ...$args ) {
 	global $wp_filter, $wp_current_filter;
-
-	$args = func_get_args();
 
 	// Do 'all' actions first.
 	if ( isset( $wp_filter['all'] ) ) {
 		$wp_current_filter[] = $hook_name;
-		_wp_call_all_hook( $args );
+		_wp_call_all_hook( array( $hook_name, $value, ...$args ) );
 	}
 
 	if ( ! isset( $wp_filter[ $hook_name ] ) ) {
@@ -183,10 +181,7 @@ function apply_filters( $hook_name, $value ) {
 		$wp_current_filter[] = $hook_name;
 	}
 
-	// Don't pass the tag name to WP_Hook.
-	array_shift( $args );
-
-	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, $args );
+	$filtered = $wp_filter[ $hook_name ]->apply_filters( $value, array( $value, ...$args ) );
 
 	array_pop( $wp_current_filter );
 
