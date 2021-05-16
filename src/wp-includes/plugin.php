@@ -151,6 +151,8 @@ function add_filter( $hook_name, $callback, $priority = 10, $accepted_args = 1 )
  *     $value = apply_filters( 'example_filter', 'filter me', $arg1, $arg2 );
  *
  * @since 0.71
+ * @since x.x.x Formalized the existing and already documented `...$args` parameter
+ *              by adding it to the function signature.
  *
  * @global WP_Hook[] $wp_filter         Stores all of the filters and actions.
  * @global string[]  $wp_current_filter Stores the list of current filters with the current one last.
