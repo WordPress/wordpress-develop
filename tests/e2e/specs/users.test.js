@@ -10,17 +10,21 @@ describe( 'Users tests', () => {
 
 	beforeEach( async () => {
 		/**
-		 * Delete all existing users expect the default admin user
+		 * If there is more than one user delete all of them
 		 */
 		await visitAdminPage( 'users.php' );
-		await page.click( '[id^=cb-select-all-]' );
-		await page.select( '#bulk-action-selector-top', 'delete' );
+		const usersRows = await page.$$( '#the-list tr' );
+		if( usersRows.length > 1 ) {
+			await page.click( '[id^=cb-select-all-]' );
+			await page.select( '#bulk-action-selector-top', 'delete' );
 
-		// Do not delete the defaut admin user
-		await page.click( '[id^=user_1]' );
-		await page.click( '#doaction' );
-		await page.waitForSelector('#submit');
-		await page.click( '#submit' );
+			// Do not delete the defaut admin user
+			await page.click( '[id^=user_1]' );
+
+			await page.click( '#doaction' );
+			await page.waitForSelector( '#submit' );
+			await page.click( '#submit' );
+		}
 	} );
 
 	it( 'show the new added user', async () => {
