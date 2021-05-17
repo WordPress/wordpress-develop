@@ -39,7 +39,14 @@ describe( 'Users tests', () => {
 		await page.waitForNavigation();
 
 		// Expect the users table to contain two rows
+		//await page.waitForSelector( '#the-list tr + tr' )
 		const usersRows = await page.$$( '#the-list tr' );
 		expect ( usersRows.length ).toBe( 2 );
+
+		// Expect the new created username to be correct
+		const newUserName = await page.$x(
+			`//td/a[contains( text(), "${ username }" )]`
+		);
+		expect( newUserName.length ).toBe( 1 );
 	} );
 } );
