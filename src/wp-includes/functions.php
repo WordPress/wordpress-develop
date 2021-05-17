@@ -2886,6 +2886,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
 					'image/gif'  => 'gif',
 					'image/bmp'  => 'bmp',
 					'image/tiff' => 'tif',
+					'image/webp' => 'webp',
 				)
 			);
 
@@ -3043,6 +3044,7 @@ function wp_check_filetype_and_ext( $file, $filename, $mimes = null ) {
  * This depends on exif_imagetype() or getimagesize() to determine real mime types.
  *
  * @since 4.7.1
+ * @since 5.8.0 Added support for WebP images.
  *
  * @param string $file Full path to the file.
  * @return string|false The actual mime type or false if the type cannot be determined.
@@ -3058,11 +3060,52 @@ function wp_get_image_mime( $file ) {
 			$imagetype = exif_imagetype( $file );
 			$mime      = ( $imagetype ) ? image_type_to_mime_type( $imagetype ) : false;
 		} elseif ( function_exists( 'getimagesize' ) ) {
-			$imagesize = wp_getimagesize( $file );
-			$mime      = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
+			// Don't silence errors when in debug mode, unless running unit tests.
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG
+				&& ! defined( 'WP_RUN_CORE_TESTS' )
+			) {
+				// Not using wp_getimagesize() here to avoid an infinite loop.
+				$imagesize = getimagesize( $file );
+			} else {
+				// phpcs:ignore WordPress.PHP.NoSilencedErrors
+				$imagesize = @getimagesize( $file );
+			}
+
+			$mime = ( isset( $imagesize['mime'] ) ) ? $imagesize['mime'] : false;
 		} else {
 			$mime = false;
 		}
+
+		if ( false !== $mime ) {
+			return $mime;
+		}
+
+		$handle = fopen( $file, 'rb' );
+		if ( false === $handle ) {
+			return false;
+		}
+
+		$magic = fread( $handle, 12 );
+		if ( false === $magic ) {
+			return false;
+		}
+
+		/*
+		 * Add WebP fallback detection when image library doesn't support WebP.
+		 * Note: detection values come from LibWebP, see
+		 * https://github.com/webmproject/libwebp/blob/master/imageio/image_dec.c#L30
+		 */
+		$magic = bin2hex( $magic );
+		if (
+			// RIFF.
+			( 0 === strpos( $magic, '52494646' ) ) &&
+			// WEBP.
+			( 16 === strpos( $magic, '57454250' ) )
+		) {
+			$mime = 'image/webp';
+		}
+
+		fclose( $handle );
 	} catch ( Exception $e ) {
 		$mime = false;
 	}
@@ -3101,6 +3144,7 @@ function wp_get_mime_types() {
 			'png'                          => 'image/png',
 			'bmp'                          => 'image/bmp',
 			'tiff|tif'                     => 'image/tiff',
+			'webp'                         => 'image/webp',
 			'ico'                          => 'image/x-icon',
 			'heic'                         => 'image/heic',
 			// Video formats.
@@ -3222,7 +3266,7 @@ function wp_get_ext_types() {
 	return apply_filters(
 		'ext2type',
 		array(
-			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic' ),
+			'image'       => array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'bmp', 'tif', 'tiff', 'ico', 'heic', 'webp' ),
 			'audio'       => array( 'aac', 'ac3', 'aif', 'aiff', 'flac', 'm3a', 'm4a', 'm4b', 'mka', 'mp1', 'mp2', 'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 			'video'       => array( '3g2', '3gp', '3gpp', 'asf', 'avi', 'divx', 'dv', 'flv', 'm4v', 'mkv', 'mov', 'mp4', 'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt', 'rm', 'vob', 'wmv' ),
 			'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt', 'pages', 'pdf', 'xps', 'oxps', 'rtf', 'wp', 'wpd', 'psd', 'xcf' ),
