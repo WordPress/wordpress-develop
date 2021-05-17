@@ -21,9 +21,12 @@ describe( 'Categories tests', () => {
 		 * there could be existing categories
 		 */
 		await visitAdminPage( 'edit-tags.php', query );
-		await page.click( '[id^=cb-select-all-]' );
-		await page.select( '#bulk-action-selector-top', 'delete' );
-		await page.click( '#doaction' );
+		const categoriesRows = await page.$$( '#the-list tr' );
+		if( categoriesRows.length > 1 ) {
+			await page.click( '[id^=cb-select-all-]' );
+			await page.select( '#bulk-action-selector-top', 'delete' );
+			await page.click( '#doaction' );
+		}
 
 		/**
 		 * Create a new category with the title 'New Category'
@@ -158,12 +161,6 @@ describe( 'Categories tests', () => {
 		} );
 
 		await visitAdminPage( 'edit-tags.php', searchQuery );
-		await page.waitForSelector( '#the-list tr' );
-
-		// Expect the new category created category to be the only one 
-		// returned by the search
-		const categories = await page.$$( '#the-list tr' );
-		expect( categories.length ).toBe( 1 );
 
 		// Expect the title of the category returned by the search to match
 		// the new created category title
