@@ -2387,9 +2387,6 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
-		// Skip CSS variables.
-		// $css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
-
 		if ( $found ) {
 			// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
 			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
