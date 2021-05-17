@@ -63,4 +63,23 @@ describe( 'Users tests', () => {
 		expect( newUserName.length ).toBe( 1 );
 	
 	} );
+
+	it( 'should return a row with the class name "no-items', async () => {
+		await page.waitForSelector( '#user-search-input' )
+		await page.focus( '#user-search-input' );
+		await page.type( '#user-search-input', "Non existing user" );
+		await page.click( '#search-submit' );
+
+		// Expect the users table to have only one row with the class "no-items"
+		const notFoundRow = await page.$x(
+			`//tr[contains( @class, "no-items" )]`
+		);
+		expect( notFoundRow.length ).toBe( 1 );
+
+		// Expect the row of the users table to contain the text "No users found."
+		const notFoundText = await page.$x(
+			`//td[contains( text(), "No users found." )]`
+		);
+		expect( notFoundText.length ).toBe( 1 );
+	} );
 } );
