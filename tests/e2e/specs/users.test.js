@@ -48,4 +48,19 @@ describe( 'Users tests', () => {
 		);
 		expect( newUserName.length ).toBe( 1 );
 	} );
+
+	it( 'should return the appropriate results on a username search', async () => {
+		await page.waitForSelector( '#user-search-input' )
+		await page.focus( '#user-search-input' );
+		await page.type( '#user-search-input', username );
+		await page.click( '#search-submit' );
+	
+		// Expect the title of the user returned by the search to match
+		// the new created user title
+		const newUserName = await page.$x(
+			`//td/a[contains( text(), "${ username }" )]`
+		);
+		expect( newUserName.length ).toBe( 1 );
+	
+	} );
 } );
