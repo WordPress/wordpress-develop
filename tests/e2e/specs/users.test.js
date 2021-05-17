@@ -82,4 +82,13 @@ describe( 'Users tests', () => {
 		);
 		expect( notFoundText.length ).toBe( 1 );
 	} );
+
+	it( 'should not allows an admin to change their role', async () => {
+		await visitAdminPage( 'profile.php' );
+		
+		// Expect the role changing role to not be present on the admin profile
+		// page when logged in as admin
+		const roleChangingRow = await page.$$( '#user-role-wrap' );
+		expect( roleChangingRow.length ).toBe( 0 );
+	} );
 } );
