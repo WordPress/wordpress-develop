@@ -6192,6 +6192,11 @@ mockedApiResponse.Schema = {
                                 "closed"
                             ],
                             "required": false
+                        },
+                        "site_logo": {
+                            "description": "Site logo.",
+                            "type": "integer",
+                            "required": false
                         }
                     }
                 }
@@ -8011,5 +8016,6 @@ mockedApiResponse.settings = {
     "default_post_format": "0",
     "posts_per_page": 10,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+    "site_logo": null
 };
