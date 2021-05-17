@@ -6,7 +6,6 @@ import {
 describe( 'Users tests', () => {
 	const username = "testuser";
 	const email = "testuser@test.com";
-	// const password = "password";
 
 	beforeEach( async () => {
 		/**
@@ -25,21 +24,21 @@ describe( 'Users tests', () => {
 			await page.waitForSelector( '#submit' );
 			await page.click( '#submit' );
 		}
-	} );
 
-	it( 'show the new added user', async () => {
+		/**
+		 * Create a new default user with username and password
+		 */
 		await visitAdminPage( 'user-new.php' );
-
 		await page.focus( '#user_login' );
 		await page.type( '#user_login', username );
 		await page.focus( '#email' );
 		await page.type( '#email', email );
 		await page.click( "#createusersub" );
-
 		await page.waitForNavigation();
+	} );
 
+	it( 'show the new added user', async () => {
 		// Expect the users table to contain two rows
-		//await page.waitForSelector( '#the-list tr + tr' )
 		const usersRows = await page.$$( '#the-list tr' );
 		expect ( usersRows.length ).toBe( 2 );
 
