@@ -2349,6 +2349,11 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
+		// Allow CSS calc().
+		$css_test_string = preg_replace( '/calc\(((?:\([^()]*\)?|[^()])*)\)/', '', $css_test_string );
+		// Allow CSS var().
+		$css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+
 		if ( $found && $url_attr ) {
 			// Simplified: matches the sequence `url(*)`.
 			preg_match_all( '/url\([^)]+\)/', $parts[1], $url_matches );
@@ -2382,15 +2387,18 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 			}
 		}
 
+		// Skip CSS variables.
+		// $css_test_string = preg_replace( '/\(?var\(--[a-zA-Z0-9_-]*\)/', '', $css_test_string );
+
 		if ( $found ) {
-			// Check for any CSS containing \ & } = or comments, except for url() usage checked above.
-			$allow_css = ! preg_match( '%[\\&=}]|/\*%', $css_test_string );
+			// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
+			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
 
 			/**
 			 * Filters the check for unsafe CSS in `safecss_filter_attr`.
 			 *
 			 * Enables developers to determine whether a section of CSS should be allowed or discarded.
-			 * By default, the value will be false if the part contains \ & } = or comments.
+			 * By default, the value will be false if the part contains \ ( & } = or comments.
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
