@@ -2383,14 +2383,14 @@ function safecss_filter_attr( $css, $deprecated = '' ) {
 		}
 
 		if ( $found ) {
-			// Check for any CSS containing \ ( & } = or comments, except for url() usage checked above.
-			$allow_css = ! preg_match( '%[\\\(&=}]|/\*%', $css_test_string );
+			// Check for any CSS containing \ & } = or comments, except for url() usage checked above.
+			$allow_css = ! preg_match( '%[\\&=}]|/\*%', $css_test_string );
 
 			/**
 			 * Filters the check for unsafe CSS in `safecss_filter_attr`.
 			 *
 			 * Enables developers to determine whether a section of CSS should be allowed or discarded.
-			 * By default, the value will be false if the part contains \ ( & } = or comments.
+			 * By default, the value will be false if the part contains \ & } = or comments.
 			 * Return true to allow the CSS part to be included in the output.
 			 *
 			 * @since 5.5.0
