@@ -1,43 +1,49 @@
 import { 
 	visitAdminPage,
 	pressKeyWithModifier
- } from '@wordpress/e2e-test-utils';
+} from '@wordpress/e2e-test-utils';
+
+async function deleteNonDefaultUsers() {
+	/**
+	 * If there is more than one user delete all of them
+	 */
+	await visitAdminPage( 'users.php' );
+	const usersRows = await page.$$( '#the-list tr' );
+	if( usersRows.length > 1 ) {
+		await page.click( '[id^=cb-select-all-]' );
+		await page.select( '#bulk-action-selector-top', 'delete' );
+
+		// Do not delete the defaut admin user
+		await page.click( '[id^=user_1]' );
+
+		await page.click( '#doaction' );
+		await page.waitForSelector( '#submit' );
+		await page.click( '#submit' );
+	}
+}
+
+async function createBasicUser( username, email ) {
+	/**
+	 * Create a new basic user with username and password
+	 */
+	await visitAdminPage( 'user-new.php' );
+	await page.focus( '#user_login' );
+	await page.type( '#user_login', username );
+	await page.focus( '#email' );
+	await page.type( '#email', email );
+	await page.click( "#createusersub" );
+	await page.waitForNavigation();
+}
 
 describe( 'Users tests', () => {
+
 	const username = "testuser";
 	const email = "testuser@test.com";
 
-	beforeEach( async () => {
-		/**
-		 * If there is more than one user delete all of them
-		 */
-		await visitAdminPage( 'users.php' );
-		const usersRows = await page.$$( '#the-list tr' );
-		if( usersRows.length > 1 ) {
-			await page.click( '[id^=cb-select-all-]' );
-			await page.select( '#bulk-action-selector-top', 'delete' );
-
-			// Do not delete the defaut admin user
-			await page.click( '[id^=user_1]' );
-
-			await page.click( '#doaction' );
-			await page.waitForSelector( '#submit' );
-			await page.click( '#submit' );
-		}
-
-		/**
-		 * Create a new default user with username and password
-		 */
-		await visitAdminPage( 'user-new.php' );
-		await page.focus( '#user_login' );
-		await page.type( '#user_login', username );
-		await page.focus( '#email' );
-		await page.type( '#email', email );
-		await page.click( "#createusersub" );
-		await page.waitForNavigation();
-	} );
-
 	it( 'show the new added user', async () => {
+		await deleteNonDefaultUsers();
+		await createBasicUser( username, email );
+
 		// Expect the users table to contain two rows
 		const usersRows = await page.$$( '#the-list tr' );
 		expect ( usersRows.length ).toBe( 2 );
@@ -67,7 +73,8 @@ describe( 'Users tests', () => {
 	it( 'should return a row with the class name "no-items', async () => {
 		await page.waitForSelector( '#user-search-input' )
 		await page.focus( '#user-search-input' );
-		await page.type( '#user-search-input', "Non existing user" );
+		await pressKeyWithModifier( 'primary', 'a' );
+		await page.type( '#user-search-input', "nonexistinguser" );
 		await page.click( '#search-submit' );
 
 		// Expect the users table to have only one row with the class "no-items"
@@ -91,4 +98,5 @@ describe( 'Users tests', () => {
 		const roleChangingRow = await page.$$( '#user-role-wrap' );
 		expect( roleChangingRow.length ).toBe( 0 );
 	} );
+
 } );
