@@ -44,6 +44,21 @@ describe( 'Categories tests', () => {
 
 	const categoryTitle = 'New Category';
 
+	it( 'shows only the default Uncategorized category', async () => {
+		await deleteAllCategories();
+
+		// Expect there to be only one row in the categories list.
+		await page.waitForSelector( '#the-list tr' );
+		const categories = await page.$$( '#the-list tr' );
+		expect( categories.length ).toBe( 1 );
+
+		// Expect the default category title to be correct.
+		const uncategorizedTitle = await page.$x(
+			`//a[contains( @class, "row-title" )][contains( text(), "Uncategorized" )]`
+		);
+		expect( uncategorizedTitle.length ).toBe( 1 );
+	} );
+
 	it( 'shows the new created category with the correct title', async () => {
 		await deleteAllCategories();
 		await createNewCategory( categoryTitle );
@@ -107,7 +122,7 @@ describe( 'Categories tests', () => {
 	it( 'allows an existing category to be quick edited using the Quick Edit button', async () => {
 		await visitAdminPage( 'edit-tags.php', query );
 		await page.waitForSelector( '#the-list tr' );
-		
+
 		// Focus on the first (new created) category title (edit) link
 		const [ editLink ] = await page.$x(
 			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
