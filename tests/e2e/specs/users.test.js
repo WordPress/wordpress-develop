@@ -37,6 +37,8 @@ async function createBasicUser( username, email ) {
 
 describe( 'Users tests', () => {
 
+	const firstname = "Hello";
+	const lastname = "World";
 	const username = "testuser";
 	const email = "testuser@test.com";
 
@@ -89,6 +91,32 @@ describe( 'Users tests', () => {
 		);
 		expect( notFoundText.length ).toBe( 1 );
 	} );
+
+	/* it( 'allows to edit an existing user', async () => {
+		await visitAdminPage( 'users.php' );
+		await page.waitForSelector( '#the-list tr' );
+
+		// Click on the new user name
+		const [ editUserLink ] = await page.$x(
+			`//td[@class='username']/a[contains( text(), "${ username }" )]`
+		);
+		await editUserLink.click();
+		await page.waitForNavigation();
+
+		await page.focus( '#first_name' );
+		await page.type( '#first_name', firstname );
+
+		await page.focus( '#last_name' );
+		await page.type( '#last_name', lastname );
+
+		await page.click( '#submit' );
+		
+
+		const newUserFullName = await page.$x(
+			`//td/a[contains( text(), "${ firstname + " " + lastname }" )]`
+		);
+		expect( newUserFullName.length ).toBe( 1 );
+	} ); */
 
 	it( 'should not allows an admin to change their role', async () => {
 		await visitAdminPage( 'profile.php' );
