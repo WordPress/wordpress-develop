@@ -11,7 +11,7 @@
 	],
 	"homepage": "https://github.com/wordpress/twentytwenty#readme",
 	"bugs": {
-		"url": "https://github.com/wordpress/twentytwenty/issues"
+		"url": "https://core.trac.wordpress.org/"
 	},
 	"devDependencies": {
 		"@wordpress/browserslist-config": "^3.0.2",
