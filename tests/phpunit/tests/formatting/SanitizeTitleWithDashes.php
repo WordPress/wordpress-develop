@@ -67,16 +67,11 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31790
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_nbsp_entities() {
 		$this->assertSame( 'dont-break-the-space', sanitize_title_with_dashes( "don't&nbsp;break&#160;the&nbsp;space", '', 'save' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_title_with_dashes
-	 */
 	function test_replaces_ndash_mdash() {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do – the Dash', '', 'save' ) );
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do the — Dash', '', 'save' ) );
@@ -84,33 +79,22 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31790
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_ndash_mdash_entities() {
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &ndash; the &#8211; Dash', '', 'save' ) );
 		$this->assertSame( 'do-the-dash', sanitize_title_with_dashes( 'Do &mdash; the &#8212; Dash', '', 'save' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_title_with_dashes
-	 */
 	function test_replaces_iexcel_iquest() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just ¡a Slug', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just a Slug¿', '', 'save' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_title_with_dashes
-	 */
 	function test_replaces_angle_quotes() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( '‹Just a Slug›', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( '«Just a Slug»', '', 'save' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_title_with_dashes
-	 */
 	function test_replaces_curly_quotes() {
 		$this->assertSame( 'hey-its-curly-joe', sanitize_title_with_dashes( 'Hey its “Curly Joe”', '', 'save' ) );
 		$this->assertSame( 'hey-its-curly-joe', sanitize_title_with_dashes( 'Hey its ‘Curly Joe’', '', 'save' ) );
@@ -121,15 +105,11 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49791
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_bullet() {
 		$this->assertSame( 'fancy-title-amazing', sanitize_title_with_dashes( 'Fancy Title • Amazing', '', 'save' ) );
 	}
-	/**
-	 * @covers ::sanitize_title_with_dashes
-	 */
+
 	function test_replaces_copy_reg_deg_trade() {
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( 'Just © a Slug', '', 'save' ) );
 		$this->assertSame( 'just-a-slug', sanitize_title_with_dashes( '® Just a Slug', '', 'save' ) );
@@ -139,8 +119,6 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 10792
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_forward_slash() {
 		$this->assertSame( 'songs-by-lennon-mccartney', sanitize_title_with_dashes( 'songs by Lennon/McCartney', '', 'save' ) );
@@ -152,8 +130,6 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19820
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_multiply_sign() {
 		$this->assertSame( '6x7-is-42', sanitize_title_with_dashes( '6×7 is 42', '', 'save' ) );
@@ -161,8 +137,6 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20772
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_standalone_diacritic() {
 		$this->assertSame( 'aaaa', sanitize_title_with_dashes( 'āáǎà', '', 'save' ) );
@@ -170,8 +144,6 @@ class Tests_Formatting_SanitizeTitleWithDashes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22395
-	 *
-	 * @covers ::sanitize_title_with_dashes
 	 */
 	function test_replaces_acute_accents() {
 		$this->assertSame( 'aaaa', sanitize_title_with_dashes( 'ááa´aˊ', '', 'save' ) );

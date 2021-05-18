@@ -9,8 +9,6 @@ class Tests_Formatting_SanitizeTrackbackUrls extends WP_UnitTestCase {
 	/**
 	 * @ticket 21624
 	 * @dataProvider breaks
-	 *
-	 * @covers ::sanitize_trackback_urls
 	 */
 	function test_sanitize_trackback_urls_with_multiple_urls( $break ) {
 		$this->assertSame( "http://example.com\nhttp://example.org", sanitize_trackback_urls( "http://example.com{$break}http://example.org" ) );

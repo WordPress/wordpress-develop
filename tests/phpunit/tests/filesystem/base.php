@@ -27,6 +27,9 @@ abstract class WP_Filesystem_UnitTestCase extends WP_UnitTestCase {
 		return dirname( dirname( __DIR__ ) ) . '/includes/mock-fs.php';
 	}
 
+	/**
+	 * @covers WP_Filesystem_MockFS::__construct
+	 */
 	function test_is_MockFS_sane() {
 		global $wp_filesystem;
 		$this->assertTrue( is_a( $wp_filesystem, 'WP_Filesystem_MockFS' ) );

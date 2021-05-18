@@ -2,12 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::_wp_specialchars
  */
 class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::_wp_specialchars
-	 */
 	function test_wp_specialchars_basics() {
 		$html = '&amp;&lt;hello world&gt;';
 		$this->assertSame( $html, _wp_specialchars( $html ) );
@@ -16,9 +15,6 @@ class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 		$this->assertSame( $double, _wp_specialchars( $html, ENT_NOQUOTES, false, true ) );
 	}
 
-	/**
-	 * @covers ::_wp_specialchars
-	 */
 	function test_allowed_entity_names() {
 		global $allowedentitynames;
 
@@ -33,9 +29,6 @@ class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * @covers ::_wp_specialchars
-	 */
 	function test_not_allowed_entity_names() {
 		$ents = array( 'iacut', 'aposs', 'pos', 'apo', 'apo?', 'apo.*', '.*apo.*', 'apos ', ' apos', ' apos ' );
 
@@ -46,9 +39,6 @@ class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 		}
 	}
 
-	/**
-	 * @covers ::_wp_specialchars
-	 */
 	function test_optionally_escapes_quotes() {
 		$source = "\"'hello!'\"";
 		$this->assertSame( '"&#039;hello!&#039;"', _wp_specialchars( $source, 'single' ) );
@@ -62,8 +52,6 @@ class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 	 *
 	 * @ticket 17780
 	 * @dataProvider data_double_encoding
-	 *
-	 * @covers ::_wp_specialchars
 	 */
 	function test_double_encoding( $input, $output ) {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, true ) );
@@ -91,8 +79,6 @@ class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
 	 *
 	 * @ticket 17780
 	 * @dataProvider data_no_double_encoding
-	 *
-	 * @covers ::_wp_specialchars
 	 */
 	function test_no_double_encoding( $input, $output ) {
 		return $this->assertSame( $output, _wp_specialchars( $input, ENT_NOQUOTES, false, false ) );

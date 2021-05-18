@@ -1,13 +1,12 @@
 <?php
 
 /**
- * @group formatting * @covers ::wp_basename
+ * @group formatting
+
+ * @covers ::wp_basename
  */
 class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::wp_basename
-	 */
 	function test_wp_basename_unix() {
 		$this->assertSame(
 			'file',
@@ -15,9 +14,6 @@ class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::wp_basename
-	 */
 	function test_wp_basename_unix_utf8_support() {
 		$this->assertSame(
 			'žluťoučký kůň.txt',
@@ -27,8 +23,6 @@ class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22138
-	 *
-	 * @covers ::wp_basename
 	 */
 	function test_wp_basename_windows() {
 		$this->assertSame(
@@ -39,8 +33,6 @@ class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22138
-	 *
-	 * @covers ::wp_basename
 	 */
 	function test_wp_basename_windows_utf8_support() {
 		$this->assertSame(
@@ -48,5 +40,4 @@ class Tests_Formatting_WP_Basename extends WP_UnitTestCase {
 			wp_basename( 'C:\test\щипцы.txt' )
 		);
 	}
-
 }

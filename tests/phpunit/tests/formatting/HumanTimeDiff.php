@@ -12,8 +12,6 @@ class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 	 * @group formatting
 	 * @ticket 38773
 	 * @dataProvider data_test_human_time_diff
-	 *
-	 * @covers ::human_time_diff
 	 */
 	function test_human_time_diff( $expected, $stopdate, $message ) {
 		$startdate = new DateTime( '2016-01-01 12:00:00' );

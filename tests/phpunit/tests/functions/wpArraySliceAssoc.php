@@ -6,6 +6,7 @@
  * @since 5.3.0
  *
  * @group functions.php
+ *
  * @covers ::wp_array_slice_assoc
  */
 class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
@@ -20,8 +21,6 @@ class Tests_Functions_wpArraySliceAssoc extends WP_UnitTestCase {
 	 * @param array $target_array The original array.
 	 * @param array $keys         The list of keys.
 	 * @param array $expected     The expected result.
-	 *
-	 * @covers ::wp_array_slice_assoc
 	 */
 	public function test_wp_array_slice_assoc( $target_array, $keys, $expected ) {
 		$this->assertSame( wp_array_slice_assoc( $target_array, $keys ), $expected );

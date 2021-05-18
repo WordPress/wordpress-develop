@@ -4,6 +4,7 @@
  * Test list_files().
  *
  * @group functions.php
+ *
  * @covers ::list_files
  */
 class Tests_Functions_ListFiles extends WP_UnitTestCase {
@@ -15,10 +16,6 @@ class Tests_Functions_ListFiles extends WP_UnitTestCase {
 		$this->assertContains( ABSPATH . 'wp-admin/index.php', $admin_files );
 	}
 
-	/**
-	 *
-	 * @covers ::list_files
-	 */
 	public function test_list_files_can_exclude_files() {
 		$admin_files = list_files( ABSPATH . 'wp-admin/', 100, array( 'index.php' ) );
 		$this->assertNotContains( ABSPATH . 'wp-admin/index.php', $admin_files );

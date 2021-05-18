@@ -4,8 +4,6 @@
  * Test wp_filter_object_list(), wp_list_filter(), wp_list_pluck().
  *
  * @group functions.php
- * @covers ::wp_filter_object_list
- * @covers ::wp_list_pluck
  */
 class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	public $object_list = array();

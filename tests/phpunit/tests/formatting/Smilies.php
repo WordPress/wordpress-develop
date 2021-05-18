@@ -49,8 +49,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 *
 	 * Basic Validation Test to confirm that smilies are converted to image
 	 * when use_smilies = 1 and not when use_smilies = 0
-	 *
-	 * @covers ::convert_smilies
 	 */
 	function test_convert_standard_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
@@ -94,8 +92,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 * @dataProvider get_custom_smilies_input_output
 	 *
 	 * Validate Custom Smilies are converted to images when use_smilies = 1
-	 *
-	 * @covers ::convert_smilies
 	 */
 	function test_convert_custom_smilies( $in_txt, $converted_txt ) {
 		global $wpsmiliestrans;
@@ -148,8 +144,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 *
 	 * @ticket 16448
 	 * @dataProvider get_smilies_ignore_tags
-	 *
-	 * @covers ::convert_smilies
 	 */
 	public function test_ignore_smilies_in_tags( $element ) {
 		$includes_path = includes_url( 'images/smilies/' );
@@ -207,8 +201,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 *
 	 * @ticket 20124
 	 * @dataProvider get_smilies_combinations
-	 *
-	 * @covers ::convert_smilies
 	 */
 	public function test_smilies_combinations( $in_txt, $converted_txt ) {
 		// Custom smilies, use_smilies: ON.
@@ -251,8 +243,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 *
 	 * @ticket 25303
 	 * @dataProvider get_single_smilies_input_output
-	 *
-	 * @covers ::convert_smilies
 	 */
 	public function test_single_smilies_in_wpsmiliestrans( $in_txt, $converted_txt ) {
 		global $wpsmiliestrans;
@@ -310,8 +300,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 *
 	 * @ticket 22692
 	 * @dataProvider get_spaces_around_smilies
-	 *
-	 * @covers ::convert_smilies
 	 */
 	function test_spaces_around_smilies( $in_txt, $converted_txt ) {
 		// Standard smilies, use_smilies: ON.
@@ -329,8 +317,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 * Test to ensure smilies can be removed with a filter
 	 *
 	 * @ticket 35905
-	 *
-	 * @covers ::convert_smilies
 	 */
 	public function test_smilies_filter_removes_smilies() {
 		add_filter( 'smilies', array( $this, '_filter_remove_smilies' ) );
@@ -346,8 +332,6 @@ class Tests_Formatting_Smilies extends WP_UnitTestCase {
 	 * Test to ensure smilies can be added with a filter
 	 *
 	 * @ticket 35905
-	 *
-	 * @covers ::convert_smilies
 	 */
 	public function test_smilies_filter_adds_smilies() {
 		add_filter( 'smilies', array( $this, '_filter_add_smilies' ) );

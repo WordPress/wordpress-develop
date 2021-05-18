@@ -10,8 +10,6 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	/**
 	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider valid_orderbys
-	 *
-	 * @covers ::sanitize_sql_orderby
 	 */
 	function test_valid( $orderby ) {
 		$this->assertSame( $orderby, sanitize_sql_orderby( $orderby ) );
@@ -39,8 +37,6 @@ class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 	/**
 	 * @covers ::sanitize_sql_orderby
 	 * @dataProvider invalid_orderbys
-	 *
-	 * @covers ::sanitize_sql_orderby
 	 */
 	function test_invalid( $orderby ) {
 		$this->assertFalse( sanitize_sql_orderby( $orderby ) );

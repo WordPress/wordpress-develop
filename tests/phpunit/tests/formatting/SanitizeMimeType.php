@@ -9,8 +9,6 @@ class Tests_Formatting_SanitizeMimeType extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17855
-	 *
-	 * @covers ::sanitize_mime_type
 	 */
 	function test_sanitize_valid_mime_type() {
 		$inputs = array(

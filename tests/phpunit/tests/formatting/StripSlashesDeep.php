@@ -9,8 +9,6 @@
 class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 	/**
 	 * @ticket 18026
-	 *
-	 * @covers ::stripslashes_deep
 	 */
 	function test_preserves_original_datatype() {
 
@@ -35,9 +33,6 @@ class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 		$this->assertSame( $obj, stripslashes_deep( $obj ) );
 	}
 
-	/**
-	 * @covers ::stripslashes_deep
-	 */
 	function test_strips_slashes() {
 		$old = "I can\'t see, isn\'t that it?";
 		$new = "I can't see, isn't that it?";
@@ -53,9 +48,6 @@ class Tests_Formatting_StripSlashesDeep extends WP_UnitTestCase {
 		$this->assertEquals( $obj_new, stripslashes_deep( $obj_old ) );
 	}
 
-	/**
-	 * @covers ::stripslashes_deep
-	 */
 	function test_permits_escaped_slash() {
 		$txt = "I can't see, isn\'t that it?";
 		$this->assertSame( $txt, stripslashes_deep( "I can\'t see, isn\\\'t that it?" ) );

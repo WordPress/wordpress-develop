@@ -2,21 +2,17 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_user
  */
 class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::sanitize_user
-	 */
 	function test_strips_html() {
 		$input    = 'Captain <strong>Awesome</strong>';
 		$expected = is_multisite() ? 'captain awesome' : 'Captain Awesome';
 		$this->assertSame( $expected, sanitize_user( $input ) );
 	}
 
-	/**
-	 * @covers ::sanitize_user
-	 */
 	public function test_strips_encoded_ampersand() {
 		$expected = 'ATT';
 
@@ -28,9 +24,6 @@ class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_user( 'AT&amp;T' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_user
-	 */
 	public function test_strips_encoded_ampersand_when_followed_by_semicolon() {
 		$expected = 'ATT Test;';
 
@@ -42,17 +35,11 @@ class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
 		$this->assertSame( $expected, sanitize_user( 'AT&amp;T Test;' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_user
-	 */
 	function test_strips_percent_encoded_octets() {
 		$expected = is_multisite() ? 'franois' : 'Franois';
 		$this->assertSame( $expected, sanitize_user( 'Fran%c3%a7ois' ) );
 	}
 
-	/**
-	 * @covers ::sanitize_user
-	 */
 	function test_optional_strict_mode_reduces_to_safe_ascii_subset() {
 		$this->assertSame( 'abc', sanitize_user( '()~ab~ˆcˆ!', true ) );
 	}

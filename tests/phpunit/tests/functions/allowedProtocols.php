@@ -3,23 +3,18 @@
 /**
  * @group formatting
  * @group functions.php
+ *
  * @covers ::wp_allowed_protocols
  */
 class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19354
-	 *
-	 * @covers ::wp_allowed_protocols
 	 */
 	function test_data_is_not_an_allowed_protocol() {
 		$this->assertNotContains( 'data', wp_allowed_protocols() );
 	}
 
-	/**
-	 *
-	 * @covers ::wp_allowed_protocols
-	 */
 	function test_allowed_protocol_has_an_example() {
 		$example_protocols = array();
 		foreach ( $this->data_example_urls() as $example ) {
@@ -34,8 +29,6 @@ class Tests_Functions_AllowedProtocols extends WP_UnitTestCase {
 	 *
 	 * @param string The scheme.
 	 * @param string Example URL.
-	 *
-	 * @covers ::wp_allowed_protocols
 	 */
 	function test_allowed_protocols( $protocol, $url ) {
 		$this->assertSame( $url, esc_url( $url, $protocol ) );

@@ -2,6 +2,7 @@
 
 /**
  * @group functions.php
+ *
  * @covers ::wp_get_archives
  */
 class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
@@ -46,10 +47,6 @@ class Tests_Functions_wpGetArchives extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_limit() {
 		$ids = array_slice( array_reverse( self::$post_ids ), 0, 5 );
 
@@ -86,10 +83,6 @@ EOF;
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_format() {
 		$expected['format'] = "<option value='" . $this->month_url . "'> " . gmdate( 'F Y' ) . ' </option>';
 		$this->assertSame(
@@ -105,10 +98,6 @@ EOF;
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_before_and_after() {
 		$expected['before_and_after'] = "<div><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a></div>';
 		$this->assertSame(
@@ -126,10 +115,6 @@ EOF;
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_show_post_count() {
 		$expected['show_post_count'] = "<li><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a>&nbsp;(8)</li>';
 		$this->assertSame(
@@ -145,20 +130,12 @@ EOF;
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_echo() {
 		$expected['echo'] = "\t<li><a href='" . $this->month_url . "'>" . gmdate( 'F Y' ) . '</a></li>' . "\n";
 		$this->expectOutputString( $expected['echo'] );
 		wp_get_archives( array( 'echo' => true ) );
 	}
 
-	/**
-	 *
-	 * @covers ::wp_get_archives
-	 */
 	function test_wp_get_archives_order() {
 		self::factory()->post->create(
 			array(
@@ -205,8 +182,6 @@ EOF;
 
 	/**
 	 * @ticket 21596
-	 *
-	 * @covers ::wp_get_archives
 	 */
 	function test_wp_get_archives_post_type() {
 		register_post_type( 'taco', array( 'public' => true ) );

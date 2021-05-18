@@ -22,7 +22,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_bad_characters() {
@@ -40,7 +39,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_relative() {
@@ -51,7 +49,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
@@ -76,7 +73,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_bare() {
@@ -88,7 +84,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
@@ -106,7 +101,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 * @covers ::esc_url_raw
 	 */
@@ -183,7 +177,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_display_extras() {
@@ -192,7 +185,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_non_ascii() {
@@ -202,7 +194,6 @@ class Tests_Formatting_EscUrl extends WP_UnitTestCase {
 	}
 
 	/**
-	 *
 	 * @covers ::esc_url
 	 */
 	function test_feed() {

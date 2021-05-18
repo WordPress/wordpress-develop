@@ -7,19 +7,12 @@
  */
 class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::wp_make_link_relative
-	 */
 	public function test_wp_make_link_relative_with_http_scheme() {
 		$link          = 'http://example.com/this-is-a-test-http-url/';
 		$relative_link = wp_make_link_relative( $link );
 		$this->assertSame( '/this-is-a-test-http-url/', $relative_link );
 	}
 
-
-	/**
-	 * @covers ::wp_make_link_relative
-	 */
 	public function test_wp_make_link_relative_with_https_scheme() {
 		$link          = 'https://example.com/this-is-a-test-https-url/';
 		$relative_link = wp_make_link_relative( $link );
@@ -28,8 +21,6 @@ class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30373
-	 *
-	 * @covers ::wp_make_link_relative
 	 */
 	public function test_wp_make_link_relative_with_no_scheme() {
 		$link          = '//example.com/this-is-a-test-schemeless-url/';
@@ -39,8 +30,6 @@ class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30373
-	 *
-	 * @covers ::wp_make_link_relative
 	 */
 	public function test_wp_make_link_relative_should_retain_URL_param_that_is_also_a_URL() {
 		$link          = 'https://example.com/this-is-a-test/?redirect=https://example.org/a-different-test-post/';
@@ -50,8 +39,6 @@ class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26819
-	 *
-	 * @covers ::wp_make_link_relative
 	 */
 	function test_wp_make_link_relative_with_no_path() {
 		$link          = 'http://example.com';

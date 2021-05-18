@@ -4,6 +4,7 @@
  * Tests for the behavior of `wp_auth_check()`
  *
  * @group functions.php
+ *
  * @covers ::is_user_logged_in
  * @covers ::wp_auth_check
  */
@@ -13,9 +14,6 @@ class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 	 * Run with user not logged in.
 	 *
 	 * @ticket 41860
-	 *
-	 * @covers ::is_user_logged_in
-	 * @covers ::wp_auth_check
 	 */
 	function test_wp_auth_check_user_not_logged_in() {
 		$expected = array(
@@ -48,9 +46,6 @@ class Tests_Functions_wpAuthCheck extends WP_UnitTestCase {
 	 * Run with user logged in but with expired state.
 	 *
 	 * @ticket 41860
-	 *
-	 * @covers ::is_user_logged_in
-	 * @covers ::wp_auth_check
 	 */
 	function test_wp_auth_check_user_logged_in_login_grace_period_set() {
 		// Log user in.

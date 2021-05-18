@@ -6,6 +6,7 @@
  * @ticket 36635
  *
  * @group functions.php
+ *
  * @covers ::size_format
  */
 class Tests_Functions_SizeFormat extends WP_UnitTestCase {
@@ -48,8 +49,6 @@ class Tests_Functions_SizeFormat extends WP_UnitTestCase {
 	 * @param $bytes
 	 * @param $decimals
 	 * @param $expected
-	 *
-	 * @covers ::size_format
 	 */
 	public function test_size_format( $bytes, $decimals, $expected ) {
 		$this->assertSame( $expected, size_format( $bytes, $decimals ) );

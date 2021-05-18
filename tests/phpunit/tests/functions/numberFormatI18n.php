@@ -5,6 +5,7 @@
  *
  * @group functions.php
  * @group i18n
+ *
  * @covers ::number_format_i18n
  */
 class Tests_Functions_NumberFormatI18n extends WP_UnitTestCase {
@@ -22,10 +23,6 @@ class Tests_Functions_NumberFormatI18n extends WP_UnitTestCase {
 		$this->assertSame( '123,456.7890', $actual_2 );
 	}
 
-	/**
-	 *
-	 * @covers ::number_format_i18n
-	 */
 	public function test_should_respect_number_format_of_locale() {
 		$decimal_point = $GLOBALS['wp_locale']->number_format['decimal_point'];
 		$thousands_sep = $GLOBALS['wp_locale']->number_format['thousands_sep'];

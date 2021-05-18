@@ -14,6 +14,7 @@
  *
  * @group functions.php
  * @group privacy
+ *
  * @covers ::wp_privacy_anonymize_data
  */
 class Tests_Functions_Anonymization extends WP_UnitTestCase {
@@ -30,8 +31,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 *
 	 * @param string $raw_ip          Raw IP address.
 	 * @param string $expected_result Expected result.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_wp_privacy_anonymize_ip( $raw_ip, $expected_result ) {
 		$actual_result = wp_privacy_anonymize_data( 'ip', $raw_ip );
@@ -212,8 +211,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
 	 * Test email anonymization of `wp_privacy_anonymize_data()`.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_email() {
 		$this->assertSame( 'deleted@site.invalid', wp_privacy_anonymize_data( 'email', 'bar@example.com' ) );
@@ -221,8 +218,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
 	 * Test url anonymization of `wp_privacy_anonymize_data()`.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_url() {
 		$this->assertSame( 'https://site.invalid', wp_privacy_anonymize_data( 'url', 'https://example.com/author/username' ) );
@@ -230,8 +225,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
 	 * Test date anonymization of `wp_privacy_anonymize_data()`.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_date() {
 		$this->assertSame( '0000-00-00 00:00:00', wp_privacy_anonymize_data( 'date', '2003-12-25 12:34:56' ) );
@@ -239,8 +232,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
 	 * Test text anonymization of `wp_privacy_anonymize_data()`.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_text() {
 		$text = __( 'Four score and seven years ago' );
@@ -249,8 +240,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 
 	/**
 	 * Test long text anonymization of `wp_privacy_anonymize_data()`.
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_long_text() {
 		$text = __( 'Four score and seven years ago' );
@@ -261,8 +250,6 @@ class Tests_Functions_Anonymization extends WP_UnitTestCase {
 	 * Test text anonymization when a filter is added.
 	 *
 	 * @ticket 44141
-	 *
-	 * @covers ::wp_privacy_anonymize_data
 	 */
 	public function test_anonymize_with_filter() {
 		add_filter( 'wp_privacy_anonymize_data', array( $this, 'filter_wp_privacy_anonymize_data' ), 10, 3 );

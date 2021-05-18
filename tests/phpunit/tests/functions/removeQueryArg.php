@@ -2,14 +2,13 @@
 
 /**
  * @group functions.php
+ *
  * @covers ::remove_query_arg
  */
 class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider remove_query_arg_provider
-	 *
-	 * @covers ::remove_query_arg
 	 */
 	public function test_remove_query_arg( $keys_to_remove, $url, $expected ) {
 		$actual = remove_query_arg( $keys_to_remove, $url );
@@ -28,10 +27,6 @@ class Tests_Functions_RemoveQueryArg extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 *
-	 * @covers ::remove_query_arg
-	 */
 	public function test_should_fall_back_on_current_url() {
 		$old_request_uri        = $_SERVER['REQUEST_URI'];
 		$_SERVER['REQUEST_URI'] = 'edit.php?foo=bar&baz=quz';

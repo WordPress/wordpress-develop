@@ -12,8 +12,6 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	 * are dealt with elsewhere.
 	 *
 	 * @dataProvider data
-	 *
-	 * @covers ::utf8_uri_encode
 	 */
 	function test_percent_encodes_non_reserved_characters( $utf8, $urlencoded ) {
 		$this->assertSame( $urlencoded, utf8_uri_encode( $utf8 ) );
@@ -21,8 +19,6 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data
-	 *
-	 * @covers ::utf8_uri_encode
 	 */
 	function test_output_is_not_longer_than_optional_length_argument( $utf8, $unused_for_this_test ) {
 		$max_length = 30;

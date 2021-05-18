@@ -6,6 +6,7 @@
  * @ticket 38101
  *
  * @group functions.php
+ *
  * @covers ::_cleanup_header_comment
  */
 class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
@@ -17,8 +18,6 @@ class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {
 	 *
 	 * @param string $test_string
 	 * @param string $expected
-	 *
-	 * @covers ::_cleanup_header_comment
 	 */
 	public function test_cleanup_header_comment( $test_string, $expected ) {
 		$this->assertSameIgnoreEOL( $expected, _cleanup_header_comment( $test_string ) );

@@ -6,6 +6,7 @@
  * @since 5.3.0
  *
  * @group functions.php
+ *
  * @covers ::get_status_header_desc
  */
 class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
@@ -15,8 +16,6 @@ class Tests_Functions_GetStatusHeaderDesc extends WP_UnitTestCase {
 	 *
 	 * @param int    $code     HTTP status code.
 	 * @param string $expected Status description.
-	 *
-	 * @covers ::get_status_header_desc
 	 */
 	public function test_get_status_header_desc( $code, $expected ) {
 		$this->assertSame( get_status_header_desc( $code ), $expected );

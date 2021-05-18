@@ -4,14 +4,13 @@
  * Test wp_get_mime_types().
  *
  * @group functions.php
+ *
  * @covers ::wp_get_mime_types
  */
 class Tests_Functions_wpGetMimeTypes extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47701
-	 *
-	 * @covers ::wp_get_mime_types
 	 */
 	public function test_all_mime_match() {
 		$mime_types_start = wp_get_mime_types();

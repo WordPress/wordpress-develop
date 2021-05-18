@@ -8,8 +8,6 @@
 class Tests_Formatting_WpTrimExcerpt extends WP_UnitTestCase {
 	/**
 	 * @ticket 25349
-	 *
-	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_secondary_loop_respect_more() {
 		$post1 = self::factory()->post->create(
@@ -41,8 +39,6 @@ class Tests_Formatting_WpTrimExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 25349
-	 *
-	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_secondary_loop_respect_nextpage() {
 		$post1 = self::factory()->post->create(
@@ -74,8 +70,6 @@ class Tests_Formatting_WpTrimExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51042
-	 *
-	 * @covers ::wp_trim_excerpt
 	 */
 	public function test_should_generate_excerpt_for_empty_values() {
 		$post = self::factory()->post->create(
