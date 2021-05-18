@@ -2668,3 +2668,25 @@ function wp_star_rating( $args = array() ) {
 function _wp_posts_page_notice() {
 	echo '<div class="notice notice-warning inline"><p>' . __( 'You are currently editing the page that shows your latest posts.' ) . '</p></div>';
 }
+
+/**
+ * Output a notice when editing the page for posts in the block editor.
+ *
+ * @since 5.8.0
+ *
+ * @global WP_Post $post Global post object.
+ */
+function wp_block_editor_posts_page_notice() {
+	global $post;
+
+	if ( $post && (int) get_option( 'page_for_posts' ) === (int) $post->ID ) {
+		wp_add_inline_script(
+			'wp-notices',
+			sprintf(
+				'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { isDismissible: false } )',
+				__( 'You are currently editing the page that shows your latest posts.' ),
+			),
+			'after'
+		);
+	}
+}
