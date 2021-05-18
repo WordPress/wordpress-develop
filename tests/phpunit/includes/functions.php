@@ -327,7 +327,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
 	remove_action( 'init', 'register_block_core_shortcode' );
-	remove_action( 'init', 'register_block_core_site_logo' );
 	remove_action( 'init', 'register_block_core_site_tagline' );
 	remove_action( 'init', 'register_block_core_site_title' );
 	remove_action( 'init', 'register_block_core_social_link' );

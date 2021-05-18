@@ -130,7 +130,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'rss',
 		'search',
 		'shortcode',
-		'site-logo',
 		'site-tagline',
 		'site-title',
 		'social-link',
