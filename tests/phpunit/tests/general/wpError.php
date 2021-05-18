@@ -5,7 +5,6 @@
  * @group general
  * @group errors
  *
- * @covers WP_Error
  * @coversDefaultClass WP_Error
  */
 class Tests_General_wpError extends WP_UnitTestCase {
@@ -41,7 +40,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_code
 	 */
 	public function test_WP_Error_with_empty_code_should_add_no_code() {
@@ -49,7 +47,6 @@ class Tests_General_wpError extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::__construct
 	 * @covers ::get_error_message
 	 */
 	public function test_WP_Error_with_empty_code_should_add_no_message() {
