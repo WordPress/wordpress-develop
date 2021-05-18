@@ -10,10 +10,6 @@
 		"TwentyTwenty"
 	],
 	"homepage": "https://github.com/wordpress/twentytwenty#readme",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/wordpress/twentytwenty.git"
-	},
 	"bugs": {
 		"url": "https://github.com/wordpress/twentytwenty/issues"
 	},
