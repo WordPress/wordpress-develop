@@ -561,7 +561,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
-				'post_type' => 'any',
+				'post_type'      => 'any',
 				'posts_per_page' => -1,
 			)
 		);
@@ -573,7 +573,7 @@ class Tests_Query_PostStatus extends WP_UnitTestCase {
 
 		$q = new WP_Query(
 			array(
-				'post_type' => array( 'wptests_pt1', 'wptests_pt2' ),
+				'post_type'      => array( 'wptests_pt1', 'wptests_pt2' ),
 				'posts_per_page' => -1,
 			)
 		);
