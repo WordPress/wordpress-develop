@@ -808,7 +808,7 @@ form#tags-filter {
 }
 
 .privacy-settings-accordion-heading,
-health-check-accordion-heading {
+.health-check-accordion-heading {
 	margin: 0;
 	border-top: 1px solid #c3c4c7;
 	font-size: inherit;
@@ -838,9 +838,8 @@ health-check-accordion-heading {
 	width: 100%;
 	align-items: center;
 	justify-content: space-between;
-	/*
-	This is in site health -webkit-user-select: auto;
-	user-select: auto; */
+	-webkit-user-select: auto;
+	user-select: auto;
 }
 
 .privacy-settings-accordion-trigger:hover,
