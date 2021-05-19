@@ -135,7 +135,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 		$found = get_term( $term_data );
 
-		$this->assertTrue( $found instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $found );
 		$this->assertInternalType( 'int', $found->term_id );
 		$this->assertInternalType( 'int', $found->term_taxonomy_id );
 		$this->assertInternalType( 'int', $found->parent );

@@ -433,7 +433,7 @@ class Tests_Term_Cache extends WP_UnitTestCase {
 
 		$term = get_term_by( 'name', 'Burrito', 'post_tag' );
 		$num_queries++;
-		$this->assertTrue( $term instanceof WP_Term );
+		$this->assertInstanceOf( 'WP_Term', $term );
 		$this->assertSame( $term_id, $term->term_id );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 

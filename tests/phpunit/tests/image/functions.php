@@ -99,7 +99,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		// Add WebP images if the image editor supports them.
 		$file   = DIR_TESTDATA . '/images/test-image.webp';
 		$editor = wp_get_image_editor( $file );
-		if ( ( ! is_wp_error( $editor ) ) && $editor->supports_mime_type( 'image/webp' ) ) {
+
+		if ( ! is_wp_error( $editor ) && $editor->supports_mime_type( 'image/webp' ) ) {
 			$files = array_merge(
 				$files,
 				array(
