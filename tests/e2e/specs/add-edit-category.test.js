@@ -19,10 +19,18 @@ async function deleteAllCategories() {
 	 * there could be existing categories
 	 */
 	await visitAdminPage( 'edit-tags.php', query );
+	
+	await page.waitForSelector( '#the-list tr' );
 	const categoriesRows = await page.$$( '#the-list tr' );
 	if( categoriesRows.length > 1 ) {
 		await page.click( '[id^=cb-select-all-]' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
+
+		// This is to prevent a buggy behaviour when the top of the 
+		// category table is not on the viewport
+		await page.keyboard.press( 'ArrowUp' );
+		await page.keyboard.press( 'ArrowUp' );
+
 		await page.click( '#doaction' );
 	}
 }
@@ -44,9 +52,12 @@ describe( 'Categories tests', () => {
 
 	const categoryTitle = 'New Category';
 
-	it( 'shows only the default Uncategorized category', async () => {
+	beforeEach( async () => {
 		await deleteAllCategories();
+		await createNewCategory( categoryTitle );
+	} );
 
+/* 	it( 'shows only the default Uncategorized category', async () => {
 		// Expect there to be only one row in the categories list.
 		await page.waitForSelector( '#the-list tr' );
 		const categories = await page.$$( '#the-list tr' );
@@ -57,12 +68,9 @@ describe( 'Categories tests', () => {
 			`//a[contains( @class, "row-title" )][contains( text(), "Uncategorized" )]`
 		);
 		expect( uncategorizedTitle.length ).toBe( 1 );
-	} );
+	} ); */
 
 	it( 'shows the new created category with the correct title', async () => {
-		await deleteAllCategories();
-		await createNewCategory( categoryTitle );
-		
 		// Expect there to be two rows in the categories list.
 		await page.waitForSelector( '#the-list tr' );
 		const categories = await page.$$( '#the-list tr' );
@@ -76,34 +84,20 @@ describe( 'Categories tests', () => {
 	} );
 
 	it( 'allows an existing category to be edited using the Edit button', async () => {
+		const newCategoryEditedTitle = "New Category Edited Title"
+
 		await page.waitForSelector( '#the-list tr' );
 		
 		const [ editLink ] = await page.$x(
 			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
 		);
-		await editLink.click();
+		await editLink.focus();
+		await page.keyboard.press( 'Enter' );
 
 		await page.waitForNavigation();
 
+		// Edit the category title
 		await page.waitForSelector( '.term-name-wrap input#name' );
-
-		// Expect to now be in the category editor with the correct category title shown.
-		const editorCategoryTitleInput = await page.$x(
-			`//input[contains( @id, "name" )][@value = "${ categoryTitle }"]`
-		);
-		expect( editorCategoryTitleInput.length ).toBe( 1 );
-	} );
-
-	/* it( 'allows the title of the category to be updated on the edit page', async () => {
-		const newCategoryEditedTitle = "New Category Edited Title"
-		await page.waitForSelector( '#the-list tr' );
-		// Click the first (new created) category title (edit) link
-		const [ editLink ] = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-
-		await editLink.click();
-		await page.waitForNavigation();
 		await page.focus( '.term-name-wrap input#name' );
 		await pressKeyWithModifier( 'primary', 'a' );
 		await page.type( '.term-name-wrap input#name', newCategoryEditedTitle );
@@ -116,8 +110,7 @@ describe( 'Categories tests', () => {
 			`//a[contains( @class, "row-title" )][contains( text(), "${ newCategoryEditedTitle }" )]`
 		);
 		expect( editedCategoryTitle.length ).toBe( 1 );
-
-	} ); */
+	} );
 
 	it( 'allows an existing category to be quick edited using the Quick Edit button', async () => {
 		await visitAdminPage( 'edit-tags.php', query );
@@ -179,9 +172,6 @@ describe( 'Categories tests', () => {
 	} );
 
 	it( 'should return the appropriate results on a category search', async () => {
-		await deleteAllCategories();
-		await createNewCategory( categoryTitle );
-
 		const searchQuery = addQueryArgs( '', {
 			taxonomy: 'category',
 			s: categoryTitle
