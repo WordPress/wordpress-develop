@@ -28,10 +28,8 @@ async function deleteAllCategories() {
 
 		// This is to prevent a buggy behaviour when the top of the 
 		// category table is not on the viewport
-		await page.keyboard.press( 'ArrowUp' );
-		await page.keyboard.press( 'ArrowUp' );
-
-		await page.click( '#doaction' );
+		await page.focus( '#doaction' );
+		await page.keyboard.press( 'Enter' );
 	}
 }
 
