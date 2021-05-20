@@ -63,6 +63,29 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 * @ticket 52867
+	 */
+	function test_image_editor_output_format_filter() {
+		add_filter(
+			'image_editor_output_format',
+			function() {
+				return array( 'image/jpeg' => 'image/webp' );
+			}
+		);
+		$file   = DIR_TESTDATA . '/images/waffles.jpg';
+		$image  = image_make_intermediate_size( $file, 100, 75, true );
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/jpeg', $image['mime-type'] );
+		} else {
+			$this->assertSame( 'image/webp', $image['mime-type'] );
+		}
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
+		remove_all_filters( 'image_editor_output_format' );
+	}
+
+	/**
 	 * @ticket 17626
 	 * @requires function imagejpeg
 	 */
