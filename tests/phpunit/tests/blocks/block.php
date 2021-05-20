@@ -413,4 +413,120 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'abc', $block->render() );
 	}
 
+	/**
+	 * Tests `construct_wp_query_args` that is
+	 * helper function that constructs a WP_Query args
+	 * array from a `Query` block properties.
+	 *
+	 * @since 5.8.0
+	 */
+	public function test_construct_wp_query_args() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks    = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block     = $parsed_blocks[0];
+		$block_no_context = new WP_Block( $parsed_block, array(), $this->registry );
+
+		// It should return the default context when block doesn't use `query` context.
+		$query = construct_wp_query_args( $block_no_context, 1 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+			)
+		);
+
+		// It should return proper results.
+		$context = array(
+			'query' => array(
+				'postType'    => 'page',
+				'exclude'     => array( 1, 2 ),
+				'categoryIds' => array( 56 ),
+				'orderBy'     => 'title',
+				'tagIds'      => array( 3, 11, 10 ),
+			),
+		);
+		$block   = new WP_Block( $parsed_block, $context, $this->registry );
+		$query   = construct_wp_query_args( $block, 1 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'page',
+				'order'        => 'DESC',
+				'orderby'      => 'title',
+				'post__not_in' => array( 1, 2 ),
+				'category__in' => array( 56 ),
+				'tag__in'      => array( 3, 11, 10 ),
+			)
+		);
+
+		// Case for first `$page` with no `offset`.
+		$context = array(
+			'query' => array(
+				'perPage' => 2,
+				'offset'  => 0,
+			),
+		);
+		$block   = new WP_Block( $parsed_block, $context, $this->registry );
+		$query   = construct_wp_query_args( $block, 1 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 0,
+				'posts_per_page' => 2,
+			)
+		);
+
+		// Case for set `$page` with no `offset`.
+		$context = array(
+			'query' => array(
+				'perPage' => 5,
+				'offset'  => 0,
+			),
+		);
+		$block   = new WP_Block( $parsed_block, $context, $this->registry );
+		$query   = construct_wp_query_args( $block, 3 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 10,
+				'posts_per_page' => 5,
+			)
+		);
+
+		// Case for set `$page` with `offset`.
+		$context = array(
+			'query' => array(
+				'perPage' => 5,
+				'offset'  => 2,
+			),
+		);
+		$block   = new WP_Block( $parsed_block, $context, $this->registry );
+		$query   = construct_wp_query_args( $block, 3 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 12,
+				'posts_per_page' => 5,
+			)
+		);
+	}
 }
