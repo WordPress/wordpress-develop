@@ -249,6 +249,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				},
 			],
 		},
+		optimization: {
+			moduleIds: 'named',
+		},
 		plugins: [
 			new DefinePlugin( {
 				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
@@ -320,7 +323,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		delete config.devtool;
 		config.mode = 'production';
 		config.optimization = {
-			minimize: false
+			minimize: false,
+			moduleIds: 'hashed',
 		};
 	}
 
