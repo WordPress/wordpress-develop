@@ -418,7 +418,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 * helper function that constructs a WP_Query args
 	 * array from a `Query` block properties.
 	 *
-	 * @since 5.8.0
+	 * @ticket 53240
 	 */
 	public function test_construct_wp_query_args() {
 		$this->registry->register(
