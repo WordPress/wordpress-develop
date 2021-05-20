@@ -12,7 +12,7 @@ class Tests_Formatting_Utf8UriEncode extends WP_UnitTestCase {
 	 * @dataProvider data
 	 */
 	function test_percent_encodes_non_reserved_characters( $utf8, $urlencoded ) {
-		$this->assertEquals( $urlencoded, utf8_uri_encode( $utf8 ) );
+		$this->assertSame( $urlencoded, utf8_uri_encode( $utf8 ) );
 	}
 
 	/**

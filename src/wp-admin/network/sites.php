@@ -53,7 +53,7 @@ get_current_screen()->set_screen_reader_content(
 	)
 );
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( isset( $_GET['action'] ) ) {
 	/** This action is documented in wp-admin/network/edit.php */
@@ -177,8 +177,8 @@ if ( isset( $_GET['action'] ) ) {
 			break;
 
 		case 'allblogs':
-			if ( ( isset( $_POST['action'] ) || isset( $_POST['action2'] ) ) && isset( $_POST['allblogs'] ) ) {
-				$doaction = -1 != $_POST['action'] ? $_POST['action'] : $_POST['action2'];
+			if ( isset( $_POST['action'] ) && isset( $_POST['allblogs'] ) ) {
+				$doaction = $_POST['action'];
 
 				foreach ( (array) $_POST['allblogs'] as $key => $val ) {
 					if ( '0' != $val && get_network()->site_id != $val ) {
@@ -371,8 +371,13 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 
 <?php
 if ( isset( $_REQUEST['s'] ) && strlen( $_REQUEST['s'] ) ) {
-	/* translators: %s: Search query. */
-	printf( '<span class="subtitle">' . __( 'Search results for &#8220;%s&#8221;' ) . '</span>', esc_html( $s ) );
+	echo '<span class="subtitle">';
+	printf(
+		/* translators: %s: Search query. */
+		__( 'Search results for: %s' ),
+		'<strong>' . esc_html( $s ) . '</strong>'
+	);
+	echo '</span>';
 }
 ?>
 

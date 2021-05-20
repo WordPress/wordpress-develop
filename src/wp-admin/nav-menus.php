@@ -339,15 +339,6 @@ switch ( $action ) {
 						wp_save_nav_menu_items( $nav_menu_selected_id, absint( $_REQUEST['menu-item'] ) );
 					}
 
-					// Set the menu_location value correctly for the newly created menu.
-					foreach ( $menu_locations as $location => $id ) {
-						if ( 0 === $id ) {
-							$menu_locations[ $location ] = $nav_menu_selected_id;
-						}
-					}
-
-					set_theme_mod( 'nav_menu_locations', $menu_locations );
-
 					if ( isset( $_REQUEST['zero-menu-state'] ) || ! empty( $_POST['auto-add-pages'] ) ) {
 						// If there are menu items, add them.
 						wp_nav_menu_update_menu_items( $nav_menu_selected_id, $nav_menu_selected_title );
@@ -424,7 +415,7 @@ switch ( $action ) {
 
 				// If the menu ID changed, redirect to the new URL.
 				if ( $nav_menu_selected_id !== $_nav_menu_selected_id ) {
-					wp_redirect( admin_url( 'nav-menus.php?menu=' . intval( $_nav_menu_selected_id ) ) );
+					wp_redirect( admin_url( 'nav-menus.php?menu=' . (int) $_nav_menu_selected_id ) );
 					exit;
 				}
 			}
@@ -596,8 +587,8 @@ if ( ! $locations_screen ) : // Main tab.
 		/* translators: 1: URL to Widgets screen, 2 and 3: The names of the default themes. */
 		__( 'Menus can be displayed in locations defined by your theme, even used in sidebars by adding a &#8220;Navigation Menu&#8221; widget on the <a href="%1$s">Widgets</a> screen. If your theme does not support the navigation menus feature (the default themes, %2$s and %3$s, do), you can learn about adding this support by following the Documentation link to the side.' ),
 		admin_url( 'widgets.php' ),
-		'Twenty Nineteen',
-		'Twenty Twenty'
+		'Twenty Twenty',
+		'Twenty Twenty-One'
 	) . '</p>';
 	$overview .= '<p>' . __( 'From this screen you can:' ) . '</p>';
 	$overview .= '<ul><li>' . __( 'Create, edit, and delete menus' ) . '</li>';
@@ -663,7 +654,7 @@ get_current_screen()->set_help_sidebar(
 require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 <div class="wrap">
-	<h1 class="wp-heading-inline"><?php echo esc_html( __( 'Menus' ) ); ?></h1>
+	<h1 class="wp-heading-inline"><?php esc_html_e( 'Menus' ); ?></h1>
 	<?php
 	if ( current_user_can( 'customize' ) ) :
 		$focus = $locations_screen ? array( 'section' => 'menu_locations' ) : array( 'panel' => 'nav_menus' );
@@ -961,7 +952,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<div id="nav-menu-header">
 						<div class="major-publishing-actions wp-clearfix">
 							<label class="menu-name-label" for="menu-name"><?php _e( 'Menu Name' ); ?></label>
-							<input name="menu-name" id="menu-name" type="text" class="menu-name regular-text menu-item-textbox" <?php echo $menu_name_val . $menu_name_aria_desc; ?> />
+							<input name="menu-name" id="menu-name" type="text" class="menu-name regular-text menu-item-textbox form-required" required="required" <?php echo $menu_name_val . $menu_name_aria_desc; ?> />
 							<div class="publishing-action">
 								<?php submit_button( empty( $nav_menu_selected_id ) ? __( 'Create Menu' ) : __( 'Save Menu' ), 'primary large menu-save', 'save_menu', false, array( 'id' => 'save_menu_header' ) ); ?>
 							</div><!-- END .publishing-action -->
@@ -1042,7 +1033,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 										<legend class="menu-settings-group-name howto"><?php _e( 'Display location' ); ?></legend>
 										<?php
 										foreach ( $locations as $location => $description ) :
-											$checked = isset( $menu_locations[ $location ] ) && $menu_locations[ $location ] === $nav_menu_selected_id;
+											$checked = false;
+
+											if ( isset( $menu_locations[ $location ] )
+													&& 0 !== $nav_menu_selected_id
+													&& $menu_locations[ $location ] === $nav_menu_selected_id
+											) {
+													$checked = true;
+											}
 											?>
 											<div class="menu-settings-input checkbox-input">
 												<input type="checkbox"<?php checked( $checked ); ?> name="menu-locations[<?php echo esc_attr( $location ); ?>]" id="locations-<?php echo esc_attr( $location ); ?>" value="<?php echo esc_attr( $nav_menu_selected_id ); ?>" />

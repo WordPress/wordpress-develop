@@ -13,7 +13,7 @@
  * @since 3.0.0
  *
  * @param int|string|WP_Term $menu Menu ID, slug, name, or object.
- * @return WP_Term|false False if $menu param isn't supplied or term does not exist, menu object if successful.
+ * @return WP_Term|false Menu object on success, false if $menu param isn't supplied or term does not exist.
  */
 function wp_get_nav_menu_object( $menu ) {
 	$menu_obj = false;
@@ -85,7 +85,7 @@ function is_nav_menu( $menu ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @param array $locations Associative array of menu location identifiers (like a slug) and descriptive text.
+ * @param string[] $locations Associative array of menu location identifiers (like a slug) and descriptive text.
  */
 function register_nav_menus( $locations = array() ) {
 	global $_wp_registered_nav_menus;
@@ -143,7 +143,8 @@ function register_nav_menu( $location, $description ) {
  *
  * @global array $_wp_registered_nav_menus
  *
- * @return array Registered navigation menu locations. If none are registered, an empty array.
+ * @return string[] Associative array of egistered navigation menu descriptions keyed
+ *                  by their location. If none are registered, an empty array.
  */
 function get_registered_nav_menus() {
 	global $_wp_registered_nav_menus;
@@ -158,10 +159,9 @@ function get_registered_nav_menus() {
  *
  * @since 3.0.0
  *
- * @return array Registered navigation menu locations and the menus assigned them.
- *               If none are registered, an empty array.
+ * @return int[] Associative array of egistered navigation menu IDs keyed by their
+ *               location name. If none are registered, an empty array.
  */
-
 function get_nav_menu_locations() {
 	$locations = get_theme_mod( 'nav_menu_locations' );
 	return ( is_array( $locations ) ) ? $locations : array();
@@ -436,20 +436,22 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	}
 
 	$defaults = array(
-		'menu-item-db-id'       => $menu_item_db_id,
-		'menu-item-object-id'   => 0,
-		'menu-item-object'      => '',
-		'menu-item-parent-id'   => 0,
-		'menu-item-position'    => 0,
-		'menu-item-type'        => 'custom',
-		'menu-item-title'       => '',
-		'menu-item-url'         => '',
-		'menu-item-description' => '',
-		'menu-item-attr-title'  => '',
-		'menu-item-target'      => '',
-		'menu-item-classes'     => '',
-		'menu-item-xfn'         => '',
-		'menu-item-status'      => '',
+		'menu-item-db-id'         => $menu_item_db_id,
+		'menu-item-object-id'     => 0,
+		'menu-item-object'        => '',
+		'menu-item-parent-id'     => 0,
+		'menu-item-position'      => 0,
+		'menu-item-type'          => 'custom',
+		'menu-item-title'         => '',
+		'menu-item-url'           => '',
+		'menu-item-description'   => '',
+		'menu-item-attr-title'    => '',
+		'menu-item-target'        => '',
+		'menu-item-classes'       => '',
+		'menu-item-xfn'           => '',
+		'menu-item-status'        => '',
+		'menu-item-post-date'     => '',
+		'menu-item-post-date-gmt' => '',
 	);
 
 	$args = wp_parse_args( $menu_item_data, $defaults );
@@ -513,6 +515,11 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 		'post_type'    => 'nav_menu_item',
 	);
 
+	$post_date = wp_resolve_post_date( $args['menu-item-post-date'], $args['menu-item-post-date-gmt'] );
+	if ( $post_date ) {
+		$post['post_date'] = $post_date;
+	}
+
 	$update = 0 != $menu_item_db_id;
 
 	// New menu item. Default is draft status.
@@ -552,8 +559,8 @@ function wp_update_nav_menu_item( $menu_id = 0, $menu_item_db_id = 0, $menu_item
 	$menu_item_db_id = (int) $menu_item_db_id;
 
 	update_post_meta( $menu_item_db_id, '_menu_item_type', sanitize_key( $args['menu-item-type'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', strval( (int) $args['menu-item-parent-id'] ) );
-	update_post_meta( $menu_item_db_id, '_menu_item_object_id', strval( (int) $args['menu-item-object-id'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_menu_item_parent', (string) ( (int) $args['menu-item-parent-id'] ) );
+	update_post_meta( $menu_item_db_id, '_menu_item_object_id', (string) ( (int) $args['menu-item-object-id'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_object', sanitize_key( $args['menu-item-object'] ) );
 	update_post_meta( $menu_item_db_id, '_menu_item_target', sanitize_key( $args['menu-item-target'] ) );
 
@@ -751,14 +758,16 @@ function wp_get_nav_menu_items( $menu, $args = array() ) {
 		$items = array_filter( $items, '_is_valid_nav_menu_item' );
 	}
 
-	if ( ARRAY_A == $args['output'] ) {
+	if ( ARRAY_A === $args['output'] ) {
 		$items = wp_list_sort(
 			$items,
 			array(
 				$args['output_key'] => 'ASC',
 			)
 		);
-		$i     = 1;
+
+		$i = 1;
+
 		foreach ( $items as $k => $item ) {
 			$items[ $k ]->{$args['output_key']} = $i++;
 		}
@@ -988,11 +997,12 @@ function wp_setup_nav_menu_item( $menu_item ) {
  *
  * @since 3.0.0
  *
- * @param int    $object_id   The ID of the original object.
- * @param string $object_type The type of object, such as 'taxonomy' or 'post_type'.
- * @param string $taxonomy    If $object_type is 'taxonomy', $taxonomy is the name of the tax
- *                            that $object_id belongs to.
- * @return int[] The array of menu item IDs; empty array if none;
+ * @param int    $object_id   Optional. The ID of the original object. Default 0.
+ * @param string $object_type Optional. The type of object, such as 'post_type' or 'taxonomy'.
+ *                            Default 'post_type'.
+ * @param string $taxonomy    Optional. If $object_type is 'taxonomy', $taxonomy is the name
+ *                            of the tax that $object_id belongs to. Default empty.
+ * @return int[] The array of menu item IDs; empty array if none.
  */
 function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_type', $taxonomy = '' ) {
 	$object_id     = (int) $object_id;
@@ -1037,7 +1047,7 @@ function wp_get_associated_nav_menu_items( $object_id = 0, $object_type = 'post_
  *
  * @param int $object_id The ID of the original object being trashed.
  */
-function _wp_delete_post_menu_item( $object_id = 0 ) {
+function _wp_delete_post_menu_item( $object_id ) {
 	$object_id = (int) $object_id;
 
 	$menu_item_ids = wp_get_associated_nav_menu_items( $object_id, 'post_type' );
@@ -1053,11 +1063,11 @@ function _wp_delete_post_menu_item( $object_id = 0 ) {
  * @since 3.0.0
  * @access private
  *
- * @param int    $object_id Optional. The ID of the original object being trashed. Default 0.
+ * @param int    $object_id The ID of the original object being trashed.
  * @param int    $tt_id     Term taxonomy ID. Unused.
  * @param string $taxonomy  Taxonomy slug.
  */
-function _wp_delete_tax_menu_item( $object_id = 0, $tt_id, $taxonomy ) {
+function _wp_delete_tax_menu_item( $object_id, $tt_id, $taxonomy ) {
 	$object_id = (int) $object_id;
 
 	$menu_item_ids = wp_get_associated_nav_menu_items( $object_id, 'taxonomy', $taxonomy );

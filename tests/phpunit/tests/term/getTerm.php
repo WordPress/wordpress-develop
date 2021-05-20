@@ -72,11 +72,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 	}
 
 	public function test_passing_term_string_that_casts_to_int_0_should_return_null() {
-		$this->assertSame( null, get_term( 'abc', 'wptests_tax' ) );
+		$this->assertNull( get_term( 'abc', 'wptests_tax' ) );
 	}
 
 	public function test_should_return_null_for_invalid_term_id() {
-		$this->assertSame( null, get_term( 99999999, 'wptests_tax' ) );
+		$this->assertNull( get_term( 99999999, 'wptests_tax' ) );
 	}
 
 	public function test_cache_should_be_populated_by_successful_fetch() {
@@ -124,6 +124,7 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 14162
+	 * @ticket 53235
 	 */
 	public function test_numeric_properties_should_be_cast_to_ints() {
 		global $wpdb;
@@ -133,14 +134,18 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 		// Get raw data from the database.
 		$term_data = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->terms t JOIN $wpdb->term_taxonomy tt ON ( t.term_id = tt.term_id ) WHERE t.term_id = %d", $t ) );
 
-		$found = get_term( $term_data );
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'rss', 'attribute', 'js' );
 
-		$this->assertTrue( $found instanceof WP_Term );
-		$this->assertInternalType( 'int', $found->term_id );
-		$this->assertInternalType( 'int', $found->term_taxonomy_id );
-		$this->assertInternalType( 'int', $found->parent );
-		$this->assertInternalType( 'int', $found->count );
-		$this->assertInternalType( 'int', $found->term_group );
+		foreach ( $contexts as $context ) {
+			$found = get_term( $term_data, '', OBJECT, $context );
+
+			$this->assertInstanceOf( 'WP_Term', $found );
+			$this->assertInternalType( 'int', $found->term_id );
+			$this->assertInternalType( 'int', $found->term_taxonomy_id );
+			$this->assertInternalType( 'int', $found->parent );
+			$this->assertInternalType( 'int', $found->count );
+			$this->assertInternalType( 'int', $found->term_group );
+		}
 	}
 
 	/**

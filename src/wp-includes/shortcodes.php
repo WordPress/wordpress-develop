@@ -252,7 +252,7 @@ function get_shortcode_regex( $tagnames = null ) {
 	if ( empty( $tagnames ) ) {
 		$tagnames = array_keys( $shortcode_tags );
 	}
-	$tagregexp = join( '|', array_map( 'preg_quote', $tagnames ) );
+	$tagregexp = implode( '|', array_map( 'preg_quote', $tagnames ) );
 
 	// WARNING! Do not change this regex without changing do_shortcode_tag() and strip_shortcode_tag().
 	// Also, see shortcode_unautop() and shortcode.js.
@@ -292,15 +292,15 @@ function get_shortcode_regex( $tagnames = null ) {
 /**
  * Regular Expression callable for do_shortcode() for calling shortcode hook.
  *
- * @see get_shortcode_regex for details of the match array contents.
+ * @see get_shortcode_regex() for details of the match array contents.
  *
  * @since 2.5.0
  * @access private
  *
  * @global array $shortcode_tags
  *
- * @param array $m Regular expression match array
- * @return string|false False on failure.
+ * @param array $m Regular expression match array.
+ * @return string|false Shortcode output on success, false on failure.
  */
 function do_shortcode_tag( $m ) {
 	global $shortcode_tags;

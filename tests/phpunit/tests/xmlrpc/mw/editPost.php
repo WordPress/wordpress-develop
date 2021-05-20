@@ -9,7 +9,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$post   = array();
 		$result = $this->myxmlrpcserver->mw_editPost( array( 1, 'username', 'password', $post ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_edit_own_post() {
@@ -27,7 +27,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $new_title, $out->post_title );
+		$this->assertSame( $new_title, $out->post_title );
 	}
 
 	function test_capable_edit_others_post() {
@@ -47,7 +47,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $new_title, $out->post_title );
+		$this->assertSame( $new_title, $out->post_title );
 	}
 
 	function test_incapable_edit_others_post() {
@@ -65,10 +65,10 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$post2     = array( 'title' => $new_title );
 		$result    = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $original_title, $out->post_title );
+		$this->assertSame( $original_title, $out->post_title );
 	}
 
 	function test_capable_reassign_author() {
@@ -104,7 +104,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$post2  = array( 'wp_author_id' => $author_id );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
+		$this->assertSame( 401, $result->code );
 
 		$out = get_post( $post_id );
 		$this->assertEquals( $contributor_id, $out->post_author );
@@ -143,7 +143,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		);
 		$post_id = wp_insert_post( $post );
 
-		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
+		$this->assertSame( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		// Create attachment.
 		$filename      = ( DIR_TESTDATA . '/images/a2-small.jpg' );
@@ -174,7 +174,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$post5  = array( 'wp_post_thumbnail' => '' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'author', 'author', $post5 ) );
 		$this->assertNotIXRError( $result );
-		$this->assertEquals( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
+		$this->assertSame( '', get_post_meta( $post_id, '_thumbnail_id', true ) );
 
 		remove_theme_support( 'post-thumbnails' );
 	}
@@ -199,7 +199,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $post2['title'], $out->post_title );
+		$this->assertSame( $post2['title'], $out->post_title );
 
 		$post3  = array(
 			'description' => 'New Content',
@@ -210,8 +210,8 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $post2['title'], $out->post_title );
-		$this->assertEquals( $post3['description'], $out->post_content );
+		$this->assertSame( $post2['title'], $out->post_title );
+		$this->assertSame( $post3['description'], $out->post_content );
 
 		$post4  = array(
 			'mt_excerpt'  => 'New Excerpt',
@@ -222,9 +222,9 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertTrue( $result );
 
 		$out = get_post( $post_id );
-		$this->assertEquals( $post2['title'], $out->post_title );
-		$this->assertEquals( $post3['description'], $out->post_content );
-		$this->assertEquals( $post4['mt_excerpt'], $out->post_excerpt );
+		$this->assertSame( $post2['title'], $out->post_title );
+		$this->assertSame( $post3['description'], $out->post_content );
+		$this->assertSame( $post4['mt_excerpt'], $out->post_excerpt );
 	}
 
 	/**
@@ -259,7 +259,7 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		$post2  = array( 'post_type' => 'page' );
 		$result = $this->myxmlrpcserver->mw_editPost( array( $post_id, 'contributor', 'contributor', $post2 ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( $result->code, 401 );
+		$this->assertSame( $result->code, 401 );
 	}
 
 	/**
@@ -327,9 +327,9 @@ class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 		);
 
 		$after = get_post( $post_id );
-		$this->assertEquals( 'future', $after->post_status );
+		$this->assertSame( 'future', $after->post_status );
 
 		$future_date_string = strftime( '%Y-%m-%d %H:%M:%S', $future_time );
-		$this->assertEquals( $future_date_string, $after->post_date );
+		$this->assertSame( $future_date_string, $after->post_date );
 	}
 }

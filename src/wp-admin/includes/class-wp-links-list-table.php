@@ -13,7 +13,7 @@
  * @since 3.1.0
  * @access private
  *
- * @see WP_List_Tsble
+ * @see WP_List_Table
  */
 class WP_Links_List_Table extends WP_List_Table {
 
@@ -114,8 +114,10 @@ class WP_Links_List_Table extends WP_List_Table {
 				'orderby'         => 'name',
 			);
 
-			echo '<label class="screen-reader-text" for="cat_id">' . __( 'Filter by category' ) . '</label>';
+			echo '<label class="screen-reader-text" for="cat_id">' . get_taxonomy( 'link_category' )->labels->filter_by_item . '</label>';
+
 			wp_dropdown_categories( $dropdown_options );
+
 			submit_button( __( 'Filter' ), '', 'filter_action', false, array( 'id' => 'post-query-submit' ) );
 			?>
 		</div>

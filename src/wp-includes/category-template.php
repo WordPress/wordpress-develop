@@ -248,8 +248,9 @@ function get_the_category_list( $separator = '', $parents = '', $post_id = false
  * @since 1.2.0
  * @since 2.7.0 The `$post` parameter was added.
  *
- * @param int|string|array $category Category ID, name or slug, or array of said.
- * @param int|object       $post     Optional. Post to check instead of the current post.
+ * @param int|string|int[]|string[] $category Category ID, name, slug, or array of such
+ *                                            to check against.
+ * @param int|object                $post     Optional. Post to check instead of the current post.
  * @return bool True if the current post is in any of the given categories.
  */
 function in_category( $category, $post = null ) {
@@ -325,7 +326,7 @@ function category_description( $category = 0 ) {
  *                                           of the option elements. Accepts any valid term field: 'term_id', 'name',
  *                                           'slug', 'term_group', 'term_taxonomy_id', 'taxonomy', 'description',
  *                                           'parent', 'count'. Default 'term_id'.
- *     @type string|array $taxonomy          Name of the category or categories to retrieve. Default 'category'.
+ *     @type string|array $taxonomy          Name of the taxonomy or taxonomies to retrieve. Default 'category'.
  *     @type bool         $hide_if_empty     True to skip generating markup if no categories are found.
  *                                           Default false (create select element even if no categories are found).
  *     @type bool         $required          Whether the `<select>` element should have the HTML5 'required' attribute.
@@ -433,7 +434,7 @@ function wp_dropdown_categories( $args = '' ) {
 
 			/** This filter is documented in wp-includes/category-template.php */
 			$show_option_all = apply_filters( 'list_cats', $parsed_args['show_option_all'], null );
-			$selected        = ( '0' === strval( $parsed_args['selected'] ) ) ? " selected='selected'" : '';
+			$selected        = ( '0' === (string) $parsed_args['selected'] ) ? " selected='selected'" : '';
 			$output         .= "\t<option value='0'$selected>$show_option_all</option>\n";
 		}
 
@@ -485,16 +486,16 @@ function wp_dropdown_categories( $args = '' ) {
  *     Array of optional arguments. See get_categories(), get_terms(), and WP_Term_Query::__construct()
  *     for information on additional accepted arguments.
  *
- *     @type int|array    $current_category      ID of category, or array of IDs of categories, that should get the
+ *     @type int|int[]    $current_category      ID of category, or array of IDs of categories, that should get the
  *                                               'current-cat' class. Default 0.
  *     @type int          $depth                 Category depth. Used for tab indentation. Default 0.
  *     @type bool|int     $echo                  Whether to echo or return the generated markup. Accepts 0, 1, or their
  *                                               bool equivalents. Default 1.
- *     @type array|string $exclude               Array or comma/space-separated string of term IDs to exclude.
+ *     @type int[]|string $exclude               Array or comma/space-separated string of term IDs to exclude.
  *                                               If `$hierarchical` is true, descendants of `$exclude` terms will also
  *                                               be excluded; see `$exclude_tree`. See get_terms().
  *                                               Default empty string.
- *     @type array|string $exclude_tree          Array or comma/space-separated string of term IDs to exclude, along
+ *     @type int[]|string $exclude_tree          Array or comma/space-separated string of term IDs to exclude, along
  *                                               with their descendants. See get_terms(). Default empty string.
  *     @type string       $feed                  Text to use for the feed link. Default 'Feed for all posts filed
  *                                               under [cat name]'.
@@ -512,6 +513,7 @@ function wp_dropdown_categories( $args = '' ) {
  *     @type string       $style                 The style used to display the categories list. If 'list', categories
  *                                               will be output as an unordered list. If left empty or another value,
  *                                               categories will be output separated by `<br>` tags. Default 'list'.
+ *     @type string       $taxonomy              Name of the taxonomy to retrieve. Default 'category'.
  *     @type string       $title_li              Text to use for the list title `<li>` element. Pass an empty string
  *                                               to disable. Default 'Categories'.
  *     @type bool|int     $use_desc_for_title    Whether to use the category description as the title attribute.
@@ -660,7 +662,8 @@ function wp_list_categories( $args = '' ) {
 	 * @since 2.1.0
 	 *
 	 * @param string $output HTML output.
-	 * @param array  $args   An array of taxonomy-listing arguments.
+	 * @param array  $args   An array of taxonomy-listing arguments. See wp_list_categories()
+	 *                       for information on accepted arguments.
 	 */
 	$html = apply_filters( 'wp_list_categories', $output, $args );
 
@@ -686,7 +689,7 @@ function wp_list_categories( $args = '' ) {
  *     and get_terms() for the full lists of arguments that can be passed in `$args`.
  *
  *     @type int    $number    The number of tags to display. Accepts any positive integer
- *                             or zero to return all. Default 0 (all tags).
+ *                             or zero to return all. Default 45.
  *     @type string $link      Whether to display term editing links or term permalinks.
  *                             Accepts 'edit' and 'view'. Default 'view'.
  *     @type string $post_type The post type. Used to highlight the proper post type menu
@@ -694,8 +697,8 @@ function wp_list_categories( $args = '' ) {
  *                             associated with the taxonomy.
  *     @type bool   $echo      Whether or not to echo the return value. Default true.
  * }
- * @return void|string|array Void if 'echo' argument is true, or on failure. Otherwise, tag cloud
- *                           as a string or an array, depending on 'format' argument.
+ * @return void|string|string[] Void if 'echo' argument is true, or on failure. Otherwise, tag cloud
+ *                              as a string or an array, depending on 'format' argument.
  */
 function wp_tag_cloud( $args = '' ) {
 	$defaults = array(
@@ -736,7 +739,7 @@ function wp_tag_cloud( $args = '' ) {
 		if ( 'edit' === $args['link'] ) {
 			$link = get_edit_term_link( $tag->term_id, $tag->taxonomy, $args['post_type'] );
 		} else {
-			$link = get_term_link( intval( $tag->term_id ), $tag->taxonomy );
+			$link = get_term_link( (int) $tag->term_id, $tag->taxonomy );
 		}
 
 		if ( is_wp_error( $link ) ) {
@@ -755,8 +758,9 @@ function wp_tag_cloud( $args = '' ) {
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param string|array $return Tag cloud as a string or an array, depending on 'format' argument.
-	 * @param array        $args   An array of tag cloud arguments.
+	 * @param string|string[] $return Tag cloud as a string or an array, depending on 'format' argument.
+	 * @param array           $args   An array of tag cloud arguments. See wp_tag_cloud()
+	 *                                for information on accepted arguments.
 	 */
 	$return = apply_filters( 'wp_tag_cloud', $return, $args );
 
@@ -813,7 +817,7 @@ function default_topic_count_scale( $count ) {
  *     @type string   $order                      How to order the tags. Accepts 'ASC' (ascending),
  *                                                'DESC' (descending), or 'RAND' (random). Default 'ASC'.
  *     @type int|bool $filter                     Whether to enable filtering of the final output
- *                                                via {@see 'wp_generate_tag_cloud'}. Default 1|true.
+ *                                                via {@see 'wp_generate_tag_cloud'}. Default 1.
  *     @type string   $topic_count_text           Nooped plural text from _n_noop() to supply to
  *                                                tag counts. Default null.
  *     @type callable $topic_count_text_callback  Callback used to generate nooped plural text for
@@ -823,7 +827,7 @@ function default_topic_count_scale( $count ) {
  *     @type bool|int $show_count                 Whether to display the tag counts. Default 0. Accepts
  *                                                0, 1, or their bool equivalents.
  * }
- * @return string|array Tag cloud as a string or an array, depending on 'format' argument.
+ * @return string|string[] Tag cloud as a string or an array, depending on 'format' argument.
  */
 function wp_generate_tag_cloud( $tags, $args = '' ) {
 	$defaults = array(
@@ -977,7 +981,7 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param array $tags_data An array of term data for term used to generate the tag cloud.
+	 * @param array[] $tags_data An array of term data arrays for terms used to generate the tag cloud.
 	 */
 	$tags_data = apply_filters( 'wp_generate_tag_cloud_data', $tags_data );
 
@@ -1009,11 +1013,11 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 			 * Note: this is redundant but doesn't harm.
 			 */
 			$return  = "<ul class='wp-tag-cloud' role='list'>\n\t<li>";
-			$return .= join( "</li>\n\t<li>", $a );
+			$return .= implode( "</li>\n\t<li>", $a );
 			$return .= "</li>\n</ul>\n";
 			break;
 		default:
-			$return = join( $args['separator'], $a );
+			$return = implode( $args['separator'], $a );
 			break;
 	}
 
@@ -1028,11 +1032,11 @@ function wp_generate_tag_cloud( $tags, $args = '' ) {
 		 *
 		 * @see wp_generate_tag_cloud()
 		 *
-		 * @param array|string $return String containing the generated HTML tag cloud output
-		 *                             or an array of tag links if the 'format' argument
-		 *                             equals 'array'.
-		 * @param WP_Term[]    $tags   An array of terms used in the tag cloud.
-		 * @param array        $args   An array of wp_generate_tag_cloud() arguments.
+		 * @param string[]|string $return String containing the generated HTML tag cloud output
+		 *                                or an array of tag links if the 'format' argument
+		 *                                equals 'array'.
+		 * @param WP_Term[]       $tags   An array of terms used in the tag cloud.
+		 * @param array           $args   An array of wp_generate_tag_cloud() arguments.
 		 */
 		return apply_filters( 'wp_generate_tag_cloud', $return, $tags, $args );
 	} else {
@@ -1152,8 +1156,9 @@ function get_tag_link( $tag ) {
  *
  * @since 2.3.0
  *
- * @param int $post_id Post ID.
- * @return array|false|WP_Error Array of tag objects on success, false on failure.
+ * @param int|WP_Post $post_id Post ID or object.
+ * @return WP_Term[]|false|WP_Error Array of WP_Term objects on success, false if there are no terms
+ *                                  or the post does not exist, WP_Error on failure.
  */
 function get_the_tags( $post_id = 0 ) {
 	$terms = get_the_terms( $post_id, 'post_tag' );
@@ -1165,7 +1170,8 @@ function get_the_tags( $post_id = 0 ) {
 	 *
 	 * @see get_the_terms()
 	 *
-	 * @param WP_Term[] $terms An array of tags for the given post.
+	 * @param WP_Term[]|false|WP_Error $terms Array of WP_Term objects on success, false if there are no terms
+	 *                                        or the post does not exist, WP_Error on failure.
 	 */
 	return apply_filters( 'get_the_tags', $terms );
 }
@@ -1346,7 +1352,7 @@ function get_the_term_list( $post_id, $taxonomy, $before = '', $sep = '', $after
 	 */
 	$term_links = apply_filters( "term_links-{$taxonomy}", $links );  // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
 
-	return $before . join( $sep, $term_links ) . $after;
+	return $before . implode( $sep, $term_links ) . $after;
 }
 
 /**

@@ -209,6 +209,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error True if can read, a WP_Error instance otherwise.
 	 */
 	protected function check_read_permission( $plugin ) {
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+
 		if ( ! $this->is_plugin_installed( $plugin ) ) {
 			return new WP_Error( 'rest_plugin_not_found', __( 'Plugin not found.' ), array( 'status' => 404 ) );
 		}
@@ -285,7 +287,8 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			array(
 				'slug'   => $slug,
 				'fields' => array(
-					'sections' => false,
+					'sections'       => false,
+					'language_packs' => true,
 				),
 			)
 		);
@@ -353,6 +356,32 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 			if ( is_wp_error( $changed_status ) ) {
 				return $changed_status;
 			}
+		}
+
+		// Install translations.
+		$installed_locales = array_values( get_available_languages() );
+		/** This filter is documented in wp-includes/update.php */
+		$installed_locales = apply_filters( 'plugins_update_check_locales', $installed_locales );
+
+		$language_packs = array_map(
+			function( $item ) {
+				return (object) $item;
+			},
+			$api->language_packs
+		);
+
+		$language_packs = array_filter(
+			$language_packs,
+			function( $pack ) use ( $installed_locales ) {
+				return in_array( $pack->language, $installed_locales, true );
+			}
+		);
+
+		if ( $language_packs ) {
+			$lp_upgrader = new Language_Pack_Upgrader( $skin );
+
+			// Install all applicable language packs for the plugin.
+			$lp_upgrader->bulk_upgrade( $language_packs );
 		}
 
 		$path          = WP_PLUGIN_DIR . '/' . $file;
@@ -557,7 +586,7 @@ class WP_REST_Plugins_Controller extends WP_REST_Controller {
 		$response->add_links( $this->prepare_links( $item ) );
 
 		/**
-		 * Filters the plugin data for a response.
+		 * Filters plugin data for a REST API response.
 		 *
 		 * @since 5.5.0
 		 *

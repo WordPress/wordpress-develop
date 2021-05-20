@@ -191,7 +191,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 4.4.1
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	isImageAttachment: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.
@@ -208,7 +208,7 @@ Library = wp.media.controller.State.extend(/** @lends wp.media.controller.Librar
 	 * @since 3.6.0
 	 *
 	 * @param {wp.media.model.Attachment} attachment
-	 * @return {Boolean}
+	 * @return {boolean}
 	 */
 	canEmbed: function( attachment ) {
 		// If uploading, we know the filename but not the mime type.

@@ -146,6 +146,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -170,7 +171,7 @@ if ( ! function_exists( 'twentyfourteen_setup' ) ) :
 		add_theme_support(
 			'custom-background',
 			/**
-			 * Filter Twenty Fourteen custom-background support arguments.
+			 * Filters Twenty Fourteen custom-background support arguments.
 			 *
 			 * @since Twenty Fourteen 1.0
 			 *
@@ -227,7 +228,7 @@ add_action( 'template_redirect', 'twentyfourteen_content_width' );
  */
 function twentyfourteen_get_featured_posts() {
 	/**
-	 * Filter the featured posts to return in Twenty Fourteen.
+	 * Filters the featured posts to return in Twenty Fourteen.
 	 *
 	 * @since Twenty Fourteen 1.0
 	 *
@@ -409,7 +410,7 @@ add_filter( 'wp_resource_hints', 'twentyfourteen_resource_hints', 10, 2 );
  */
 function twentyfourteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyfourteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfourteen-fonts', twentyfourteen_font_url(), array(), null );
 }
@@ -424,7 +425,7 @@ if ( ! function_exists( 'twentyfourteen_the_attached_image' ) ) :
 	function twentyfourteen_the_attached_image() {
 		$post = get_post();
 		/**
-		 * Filter the default Twenty Fourteen attachment size.
+		 * Filters the default Twenty Fourteen attachment size.
 		 *
 		 * @since Twenty Fourteen 1.0
 		 *

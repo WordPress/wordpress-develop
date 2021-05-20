@@ -70,13 +70,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 
 		parent::setUpBeforeClass();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpSetUpBeforeClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpSetUpBeforeClass' ), self::factory() );
+		if ( method_exists( $class, 'wpSetUpBeforeClass' ) ) {
+			call_user_func( array( $class, 'wpSetUpBeforeClass' ), self::factory() );
+		}
 
 		self::commit_transaction();
 	}
@@ -90,13 +88,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		_delete_all_data();
 		self::flush_cache();
 
-		$c = get_called_class();
-		if ( ! method_exists( $c, 'wpTearDownAfterClass' ) ) {
-			self::commit_transaction();
-			return;
-		}
+		$class = get_called_class();
 
-		call_user_func( array( $c, 'wpTearDownAfterClass' ) );
+		if ( method_exists( $class, 'wpTearDownAfterClass' ) ) {
+			call_user_func( array( $class, 'wpTearDownAfterClass' ) );
+		}
 
 		self::commit_transaction();
 	}
@@ -142,7 +138,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * After a test method runs, reset any state in WordPress the test method might have changed.
+	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tearDown() {
 		global $wpdb, $wp_query, $wp;
@@ -160,6 +156,9 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		foreach ( $post_globals as $global ) {
 			$GLOBALS[ $global ] = null;
 		}
+
+		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
+		$GLOBALS['wp_sitemaps'] = null;
 
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
@@ -180,27 +179,28 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped on some automated runs.
+	 * Allows tests to be skipped on some automated runs.
 	 *
-	 * For test runs on Travis for something other than trunk/master
+	 * For test runs on GitHub Actions for something other than trunk/master,
 	 * we want to skip tests that only need to run for master.
 	 */
 	public function skipOnAutomatedBranches() {
-		// https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables
-		$travis_branch       = getenv( 'TRAVIS_BRANCH' );
-		$travis_pull_request = getenv( 'TRAVIS_PULL_REQUEST' );
+		// https://docs.github.com/en/free-pro-team@latest/actions/reference/environment-variables#default-environment-variables
+		$github_event_name = getenv( 'GITHUB_EVENT_NAME' );
+		$github_ref        = getenv( 'GITHUB_REF' );
 
-		if ( ! $travis_branch || ! $travis_pull_request ) {
-			return;
-		}
+		if ( $github_event_name && 'false' !== $github_event_name ) {
+			// We're on GitHub Actions.
+			$skipped = array( 'pull_request', 'pull_request_target' );
 
-		if ( 'master' !== $travis_branch || 'false' !== $travis_pull_request ) {
-			$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+			if ( in_array( $github_event_name, $skipped, true ) || 'refs/heads/master' !== $github_ref ) {
+				$this->markTestSkipped( 'For automated test runs, this test is only run on trunk/master' );
+			}
 		}
 	}
 
 	/**
-	 * Allow tests to be skipped when Multisite is not in use.
+	 * Allows tests to be skipped when Multisite is not in use.
 	 *
 	 * Use in conjunction with the ms-required group.
 	 */
@@ -211,7 +211,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped when Multisite is in use.
+	 * Allows tests to be skipped when Multisite is in use.
 	 *
 	 * Use in conjunction with the ms-excluded group.
 	 */
@@ -222,7 +222,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped if the HTTP request times out.
+	 * Allows tests to be skipped if the HTTP request times out.
 	 *
 	 * @param array|WP_Error $response HTTP response.
 	 */
@@ -245,7 +245,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister existing post types and register defaults.
+	 * Unregisters existing post types and register defaults.
 	 *
 	 * Run before each test in order to clean up the global scope, in case
 	 * a test forgets to unregister a post type on its own, or fails before
@@ -261,7 +261,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister existing taxonomies and register defaults.
+	 * Unregisters existing taxonomies and register defaults.
 	 *
 	 * Run before each test in order to clean up the global scope, in case
 	 * a test forgets to unregister a taxonomy on its own, or fails before
@@ -275,7 +275,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister non-built-in post statuses.
+	 * Unregisters non-built-in post statuses.
 	 */
 	protected function reset_post_statuses() {
 		foreach ( get_post_stati( array( '_builtin' => false ) ) as $post_status ) {
@@ -284,7 +284,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Reset `$_SERVER` variables
+	 * Resets `$_SERVER` variables
 	 */
 	protected function reset__SERVER() {
 		tests_reset__SERVER();
@@ -352,7 +352,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Clean up any registered meta keys.
+	 * Cleans up any registered meta keys.
 	 *
 	 * @since 5.1.0
 	 *
@@ -384,7 +384,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Commit the queries in a transaction.
+	 * Commits the queries in a transaction.
 	 *
 	 * @since 4.1.0
 	 */
@@ -509,7 +509,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Detect post-test failure conditions.
+	 * Detects post-test failure conditions.
 	 *
 	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
 	 *
@@ -520,7 +520,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Declare an expected `_deprecated_function()` or `_deprecated_argument()` call from within a test.
+	 * Declares an expected `_deprecated_function()` or `_deprecated_argument()` call from within a test.
 	 *
 	 * @since 4.2.0
 	 *
@@ -532,7 +532,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Declare an expected `_doing_it_wrong()` call from within a test.
+	 * Declares an expected `_doing_it_wrong()` call from within a test.
 	 *
 	 * @since 4.2.0
 	 *
@@ -626,7 +626,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
-		if ( $actual instanceof IXR_Error && '' === $message ) {
+		if ( '' === $message && $actual instanceof IXR_Error ) {
 			$message = $actual->message;
 		}
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
@@ -657,15 +657,42 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
+	 * Asserts that two values have the same type and value, with EOL differences discarded.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param string $expected The expected value.
+	 * @param string $actual   The actual value.
+	 */
+	public function assertSameIgnoreEOL( $expected, $actual ) {
+		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+	}
+
+	/**
 	 * Asserts that two values are equal, with EOL differences discarded.
 	 *
 	 * @since 5.4.0
+	 * @since 5.6.0 Turned into an alias for `::assertSameIgnoreEOL()`.
 	 *
 	 * @param string $expected The expected value.
 	 * @param string $actual   The actual value.
 	 */
 	public function assertEqualsIgnoreEOL( $expected, $actual ) {
-		$this->assertEquals( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+		$this->assertSameIgnoreEOL( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two un-keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSets( $expected, $actual ) {
+		sort( $expected );
+		sort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -680,6 +707,20 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		sort( $expected );
 		sort( $actual );
 		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Asserts that the contents of two keyed, single arrays are the same, without accounting for the order of elements.
+	 *
+	 * @since 5.6.0
+	 *
+	 * @param array $expected Expected array.
+	 * @param array $actual   Array to check.
+	 */
+	public function assertSameSetsWithIndex( $expected, $actual ) {
+		ksort( $expected );
+		ksort( $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -1114,8 +1155,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property. Hidden
-	 * directories are ignored.
+	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property.
+	 * Hidden directories are ignored.
 	 *
 	 * This is a helper for the `delete_folders()` method.
 	 *
@@ -1242,5 +1283,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 				'%d',
 			)
 		);
+	}
+
+	/**
+	 * Touches the given file and its directory if it doesn't already exist.
+	 *
+	 * This can be used to ensure a file that is implictly relied on in a test exists
+	 * without it having to be built.
+	 *
+	 * @param string $file The file name.
+	 */
+	public static function touch( $file ) {
+		if ( file_exists( $file ) ) {
+			return;
+		}
+
+		$dir = dirname( $file );
+
+		if ( ! file_exists( $dir ) ) {
+			mkdir( $dir, 0777, true );
+		}
+
+		touch( $file );
 	}
 }

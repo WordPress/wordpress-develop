@@ -7,13 +7,15 @@ var installChanged = require( 'install-changed' );
 module.exports = function(grunt) {
 	var path = require('path'),
 		fs = require( 'fs' ),
+		glob = require( 'glob' ),
+		assert = require( 'assert' ).strict,
 		spawn = require( 'child_process' ).spawnSync,
 		SOURCE_DIR = 'src/',
 		BUILD_DIR = 'build/',
 		WORKING_DIR = grunt.option( 'dev' ) ? SOURCE_DIR : BUILD_DIR,
  		BANNER_TEXT = '/*! This file is auto-generated */',
 		autoprefixer = require( 'autoprefixer' ),
-		nodesass = require( 'node-sass' ),
+		sass = require( 'sass' ),
 		phpUnitWatchGroup = grunt.option( 'group' ),
 		buildFiles = [
 			'*.php',
@@ -131,12 +133,18 @@ module.exports = function(grunt) {
 			qunit: ['tests/qunit/compiled.html']
 		},
 		file_append: {
+			// grunt-file-append supports only strings for input and output.
 			default_options: {
 				files: [
 					{
 						append: 'jQuery.noConflict();',
 						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.js',
 						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.js'
+					},
+					{
+						append: 'jQuery.noConflict();',
+						input: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js',
+						output: WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js'
 					}
 				]
 			}
@@ -179,18 +187,12 @@ module.exports = function(grunt) {
 						// Renamed to avoid conflict with jQuery hoverIntent.min.js (after minifying).
 						[ WORKING_DIR + 'wp-includes/js/hoverintent-js.min.js' ]: [ './node_modules/hoverintent/dist/hoverintent.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/imagesloaded.min.js' ]: [ './node_modules/imagesloaded/imagesloaded.pkgd.min.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.js' ],
-						[ WORKING_DIR + 'wp-includes/js/jquery/jquery-migrate.min.js' ]: [ './node_modules/jquery-migrate/dist/jquery-migrate.min.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.js' ]: [ './node_modules/jquery/dist/jquery.js' ],
+						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.min.js' ]: [ './node_modules/jquery/dist/jquery.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/jquery/jquery.form.js' ]: [ './node_modules/jquery-form/src/jquery.form.js' ],
 						[ WORKING_DIR + 'wp-includes/js/masonry.min.js' ]: [ './node_modules/masonry-layout/dist/masonry.pkgd.min.js' ],
 						[ WORKING_DIR + 'wp-includes/js/twemoji.js' ]: [ './node_modules/twemoji/dist/twemoji.js' ],
 						[ WORKING_DIR + 'wp-includes/js/underscore.js' ]: [ './node_modules/underscore/underscore.js' ],
-					},
-					{
-						expand: true,
-						cwd: './node_modules/jquery-ui/ui/',
-						src: '*.js',
-						dest: SOURCE_DIR + 'wp-includes/js/jquery/ui/'
 					}
 				]
 			},
@@ -240,6 +242,8 @@ module.exports = function(grunt) {
 			'admin-js': {
 				files: {
 					[ WORKING_DIR + 'wp-admin/js/accordion.js' ]: [ './src/js/_enqueues/lib/accordion.js' ],
+					[ WORKING_DIR + 'wp-admin/js/application-passwords.js' ]: [ './src/js/_enqueues/admin/application-passwords.js' ],
+					[ WORKING_DIR + 'wp-admin/js/auth-app.js' ]: [ './src/js/_enqueues/admin/auth-app.js' ],
 					[ WORKING_DIR + 'wp-admin/js/code-editor.js' ]: [ './src/js/_enqueues/wp/code-editor.js' ],
 					[ WORKING_DIR + 'wp-admin/js/color-picker.js' ]: [ './src/js/_enqueues/lib/color-picker.js' ],
 					[ WORKING_DIR + 'wp-admin/js/comment.js' ]: [ './src/js/_enqueues/admin/comment.js' ],
@@ -406,8 +410,7 @@ module.exports = function(grunt) {
 				ext: '.css',
 				src: ['wp-admin/css/colors/*/colors.scss'],
 				options: {
-					implementation: nodesass,
-					outputStyle: 'expanded'
+					implementation: sass
 				}
 			}
 		},
@@ -542,7 +545,7 @@ module.exports = function(grunt) {
 			}
 		},
 		jshint: {
-			options: grunt.file.readJSON('.jshintrc'),
+			options: grunt.file.readJSON( '.jshintrc' ),
 			grunt: {
 				src: ['Gruntfile.js']
 			},
@@ -552,7 +555,7 @@ module.exports = function(grunt) {
 					'!tests/qunit/vendor/*',
 					'!tests/qunit/editor/**'
 				],
-				options: grunt.file.readJSON('tests/qunit/.jshintrc')
+				options: grunt.file.readJSON( 'tests/qunit/.jshintrc' )
 			},
 			themes: {
 				expand: true,
@@ -673,6 +676,10 @@ module.exports = function(grunt) {
 				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml']
 			},
+			'ms-ajax': {
+				cmd: 'phpunit',
+				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ajax']
+			},
 			'ms-files': {
 				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ms-files']
@@ -727,7 +734,7 @@ module.exports = function(grunt) {
 				ext: '.min.js',
 				src: ['wp-includes/js/wp-embed.js']
 			},
-			jqueryui: {
+			'jquery-ui': {
 				options: {
 					// Preserve comments that start with a bang.
 					output: {
@@ -735,7 +742,7 @@ module.exports = function(grunt) {
 					}
 				},
 				expand: true,
-				cwd: 'node_modules/jquery-ui/ui/',
+				cwd: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				dest: WORKING_DIR + 'wp-includes/js/jquery/ui/',
 				ext: '.min.js',
 				src: ['*.js']
@@ -798,6 +805,8 @@ module.exports = function(grunt) {
 			options: {
 				file_mappings: {
 					'src/wp-admin/js/accordion.js': 'src/js/_enqueues/lib/accordion.js',
+					'src/wp-admin/js/application-passwords.js': 'src/js/_enqueues/admin/application-passwords.js',
+					'src/wp-admin/js/auth-app.js': 'src/js/_enqueues/admin/auth-app.js',
 					'src/wp-admin/js/code-editor.js': 'src/js/_enqueues/wp/code-editor.js',
 					'src/wp-admin/js/color-picker.js': 'src/js/_enqueues/lib/color-picker.js',
 					'src/wp-admin/js/comment.js': 'src/js/_enqueues/admin/comment.js',
@@ -994,7 +1003,7 @@ module.exports = function(grunt) {
 						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
 						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
 						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/js/dist/vendor/*.js',
+						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
 					]
 				}
 			},
@@ -1026,7 +1035,7 @@ module.exports = function(grunt) {
 			}
 		},
 		replace: {
-			emojiRegex: {
+			'emoji-regex': {
 				options: {
 					patterns: [
 						{
@@ -1098,7 +1107,7 @@ module.exports = function(grunt) {
 					}
 				]
 			},
-			emojiBannerText: {
+			'emoji-banner-text': {
 				options: {
 					patterns: [
 						{
@@ -1115,6 +1124,26 @@ module.exports = function(grunt) {
 							BUILD_DIR + 'wp-includes/formatting.php'
 						],
 						dest: BUILD_DIR + 'wp-includes/'
+					}
+				]
+			},
+			'source-maps': {
+				options: {
+					patterns: [
+						{
+							match: new RegExp( '//# sourceMappingURL=.*\\s*' ),
+							replacement: ''
+						}
+					]
+				},
+				files: [
+					{
+						expand: true,
+						flatten: true,
+						src: [
+							BUILD_DIR + 'wp-includes/js/underscore.js'
+						],
+						dest: BUILD_DIR + 'wp-includes/js/'
 					}
 				]
 			}
@@ -1259,7 +1288,7 @@ module.exports = function(grunt) {
 	] );
 
 	grunt.registerTask( 'precommit:emoji', [
-		'replace:emojiRegex'
+		'replace:emoji-regex'
 	] );
 
 	grunt.registerTask( 'precommit', 'Runs test and build tasks in preparation for a commit', function() {
@@ -1385,7 +1414,7 @@ module.exports = function(grunt) {
 	grunt.registerTask( 'uglify:all', [
 		'uglify:core',
 		'uglify:embed',
-		'uglify:jqueryui',
+		'uglify:jquery-ui',
 		'uglify:imgareaselect',
 		'uglify:jqueryform',
 		'uglify:moment'
@@ -1426,6 +1455,126 @@ module.exports = function(grunt) {
 		'copy:version',
 	] );
 
+	/**
+	 * Build verification tasks.
+	 */
+	grunt.registerTask( 'verify:build', [
+		'verify:wp-embed',
+		'verify:old-files',
+		'verify:source-maps',
+	] );
+
+	/**
+	 * Build assertions for wp-embed.min.js.
+	 *
+	 * @ticket 34698
+	 */
+	grunt.registerTask( 'verify:wp-embed', function() {
+		const file = `${ BUILD_DIR }/wp-includes/js/wp-embed.min.js`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-includes/js/wp-embed.min.js file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			contents.length > 0,
+			'The build/wp-includes/js/wp-embed.min.js file must not be empty.'
+		);
+		assert(
+			false === contents.includes( '&' ),
+			'The build/wp-includes/js/wp-embed.min.js file must not contain ampersands.'
+		);
+	} );
+
+	/**
+	 * Build assertions to ensure no project files are inside `$_old_files` in the build directory.
+	 *
+	 * @ticket 36083
+	 */
+	grunt.registerTask( 'verify:old-files', function() {
+		const file = `${ BUILD_DIR }wp-admin/includes/update-core.php`;
+
+		assert(
+			fs.existsSync( file ),
+			'The build/wp-admin/includes/update-core.php file does not exist.'
+		);
+
+		const contents = fs.readFileSync( file, {
+			encoding: 'utf8',
+		} );
+
+		assert(
+			contents.length > 0,
+			'The build/wp-admin/includes/update-core.php file must not be empty.'
+		);
+
+		const match = contents.match( /\$_old_files = array\(([^\)]+)\);/ );
+
+		assert(
+			match.length > 0,
+			'The build/wp-admin/includes/update-core.php file does not include an `$_old_files` array.'
+		);
+
+		const files = match[1].split( '\n\t' ).filter( function( file ) {
+			// Filter out empty lines
+			if ( '' === file ) {
+				return false;
+			}
+
+			// Filter out commented out lines
+			if ( 0 === file.indexOf( '/' ) ) {
+				return false;
+			}
+
+			return true;
+		} ).map( function( file ) {
+			// Strip leading and trailing single quotes and commas
+			return file.replace( /^\'|\',$/g, '' );
+		} );
+
+		files.forEach(function( file ){
+			const search = `${ BUILD_DIR }${ file }`;
+			assert(
+				false === fs.existsSync( search ),
+				`${ search } should not be present in the $_old_files array.`
+			);
+		});
+	} );
+
+	/**
+	 * Build assertions for the lack of source maps in JavaScript files.
+	 *
+	 * @ticket 24994
+	 * @ticket 46218
+	 */
+	grunt.registerTask( 'verify:source-maps', function() {
+		const path = `${ BUILD_DIR }**/*.js`;
+		const files = glob.sync( path );
+
+		assert(
+			files.length > 0,
+			'No JavaScript files found in the build directory.'
+		);
+
+		files.forEach( function( file ) {
+			const contents = fs.readFileSync( file, {
+				encoding: 'utf8',
+			} );
+			// `data:` URLs are allowed:
+			const match = contents.match( /sourceMappingURL=((?!data:).)/ );
+
+			assert(
+				match === null,
+				`The ${ file } file must not contain a sourceMappingURL.`
+			);
+		} );
+	} );
+
 	grunt.registerTask( 'build', function() {
 		if ( grunt.option( 'dev' ) ) {
 			grunt.task.run( [
@@ -1439,7 +1588,9 @@ module.exports = function(grunt) {
 				'build:css',
 				'includes:emoji',
 				'includes:embed',
-				'replace:emojiBannerText'
+				'replace:emoji-banner-text',
+				'replace:source-maps',
+				'verify:build'
 			] );
 		}
 	} );
@@ -1488,15 +1639,9 @@ module.exports = function(grunt) {
 		var done = this.async();
 		var flags = this.flags;
 		var args = changedFiles.php;
-		if ( flags.travisErrors ) {
-			// We can check the entire codebase for coding standards errors.
-			args = [ 'lint:errors' ];
-		} else if ( flags.travisWarnings ) {
-			// We can check the tests directory for errors and warnings.
-			args = [ 'lint', 'tests' ];
-		} else {
-			args.unshift( 'lint' );
-		}
+
+		args.unshift( 'lint' );
+
 		grunt.util.spawn( {
 			cmd: 'composer',
 			args: args,
@@ -1509,11 +1654,6 @@ module.exports = function(grunt) {
 			}
 		} );
 	} );
-
-	// Travis CI tasks.
-	grunt.registerTask('travis:js', 'Runs Javascript Travis CI tasks.', [ 'jshint:corejs', 'qunit:compiled' ]);
-	grunt.registerTask('travis:phpunit', 'Runs PHPUnit Travis CI tasks.', [ 'build', 'phpunit' ]);
-	grunt.registerTask('travis:phpcs', 'Runs PHP Coding Standards Travis CI tasks.', [ 'format:php:error', 'lint:php:travisErrors:error', 'lint:php:travisWarnings:error' ]);
 
 	// Patch task.
 	grunt.renameTask('patch_wordpress', 'patch');

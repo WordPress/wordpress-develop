@@ -39,8 +39,8 @@ if ( ! current_user_can( 'upload_files' ) ) {
 }
 
 // Just fetch the detail form for that attachment.
-if ( isset( $_REQUEST['attachment_id'] ) && intval( $_REQUEST['attachment_id'] ) && $_REQUEST['fetch'] ) {
-	$id   = intval( $_REQUEST['attachment_id'] );
+if ( isset( $_REQUEST['attachment_id'] ) && (int) $_REQUEST['attachment_id'] && $_REQUEST['fetch'] ) {
+	$id   = (int) $_REQUEST['attachment_id'];
 	$post = get_post( $id );
 	if ( 'attachment' !== $post->post_type ) {
 		wp_die( __( 'Invalid post type.' ) );
@@ -119,8 +119,14 @@ if ( $_REQUEST['short'] ) {
 	/**
 	 * Filters the returned ID of an uploaded attachment.
 	 *
-	 * The dynamic portion of the hook name, `$type`, refers to the attachment type,
-	 * such as 'image', 'audio', 'video', 'file', etc.
+	 * The dynamic portion of the hook name, `$type`, refers to the attachment type.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `async_upload_audio`
+	 *  - `async_upload_file`
+	 *  - `async_upload_image`
+	 *  - `async_upload_video`
 	 *
 	 * @since 2.5.0
 	 *

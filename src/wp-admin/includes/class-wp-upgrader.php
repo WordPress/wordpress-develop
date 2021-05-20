@@ -120,7 +120,7 @@ class WP_Upgrader {
 	 *                               instance.
 	 */
 	public function __construct( $skin = null ) {
-		if ( null == $skin ) {
+		if ( null === $skin ) {
 			$this->skin = new WP_Upgrader_Skin();
 		} else {
 			$this->skin = $skin;
@@ -262,7 +262,7 @@ class WP_Upgrader {
 		 * @param bool        $reply      Whether to bail without returning the package.
 		 *                                Default false.
 		 * @param string      $package    The package file name.
-		 * @param WP_Upgrader $this       The WP_Upgrader instance.
+		 * @param WP_Upgrader $upgrader   The WP_Upgrader instance.
 		 * @param array       $hook_extra Extra arguments passed to hooked filters.
 		 */
 		$reply = apply_filters( 'upgrader_pre_download', false, $package, $this, $hook_extra );
@@ -344,12 +344,12 @@ class WP_Upgrader {
 	}
 
 	/**
-	 * Flatten the results of WP_Filesystem::dirlist() for iterating over.
+	 * Flatten the results of WP_Filesystem_Base::dirlist() for iterating over.
 	 *
 	 * @since 4.9.0
 	 * @access protected
 	 *
-	 * @param array  $nested_files Array of files as returned by WP_Filesystem::dirlist().
+	 * @param array  $nested_files Array of files as returned by WP_Filesystem_Base::dirlist().
 	 * @param string $path         Relative path to prepend to child nodes. Optional.
 	 * @return array A flattened array of the $nested_files specified.
 	 */
@@ -504,7 +504,7 @@ class WP_Upgrader {
 		if ( 1 === count( $source_files ) && $wp_filesystem->is_dir( trailingslashit( $args['source'] ) . $source_files[0] . '/' ) ) {
 			// Only one folder? Then we want its contents.
 			$source = trailingslashit( $args['source'] ) . trailingslashit( $source_files[0] );
-		} elseif ( count( $source_files ) == 0 ) {
+		} elseif ( 0 === count( $source_files ) ) {
 			// There are no files?
 			return new WP_Error( 'incompatible_archive_empty', $this->strings['incompatible_archive'], $this->strings['no_files'] );
 		} else {
@@ -521,7 +521,7 @@ class WP_Upgrader {
 		 *
 		 * @param string      $source        File source location.
 		 * @param string      $remote_source Remote file source location.
-		 * @param WP_Upgrader $this          WP_Upgrader instance.
+		 * @param WP_Upgrader $upgrader      WP_Upgrader instance.
 		 * @param array       $hook_extra    Extra arguments passed to hooked filters.
 		 */
 		$source = apply_filters( 'upgrader_source_selection', $source, $remote_source, $this, $args['hook_extra'] );
@@ -773,7 +773,7 @@ class WP_Upgrader {
 			return $download;
 		}
 
-		$delete_package = ( $download != $options['package'] ); // Do not delete a "local" file.
+		$delete_package = ( $download !== $options['package'] ); // Do not delete a "local" file.
 
 		// Unzips the file into a temporary directory.
 		$working_dir = $this->unpack_package( $download, $delete_package );
@@ -797,6 +797,16 @@ class WP_Upgrader {
 				'hook_extra'                  => $options['hook_extra'],
 			)
 		);
+
+		/**
+		 * Filters the result of WP_Upgrader::install_package().
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param array|WP_Error $result     Result from WP_Upgrader::install_package().
+		 * @param array          $hook_extra Extra arguments passed to hooked filters.
+		 */
+		$result = apply_filters( 'upgrader_install_package_result', $result, $options['hook_extra'] );
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {

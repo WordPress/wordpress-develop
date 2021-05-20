@@ -25,7 +25,8 @@
  *
  * @param string $option  Name of the option to retrieve. Expected to not be SQL-escaped.
  * @param mixed  $default Optional. Default value to return if the option does not exist.
- * @return mixed Value set for the option.
+ * @return mixed Value set for the option. A value of any type may be returned, including
+ *               array, boolean, float, integer, null, object, and string.
  */
 function get_option( $option, $default = false ) {
 	global $wpdb;
@@ -1057,8 +1058,8 @@ function wp_user_settings() {
  *
  * @since 2.7.0
  *
- * @param string $name    The name of the setting.
- * @param string $default Optional default value to return when $name is not set.
+ * @param string       $name    The name of the setting.
+ * @param string|false $default Optional. Default value to return when $name is not set. Default false.
  * @return mixed The last saved user setting or the default value/false if it doesn't exist.
  */
 function get_user_setting( $name, $default = false ) {
@@ -2322,9 +2323,9 @@ function register_setting( $option_group, $option_name, $args = array() ) {
  * @global array $new_allowed_options
  * @global array $wp_registered_settings
  *
- * @param string   $option_group The settings group name used during registration.
- * @param string   $option_name  The name of the option to unregister.
- * @param callable $deprecated   Deprecated.
+ * @param string          $option_group The settings group name used during registration.
+ * @param string          $option_name  The name of the option to unregister.
+ * @param callable|string $deprecated   Deprecated.
  */
 function unregister_setting( $option_group, $option_name, $deprecated = '' ) {
 	global $new_allowed_options, $wp_registered_settings;

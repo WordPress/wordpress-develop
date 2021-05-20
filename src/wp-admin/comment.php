@@ -36,14 +36,18 @@ if ( isset( $_GET['dt'] ) ) {
 	}
 }
 
-$comment_id = absint( $_GET['c'] );
-$comment    = get_comment( $comment_id );
+if ( isset( $_REQUEST['c'] ) ) {
+	$comment_id = absint( $_REQUEST['c'] );
+	$comment    = get_comment( $comment_id );
 
-// Prevent actions on a comment associated with a trashed post.
-if ( 'trash' === get_post_status( $comment->comment_post_ID ) ) {
-	wp_die(
-		__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
-	);
+	// Prevent actions on a comment associated with a trashed post.
+	if ( $comment && 'trash' === get_post_status( $comment->comment_post_ID ) ) {
+		wp_die(
+			__( 'You can&#8217;t edit this comment because the associated post is in the Trash. Please restore the post first, then try again.' )
+		);
+	}
+} else {
+	$comment = null;
 }
 
 switch ( $action ) {
@@ -211,9 +215,9 @@ switch ( $action ) {
 		$submitted = sprintf(
 			/* translators: 1: Comment date, 2: Comment time. */
 			__( '%1$s at %2$s' ),
-			/* translators: Comment date format. See https://www.php.net/date */
+			/* translators: Comment date format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'Y/m/d' ), $comment ),
-			/* translators: Comment time format. See https://www.php.net/date */
+			/* translators: Comment time format. See https://www.php.net/manual/datetime.format.php */
 			get_comment_date( __( 'g:i a' ), $comment )
 		);
 		if ( 'approved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_post_ID ) ) {

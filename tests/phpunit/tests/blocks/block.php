@@ -36,9 +36,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->registry = null;
+
+		parent::tearDown();
 	}
 
 	function filter_render_block( $content, $parsed_block ) {
@@ -57,10 +57,10 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertSame( $parsed_block, $block->parsed_block );
-		$this->assertEquals( $parsed_block['blockName'], $block->name );
-		$this->assertEquals( $parsed_block['attrs'], $block->attributes );
-		$this->assertEquals( $parsed_block['innerContent'], $block->inner_content );
-		$this->assertEquals( $parsed_block['innerHTML'], $block->inner_html );
+		$this->assertSame( $parsed_block['blockName'], $block->name );
+		$this->assertSame( $parsed_block['attrs'], $block->attributes );
+		$this->assertSame( $parsed_block['innerContent'], $block->inner_content );
+		$this->assertSame( $parsed_block['innerHTML'], $block->inner_html );
 	}
 
 	/**
@@ -82,7 +82,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertInstanceOf( WP_Block_Type::class, $block->block_type );
-		$this->assertEquals(
+		$this->assertSame(
 			$block_type_settings['attributes'],
 			$block->block_type->attributes
 		);
@@ -113,10 +113,10 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$context      = array();
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array(
-				'defaulted' => 10,
 				'explicit'  => 20,
+				'defaulted' => 10,
 			),
 			$block->attributes
 		);
@@ -145,9 +145,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$context      = array();
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertEquals( array( 'defaulted' => 10 ), $block->attributes );
+		$this->assertSame( array( 'defaulted' => 10 ), $block->attributes );
 		// Intentionally call a second time, to ensure property was assigned.
-		$this->assertEquals( array( 'defaulted' => 10 ), $block->attributes );
+		$this->assertSame( array( 'defaulted' => 10 ), $block->attributes );
 	}
 
 	/**
@@ -168,7 +168,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 		);
 		$block        = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertEquals( array( 'requested' => 'included' ), $block->context );
+		$this->assertSame( array( 'requested' => 'included' ), $block->context );
 	}
 
 	/**
@@ -184,7 +184,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 		$this->assertCount( 1, $block->inner_blocks );
 		$this->assertInstanceOf( WP_Block::class, $block->inner_blocks[0] );
-		$this->assertEquals( 'core/example', $block->inner_blocks[0]->name );
+		$this->assertSame( 'core/example', $block->inner_blocks[0]->name );
 	}
 
 	/**
@@ -217,7 +217,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
 		$this->assertCount( 0, $block->context );
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'core/recordId' => 10 ),
 			$block->inner_blocks[0]->context
 		);
@@ -253,15 +253,15 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$context       = array( 'core/value' => 'original' );
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
 
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'core/value' => 'original' ),
 			$block->context
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'core/value' => 'merged' ),
 			$block->inner_blocks[0]->context
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			array( 'core/value' => null ),
 			$block->inner_blocks[0]->inner_blocks[0]->context
 		);
@@ -328,7 +328,26 @@ class WP_Block_Test extends WP_UnitTestCase {
 		remove_filter( 'render_block', array( $this, 'filter_render_block' ) );
 
 		$this->assertSame( 'Original: "StaticOriginal: "Inner", from block "core/example"", from block "core/example"', $rendered_content );
+	}
 
+	/**
+	 * @ticket 46187
+	 */
+	function test_render_applies_dynamic_render_block_filter() {
+		$this->registry->register( 'core/example', array() );
+
+		add_filter( 'render_block_core/example', array( $this, 'filter_render_block' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->Static<!-- wp:example -->Inner<!-- /wp:example --><!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$rendered_content = $block->render();
+
+		remove_filter( 'render_block_core/example', array( $this, 'filter_render_block' ) );
+
+		$this->assertSame( 'Original: "StaticOriginal: "Inner", from block "core/example"", from block "core/example"', $rendered_content );
 	}
 
 	/**

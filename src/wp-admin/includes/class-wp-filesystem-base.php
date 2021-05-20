@@ -122,12 +122,12 @@ class WP_Filesystem_Base {
 	 * Locates a folder on the remote filesystem.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 2.7.0 use WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir() instead.
-	 * @see WP_Filesystem::abspath()
-	 * @see WP_Filesystem::wp_content_dir()
-	 * @see WP_Filesystem::wp_plugins_dir()
-	 * @see WP_Filesystem::wp_themes_dir()
-	 * @see WP_Filesystem::wp_lang_dir()
+	 * @deprecated 2.7.0 use WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir() instead.
+	 * @see WP_Filesystem_Base::abspath()
+	 * @see WP_Filesystem_Base::wp_content_dir()
+	 * @see WP_Filesystem_Base::wp_plugins_dir()
+	 * @see WP_Filesystem_Base::wp_themes_dir()
+	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
 	 * @param string $base The folder to start searching from.
 	 * @param bool   $echo True to display debug information.
@@ -135,7 +135,7 @@ class WP_Filesystem_Base {
 	 * @return string The location of the remote path.
 	 */
 	public function find_base_dir( $base = '.', $echo = false ) {
-		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir()' );
+		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
 		$this->verbose = $echo;
 		return $this->abspath();
 	}
@@ -144,19 +144,19 @@ class WP_Filesystem_Base {
 	 * Locates a folder on the remote filesystem.
 	 *
 	 * @since 2.5.0
-	 * @deprecated 2.7.0 use WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir() methods instead.
-	 * @see WP_Filesystem::abspath()
-	 * @see WP_Filesystem::wp_content_dir()
-	 * @see WP_Filesystem::wp_plugins_dir()
-	 * @see WP_Filesystem::wp_themes_dir()
-	 * @see WP_Filesystem::wp_lang_dir()
+	 * @deprecated 2.7.0 use WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir() methods instead.
+	 * @see WP_Filesystem_Base::abspath()
+	 * @see WP_Filesystem_Base::wp_content_dir()
+	 * @see WP_Filesystem_Base::wp_plugins_dir()
+	 * @see WP_Filesystem_Base::wp_themes_dir()
+	 * @see WP_Filesystem_Base::wp_lang_dir()
 	 *
 	 * @param string $base The folder to start searching from.
 	 * @param bool   $echo True to display debug information.
 	 * @return string The location of the remote path.
 	 */
 	public function get_base_dir( $base = '.', $echo = false ) {
-		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem::abspath() or WP_Filesystem::wp_*_dir()' );
+		_deprecated_function( __FUNCTION__, '2.7.0', 'WP_Filesystem_Base::abspath() or WP_Filesystem_Base::wp_*_dir()' );
 		$this->verbose = $echo;
 		return $this->abspath();
 	}
@@ -274,7 +274,7 @@ class WP_Filesystem_Base {
 		$files = $this->dirlist( $base );
 
 		foreach ( $folder_parts as $index => $key ) {
-			if ( $index == $last_index ) {
+			if ( $index === $last_index ) {
 				continue; // We want this to be caught by the next code block.
 			}
 
@@ -343,19 +343,19 @@ class WP_Filesystem_Base {
 	public function gethchmod( $file ) {
 		$perms = intval( $this->getchmod( $file ), 8 );
 
-		if ( ( $perms & 0xC000 ) == 0xC000 ) { // Socket.
+		if ( ( $perms & 0xC000 ) === 0xC000 ) { // Socket.
 			$info = 's';
-		} elseif ( ( $perms & 0xA000 ) == 0xA000 ) { // Symbolic Link.
+		} elseif ( ( $perms & 0xA000 ) === 0xA000 ) { // Symbolic Link.
 			$info = 'l';
-		} elseif ( ( $perms & 0x8000 ) == 0x8000 ) { // Regular.
+		} elseif ( ( $perms & 0x8000 ) === 0x8000 ) { // Regular.
 			$info = '-';
-		} elseif ( ( $perms & 0x6000 ) == 0x6000 ) { // Block special.
+		} elseif ( ( $perms & 0x6000 ) === 0x6000 ) { // Block special.
 			$info = 'b';
-		} elseif ( ( $perms & 0x4000 ) == 0x4000 ) { // Directory.
+		} elseif ( ( $perms & 0x4000 ) === 0x4000 ) { // Directory.
 			$info = 'd';
-		} elseif ( ( $perms & 0x2000 ) == 0x2000 ) { // Character special.
+		} elseif ( ( $perms & 0x2000 ) === 0x2000 ) { // Character special.
 			$info = 'c';
-		} elseif ( ( $perms & 0x1000 ) == 0x1000 ) { // FIFO pipe.
+		} elseif ( ( $perms & 0x1000 ) === 0x1000 ) { // FIFO pipe.
 			$info = 'p';
 		} else { // Unknown.
 			$info = 'u';
@@ -787,13 +787,13 @@ class WP_Filesystem_Base {
 	 * @since 2.5.0
 	 * @abstract
 	 *
-	 * @param string     $path  Path for new directory.
-	 * @param int|false  $chmod Optional. The permissions as octal number (or false to skip chmod).
-	 *                          Default false.
-	 * @param string|int $chown Optional. A user name or number (or false to skip chown).
-	 *                          Default false.
-	 * @param string|int $chgrp Optional. A group name or number (or false to skip chgrp).
-	 *                          Default false.
+	 * @param string           $path  Path for new directory.
+	 * @param int|false        $chmod Optional. The permissions as octal number (or false to skip chmod).
+	 *                                Default false.
+	 * @param string|int|false $chown Optional. A user name or number (or false to skip chown).
+	 *                                Default false.
+	 * @param string|int|false $chgrp Optional. A group name or number (or false to skip chgrp).
+	 *                                Default false.
 	 * @return bool True on success, false on failure.
 	 */
 	public function mkdir( $path, $chmod = false, $chown = false, $chgrp = false ) {

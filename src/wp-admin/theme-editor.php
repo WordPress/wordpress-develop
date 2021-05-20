@@ -222,7 +222,7 @@ if ( $file_description !== $file_show ) {
 </div>
 <div class="alignright">
 	<form action="theme-editor.php" method="get">
-		<strong><label for="theme"><?php _e( 'Select theme to edit:' ); ?> </label></strong>
+		<label for="theme" id="theme-plugin-editor-selector"><?php _e( 'Select theme to edit:' ); ?> </label>
 		<select name="theme" id="theme">
 		<?php
 		foreach ( wp_get_themes( array( 'errors' => null ) ) as $a_stylesheet => $a_theme ) {
@@ -301,7 +301,7 @@ else :
 				<?php if ( is_child_theme() && $theme->get_stylesheet() === get_template() ) : ?>
 					<div class="notice notice-warning inline">
 						<p>
-							<?php if ( is_writeable( $file ) ) : ?>
+							<?php if ( is_writable( $file ) ) : ?>
 								<strong><?php _e( 'Caution:' ); ?></strong>
 							<?php endif; ?>
 							<?php _e( 'This is a file in your current parent theme.' ); ?>
@@ -309,13 +309,13 @@ else :
 					</div>
 				<?php endif; ?>
 			</div>
-			<?php if ( is_writeable( $file ) ) : ?>
+			<?php if ( is_writable( $file ) ) : ?>
 				<p class="submit">
 					<?php submit_button( __( 'Update File' ), 'primary', 'submit', false ); ?>
 					<span class="spinner"></span>
 				</p>
 			<?php else : ?>
-				<p><em>
+				<p>
 					<?php
 					printf(
 						/* translators: %s: Documentation URL. */
@@ -323,7 +323,7 @@ else :
 						__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 					);
 					?>
-				</em></p>
+				</p>
 			<?php endif; ?>
 		</div>
 

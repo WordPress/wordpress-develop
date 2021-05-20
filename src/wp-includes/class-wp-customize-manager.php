@@ -1231,6 +1231,8 @@ final class WP_Customize_Manager {
 						$settings = $settings->getArrayCopy();
 					}
 
+					unset( $settings['_multiwidget'] );
+
 					// Find the max widget number for this type.
 					$widget_numbers = array_keys( $settings );
 					if ( count( $widget_numbers ) > 0 ) {
@@ -1461,7 +1463,7 @@ final class WP_Customize_Manager {
 					preg_match( '#^nav_menu\[(?P<nav_menu_id>-?\d+)\]$#', $setting_id, $matches )
 				);
 				if ( $can_reuse ) {
-					$nav_menu_term_id              = intval( $matches['nav_menu_id'] );
+					$nav_menu_term_id              = (int) $matches['nav_menu_id'];
 					$nav_menu_setting_id           = $setting_id;
 					$reused_nav_menu_setting_ids[] = $setting_id;
 					break;
@@ -1898,7 +1900,7 @@ final class WP_Customize_Manager {
 			nocache_headers();
 			header( 'X-Robots: noindex, nofollow, noarchive' );
 		}
-		add_action( 'wp_head', 'wp_no_robots' );
+		add_filter( 'wp_robots', 'wp_robots_no_robots' );
 		add_filter( 'wp_headers', array( $this, 'filter_iframe_security_headers' ) );
 
 		/*
@@ -1941,7 +1943,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
+	 * Filters the X-Frame-Options and Content-Security-Policy headers to ensure frontend can load in customizer.
 	 *
 	 * @since 4.7.0
 	 *
@@ -2395,7 +2397,7 @@ final class WP_Customize_Manager {
 			$notification = array();
 			foreach ( $validity->errors as $error_code => $error_messages ) {
 				$notification[ $error_code ] = array(
-					'message' => join( ' ', $error_messages ),
+					'message' => implode( ' ', $error_messages ),
 					'data'    => $validity->get_error_data( $error_code ),
 				);
 			}
@@ -3103,6 +3105,8 @@ final class WP_Customize_Manager {
 		/** This action is documented in wp-includes/post.php */
 		do_action( 'wp_insert_post', $post->ID, $post, true );
 
+		wp_after_insert_post( get_post( $post_id ), true, $post );
+
 		wp_trash_post_comments( $post_id );
 
 		/** This action is documented in wp-includes/post.php */
@@ -3266,7 +3270,7 @@ final class WP_Customize_Manager {
 		$lock = explode( ':', $lock );
 
 		if ( $lock && ! empty( $lock[1] ) ) {
-			$user_id         = intval( $lock[1] );
+			$user_id         = (int) $lock[1];
 			$current_user_id = get_current_user_id();
 			if ( $user_id === $current_user_id ) {
 				$lock = sprintf( '%s:%s', time(), $user_id );
@@ -3276,7 +3280,7 @@ final class WP_Customize_Manager {
 	}
 
 	/**
-	 * Filter heartbeat settings for the Customizer.
+	 * Filters heartbeat settings for the Customizer.
 	 *
 	 * @since 4.9.0
 	 * @param array $settings Current settings to filter.
@@ -4273,7 +4277,7 @@ final class WP_Customize_Manager {
 		<script type="text/html" id="tmpl-customize-changeset-locked-notification">
 			<li class="notice notice-{{ data.type || 'info' }} {{ data.containerClasses || '' }}" data-code="{{ data.code }}" data-type="{{ data.type }}">
 				<div class="notification-message customize-changeset-locked-message">
-					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}">
+					<img class="customize-changeset-locked-avatar" src="{{ data.lockUser.avatar }}" alt="{{ data.lockUser.name }}" />
 					<p class="currently-editing">
 						<# if ( data.message ) { #>
 							{{{ data.message }}}
