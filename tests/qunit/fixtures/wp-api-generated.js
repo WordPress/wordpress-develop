@@ -6573,6 +6573,20 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
+                        "theme_mods_default": {
+                            "description": "",
+                            "type": "object",
+                            "properties": {
+                                "custom_logo": {
+                                    "type": [
+                                        "integer",
+                                        "boolean"
+                                    ]
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": false
+                        },
                         "title": {
                             "description": "Site title.",
                             "type": "string",
@@ -6580,6 +6594,11 @@ mockedApiResponse.Schema = {
                         },
                         "description": {
                             "description": "Site tagline.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "stylesheet": {
+                            "description": "",
                             "type": "string",
                             "required": false
                         },
@@ -8926,8 +8945,12 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
+    "theme_mods_default": {
+        "custom_logo": false
+    },
     "title": "Test Blog",
     "description": "Just another WordPress site",
+    "stylesheet": "default",
     "url": "http://example.org",
     "email": "admin@example.org",
     "timezone": "",
