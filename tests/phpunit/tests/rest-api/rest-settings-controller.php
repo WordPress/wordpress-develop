@@ -100,6 +100,8 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'date_format',
 			'time_format',
 			'start_of_week',
+			'stylesheet',
+			'theme_mods_default',
 			'language',
 			'use_smilies',
 			'default_category',
