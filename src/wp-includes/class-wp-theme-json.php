@@ -65,12 +65,18 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Returns the allowed settings in a theme.json structure.
+	 * Returns the allowed schema for a theme.json structure.
 	 *
 	 * @return array
 	 */
-	private static function get_allowed_settings() {
-		return apply_filters( 'theme_json_allowed_settings', self::ALLOWED_SETTINGS );
+	private static function get_allowed_schema() {
+		return apply_filters(
+			'theme_json_allowed_schema',
+			array(
+				'topLevel' => self::ALLOWED_TOP_LEVEL_KEYS,
+				'settings' => self::ALLOWED_SETTINGS,
+			)
+		);
 	}
 
 	/**
@@ -88,12 +94,15 @@ class WP_Theme_JSON {
 			return $output;
 		}
 
-		$output = array_intersect_key( $input, array_flip( self::ALLOWED_TOP_LEVEL_KEYS ) );
+		$allowed_schema         = self::get_allowed_schema();
+		$allowed_top_level_keys = $allowed_schema['topLevel'];
+		$allowed_settings       = $allowed_schema['settings'];
+
+		$output = array_intersect_key( $input, array_flip( $allowed_top_level_keys ) );
 
 		// Build the schema.
 		$schema                 = array();
 		$schema_settings_blocks = array();
-		$allowed_settings       = self::get_allowed_settings();
 		foreach ( $valid_block_names as $block ) {
 			$schema_settings_blocks[ $block ] = $allowed_settings;
 		}
