@@ -77,7 +77,7 @@ function locate_block_template( $template, $type, array $templates ) {
 	add_action( 'wp_head', 'gutenberg_render_title_tag', 1 ); // ...and make it unconditional.
 
 	// This file will be included instead of the theme's template file.
-	return __DIR__ . 'template-canvas.php';
+	return ABSPATH . WPINC . '/template-canvas.php';
 }
 
 /**
