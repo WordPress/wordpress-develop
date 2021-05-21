@@ -577,6 +577,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
+	/*
+	 * @ticket 51550
+	 */
 	public function test_wp_revisions_to_keep_filter() {
 		$post = self::factory()->post->create_and_get(
 			array(
@@ -599,6 +602,9 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
 
+	/*
+	 * @ticket 51550
+	 */
 	public function test_wp_post_type_revisions_to_keep_filter() {
 		$post = self::factory()->post->create_and_get(
 			array(
