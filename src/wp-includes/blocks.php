@@ -810,13 +810,6 @@ function render_block( $parsed_block ) {
 		$context['postType'] = $post->post_type;
 	}
 
-	if ( $wp_query instanceof WP_Query && isset( $wp_query->tax_query->queried_terms['category'] ) ) {
-		$context['query'] = array( 'categoryIds' => array() );
-		foreach ( $wp_query->tax_query->queried_terms['category']['terms'] as $category_slug_or_id ) {
-			$context['query']['categoryIds'][] = 'slug' === $wp_query->tax_query->queried_terms['category']['field'] ? get_cat_ID( $category_slug_or_id ) : $category_slug_or_id;
-		}
-	}
-
 	/**
 	 * Filters the default context provided to a rendered block.
 	 *
