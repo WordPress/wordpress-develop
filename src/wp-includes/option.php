@@ -2074,6 +2074,15 @@ function register_initial_settings() {
 		)
 	);
 
+	register_setting(
+		'general',
+		'stylesheet',
+		array(
+			'type'         => 'string',
+			'show_in_rest' => true,
+		)
+	);
+
 	if ( ! is_multisite() ) {
 		register_setting(
 			'general',
