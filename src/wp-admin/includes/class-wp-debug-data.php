@@ -1370,6 +1370,27 @@ class WP_Debug_Data {
 			);
 		}
 
+		// WP-CLI
+		if ( function_exists( 'shell_exec' ) ) {
+
+			$wp_cli_version = shell_exec('wp cli version' );
+			if ( ! empty( $wp_cli_version ) ) {
+				$wp_cli_version = preg_replace( '/[^0-9.]/', '', $wp_cli_version );
+
+				$info['wp-cli'] = array(
+					'label'       => __( 'WP-CLI' ),
+					//'description' => __( 'WP-CLI description' ),
+					'fields'      => array(
+						'Version' => array(
+							'label' => __( 'Version' ),
+							'value' => $wp_cli_version,
+						)
+					),
+				);
+			}
+
+		}
+
 		/**
 		 * Add or modify the debug information.
 		 *
