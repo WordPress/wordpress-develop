@@ -55,10 +55,10 @@ class WP_Theme_JSON {
 			'units'         => null,
 		),
 		'typography' => array(
-			'customFontSize'  => null,
-			'customLineHeight'=> null,
-			'dropCap'         => null,
-			'fontSizes'       => null,
+			'customFontSize'   => null,
+			'customLineHeight' => null,
+			'dropCap'          => null,
+			'fontSizes'        => null,
 		),
 	);
 
