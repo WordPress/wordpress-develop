@@ -1,15 +1,15 @@
 <?php
 /**
- * REST API: Block_Templates_Test class
+ * REST API: Block_Template_Loader_Test class
  *
  * @package    WordPress
  * @subpackage REST_API
  */
 
 /**
- * Tests for the Block Templates abstraction layer.
+ * Tests for the Block Template Loader abstraction layer.
  */
-class Block_Templates_Test extends WP_UnitTestCase {
+class Block_Template_Loader_Test extends WP_UnitTestCase {
 	private static $post;
 	private static $template_part_post;
 
