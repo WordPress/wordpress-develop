@@ -18,6 +18,14 @@ class WP_Theme_JSON {
 	 */
 	private $theme_json = null;
 
+	/**
+	 * Holds the allowed block names extracted from block.json.
+	 * Shared among all instances so we only process it once.
+	 *
+	 * @var array
+	 */
+	private static $allowed_block_names = null;
+
 	const ALLOWED_TOP_LEVEL_KEYS = array(
 		'version',
 		'settings',
@@ -60,8 +68,22 @@ class WP_Theme_JSON {
 			return;
 		}
 
-		$valid_block_names = array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() );
-		$this->theme_json  = self::sanitize( $theme_json, $valid_block_names );
+		$this->theme_json  = self::sanitize( $theme_json );
+	}
+
+	/**
+	 * Returns the allowed block names.
+	 *
+	 * @return array
+	 */
+	private static function get_allowed_block_names() {
+		if ( null !== self::$allowed_block_names ) {
+			return self::$allowed_block_names;
+		}
+
+		self::$allowed_block_names = array_keys( WP_Block_Type_Registry::get_instance()->get_all_registered() );
+
+		return self::$allowed_block_names;
 	}
 
 	/**
@@ -83,17 +105,17 @@ class WP_Theme_JSON {
 	 * Sanitizes the input according to the schemas.
 	 *
 	 * @param array $input Structure to sanitize.
-	 * @param array $valid_block_names List of valid block names.
 	 *
 	 * @return array The sanitized output.
 	 */
-	private static function sanitize( $input, $valid_block_names ) {
+	private static function sanitize( $input ) {
 		$output = array();
 
 		if ( ! is_array( $input ) ) {
 			return $output;
 		}
 
+		$allowed_blocks         = self::get_allowed_block_names();
 		$allowed_schema         = self::get_allowed_schema();
 		$allowed_top_level_keys = $allowed_schema['topLevel'];
 		$allowed_settings       = $allowed_schema['settings'];
@@ -103,7 +125,7 @@ class WP_Theme_JSON {
 		// Build the schema.
 		$schema                 = array();
 		$schema_settings_blocks = array();
-		foreach ( $valid_block_names as $block ) {
+		foreach ( $allowed_blocks as $block ) {
 			$schema_settings_blocks[ $block ] = $allowed_settings;
 		}
 		$schema['settings']           = $allowed_settings;
