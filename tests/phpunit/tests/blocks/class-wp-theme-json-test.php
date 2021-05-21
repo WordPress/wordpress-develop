@@ -224,7 +224,7 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 					),
 				),
 				'typography' => array(
-					'fontSizes'    => array(
+					'fontSizes' => array(
 						array(
 							'slug' => 'fontSize',
 							'size' => 'fontSize',
