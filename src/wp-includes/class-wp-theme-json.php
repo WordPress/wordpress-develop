@@ -23,13 +23,7 @@ class WP_Theme_JSON {
 		'settings',
 	);
 
-	const VALID_SETTINGS = array(
-		'border'     => array(
-			'customColor'  => null,
-			'customRadius' => null,
-			'customStyle'  => null,
-			'customWidth'  => null,
-		),
+	const ALLOWED_SETTINGS = array(
 		'color'      => array(
 			'custom'         => null,
 			'customGradient' => null,
@@ -47,13 +41,8 @@ class WP_Theme_JSON {
 		),
 		'typography' => array(
 			'customFontSize'        => null,
-			'customFontStyle'       => null,
-			'customFontWeight'      => null,
 			'customLineHeight'      => null,
-			'customTextDecorations' => null,
-			'customTextTransforms'  => null,
 			'dropCap'               => null,
-			'fontFamilies'          => null,
 			'fontSizes'             => null,
 		),
 	);
@@ -76,6 +65,15 @@ class WP_Theme_JSON {
 	}
 
 	/**
+	 * Returns the allowed settings in a theme.json structure.
+	 *
+	 * @return array
+	 */
+	private static function get_allowed_settings() {
+		return apply_filters( 'theme_json_allowed_settings', self::ALLOWED_SETTINGS );
+	}
+
+	/**
 	 * Sanitizes the input according to the schemas.
 	 *
 	 * @param array $input Structure to sanitize.
@@ -95,10 +93,11 @@ class WP_Theme_JSON {
 		// Build the schema.
 		$schema                 = array();
 		$schema_settings_blocks = array();
+		$allowed_settings       = self::get_allowed_settings();
 		foreach ( $valid_block_names as $block ) {
-			$schema_settings_blocks[ $block ] = self::VALID_SETTINGS;
+			$schema_settings_blocks[ $block ] = $allowed_settings;
 		}
-		$schema['settings']           = self::VALID_SETTINGS;
+		$schema['settings']           = $allowed_settings;
 		$schema['settings']['blocks'] = $schema_settings_blocks;
 
 		// Remove anything that's not present in the schema.
