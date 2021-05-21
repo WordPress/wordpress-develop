@@ -113,7 +113,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'latest-comments',
 		'latest-posts',
 		'loginout',
-		'post-author',
 		'post-content',
 		'post-date',
 		'post-excerpt',
