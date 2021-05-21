@@ -5,31 +5,6 @@
 					{
 						"name": "Font size name"
 					}
-				],
-				"fontStyles": [
-					{
-						"name": "Font style name"
-					}
-				],
-				"fontWeights": [
-					{
-						"name": "Font weight name"
-					}
-				],
-				"fontFamilies": [
-					{
-						"name": "Font family name"
-					}
-				],
-				"textTransforms": [
-					{
-						"name": "Text transform name"
-					}
-				],
-				"textDecorations": [
-					{
-						"name": "Text decoration name"
-					}
 				]
 		},
 		"color": {
@@ -56,31 +31,6 @@
 						{
 							"name": "Font size name"
 						}
-					],
-					"fontStyles": [
-						{
-							"name": "Font style name"
-						}
-					],
-					"fontWeights": [
-						{
-							"name": "Font weight name"
-						}
-					],
-					"fontFamilies": [
-						{
-							"name": "Font family name"
-						}
-					],
-					"textTransforms": [
-						{
-							"name": "Text transform name"
-						}
-					],
-					"textDecorations": [
-						{
-							"name": "Text decoration name"
-						}
 					]
 				},
 				"color": {
@@ -97,10 +47,5 @@
 				}
 			}
 		}
-	},
-	"customTemplates": [
-		{
-			"title": "Custom template name"
-		}
-	]
+	}
 }
