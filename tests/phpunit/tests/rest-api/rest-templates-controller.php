@@ -13,10 +13,6 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 	 */
 	public static function wpSetupBeforeClass( $factory ) {
 		switch_theme( 'tt1-blocks' );
-		gutenberg_register_template_post_type();
-		gutenberg_register_template_part_post_type();
-		gutenberg_register_wp_theme_taxonomy();
-		gutenberg_register_wp_template_part_area_taxonomy();
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
