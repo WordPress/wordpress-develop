@@ -288,7 +288,7 @@ class WP_Theme_JSON_Resolver {
 	 * {@link get_theme_data} return the raw data
 	 * from the respective origins, this method merges them
 	 * all together.
-	 * 
+	 *
 	 * If the same piece of data is declared in different origins (core and theme),
 	 * the last origin overrides the previous. For example,
 	 * if core disables custom colors but a theme enables them,
