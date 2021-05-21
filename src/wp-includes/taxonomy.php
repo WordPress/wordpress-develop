@@ -172,6 +172,27 @@ function create_initial_taxonomies() {
 			'show_in_nav_menus' => current_theme_supports( 'post-formats' ),
 		)
 	);
+
+	if ( ! gutenberg_supports_block_templates() && ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		register_taxonomy(
+			'wp_theme',
+			array( 'wp_template', 'wp_template_part', 'wp_global_styles' ),
+			array(
+				'public'            => false,
+				'hierarchical'      => false,
+				'labels'            => array(
+					'name'          => __( 'Themes', 'gutenberg' ),
+					'singular_name' => __( 'Theme', 'gutenberg' ),
+				),
+				'query_var'         => false,
+				'rewrite'           => false,
+				'show_ui'           => false,
+				'_builtin'          => true,
+				'show_in_nav_menus' => false,
+				'show_in_rest'      => false,
+			)
+		);
+	}
 }
 
 /**
