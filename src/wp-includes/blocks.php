@@ -763,13 +763,12 @@ function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
  * @since 5.0.0
  *
  * @global WP_Post  $post     The post to edit.
- * @global WP_Query $wp_query WordPress Query object.
  *
  * @param array $parsed_block A single parsed block object.
  * @return string String of rendered HTML.
  */
 function render_block( $parsed_block ) {
-	global $post, $wp_query;
+	global $post;
 
 	/**
 	 * Allows render_block() to be short-circuited, by returning a non-null value.
