@@ -1,6 +1,6 @@
 <?php
 /**
- * Template_Loader_Test class
+ * Block_Template_Test class
  *
  * @package WordPress
  */
@@ -8,23 +8,14 @@
 /**
  * Tests for the block template loading algorithm.
  */
-class Template_Loader_Test extends WP_UnitTestCase {
+class Block_Template_Test extends WP_UnitTestCase {
 	private static $post;
 	private static $template_part_post;
 
+	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
+
 	public static function wpSetUpBeforeClass() {
-		register_theme_directory( __DIR__ . '/fixtures/themes/' );
-
-		// Without this filter, get_template_directory() would erroneously return the default theme path
-		// (wp-content/themes/) for `test-theme` (rather than ./fixtures/themes/). Maybe a WP bug?
-		add_filter( 'template_directory', array( __CLASS__, 'change_theme_directory' ), 10, 2 );
-		add_filter( 'stylesheet_directory', array( __CLASS__, 'change_theme_directory' ), 10, 2 );
-
-		switch_theme( 'test-theme' );
-		gutenberg_register_template_post_type();
-		gutenberg_register_template_part_post_type();
-		gutenberg_register_wp_theme_taxonomy();
-		gutenberg_register_wp_template_part_area_taxonomy();
+		switch_theme( 'block-templates' );
 
 		// Set up custom template post.
 		$args       = array(
@@ -62,8 +53,8 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path = gutenberg_override_query_template( get_stylesheet_directory() . '/page-home.php', $type, $templates );
-		$this->assertEquals( gutenberg_dir_path() . 'lib/template-canvas.php', $resolved_template_path );
+		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/page-home.php', $type, $templates );
+		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/page-home.html', $_wp_current_template_content );
 	}
 
@@ -75,8 +66,8 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path = gutenberg_override_query_template( get_stylesheet_directory() . '/page.php', $type, $templates );
-		$this->assertEquals( gutenberg_dir_path() . 'lib/template-canvas.php', $resolved_template_path );
+		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/page.php', $type, $templates );
+		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/page.html', $_wp_current_template_content );
 	}
 
@@ -86,8 +77,8 @@ class Template_Loader_Test extends WP_UnitTestCase {
 		$templates              = array(
 			'index.php',
 		);
-		$resolved_template_path = gutenberg_override_query_template( get_stylesheet_directory() . '/index.php', $type, $templates );
-		$this->assertEquals( gutenberg_dir_path() . 'lib/template-canvas.php', $resolved_template_path );
+		$resolved_template_path = locate_block_template( get_stylesheet_directory() . '/index.php', $type, $templates );
+		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/index.html', $_wp_current_template_content );
 	}
 
@@ -106,7 +97,7 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path = gutenberg_override_query_template( $page_id_template_path, $type, $templates );
+		$resolved_template_path = locate_block_template( $page_id_template_path, $type, $templates );
 		$this->assertEquals( $page_id_template_path, $resolved_template_path );
 	}
 
@@ -118,7 +109,7 @@ class Template_Loader_Test extends WP_UnitTestCase {
 	 * Covers https://github.com/WordPress/gutenberg/pull/31123.
 	 */
 	function test_gutenberg_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
-		switch_theme( 'test-theme-child' );
+		switch_theme( 'block-templates-child' );
 
 		$page_slug_template      = 'page-home.php';
 		$page_slug_template_path = get_stylesheet_directory() . '/' . $page_slug_template;
@@ -128,16 +119,16 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path  = gutenberg_override_query_template( $page_slug_template_path, $type, $templates );
+		$resolved_template_path  = locate_block_template( $page_slug_template_path, $type, $templates );
 		$this->assertEquals( $page_slug_template_path, $resolved_template_path );
 
-		switch_theme( 'test-theme' );
+		switch_theme( 'block-templates' );
 	}
 
 	function test_gutenberg_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
-		switch_theme( 'test-theme-child' );
+		switch_theme( 'block-templates-child' );
 
 		$page_template                   = 'page-1.php';
 		$parent_theme_page_template_path = get_template_directory() . '/' . $page_template;
@@ -147,11 +138,11 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path          = gutenberg_override_query_template( $parent_theme_page_template_path, $type, $templates );
-		$this->assertEquals( gutenberg_dir_path() . 'lib/template-canvas.php', $resolved_template_path );
+		$resolved_template_path          = locate_block_template( $parent_theme_page_template_path, $type, $templates );
+		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/page-1.html', $_wp_current_template_content );
 
-		switch_theme( 'test-theme' );
+		switch_theme( 'block-templates' );
 	}
 
 	/**
@@ -167,7 +158,7 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path    = gutenberg_override_query_template( $custom_page_template_path, $type, $templates );
+		$resolved_template_path    = locate_block_template( $custom_page_template_path, $type, $templates );
 		$this->assertEquals( $custom_page_template_path, $resolved_template_path );
 	}
 
@@ -186,8 +177,8 @@ class Template_Loader_Test extends WP_UnitTestCase {
 			'page-1.php',
 			'page.php',
 		);
-		$resolved_template_path     = gutenberg_override_query_template( $page_template_path, $type, $templates );
-		$this->assertEquals( gutenberg_dir_path() . 'lib/template-canvas.php', $resolved_template_path );
+		$resolved_template_path     = locate_block_template( $page_template_path, $type, $templates );
+		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertEquals( self::$post->post_content, $_wp_current_template_content );
 	}
 
@@ -195,7 +186,7 @@ class Template_Loader_Test extends WP_UnitTestCase {
 	 * Regression: https://github.com/WordPress/gutenberg/issues/31652.
 	 */
 	function test_gutenberg_template_remains_unchanged_if_templates_array_is_empty() {
-		$resolved_template_path = gutenberg_override_query_template( '', 'search', array() );
+		$resolved_template_path = locate_block_template( '', 'search', array() );
 		$this->assertEquals( '', $resolved_template_path );
 	}
 
