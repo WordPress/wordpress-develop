@@ -15,7 +15,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	private static $template_canvas_path = ABSPATH . WPINC . '/template-canvas.php';
 
 	public static function wpSetUpBeforeClass() {
-		switch_theme( 'block-templates' );
+		switch_theme( 'block-template-theme' );
 
 		// Set up custom template post.
 		$args       = array(
@@ -109,7 +109,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 	 * Covers https://github.com/WordPress/gutenberg/pull/31123.
 	 */
 	function test_gutenberg_child_theme_php_template_takes_precedence_over_equally_specific_parent_theme_block_template() {
-		switch_theme( 'block-templates-child' );
+		switch_theme( 'block-template-theme-child' );
 
 		$page_slug_template      = 'page-home.php';
 		$page_slug_template_path = get_stylesheet_directory() . '/' . $page_slug_template;
@@ -122,13 +122,13 @@ class Block_Template_Test extends WP_UnitTestCase {
 		$resolved_template_path  = locate_block_template( $page_slug_template_path, $type, $templates );
 		$this->assertEquals( $page_slug_template_path, $resolved_template_path );
 
-		switch_theme( 'block-templates' );
+		switch_theme( 'block-template-theme' );
 	}
 
 	function test_gutenberg_child_theme_block_template_takes_precedence_over_equally_specific_parent_theme_php_template() {
 		global $_wp_current_template_content;
 
-		switch_theme( 'block-templates-child' );
+		switch_theme( 'block-template-theme-child' );
 
 		$page_template                   = 'page-1.php';
 		$parent_theme_page_template_path = get_template_directory() . '/' . $page_template;
@@ -142,7 +142,7 @@ class Block_Template_Test extends WP_UnitTestCase {
 		$this->assertEquals( self::$template_canvas_path, $resolved_template_path );
 		$this->assertStringEqualsFile( get_stylesheet_directory() . '/block-templates/page-1.html', $_wp_current_template_content );
 
-		switch_theme( 'block-templates' );
+		switch_theme( 'block-template-theme' );
 	}
 
 	/**
