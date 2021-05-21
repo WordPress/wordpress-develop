@@ -355,8 +355,15 @@ class wp_xmlrpc_server extends IXR_Server {
 	}
 
 	/**
-	 * @param IXR_Error|string $error
-	 * @param false $message
+	 * Send error response to client.
+	 *
+	 * Send an XML error response to the client. If the endpoint is enabled
+	 * an HTTP 200 response is always sent per the XML-RPC specification.
+	 *
+	 * @since 5.7.3
+	 *
+	 * @param IXR_Error|string $error   Error code or an error object.
+	 * @param false            $message Error message. Optional.
 	 */
 	public function error( $error, $message = false ) {
 		// Accepts either an error object or an error code and message
