@@ -19,7 +19,7 @@ When a new version is released, <a href="%2$s" title="If you are already logged 
 Upgrading is a couple of clicks!</p>
 <p>Then you can start enjoying the WordPress experience:</p>
 <ul>
-<li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Your Profile</a></li>
+<li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Profile</a></li>
 <li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add New</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add New</a></li>
 <li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add New</a></li>
 <li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add New Themes</a></li>
@@ -44,7 +44,7 @@ Upgrading is a couple of clicks!
 
 Then you can start enjoying the WordPress experience:
 <ul>
-<li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Your Profile</a></li>
+<li>Edit your personal information at <a href="%3$s" title="Edit settings like your password, your display name and your contact information">Users &#8250; Profile</a></li>
 <li>Start publishing at <a href="%4$s" title="Create a new post">Posts &#8250; Add New</a> and at <a href="%5$s" title="Create a new page">Pages &#8250; Add New</a></li>
 <li>Browse and install plugins at <a href="%6$s" title="Browse and install plugins at the official WordPress repository directly from your Dashboard">Plugins &#8250; Add New</a></li>
 <li>Browse and install themes at <a href="%7$s" title="Browse and install themes at the official WordPress repository directly from your Dashboard">Appearance &#8250; Add New Themes</a></li>
@@ -62,7 +62,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 		// On Windows environments, the EOL-style is \r\n.
 		$expected = str_replace( "\r\n", "\n", $expected );
 
-		$this->assertEquals( $expected, wpautop( $test_data ) );
+		$this->assertSame( $expected, wpautop( $test_data ) );
 	}
 
 	/**
@@ -77,19 +77,19 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 
 		// Not wrapped in <p> tags.
 		$str = "<pre>$code</pre>";
-		$this->assertEquals( $str, trim( wpautop( $str ) ) );
+		$this->assertSame( $str, trim( wpautop( $str ) ) );
 
 		// Text before/after is wrapped in <p> tags.
 		$str = "Look at this code\n\n<pre>$code</pre>\n\nIsn't that cool?";
 
 		// Expected text after wpautop().
 		$expected = '<p>Look at this code</p>' . "\n<pre>" . $code . "</pre>\n" . '<p>Isn\'t that cool?</p>';
-		$this->assertEquals( $expected, trim( wpautop( $str ) ) );
+		$this->assertSame( $expected, trim( wpautop( $str ) ) );
 
 		// Make sure HTML breaks are maintained if manually inserted.
 		$str      = "Look at this code\n\n<pre>Line1<br />Line2<br>Line3<br/>Line4\nActual Line 2\nActual Line 3</pre>\n\nCool, huh?";
 		$expected = "<p>Look at this code</p>\n<pre>Line1<br />Line2<br>Line3<br/>Line4\nActual Line 2\nActual Line 3</pre>\n<p>Cool, huh?</p>";
-		$this->assertEquals( $expected, trim( wpautop( $str ) ) );
+		$this->assertSame( $expected, trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -99,7 +99,7 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 	 */
 	public function test_skip_input_elements() {
 		$str = 'Username: <input type="text" id="username" name="username" /><br />Password: <input type="password" id="password1" name="password1" />';
-		$this->assertEquals( "<p>$str</p>", trim( wpautop( $str ) ) );
+		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -183,9 +183,9 @@ PS.  Not yet subscribed for update notifications?  <a href="%1$s" title="Subscri
 			"[/video]</p>\n" .
 			'<p>Paragraph two.</p>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
-		$this->assertEquals( $expected, trim( wpautop( $content2 ) ) );
-		$this->assertEquals( $shortcode_expected, trim( wpautop( $shortcode_content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content2 ) ) );
+		$this->assertSame( $shortcode_expected, trim( wpautop( $shortcode_content ) ) );
 	}
 
 	/**
@@ -263,8 +263,8 @@ Paragraph two.';
 			"</object></div>\n" .
 			'<p>Paragraph two.</p>';
 
-		$this->assertEquals( $expected1, trim( wpautop( $content1 ) ) );
-		$this->assertEquals( $expected2, trim( wpautop( $content2 ) ) );
+		$this->assertSame( $expected1, trim( wpautop( $content1 ) ) );
+		$this->assertSame( $expected2, trim( wpautop( $content2 ) ) );
 	}
 
 	/**
@@ -274,7 +274,7 @@ Paragraph two.';
 	 */
 	public function test_skip_select_option_elements() {
 		$str = 'Country: <select id="state" name="state"><option value="1">Alabama</option><option value="2">Alaska</option><option value="3">Arizona</option><option value="4">Arkansas</option><option value="5">California</option></select>';
-		$this->assertEquals( "<p>$str</p>", trim( wpautop( $str ) ) );
+		$this->assertSame( "<p>$str</p>", trim( wpautop( $str ) ) );
 	}
 
 	/**
@@ -337,14 +337,14 @@ Paragraph two.';
 			$content[] = "<$block>foo</$block>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( "\n\n", $content ); // Whitespace difference.
+		$expected = implode( "\n", $content );
+		$input    = implode( "\n\n", $content ); // Whitespace difference.
 
-		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
+		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
-		$input = join( '', $content ); // Whitespace difference.
+		$input = implode( '', $content ); // Whitespace difference.
 
-		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
+		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
 		// Check whitespace addition.
 		$content = array();
@@ -353,10 +353,10 @@ Paragraph two.';
 			$content[] = "<$block/>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( '', $content );
+		$expected = implode( "\n", $content );
+		$input    = implode( '', $content );
 
-		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
+		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 
 		// Check whitespace addition with attributes.
 		$content = array();
@@ -365,10 +365,10 @@ Paragraph two.';
 			$content[] = "<$block attr='value'>foo</$block>";
 		}
 
-		$expected = join( "\n", $content );
-		$input    = join( '', $content );
+		$expected = implode( "\n", $content );
+		$input    = implode( '', $content );
 
-		$this->assertEquals( $expected, trim( wpautop( $input ) ) );
+		$this->assertSame( $expected, trim( wpautop( $input ) ) );
 	}
 
 	/**
@@ -380,7 +380,7 @@ Paragraph two.';
 		$content  = '<blockquote>foo</blockquote>';
 		$expected = '<blockquote><p>foo</p></blockquote>';
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -426,10 +426,10 @@ Paragraph two.';
 			$expected[] = "<p><$inline>foo</$inline></p>";
 		}
 
-		$content  = join( "\n\n", $content );
-		$expected = join( "\n", $expected );
+		$content  = implode( "\n\n", $content );
+		$expected = implode( "\n", $expected );
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -439,7 +439,7 @@ Paragraph two.';
 	 * @dataProvider data_element_sanity
 	 */
 	function test_element_sanity( $input, $output ) {
-		return $this->assertEquals( $output, wpautop( $input ) );
+		return $this->assertSame( $output, wpautop( $input ) );
 	}
 
 	function data_element_sanity() {
@@ -505,7 +505,7 @@ line 3<br />
 line 4<br />
 line 5</p>';
 
-		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
+		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -524,7 +524,7 @@ line 2<br/>
 		$expected = '<p>line 1</p>
 <p>line 2</p>';
 
-		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
+		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 
@@ -535,7 +535,7 @@ line 2<br/>
 		$content  = 'a<div>b</div>';
 		$expected = "<p>a</p>\n<div>b</div>";
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -558,8 +558,8 @@ line 2<br/>
 		$expected2 = '<figure>
 <img src="example.jpg" /><figcaption>Caption</figcaption></figure>';
 
-		$this->assertEquals( $expected1, trim( wpautop( $content1 ) ) );
-		$this->assertEqualsIgnoreEOL( $expected2, trim( wpautop( $content2 ) ) );
+		$this->assertSame( $expected1, trim( wpautop( $content1 ) ) );
+		$this->assertSameIgnoreEOL( $expected2, trim( wpautop( $content2 ) ) );
 	}
 
 	/**
@@ -569,7 +569,7 @@ line 2<br/>
 		$content  = 'paragraph1<hr>paragraph2';
 		$expected = "<p>paragraph1</p>\n<hr>\n<p>paragraph2</p>";
 
-		$this->assertEquals( $expected, trim( wpautop( $content ) ) );
+		$this->assertSame( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -587,7 +587,7 @@ line 2<br/>
 
 		$expected = '<p>' . $content . '</p>';
 
-		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
+		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 
 	/**
@@ -603,6 +603,6 @@ line 2<br/>
 
 		$expected = '<p>' . $content . '</p>';
 
-		$this->assertEqualsIgnoreEOL( $expected, trim( wpautop( $content ) ) );
+		$this->assertSameIgnoreEOL( $expected, trim( wpautop( $content ) ) );
 	}
 }

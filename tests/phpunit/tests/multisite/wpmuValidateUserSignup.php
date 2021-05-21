@@ -54,7 +54,7 @@ if ( is_multisite() ) :
 			remove_filter( 'is_email', '__return_false' );
 		}
 
-		public function test_should_fail_for_emails_from_non_whitelisted_domains() {
+		public function test_should_fail_for_emails_from_disallowed_domains() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
 
@@ -62,7 +62,7 @@ if ( is_multisite() ) :
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
 		}
 
-		public function test_should_not_fail_for_emails_from_whitelisted_domains_with_mixed_case() {
+		public function test_should_not_fail_for_emails_from_allowed_domains_with_mixed_case() {
 			$domains = array( 'foo.com', 'bar.org' );
 			update_site_option( 'limited_email_domains', $domains );
 
@@ -84,9 +84,9 @@ if ( is_multisite() ) :
 
 		public function test_should_fail_for_existing_signup_with_same_username() {
 			// Don't send notifications.
-			add_filter( 'wpmu_signup_user_notification', '__return_true' );
+			add_filter( 'wpmu_signup_user_notification', '__return_false' );
 			wpmu_signup_user( 'foo123', 'foo@example.com' );
-			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
 
 			$v = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );
 			$this->assertContains( 'user_name', $v['errors']->get_error_codes() );
@@ -94,9 +94,9 @@ if ( is_multisite() ) :
 
 		public function test_should_not_fail_for_existing_signup_with_same_username_if_signup_is_old() {
 			// Don't send notifications.
-			add_filter( 'wpmu_signup_user_notification', '__return_true' );
+			add_filter( 'wpmu_signup_user_notification', '__return_false' );
 			wpmu_signup_user( 'foo123', 'foo@example.com' );
-			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
 
 			global $wpdb;
 			$date = gmdate( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
@@ -108,9 +108,9 @@ if ( is_multisite() ) :
 
 		public function test_should_fail_for_existing_signup_with_same_email() {
 			// Don't send notifications.
-			add_filter( 'wpmu_signup_user_notification', '__return_true' );
+			add_filter( 'wpmu_signup_user_notification', '__return_false' );
 			wpmu_signup_user( 'foo123', 'foo@example.com' );
-			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
 
 			$v = wpmu_validate_user_signup( 'foo2', 'foo@example.com' );
 			$this->assertContains( 'user_email', $v['errors']->get_error_codes() );
@@ -118,9 +118,9 @@ if ( is_multisite() ) :
 
 		public function test_should_not_fail_for_existing_signup_with_same_email_if_signup_is_old() {
 			// Don't send notifications.
-			add_filter( 'wpmu_signup_user_notification', '__return_true' );
+			add_filter( 'wpmu_signup_user_notification', '__return_false' );
 			wpmu_signup_user( 'foo123', 'foo@example.com' );
-			remove_filter( 'wpmu_signup_user_notification', '__return_true' );
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
 
 			global $wpdb;
 			$date = gmdate( 'Y-m-d H:i:s', time() - ( 2 * DAY_IN_SECONDS ) - 60 );
@@ -128,6 +128,31 @@ if ( is_multisite() ) :
 
 			$v = wpmu_validate_user_signup( 'foo2', 'foo2@example.com' );
 			$this->assertNotContains( 'user_email', $v['errors']->get_error_codes() );
+		}
+
+		/**
+		 * @ticket 43232
+		 */
+		public function test_should_not_fail_for_data_used_by_a_deleted_user() {
+			global $wpdb;
+
+			// Don't send notifications.
+			add_filter( 'wpmu_signup_user_notification', '__return_false' );
+			add_filter( 'wpmu_welcome_user_notification', '__return_false' );
+
+			// Signup, activate and delete new user.
+			wpmu_signup_user( 'foo123', 'foo@example.com' );
+			$key  = $wpdb->get_var( "SELECT activation_key FROM $wpdb->signups WHERE user_login = 'foo123'" );
+			$user = wpmu_activate_signup( $key );
+			wpmu_delete_user( $user['user_id'] );
+
+			$valid = wpmu_validate_user_signup( 'foo123', 'foo2@example.com' );
+
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
+			remove_filter( 'wpmu_signup_user_notification', '__return_false' );
+
+			$this->assertNotContains( 'user_name', $valid['errors']->get_error_codes() );
+			$this->assertNotContains( 'user_email', $valid['errors']->get_error_codes() );
 		}
 
 		public function test_invalid_email_address_with_no_banned_domains_results_in_error() {

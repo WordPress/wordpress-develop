@@ -41,6 +41,22 @@
 	<exclude-pattern>/vendor/*</exclude-pattern>
 
 	<!--
+		PHPCompatibilityParagonieSodiumCompat prevents false positives in `sodium_compat`.
+		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
+	-->
+	<exclude-pattern>src/wp-includes/sodium_compat/lib/php72compat_const\.php$</exclude-pattern>
+
+	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_crypto_sign_keypair_from_secretkey_and_publickeyFound">
+		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_padFound">
+		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PHPCompatibility.FunctionUse.NewFunctions.sodium_unpadFound">
+		<exclude-pattern>/sodium_compat/src/Compat\.php$</exclude-pattern>
+	</rule>
+
+	<!--
 		PHPCompatibilityParagonieRandomCompat prevents false positives in `random_compat`.
 		However, because these files are included in a non-standard path, false positives are triggered in WordPress Core.
 	-->
@@ -58,7 +74,7 @@
 	</rule>
 
 	<!-- Whitelist the WP DB Class for use of `mysql_` extension in PHP < 7.0. -->
-	<rule ref="PHPCompatibility.Extensions.RemovedExtensions">
+	<rule ref="PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved">
 		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
 	</rule>
 </ruleset>

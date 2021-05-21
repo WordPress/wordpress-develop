@@ -116,9 +116,10 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 			'/' . $this->rest_base . '/me',
 			array(
 				array(
-					'methods'  => WP_REST_Server::READABLE,
-					'callback' => array( $this, 'get_current_item' ),
-					'args'     => array(
+					'methods'             => WP_REST_Server::READABLE,
+					'permission_callback' => '__return_true',
+					'callback'            => array( $this, 'get_current_item' ),
+					'args'                => array(
 						'context' => $this->get_context_param( array( 'default' => 'view' ) ),
 					),
 				),
@@ -161,7 +162,6 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @param int|bool        $value   The value passed to the reassign parameter.
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @param string          $param   The parameter that is being sanitized.
-	 *
 	 * @return int|bool|WP_Error
 	 */
 	public function check_reassign( $value, $request, $param ) {
@@ -312,7 +312,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		 * @since 4.7.0
 		 *
 		 * @param array           $prepared_args Array of arguments for WP_User_Query.
-		 * @param WP_REST_Request $request       The current request.
+		 * @param WP_REST_Request $request       The REST API request.
 		 */
 		$prepared_args = apply_filters( 'rest_user_query', $prepared_args, $request );
 
@@ -1073,7 +1073,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param WP_Post $user User object.
+	 * @param WP_User $user User object.
 	 * @return array Links for the given user.
 	 */
 	protected function prepare_links( $user ) {
@@ -1095,7 +1095,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Request object.
-	 * @return object $prepared_user User object.
+	 * @return object User object.
 	 */
 	protected function prepare_item_for_database( $request ) {
 		$prepared_user = new stdClass;
@@ -1173,8 +1173,8 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	 *
 	 * @since 4.7.0
 	 *
-	 * @param integer $user_id User ID.
-	 * @param array   $roles   New user roles.
+	 * @param int   $user_id User ID.
+	 * @param array $roles   New user roles.
 	 * @return true|WP_Error True if the current user is allowed to make the role change,
 	 *                       otherwise a WP_Error object.
 	 */
@@ -1246,7 +1246,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( ! validate_username( $username ) ) {
 			return new WP_Error(
 				'rest_user_invalid_username',
-				__( 'Username contains invalid characters.' ),
+				__( 'This username is invalid because it uses illegal characters. Please enter a valid username.' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1291,7 +1291,11 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		if ( false !== strpos( $password, '\\' ) ) {
 			return new WP_Error(
 				'rest_user_invalid_password',
-				__( 'Passwords cannot contain the "\\" character.' ),
+				sprintf(
+					/* translators: %s: The '\' character. */
+					__( 'Passwords cannot contain the "%s" character.' ),
+					'\\'
+				),
 				array( 'status' => 400 )
 			);
 		}
@@ -1555,7 +1559,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filter collection parameters for the users controller.
+		 * Filters REST API collection parameters for the users controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_User_Query parameter.  Use the

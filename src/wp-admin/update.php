@@ -6,7 +6,9 @@
  * @subpackage Administration
  */
 
-if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['action'] ) && in_array( $_GET['action'], array( 'update-selected', 'activate-plugin', 'update-selected-themes' ) ) ) {
+if ( ! defined( 'IFRAME_REQUEST' )
+	&& isset( $_GET['action'] ) && in_array( $_GET['action'], array( 'update-selected', 'activate-plugin', 'update-selected-themes' ), true )
+) {
 	define( 'IFRAME_REQUEST', true );
 }
 
@@ -15,12 +17,14 @@ require_once __DIR__ . '/admin.php';
 
 require_once ABSPATH . 'wp-admin/includes/class-wp-upgrader.php';
 
+wp_enqueue_script( 'wp-a11y' );
+
 if ( isset( $_GET['action'] ) ) {
 	$plugin = isset( $_REQUEST['plugin'] ) ? trim( $_REQUEST['plugin'] ) : '';
 	$theme  = isset( $_REQUEST['theme'] ) ? urldecode( $_REQUEST['theme'] ) : '';
 	$action = isset( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
 
-	if ( 'update-selected' == $action ) {
+	if ( 'update-selected' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
 		}
@@ -48,7 +52,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		iframe_footer();
 
-	} elseif ( 'upgrade-plugin' == $action ) {
+	} elseif ( 'upgrade-plugin' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
 		}
@@ -70,7 +74,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-	} elseif ( 'activate-plugin' == $action ) {
+	} elseif ( 'activate-plugin' === $action ) {
 		if ( ! current_user_can( 'update_plugins' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update plugins for this site.' ) );
 		}
@@ -96,7 +100,7 @@ if ( isset( $_GET['action'] ) ) {
 			include WP_PLUGIN_DIR . '/' . $plugin;
 		}
 		iframe_footer();
-	} elseif ( 'install-plugin' == $action ) {
+	} elseif ( 'install-plugin' === $action ) {
 
 		if ( ! current_user_can( 'install_plugins' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
@@ -139,7 +143,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-	} elseif ( 'upload-plugin' == $action ) {
+	} elseif ( 'upload-plugin' === $action ) {
 
 		if ( ! current_user_can( 'upload_plugins' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
@@ -155,13 +159,16 @@ if ( isset( $_GET['action'] ) ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: File name. */
-		$title = sprintf( __( 'Installing Plugin from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
+		$title = sprintf( __( 'Installing plugin from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
 		$nonce = 'plugin-upload';
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-plugin' );
 		$type  = 'upload'; // Install plugin type, From Web or an Upload.
 
-		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+		$overwrite = in_array( $overwrite, array( 'update-plugin', 'downgrade-plugin' ), true ) ? $overwrite : '';
+
+		$upgrader = new Plugin_Upgrader( new Plugin_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();
@@ -169,7 +176,27 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-	} elseif ( 'upgrade-theme' == $action ) {
+	} elseif ( 'upload-plugin-cancel-overwrite' === $action ) {
+		if ( ! current_user_can( 'upload_plugins' ) ) {
+			wp_die( __( 'Sorry, you are not allowed to install plugins on this site.' ) );
+		}
+
+		check_admin_referer( 'plugin-upload-cancel-overwrite' );
+
+		// Make sure the attachment still exists, or File_Upload_Upgrader will call wp_die()
+		// that shows a generic "Please select a file" error.
+		if ( ! empty( $_GET['package'] ) ) {
+			$attachment_id = (int) $_GET['package'];
+
+			if ( get_post( $attachment_id ) ) {
+				$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
+				$file_upload->cleanup();
+			}
+		}
+
+		wp_redirect( self_admin_url( 'plugin-install.php' ) );
+		exit;
+	} elseif ( 'upgrade-theme' === $action ) {
 
 		if ( ! current_user_can( 'update_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ) );
@@ -191,7 +218,7 @@ if ( isset( $_GET['action'] ) ) {
 		$upgrader->upgrade( $theme );
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
-	} elseif ( 'update-selected-themes' == $action ) {
+	} elseif ( 'update-selected-themes' === $action ) {
 		if ( ! current_user_can( 'update_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to update themes for this site.' ) );
 		}
@@ -218,7 +245,7 @@ if ( isset( $_GET['action'] ) ) {
 		$upgrader->bulk_upgrade( $themes );
 
 		iframe_footer();
-	} elseif ( 'install-theme' == $action ) {
+	} elseif ( 'install-theme' === $action ) {
 
 		if ( ! current_user_can( 'install_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
@@ -258,7 +285,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
-	} elseif ( 'upload-theme' == $action ) {
+	} elseif ( 'upload-theme' === $action ) {
 
 		if ( ! current_user_can( 'upload_themes' ) ) {
 			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
@@ -275,13 +302,16 @@ if ( isset( $_GET['action'] ) ) {
 		require_once ABSPATH . 'wp-admin/admin-header.php';
 
 		/* translators: %s: File name. */
-		$title = sprintf( __( 'Installing Theme from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
+		$title = sprintf( __( 'Installing theme from uploaded file: %s' ), esc_html( basename( $file_upload->filename ) ) );
 		$nonce = 'theme-upload';
 		$url   = add_query_arg( array( 'package' => $file_upload->id ), 'update.php?action=upload-theme' );
 		$type  = 'upload'; // Install theme type, From Web or an Upload.
 
-		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url' ) ) );
-		$result   = $upgrader->install( $file_upload->package );
+		$overwrite = isset( $_GET['overwrite'] ) ? sanitize_text_field( $_GET['overwrite'] ) : '';
+		$overwrite = in_array( $overwrite, array( 'update-theme', 'downgrade-theme' ), true ) ? $overwrite : '';
+
+		$upgrader = new Theme_Upgrader( new Theme_Installer_Skin( compact( 'type', 'title', 'nonce', 'url', 'overwrite' ) ) );
+		$result   = $upgrader->install( $file_upload->package, array( 'overwrite_package' => $overwrite ) );
 
 		if ( $result || is_wp_error( $result ) ) {
 			$file_upload->cleanup();
@@ -289,6 +319,26 @@ if ( isset( $_GET['action'] ) ) {
 
 		require_once ABSPATH . 'wp-admin/admin-footer.php';
 
+	} elseif ( 'upload-theme-cancel-overwrite' === $action ) {
+		if ( ! current_user_can( 'upload_themes' ) ) {
+			wp_die( __( 'Sorry, you are not allowed to install themes on this site.' ) );
+		}
+
+		check_admin_referer( 'theme-upload-cancel-overwrite' );
+
+		// Make sure the attachment still exists, or File_Upload_Upgrader will call wp_die()
+		// that shows a generic "Please select a file" error.
+		if ( ! empty( $_GET['package'] ) ) {
+			$attachment_id = (int) $_GET['package'];
+
+			if ( get_post( $attachment_id ) ) {
+				$file_upload = new File_Upload_Upgrader( 'themezip', 'package' );
+				$file_upload->cleanup();
+			}
+		}
+
+		wp_redirect( self_admin_url( 'theme-install.php' ) );
+		exit;
 	} else {
 		/**
 		 * Fires when a custom plugin or theme update request is received.

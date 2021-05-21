@@ -54,7 +54,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		$this->is_site_users = 'site-users-network' === $this->screen->id;
 
 		if ( $this->is_site_users ) {
-			$this->site_id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+			$this->site_id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 		}
 	}
 
@@ -259,7 +259,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 *
 	 * @since 3.1.0
 	 *
-	 * @return string[] Array of bulk action labels keyed by their action.
+	 * @return array Array of bulk action labels keyed by their action.
 	 */
 	protected function get_bulk_actions() {
 		$actions = array();
@@ -272,6 +272,11 @@ class WP_Users_List_Table extends WP_List_Table {
 			if ( current_user_can( 'delete_users' ) ) {
 				$actions['delete'] = __( 'Delete' );
 			}
+		}
+
+		// Add a password reset link to the bulk actions dropdown.
+		if ( current_user_can( 'edit_users' ) ) {
+			$actions['resetpassword'] = __( 'Send password reset' );
 		}
 
 		return $actions;
@@ -295,6 +300,7 @@ class WP_Users_List_Table extends WP_List_Table {
 		<select name="<?php echo $id; ?>" id="<?php echo $id; ?>">
 			<option value=""><?php _e( 'Change role to&hellip;' ); ?></option>
 			<?php wp_dropdown_roles(); ?>
+			<option value="none"><?php _e( '&mdash; No role for this site &mdash;' ); ?></option>
 		</select>
 			<?php
 			submit_button( __( 'Change' ), '', $button_id, false );
@@ -335,8 +341,7 @@ class WP_Users_List_Table extends WP_List_Table {
 	 * @return string The bulk action required.
 	 */
 	public function current_action() {
-		if ( ( isset( $_REQUEST['changeit'] ) || isset( $_REQUEST['changeit2'] ) ) &&
-			( ! empty( $_REQUEST['new_role'] ) || ! empty( $_REQUEST['new_role2'] ) ) ) {
+		if ( isset( $_REQUEST['changeit'] ) && ! empty( $_REQUEST['new_role'] ) ) {
 			return 'promote';
 		}
 
@@ -470,6 +475,11 @@ class WP_Users_List_Table extends WP_List_Table {
 				);
 			}
 
+			// Add a link to send the user a reset password link by email.
+			if ( get_current_user_id() !== $user_object->ID && current_user_can( 'edit_user', $user_object->ID ) ) {
+				$actions['resetpassword'] = "<a class='resetpassword' href='" . wp_nonce_url( "users.php?action=resetpassword&amp;users=$user_object->ID", 'bulk-users' ) . "'>" . __( 'Send password reset' ) . '</a>';
+			}
+
 			/**
 			 * Filters the action links displayed under each user in the Users list table.
 			 *
@@ -517,7 +527,7 @@ class WP_Users_List_Table extends WP_List_Table {
 				$classes .= ' num'; // Special case for that column.
 			}
 
-			if ( in_array( $column_name, $hidden ) ) {
+			if ( in_array( $column_name, $hidden, true ) ) {
 				$classes .= ' hidden';
 			}
 

@@ -11,7 +11,7 @@ require_once __DIR__ . '/admin.php';
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'plugin-editor.php' ) );
-	exit();
+	exit;
 }
 
 if ( ! current_user_can( 'edit_plugins' ) ) {
@@ -28,7 +28,7 @@ if ( empty( $plugins ) ) {
 	?>
 	<div class="wrap">
 		<h1><?php echo esc_html( $title ); ?></h1>
-		<div id="message" class="error"><p><?php _e( 'You do not appear to have any plugins available at this time.' ); ?></p></div>
+		<div id="message" class="error"><p><?php _e( 'No plugins are currently available.' ); ?></p></div>
 	</div>
 	<?php
 	require_once ABSPATH . 'wp-admin/admin-footer.php';
@@ -112,7 +112,7 @@ if ( ! is_file( $real_file ) ) {
 	if ( preg_match( '/\.([^.]+)$/', $real_file, $matches ) ) {
 		$ext = strtolower( $matches[1] );
 		// If extension is not in the acceptable list, skip it.
-		if ( ! in_array( $ext, $editable_extensions ) ) {
+		if ( ! in_array( $ext, $editable_extensions, true ) ) {
 			wp_die( sprintf( '<p>%s</p>', __( 'Files of this type are not editable.' ) ) );
 		}
 	}
@@ -161,7 +161,7 @@ if ( ! empty( $posted_content ) ) {
 	$content = file_get_contents( $real_file );
 }
 
-if ( '.php' == substr( $real_file, strrpos( $real_file, '.' ) ) ) {
+if ( '.php' === substr( $real_file, strrpos( $real_file, '.' ) ) ) {
 	$functions = wp_doc_link_parse( $content );
 
 	if ( ! empty( $functions ) ) {
@@ -195,20 +195,20 @@ $content = esc_textarea( $content );
 <h2>
 	<?php
 	if ( is_plugin_active( $plugin ) ) {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
-			echo sprintf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			printf( __( 'Editing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
 			/* translators: %s: Plugin file name. */
-			echo sprintf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			printf( __( 'Browsing %s (active)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	} else {
-		if ( is_writeable( $real_file ) ) {
+		if ( is_writable( $real_file ) ) {
 			/* translators: %s: Plugin file name. */
-			echo sprintf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			printf( __( 'Editing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		} else {
 			/* translators: %s: Plugin file name. */
-			echo sprintf( __( 'Browsing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
+			printf( __( 'Browsing %s (inactive)' ), '<strong>' . esc_html( $file ) . '</strong>' );
 		}
 	}
 	?>
@@ -216,12 +216,12 @@ $content = esc_textarea( $content );
 </div>
 <div class="alignright">
 	<form action="plugin-editor.php" method="get">
-		<strong><label for="plugin"><?php _e( 'Select plugin to edit:' ); ?> </label></strong>
+		<label for="plugin" id="theme-plugin-editor-selector"><?php _e( 'Select plugin to edit:' ); ?> </label>
 		<select name="plugin" id="plugin">
 		<?php
 		foreach ( $plugins as $plugin_key => $a_plugin ) {
 			$plugin_name = $a_plugin['Name'];
-			if ( $plugin_key == $plugin ) {
+			if ( $plugin_key === $plugin ) {
 				$selected = " selected='selected'";
 			} else {
 				$selected = '';
@@ -244,7 +244,7 @@ $content = esc_textarea( $content );
 	<?php
 	$plugin_editable_files = array();
 	foreach ( $plugin_files as $plugin_file ) {
-		if ( preg_match( '/\.([^.]+)$/', $plugin_file, $matches ) && in_array( $matches[1], $editable_extensions ) ) {
+		if ( preg_match( '/\.([^.]+)$/', $plugin_file, $matches ) && in_array( $matches[1], $editable_extensions, true ) ) {
 			$plugin_editable_files[] = $plugin_file;
 		}
 	}
@@ -275,9 +275,9 @@ $content = esc_textarea( $content );
 		</div>
 	<?php endif; ?>
 
-	<?php if ( is_writeable( $real_file ) ) : ?>
+	<?php if ( is_writable( $real_file ) ) : ?>
 		<div class="editor-notices">
-		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ) ) ) { ?>
+		<?php if ( in_array( $plugin, (array) get_option( 'active_plugins', array() ), true ) ) { ?>
 			<div class="notice notice-warning inline active-plugin-edit-warning">
 				<p><?php _e( '<strong>Warning:</strong> Making changes to active plugins is not recommended.' ); ?></p>
 			</div>
@@ -288,7 +288,7 @@ $content = esc_textarea( $content );
 			<span class="spinner"></span>
 		</p>
 	<?php else : ?>
-		<p><em>
+		<p>
 			<?php
 			printf(
 				/* translators: %s: Documentation URL. */
@@ -296,7 +296,7 @@ $content = esc_textarea( $content );
 				__( 'https://wordpress.org/support/article/changing-file-permissions/' )
 			);
 			?>
-		</em></p>
+		</p>
 	<?php endif; ?>
 
 	<?php wp_print_file_editor_templates(); ?>

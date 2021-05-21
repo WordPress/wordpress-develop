@@ -16,9 +16,10 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 * Set up. Workaround set_current_screen( null ) not working due to $hook_suffix not being set.
 	 */
 	function setUp() {
+		parent::setUp();
+
 		global $current_screen;
 		$this->current_screen = $current_screen;
-		parent::setUp();
 	}
 
 	/**
@@ -26,8 +27,8 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 	 */
 	function tearDown() {
 		global $current_screen;
-		parent::tearDown();
 		$current_screen = $this->current_screen;
+		parent::tearDown();
 	}
 
 	/**
@@ -113,6 +114,32 @@ class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 		$request = array(
 			'type' => 'quick-search-posttype-post',
 			'q'    => 'FOO',
+		);
+		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
+
+		$this->assertNotEmpty( $output );
+		$results = explode( "\n", trim( $output ) );
+		$this->assertCount( 1, $results );
+	}
+
+	/**
+	 * Test that search displays terms that are not assigned to any posts.
+	 *
+	 * @ticket 45298
+	 */
+	public function test_search_should_return_unassigned_term_items() {
+		register_taxonomy( 'wptests_tax', 'post' );
+
+		$this->factory->term->create(
+			array(
+				'taxonomy' => 'wptests_tax',
+				'name'     => 'foobar',
+			)
+		);
+
+		$request = array(
+			'type' => 'quick-search-taxonomy-wptests_tax',
+			'q'    => 'foobar',
 		);
 		$output  = get_echo( '_wp_ajax_menu_quick_search', array( $request ) );
 

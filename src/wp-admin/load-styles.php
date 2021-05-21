@@ -19,7 +19,7 @@ require ABSPATH . WPINC . '/script-loader.php';
 require ABSPATH . WPINC . '/version.php';
 
 $protocol = $_SERVER['SERVER_PROTOCOL'];
-if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ) ) ) {
+if ( ! in_array( $protocol, array( 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0' ), true ) ) {
 	$protocol = 'HTTP/1.0';
 }
 
@@ -37,7 +37,7 @@ if ( empty( $load ) ) {
 	exit;
 }
 
-$rtl            = ( isset( $_GET['dir'] ) && 'rtl' == $_GET['dir'] );
+$rtl            = ( isset( $_GET['dir'] ) && 'rtl' === $_GET['dir'] );
 $expires_offset = 31536000; // 1 year.
 $out            = '';
 
@@ -46,7 +46,7 @@ wp_default_styles( $wp_styles );
 
 if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $wp_version ) {
 	header( "$protocol 304 Not Modified" );
-	exit();
+	exit;
 }
 
 foreach ( $load as $handle ) {

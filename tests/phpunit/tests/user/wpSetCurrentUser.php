@@ -8,7 +8,7 @@ class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 	protected static $user_id2;
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$user_id    = $factory->user->create();
 		self::$user_ids[] = self::$user_id;
 		self::$user_id2   = $factory->user->create( array( 'user_login' => 'foo' ) );
@@ -19,7 +19,7 @@ class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 		$user = wp_set_current_user( self::$user_id );
 
 		$this->assertSame( self::$user_id, $user->ID );
-		$this->assertEquals( $user, wp_get_current_user() );
+		$this->assertSame( $user, wp_get_current_user() );
 		$this->assertSame( self::$user_id, get_current_user_id() );
 	}
 
@@ -27,7 +27,7 @@ class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 		$user = wp_set_current_user( self::$user_id, 'foo' );
 
 		$this->assertSame( self::$user_id, $user->ID );
-		$this->assertEquals( $user, wp_get_current_user() );
+		$this->assertSame( $user, wp_get_current_user() );
 		$this->assertSame( self::$user_id, get_current_user_id() );
 	}
 
@@ -38,7 +38,7 @@ class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 		$user = wp_set_current_user( null, 'foo' );
 
 		$this->assertSame( self::$user_id2, $user->ID );
-		$this->assertEquals( $user, wp_get_current_user() );
+		$this->assertSame( $user, wp_get_current_user() );
 		$this->assertSame( self::$user_id2, get_current_user_id() );
 	}
 
@@ -54,7 +54,7 @@ class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 		$user = wp_set_current_user( null, 'foo' );
 
 		$this->assertSame( self::$user_id2, $user->ID );
-		$this->assertEquals( $user, wp_get_current_user() );
+		$this->assertSame( $user, wp_get_current_user() );
 		$this->assertSame( self::$user_id2, get_current_user_id() );
 	}
 }

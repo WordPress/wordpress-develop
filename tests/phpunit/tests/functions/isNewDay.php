@@ -5,8 +5,9 @@
  * @since 5.2.0
  *
  * @group functions.php
+ * @covers ::is_new_day
  */
-class Tests_Functions_is_new_date extends WP_UnitTestCase {
+class Tests_Functions_IsNewDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46627

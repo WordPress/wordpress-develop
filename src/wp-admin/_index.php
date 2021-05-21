@@ -72,8 +72,16 @@ $screen->add_help_tab(
 
 $help = '<p>' . __( 'The boxes on your Dashboard screen are:' ) . '</p>';
 
+if ( current_user_can( 'edit_theme_options' ) ) {
+	$help .= '<p>' . __( '<strong>Welcome</strong> &mdash; Shows links for some of the most common tasks when setting up a new site.' ) . '</p>';
+}
+
+if ( current_user_can( 'view_site_health_checks' ) ) {
+	$help .= '<p>' . __( '<strong>Site Health Status</strong> &mdash; Informs you of any potential issues that should be addressed to improve the performance or security of your website.' ) . '</p>';
+}
+
 if ( current_user_can( 'edit_posts' ) ) {
-	$help .= '<p>' . __( '<strong>At A Glance</strong> &mdash; Displays a summary of the content on your site and identifies which theme and version of WordPress you are using.' ) . '</p>';
+	$help .= '<p>' . __( '<strong>At a Glance</strong> &mdash; Displays a summary of the content on your site and identifies which theme and version of WordPress you are using.' ) . '</p>';
 }
 
 $help .= '<p>' . __( '<strong>Activity</strong> &mdash; Shows the upcoming scheduled posts, recently published posts, and the most recent comments on your posts and allows you to moderate them.' ) . '</p>';
@@ -87,10 +95,6 @@ $help .= '<p>' . sprintf(
 	__( '<strong>WordPress Events and News</strong> &mdash; Upcoming events near you as well as the latest news from the official WordPress project and the <a href="%s">WordPress Planet</a>.' ),
 	__( 'https://planet.wordpress.org/' )
 ) . '</p>';
-
-if ( current_user_can( 'edit_theme_options' ) ) {
-	$help .= '<p>' . __( '<strong>Welcome</strong> &mdash; Shows links for some of the most common tasks when setting up a new site.' ) . '</p>';
-}
 
 $screen->add_help_tab(
 	array(
@@ -114,13 +118,42 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 <div class="wrap">
 	<h1><?php echo esc_html( $title ); ?></h1>
 
+	<?php
+	if ( ! empty( $_GET['admin_email_remind_later'] ) ) :
+		/** This filter is documented in wp-login.php */
+		$remind_interval = (int) apply_filters( 'admin_email_remind_interval', 3 * DAY_IN_SECONDS );
+		$postponed_time  = get_option( 'admin_email_lifespan' );
+
+		/*
+		 * Calculate how many seconds it's been since the reminder was postponed.
+		 * This allows us to not show it if the query arg is set, but visited due to caches, bookmarks or similar.
+		 */
+		$time_passed = time() - ( $postponed_time - $remind_interval );
+
+		// Only show the dashboard notice if it's been less than a minute since the message was postponed.
+		if ( $time_passed < MINUTE_IN_SECONDS ) :
+			?>
+		<div class="notice notice-success is-dismissible">
+			<p>
+				<?php
+				printf(
+					/* translators: %s: Human-readable time interval. */
+					__( 'The admin email verification page will reappear after %s.' ),
+					human_time_diff( time() + $remind_interval )
+				);
+				?>
+			</p>
+		</div>
+		<?php endif; ?>
+	<?php endif; ?>
+
 <?php
 if ( has_action( 'welcome_panel' ) && current_user_can( 'edit_theme_options' ) ) :
 	$classes = 'welcome-panel';
 
-	$option = get_user_meta( get_current_user_id(), 'show_welcome_panel', true );
+	$option = (int) get_user_meta( get_current_user_id(), 'show_welcome_panel', true );
 	// 0 = hide, 1 = toggled to show or single site creator, 2 = multisite site owner.
-	$hide = 0 == $option || ( 2 == $option && wp_get_current_user()->user_email != get_option( 'admin_email' ) );
+	$hide = ( 0 === $option || ( 2 === $option && wp_get_current_user()->user_email !== get_option( 'admin_email' ) ) );
 	if ( $hide ) {
 		$classes .= ' hidden';
 	}

@@ -157,7 +157,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			'default-image'       => '%s/images/headers/path.jpg',
 			// The height and width of our custom header.
 			/**
-			 * Filter the Twenty Ten default header image width.
+			 * Filters the Twenty Ten default header image width.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -165,7 +165,7 @@ if ( ! function_exists( 'twentyten_setup' ) ) :
 			 */
 			'width'               => apply_filters( 'twentyten_header_image_width', 940 ),
 			/**
-			 * Filter the Twenty Ten defaul header image height.
+			 * Filters the Twenty Ten defaul header image height.
 			 *
 			 * @since Twenty Ten 1.0
 			 *
@@ -341,7 +341,7 @@ endif;
  * @since Twenty Ten 1.0
  *
  * @param string $more The Read More text.
- * @return string An ellipsis.
+ * @return string The filtered Read More text.
  */
 function twentyten_auto_excerpt_more( $more ) {
 	if ( ! is_admin() ) {
@@ -359,7 +359,7 @@ add_filter( 'excerpt_more', 'twentyten_auto_excerpt_more' );
  *
  * @since Twenty Ten 1.0
  *
- * @param string $output The "Coninue Reading" link.
+ * @param string $output The "Continue Reading" link.
  * @return string Excerpt with a pretty "Continue Reading" link.
  */
 function twentyten_custom_excerpt_more( $output ) {
@@ -410,14 +410,15 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 	 *
 	 * @since Twenty Ten 1.0
 	 *
-	 * @param object $comment The comment object.
-	 * @param array  $args    An array of arguments. @see get_comment_reply_link()
-	 * @param int    $depth   The depth of the comment.
+	 * @param WP_Comment $comment The comment object.
+	 * @param array      $args    An array of arguments. @see get_comment_reply_link()
+	 * @param int        $depth   The depth of the comment.
 	 */
 	function twentyten_comment( $comment, $args, $depth ) {
 		$GLOBALS['comment'] = $comment;
 		switch ( $comment->comment_type ) :
 			case '':
+			case 'comment':
 				?>
 		<li <?php comment_class(); ?> id="li-comment-<?php comment_ID(); ?>">
 		<div id="comment-<?php comment_ID(); ?>">
@@ -434,7 +435,7 @@ if ( ! function_exists( 'twentyten_comment' ) ) :
 				if ( $commenter['comment_author_email'] ) {
 					$moderation_note = __( 'Your comment is awaiting moderation.', 'twentyten' );
 				} else {
-					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview, your comment will be visible after it has been approved.', 'twentyten' );
+					$moderation_note = __( 'Your comment is awaiting moderation. This is a preview; your comment will be visible after it has been approved.', 'twentyten' );
 				}
 				?>
 
@@ -629,8 +630,9 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 	 */
 	function twentyten_posted_in() {
 		// Retrieves tag list of current post, separated by commas.
-		$tag_list = get_the_tag_list( '', ', ' );
-		if ( $tag_list && ! is_wp_error( $tag_list ) ) {
+		$tags_list = get_the_tag_list( '', ', ' );
+
+		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
 			/* translators: 1: Category name, 2: Tag name, 3: Post permalink, 4: Post title. */
 			$posted_in = __( 'This entry was posted in %1$s and tagged %2$s. Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyten' );
 		} elseif ( is_object_in_taxonomy( get_post_type(), 'category' ) ) {
@@ -640,11 +642,12 @@ if ( ! function_exists( 'twentyten_posted_in' ) ) :
 			/* translators: 3: Post permalink, 4: Post title. */
 			$posted_in = __( 'Bookmark the <a href="%3$s" title="Permalink to %4$s" rel="bookmark">permalink</a>.', 'twentyten' );
 		}
+
 		// Prints the string, replacing the placeholders.
 		printf(
 			$posted_in,
 			get_the_category_list( ', ' ),
-			$tag_list,
+			$tags_list,
 			get_permalink(),
 			the_title_attribute( 'echo=0' )
 		);
@@ -732,7 +735,7 @@ add_action( 'wp_enqueue_scripts', 'twentyten_scripts_styles' );
  */
 function twentyten_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20181218' );
+	wp_enqueue_style( 'twentyten-block-editor-style', get_template_directory_uri() . '/editor-blocks.css', array(), '20201208' );
 }
 add_action( 'enqueue_block_editor_assets', 'twentyten_block_editor_styles' );
 

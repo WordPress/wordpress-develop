@@ -19,7 +19,7 @@ function twentynineteen_body_classes( $classes ) {
 		// Adds `singular` to singular pages.
 		$classes[] = 'singular';
 	} else {
-		// Adds `hfeed` to non singular pages.
+		// Adds `hfeed` to non-singular pages.
 		$classes[] = 'hfeed';
 	}
 
@@ -120,7 +120,7 @@ add_filter( 'wp_get_attachment_image_attributes', 'twentynineteen_post_thumbnail
 /**
  * Add an extra menu to our nav for our priority+ navigation to use
  *
- * @param object $nav_menu  Nav menu.
+ * @param string $nav_menu  Nav menu.
  * @param object $args      Nav menu args.
  * @return string More link for hidden menu items.
  */
@@ -165,7 +165,7 @@ add_filter( 'wp_nav_menu', 'twentynineteen_add_ellipses_to_nav', 10, 2 );
 function twentynineteen_nav_menu_link_attributes( $atts, $item, $args, $depth ) {
 
 	// Add [aria-haspopup] and [aria-expanded] to menu items that have children.
-	$item_has_children = in_array( 'menu-item-has-children', $item->classes );
+	$item_has_children = in_array( 'menu-item-has-children', $item->classes, true );
 	if ( $item_has_children ) {
 		$atts['aria-haspopup'] = 'true';
 		$atts['aria-expanded'] = 'false';

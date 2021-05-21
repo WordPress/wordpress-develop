@@ -62,11 +62,11 @@ class Walker_Category_Checklist extends Walker {
 	 *
 	 * @since 2.5.1
 	 *
-	 * @param string $output   Used to append additional content (passed by reference).
-	 * @param object $category The current term object.
-	 * @param int    $depth    Depth of the term in reference to parents. Default 0.
-	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
-	 * @param int    $id       ID of the current term.
+	 * @param string  $output   Used to append additional content (passed by reference).
+	 * @param WP_Term $category The current term object.
+	 * @param int     $depth    Depth of the term in reference to parents. Default 0.
+	 * @param array   $args     An array of arguments. @see wp_terms_checklist()
+	 * @param int     $id       ID of the current term.
 	 */
 	public function start_el( &$output, $category, $depth = 0, $args = array(), $id = 0 ) {
 		if ( empty( $args['taxonomy'] ) ) {
@@ -81,16 +81,17 @@ class Walker_Category_Checklist extends Walker {
 			$name = 'tax_input[' . $taxonomy . ']';
 		}
 
-		$args['popular_cats'] = empty( $args['popular_cats'] ) ? array() : $args['popular_cats'];
-		$class                = in_array( $category->term_id, $args['popular_cats'] ) ? ' class="popular-category"' : '';
+		$args['popular_cats'] = ! empty( $args['popular_cats'] ) ? array_map( 'intval', $args['popular_cats'] ) : array();
 
-		$args['selected_cats'] = empty( $args['selected_cats'] ) ? array() : $args['selected_cats'];
+		$class = in_array( $category->term_id, $args['popular_cats'], true ) ? ' class="popular-category"' : '';
+
+		$args['selected_cats'] = ! empty( $args['selected_cats'] ) ? array_map( 'intval', $args['selected_cats'] ) : array();
 
 		if ( ! empty( $args['list_only'] ) ) {
 			$aria_checked = 'false';
 			$inner_class  = 'category';
 
-			if ( in_array( $category->term_id, $args['selected_cats'] ) ) {
+			if ( in_array( $category->term_id, $args['selected_cats'], true ) ) {
 				$inner_class .= ' selected';
 				$aria_checked = 'true';
 			}
@@ -101,10 +102,13 @@ class Walker_Category_Checklist extends Walker {
 				/** This filter is documented in wp-includes/category-template.php */
 				esc_html( apply_filters( 'the_category', $category->name, '', '' ) ) . '</div>';
 		} else {
+			$is_selected = in_array( $category->term_id, $args['selected_cats'], true );
+			$is_disabled = ! empty( $args['disabled'] );
+
 			$output .= "\n<li id='{$taxonomy}-{$category->term_id}'$class>" .
 				'<label class="selectit"><input value="' . $category->term_id . '" type="checkbox" name="' . $name . '[]" id="in-' . $taxonomy . '-' . $category->term_id . '"' .
-				checked( in_array( $category->term_id, $args['selected_cats'] ), true, false ) .
-				disabled( empty( $args['disabled'] ), false, false ) . ' /> ' .
+				checked( $is_selected, true, false ) .
+				disabled( $is_disabled, true, false ) . ' /> ' .
 				/** This filter is documented in wp-includes/category-template.php */
 				esc_html( apply_filters( 'the_category', $category->name, '', '' ) ) . '</label>';
 		}
@@ -117,10 +121,10 @@ class Walker_Category_Checklist extends Walker {
 	 *
 	 * @since 2.5.1
 	 *
-	 * @param string $output   Used to append additional content (passed by reference).
-	 * @param object $category The current term object.
-	 * @param int    $depth    Depth of the term in reference to parents. Default 0.
-	 * @param array  $args     An array of arguments. @see wp_terms_checklist()
+	 * @param string  $output   Used to append additional content (passed by reference).
+	 * @param WP_Term $category The current term object.
+	 * @param int     $depth    Depth of the term in reference to parents. Default 0.
+	 * @param array   $args     An array of arguments. @see wp_terms_checklist()
 	 */
 	public function end_el( &$output, $category, $depth = 0, $args = array() ) {
 		$output .= "</li>\n";

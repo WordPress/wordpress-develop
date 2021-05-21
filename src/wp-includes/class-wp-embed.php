@@ -101,10 +101,12 @@ class WP_Embed {
 	 *
 	 * This function should probably also only be used for sites that do not support oEmbed.
 	 *
-	 * @param string $id An internal ID/name for the handler. Needs to be unique.
-	 * @param string $regex The regex that will be used to see if this handler should be used for a URL.
+	 * @param string   $id       An internal ID/name for the handler. Needs to be unique.
+	 * @param string   $regex    The regex that will be used to see if this handler should be used for a URL.
 	 * @param callable $callback The callback function that will be called if the regex is matched.
-	 * @param int $priority Optional. Used to specify the order in which the registered handlers will be tested (default: 10). Lower numbers correspond with earlier testing, and handlers with the same priority are tested in the order in which they were added to the action.
+	 * @param int      $priority Optional. Used to specify the order in which the registered handlers will be tested.
+	 *                           Lower numbers correspond with earlier testing, and handlers with the same priority are
+	 *                           tested in the order in which they were added to the action. Default 10.
 	 */
 	public function register_handler( $id, $regex, $callback, $priority = 10 ) {
 		$this->handlers[ $priority ][ $id ] = array(
@@ -118,11 +120,58 @@ class WP_Embed {
 	 *
 	 * Do not use this function directly, use wp_embed_unregister_handler() instead.
 	 *
-	 * @param string $id The handler ID that should be removed.
-	 * @param int $priority Optional. The priority of the handler to be removed (default: 10).
+	 * @param string $id       The handler ID that should be removed.
+	 * @param int    $priority Optional. The priority of the handler to be removed (default: 10).
 	 */
 	public function unregister_handler( $id, $priority = 10 ) {
 		unset( $this->handlers[ $priority ][ $id ] );
+	}
+
+	/**
+	 * Returns embed HTML for a given URL from embed handlers.
+	 *
+	 * Attempts to convert a URL into embed HTML by checking the URL
+	 * against the regex of the registered embed handlers.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @param array  $attr {
+	 *     Shortcode attributes. Optional.
+	 *
+	 *     @type int $width  Width of the embed in pixels.
+	 *     @type int $height Height of the embed in pixels.
+	 * }
+	 * @param string $url The URL attempting to be embedded.
+	 * @return string|false The embed HTML on success, false otherwise.
+	 */
+	public function get_embed_handler_html( $attr, $url ) {
+		$rawattr = $attr;
+		$attr    = wp_parse_args( $attr, wp_embed_defaults( $url ) );
+
+		ksort( $this->handlers );
+		foreach ( $this->handlers as $priority => $handlers ) {
+			foreach ( $handlers as $id => $handler ) {
+				if ( preg_match( $handler['regex'], $url, $matches ) && is_callable( $handler['callback'] ) ) {
+					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
+					if ( false !== $return ) {
+						/**
+						 * Filters the returned embed HTML.
+						 *
+						 * @since 2.9.0
+						 *
+						 * @see WP_Embed::shortcode()
+						 *
+						 * @param string|false $return The HTML result of the shortcode, or false on failure.
+						 * @param string       $url    The embed URL.
+						 * @param array        $attr   An array of shortcode attributes.
+						 */
+						return apply_filters( 'embed_handler_html', $return, $url, $attr );
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -132,7 +181,7 @@ class WP_Embed {
 	 * the registered embed handlers. If none of the regex matches and it's enabled, then the URL
 	 * will be given to the WP_oEmbed class.
 	 *
-	 * @param array $attr {
+	 * @param array  $attr {
 	 *     Shortcode attributes. Optional.
 	 *
 	 *     @type int $width  Width of the embed in pixels.
@@ -166,27 +215,9 @@ class WP_Embed {
 		$url = str_replace( '&amp;', '&', $url );
 
 		// Look for known internal handlers.
-		ksort( $this->handlers );
-		foreach ( $this->handlers as $priority => $handlers ) {
-			foreach ( $handlers as $id => $handler ) {
-				if ( preg_match( $handler['regex'], $url, $matches ) && is_callable( $handler['callback'] ) ) {
-					$return = call_user_func( $handler['callback'], $matches, $attr, $url, $rawattr );
-					if ( false !== $return ) {
-						/**
-						 * Filters the returned embed HTML.
-						 *
-						 * @since 2.9.0
-						 *
-						 * @see WP_Embed::shortcode()
-						 *
-						 * @param string|false $return The HTML result of the shortcode, or false on failure.
-						 * @param string       $url    The embed URL.
-						 * @param array        $attr   An array of shortcode attributes.
-						 */
-						return apply_filters( 'embed_handler_html', $return, $url, $attr );
-					}
-				}
-			}
+		$embed_handler_html = $this->get_embed_handler_html( $rawattr, $url );
+		if ( false !== $embed_handler_html ) {
+			return $embed_handler_html;
 		}
 
 		$post_ID = ( ! empty( $post->ID ) ) ? $post->ID : null;
@@ -355,7 +386,7 @@ class WP_Embed {
 		}
 
 		foreach ( $post_metas as $post_meta_key ) {
-			if ( '_oembed_' == substr( $post_meta_key, 0, 8 ) ) {
+			if ( '_oembed_' === substr( $post_meta_key, 0, 8 ) ) {
 				delete_post_meta( $post_ID, $post_meta_key );
 			}
 		}
@@ -370,6 +401,7 @@ class WP_Embed {
 		$post = get_post( $post_ID );
 
 		$post_types = get_post_types( array( 'show_ui' => true ) );
+
 		/**
 		 * Filters the array of post types to cache oEmbed results for.
 		 *
@@ -377,7 +409,9 @@ class WP_Embed {
 		 *
 		 * @param string[] $post_types Array of post type names to cache oEmbed results for. Defaults to post types with `show_ui` set to true.
 		 */
-		if ( empty( $post->ID ) || ! in_array( $post->post_type, apply_filters( 'embed_cache_oembed_types', $post_types ) ) ) {
+		$cache_oembed_types = apply_filters( 'embed_cache_oembed_types', $post_types );
+
+		if ( empty( $post->ID ) || ! in_array( $post->post_type, $cache_oembed_types, true ) ) {
 			return;
 		}
 

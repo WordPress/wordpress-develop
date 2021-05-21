@@ -40,7 +40,7 @@ class WP_User {
 	 * User data container.
 	 *
 	 * @since 2.0.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $data;
 
@@ -53,10 +53,11 @@ class WP_User {
 	public $ID = 0;
 
 	/**
-	 * The individual capabilities the user has been given.
+	 * Capabilities that the individual user has been granted outside of those inherited from their role.
 	 *
 	 * @since 2.0.0
-	 * @var array
+	 * @var bool[] Array of key/value pairs where keys represent a capability name
+	 *             and boolean values represent whether the user has that capability.
 	 */
 	public $caps = array();
 
@@ -72,7 +73,7 @@ class WP_User {
 	 * The roles the user is part of.
 	 *
 	 * @since 2.0.0
-	 * @var array
+	 * @var string[]
 	 */
 	public $roles = array();
 
@@ -80,8 +81,8 @@ class WP_User {
 	 * All capabilities the user has, including individual and role based.
 	 *
 	 * @since 2.0.0
-	 * @var bool[] Array of key/value pairs where keys represent a capability name and boolean values
-	 *             represent whether the user has that capability.
+	 * @var bool[] Array of key/value pairs where keys represent a capability name
+	 *             and boolean values represent whether the user has that capability.
 	 */
 	public $allcaps = array();
 
@@ -114,9 +115,9 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param int|string|stdClass|WP_User $id User's ID, a WP_User object, or a user object from the DB.
-	 * @param string $name Optional. User's username
-	 * @param int $site_id Optional Site ID, defaults to current site.
+	 * @param int|string|stdClass|WP_User $id      User's ID, a WP_User object, or a user object from the DB.
+	 * @param string                      $name    Optional. User's username
+	 * @param int                         $site_id Optional Site ID, defaults to current site.
 	 */
 	public function __construct( $id = 0, $name = '', $site_id = '' ) {
 		if ( ! isset( self::$back_compat_keys ) ) {
@@ -166,6 +167,9 @@ class WP_User {
 	 * @param int    $site_id Optional. The site ID to initialize for.
 	 */
 	public function init( $data, $site_id = '' ) {
+		if ( ! isset( $data->ID ) ) {
+			$data->ID = 0;
+		}
 		$this->data = $data;
 		$this->ID   = (int) $data->ID;
 
@@ -180,7 +184,7 @@ class WP_User {
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @param string $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
+	 * @param string     $field The field to query against: 'id', 'ID', 'slug', 'email' or 'login'.
 	 * @param string|int $value The field value
 	 * @return object|false Raw user object
 	 */
@@ -192,13 +196,13 @@ class WP_User {
 			$field = 'id';
 		}
 
-		if ( 'id' == $field ) {
+		if ( 'id' === $field ) {
 			// Make sure the value is numeric to avoid casting objects, for example,
 			// to int 1.
 			if ( ! is_numeric( $value ) ) {
 				return false;
 			}
-			$value = intval( $value );
+			$value = (int) $value;
 			if ( $value < 1 ) {
 				return false;
 			}
@@ -263,7 +267,7 @@ class WP_User {
 	 * @return bool Whether the given user meta key is set.
 	 */
 	public function __isset( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -296,7 +300,7 @@ class WP_User {
 	 * @return mixed Value of the given user meta key (if set). If `$key` is 'id', the user ID.
 	 */
 	public function __get( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -337,7 +341,7 @@ class WP_User {
 	 * @param mixed  $value User meta value.
 	 */
 	public function __set( $key, $value ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -362,7 +366,7 @@ class WP_User {
 	 * @param string $key User meta key to unset.
 	 */
 	public function __unset( $key ) {
-		if ( 'id' == $key ) {
+		if ( 'id' === $key ) {
 			_deprecated_argument(
 				'WP_User->id',
 				'2.1.0',
@@ -438,8 +442,8 @@ class WP_User {
 	 *
 	 * @since 4.3.0
 	 *
-	 * @param string   $name      Method to call.
-	 * @param array    $arguments Arguments to pass when calling.
+	 * @param string $name      Method to call.
+	 * @param array  $arguments Arguments to pass when calling.
 	 * @return mixed|false Return value of the callback, false otherwise.
 	 */
 	public function __call( $name, $arguments ) {
@@ -481,15 +485,17 @@ class WP_User {
 	}
 
 	/**
-	 * Retrieves all of the capabilities of the roles of the user, and merges them with individual user capabilities.
+	 * Retrieves all of the capabilities of the user's roles, and merges them with
+	 * individual user capabilities.
 	 *
-	 * All of the capabilities of the roles of the user are merged with the user's individual capabilities. This means
-	 * that the user can be denied specific capabilities that their role might have, but the user is specifically denied.
+	 * All of the capabilities of the user's roles are merged with the user's individual
+	 * capabilities. This means that the user can be denied specific capabilities that
+	 * their role might have, but the user is specifically denied.
 	 *
 	 * @since 2.0.0
 	 *
-	 * @return bool[] Array of key/value pairs where keys represent a capability name and boolean values
-	 *                represent whether the user has that capability.
+	 * @return bool[] Array of key/value pairs where keys represent a capability name
+	 *                and boolean values represent whether the user has that capability.
 	 */
 	public function get_role_caps() {
 		$switch_site = false;
@@ -559,7 +565,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function remove_role( $role ) {
-		if ( ! in_array( $role, $this->roles ) ) {
+		if ( ! in_array( $role, $this->roles, true ) ) {
 			return;
 		}
 		unset( $this->caps[ $role ] );
@@ -590,7 +596,7 @@ class WP_User {
 	 * @param string $role Role name.
 	 */
 	public function set_role( $role ) {
-		if ( 1 == count( $this->roles ) && current( $this->roles ) == $role ) {
+		if ( 1 === count( $this->roles ) && current( $this->roles ) == $role ) {
 			return;
 		}
 
@@ -636,13 +642,13 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param int $max Max level of user.
+	 * @param int    $max  Max level of user.
 	 * @param string $item Level capability name.
 	 * @return int Max Level.
 	 */
 	public function level_reduction( $max, $item ) {
 		if ( preg_match( '/^level_(10|[0-9])$/i', $item, $matches ) ) {
-			$level = intval( $matches[1] );
+			$level = (int) $matches[1];
 			return max( $max, $level );
 		} else {
 			return $max;
@@ -671,8 +677,8 @@ class WP_User {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param string $cap Capability name.
-	 * @param bool $grant Whether to grant capability to user.
+	 * @param string $cap   Capability name.
+	 * @param bool   $grant Whether to grant capability to user.
 	 */
 	public function add_cap( $cap, $grant = true ) {
 		$this->caps[ $cap ] = $grant;
@@ -750,7 +756,7 @@ class WP_User {
 
 		// Multisite super admin has all caps by definition, Unless specifically denied.
 		if ( is_multisite() && is_super_admin( $this->ID ) ) {
-			if ( in_array( 'do_not_allow', $caps ) ) {
+			if ( in_array( 'do_not_allow', $caps, true ) ) {
 				return false;
 			}
 			return true;
@@ -765,8 +771,8 @@ class WP_User {
 		 * @since 2.0.0
 		 * @since 3.7.0 Added the `$user` parameter.
 		 *
-		 * @param bool[]   $allcaps Array of key/value pairs where keys represent a capability name and boolean values
-		 *                          represent whether the user has that capability.
+		 * @param bool[]   $allcaps Array of key/value pairs where keys represent a capability name
+		 *                          and boolean values represent whether the user has that capability.
 		 * @param string[] $caps    Required primitive capabilities for the requested capability.
 		 * @param array    $args {
 		 *     Arguments that accompany the requested capability check.

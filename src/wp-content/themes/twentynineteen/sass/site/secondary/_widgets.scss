@@ -1,6 +1,10 @@
 .widget {
 	margin: 0 0 #{$size__spacing-unit};
 
+	.widget-title {
+ 		font-size: $font__size-lg;
+ 	}
+
 	/* Make sure select elements fit in widgets. */
 	select {
 		max-width: 100%;
@@ -93,5 +97,10 @@
 			display: table-cell;
 			padding: 0.5em;
 		}
+	}
+
+	.wp-calendar-nav-prev,
+	.wp-calendar-nav-next {
+		width: 40%;
 	}
 }

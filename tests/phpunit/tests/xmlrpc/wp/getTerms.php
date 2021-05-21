@@ -8,7 +8,7 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 	function test_invalid_username_password() {
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'username', 'password', 'category' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
+		$this->assertSame( 403, $result->code );
 	}
 
 	function test_empty_taxonomy() {
@@ -16,8 +16,8 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', '' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	function test_invalid_taxonomy() {
@@ -25,8 +25,8 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'not_existing' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 403, $result->code );
-		$this->assertEquals( __( 'Invalid taxonomy.' ), $result->message );
+		$this->assertSame( 403, $result->code );
+		$this->assertSame( __( 'Invalid taxonomy.' ), $result->message );
 	}
 
 	function test_incapable_user() {
@@ -34,8 +34,8 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_getTerms( array( 1, 'subscriber', 'subscriber', 'category' ) );
 		$this->assertIXRError( $result );
-		$this->assertEquals( 401, $result->code );
-		$this->assertEquals( __( 'Sorry, you are not allowed to assign terms in this taxonomy.' ), $result->message );
+		$this->assertSame( 401, $result->code );
+		$this->assertSame( __( 'Sorry, you are not allowed to assign terms in this taxonomy.' ), $result->message );
 	}
 
 	function test_valid_terms() {
@@ -77,29 +77,29 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name ) );
 		$this->assertNotIXRError( $results );
 
-		$this->assertEquals( $num_terms, count( $results ) );
+		$this->assertSame( $num_terms, count( $results ) );
 		foreach ( $results as $term ) {
-			$this->assertEquals( $tax_name, $term['taxonomy'] );
+			$this->assertSame( $tax_name, $term['taxonomy'] );
 		}
 
 		// Test paged results.
 		$filter   = array( 'number' => 5 );
 		$results2 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertEquals( 5, count( $results2 ) );
-		$this->assertEquals( $results[1]['term_id'], $results2[1]['term_id'] ); // Check one of the terms.
+		$this->assertSame( 5, count( $results2 ) );
+		$this->assertSame( $results[1]['term_id'], $results2[1]['term_id'] ); // Check one of the terms.
 
 		$filter['offset'] = 10;
 		$results3         = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results3 );
-		$this->assertEquals( $num_terms - 10, count( $results3 ) );
-		$this->assertEquals( $results[11]['term_id'], $results3[1]['term_id'] );
+		$this->assertSame( $num_terms - 10, count( $results3 ) );
+		$this->assertSame( $results[11]['term_id'], $results3[1]['term_id'] );
 
 		// Test hide_empty (since none have been attached to posts yet, all should be hidden.
 		$filter   = array( 'hide_empty' => true );
 		$results4 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', $tax_name, $filter ) );
 		$this->assertNotIXRError( $results4 );
-		$this->assertEquals( 0, count( $results4 ) );
+		$this->assertSame( 0, count( $results4 ) );
 
 		unset( $GLOBALS['wp_taxonomies'][ $tax_name ] );
 	}
@@ -140,16 +140,16 @@ class Tests_XMLRPC_wp_getTerms extends WP_XMLRPC_UnitTestCase {
 		$filter  = array( 'search' => $name );
 		$results = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category', $filter ) );
 		$this->assertNotIXRError( $results );
-		$this->assertEquals( 1, count( $results ) );
-		$this->assertEquals( $name, $results[0]['name'] );
+		$this->assertSame( 1, count( $results ) );
+		$this->assertSame( $name, $results[0]['name'] );
 		$this->assertEquals( $name_id, $results[0]['term_id'] );
 
 		// Search by partial name.
 		$filter   = array( 'search' => substr( $name, 0, 10 ) );
 		$results2 = $this->myxmlrpcserver->wp_getTerms( array( 1, 'editor', 'editor', 'category', $filter ) );
 		$this->assertNotIXRError( $results2 );
-		$this->assertEquals( 1, count( $results2 ) );
-		$this->assertEquals( $name, $results2[0]['name'] );
+		$this->assertSame( 1, count( $results2 ) );
+		$this->assertSame( $name, $results2[0]['name'] );
 		$this->assertEquals( $name_id, $results2[0]['term_id'] );
 	}
 }

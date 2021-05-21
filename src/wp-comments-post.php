@@ -24,7 +24,7 @@ nocache_headers();
 
 $comment = wp_handle_comment_submission( wp_unslash( $_POST ) );
 if ( is_wp_error( $comment ) ) {
-	$data = intval( $comment->get_error_data() );
+	$data = (int) $comment->get_error_data();
 	if ( ! empty( $data ) ) {
 		wp_die(
 			'<p>' . $comment->get_error_message() . '</p>',
@@ -50,14 +50,14 @@ $cookies_consent = ( isset( $_POST['wp-comment-cookies-consent'] ) );
  *
  * @param WP_Comment $comment         Comment object.
  * @param WP_User    $user            Comment author's user object. The user may not exist.
- * @param boolean    $cookies_consent Comment author's consent to store cookies.
+ * @param bool       $cookies_consent Comment author's consent to store cookies.
  */
 do_action( 'set_comment_cookies', $comment, $user, $cookies_consent );
 
 $location = empty( $_POST['redirect_to'] ) ? get_comment_link( $comment ) : $_POST['redirect_to'] . '#comment-' . $comment->comment_ID;
 
-// Add specific query arguments to display the awaiting moderation message.
-if ( 'unapproved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_author_email ) ) {
+// If user didn't consent to cookies, add specific query arguments to display the awaiting moderation message.
+if ( ! $cookies_consent && 'unapproved' === wp_get_comment_status( $comment ) && ! empty( $comment->comment_author_email ) ) {
 	$location = add_query_arg(
 		array(
 			'unapproved'      => $comment->comment_ID,

@@ -139,13 +139,16 @@ class WP_Styles extends WP_Dependencies {
 	 * Processes a style dependency.
 	 *
 	 * @since 2.6.0
+	 * @since 5.5.0 Added the `$group` parameter.
 	 *
 	 * @see WP_Dependencies::do_item()
 	 *
-	 * @param string $handle The style's registered handle.
+	 * @param string    $handle The style's registered handle.
+	 * @param int|false $group  Optional. Group level: level (int), no groups (false).
+	 *                          Default false.
 	 * @return bool True on success, false on failure.
 	 */
-	public function do_item( $handle ) {
+	public function do_item( $handle, $group = false ) {
 		if ( ! parent::do_item( $handle ) ) {
 			return false;
 		}
@@ -240,7 +243,7 @@ class WP_Styles extends WP_Dependencies {
 		 * @since 4.3.0 Introduced the `$href` parameter.
 		 * @since 4.5.0 Introduced the `$media` parameter.
 		 *
-		 * @param string $html   The link tag for the enqueued style.
+		 * @param string $tag    The link tag for the enqueued style.
 		 * @param string $handle The style's registered handle.
 		 * @param string $href   The stylesheet's source URL.
 		 * @param string $media  The stylesheet's media attribute.

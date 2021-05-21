@@ -35,7 +35,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$wp_widget_audio = new WP_Widget_Media_Audio();
 		$schema          = $wp_widget_audio->get_instance_schema();
 
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array_merge(
 				array(
 					'attachment_id',
@@ -85,7 +85,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	/**
 	 * Test constructor.
 	 *
-	 * @covers WP_Widget_Media_Audio::__construct()
+	 * @covers WP_Widget_Media_Audio::__construct
 	 */
 	function test_constructor() {
 		$widget = new WP_Widget_Media_Audio();
@@ -94,8 +94,8 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'customize_selective_refresh', $widget->widget_options );
 		$this->assertArrayHasKey( 'description', $widget->widget_options );
 		$this->assertTrue( $widget->widget_options['customize_selective_refresh'] );
-		$this->assertEquals( 'audio', $widget->widget_options['mime_type'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'audio', $widget->widget_options['mime_type'] );
+		$this->assertSameSets(
 			array(
 				'add_to_widget',
 				'replace_media',

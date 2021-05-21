@@ -12,6 +12,7 @@ Description: Used to style blocks in the editor.
 4.0 Blocks - Formatting
 5.0 Blocks - Layout Elements
 6.0 Blocks - Widgets
+7.0 Blocks - Colors
 --------------------------------------------------------------*/
 
 /*--------------------------------------------------------------
@@ -330,11 +331,7 @@ Description: Used to style blocks in the editor.
 .block-library-list ul,
 .edit-post-visual-editor ol,
 .editor-block-list__block ol,
-.block-library-list ol {
-	margin: 0 0 1.6em 1.3333em;
-	padding: 0;
-}
-
+.block-library-list ol,
 .block-library-list .editor-rich-text__tinymce {
 	padding: 0;
 }
@@ -365,14 +362,22 @@ Description: Used to style blocks in the editor.
 	margin-bottom: 0;
 }
 
-.rtl .edit-post-visual-editor ul:not(.wp-block-gallery),
-.rtl .editor-block-list__block ul:not(.wp-block-gallery),
-.rtl .block-library-list ul,
-.rtl .edit-post-visual-editor ol,
-.rtl .editor-block-list__block ol,
-.rtl .block-library-list ol {
+.rtl .editor-styles-wrapper ul ul,
+.rtl .editor-styles-wrapper ol ol,
+.rtl .editor-styles-wrapper ul ol,
+.rtl .editor-styles-wrapper ol ul {
 	margin-left: 0;
-	margin-right: 1.3333em;
+	margin-right: 23px;
+}
+
+.wp-block-freeform.block-library-rich-text__tinymce ul,
+.wp-block-freeform.block-library-rich-text__tinymce ol {
+	padding-left: 23px;
+}
+
+.rtl .wp-block-freeform.block-library-rich-text__tinymce ul,
+.rtl .wp-block-freeform.block-library-rich-text__tinymce ol {
+	padding: 0;
 }
 
 /* Quote */
@@ -630,7 +635,7 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 /* Code */
 
-.wp-block-code,
+.editor-styles-wrapper .wp-block-code,
 .wp-block-freeform.block-library-rich-text__tinymce code {
 	background: transparent;
 	border: 0;
@@ -699,6 +704,12 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .rtl .editor-block-list__block .wp-block-table th {
 	text-align: right;
+}
+
+/* Verse */
+
+.editor-styles-wrapper .wp-block-verse {
+	font-family: inherit;
 }
 
 /*--------------------------------------------------------------
@@ -868,4 +879,104 @@ p.has-drop-cap:not(:focus)::first-letter {
 
 .edit-post-visual-editor .wp-block-latest-posts.is-grid li {
 	margin-bottom: 16px;
+}
+
+/*--------------------------------------------------------------
+7.0 Blocks - Colors
+--------------------------------------------------------------*/
+
+:root .editor-styles-wrapper .has-dark-gray-color {
+	color: #111;
+}
+
+:root .editor-styles-wrapper .has-dark-gray-background-color {
+	background-color: #111;
+}
+
+:root .editor-styles-wrapper .has-light-gray-color {
+	color: #f1f1f1;
+}
+
+:root .editor-styles-wrapper .has-light-gray-background-color {
+	background-color: #f1f1f1;
+}
+
+:root .editor-styles-wrapper .has-white-color {
+	color: #fff;
+}
+
+:root .editor-styles-wrapper .has-white-background-color {
+	background-color: #fff;
+}
+
+:root .editor-styles-wrapper .has-yellow-color {
+	color: #f4ca16;
+}
+
+:root .editor-styles-wrapper .has-yellow-background-color {
+	background-color: #f4ca16;
+}
+
+:root .editor-styles-wrapper .has-dark-brown-color {
+	color: #352712;
+}
+
+:root .editor-styles-wrapper .has-dark-brown-background-color {
+	background-color: #352712;
+}
+
+:root .editor-styles-wrapper .has-medium-pink-color {
+	color: #e53b51;
+}
+
+:root .editor-styles-wrapper .has-medium-pink-background-color {
+	background-color: #e53b51;
+}
+
+:root .editor-styles-wrapper .has-light-pink-color {
+	color: #ffe5d1;
+}
+
+:root .editor-styles-wrapper .has-light-pink-background-color {
+	background-color: #ffe5d1;
+}
+
+:root .editor-styles-wrapper .has-dark-purple-color {
+	color: #2e2256;
+}
+
+:root .editor-styles-wrapper .has-dark-purple-background-color {
+	background-color: #2e2256;
+}
+
+:root .editor-styles-wrapper .has-purple-color {
+	color: #674970;
+}
+
+:root .editor-styles-wrapper .has-purple-background-color {
+	background-color: #674970;
+}
+
+:root .editor-styles-wrapper .has-blue-gray-color {
+	color: #22313f;
+}
+
+:root .editor-styles-wrapper .has-blue-gray-background-color {
+	background-color: #22313f;
+}
+
+:root .editor-styles-wrapper .has-bright-blue-color {
+	color: #55c3dc;
+}
+
+:root .editor-styles-wrapper .has-bright-blue-background-color {
+	background-color: #55c3dc;
+}
+
+:root .editor-styles-wrapper .has-light-blue-color {
+	color: #e9f2f9;
+}
+
+:root .editor-styles-wrapper .has-light-blue-background-color {
+	background-color: #e9f2f9;
 }

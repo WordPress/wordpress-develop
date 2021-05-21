@@ -100,7 +100,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	/**
 	 * @ignore
 	 *
-	 * @param array $lines
+	 * @param array  $lines
 	 * @param string $prefix
 	 */
 	public function _lines( $lines, $prefix = ' ' ) {
@@ -150,7 +150,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @ignore
 	 *
 	 * @param array $lines
-	 * @param bool $encode
+	 * @param bool  $encode
 	 * @return string
 	 */
 	public function _added( $lines, $encode = true ) {
@@ -176,7 +176,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 			}
 
 			if ( $this->_show_split_view ) {
-				$r .= '<tr>' . $this->emptyLine() . $this->emptyLine() . $this->addedLine( $line ) . "</tr>\n";
+				$r .= '<tr>' . $this->emptyLine() . $this->addedLine( $line ) . "</tr>\n";
 			} else {
 				$r .= '<tr>' . $this->addedLine( $line ) . "</tr>\n";
 			}
@@ -188,7 +188,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @ignore
 	 *
 	 * @param array $lines
-	 * @param bool $encode
+	 * @param bool  $encode
 	 * @return string
 	 */
 	public function _deleted( $lines, $encode = true ) {
@@ -201,7 +201,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'deleted' );
 			}
 			if ( $this->_show_split_view ) {
-				$r .= '<tr>' . $this->deletedLine( $line ) . $this->emptyLine() . $this->emptyLine() . "</tr>\n";
+				$r .= '<tr>' . $this->deletedLine( $line ) . $this->emptyLine() . "</tr>\n";
 			} else {
 				$r .= '<tr>' . $this->deletedLine( $line ) . "</tr>\n";
 			}
@@ -213,7 +213,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @ignore
 	 *
 	 * @param array $lines
-	 * @param bool $encode
+	 * @param bool  $encode
 	 * @return string
 	 */
 	public function _context( $lines, $encode = true ) {
@@ -226,7 +226,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 				$line = apply_filters( 'process_text_diff_html', $processed_line, $line, 'unchanged' );
 			}
 			if ( $this->_show_split_view ) {
-				$r .= '<tr>' . $this->contextLine( $line ) . $this->emptyLine() . $this->contextLine( $line ) . "</tr>\n";
+				$r .= '<tr>' . $this->contextLine( $line ) . $this->contextLine( $line ) . "</tr>\n";
 			} else {
 				$r .= '<tr>' . $this->contextLine( $line ) . "</tr>\n";
 			}
@@ -274,7 +274,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 				// If they're too different, don't include any <ins> or <del>'s.
 				if ( preg_match_all( '!(<ins>.*?</ins>|<del>.*?</del>)!', $diff, $diff_matches ) ) {
 					// Length of all text between <ins> or <del>.
-					$stripped_matches = strlen( strip_tags( join( ' ', $diff_matches[0] ) ) );
+					$stripped_matches = strlen( strip_tags( implode( ' ', $diff_matches[0] ) ) );
 					// Since we count length of text between <ins> or <del> (instead of picking just one),
 					// we double the length of chars not in those tags.
 					$stripped_diff = strlen( strip_tags( $diff ) ) * 2 - $stripped_matches;
@@ -319,7 +319,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 				$r .= $this->_deleted( array( $orig_line ), false );
 			} else { // A true changed row.
 				if ( $this->_show_split_view ) {
-					$r .= '<tr>' . $this->deletedLine( $orig_line ) . $this->emptyLine() . $this->addedLine( $final_line ) . "</tr>\n";
+					$r .= '<tr>' . $this->deletedLine( $orig_line ) . $this->addedLine( $final_line ) . "</tr>\n";
 				} else {
 					$r .= '<tr>' . $this->deletedLine( $orig_line ) . '</tr><tr>' . $this->addedLine( $final_line ) . "</tr>\n";
 				}
@@ -337,24 +337,24 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param array $orig  Lines of the original version of the text.
 	 * @param array $final Lines of the final version of the text.
 	 * @return array {
-	 *    Array containing results of comparing the original text to the final text.
+	 *     Array containing results of comparing the original text to the final text.
 	 *
-	 *    @type array $orig_matches  Associative array of original matches. Index == row
-	 *                               number of `$orig`, value == corresponding row number
-	 *                               of that same line in `$final` or 'x' if there is no
-	 *                               corresponding row (indicating it is a deleted line).
-	 *    @type array $final_matches Associative array of final matches. Index == row
-	 *                               number of `$final`, value == corresponding row number
-	 *                               of that same line in `$orig` or 'x' if there is no
-	 *                               corresponding row (indicating it is a new line).
-	 *    @type array $orig_rows     Associative array of interleaved rows of `$orig` with
-	 *                               blanks to keep matches aligned with side-by-side diff
-	 *                               of `$final`. A value >= 0 corresponds to index of `$orig`.
-	 *                               Value < 0 indicates a blank row.
-	 *    @type array $final_rows    Associative array of interleaved rows of `$final` with
-	 *                               blanks to keep matches aligned with side-by-side diff
-	 *                               of `$orig`. A value >= 0 corresponds to index of `$final`.
-	 *                               Value < 0 indicates a blank row.
+	 *     @type array $orig_matches  Associative array of original matches. Index == row
+	 *                                number of `$orig`, value == corresponding row number
+	 *                                of that same line in `$final` or 'x' if there is no
+	 *                                corresponding row (indicating it is a deleted line).
+	 *     @type array $final_matches Associative array of final matches. Index == row
+	 *                                number of `$final`, value == corresponding row number
+	 *                                of that same line in `$orig` or 'x' if there is no
+	 *                                corresponding row (indicating it is a new line).
+	 *     @type array $orig_rows     Associative array of interleaved rows of `$orig` with
+	 *                                blanks to keep matches aligned with side-by-side diff
+	 *                                of `$final`. A value >= 0 corresponds to index of `$orig`.
+	 *                                Value < 0 indicates a blank row.
+	 *     @type array $final_rows    Associative array of interleaved rows of `$final` with
+	 *                                blanks to keep matches aligned with side-by-side diff
+	 *                                of `$orig`. A value >= 0 corresponds to index of `$final`.
+	 *                                Value < 0 indicates a blank row.
 	 * }
 	 */
 	public function interleave_changed_lines( $orig, $final ) {
@@ -502,7 +502,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return mixed Property.
 	 */
 	public function __get( $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name;
 		}
 	}
@@ -517,7 +517,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return mixed Newly-set property.
 	 */
 	public function __set( $name, $value ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name = $value;
 		}
 	}
@@ -531,7 +531,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @return bool Whether the property is set.
 	 */
 	public function __isset( $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return isset( $this->$name );
 		}
 	}
@@ -544,7 +544,7 @@ class WP_Text_Diff_Renderer_Table extends Text_Diff_Renderer {
 	 * @param string $name Property to unset.
 	 */
 	public function __unset( $name ) {
-		if ( in_array( $name, $this->compat_fields ) ) {
+		if ( in_array( $name, $this->compat_fields, true ) ) {
 			unset( $this->$name );
 		}
 	}

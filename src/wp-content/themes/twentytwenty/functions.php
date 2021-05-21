@@ -105,6 +105,7 @@ function twentytwenty_theme_support() {
 			'caption',
 			'script',
 			'style',
+			'navigation-widgets',
 		)
 	);
 
@@ -176,6 +177,9 @@ require get_template_directory() . '/classes/class-twentytwenty-non-latin-langua
 
 // Custom CSS.
 require get_template_directory() . '/inc/custom-css.php';
+
+// Block Patterns.
+require get_template_directory() . '/inc/block-patterns.php';
 
 /**
  * Register and Enqueue Styles.
@@ -271,8 +275,7 @@ add_action( 'init', 'twentytwenty_menus' );
  * Get the information about the logo.
  *
  * @param string $html The HTML output from get_custom_logo (core function).
- *
- * @return string $html
+ * @return string
  */
 function twentytwenty_get_custom_logo( $html ) {
 
@@ -391,10 +394,8 @@ add_action( 'widgets_init', 'twentytwenty_sidebar_registration' );
  */
 function twentytwenty_block_editor_styles() {
 
-	$css_dependencies = array();
-
 	// Enqueue the editor styles.
-	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), $css_dependencies, wp_get_theme()->get( 'Version' ), 'all' );
+	wp_enqueue_style( 'twentytwenty-block-editor-styles', get_theme_file_uri( '/assets/css/editor-style-block.css' ), array(), wp_get_theme()->get( 'Version' ), 'all' );
 	wp_style_add_data( 'twentytwenty-block-editor-styles', 'rtl', 'replace' );
 
 	// Add inline style from the Customizer.
@@ -429,8 +430,7 @@ add_action( 'init', 'twentytwenty_classic_editor_styles' );
  * Adds styles to the head of the TinyMCE iframe. Kudos to @Otto42 for the original solution.
  *
  * @param array $mce_init TinyMCE styles.
- *
- * @return array $mce_init TinyMCE styles.
+ * @return array TinyMCE styles.
  */
 function twentytwenty_add_classic_editor_customizer_styles( $mce_init ) {
 
@@ -453,8 +453,7 @@ add_filter( 'tiny_mce_before_init', 'twentytwenty_add_classic_editor_customizer_
  * Adds styles to the head of the TinyMCE iframe. Kudos to @Otto42 for the original solution.
  *
  * @param array $mce_init TinyMCE styles.
- *
- * @return array $mce_init TinyMCE styles.
+ * @return array TinyMCE styles.
  */
 function twentytwenty_add_classic_editor_non_latin_styles( $mce_init ) {
 
@@ -491,12 +490,12 @@ function twentytwenty_block_editor_settings() {
 			'color' => twentytwenty_get_color_for_area( 'content', 'accent' ),
 		),
 		array(
-			'name'  => __( 'Primary', 'twentytwenty' ),
+			'name'  => _x( 'Primary', 'color', 'twentytwenty' ),
 			'slug'  => 'primary',
 			'color' => twentytwenty_get_color_for_area( 'content', 'text' ),
 		),
 		array(
-			'name'  => __( 'Secondary', 'twentytwenty' ),
+			'name'  => _x( 'Secondary', 'color', 'twentytwenty' ),
 			'slug'  => 'secondary',
 			'color' => twentytwenty_get_color_for_area( 'content', 'secondary' ),
 		),
@@ -555,6 +554,8 @@ function twentytwenty_block_editor_settings() {
 		)
 	);
 
+	add_theme_support( 'editor-styles' );
+
 	// If we have a dark background color then add support for dark editor style.
 	// We can determine if the background color is dark by checking if the text-color is white.
 	if ( '#ffffff' === strtolower( twentytwenty_get_color_for_area( 'content', 'text' ) ) ) {
@@ -569,8 +570,7 @@ add_action( 'after_setup_theme', 'twentytwenty_block_editor_settings' );
  * Overwrite default more tag with styling and screen reader markup.
  *
  * @param string $html The default output HTML for the more tag.
- *
- * @return string $html
+ * @return string
  */
 function twentytwenty_read_more_tag( $html ) {
 	return preg_replace( '/<a(.*)>(.*)<\/a>/iU', sprintf( '<div class="read-more-button-wrap"><a$1><span class="faux-button">$2</span> <span class="screen-reader-text">"%1$s"</span></a></div>', get_the_title( get_the_ID() ) ), $html );
@@ -701,7 +701,7 @@ function twentytwenty_get_elements_array() {
 			'accent'     => array(
 				'color'            => array( '.color-accent', '.color-accent-hover:hover', '.color-accent-hover:focus', ':root .has-accent-color', '.has-drop-cap:not(:focus):first-letter', '.wp-block-button.is-style-outline', 'a' ),
 				'border-color'     => array( 'blockquote', '.border-color-accent', '.border-color-accent-hover:hover', '.border-color-accent-hover:focus' ),
-				'background-color' => array( 'button:not(.toggle)', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file .wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.bg-accent', '.bg-accent-hover:hover', '.bg-accent-hover:focus', ':root .has-accent-background-color', '.comment-reply-link' ),
+				'background-color' => array( 'button', '.button', '.faux-button', '.wp-block-button__link', '.wp-block-file .wp-block-file__button', 'input[type="button"]', 'input[type="reset"]', 'input[type="submit"]', '.bg-accent', '.bg-accent-hover:hover', '.bg-accent-hover:focus', ':root .has-accent-background-color', '.comment-reply-link' ),
 				'fill'             => array( '.fill-children-accent', '.fill-children-accent *' ),
 			),
 			'background' => array(

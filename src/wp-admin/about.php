@@ -9,6 +9,9 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
+wp_enqueue_script( 'wp-components' );
+wp_enqueue_style( 'wp-components' );
+
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -19,19 +22,19 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<div class="wrap about__container">
 
 		<div class="about__header">
-			<div class="about__header-title">
-				<h1>
-					<span><?php echo $display_version; ?></span>
-					<?php _e( 'WordPress' ); ?>
-				</h1>
+			<div class="about__header-image">
+				<img alt="<?php _e( 'Code is Poetry' ); ?>" src="<?php echo admin_url( 'images/about-badge.svg' ); ?>" />
 			</div>
 
-			<div class="about__header-badge"></div>
+			<div class="about__header-title">
+				<p>
+					<?php _e( 'WordPress' ); ?>
+					<?php echo $display_version; ?>
+				</p>
+			</div>
 
 			<div class="about__header-text">
-				<p>
-					<?php _e( 'Building more with blocks, faster and easier.' ); ?>
-				</p>
+				<?php _e( 'Jazz up your stories in an editor that’s cleaner, crisper, and does more to get out of your way.' ); ?>
 			</div>
 
 			<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -42,148 +45,183 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</nav>
 		</div>
 
-		<div class="about__section is-feature">
-			<?php _e( 'Say hello to more and better.' ); ?>
-			<br />
-			<?php _e( 'More ways to make your pages come alive. With easier ways to get it all done and looking better than ever&mdash;and boosts in speed you can feel.' ); ?>
+		<div class="about__section is-feature has-subtle-background-color">
+			<div class="column">
+				<h1 class="is-smaller-heading">
+					<?php
+					printf(
+						/* translators: %s: The current WordPress version number. */
+						__( 'Step into WordPress %s.' ),
+						$display_version
+					);
+					?>
+				</h1>
+				<p>
+					<?php
+					_e( 'With this new version, WordPress brings you fresh colors. The editor helps you work in a few places you couldn’t before—at least, not without getting into code or hiring a pro. The controls you use most, like changing font sizes, are in more places—right where you need them. And layout changes that should be simple, like full-height images, are even simpler to make.' );
+					?>
+				</p>
+			</div>
 		</div>
 
-		<div class="about__section is-feature">
-			<p>
-				<?php
-				printf(
-					/* translators: %s: The current WordPress version number. */
-					__( 'Welcome to WordPress %s.' ),
-					$display_version
-				);
-				?>
-			</p>
-			<p>
-				<?php _e( 'Every major release adds more to the block editor.' ); ?>
-			</p>
-			<p>
-				<?php _e( 'More ways to make posts and pages come alive with your best images.' ); ?>
-			</p>
-			<p>
-				<?php _e( 'More ways to bring your visitors in, and keep them engaged, with the richness of embedded media from the web&#8217;s top services.' ); ?>
-			</p>
-			<p>
-				<?php _e( 'More ways to make your vision real, and put blocks in the perfect place&mdash;even if a particular kind of block is new to you. More efficient processes.' ); ?>
-			</p>
-			<p>
-				<?php _e( 'And more speed everywhere, so as you build sections or galleries, or just type in a line of prose, you can feel how much faster your work flows.' ); ?>
-			</p>
+		<hr class="is-large" />
+
+		<div class="about__section has-2-columns">
+			<h2 class="is-section-header is-smaller-heading">
+				<?php _e( 'Now the editor is easier to use' ); ?>
+			</h2>
+			<div class="column">
+				<p>
+					<?php
+					_e( '<strong>Font-size adjustment in more places:</strong> now, font-size controls are right where you need them in the List and Code blocks. No more trekking to another screen to make that single change!' );
+					?>
+				</p>
+				<p>
+					<?php
+					_e( '<strong>Reusable blocks:</strong> several enhancements make reusable blocks more stable and easier to use. And now they save automatically with the post when you click the Update button.' );
+					?>
+				</p>
+				<p>
+					<?php
+					_e( '<strong>Inserter drag-and-drop:</strong> drag blocks and block patterns from the inserter right into your post.' );
+					?>
+				</p>
+			</div>
+			<div class="column about__image">
+				<video controls>
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.mp4" type="video/mp4" />
+					<source src="https://s.w.org/images/core/5.7/about-57-drag-drop-image.webm" type="video/webm" />
+				</video>
+			</div>
+		</div>
+
+		<div class="about__section has-2-columns">
+			<h2 class="is-section-header is-smaller-heading">
+				<?php _e( 'You can do more without writing custom code' ); ?>
+			</h2>
+			<div class="column">
+				<p>
+					<?php
+					_e( '<strong>Full-height alignment:</strong> have you ever wanted to make a block, like the Cover block, fill the whole window? Now you can.' );
+					?>
+				</p>
+				<p>
+					<?php
+					_e( '<strong>Buttons block:</strong> now you can choose a vertical or a horizontal layout. And you can set the width of a button to a preset percentage.' );
+					?>
+				</p>
+				<p>
+					<?php
+					_e( '<strong>Social Icons block:</strong> now you can change the size of the icons.' );
+					?>
+				</p>
+			</div>
+			<div class="column about__image">
+				<img src="https://s.w.org/images/core/5.7/about-57-cover.jpg" alt="" />
+			</div>
 		</div>
 
 		<hr />
 
-		<div class="about__section has-2-columns">
-			<div class="column is-edge-to-edge has-accent-background-color">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='660' height='818' viewbox='0 0 660 818' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='99' y='178' width='132' height='132' fill='%23F4EFE1'/%3E%3Crect x='231' y='310' width='99' height='99' fill='%2344141E'/%3E%3Crect x='330' y='409' width='132' height='132' fill='%23F4EFE1'/%3E%3Crect x='462' y='541' width='99' height='99' fill='%2344141E'/%3E%3C/svg%3E" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Two new blocks. And better blocks overall.' ); ?></h2>
-				<ul>
-					<li><?php _e( 'Two brand-new blocks: Social Icons and Buttons make adding interactive features fast and easy.' ); ?></li>
-					<li><?php _e( 'New ways with color: Gradients in the Buttons and Cover block, toolbar access to color options in Rich Text blocks, and for the first time, color options in the Group and Columns blocks.' ); ?></li>
-					<li><?php _e( 'Guess a whole lot less! Version 5.4 streamlines the whole process for placing and replacing multimedia in every block. Now it works the same way in almost every block!' ); ?></li>
-					<li><?php _e( 'And if you&#8217;ve ever thought your image in the Media+Text block should link to something else&mdash;perhaps a picture of a brochure should download that brochure as a document? Well, now it can.' ); ?></li>
-				</ul>
+		<div class="about__section has-subtle-background-color">
+			<div class="column">
+				<h2 class="is-smaller-heading"><?php _e( 'A Simpler Default Color Palette' ); ?></h2>
 			</div>
 		</div>
 
-		<div class="about__section has-2-columns">
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Cleaner UI, clearer navigation—and easier tabbing!' ); ?></h2>
-				<ul>
-					<li><?php _e( 'Clearer block navigation with block breadcrumbs. And easier selection once you get there.' ); ?></li>
-					<li><?php _e( 'For when you need to navigate with the keyboard, better tabbing and focus. Plus, you can tab over to the sidebar of nearly any block.' ); ?></li>
-					<li><?php _e( 'Speed! 14% faster loading of the editor, 51% faster time-to-type!' ); ?></li>
-					<li><?php _e( 'Tips are gone. In their place, a Welcome Guide window you can bring up when you need it&mdash;and only when you need it&mdash;again and again.' ); ?></li>
-					<li><?php _e( 'Know at a glance whether you&#8217;re in a block&#8217;s Edit or Navigation mode. Or, if you have restricted vision, your screen reader will tell you which mode you&#8217;re in.' ); ?></li>
-				</ul>
-				<p><?php _e( 'Of course, if you want to work with the very latest tools and features, install the <a href="https://wordpress.org/plugins/gutenberg/">Gutenberg plugin</a>. You&#8217;ll get to be the first to use new and exciting features in the block editor, before anyone else has seen them!' ); ?></p>
-			</div>
-			<div class="column is-edge-to-edge has-accent-background-color">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='500' height='500' viewbox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='75' y='200' width='150' height='75' fill='%2344141E'/%3E%3Crect x='175' y='75' width='50' height='100' fill='%2385273B'/%3E%3Crect x='75' y='75' width='75' height='100' fill='%23F4EFE1'/%3E%3Crect x='250' y='200' width='175' height='75' fill='%2344141E'/%3E%3Crect x='350' y='75' width='75' height='100' fill='%2385273B'/%3E%3Crect x='250' y='75' width='75' height='100' fill='%23F4EFE1'/%3E%3Crect x='75' y='375' width='150' height='50' fill='%2344141E'/%3E%3Crect x='175' y='300' width='50' height='50' fill='%2385273B'/%3E%3Crect x='75' y='300' width='75' height='50' fill='%23F4EFE1'/%3E%3Crect x='250' y='372.5' width='175' height='52.5' fill='%2344141E'/%3E%3Crect x='350' y='300' width='75' height='50' fill='%2385273B'/%3E%3Crect x='250' y='300' width='75' height='50' fill='%23F4EFE1'/%3E%3C/svg%3E%0A" alt="">
+		<div class="about__section has-subtle-background-color">
+			<figure class="column about__image" id="about-image-comparison">
+				<div class="about__image-comparison no-js">
+					<img src="https://s.w.org/images/core/5.7/about-57-color-old.png" alt="<?php esc_attr_e( 'Dashboard with old color scheme.' ); ?>" />
+					<div class="about__image-comparison-resize">
+						<img src="https://s.w.org/images/core/5.7/about-57-color-new.png" alt="<?php esc_attr_e( 'Dashboard with new color scheme.' ); ?>" />
+					</div>
 				</div>
-			</div>
+				<figcaption><?php _e( 'Above, the Dashboard before and after the color update in 5.7.' ); ?></figcaption>
+			</figure>
 		</div>
-
-		<div class="about__section has-2-columns">
-			<div class="column is-edge-to-edge has-accent-background-color">
-				<div class="about__image aligncenter">
-					<img src="data:image/svg+xml;charset=utf8,%3Csvg width='660' height='818' viewbox='0 0 660 818' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='99' y='178' width='132' height='132' fill='%23F4EFE1'/%3E%3Crect x='231' y='310' width='99' height='99' fill='%2344141E'/%3E%3Crect x='330' y='409' width='132' height='132' fill='%23F4EFE1'/%3E%3Crect x='462' y='541' width='99' height='99' fill='%2344141E'/%3E%3C/svg%3E" alt="" />
-				</div>
-			</div>
-			<div class="column is-vertically-aligned-center">
-				<h2><?php _e( 'Your fundamental right: privacy' ); ?></h2>
-				<p><?php _e( '5.4 helps with a variety of privacy issues around the world. So when users and stakeholders ask about regulatory compliance, or how your team handles user data, the answers should be a lot easier to get right.' ); ?></p>
-				<p><?php _e( 'Take a look:' ); ?></p>
-				<ul>
-					<li><?php _e( 'Now personal data exports include users session information and users location data from the community events widget. Plus, a table of contents!' ); ?></li>
-					<li><?php _e( 'See progress as you process export and erasure requests through the privacy tools.' ); ?></li>
-					<li><?php _e( 'Plus, little enhancements throughout give the privacy tools a little cleaner look. Your eyes will thank you!' ); ?></li>
-				</ul>
-			</div>
-		</div>
-
-		<hr />
 
 		<div class="about__section has-2-columns has-subtle-background-color">
-			<h2 class="is-section-header"><?php _e( 'Just for developers' ); ?></h2>
-
 			<div class="column">
-				<h3><?php _e( 'Add custom fields to menu items—natively' ); ?></h3>
-				<p>
-					<?php _e( 'Two new actions let you add custom fields to menu items&mdash;without a plugin and without writing custom walkers.' ); ?>
-				</p>
 				<p>
 					<?php
 					printf(
-						/* translators: %s: 'wp_nav_menu_item_custom_fields' action name. */
-						__( 'On the Menus admin screen, %s fires just before the move buttons of a nav menu item in the menu editor.' ),
-						'<code>wp_nav_menu_item_custom_fields</code>'
+						/* translators: %s: WCAG information link. */
+						__( 'This new streamlined color palette collapses all the colors that used to be in the WordPress source code down to seven core colors and a range of 56 shades that meet the <a href="%s">WCAG 2.0 AA recommended contrast ratio</a> against white or black.' ),
+						'https://www.w3.org/WAI/WCAG2AAA-Conformance'
 					);
 					?>
 				</p>
 				<p>
 					<?php
-					printf(
-						/* translators: %s: 'wp_nav_menu_item_custom_fields_customize_template' action name. */
-						__( 'In the Customizer, %s fires at the end of the menu-items form-fields template.' ),
-						'<code>wp_nav_menu_item_custom_fields_customize_template</code>'
-					);
+					_e( 'The colors are perceptually uniform from light to dark in each range, which means they start at white and get darker by the same amount with each step.' );
 					?>
-				</p>
-				<p>
-					<?php _e( 'Check your code and see where these new actions can replace your custom code, and if you&#8217;re concerned about duplication, add a check for the WordPress version.' ); ?>
 				</p>
 			</div>
 			<div class="column">
-				<h3><?php _e( 'Blocks! Simpler styling, new APIs and embeds' ); ?></h3>
-				<ul>
-					<li><?php _e( '<strong>Radically</strong> simpler block styling. Negative margins and default padding are gone! Now you can style blocks the way you need them. And, a refactor got rid of four redundant wrapper divs.' ); ?></li>
-					<li><?php _e( 'If you build plugins, now you can register collections of your blocks by namespace across categories—a great way to get more brand visibility.' ); ?></li>
-					<li><?php _e( 'Let users do more with two new APIs: block variations and gradients.' ); ?></li>
-					<li><?php _e( 'In embeds, now the block editor supports TikTok—and CollegeHumor is gone.' ); ?></li>
-				</ul>
+				<p>
+					<?php
+					_e( 'Half the range has a 4.5 or higher contrast ratio against black, and the other half maintains the same contrast against white.' );
+					?>
+				</p>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Color palette dev note link. */
+						__( 'Find the new palette in the default WordPress Dashboard color scheme, and use it when you’re building themes, plugins, or any other components. For all the details, <a href="%s">check out the Color Palette dev note</a>.' ),
+						'https://make.wordpress.org/core/2021/02/23/standardization-of-wp-admin-colors-in-wordpress-5-7'
+					);
+					?>
+				</p>
 			</div>
 		</div>
 
-		<div class="about__section is-feature">
-			<p>
-				<?php
-				printf(
-					/* translators: %s: WordPress 5.4 Field Guide link. */
-					__( 'There&#8217;s lots more for developers to love in WordPress 5.4. To discover more and learn how to make these changes shine on your on your sites, themes, plugins and more, check the <a href="%s">WordPress 5.4 Field Guide</a>.' ),
-					'https://make.wordpress.org/core/?p=80034'
-				);
-				?>
-			</p>
+		<div class="about__section has-subtle-background-color">
+			<div class="column about__image">
+				<picture>
+					<source media="(max-width: 600px)" srcset="<?php echo admin_url( 'images/about-color-palette-vert.svg' ); ?>" />
+					<img alt="" src="<?php echo admin_url( 'images/about-color-palette.svg' ); ?>" />
+				</picture>
+			</div>
+		</div>
+
+		<hr />
+
+		<div class="about__section has-2-columns">
+			<div class="column">
+				<h3><?php _e( 'From HTTP to HTTPS in a single click' ); ?></h3>
+				<p><?php _e( 'Starting now, switching a site from HTTP to HTTPS is a one-click move. WordPress will automatically update database URLs when you make the switch. No more hunting and guessing!' ); ?></p>
+				<h3><?php _e( 'New Robots API' ); ?></h3>
+				<p>
+					<?php
+					_e( 'The new Robots API lets you include the filter directives in the robots meta tag, and the API includes the <code>max-image-preview: large</code> directive by default. That means search engines can show bigger image previews, which can boost your traffic (unless the site is marked <em>not-public</em>).' );
+					?>
+				</p>
+			</div>
+			<div class="column">
+				<h3><?php _e( 'Ongoing cleanup after update to jQuery 3.5.1' ); ?></h3>
+				<p><?php _e( 'For years jQuery helped make things move on the screen in ways the basic tools couldn’t—but that keeps changing, and so does jQuery.' ); ?></p>
+				<p><?php _e( 'In 5.7, jQuery gets more focused and less intrusive, with fewer messages in the console.' ); ?></p>
+				<h3><?php _e( 'Lazy-load your iframes' ); ?></h3>
+				<p><?php _e( 'Now it’s simple to let iframes lazy-load. By default, WordPress will add a <code>loading="lazy"</code> attribute to iframe tags when both width and height are specified.' ); ?></p>
+			</div>
+		</div>
+
+		<hr class="is-small" />
+
+		<div class="about__section">
+			<div class="column">
+				<h3><?php _e( 'Check the Field Guide for more!' ); ?></h3>
+				<p>
+					<?php
+					printf(
+						/* translators: %s: WordPress 5.7 Field Guide link. */
+						__( 'Check out the latest version of the WordPress Field Guide. It highlights developer notes for each change you may want to be aware of. <a href="%s">WordPress 5.7 Field Guide.</a>' ),
+						'https://make.wordpress.org/core/2021/02/23/wordpress-5-7-field-guide'
+					);
+					?>
+				</p>
+			</div>
 		</div>
 
 		<hr />
@@ -191,15 +229,93 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<div class="return-to-dashboard">
 			<?php if ( current_user_can( 'update_core' ) && isset( $_GET['updated'] ) ) : ?>
 				<a href="<?php echo esc_url( self_admin_url( 'update-core.php' ) ); ?>">
-					<?php is_multisite() ? _e( 'Return to Updates' ) : _e( 'Return to Dashboard &rarr; Updates' ); ?>
+					<?php is_multisite() ? _e( 'Go to Updates' ) : _e( 'Go to Dashboard &rarr; Updates' ); ?>
 				</a> |
 			<?php endif; ?>
 			<a href="<?php echo esc_url( self_admin_url() ); ?>"><?php is_blog_admin() ? _e( 'Go to Dashboard &rarr; Home' ) : _e( 'Go to Dashboard' ); ?></a>
 		</div>
 	</div>
-<?php
 
-require_once ABSPATH . 'wp-admin/admin-footer.php';
+<?php require_once ABSPATH . 'wp-admin/admin-footer.php'; ?>
+
+<script>
+	window.addEventListener( 'load', function() {
+		var createElement = wp.element.createElement;
+		var Fragment = wp.element.Fragment;
+		var render = wp.element.render;
+		var useState = wp.element.useState;
+		var ResizableBox = wp.components.ResizableBox;
+
+		var container = document.getElementById( 'about-image-comparison' );
+		var images = container ? container.querySelectorAll( 'img' ) : [];
+		if ( ! images.length ) {
+			// Something's wrong, return early.
+			return;
+		}
+
+		var beforeImage = images.item( 0 );
+		var afterImage = images.item( 1 );
+		var caption = container.querySelector( 'figcaption' ).innerText;
+
+		function ImageComparison( props ) {
+			var stateHelper = useState( props.width );
+			var width = stateHelper[0];
+			var setWidth = stateHelper[1];
+
+			return createElement(
+				'div',
+				{
+					className: 'about__image-comparison'
+				},
+				createElement( 'img', { src: beforeImage.src, alt: beforeImage.alt } ),
+				createElement(
+					ResizableBox,
+					{
+						size: {
+							width: width,
+							height: props.height
+						},
+						onResizeStop: function( event, direction, elt, delta ) {
+							setWidth( parseInt( width + delta.width, 10 ) );
+						},
+						showHandle: true,
+						enable: {
+							top: false,
+							right: ! wp.i18n.isRTL(),
+							bottom: false,
+							left: wp.i18n.isRTL(),
+						},
+						className: 'about__image-comparison-resize'
+					},
+					createElement(
+						'div',
+						{
+							style: { width: '100%', height: '100%', overflow: 'hidden' }
+						},
+						createElement('img', { src: afterImage.src, alt: afterImage.alt } )
+					)
+				)
+			);
+		}
+
+		render(
+			createElement(
+				Fragment,
+				{},
+				createElement(
+					ImageComparison,
+					{
+						width: beforeImage.clientWidth / 2,
+						height: beforeImage.clientHeight
+					}
+				),
+				createElement( 'figcaption', {}, caption )
+			),
+			container
+		);
+	} );
+</script>
+<?php
 
 // These are strings we may use to describe maintenance/security releases, where we aim for no new strings.
 return;

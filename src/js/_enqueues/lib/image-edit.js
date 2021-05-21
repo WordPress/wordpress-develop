@@ -5,9 +5,10 @@
  * @output wp-admin/js/image-edit.js
  */
 
- /* global imageEditL10n, ajaxurl, confirm */
+ /* global ajaxurl, confirm */
 
 (function($) {
+	var __ = wp.i18n.__;
 
 	/**
 	 * Contains all the methods to initialise and control the image editor.
@@ -72,7 +73,7 @@
 	 * @memberof imageEdit
 	 *
 	 * @param {jQuery}         el The element that should be modified.
-	 * @param {bool|number}    s  The state for the element. If set to true
+	 * @param {boolean|number} s  The state for the element. If set to true
 	 *                            the element is disabled,
 	 *                            otherwise the element is enabled.
 	 *                            The function is sometimes called with a 0 or 1
@@ -101,7 +102,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 *
 	 * @return {void}
 	 */
@@ -121,12 +122,12 @@
 		t.postid = postid;
 		$('#imgedit-response-' + postid).empty();
 
-		$('input[type="text"]', '#imgedit-panel-' + postid).keypress(function(e) {
+		$('#imgedit-panel-' + postid).on( 'keypress', 'input[type="text"]', function(e) {
 			var k = e.keyCode;
 
 			// Key codes 37 through 40 are the arrow keys.
 			if ( 36 < k && k < 41 ) {
-				$(this).blur();
+				$(this).trigger( 'blur' );
 			}
 
 			// The key code 13 is the Enter key.
@@ -136,27 +137,35 @@
 				return false;
 			}
 		});
+
+		$( document ).on( 'image-editor-ui-ready', this.focusManager );
 	},
 
 	/**
 	 * Toggles the wait/load icon in the editor.
 	 *
 	 * @since 2.9.0
+	 * @since 5.5.0 Added the triggerUIReady parameter.
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
-	 * @param {number} toggle Is 0 or 1, fades the icon in then 1 and out when 0.
+	 * @param {number}  postid         The post ID.
+	 * @param {number}  toggle         Is 0 or 1, fades the icon in when 1 and out when 0.
+	 * @param {boolean} triggerUIReady Whether to trigger a custom event when the UI is ready. Default false.
 	 *
 	 * @return {void}
 	 */
-	toggleEditor : function(postid, toggle) {
+	toggleEditor: function( postid, toggle, triggerUIReady ) {
 		var wait = $('#imgedit-wait-' + postid);
 
 		if ( toggle ) {
 			wait.fadeIn( 'fast' );
 		} else {
-			wait.fadeOut('fast');
+			wait.fadeOut( 'fast', function() {
+				if ( triggerUIReady ) {
+					$( document ).trigger( 'image-editor-ui-ready' );
+				}
+			} );
 		}
 	},
 
@@ -190,7 +199,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 *
 	 * @return {string} The value from the imagedit-save-target input field when available,
 	 *                  or 'full' when not available.
@@ -208,7 +217,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number}         postid The current post id.
+	 * @param {number}         postid The current post ID.
 	 * @param {number}         x      Is 0 when it applies the y-axis
 	 *                                and 1 when applicable for the x-axis.
 	 * @param {jQuery}         el     Element.
@@ -245,7 +254,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 *
 	 * @return {string} The aspect ratio.
 	 */
@@ -273,7 +282,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid  The post id.
+	 * @param {number} postid  The post ID.
 	 * @param {number} setSize 0 or 1, when 1 the image resets to its original size.
 	 *
 	 * @return {string} JSON string containing the history or an empty string if no history exists.
@@ -293,7 +302,7 @@
 				}
 			}
 
-			// Reset size to it's original state.
+			// Reset size to its original state.
 			if ( setSize ) {
 				if ( !history.length ) {
 					this.hold.w = this.hold.ow;
@@ -339,7 +348,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number}   postid   The post id.
+	 * @param {number}   postid   The post ID.
 	 * @param {string}   nonce    The nonce to verify the request.
 	 * @param {function} callback Function to execute when the image is loaded.
 	 *
@@ -375,7 +384,7 @@
 						 */
 						t.setDisabled( $( '#image-undo-' + postid) , true );
 						// Move focus to the undo button to avoid a focus loss.
-						$( '#image-undo-' + postid ).focus();
+						$( '#image-undo-' + postid ).trigger( 'focus' );
 					}
 				}
 
@@ -393,17 +402,23 @@
 				}
 
 				if ( $('#imgedit-history-' + postid).val() && $('#imgedit-undone-' + postid).val() === '0' ) {
-					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).removeAttr('disabled');
+					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', false);
 				} else {
 					$('input.imgedit-submit-btn', '#imgedit-panel-' + postid).prop('disabled', true);
 				}
 
 				t.toggleEditor(postid, 0);
 			})
-			.on('error', function() {
-				$('#imgedit-crop-' + postid).empty().append('<div class="error"><p>' + imageEditL10n.error + '</p></div>');
-				t.toggleEditor(postid, 0);
-			})
+			.on( 'error', function() {
+				var errorMessage = __( 'Could not load the preview image. Please reload the page and try again.' );
+
+				$( '#imgedit-crop-' + postid )
+					.empty()
+					.append( '<div class="notice notice-error" tabindex="-1" role="alert"><p>' + errorMessage + '</p></div>' );
+
+				t.toggleEditor( postid, 0, true );
+				wp.a11y.speak( errorMessage, 'assertive' );
+			} )
 			.attr('src', ajaxurl + '?' + $.param(data));
 	},
 	/**
@@ -413,10 +428,10 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param  {number}  postid The post id.
-	 * @param  {string}  nonce  The nonce to verify the request.
-	 * @param  {string}  action The action to perform on the image.
-	 *                          The possible actions are: "scale" and "restore".
+	 * @param {number} postid The post ID.
+	 * @param {string} nonce  The nonce to verify the request.
+	 * @param {string} action The action to perform on the image.
+	 *                        The possible actions are: "scale" and "restore".
 	 *
 	 * @return {boolean|void} Executes a post request that refreshes the page
 	 *                        when the action is performed.
@@ -443,10 +458,10 @@
 			fh = t.intval(h.val());
 
 			if ( fw < 1 ) {
-				w.focus();
+				w.trigger( 'focus' );
 				return false;
 			} else if ( fh < 1 ) {
-				h.focus();
+				h.trigger( 'focus' );
 				return false;
 			}
 
@@ -464,14 +479,24 @@
 		}
 
 		t.toggleEditor(postid, 1);
-		$.post(ajaxurl, data, function(r) {
-			$('#image-editor-' + postid).empty().append(r);
-			t.toggleEditor(postid, 0);
+		$.post( ajaxurl, data, function( response ) {
+			$( '#image-editor-' + postid ).empty().append( response.data.html );
+			t.toggleEditor( postid, 0, true );
 			// Refresh the attachment model so that changes propagate.
 			if ( t._view ) {
 				t._view.refresh();
 			}
-		});
+		} ).done( function( response ) {
+			// Whether the executed action was `scale` or `restore`, the response does have a message.
+			if ( response && response.data.message.msg ) {
+				wp.a11y.speak( response.data.message.msg );
+				return;
+			}
+
+			if ( response && response.data.message.error ) {
+				wp.a11y.speak( response.data.message.error );
+			}
+		} );
 	},
 
 	/**
@@ -481,7 +506,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number}  postid   The post id to get the image from the database.
+	 * @param {number}  postid   The post ID to get the image from the database.
 	 * @param {string}  nonce    The nonce to verify the request.
 	 *
 	 * @return {boolean|void}  If the actions are successfully saved a response message is shown.
@@ -509,27 +534,30 @@
 			'do': 'save'
 		};
 		// Post the image edit data to the backend.
-		$.post(ajaxurl, data, function(r) {
-			// Read the response.
-			var ret = JSON.parse(r);
-
+		$.post( ajaxurl, data, function( response ) {
 			// If a response is returned, close the editor and show an error.
-			if ( ret.error ) {
-				$('#imgedit-response-' + postid).html('<div class="error"><p>' + ret.error + '</p></div>');
+			if ( response.data.error ) {
+				$( '#imgedit-response-' + postid )
+					.html( '<div class="notice notice-error" tabindex="-1" role="alert"><p>' + response.data.error + '</p></div>' );
+
 				imageEdit.close(postid);
+				wp.a11y.speak( response.data.error );
 				return;
 			}
 
-			if ( ret.fw && ret.fh ) {
-				$('#media-dims-' + postid).html( ret.fw + ' &times; ' + ret.fh );
+			if ( response.data.fw && response.data.fh ) {
+				$( '#media-dims-' + postid ).html( response.data.fw + ' &times; ' + response.data.fh );
 			}
 
-			if ( ret.thumbnail ) {
-				$('.thumbnail', '#thumbnail-head-' + postid).attr('src', ''+ret.thumbnail);
+			if ( response.data.thumbnail ) {
+				$( '.thumbnail', '#thumbnail-head-' + postid ).attr( 'src', '' + response.data.thumbnail );
 			}
 
-			if ( ret.msg ) {
-				$('#imgedit-response-' + postid).html('<div class="updated"><p>' + ret.msg + '</p></div>');
+			if ( response.data.msg ) {
+				$( '#imgedit-response-' + postid )
+					.html( '<div class="notice notice-success" tabindex="-1" role="alert"><p>' + response.data.msg + '</p></div>' );
+
+				wp.a11y.speak( response.data.msg );
 			}
 
 			if ( self._view ) {
@@ -547,9 +575,9 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid   The post id for the image.
+	 * @param {number} postid   The post ID for the image.
 	 * @param {string} nonce    The nonce to verify the request.
-	 * @param {object} view     The image editor view to be used for the editing.
+	 * @param {Object} view     The image editor view to be used for the editing.
 	 *
 	 * @return {void|promise} Either returns void if the button was already activated
 	 *                        or returns an instance of the image editor, wrapped in a promise.
@@ -557,8 +585,11 @@
 	open : function( postid, nonce, view ) {
 		this._view = view;
 
-		var dfd, data, elem = $('#image-editor-' + postid), head = $('#media-head-' + postid),
-			btn = $('#imgedit-open-btn-' + postid), spin = btn.siblings('.spinner');
+		var dfd, data,
+			elem = $( '#image-editor-' + postid ),
+			head = $( '#media-head-' + postid ),
+			btn = $( '#imgedit-open-btn-' + postid ),
+			spin = btn.siblings( '.spinner' );
 
 		/*
 		 * Instead of disabling the button, which causes a focus loss and makes screen
@@ -577,23 +608,37 @@
 			'do': 'open'
 		};
 
-		dfd = $.ajax({
+		dfd = $.ajax( {
 			url:  ajaxurl,
 			type: 'post',
 			data: data,
 			beforeSend: function() {
 				btn.addClass( 'button-activated' );
 			}
-		}).done(function( html ) {
-			elem.html( html );
-			head.fadeOut('fast', function(){
-				elem.fadeIn('fast');
+		} ).done( function( response ) {
+			var errorMessage;
+
+			if ( '-1' === response ) {
+				errorMessage = __( 'Could not load the preview image.' );
+				elem.html( '<div class="notice notice-error" tabindex="-1" role="alert"><p>' + errorMessage + '</p></div>' );
+			}
+
+			if ( response.data && response.data.html ) {
+				elem.html( response.data.html );
+			}
+
+			head.fadeOut( 'fast', function() {
+				elem.fadeIn( 'fast', function() {
+					if ( errorMessage ) {
+						$( document ).trigger( 'image-editor-ui-ready' );
+					}
+				} );
 				btn.removeClass( 'button-activated' );
 				spin.removeClass( 'is-active' );
-			});
+			} );
 			// Initialise the Image Editor now that everything is ready.
 			imageEdit.init( postid );
-		});
+		} );
 
 		return dfd;
 	},
@@ -605,7 +650,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 *
 	 * @return {void}
 	 */
@@ -620,9 +665,32 @@
 		this.initCrop(postid, img, parent);
 		this.setCropSelection( postid, { 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0, 'width': img.innerWidth(), 'height': img.innerHeight() } );
 
-		this.toggleEditor(postid, 0);
-		// Editor is ready, move focus to the first focusable element.
-		$( '.imgedit-wrap .imgedit-help-toggle' ).eq( 0 ).focus();
+		this.toggleEditor( postid, 0, true );
+	},
+
+	/**
+	 * Manages keyboard focus in the Image Editor user interface.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return {void}
+	 */
+	focusManager: function() {
+		/*
+		 * Editor is ready. Move focus to one of the admin alert notices displayed
+		 * after a user action or to the first focusable element. Since the DOM
+		 * update is pretty large, the timeout helps browsers update their
+		 * accessibility tree to better support assistive technologies.
+		 */
+		setTimeout( function() {
+			var elementToSetFocusTo = $( '.notice[role="alert"]' );
+
+			if ( ! elementToSetFocusTo.length ) {
+				elementToSetFocusTo = $( '.imgedit-wrap' ).find( ':tabbable:first' );
+			}
+
+			elementToSetFocusTo.trigger( 'focus' );
+		}, 100 );
 	},
 
 	/**
@@ -632,7 +700,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number}      postid The post id.
+	 * @param {number}      postid The post ID.
 	 * @param {HTMLElement} image  The preview image.
 	 * @param {HTMLElement} parent The preview image container.
 	 *
@@ -706,10 +774,10 @@
 			 *
 			 * @ignore
 			 *
-			 * @param {object} img jQuery object representing the image.
-			 * @param {object} c   The selection.
+			 * @param {Object} img jQuery object representing the image.
+			 * @param {Object} c   The selection.
 			 *
-			 * @return {object}
+			 * @return {Object}
 			 */
 			onSelectEnd: function(img, c) {
 				imageEdit.setCropSelection(postid, c);
@@ -720,8 +788,8 @@
 			 *
 			 * @ignore
 			 *
-			 * @param {object} img jQuery object representing the image.
-			 * @param {object} c   The selection.
+			 * @param {Object} img jQuery object representing the image.
+			 * @param {Object} c   The selection.
 			 *
 			 * @return {void}
 			 */
@@ -740,8 +808,8 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
-	 * @param {object} c      The selection.
+	 * @param {number} postid The post ID.
+	 * @param {Object} c      The selection.
 	 *
 	 * @return {boolean}
 	 */
@@ -772,10 +840,10 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number}  postid The post id.
-	 * @param {bool}    warn   Warning message.
+	 * @param {number}  postid The post ID.
+	 * @param {boolean} warn   Warning message.
 	 *
-	 * @return {void|bool} Returns false if there is a warning.
+	 * @return {void|boolean} Returns false if there is a warning.
 	 */
 	close : function(postid, warn) {
 		warn = warn || false;
@@ -799,7 +867,7 @@
 			$('#image-editor-' + postid).fadeOut('fast', function() {
 				$( '#media-head-' + postid ).fadeIn( 'fast', function() {
 					// Move focus back to the Edit Image button. Runs also when saving.
-					$( '#imgedit-open-btn-' + postid ).focus();
+					$( '#imgedit-open-btn-' + postid ).trigger( 'focus' );
 				});
 				$(this).empty();
 			});
@@ -815,7 +883,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 *
 	 * @return {boolean} Returns true if the history is not saved.
 	 */
@@ -840,8 +908,8 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {object} op     The original position.
-	 * @param {number} postid The post id.
+	 * @param {Object} op     The original position.
+	 * @param {number} postid The post ID.
 	 * @param {string} nonce  The nonce.
 	 *
 	 * @return {void}
@@ -875,9 +943,9 @@
 	 * @memberof imageEdit
 	 *
 	 * @param {string} angle  The angle the image is rotated with.
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 * @param {string} nonce  The nonce.
-	 * @param {object} t      The target element.
+	 * @param {Object} t      The target element.
 	 *
 	 * @return {boolean}
 	 */
@@ -897,9 +965,9 @@
 	 * @memberof imageEdit
 	 *
 	 * @param {number} axis   The axle the image is flipped on.
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 * @param {string} nonce  The nonce.
-	 * @param {object} t      The target element.
+	 * @param {Object} t      The target element.
 	 *
 	 * @return {boolean}
 	 */
@@ -918,9 +986,9 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 * @param {string} nonce  The nonce.
-	 * @param {object} t      The target object.
+	 * @param {Object} t      The target object.
 	 *
 	 * @return {void|boolean} Returns false if the crop button is disabled.
 	 */
@@ -939,6 +1007,10 @@
 			sel.fh = h;
 			this.addStep({ 'c': sel }, postid, nonce);
 		}
+
+		// Clear the selection fields after cropping.
+		$('#imgedit-sel-width-' + postid).val('');
+		$('#imgedit-sel-height-' + postid).val('');
 	},
 
 	/**
@@ -948,7 +1020,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid   The post id.
+	 * @param {number} postid   The post ID.
 	 * @param {string} nonce    The nonce.
 	 *
 	 * @return {void|false} Returns false if the undo button is disabled.
@@ -970,7 +1042,7 @@
 			t.setDisabled(button, pop < history.length);
 			// When undo gets disabled, move focus to the redo button to avoid a focus loss.
 			if ( history.length === pop ) {
-				$( '#image-redo-' + postid ).focus();
+				$( '#image-redo-' + postid ).trigger( 'focus' );
 			}
 		});
 	},
@@ -982,7 +1054,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 * @param {string} nonce  The nonce.
 	 *
 	 * @return {void}
@@ -1001,7 +1073,7 @@
 			t.setDisabled(button, pop > 0);
 			// When redo gets disabled, move focus to the undo button to avoid a focus loss.
 			if ( 0 === pop ) {
-				$( '#image-undo-' + postid ).focus();
+				$( '#image-undo-' + postid ).trigger( 'focus' );
 			}
 		});
 	},
@@ -1013,7 +1085,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid The post id.
+	 * @param {number} postid The post ID.
 	 * @param {jQuery} el     The element containing the values.
 	 *
 	 * @return {void|boolean} Returns false when the x or y value is lower than 1,
@@ -1101,7 +1173,7 @@
 	 *
 	 * @memberof imageEdit
 	 *
-	 * @param {number} postid     The post id.
+	 * @param {number} postid     The post ID.
 	 * @param {number} n          The ratio to set.
 	 * @param {jQuery} el         The element containing the values.
 	 *

@@ -28,7 +28,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	protected static $post_id;
 	protected static $user_ids = array();
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$admin_id   = $factory->user->create( array( 'role' => 'administrator' ) );
 		self::$user_ids[] = self::$admin_id;
 		self::$editor_id  = $factory->user->create( array( 'role' => 'editor' ) );
@@ -39,7 +39,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Set up the test fixture
+	 * Sets up the test fixture.
 	 */
 	public function setUp() {
 		parent::setUp();
@@ -48,9 +48,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test autosaving a post
-	 *
-	 * @return void
+	 * Tests autosaving a post.
 	 */
 	public function test_autosave_post() {
 		// The original post_author.
@@ -91,9 +89,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test autosaving a locked post
-	 *
-	 * @return void
+	 * Tests autosaving a locked post.
 	 */
 	public function test_autosave_locked_post() {
 		// Lock the post to another user.
@@ -144,9 +140,7 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 	}
 
 	/**
-	 * Test with an invalid nonce
-	 *
-	 * @return void
+	 * Tests with an invalid nonce.
 	 */
 	public function test_with_invalid_nonce() {
 

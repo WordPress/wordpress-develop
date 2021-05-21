@@ -45,6 +45,11 @@ function twentyseventeen_setup() {
 	add_theme_support( 'title-tag' );
 
 	/*
+	 * Enables custom line height for blocks
+	 */
+	add_theme_support( 'custom-line-height' );
+
+	/*
 	 * Enable support for Post Thumbnails on posts and pages.
 	 *
 	 * @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
@@ -79,6 +84,7 @@ function twentyseventeen_setup() {
 			'caption',
 			'script',
 			'style',
+			'navigation-widgets',
 		)
 	);
 
@@ -267,7 +273,7 @@ function twentyseventeen_content_width() {
 	}
 
 	/**
-	 * Filter Twenty Seventeen content width of the theme.
+	 * Filters Twenty Seventeen content width of the theme.
 	 *
 	 * @since Twenty Seventeen 1.0
 	 *
@@ -311,9 +317,9 @@ function twentyseventeen_fonts_url() {
  *
  * @since Twenty Seventeen 1.0
  *
- * @param array  $urls           URLs to print for resource hints.
- * @param string $relation_type  The relation type the URLs are printed.
- * @return array $urls           URLs to print for resource hints.
+ * @param array  $urls          URLs to print for resource hints.
+ * @param string $relation_type The relation type the URLs are printed.
+ * @return array URLs to print for resource hints.
  */
 function twentyseventeen_resource_hints( $urls, $relation_type ) {
 	if ( wp_style_is( 'twentyseventeen-fonts', 'queue' ) && 'preconnect' === $relation_type ) {
@@ -448,7 +454,7 @@ function twentyseventeen_scripts() {
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
 
 	// Theme stylesheet.
-	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentyseventeen-style', get_stylesheet_uri(), array(), '20201208' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyseventeen-block-style', get_theme_file_uri( '/assets/css/blocks.css' ), array( 'twentyseventeen-style' ), '20190105' );
@@ -509,7 +515,7 @@ add_action( 'wp_enqueue_scripts', 'twentyseventeen_scripts' );
  */
 function twentyseventeen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20190328' );
+	wp_enqueue_style( 'twentyseventeen-block-editor-style', get_theme_file_uri( '/assets/css/editor-blocks.css' ), array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyseventeen-fonts', twentyseventeen_fonts_url(), array(), null );
 }
@@ -544,7 +550,7 @@ function twentyseventeen_content_image_sizes_attr( $sizes, $size ) {
 add_filter( 'wp_calculate_image_sizes', 'twentyseventeen_content_image_sizes_attr', 10, 2 );
 
 /**
- * Filter the `sizes` value in the header image markup.
+ * Filters the `sizes` value in the header image markup.
  *
  * @since Twenty Seventeen 1.0
  *
@@ -589,8 +595,8 @@ add_filter( 'wp_get_attachment_image_attributes', 'twentyseventeen_post_thumbnai
  * @since Twenty Seventeen 1.0
  *
  * @param string $template front-page.php.
- *
- * @return string The template to be used: blank if is_home() is true (defaults to index.php), else $template.
+ * @return string The template to be used: blank if is_home() is true (defaults to index.php),
+ *                otherwise $template.
  */
 function twentyseventeen_front_page_template( $template ) {
 	return is_home() ? '' : $template;
@@ -617,7 +623,7 @@ function twentyseventeen_widget_tag_cloud_args( $args ) {
 add_filter( 'widget_tag_cloud_args', 'twentyseventeen_widget_tag_cloud_args' );
 
 /**
- * Get unique ID.
+ * Gets unique ID.
  *
  * This is a PHP implementation of Underscore's uniqueId method. A static variable
  * contains an integer that is incremented with each call. This number is returned
@@ -625,9 +631,8 @@ add_filter( 'widget_tag_cloud_args', 'twentyseventeen_widget_tag_cloud_args' );
  * but it is unique across the life of the PHP process.
  *
  * @since Twenty Seventeen 2.0
- * @see wp_unique_id() Themes requiring WordPress 5.0.3 and greater should use this instead.
  *
- * @staticvar int $id_counter
+ * @see wp_unique_id() Themes requiring WordPress 5.0.3 and greater should use this instead.
  *
  * @param string $prefix Prefix for the returned ID.
  * @return string Unique ID.
@@ -664,3 +669,8 @@ require get_parent_theme_file_path( '/inc/customizer.php' );
  * SVG icons functions and filters.
  */
 require get_parent_theme_file_path( '/inc/icon-functions.php' );
+
+/**
+ * Block Patterns.
+ */
+require get_template_directory() . '/inc/block-patterns.php';

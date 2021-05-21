@@ -24,37 +24,31 @@ class Tests_Canonical_HTTPS extends WP_Canonical_UnitTestCase {
 	 * @ticket 27954
 	 */
 	public function test_http_request_with_http_home() {
-
 		$redirect = redirect_canonical( $this->http, false );
 
-		$this->assertEquals( $redirect, false );
-
+		$this->assertNull( $redirect );
 	}
 
 	/**
 	 * @ticket 27954
 	 */
 	public function test_https_request_with_http_home() {
-
 		$redirect = redirect_canonical( $this->https, false );
 
-		$this->assertEquals( $redirect, false );
-
+		$this->assertNull( $redirect );
 	}
 
 	/**
 	 * @ticket 27954
 	 */
 	public function test_https_request_with_https_home() {
-
 		add_filter( 'home_url', array( $this, 'set_https' ) );
 
 		$redirect = redirect_canonical( $this->https, false );
 
-		$this->assertEquals( $redirect, false );
+		$this->assertNull( $redirect );
 
 		remove_filter( 'home_url', array( $this, 'set_https' ) );
-
 	}
 
 }

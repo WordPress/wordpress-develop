@@ -17,7 +17,7 @@ if ( ! current_user_can( 'delete_site' ) ) {
 	wp_die( __( 'Sorry, you are not allowed to delete this site.' ) );
 }
 
-if ( isset( $_GET['h'] ) && '' != $_GET['h'] && false != get_option( 'delete_blog_hash' ) ) {
+if ( isset( $_GET['h'] ) && '' !== $_GET['h'] && false !== get_option( 'delete_blog_hash' ) ) {
 	if ( hash_equals( get_option( 'delete_blog_hash' ), $_GET['h'] ) ) {
 		wpmu_delete_blog( get_current_blog_id() );
 		wp_die(
@@ -42,7 +42,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 echo '<div class="wrap">';
 echo '<h1>' . esc_html( $title ) . '</h1>';
 
-if ( isset( $_POST['action'] ) && 'deleteblog' == $_POST['action'] && isset( $_POST['confirmdelete'] ) && '1' == $_POST['confirmdelete'] ) {
+if ( isset( $_POST['action'] ) && 'deleteblog' === $_POST['action'] && isset( $_POST['confirmdelete'] ) && '1' === $_POST['confirmdelete'] ) {
 	check_admin_referer( 'delete-blog' );
 
 	$hash = wp_generate_password( 20, false );
@@ -52,7 +52,7 @@ if ( isset( $_POST['action'] ) && 'deleteblog' == $_POST['action'] && isset( $_P
 
 	$switched_locale = switch_to_locale( get_locale() );
 
-	/* translators: Do not translate USERNAME, URL_DELETE, SITE_NAME: those are placeholders. */
+	/* translators: Do not translate USERNAME, URL_DELETE, SITENAME, SITEURL: those are placeholders. */
 	$content = __(
 		"Howdy ###USERNAME###,
 
@@ -68,21 +68,22 @@ some time in the future! (But remember your current site and username
 are gone forever.)
 
 Thanks for using the site,
-Webmaster
-###SITE_NAME###"
+All at ###SITENAME###
+###SITEURL###"
 	);
 	/**
-	 * Filters the email content sent when a site in a Multisite network is deleted.
+	 * Filters the text for the email sent to the site admin when a request to delete a site in a Multisite network is submitted.
 	 *
 	 * @since 3.0.0
 	 *
-	 * @param string $content The email content that will be sent to the user who deleted a site in a Multisite network.
+	 * @param string $content The email text.
 	 */
 	$content = apply_filters( 'delete_site_email_content', $content );
 
 	$content = str_replace( '###USERNAME###', $user->user_login, $content );
 	$content = str_replace( '###URL_DELETE###', $url_delete, $content );
-	$content = str_replace( '###SITE_NAME###', get_network()->site_name, $content );
+	$content = str_replace( '###SITENAME###', get_network()->site_name, $content );
+	$content = str_replace( '###SITEURL###', network_home_url(), $content );
 
 	wp_mail(
 		get_option( 'admin_email' ),
@@ -122,7 +123,7 @@ Webmaster
 		<?php
 			printf(
 				/* translators: %s: Site address. */
-				__( "I'm sure I want to permanently disable my site, and I am aware I can never get it back or use %s again." ),
+				__( "I'm sure I want to permanently delete my site, and I am aware I can never get it back or use %s again." ),
 				$blog->domain . $blog->path
 			);
 		?>

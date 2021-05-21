@@ -21,8 +21,7 @@
  * @param string $comment_author Author of the comment.
  * @param string $comment_date   Date of the comment.
  * @param string $timezone       Timezone. Accepts 'blog' or 'gmt'. Default 'blog'.
- *
- * @return mixed Comment post ID on success.
+ * @return string|null Comment post ID on success.
  */
 function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
 	global $wpdb;
@@ -46,6 +45,10 @@ function comment_exists( $comment_author, $comment_date, $timezone = 'blog' ) {
  * Update a comment with values provided in $_POST.
  *
  * @since 2.0.0
+ * @since 5.5.0 A return value was added.
+ *
+ * @return int|WP_Error The value 1 if the comment was updated, 0 if not updated.
+ *                      A WP_Error object on failure.
  */
 function edit_comment() {
 	if ( ! current_user_can( 'edit_comment', (int) $_POST['comment_ID'] ) ) {
@@ -72,7 +75,7 @@ function edit_comment() {
 	}
 
 	foreach ( array( 'aa', 'mm', 'jj', 'hh', 'mn' ) as $timeunit ) {
-		if ( ! empty( $_POST[ 'hidden_' . $timeunit ] ) && $_POST[ 'hidden_' . $timeunit ] != $_POST[ $timeunit ] ) {
+		if ( ! empty( $_POST[ 'hidden_' . $timeunit ] ) && $_POST[ 'hidden_' . $timeunit ] !== $_POST[ $timeunit ] ) {
 			$_POST['edit_date'] = '1';
 			break;
 		}
@@ -93,7 +96,7 @@ function edit_comment() {
 		$_POST['comment_date'] = "$aa-$mm-$jj $hh:$mn:$ss";
 	}
 
-	wp_update_comment( $_POST );
+	return wp_update_comment( $_POST, true );
 }
 
 /**
@@ -119,7 +122,7 @@ function get_comment_to_edit( $id ) {
 	 *
 	 * @since 2.0.0
 	 *
-	 * @param string $comment->comment_content Comment content.
+	 * @param string $comment_content Comment content.
 	 */
 	$comment->comment_content = apply_filters( 'comment_edit_pre', $comment->comment_content );
 
@@ -138,8 +141,8 @@ function get_comment_to_edit( $id ) {
  *
  * @global wpdb $wpdb WordPress database abstraction object.
  *
- * @param int|array $post_id Either a single Post ID or an array of Post IDs
- * @return int|array Either a single Posts pending comments as an int or an array of ints keyed on the Post IDs
+ * @param int|int[] $post_id Either a single Post ID or an array of Post IDs
+ * @return int|int[] Either a single Posts pending comments as an int or an array of ints keyed on the Post IDs
  */
 function get_pending_comments_num( $post_id ) {
 	global $wpdb;
@@ -181,12 +184,12 @@ function get_pending_comments_num( $post_id ) {
 }
 
 /**
- * Add avatars to relevant places in admin, or try to.
+ * Adds avatars to relevant places in admin.
  *
  * @since 2.5.0
  *
  * @param string $name User name.
- * @return string Avatar with Admin name.
+ * @return string Avatar with the user name.
  */
 function floated_admin_avatar( $name ) {
 	$avatar = get_avatar( get_comment(), 32, 'mystery' );
@@ -197,7 +200,7 @@ function floated_admin_avatar( $name ) {
  * @since 2.7.0
  */
 function enqueue_comment_hotkeys_js() {
-	if ( 'true' == get_user_option( 'comment_shortcuts' ) ) {
+	if ( 'true' === get_user_option( 'comment_shortcuts' ) ) {
 		wp_enqueue_script( 'jquery-table-hotkeys' );
 	}
 }

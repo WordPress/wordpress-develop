@@ -126,8 +126,6 @@ function wp_list_widget_controls( $sidebar, $sidebar_name = '' ) {
  *
  * @global array $wp_registered_widgets
  *
- * @staticvar int $i
- *
  * @param array $params
  * @return array
  */
@@ -192,7 +190,7 @@ function wp_widget_control( $sidebar_args ) {
 
 	$widget_id  = $sidebar_args['widget_id'];
 	$sidebar_id = isset( $sidebar_args['id'] ) ? $sidebar_args['id'] : false;
-	$key        = $sidebar_id ? array_search( $widget_id, $sidebars_widgets[ $sidebar_id ] ) : '-1'; // Position of widget in sidebar.
+	$key        = $sidebar_id ? array_search( $widget_id, $sidebars_widgets[ $sidebar_id ], true ) : '-1'; // Position of widget in sidebar.
 	$control    = isset( $wp_registered_widget_controls[ $widget_id ] ) ? $wp_registered_widget_controls[ $widget_id ] : array();
 	$widget     = $wp_registered_widgets[ $widget_id ];
 
@@ -225,7 +223,7 @@ function wp_widget_control( $sidebar_args ) {
 	 * We aren't showing a widget control, we're outputting a template
 	 * for a multi-widget control.
 	 */
-	if ( isset( $sidebar_args['_display'] ) && 'template' == $sidebar_args['_display'] && $widget_number ) {
+	if ( isset( $sidebar_args['_display'] ) && 'template' === $sidebar_args['_display'] && $widget_number ) {
 		// number == -1 implies a template where id numbers are replaced by a generic '__i__'.
 		$control['params'][0]['number'] = -1;
 		// With id_base widget id's are constructed like {$id_base}-{$id_number}.
@@ -296,8 +294,7 @@ function wp_widget_control( $sidebar_args ) {
 		<div class="alignleft">
 			<button type="button" class="button-link button-link-delete widget-control-remove"><?php _e( 'Delete' ); ?></button>
 			<span class="widget-control-close-wrapper">
-				|
-				<button type="button" class="button-link widget-control-close"><?php _e( 'Done' ); ?></button>
+				| <button type="button" class="button-link widget-control-close"><?php _e( 'Done' ); ?></button>
 			</span>
 		</div>
 		<div class="alignright<?php echo $noform_class; ?>">

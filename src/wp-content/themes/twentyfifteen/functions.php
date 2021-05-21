@@ -102,6 +102,7 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 				'caption',
 				'script',
 				'style',
+				'navigation-widgets',
 			)
 		);
 
@@ -144,20 +145,20 @@ if ( ! function_exists( 'twentyfifteen_setup' ) ) :
 
 		// Setup the WordPress core custom background feature.
 
-		/**
-		 * Filter Twenty Fifteen custom-header support arguments.
-		 *
-		 * @since Twenty Fifteen 1.0
-		 *
-		 * @param array $args {
-		 *     An array of custom-header support arguments.
-		 *
-		 *     @type string $default-color          Default color of the header.
-		 *     @type string $default-attachment     Default attachment of the header.
-		 * }
-		 */
 		add_theme_support(
 			'custom-background',
+			/**
+			 * Filters Twenty Fifteen custom-background support arguments.
+			 *
+			 * @since Twenty Fifteen 1.0
+			 *
+			 * @param array $args {
+			 *     An array of custom-background support arguments.
+			 *
+			 *     @type string $default-color      Default color of the background.
+			 *     @type string $default-attachment Default attachment of the background.
+			 * }
+			 */
 			apply_filters(
 				'twentyfifteen_custom_background_args',
 				array(
@@ -320,13 +321,13 @@ if ( ! function_exists( 'twentyfifteen_fonts_url' ) ) :
 		 */
 		$subset = _x( 'no-subset', 'Add new subset (greek, cyrillic, devanagari, vietnamese)', 'twentyfifteen' );
 
-		if ( 'cyrillic' == $subset ) {
+		if ( 'cyrillic' === $subset ) {
 			$subsets .= ',cyrillic,cyrillic-ext';
-		} elseif ( 'greek' == $subset ) {
+		} elseif ( 'greek' === $subset ) {
 			$subsets .= ',greek,greek-ext';
-		} elseif ( 'devanagari' == $subset ) {
+		} elseif ( 'devanagari' === $subset ) {
 			$subsets .= ',devanagari';
-		} elseif ( 'vietnamese' == $subset ) {
+		} elseif ( 'vietnamese' === $subset ) {
 			$subsets .= ',vietnamese';
 		}
 
@@ -367,10 +368,10 @@ function twentyfifteen_scripts() {
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
 
 	// Add Genericons, used in the main stylesheet.
-	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.2' );
+	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '20201208' );
 
 	// Load our main stylesheet.
-	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentyfifteen-style', get_stylesheet_uri(), array(), '20201208' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentyfifteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentyfifteen-style' ), '20190102' );
@@ -412,7 +413,7 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_scripts' );
  */
 function twentyfifteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentyfifteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentyfifteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentyfifteen-fonts', twentyfifteen_fonts_url(), array(), null );
 }
@@ -460,7 +461,7 @@ function twentyfifteen_post_nav_background() {
 	$next     = get_adjacent_post( false, '', false );
 	$css      = '';
 
-	if ( is_attachment() && 'attachment' == $previous->post_type ) {
+	if ( is_attachment() && 'attachment' === $previous->post_type ) {
 		return;
 	}
 
@@ -491,14 +492,14 @@ add_action( 'wp_enqueue_scripts', 'twentyfifteen_post_nav_background' );
  *
  * @since Twenty Fifteen 1.0
  *
- * @param string  $item_output The menu item output.
- * @param WP_Post $item        Menu item object.
- * @param int     $depth       Depth of the menu.
- * @param array   $args        wp_nav_menu() arguments.
+ * @param string   $item_output The menu item's starting HTML output.
+ * @param WP_Post  $item        Menu item data object.
+ * @param int      $depth       Depth of the menu. Used for padding.
+ * @param stdClass $args        An object of wp_nav_menu() arguments.
  * @return string Menu item with possible description.
  */
 function twentyfifteen_nav_description( $item_output, $item, $depth, $args ) {
-	if ( 'primary' == $args->theme_location && $item->description ) {
+	if ( 'primary' === $args->theme_location && $item->description ) {
 		$item_output = str_replace( $args->link_after . '</a>', '<div class="menu-item-description">' . $item->description . '</div>' . $args->link_after . '</a>', $item_output );
 	}
 

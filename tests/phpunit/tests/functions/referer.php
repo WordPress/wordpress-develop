@@ -4,8 +4,11 @@
  * Test wp_get_referer().
  *
  * @group functions.php
+ * @covers ::wp_get_referer
+ * @covers ::wp_get_raw_referer
  */
 class Tests_Functions_Referer extends WP_UnitTestCase {
+
 	public function setUp() {
 		parent::setUp();
 
@@ -15,11 +18,11 @@ class Tests_Functions_Referer extends WP_UnitTestCase {
 	}
 
 	public function tearDown() {
-		parent::tearDown();
-
 		$_SERVER['HTTP_REFERER']      = '';
 		$_SERVER['REQUEST_URI']       = '';
 		$_REQUEST['_wp_http_referer'] = '';
+
+		parent::tearDown();
 	}
 
 	public function _fake_subfolder_install() {

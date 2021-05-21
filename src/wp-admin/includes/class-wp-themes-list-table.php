@@ -212,7 +212,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 				'<a href="%s" class="activatelink" title="%s">%s</a>',
 				$activate_link,
 				/* translators: %s: Theme name. */
-				esc_attr( sprintf( __( 'Activate &#8220;%s&#8221;' ), $title ) ),
+				esc_attr( sprintf( _x( 'Activate &#8220;%s&#8221;', 'theme' ), $title ) ),
 				__( 'Activate' )
 			);
 
@@ -302,14 +302,14 @@ class WP_Themes_List_Table extends WP_List_Table {
 	public function search_theme( $theme ) {
 		// Search the features.
 		foreach ( $this->features as $word ) {
-			if ( ! in_array( $word, $theme->get( 'Tags' ) ) ) {
+			if ( ! in_array( $word, $theme->get( 'Tags' ), true ) ) {
 				return false;
 			}
 		}
 
 		// Match all phrases.
 		foreach ( $this->search_terms as $word ) {
-			if ( in_array( $word, $theme->get( 'Tags' ) ) ) {
+			if ( in_array( $word, $theme->get( 'Tags' ), true ) ) {
 				continue;
 			}
 

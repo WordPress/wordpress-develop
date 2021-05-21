@@ -30,12 +30,6 @@
 	font-size: inherit;
 }
 
-.block-editor-block-list__empty-block-inserter .block-editor-inserter__toggle:not(:hover):not(:focus),
-.block-editor-default-block-appender .block-editor-inserter .block-editor-inserter__toggle:not(:hover):not(:focus) {
-	color: inherit;
-}
-
-
 /* Fonts ------------------------------------- */
 
 /*
@@ -252,7 +246,8 @@ Inter variable font. Usage:
 	font-weight: 700;
 	letter-spacing: -0.0415625em;
 	line-height: 1.25;
-	margin: 40px 0 25px;
+	margin-top: 40px;
+	margin-bottom: 25px;
 }
 
 .editor-post-title__block .editor-post-title__input,
@@ -624,7 +619,8 @@ hr.wp-block-separator.is-style-dots::before {
 	border-color: #cd2653;
 	border-style: solid;
 	border-width: 0 0 0 2px;
-	margin: 20px 0;
+	margin-top: 20px;
+	margin-bottom: 20px;
 	padding: 5px 0 5px 20px;
 }
 
@@ -883,7 +879,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 .editor-styles-wrapper .wp-block-verse pre,
 .editor-styles-wrapper pre.wp-block-verse {
-	font-size: 0.75em;
+	font-family: NonBreakingSpaceOverride, "Hoefler Text", Garamond, "Times New Roman", serif;
+	font-size: 0.9em;
 }
 
 
@@ -908,7 +905,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* BUTTON STYLE: OUTLINE */
 
-.editor-styles-wrapper .is-style-outline .wp-block-button__link {
+.editor-styles-wrapper .is-style-outline .wp-block-button__link,
+.editor-styles-wrapper .is-style-outline.wp-block-button__link {
 	background: none;
 	border-color: currentColor;
 	color: #cd2653;
@@ -917,7 +915,8 @@ hr.wp-block-separator.is-style-dots::before {
 
 /* BUTTON STYLE: SQUARED */
 
-.editor-styles-wrapper .is-style-squared .wp-block-button__link {
+.editor-styles-wrapper .is-style-squared .wp-block-button__link,
+.editor-styles-wrapper .is-style-squared.wp-block-button__link {
 	border-radius: 0;
 }
 
@@ -1060,11 +1059,6 @@ hr.wp-block-separator.is-style-dots::before {
 	margin-top: 30px;
 }
 
-.editor-styles-wrapper .wp-block-image.is-resized {
-	margin-left: auto;
-	margin-right: auto;
-}
-
 /* Block: Group ------------------------------ */
 
 .editor-styles-wrapper .wp-block-group.has-background {
@@ -1081,7 +1075,14 @@ hr.wp-block-separator.is-style-dots::before {
 	width: 100%;
 }
 
-/* Block: Paragraph -------------------------- */
+/* Block: List ------------------------------- */
+
+.editor-styles-wrapper ul.block-editor-block-list__block,
+.editor-styles-wrapper ol.block-editor-block-list__block,
+.editor-styles-wrapper ul ul,
+.editor-styles-wrapper ol ul {
+	padding-left: 1.3em;
+}
 
 
 /*	X.	Media Queries

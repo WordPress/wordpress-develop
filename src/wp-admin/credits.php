@@ -21,19 +21,21 @@ $credits = wp_credits();
 <div class="wrap about__container">
 
 	<div class="about__header">
-		<div class="about__header-title">
-			<h1>
-				<span><?php echo $display_version; ?></span>
-				<?php _e( 'WordPress' ); ?>
-			</h1>
+		<div class="about__header-image">
+			<img alt="<?php _e( 'Code is Poetry' ); ?>" src="<?php echo admin_url( 'images/about-badge.svg' ); ?>" />
 		</div>
 
-		<div class="about__header-badge"></div>
+		<div class="about__header-container">
+			<div class="about__header-title">
+				<p>
+					<?php _e( 'WordPress' ); ?>
+					<?php echo $display_version; ?>
+				</p>
+			</div>
 
-		<div class="about__header-text">
-			<p>
-				<?php _e( 'Building more with blocks, faster and easier.' ); ?>
-			</p>
+			<div class="about__header-text">
+				<?php _e( 'Jazz up your stories in an editor that’s cleaner, crisper, and does more to get out of your way.' ); ?>
+			</div>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -44,32 +46,39 @@ $credits = wp_credits();
 		</nav>
 	</div>
 
-	<div class="about__section">
+	<div class="about__section is-feature">
 		<div class="column">
-			<h2><?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?></h2>
+			<h1><?php _e( 'Credits' ); ?></h1>
+
+			<?php if ( ! $credits ) : ?>
 
 			<p>
 				<?php
-				if ( ! $credits ) {
-					printf(
-						/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
-						__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
-						__( 'https://wordpress.org/about/' ),
-						__( 'https://make.wordpress.org/' )
-					);
-				} else {
-					printf(
-						/* translators: %s: https://make.wordpress.org/ */
-						__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
-						__( 'https://make.wordpress.org/' )
-					);
-				}
+				printf(
+					/* translators: 1: https://wordpress.org/about/, 2: https://make.wordpress.org/ */
+					__( 'WordPress is created by a <a href="%1$s">worldwide team</a> of passionate individuals. <a href="%2$s">Get involved in WordPress</a>.' ),
+					__( 'https://wordpress.org/about/' ),
+					__( 'https://make.wordpress.org/' )
+				);
 				?>
 			</p>
-		</div>
 
-		<div class="about__image aligncenter">
-			<img src="data:image/svg+xml;charset=utf8,%3Csvg width='1320' height='350' viewbox='0 0 1320 350' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 61 220)' fill='%23321017'/%3E%3Crect width='72' height='250' transform='matrix(1 0 0 -1 166 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 272 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 378 220)' fill='%235F1B29'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 483 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 587 220)' fill='%235F1B29'/%3E%3Crect width='71.28' height='250' transform='matrix(1 0 0 -1 689 300)' fill='%23BD3854'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 884 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 789 220)' fill='%23321017'/%3E%3Crect width='71' height='220' transform='matrix(1 0 0 -1 985 220)' fill='%23321017'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1084 220)' fill='%235F1B29'/%3E%3Crect width='72' height='220' transform='matrix(1 0 0 -1 1179 220)' fill='%233D0F19'/%3E%3C/svg%3E%0A" alt="" />
+			<?php else : ?>
+
+			<p>
+				<?php _e( 'WordPress is created by a worldwide team of passionate individuals.' ); ?>
+			</p>
+			<p>
+				<?php
+				printf(
+					/* translators: %s: https://make.wordpress.org/ */
+					__( 'Want to see your name in lights on this page? <a href="%s">Get involved in WordPress</a>.' ),
+					__( 'https://make.wordpress.org/' )
+				);
+				?>
+			</p>
+
+			<?php endif; ?>
 		</div>
 	</div>
 

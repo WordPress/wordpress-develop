@@ -20,8 +20,6 @@ if ( ! function_exists( '_' ) ) {
  * @since 4.2.2
  * @access private
  *
- * @staticvar string $utf8_pcre
- *
  * @param bool $set - Used for testing only
  *             null   : default - get PCRE/u capability
  *             false  : Used for testing - return false for future calls to this function
@@ -89,7 +87,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different
 	 * charset just use built-in substr().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ) ) ) {
+	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
 		return is_null( $length ) ? substr( $str, $start ) : substr( $str, $start, $length );
 	}
 
@@ -129,7 +127,7 @@ function _mb_substr( $str, $start, $length = null, $encoding = null ) {
 		// If there's anything left over, repeat the loop.
 	} while ( count( $pieces ) > 1 && $str = array_pop( $pieces ) );
 
-	return join( '', array_slice( $chars, $start, $length ) );
+	return implode( '', array_slice( $chars, $start, $length ) );
 }
 
 if ( ! function_exists( 'mb_strlen' ) ) :
@@ -173,7 +171,7 @@ function _mb_strlen( $str, $encoding = null ) {
 	 * The solution below works only for UTF-8, so in case of a different charset
 	 * just use built-in strlen().
 	 */
-	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ) ) ) {
+	if ( ! in_array( $encoding, array( 'utf8', 'utf-8', 'UTF8', 'UTF-8' ), true ) ) {
 		return strlen( $str );
 	}
 
@@ -345,7 +343,6 @@ if ( ! function_exists( 'is_countable' ) ) {
 	 * @since 4.9.6
 	 *
 	 * @param mixed $var The value to check.
-	 *
 	 * @return bool True if `$var` is countable, false otherwise.
 	 */
 	function is_countable( $var ) {
@@ -367,10 +364,17 @@ if ( ! function_exists( 'is_iterable' ) ) {
 	 * @since 4.9.6
 	 *
 	 * @param mixed $var The value to check.
-	 *
 	 * @return bool True if `$var` is iterable, false otherwise.
 	 */
 	function is_iterable( $var ) {
 		return ( is_array( $var ) || $var instanceof Traversable );
 	}
+}
+
+// WebP constants are only defined in PHP 7.1+.
+if ( ! defined( 'IMAGETYPE_WEBP' ) ) {
+	define( 'IMAGETYPE_WEBP', 18 );
+}
+if ( ! defined( 'IMG_WEBP' ) ) {
+	define( 'IMG_WEBP', IMAGETYPE_WEBP ); // phpcs:ignore PHPCompatibility.Constants.NewConstants.imagetype_webpFound
 }

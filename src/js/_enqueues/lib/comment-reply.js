@@ -14,12 +14,13 @@ window.addComment = ( function( window ) {
 
 	// Settings.
 	var config = {
-		commentReplyClass : 'comment-reply-link',
-		cancelReplyId     : 'cancel-comment-reply-link',
-		commentFormId     : 'commentform',
-		temporaryFormId   : 'wp-temp-form-div',
-		parentIdFieldId   : 'comment_parent',
-		postIdFieldId     : 'comment_post_ID'
+		commentReplyClass   : 'comment-reply-link',
+		commentReplyTitleId : 'reply-title',
+		cancelReplyId       : 'cancel-comment-reply-link',
+		commentFormId       : 'commentform',
+		temporaryFormId     : 'wp-temp-form-div',
+		parentIdFieldId     : 'comment_parent',
+		postIdFieldId       : 'comment_post_ID'
 	};
 
 	// Cross browser MutationObserver.
@@ -171,8 +172,22 @@ window.addComment = ( function( window ) {
 		getElementById( config.parentIdFieldId ).value = '0';
 
 		// Move the respond form back in place of the temporary element.
-		temporaryElement.parentNode.replaceChild( respondElement ,temporaryElement );
+		var headingText = temporaryElement.textContent;
+		temporaryElement.parentNode.replaceChild( respondElement, temporaryElement );
 		cancelLink.style.display = 'none';
+
+		var replyHeadingElement  = getElementById( config.commentReplyTitleId );
+		var replyHeadingTextNode = replyHeadingElement && replyHeadingElement.firstChild;
+		var replyLinkToParent    = replyHeadingTextNode && replyHeadingTextNode.nextSibling;
+
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE && headingText ) {
+			if ( replyLinkToParent && 'A' === replyLinkToParent.nodeName && replyLinkToParent.id !== config.cancelReplyId ) {
+				replyLinkToParent.style.display = '';
+			}
+
+			replyHeadingTextNode.textContent = headingText;
+		}
+
 		event.preventDefault();
 	}
 
@@ -184,11 +199,14 @@ window.addComment = ( function( window ) {
 	 * @param {Event} event The calling event.
 	 */
 	function clickEvent( event ) {
+		var replyNode = getElementById( config.commentReplyTitleId );
+		var defaultReplyHeading = replyNode && replyNode.firstChild.textContent;
 		var replyLink = this,
-			commId    = getDataAttribute( replyLink, 'belowelement'),
+			commId    = getDataAttribute( replyLink, 'belowelement' ),
 			parentId  = getDataAttribute( replyLink, 'commentid' ),
-			respondId = getDataAttribute( replyLink, 'respondelement'),
-			postId    = getDataAttribute( replyLink, 'postid'),
+			respondId = getDataAttribute( replyLink, 'respondelement' ),
+			postId    = getDataAttribute( replyLink, 'postid' ),
+			replyTo   = getDataAttribute( replyLink, 'replyto' ) || defaultReplyHeading,
 			follow;
 
 		if ( ! commId || ! parentId || ! respondId || ! postId ) {
@@ -203,7 +221,7 @@ window.addComment = ( function( window ) {
 		 * Third party comments systems can hook into this function via the global scope,
 		 * therefore the click event needs to reference the global scope.
 		 */
-		follow = window.addComment.moveForm(commId, parentId, respondId, postId);
+		follow = window.addComment.moveForm( commId, parentId, respondId, postId, replyTo );
 		if ( false === follow ) {
 			event.preventDefault();
 		}
@@ -255,9 +273,9 @@ window.addComment = ( function( window ) {
 	 * @since 5.1.0
 	 *
 	 * @param {HTMLElement} Element DOM element with the attribute.
-	 * @param {String}      Attribute the attribute to get.
+	 * @param {string}      Attribute the attribute to get.
 	 *
-	 * @return {String}
+	 * @return {string}
 	 */
 	function getDataAttribute( element, attribute ) {
 		if ( supportsDataset ) {
@@ -288,12 +306,13 @@ window.addComment = ( function( window ) {
 	 *
 	 * @memberOf addComment
 	 *
-	 * @param {String} addBelowId HTML ID of element the form follows.
-	 * @param {String} commentId  Database ID of comment being replied to.
-	 * @param {String} respondId  HTML ID of 'respond' element.
-	 * @param {String} postId     Database ID of the post.
+	 * @param {string} addBelowId HTML ID of element the form follows.
+	 * @param {string} commentId  Database ID of comment being replied to.
+	 * @param {string} respondId  HTML ID of 'respond' element.
+	 * @param {string} postId     Database ID of the post.
+	 * @param {string} replyTo    Form heading content.
 	 */
-	function moveForm( addBelowId, commentId, respondId, postId ) {
+	function moveForm( addBelowId, commentId, respondId, postId, replyTo ) {
 		// Get elements based on their IDs.
 		var addBelowElement = getElementById( addBelowId );
 		respondElement  = getElementById( respondId );
@@ -303,9 +322,17 @@ window.addComment = ( function( window ) {
 		var postIdField     = getElementById( config.postIdFieldId );
 		var element, cssHidden, style;
 
+		var replyHeading         = getElementById( config.commentReplyTitleId );
+		var replyHeadingTextNode = replyHeading && replyHeading.firstChild;
+		var replyLinkToParent    = replyHeadingTextNode && replyHeadingTextNode.nextSibling;
+
 		if ( ! addBelowElement || ! respondElement || ! parentIdField ) {
 			// Missing key elements, fail.
 			return;
+		}
+
+		if ( 'undefined' === typeof replyTo ) {
+			replyTo = replyHeadingTextNode && replyHeadingTextNode.textContent;
 		}
 
 		addPlaceHolder( respondElement );
@@ -319,6 +346,14 @@ window.addComment = ( function( window ) {
 
 		cancelElement.style.display = '';
 		addBelowElement.parentNode.insertBefore( respondElement, addBelowElement.nextSibling );
+
+		if ( replyHeadingTextNode && replyHeadingTextNode.nodeType === Node.TEXT_NODE ) {
+			if ( replyLinkToParent && 'A' === replyLinkToParent.nodeName && replyLinkToParent.id !== config.cancelReplyId ) {
+				replyLinkToParent.style.display = 'none';
+			}
+
+			replyHeadingTextNode.textContent = replyTo;
+		}
 
 		/*
 		 * This is for backward compatibility with third party commenting systems
@@ -387,6 +422,8 @@ window.addComment = ( function( window ) {
 	function addPlaceHolder( respondElement ) {
 		var temporaryFormId  = config.temporaryFormId;
 		var temporaryElement = getElementById( temporaryFormId );
+		var replyElement = getElementById( config.commentReplyTitleId );
+		var initialHeadingText = replyElement ? replyElement.firstChild.textContent : '';
 
 		if ( temporaryElement ) {
 			// The element already exists, no need to recreate.
@@ -396,6 +433,7 @@ window.addComment = ( function( window ) {
 		temporaryElement = document.createElement( 'div' );
 		temporaryElement.id = temporaryFormId;
 		temporaryElement.style.display = 'none';
+		temporaryElement.textContent = initialHeadingText;
 		respondElement.parentNode.insertBefore( temporaryElement, respondElement );
 	}
 

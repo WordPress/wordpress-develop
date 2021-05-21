@@ -30,11 +30,11 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$pobj = get_post_type_object( 'foo' );
 		$this->assertInstanceOf( 'WP_Post_Type', $pobj );
-		$this->assertEquals( 'foo', $pobj->name );
+		$this->assertSame( 'foo', $pobj->name );
 
 		// Test some defaults.
 		$this->assertFalse( is_post_type_hierarchical( 'foo' ) );
-		$this->assertEquals( array(), get_object_taxonomies( 'foo' ) );
+		$this->assertSame( array(), get_object_taxonomies( 'foo' ) );
 
 		_unregister_post_type( 'foo' );
 	}
@@ -68,7 +68,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_exclude_from_search_should_default_to_opposite_value_of_public() {
 		/*
@@ -82,7 +82,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_publicly_queryable_should_default_to_value_of_public() {
 		/*
@@ -96,7 +96,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_ui_should_default_to_value_of_public() {
 		/*
@@ -110,7 +110,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_menu_should_default_to_value_of_show_ui() {
 		/*
@@ -129,7 +129,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_nav_menus_should_default_to_value_of_public() {
 		/*
@@ -143,7 +143,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35985
-	 * @covers ::register_post_type()
+	 * @covers ::register_post_type
 	 */
 	function test_register_post_type_show_in_admin_bar_should_default_to_value_of_show_in_menu() {
 		/*
@@ -168,9 +168,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		register_post_type( 'bar' );
 		register_taxonomy_for_object_type( 'post_tag', 'bar' );
-		$this->assertEquals( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'post_tag' ), get_object_taxonomies( 'bar' ) );
 		register_taxonomy_for_object_type( 'category', 'bar' );
-		$this->assertEquals( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
+		$this->assertSame( array( 'category', 'post_tag' ), get_object_taxonomies( 'bar' ) );
 
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
 		$this->assertTrue( is_object_in_taxonomy( 'bar', 'post_tag' ) );
@@ -267,9 +267,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 38844
 	 */
 	public function test_get_post_type_object_includes_menu_icon_for_builtin_post_types() {
-		$this->assertEquals( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
-		$this->assertEquals( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
-		$this->assertEquals( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-post', get_post_type_object( 'post' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-page', get_post_type_object( 'page' )->menu_icon );
+		$this->assertSame( 'dashicons-admin-media', get_post_type_object( 'attachment' )->menu_icon );
 	}
 
 	/**
@@ -413,7 +413,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEqualSetsWithIndex(
+		$this->assertSameSetsWithIndex(
 			array(
 				'editor' => true,
 				'author' => true,
@@ -563,13 +563,13 @@ class Tests_Post_Types extends WP_UnitTestCase {
 	 * @ticket 34010
 	 */
 	public function test_get_post_types_by_support_excluding_features() {
-		$this->assertEqualSets( array(), get_post_types_by_support( array( 'post-formats', 'page-attributes' ) ) );
+		$this->assertSameSets( array(), get_post_types_by_support( array( 'post-formats', 'page-attributes' ) ) );
 	}
 
 	/**
 	 * @ticket 34010
 	 */
 	public function test_get_post_types_by_support_non_existant_feature() {
-		$this->assertEqualSets( array(), get_post_types_by_support( 'somefeature' ) );
+		$this->assertSameSets( array(), get_post_types_by_support( 'somefeature' ) );
 	}
 }

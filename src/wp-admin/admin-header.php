@@ -32,19 +32,19 @@ if ( empty( $current_screen ) ) {
 }
 
 get_admin_page_title();
-$title = esc_html( strip_tags( $title ) );
+$title = strip_tags( $title );
 
 if ( is_network_admin() ) {
 	/* translators: Network admin screen title. %s: Network title. */
-	$admin_title = sprintf( __( 'Network Admin: %s' ), esc_html( get_network()->site_name ) );
+	$admin_title = sprintf( __( 'Network Admin: %s' ), get_network()->site_name );
 } elseif ( is_user_admin() ) {
 	/* translators: User dashboard screen title. %s: Network title. */
-	$admin_title = sprintf( __( 'User Dashboard: %s' ), esc_html( get_network()->site_name ) );
+	$admin_title = sprintf( __( 'User Dashboard: %s' ), get_network()->site_name );
 } else {
 	$admin_title = get_bloginfo( 'name' );
 }
 
-if ( $admin_title == $title ) {
+if ( $admin_title === $title ) {
 	/* translators: Admin screen title. %s: Admin screen name. */
 	$admin_title = sprintf( __( '%s &#8212; WordPress' ), $title );
 } else {
@@ -71,27 +71,25 @@ wp_user_settings();
 
 _wp_admin_html_begin();
 ?>
-<title><?php echo $admin_title; ?></title>
+<title><?php echo esc_html( $admin_title ); ?></title>
 <?php
 
 wp_enqueue_style( 'colors' );
-wp_enqueue_style( 'ie' );
 wp_enqueue_script( 'utils' );
 wp_enqueue_script( 'svg-painter' );
 
 $admin_body_class = preg_replace( '/[^a-z0-9_-]+/i', '-', $hook_suffix );
 ?>
 <script type="text/javascript">
-addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
-var ajaxurl = '<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>',
-	pagenow = '<?php echo $current_screen->id; ?>',
-	typenow = '<?php echo $current_screen->post_type; ?>',
-	adminpage = '<?php echo $admin_body_class; ?>',
-	thousandsSeparator = '<?php echo addslashes( $wp_locale->number_format['thousands_sep'] ); ?>',
-	decimalPoint = '<?php echo addslashes( $wp_locale->number_format['decimal_point'] ); ?>',
+addLoadEvent = function(func){if(typeof jQuery!=='undefined')jQuery(document).ready(func);else if(typeof wpOnload!=='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
+var ajaxurl = '<?php echo esc_js( admin_url( 'admin-ajax.php', 'relative' ) ); ?>',
+	pagenow = '<?php echo esc_js( $current_screen->id ); ?>',
+	typenow = '<?php echo esc_js( $current_screen->post_type ); ?>',
+	adminpage = '<?php echo esc_js( $admin_body_class ); ?>',
+	thousandsSeparator = '<?php echo esc_js( $wp_locale->number_format['thousands_sep'] ); ?>',
+	decimalPoint = '<?php echo esc_js( $wp_locale->number_format['decimal_point'] ); ?>',
 	isRtl = <?php echo (int) is_rtl(); ?>;
 </script>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <?php
 
 /**
@@ -148,7 +146,7 @@ do_action( "admin_head-{$hook_suffix}" ); // phpcs:ignore WordPress.NamingConven
  */
 do_action( 'admin_head' );
 
-if ( get_user_setting( 'mfold' ) == 'f' ) {
+if ( 'f' === get_user_setting( 'mfold' ) ) {
 	$admin_body_class .= ' folded';
 }
 
@@ -172,7 +170,7 @@ if ( $current_screen->taxonomy ) {
 	$admin_body_class .= ' taxonomy-' . $current_screen->taxonomy;
 }
 
-$admin_body_class .= ' branch-' . str_replace( array( '.', ',' ), '-', floatval( get_bloginfo( 'version' ) ) );
+$admin_body_class .= ' branch-' . str_replace( array( '.', ',' ), '-', (float) get_bloginfo( 'version' ) );
 $admin_body_class .= ' version-' . str_replace( '.', '-', preg_replace( '/^([.0-9]+).*/', '$1', get_bloginfo( 'version' ) ) );
 $admin_body_class .= ' admin-color-' . sanitize_html_class( get_user_option( 'admin_color' ), 'fresh' );
 $admin_body_class .= ' locale-' . sanitize_html_class( strtolower( str_replace( '_', '-', get_user_locale() ) ) );
@@ -194,11 +192,20 @@ $admin_body_class .= ' no-customize-support no-svg';
 if ( $current_screen->is_block_editor() ) {
 	// Default to is-fullscreen-mode to avoid jumps in the UI.
 	$admin_body_class .= ' block-editor-page is-fullscreen-mode wp-embed-responsive';
-
-	if ( current_theme_supports( 'editor-styles' ) && current_theme_supports( 'dark-editor-style' ) ) {
-		$admin_body_class .= ' is-dark-theme';
-	}
 }
+
+$error_get_last = error_get_last();
+
+// Print a CSS class to make PHP errors visible.
+if ( $error_get_last && WP_DEBUG && WP_DEBUG_DISPLAY && ini_get( 'display_errors' )
+	// Don't print the class for PHP notices in wp-config.php, as they happen before WP_DEBUG takes effect,
+	// and should not be displayed with the `error_reporting` level previously set in wp-load.php.
+	&& ( E_NOTICE !== $error_get_last['type'] || 'wp-config.php' !== wp_basename( $error_get_last['file'] ) )
+) {
+	$admin_body_class .= ' php-error';
+}
+
+unset( $error_get_last );
 
 ?>
 </head>

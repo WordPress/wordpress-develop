@@ -13,7 +13,7 @@
 	<?php
 	// Output the featured image.
 	if ( has_post_thumbnail() ) :
-		if ( 'grid' == get_theme_mod( 'featured_content_layout' ) ) {
+		if ( 'grid' === get_theme_mod( 'featured_content_layout' ) ) {
 			the_post_thumbnail();
 		} else {
 			the_post_thumbnail( 'twentyfourteen-full-width' );
@@ -23,7 +23,7 @@
 	</a>
 
 	<header class="entry-header">
-		<?php if ( in_array( 'category', get_object_taxonomies( get_post_type() ) ) && twentyfourteen_categorized_blog() ) : ?>
+		<?php if ( in_array( 'category', get_object_taxonomies( get_post_type() ), true ) && twentyfourteen_categorized_blog() ) : ?>
 		<div class="entry-meta">
 			<span class="cat-links"><?php echo get_the_category_list( _x( ', ', 'Used between list items, there is a space after the comma.', 'twentyfourteen' ) ); ?></span>
 		</div><!-- .entry-meta -->

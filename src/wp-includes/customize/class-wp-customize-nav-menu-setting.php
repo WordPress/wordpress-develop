@@ -141,7 +141,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			throw new Exception( "Illegal widget setting ID: $id" );
 		}
 
-		$this->term_id = intval( $matches['id'] );
+		$this->term_id = (int) $matches['id'];
 
 		parent::__construct( $manager, $id, $args );
 	}
@@ -179,7 +179,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 					$value['auto_add'] = false;
 
 					if ( isset( $nav_menu_options['auto_add'] ) && is_array( $nav_menu_options['auto_add'] ) ) {
-						$value['auto_add'] = in_array( $term->term_id, $nav_menu_options['auto_add'] );
+						$value['auto_add'] = in_array( $term->term_id, $nav_menu_options['auto_add'], true );
 					}
 				}
 			}
@@ -188,6 +188,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 				$value = $this->default;
 			}
 		}
+
 		return $value;
 	}
 
@@ -432,7 +433,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 
 		$value['name']        = trim( esc_html( $value['name'] ) ); // This sanitization code is used in wp-admin/nav-menus.php.
 		$value['description'] = sanitize_text_field( $value['description'] );
-		$value['parent']      = max( 0, intval( $value['parent'] ) );
+		$value['parent']      = max( 0, (int) $value['parent'] );
 		$value['auto_add']    = ! empty( $value['auto_add'] );
 
 		if ( '' === $value['name'] ) {
@@ -555,7 +556,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 				}
 
 				$post_value = $setting->post_value( null );
-				if ( ! is_null( $post_value ) && intval( $post_value ) === $this->previous_term_id ) {
+				if ( ! is_null( $post_value ) && (int) $post_value === $this->previous_term_id ) {
 					$this->manager->set_post_value( $setting->id, $this->term_id );
 					$setting->save();
 				}
@@ -569,7 +570,7 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 				}
 
 				$widget_instance = $nav_menu_widget_setting->post_value(); // Note that this calls WP_Customize_Widgets::sanitize_widget_instance().
-				if ( empty( $widget_instance['nav_menu'] ) || intval( $widget_instance['nav_menu'] ) !== $this->previous_term_id ) {
+				if ( empty( $widget_instance['nav_menu'] ) || (int) $widget_instance['nav_menu'] !== $this->previous_term_id ) {
 					continue;
 				}
 
@@ -602,7 +603,8 @@ class WP_Customize_Nav_Menu_Setting extends WP_Customize_Setting {
 			$nav_menu_options['auto_add'] = array();
 		}
 
-		$i = array_search( $menu_id, $nav_menu_options['auto_add'] );
+		$i = array_search( $menu_id, $nav_menu_options['auto_add'], true );
+
 		if ( $auto_add && false === $i ) {
 			array_push( $nav_menu_options['auto_add'], $this->term_id );
 		} elseif ( ! $auto_add && false !== $i ) {

@@ -116,7 +116,7 @@ function twentyseventeen_customize_register( $wp_customize ) {
 	);
 
 	/**
-	 * Filter number of front page sections in Twenty Seventeen.
+	 * Filters the number of front page sections in Twenty Seventeen.
 	 *
 	 * @since Twenty Seventeen 1.0
 	 *
@@ -197,6 +197,7 @@ function twentyseventeen_sanitize_colorscheme( $input ) {
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Seventeen 1.0
+ *
  * @see twentyseventeen_customize_register()
  *
  * @return void
@@ -209,6 +210,7 @@ function twentyseventeen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Seventeen 1.0
+ *
  * @see twentyseventeen_customize_register()
  *
  * @return void

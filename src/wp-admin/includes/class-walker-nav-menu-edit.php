@@ -72,17 +72,17 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 
 		$original_title = false;
 
-		if ( 'taxonomy' == $item->type ) {
+		if ( 'taxonomy' === $item->type ) {
 			$original_object = get_term( (int) $item->object_id, $item->object );
-			if ( $original_object && ! is_wp_error( $original_title ) ) {
+			if ( $original_object && ! is_wp_error( $original_object ) ) {
 				$original_title = $original_object->name;
 			}
-		} elseif ( 'post_type' == $item->type ) {
+		} elseif ( 'post_type' === $item->type ) {
 			$original_object = get_post( $item->object_id );
 			if ( $original_object ) {
 				$original_title = get_the_title( $original_object->ID );
 			}
-		} elseif ( 'post_type_archive' == $item->type ) {
+		} elseif ( 'post_type_archive' === $item->type ) {
 			$original_object = get_post_type_object( $item->object );
 			if ( $original_object ) {
 				$original_title = $original_object->labels->archives;
@@ -92,7 +92,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 		$classes = array(
 			'menu-item menu-item-depth-' . $depth,
 			'menu-item-' . esc_attr( $item->object ),
-			'menu-item-edit-' . ( ( isset( $_GET['edit-menu-item'] ) && $item_id == $_GET['edit-menu-item'] ) ? 'active' : 'inactive' ),
+			'menu-item-edit-' . ( ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] ) ? 'active' : 'inactive' ),
 		);
 
 		$title = $item->title;
@@ -101,16 +101,16 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 			$classes[] = 'menu-item-invalid';
 			/* translators: %s: Title of an invalid menu item. */
 			$title = sprintf( __( '%s (Invalid)' ), $item->title );
-		} elseif ( isset( $item->post_status ) && 'draft' == $item->post_status ) {
+		} elseif ( isset( $item->post_status ) && 'draft' === $item->post_status ) {
 			$classes[] = 'pending';
 			/* translators: %s: Title of a menu item in draft status. */
 			$title = sprintf( __( '%s (Pending)' ), $item->title );
 		}
 
-		$title = ( ! isset( $item->label ) || '' == $item->label ) ? $title : $item->label;
+		$title = ( ! isset( $item->label ) || '' === $item->label ) ? $title : $item->label;
 
 		$submenu_text = '';
-		if ( 0 == $depth ) {
+		if ( 0 === $depth ) {
 			$submenu_text = 'style="display: none;"';
 		}
 
@@ -157,7 +157,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 							?>
 						</span>
 						<?php
-						if ( isset( $_GET['edit-menu-item'] ) && $item_id == $_GET['edit-menu-item'] ) {
+						if ( isset( $_GET['edit-menu-item'] ) && $item_id === $_GET['edit-menu-item'] ) {
 							$edit_url = admin_url( 'nav-menus.php' );
 						} else {
 							$edit_url = add_query_arg(
@@ -181,7 +181,7 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 			</div>
 
 			<div class="menu-item-settings wp-clearfix" id="menu-item-settings-<?php echo $item_id; ?>">
-				<?php if ( 'custom' == $item->type ) : ?>
+				<?php if ( 'custom' === $item->type ) : ?>
 					<p class="field-url description description-wide">
 						<label for="edit-menu-item-url-<?php echo $item_id; ?>">
 							<?php _e( 'URL' ); ?><br />

@@ -57,7 +57,7 @@ function get_network( $network = null ) {
  *
  * @param string|array $args Optional. Array or string of arguments. See WP_Network_Query::parse_query()
  *                           for information on accepted arguments. Default empty array.
- * @return array|int List of WP_Network objects, a list of network ids when 'fields' is set to 'ids',
+ * @return array|int List of WP_Network objects, a list of network IDs when 'fields' is set to 'ids',
  *                   or the number of networks when 'count' is passed as a query var.
  */
 function get_networks( $args = array() ) {
@@ -131,7 +131,7 @@ function _prime_network_caches( $network_ids ) {
 
 	$non_cached_ids = _get_non_cached_ids( $network_ids, 'networks' );
 	if ( ! empty( $non_cached_ids ) ) {
-		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", join( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$fresh_networks = $wpdb->get_results( sprintf( "SELECT $wpdb->site.* FROM $wpdb->site WHERE id IN (%s)", implode( ',', array_map( 'intval', $non_cached_ids ) ) ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
 		update_network_cache( $fresh_networks );
 	}

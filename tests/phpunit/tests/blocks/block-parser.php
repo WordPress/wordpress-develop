@@ -69,7 +69,7 @@ class WP_Test_Block_Parser extends WP_UnitTestCase {
 		$parser = new WP_Block_Parser();
 		$result = json_decode( json_encode( $parser->parse( $html ) ), true );
 
-		$this->assertEquals(
+		$this->assertSame(
 			$expected_parsed,
 			$result,
 			"File '$parsed_json_filename' does not match expected value"

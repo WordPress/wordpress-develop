@@ -202,7 +202,7 @@ wpList = {
 	 * 6. 0 if none can be found.
 	 *
 	 * @param {jQuery} element  Element that triggered the request.
-	 * @param {object} settings Settings for the Ajax request.
+	 * @param {Object} settings Settings for the Ajax request.
 	 * @return {string|number} Nonce
 	 */
 	nonce: function( element, settings ) {
@@ -235,8 +235,8 @@ wpList = {
 	 * data[3] - 66cc66
 	 * data[4] - unspam=1
 	 *
-	 * @param  {HTMLElement} element The DOM element.
-	 * @param  {string}      type    The type of data to look for: 'list', 'add', 'delete', or 'dim'.
+	 * @param {HTMLElement} element The DOM element.
+	 * @param {string}      type    The type of data to look for: 'list', 'add', 'delete', or 'dim'.
 	 * @return {Array} Extracted list item data.
 	 */
 	parseData: function( element, type ) {
@@ -258,9 +258,9 @@ wpList = {
 	 * Calls a confirm callback to verify the action that is about to be performed.
 	 *
 	 * @param {HTMLElement} list     The DOM element.
-	 * @param {object}      settings Settings for this list.
+	 * @param {Object}      settings Settings for this list.
 	 * @param {string}      action   The type of action to perform: 'add', 'delete', or 'dim'.
-	 * @return {object|boolean} Settings if confirmed, false if not.
+	 * @return {Object|boolean} Settings if confirmed, false if not.
 	 */
 	pre: function( list, settings, action ) {
 		var $element, backgroundColor, confirmed;
@@ -271,7 +271,7 @@ wpList = {
 			target:  list.get( 0 )
 		}, settings || {} );
 
-		if ( $.isFunction( settings.confirm ) ) {
+		if ( typeof settings.confirm === 'function' ) {
 			$element = $( '#' + settings.element );
 
 			if ( 'add' !== action ) {
@@ -294,10 +294,10 @@ wpList = {
 	},
 
 	/**
-	 * Adds an item to the list via AJAX.
+	 * Adds an item to the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  The DOM element.
-	 * @param {object}      settings Settings for this list.
+	 * @param {Object}      settings Settings for this list.
 	 * @return {boolean} Whether the item was added.
 	 */
 	ajaxAdd: function( element, settings ) {
@@ -337,13 +337,13 @@ wpList = {
 		}, wpAjax.unserialize( data[4] || '' ) ) );
 
 		formValues = $( '#' + settings.element + ' :input' ).not( '[name="_ajax_nonce"], [name="_wpnonce"], [name="action"]' );
-		formData   = $.isFunction( formValues.fieldSerialize ) ? formValues.fieldSerialize() : formValues.serialize();
+		formData   = typeof formValues.fieldSerialize === 'function' ? formValues.fieldSerialize() : formValues.serialize();
 
 		if ( formData ) {
 			settings.data += '&' + formData;
 		}
 
-		if ( $.isFunction( settings.addBefore ) ) {
+		if ( typeof settings.addBefore === 'function' ) {
 			settings = settings.addBefore( settings );
 
 			if ( ! settings ) {
@@ -381,7 +381,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.addAfter ) ) {
+			if ( typeof settings.addAfter === 'function' ) {
 				settings.addAfter( returnedResponse, $.extend( {
 					xml:    jqXHR,
 					status: status,
@@ -396,10 +396,10 @@ wpList = {
 	},
 
 	/**
-	 * Delete an item in the list via AJAX.
+	 * Delete an item in the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  A DOM element containing item data.
-	 * @param {object}      settings Settings for this list.
+	 * @param {Object}      settings Settings for this list.
 	 * @return {boolean} Whether the item was deleted.
 	 */
 	ajaxDel: function( element, settings ) {
@@ -427,7 +427,7 @@ wpList = {
 			id:          settings.element.split( '-' ).pop()
 		}, wpAjax.unserialize( data[4] || '' ) );
 
-		if ( $.isFunction( settings.delBefore ) ) {
+		if ( typeof settings.delBefore === 'function' ) {
 			settings = settings.delBefore( settings, list );
 
 			if ( ! settings ) {
@@ -466,7 +466,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.delAfter ) ) {
+			if ( typeof settings.delAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.delAfter( returnedResponse, $.extend( {
 						xml:    jqXHR,
@@ -483,10 +483,10 @@ wpList = {
 	},
 
 	/**
-	 * Dim an item in the list via AJAX.
+	 * Dim an item in the list via Ajax.
 	 *
 	 * @param {HTMLElement} element  A DOM element containing item data.
-	 * @param {object}      settings Settings for this list.
+	 * @param {Object}      settings Settings for this list.
 	 * @return {boolean} Whether the item was dim'ed.
 	 */
 	ajaxDim: function( element, settings ) {
@@ -522,7 +522,7 @@ wpList = {
 			dimClass:    settings.dimClass
 		}, wpAjax.unserialize( data[6] || '' ) );
 
-		if ( $.isFunction( settings.dimBefore ) ) {
+		if ( typeof settings.dimBefore === 'function' ) {
 			settings = settings.dimBefore( settings );
 
 			if ( ! settings ) {
@@ -591,7 +591,7 @@ wpList = {
 		};
 
 		settings.complete = function( jqXHR, status ) {
-			if ( $.isFunction( settings.dimAfter ) ) {
+			if ( typeof settings.dimAfter === 'function' ) {
 				$eventTarget.queue( function() {
 					settings.dimAfter( returnedResponse, $.extend( {
 						xml:    jqXHR,
@@ -621,7 +621,7 @@ wpList = {
 	 * Adds something.
 	 *
 	 * @param {HTMLElement} element  A DOM element containing item data.
-	 * @param {object}      settings Settings for this list.
+	 * @param {Object}      settings Settings for this list.
 	 * @return {boolean} Whether the item was added.
 	 */
 	add: function( element, settings ) {
