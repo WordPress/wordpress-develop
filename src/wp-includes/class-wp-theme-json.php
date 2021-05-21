@@ -26,6 +26,13 @@ class WP_Theme_JSON {
 	 */
 	private static $allowed_block_names = null;
 
+	/**
+	 * Holds the allowed schema.
+	 *
+	 * @var array
+	 */
+	private static $allowed_schema = null;
+
 	const ALLOWED_TOP_LEVEL_KEYS = array(
 		'version',
 		'settings',
@@ -92,13 +99,19 @@ class WP_Theme_JSON {
 	 * @return array
 	 */
 	private static function get_allowed_schema() {
-		return apply_filters(
+		if ( null !== self::$allowed_schema ) {
+			return self::$allowed_schema;
+		}
+
+		self::$allowed_schema = apply_filters(
 			'theme_json_allowed_schema',
 			array(
 				'topLevel' => self::ALLOWED_TOP_LEVEL_KEYS,
 				'settings' => self::ALLOWED_SETTINGS,
 			)
 		);
+
+		return self::$allowed_schema;
 	}
 
 	/**
