@@ -15,7 +15,7 @@
  *
  * @class
  *
- * @param {object}        options          Options hash for the region.
+ * @param {Object}        options          Options hash for the region.
  * @param {string}        options.id       Unique identifier for the region.
  * @param {Backbone.View} options.view     A parent view the region exists within.
  * @param {string}        options.selector jQuery selector for the region within the parent view.

@@ -169,9 +169,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $parent;
 		}
 
-		$parent_post_type_obj = get_post_type_object( $parent->post_type );
-
-		if ( ! current_user_can( $parent_post_type_obj->cap->edit_post, $parent->ID ) ) {
+		if ( ! current_user_can( 'edit_post', $parent->ID ) ) {
 			return new WP_Error(
 				'rest_cannot_read',
 				__( 'Sorry, you are not allowed to view revisions of this post.' ),
@@ -364,7 +362,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		return $this->get_items_permissions_check( $request );
@@ -399,7 +397,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 	 * @since 4.7.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return bool|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has access to delete the item, WP_Error object otherwise.
 	 */
 	public function delete_item_permissions_check( $request ) {
 		$parent = $this->get_parent( $request['parent'] );
@@ -409,7 +407,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 
 		$parent_post_type = get_post_type_object( $parent->post_type );
 
-		if ( ! current_user_can( $parent_post_type->cap->delete_post, $parent->ID ) ) {
+		if ( ! current_user_can( 'delete_post', $parent->ID ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
 				__( 'Sorry, you are not allowed to delete revisions of this post.' ),
@@ -427,9 +425,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 			return $response;
 		}
 
-		$post_type = get_post_type_object( 'revision' );
-
-		if ( ! current_user_can( $post_type->cap->delete_post, $revision->ID ) ) {
+		if ( ! current_user_can( 'delete_post', $revision->ID ) ) {
 			return new WP_Error(
 				'rest_cannot_delete',
 				__( 'Sorry, you are not allowed to delete this revision.' ),
@@ -625,7 +621,7 @@ class WP_REST_Revisions_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Filters a revision returned from the API.
+		 * Filters a revision returned from the REST API.
 		 *
 		 * Allows modification of the revision right before it is returned.
 		 *

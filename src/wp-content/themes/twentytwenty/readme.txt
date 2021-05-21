@@ -1,7 +1,7 @@
 === Twenty Twenty ===
 Contributors: the WordPress team
-Tested up to: 5.3
-Stable tag: 1.2
+Tested up to: 5.7
+Stable tag: 1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -9,18 +9,43 @@ Default theme for 2020.
 
 == Description ==
 
-Our default theme for 2020 is designed to take full advantage of the 
-flexibility of the block editor. Organizations and businesses have the 
-ability to create dynamic landing pages with endless layouts using the 
-group and column blocks. The centered content column and fine-tuned 
-typography also makes it perfect for traditional blogs. Complete editor 
-styles give you a good idea of what your content will look like, even 
-before you publish. You can give your site a personal touch by changing 
-the background colors and the accent color in the Customizer. The colors of 
-all elements on your site are automatically calculated based on the colors 
+Our default theme for 2020 is designed to take full advantage of the
+flexibility of the block editor. Organizations and businesses have the
+ability to create dynamic landing pages with endless layouts using the
+group and column blocks. The centered content column and fine-tuned
+typography also makes it perfect for traditional blogs. Complete editor
+styles give you a good idea of what your content will look like, even
+before you publish. You can give your site a personal touch by changing
+the background colors and the accent color in the Customizer. The colors of
+all elements on your site are automatically calculated based on the colors
 you pick, ensuring a high, accessible color contrast for your visitors.
 
 == Changelog ==
+
+= 1.7 =
+* Released: March 9, 2021
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.7
+
+= 1.6 =
+* Released: December 8, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.6
+
+= 1.5 =
+* Released: August 11, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.5
+
+= 1.4 =
+* Released: June 10, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.4
+
+= 1.3 =
+* Released: May 14, 2020
+
+https://wordpress.org/support/article/twenty-twenty-changelog/#Version_1.3
 
 = 1.2 =
 * Released: March 31, 2020
@@ -39,7 +64,7 @@ Initial release
 
 == Copyright ==
 
-Twenty Twenty WordPress Theme, Copyright 2019-2020 WordPress.org
+Twenty Twenty WordPress Theme, Copyright 2019-2021 WordPress.org
 Twenty Twenty is distributed under the terms of the GNU GPL.
 
 This program is free software: you can redistribute it and/or modify
@@ -58,7 +83,7 @@ Chaplin Theme is distributed under the terms of the GNU GPL version 2.0
 Twenty Twenty bundles the following third-party resources:
 
 Illustrations by Tammie Lister
-License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/  
+License: Creative Commons Zero (CC0), https://creativecommons.org/publicdomain/zero/1.0/
 
 Inter Font
 Copyright (c) 2016-2019 The Inter Project Authors (me@rsms.me)
@@ -77,9 +102,9 @@ License: MIT License, https://opensource.org/licenses/MIT
 Source: https://feathericons.com
 Used for post meta icons, and the link icon in the social menu.
 
-Flaticon Icons
-License: Creative Commons BY 3.0, http://creativecommons.org/licenses/by/3.0/
-Source: Made by Freepik (https://www.flaticon.com/authors/freepik) for Flaticon (http://www.flaticon.com)
+TikTok Icon
+License: GPLv2
+Source: Émilie Lebrun - @Emlebrun
 Used for TikTok social icon.
 
 Social Icons
@@ -88,7 +113,7 @@ License URI: http://www.gnu.org/licenses/gpl-2.0.html
 Source: WordPress Social Link Block (See wp-includes\blocks\social-link.php)
 
 Code from Twenty Nineteen
-Copyright (c) 2018-2020 WordPress.org
+Copyright (c) 2018-2021 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentynineteen/
 Included as part of the following classes and functions:
@@ -98,11 +123,11 @@ Included as part of the following classes and functions:
 - twentytwenty_nav_menu_social_icons()
 
 Code from Twenty Seventeen
-Copyright (c) 2016-2020 WordPress.org
+Copyright (c) 2016-2021 WordPress.org
 License: GPLv2
 Source: https://wordpress.org/themes/twentyseventeen/
 Included as part of the following classes and functions:
 - twentytwenty_unique_id()
 
-Underscores 
-https://underscores.me/, (C) 2012-2019 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)
+Underscores
+https://underscores.me/, (C) 2012-2021 Automattic, Inc., [GPLv2 or later](https://www.gnu.org/licenses/gpl-2.0.html)

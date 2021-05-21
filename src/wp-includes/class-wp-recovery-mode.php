@@ -297,7 +297,7 @@ class WP_Recovery_Mode {
 	 */
 	protected function get_email_rate_limit() {
 		/**
-		 * Filter the rate limit between sending new recovery mode email links.
+		 * Filters the rate limit between sending new recovery mode email links.
 		 *
 		 * @since 5.2.0
 		 *
@@ -319,7 +319,7 @@ class WP_Recovery_Mode {
 		$valid_for  = $rate_limit;
 
 		/**
-		 * Filter the amount of time the recovery mode email link is valid for.
+		 * Filters the amount of time the recovery mode email link is valid for.
 		 *
 		 * The ttl must be at least as long as the email rate limit.
 		 *
@@ -339,11 +339,12 @@ class WP_Recovery_Mode {
 	 *
 	 * @global array $wp_theme_directories
 	 *
-	 * @param array  $error Error that was triggered.
-	 *
+	 * @param array $error Error that was triggered.
 	 * @return array|false {
-	 *      @type string  $slug  The extension slug. This is the plugin or theme's directory.
-	 *      @type string  $type  The extension type. Either 'plugin' or 'theme'.
+	 *     Extension details.
+	 *
+	 *     @type string $slug The extension slug. This is the plugin or theme's directory.
+	 *     @type string $type The extension type. Either 'plugin' or 'theme'.
 	 * }
 	 */
 	protected function get_extension_for_error( $error ) {

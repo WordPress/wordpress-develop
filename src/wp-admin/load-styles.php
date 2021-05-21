@@ -37,7 +37,7 @@ if ( empty( $load ) ) {
 	exit;
 }
 
-$rtl            = ( isset( $_GET['dir'] ) && 'rtl' == $_GET['dir'] );
+$rtl            = ( isset( $_GET['dir'] ) && 'rtl' === $_GET['dir'] );
 $expires_offset = 31536000; // 1 year.
 $out            = '';
 
@@ -46,7 +46,7 @@ wp_default_styles( $wp_styles );
 
 if ( isset( $_SERVER['HTTP_IF_NONE_MATCH'] ) && stripslashes( $_SERVER['HTTP_IF_NONE_MATCH'] ) === $wp_version ) {
 	header( "$protocol 304 Not Modified" );
-	exit();
+	exit;
 }
 
 foreach ( $load as $handle ) {

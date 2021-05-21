@@ -28,37 +28,34 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$this->assertFalse( $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_width() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
 		$this->assertInternalType( 'array', $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_height() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
 		$this->assertInternalType( 'array', $image );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_make_intermediate_size_successful() {
-		if ( ! function_exists( 'imagejpeg' ) ) {
-			$this->fail( 'jpeg support unavailable' );
-		}
-
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
 		$this->assertInternalType( 'array', $image );
-		$this->assertEquals( 100, $image['width'] );
-		$this->assertEquals( 75, $image['height'] );
-		$this->assertEquals( 'image/jpeg', $image['mime-type'] );
+		$this->assertSame( 100, $image['width'] );
+		$this->assertSame( 75, $image['height'] );
+		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
 		$this->assertFalse( isset( $image['path'] ) );
 
@@ -66,7 +63,31 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @requires function imagejpeg
+	 * @ticket 52867
+	 */
+	function test_image_editor_output_format_filter() {
+		add_filter(
+			'image_editor_output_format',
+			function() {
+				return array( 'image/jpeg' => 'image/webp' );
+			}
+		);
+		$file   = DIR_TESTDATA . '/images/waffles.jpg';
+		$image  = image_make_intermediate_size( $file, 100, 75, true );
+		$editor = wp_get_image_editor( $file );
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/jpeg', $image['mime-type'] );
+		} else {
+			$this->assertSame( 'image/webp', $image['mime-type'] );
+		}
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
+		remove_all_filters( 'image_editor_output_format' );
+	}
+
+	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_name() {
 		add_image_size( 'test-size', 330, 220, true );
@@ -87,6 +108,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_exact() {
 		// Only one dimention match shouldn't return false positive (see: #17626).
@@ -108,6 +130,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_nearest() {
 		// If an exact size is not found, it should be returned.
@@ -151,6 +174,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_zero_height() {
 		// Generate random width.
@@ -179,6 +203,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @ticket 17626
 	 * @ticket 34087
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_zero_width() {
 		// 202 is the smallest height that will trigger a miss for 'false-height'.
@@ -207,6 +232,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	/**
 	 * @ticket 17626
 	 * @ticket 34087
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_sizes_should_match_size_with_off_by_one_aspect_ratio() {
 		// Original is 600x400. 300x201 is close enough to match.
@@ -230,6 +256,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34384
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_size_with_small_size_array() {
 		// Add a hard cropped size that matches the aspect ratio we're going to test.
@@ -247,6 +274,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34384
+	 * @requires function imagejpeg
 	 */
 	public function test_get_intermediate_size_with_small_size_array_fallback() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';

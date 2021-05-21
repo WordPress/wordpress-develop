@@ -75,6 +75,8 @@ function get_udims( $width, $height ) {
  * @deprecated 2.6.0 Use wp_category_checklist()
  * @see wp_category_checklist()
  *
+ * @global int $post_ID
+ *
  * @param int $default       Unused.
  * @param int $parent        Unused.
  * @param array $popular_ids Unused.
@@ -91,6 +93,8 @@ function dropdown_categories( $default = 0, $parent = 0, $popular_ids = array() 
  * @since 2.1.0
  * @deprecated 2.6.0 Use wp_link_category_checklist()
  * @see wp_link_category_checklist()
+ *
+ * @global int $link_id
  *
  * @param int $default Unused.
  */
@@ -128,7 +132,7 @@ function get_real_file_to_edit( $file ) {
  * @param int $parent        Optional. Parent ID to retrieve categories for. Default 0.
  * @param int $level         Optional. Number of levels deep to display. Default 0.
  * @param array $categories  Optional. Categories to include in the control. Default 0.
- * @return bool|null False if no categories were found.
+ * @return void|false Void on success, false if no categories were found.
  */
 function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $level = 0, $categories = 0 ) {
 	_deprecated_function( __FUNCTION__, '3.0.0', 'wp_dropdown_categories()' );
@@ -159,8 +163,8 @@ function wp_dropdown_cats( $currentcat = 0, $currentparent = 0, $parent = 0, $le
  * @deprecated 3.0.0 Use register_setting()
  * @see register_setting()
  *
- * @param string $option_group A settings group name. Should correspond to a whitelisted option key name.
- *                             Default whitelisted option key names include 'general', 'discussion', 'media',
+ * @param string $option_group A settings group name. Should correspond to an allowed option key name.
+ *                             Default allowed option key names include 'general', 'discussion', 'media',
  *                             'reading', 'writing', 'misc', 'options', and 'privacy'.
  * @param string $option_name The name of an option to sanitize and save.
  * @param callable $sanitize_callback A callback function that sanitizes the option's value.
@@ -247,7 +251,7 @@ function get_author_user_ids() {
  * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int $user_id User ID.
- * @return array|bool List of editable authors. False if no editable users.
+ * @return array|false List of editable authors. False if no editable users.
  */
 function get_editable_authors( $user_id ) {
 	_deprecated_function( __FUNCTION__, '3.1.0', 'get_users()' );
@@ -493,7 +497,7 @@ class WP_User_Search {
 
 		$this->search_term = wp_unslash( $search_term );
 		$this->raw_page = ( '' == $page ) ? false : (int) $page;
-		$this->page = (int) ( '' == $page ) ? 1 : $page;
+		$this->page = ( '' == $page ) ? 1 : (int) $page;
 		$this->role = $role;
 
 		$this->prepare_query();
@@ -754,8 +758,6 @@ function wp_dashboard_quick_press_output() {
  * @since 2.7.0
  * @deprecated 3.3.0 Use wp_editor()
  * @see wp_editor()
- *
- * @staticvar int $num
  */
 function wp_tiny_mce( $teeny = false, $settings = false ) {
 	_deprecated_function( __FUNCTION__, '3.3.0', 'wp_editor()' );
@@ -983,7 +985,8 @@ function type_url_form_file() {
  * @deprecated 3.3.0 Use WP_Screen::add_help_tab()
  * @see WP_Screen::add_help_tab()
  *
- * @param string    $screen The handle for the screen to add help to. This is usually the hook name returned by the add_*_page() functions.
+ * @param string    $screen The handle for the screen to add help to. This is usually
+ *                          the hook name returned by the `add_*_page()` functions.
  * @param string    $help   The content of an 'Overview' help tab.
  */
 function add_contextual_help( $screen, $help ) {
@@ -1087,7 +1090,7 @@ function _media_button($title, $icon, $type, $id) {
  * @see get_post()
  *
  * @param int $id
- * @return object
+ * @return WP_Post
  */
 function get_post_to_edit( $id ) {
 	_deprecated_function( __FUNCTION__, '3.5.0', 'get_post()' );
@@ -1119,7 +1122,7 @@ function get_default_page_to_edit() {
  * @deprecated 3.5.0 Use image_resize()
  * @see image_resize()
  *
- * @param mixed $file Filename of the original image, Or attachment id.
+ * @param mixed $file Filename of the original image, Or attachment ID.
  * @param int $max_side Maximum length of a single side for the thumbnail.
  * @param mixed $deprecated Never used.
  * @return string Thumbnail path on success, Error string on failure.
@@ -1339,7 +1342,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		// Pick a random, non-installed plugin.
 		while ( true ) {
 			// Abort this foreach loop iteration if there's no plugins left of this type.
-			if ( 0 == count($items) )
+			if ( 0 === count($items) )
 				continue 2;
 
 			$item_key = array_rand($items);
@@ -1381,7 +1384,7 @@ function wp_dashboard_plugins_output( $rss, $args = array() ) {
 		echo '<li class="dashboard-news-plugin"><span>' . __( 'Popular Plugin' ) . ':</span> ' . esc_html( $raw_title ) .
 			'&nbsp;<a href="' . $ilink . '" class="thickbox open-plugin-details-modal" aria-label="' .
 			/* translators: %s: Plugin name. */
-			esc_attr( sprintf( __( 'Install %s' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
+			esc_attr( sprintf( _x( 'Install %s', 'plugin' ), $raw_title ) ) . '">(' . __( 'Install' ) . ')</a></li>';
 
 		$feed->__destruct();
 		unset( $feed );
@@ -1532,7 +1535,7 @@ class WP_Privacy_Data_Export_Requests_Table extends WP_Privacy_Data_Export_Reque
 			$args['screen'] = 'export-personal-data';
 		}
 
-		parent::__construct( $args );	
+		parent::__construct( $args );
 	}
 }
 

@@ -1,13 +1,13 @@
 <?php
 
 class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
-	static $old_current_user;
-	static $author_id;
-	static $post_ids    = array();
-	static $comment_ids = array();
-	static $term_ids    = array();
-	static $terms       = array();
-	static $old_options = array();
+	public static $old_current_user;
+	public static $author_id;
+	public static $post_ids    = array();
+	public static $comment_ids = array();
+	public static $term_ids    = array();
+	public static $terms       = array();
+	public static $old_options = array();
 
 	/**
 	 * This can be defined in a subclass of this class which contains its own data() method.
@@ -15,7 +15,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 */
 	public $structure = '/%year%/%monthnum%/%day%/%postname%/';
 
-	public static function wpSetUpBeforeClass( $factory ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::generate_shared_fixtures( $factory );
 	}
 
@@ -41,7 +41,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @since 4.1.0
 	 */
-	public static function generate_shared_fixtures( $factory ) {
+	public static function generate_shared_fixtures( WP_UnitTest_Factory $factory ) {
 		self::$old_current_user = get_current_user_id();
 		self::$author_id        = $factory->user->create( array( 'user_login' => 'canonical-author' ) );
 
@@ -52,7 +52,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 		wp_set_current_user( self::$author_id );
 
 		// Already created by install defaults:
-		// self::factory()->term->create( array( 'taxonomy' => 'category', 'name' => 'uncategorized' ) );
+		// $factory->term->create( array( 'taxonomy' => 'category', 'name' => 'uncategorized' ) );
 
 		self::$post_ids[] = $factory->post->create(
 			array(
@@ -308,7 +308,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 
 		// Just test the path and query if present.
 		if ( isset( $expected['url'] ) ) {
-			$this->assertEquals( $expected['url'], $parsed_can_url['path'] . ( ! empty( $parsed_can_url['query'] ) ? '?' . $parsed_can_url['query'] : '' ), $ticket_ref );
+			$this->assertSame( $expected['url'], $parsed_can_url['path'] . ( ! empty( $parsed_can_url['query'] ) ? '?' . $parsed_can_url['query'] : '' ), $ticket_ref );
 		}
 
 		// If the test data doesn't include expected query vars, then we're done here.
@@ -328,7 +328,7 @@ class WP_Canonical_UnitTestCase extends WP_UnitTestCase {
 
 			// $_qv should not contain any elements which are set in $query_vars already
 			// (i.e. $_GET vars should not be present in the Rewrite).
-			$this->assertEquals( array(), array_intersect( $query_vars, $_qv ), 'Query vars are duplicated from the Rewrite into $_GET; ' . $ticket_ref );
+			$this->assertSame( array(), array_intersect( $query_vars, $_qv ), 'Query vars are duplicated from the Rewrite into $_GET; ' . $ticket_ref );
 
 			$query_vars = array_merge( $query_vars, $_qv );
 		}

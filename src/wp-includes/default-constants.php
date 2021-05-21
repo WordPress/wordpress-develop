@@ -16,7 +16,7 @@
  * @global string $wp_version The WordPress version string.
  */
 function wp_initial_constants() {
-	global $blog_id;
+	global $blog_id, $wp_version;
 
 	/**#@+
 	 * Constants for expressing human-readable data sizes in their respective number of bytes.
@@ -74,7 +74,11 @@ function wp_initial_constants() {
 
 	// Add define( 'WP_DEBUG', true ); to wp-config.php to enable display of notices during development.
 	if ( ! defined( 'WP_DEBUG' ) ) {
-		define( 'WP_DEBUG', false );
+		if ( 'development' === wp_get_environment_type() ) {
+			define( 'WP_DEBUG', true );
+		} else {
+			define( 'WP_DEBUG', false );
+		}
 	}
 
 	// Add define( 'WP_DEBUG_DISPLAY', null ); to wp-config.php to use the globally configured setting
@@ -95,8 +99,8 @@ function wp_initial_constants() {
 	// Add define( 'SCRIPT_DEBUG', true ); to wp-config.php to enable loading of non-minified,
 	// non-concatenated scripts and stylesheets.
 	if ( ! defined( 'SCRIPT_DEBUG' ) ) {
-		if ( ! empty( $GLOBALS['wp_version'] ) ) {
-			$develop_src = false !== strpos( $GLOBALS['wp_version'], '-src' );
+		if ( ! empty( $wp_version ) ) {
+			$develop_src = false !== strpos( $wp_version, '-src' );
 		} else {
 			$develop_src = false;
 		}
@@ -401,10 +405,11 @@ function wp_templating_constants() {
 	 * It will be used as the fallback if the current theme doesn't exist.
 	 *
 	 * @since 3.0.0
+	 *
 	 * @see WP_Theme::get_core_default_theme()
 	 */
 	if ( ! defined( 'WP_DEFAULT_THEME' ) ) {
-		define( 'WP_DEFAULT_THEME', 'twentytwenty' );
+		define( 'WP_DEFAULT_THEME', 'twentytwentyone' );
 	}
 
 }

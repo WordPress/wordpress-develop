@@ -10,8 +10,7 @@ function tests_get_phpunit_version() {
 	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
 		$version = PHPUnit_Runner_Version::id();
 	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
-		// Must be parsable by PHP 5.2.x.
-		$version = call_user_func( 'PHPUnit\Runner\Version::id' );
+		$version = PHPUnit\Runner\Version::id();
 	} else {
 		$version = 0;
 	}
@@ -206,8 +205,12 @@ function _wp_die_handler_filter_exit() {
  */
 function _wp_die_handler_txt( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
@@ -225,8 +228,12 @@ function _wp_die_handler_txt( $message, $title, $args ) {
  */
 function _wp_die_handler_exit( $message, $title, $args ) {
 	echo "\nwp_die called\n";
-	echo "Message : $message\n";
-	echo "Title : $title\n";
+	echo "Message: $message\n";
+
+	if ( ! empty( $title ) ) {
+		echo "Title: $title\n";
+	}
+
 	if ( ! empty( $args ) ) {
 		echo "Args: \n";
 		foreach ( $args as $k => $v ) {
@@ -299,13 +306,32 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_block' );
 	remove_action( 'init', 'register_block_core_calendar' );
 	remove_action( 'init', 'register_block_core_categories' );
+	remove_action( 'init', 'register_block_core_file' );
+	remove_action( 'init', 'register_block_core_loginout' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_post_author' );
+	remove_action( 'init', 'register_block_core_post_content' );
+	remove_action( 'init', 'register_block_core_post_date' );
+	remove_action( 'init', 'register_block_core_post_excerpt' );
+	remove_action( 'init', 'register_block_core_post_featured_image' );
+	remove_action( 'init', 'register_block_core_post_terms' );
+	remove_action( 'init', 'register_block_core_post_title' );
+	remove_action( 'init', 'register_block_core_query' );
+	remove_action( 'init', 'register_block_core_query_loop' );
+	remove_action( 'init', 'register_block_core_query_pagination' );
+	remove_action( 'init', 'register_block_core_query_pagination_next' );
+	remove_action( 'init', 'register_block_core_query_pagination_numbers' );
+	remove_action( 'init', 'register_block_core_query_pagination_previous' );
+	remove_action( 'init', 'register_block_core_query_title' );
 	remove_action( 'init', 'register_block_core_rss' );
 	remove_action( 'init', 'register_block_core_search' );
 	remove_action( 'init', 'register_block_core_shortcode' );
+	remove_action( 'init', 'register_block_core_site_tagline' );
+	remove_action( 'init', 'register_block_core_site_title' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
+	remove_action( 'init', 'register_core_block_types_from_metadata' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

@@ -35,7 +35,7 @@ if ( ! empty( $_REQUEST['paged'] ) ) {
 	$referer = add_query_arg( 'paged', (int) $_REQUEST['paged'], $referer );
 }
 
-$id = isset( $_REQUEST['id'] ) ? intval( $_REQUEST['id'] ) : 0;
+$id = isset( $_REQUEST['id'] ) ? (int) $_REQUEST['id'] : 0;
 
 if ( ! $id ) {
 	wp_die( __( 'Invalid site ID.' ) );
@@ -77,6 +77,7 @@ if ( $action ) {
 						$update = 'err_add_fail';
 					} else {
 						$update = 'newuser';
+
 						/**
 						 * Fires after a user has been created via the network site-users.php page.
 						 *
@@ -139,12 +140,7 @@ if ( $action ) {
 		case 'promote':
 			check_admin_referer( 'bulk-users' );
 			$editable_roles = get_editable_roles();
-			$role           = false;
-			if ( ! empty( $_REQUEST['new_role2'] ) ) {
-				$role = $_REQUEST['new_role2'];
-			} elseif ( ! empty( $_REQUEST['new_role'] ) ) {
-				$role = $_REQUEST['new_role'];
-			}
+			$role           = $_REQUEST['new_role'];
 
 			if ( empty( $editable_roles[ $role ] ) ) {
 				wp_die( __( 'Sorry, you are not allowed to give users that role.' ), 403 );
@@ -178,21 +174,23 @@ if ( $action ) {
 			}
 			check_admin_referer( 'bulk-users' );
 			$userids = $_REQUEST['users'];
+
 			/** This action is documented in wp-admin/network/site-themes.php */
 			$referer = apply_filters( 'handle_network_bulk_actions-' . get_current_screen()->id, $referer, $action, $userids, $id ); // phpcs:ignore WordPress.NamingConventions.ValidHookName.UseUnderscores
-			$update  = $action;
+
+			$update = $action;
 			break;
 	}
 
 	wp_safe_redirect( add_query_arg( 'update', $update, $referer ) );
-	exit();
+	exit;
 }
 
 restore_current_blog();
 
-if ( isset( $_GET['action'] ) && 'update-site' == $_GET['action'] ) {
+if ( isset( $_GET['action'] ) && 'update-site' === $_GET['action'] ) {
 	wp_safe_redirect( $referer );
-	exit();
+	exit;
 }
 
 add_screen_option( 'per_page' );
@@ -217,7 +215,7 @@ if ( ! wp_is_large_network( 'users' ) && apply_filters( 'show_network_site_users
 require_once ABSPATH . 'wp-admin/admin-header.php'; ?>
 
 <script type="text/javascript">
-var current_site_id = <?php echo $id; ?>;
+var current_site_id = <?php echo absint( $id ); ?>;
 </script>
 
 

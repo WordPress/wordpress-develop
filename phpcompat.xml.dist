@@ -74,7 +74,7 @@
 	</rule>
 
 	<!-- Whitelist the WP DB Class for use of `mysql_` extension in PHP < 7.0. -->
-	<rule ref="PHPCompatibility.Extensions.RemovedExtensions">
+	<rule ref="PHPCompatibility.Extensions.RemovedExtensions.mysql_DeprecatedRemoved">
 		<exclude-pattern>/src/wp-includes/wp-db\.php</exclude-pattern>
 	</rule>
 </ruleset>

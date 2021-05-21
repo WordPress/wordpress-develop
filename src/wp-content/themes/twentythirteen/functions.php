@@ -168,6 +168,7 @@ function twentythirteen_setup() {
 			'caption',
 			'script',
 			'style',
+			'navigation-widgets',
 		)
 	);
 
@@ -284,7 +285,7 @@ function twentythirteen_scripts_styles() {
 	wp_enqueue_style( 'genericons', get_template_directory_uri() . '/genericons/genericons.css', array(), '3.0.3' );
 
 	// Loads our main stylesheet.
-	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20190507' );
+	wp_enqueue_style( 'twentythirteen-style', get_stylesheet_uri(), array(), '20201208' );
 
 	// Theme block stylesheet.
 	wp_enqueue_style( 'twentythirteen-block-style', get_template_directory_uri() . '/css/blocks.css', array( 'twentythirteen-style' ), '20190102' );
@@ -327,7 +328,7 @@ add_filter( 'wp_resource_hints', 'twentythirteen_resource_hints', 10, 2 );
  */
 function twentythirteen_block_editor_styles() {
 	// Block styles.
-	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20190102' );
+	wp_enqueue_style( 'twentythirteen-block-editor-style', get_template_directory_uri() . '/css/editor-blocks.css', array(), '20201208' );
 	// Add custom fonts.
 	wp_enqueue_style( 'twentythirteen-fonts', twentythirteen_fonts_url(), array(), null );
 }
@@ -478,7 +479,7 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 			echo '<span class="featured-post">' . esc_html__( 'Sticky', 'twentythirteen' ) . '</span>';
 		}
 
-		if ( ! has_post_format( 'link' ) && 'post' == get_post_type() ) {
+		if ( ! has_post_format( 'link' ) && 'post' === get_post_type() ) {
 			twentythirteen_entry_date();
 		}
 
@@ -489,13 +490,13 @@ if ( ! function_exists( 'twentythirteen_entry_meta' ) ) :
 		}
 
 		/* translators: Used between list items, there is a space after the comma. */
-		$tag_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
-		if ( $tag_list ) {
-			echo '<span class="tags-links">' . $tag_list . '</span>';
+		$tags_list = get_the_tag_list( '', __( ', ', 'twentythirteen' ) );
+		if ( $tags_list && ! is_wp_error( $tags_list ) ) {
+			echo '<span class="tags-links">' . $tags_list . '</span>';
 		}
 
 		// Post author.
-		if ( 'post' == get_post_type() ) {
+		if ( 'post' === get_post_type() ) {
 			printf(
 				'<span class="author vcard"><a class="url fn n" href="%1$s" title="%2$s" rel="author">%3$s</a></span>',
 				esc_url( get_author_posts_url( get_the_author_meta( 'ID' ) ) ),
@@ -515,7 +516,7 @@ if ( ! function_exists( 'twentythirteen_entry_date' ) ) :
 	 *
 	 * @since Twenty Thirteen 1.0
 	 *
-	 * @param boolean $echo (optional) Whether to echo the date. Default true.
+	 * @param bool $echo (optional) Whether to echo the date. Default true.
 	 * @return string The HTML-formatted post date.
 	 */
 	function twentythirteen_entry_date( $echo = true ) {
@@ -551,7 +552,7 @@ if ( ! function_exists( 'twentythirteen_the_attached_image' ) ) :
 	 */
 	function twentythirteen_the_attached_image() {
 		/**
-		 * Filter the image attachment size to use.
+		 * Filters the image attachment size to use.
 		 *
 		 * @since Twenty thirteen 1.0
 		 *
@@ -734,6 +735,7 @@ add_action( 'customize_register', 'twentythirteen_customize_register' );
  * Render the site title for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void
@@ -746,6 +748,7 @@ function twentythirteen_customize_partial_blogname() {
  * Render the site tagline for the selective refresh partial.
  *
  * @since Twenty Thirteen 1.9
+ *
  * @see twentythirteen_customize_register()
  *
  * @return void
@@ -755,7 +758,7 @@ function twentythirteen_customize_partial_blogdescription() {
 }
 
 /**
- * Enqueue Javascript postMessage handlers for the Customizer.
+ * Enqueue JavaScript postMessage handlers for the Customizer.
  *
  * Binds JavaScript handlers to make the Customizer preview
  * reload changes asynchronously.

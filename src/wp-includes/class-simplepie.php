@@ -68,7 +68,7 @@ spl_autoload_register( 'wp_simplepie_autoload' );
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * @package SimplePie
- * @version 1.5.5
+ * @version 1.5.6
  * @copyright 2004-2017 Ryan Parman, Sam Sneddon, Ryan McCue
  * @author Ryan Parman
  * @author Sam Sneddon
@@ -85,7 +85,7 @@ define('SIMPLEPIE_NAME', 'SimplePie');
 /**
  * SimplePie Version
  */
-define('SIMPLEPIE_VERSION', '1.5.5');
+define('SIMPLEPIE_VERSION', '1.5.6');
 
 /**
  * SimplePie Build
@@ -3165,7 +3165,7 @@ class SimplePie
 		}
 
 		$class = get_class($this);
-		$trace = debug_backtrace();
+		$trace = debug_backtrace(); // phpcs:ignore PHPCompatibility.FunctionUse.ArgumentFunctionsReportCurrentValue.NeedsInspection
 		$file = $trace[0]['file'];
 		$line = $trace[0]['line'];
 		trigger_error("Call to undefined method $class::$method() in $file on line $line", E_USER_ERROR);

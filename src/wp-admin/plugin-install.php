@@ -6,7 +6,7 @@
  * @subpackage Administration
  */
 // TODO: Route this page via a specific iframe handler instead of the do_action below.
-if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-information' == $_GET['tab'] ) ) {
+if ( ! defined( 'IFRAME_REQUEST' ) && isset( $_GET['tab'] ) && ( 'plugin-information' === $_GET['tab'] ) ) {
 	define( 'IFRAME_REQUEST', true );
 }
 
@@ -21,7 +21,7 @@ if ( ! current_user_can( 'install_plugins' ) ) {
 
 if ( is_multisite() && ! is_network_admin() ) {
 	wp_redirect( network_admin_url( 'plugin-install.php' ) );
-	exit();
+	exit;
 }
 
 $wp_list_table = _get_list_table( 'WP_Plugin_Install_List_Table' );
@@ -158,7 +158,6 @@ if ( 'upload' !== $tab ) {
 	</div>
 	<?php
 	$wp_list_table->views();
-	echo '<br class="clear" />';
 }
 
 /**

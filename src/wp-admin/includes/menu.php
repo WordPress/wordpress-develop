@@ -168,7 +168,7 @@ foreach ( $menu as $id => $data ) {
 	 * If there is only one submenu and it is has same destination as the parent,
 	 * remove the submenu.
 	 */
-	if ( ! empty( $submenu[ $data[2] ] ) && 1 == count( $submenu[ $data[2] ] ) ) {
+	if ( ! empty( $submenu[ $data[2] ] ) && 1 === count( $submenu[ $data[2] ] ) ) {
 		$subs      = $submenu[ $data[2] ];
 		$first_sub = reset( $subs );
 		if ( $data[2] == $first_sub[2] ) {
@@ -333,7 +333,7 @@ unset( $id, $data, $prev_menu_was_separator );
 // Remove the last menu item if it is a separator.
 $last_menu_key = array_keys( $menu );
 $last_menu_key = array_pop( $last_menu_key );
-if ( ! empty( $menu ) && 'wp-menu-separator' == $menu[ $last_menu_key ][4] ) {
+if ( ! empty( $menu ) && 'wp-menu-separator' === $menu[ $last_menu_key ][4] ) {
 	unset( $menu[ $last_menu_key ] );
 }
 unset( $last_menu_key );

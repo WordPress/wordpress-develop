@@ -75,4 +75,13 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 		$this->assertSame( 'Bang', $found );
 	}
+
+	/**
+	 * @ticket 47824
+	 */
+	public function test_should_fall_back_to_post_global_outside_of_the_loop() {
+		$GLOBALS['post'] = self::factory()->post->create( array( 'post_content' => 'Foo' ) );
+
+		$this->assertSame( 'Foo', get_the_content() );
+	}
 }

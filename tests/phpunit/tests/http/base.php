@@ -12,8 +12,8 @@
  */
 abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	// You can use your own version of data/WPHTTP-testcase-redirection-script.php here.
-	var $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
-	var $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
+	public $redirection_script = 'http://api.wordpress.org/core/tests/1.0/redirection.php';
+	public $file_stream_url    = 'http://s.w.org/screenshots/3.9/dashboard.png';
 
 	protected $http_request_args;
 
@@ -27,7 +27,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$class = 'WP_Http_' . ucfirst( $this->transport );
 		if ( ! call_user_func( array( $class, 'test' ) ) ) {
-			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system', $this->transport ) );
+			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system.', $this->transport ) );
 		}
 
 		// Disable all transports aside from this one.
@@ -39,38 +39,39 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		}
 	}
 
-	function tearDown() {
-		foreach ( array( 'curl', 'streams', 'fsockopen' ) as $t ) {
-			remove_filter( "use_{$t}_transport", '__return_false' );
-		}
-		parent::tearDown();
-	}
-
 	function filter_http_request_args( array $args ) {
 		$this->http_request_args = $args;
 		return $args;
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirect_on_301() {
 		// 5 : 5 & 301.
 		$res = wp_remote_request( $this->redirection_script . '?code=301&rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 200, (int) $res['response']['code'] );
+		$this->assertSame( 200, (int) $res['response']['code'] );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirect_on_302() {
 		// 5 : 5 & 302.
 		$res = wp_remote_request( $this->redirection_script . '?code=302&rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 200, (int) $res['response']['code'] );
+		$this->assertSame( 200, (int) $res['response']['code'] );
 	}
 
 	/**
 	 * @ticket 16855
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_redirect_on_301_no_redirect() {
 		// 5 > 0 & 301.
@@ -78,11 +79,13 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 301, (int) $res['response']['code'] );
+		$this->assertSame( 301, (int) $res['response']['code'] );
 	}
 
 	/**
 	 * @ticket 16855
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_redirect_on_302_no_redirect() {
 		// 5 > 0 & 302.
@@ -90,29 +93,37 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 302, (int) $res['response']['code'] );
+		$this->assertSame( 302, (int) $res['response']['code'] );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirections_equal() {
 		// 5 - 5.
 		$res = wp_remote_request( $this->redirection_script . '?rt=' . 5, array( 'redirection' => 5 ) );
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 200, (int) $res['response']['code'] );
+		$this->assertSame( 200, (int) $res['response']['code'] );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_no_head_redirections() {
 		// No redirections on HEAD request.
 		$res = wp_remote_request( $this->redirection_script . '?code=302&rt=' . 1, array( 'method' => 'HEAD' ) );
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 302, (int) $res['response']['code'] );
+		$this->assertSame( 302, (int) $res['response']['code'] );
 	}
 
 	/**
 	 * @ticket 16855
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_redirect_on_head() {
 		// Redirections on HEAD request when Requested.
@@ -126,9 +137,12 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 200, (int) $res['response']['code'] );
+		$this->assertSame( 200, (int) $res['response']['code'] );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirections_greater() {
 		// 10 > 5.
 		$res = wp_remote_request( $this->redirection_script . '?rt=' . 10, array( 'redirection' => 5 ) );
@@ -137,6 +151,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertWPError( $res );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirections_greater_edgecase() {
 		// 6 > 5 (close edge case).
 		$res = wp_remote_request( $this->redirection_script . '?rt=' . 6, array( 'redirection' => 5 ) );
@@ -145,6 +162,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$this->assertWPError( $res );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_redirections_less_edgecase() {
 		// 4 < 5 (close edge case).
 		$res = wp_remote_request( $this->redirection_script . '?rt=' . 4, array( 'redirection' => 5 ) );
@@ -155,6 +175,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 16855
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_redirections_zero_redirections_specified() {
 		// 0 redirections asked for, should return the document?
@@ -162,13 +184,15 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 302, (int) $res['response']['code'] );
+		$this->assertSame( 302, (int) $res['response']['code'] );
 	}
 
 	/**
 	 * Do not redirect on non 3xx status codes.
 	 *
 	 * @ticket 16889
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_location_header_on_201() {
 		// Prints PASS on initial load, FAIL if the client follows the specified redirection.
@@ -176,13 +200,16 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( 'PASS', $res['body'] );
+		$this->assertSame( 'PASS', $res['body'] );
 	}
 
 	/**
 	 * Test handling of PUT requests on redirects.
 	 *
 	 * @ticket 16889
+	 *
+	 * @covers ::wp_remote_request
+	 * @covers ::wp_remote_retrieve_body
 	 */
 	function test_no_redirection_on_PUT() {
 		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?201-location=1';
@@ -197,12 +224,14 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		);
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertEquals( 'PASS', wp_remote_retrieve_body( $res ) );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 		$this->assertTrue( ! empty( $res['headers']['location'] ) );
 	}
 
 	/**
 	 * @ticket 11888
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_send_headers() {
 		// Test that the headers sent are received by the server.
@@ -233,6 +262,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		// $this->assertTrue( isset( $headers['test3'] ) && '' === $headers['test3'] );
 	}
 
+	/**
+	 * @covers ::wp_remote_request
+	 */
 	function test_file_stream() {
 		$url  = $this->file_stream_url;
 		$size = 153204;
@@ -252,14 +284,16 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( '', $res['body'] ); // The body should be empty.
+		$this->assertSame( '', $res['body'] ); // The body should be empty.
 		$this->assertEquals( $size, $res['headers']['content-length'] );   // Check the headers are returned (and the size is the same).
-		$this->assertEquals( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
 		$this->assertStringStartsWith( get_temp_dir(), $res['filename'] ); // Check it's saving within the temp directory.
 	}
 
 	/**
 	 * @ticket 26726
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_file_stream_limited_size() {
 		$url  = $this->file_stream_url;
@@ -281,7 +315,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
+		$this->assertSame( $size, $filesize ); // Check that the file is written to disk correctly without any extra characters.
 
 	}
 
@@ -289,6 +323,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Tests limiting the response size when returning strings.
 	 *
 	 * @ticket 31172
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_request_limited_size() {
 		$url  = $this->file_stream_url;
@@ -304,7 +340,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertNotWPError( $res );
-		$this->assertEquals( $size, strlen( $res['body'] ) );
+		$this->assertSame( $size, strlen( $res['body'] ) );
 	}
 
 	/**
@@ -313,6 +349,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * @dataProvider data_post_redirect_to_method_300
 	 *
 	 * @ticket 17588
+	 *
+	 * @covers ::wp_remote_post
+	 * @covers ::wp_remote_retrieve_body
 	 */
 	function test_post_redirect_to_method_300( $response_code, $method ) {
 		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?post-redirect-to-method=1';
@@ -320,7 +359,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_post( add_query_arg( 'response_code', $response_code, $url ), array( 'timeout' => 30 ) );
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertEquals( $method, wp_remote_retrieve_body( $res ) );
+		$this->assertSame( $method, wp_remote_retrieve_body( $res ) );
 	}
 
 	public function data_post_redirect_to_method_300() {
@@ -352,6 +391,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Test HTTP Requests using an IP URL, with a HOST header specified.
 	 *
 	 * @ticket 24182
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_body
 	 */
 	function test_ip_url_with_host_header() {
 		$ip   = gethostbyname( 'api.wordpress.org' );
@@ -367,7 +409,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_get( $url, $args );
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertEquals( 'PASS', wp_remote_retrieve_body( $res ) );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 
 	}
 
@@ -375,6 +417,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Test HTTP requests where SSL verification is disabled but the CA bundle is still populated.
 	 *
 	 * @ticket 33978
+	 *
+	 * @covers ::wp_remote_head
 	 */
 	function test_https_url_without_ssl_verification() {
 		$url  = 'https://wordpress.org/';
@@ -397,6 +441,11 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Test HTTP Redirects with multiple Location headers specified.
 	 *
 	 * @ticket 16890
+	 *
+	 * @covers ::wp_remote_head
+	 * @covers ::wp_remote_retrieve_header
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_body
 	 */
 	function test_multiple_location_headers() {
 		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?multiple-location-headers=1';
@@ -409,7 +458,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_get( $url, array( 'timeout' => 30 ) );
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertEquals( 'PASS', wp_remote_retrieve_body( $res ) );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 
 	}
 
@@ -417,6 +466,9 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 * Test HTTP Cookie handling.
 	 *
 	 * @ticket 21182
+	 *
+	 * @covers ::wp_remote_get
+	 * @covers ::wp_remote_retrieve_body
 	 */
 	function test_cookie_handling() {
 		$url = 'http://api.wordpress.org/core/tests/1.0/redirection.php?cookie-test=1';
@@ -424,7 +476,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_get( $url );
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertEquals( 'PASS', wp_remote_retrieve_body( $res ) );
+		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
 	}
 
 	/**
@@ -432,10 +484,12 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	 *
 	 * @group ssl
 	 * @ticket 25007
+	 *
+	 * @covers ::wp_remote_get
 	 */
 	function test_ssl() {
 		if ( ! wp_http_supports( array( 'ssl' ) ) ) {
-			$this->fail( 'This installation of PHP does not support SSL' );
+			$this->fail( 'This installation of PHP does not support SSL.' );
 		}
 
 		$res = wp_remote_get( 'https://wordpress.org/' );
@@ -446,6 +500,8 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37733
+	 *
+	 * @covers ::wp_remote_request
 	 */
 	function test_url_with_double_slashes_path() {
 		$url = $this->redirection_script . '?rt=' . 0;

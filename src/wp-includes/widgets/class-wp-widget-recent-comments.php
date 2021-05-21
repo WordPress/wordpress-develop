@@ -69,8 +69,6 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 	 * @since 5.4.0 Creates a unique HTML ID for the `<ul>` element
 	 *              if more than one instance is displayed on the page.
 	 *
-	 * @staticvar bool $first_instance
-	 *
 	 * @param array $args     Display arguments including 'before_title', 'after_title',
 	 *                        'before_widget', and 'after_widget'.
 	 * @param array $instance Settings for the current Recent Comments widget instance.
@@ -84,7 +82,8 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 
 		$output = '';
 
-		$title = ( ! empty( $instance['title'] ) ) ? $instance['title'] : __( 'Recent Comments' );
+		$default_title = __( 'Recent Comments' );
+		$title         = ( ! empty( $instance['title'] ) ) ? $instance['title'] : $default_title;
 
 		/** This filter is documented in wp-includes/widgets/class-wp-widget-pages.php */
 		$title = apply_filters( 'widget_title', $title, $instance, $this->id_base );
@@ -125,6 +124,18 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 		$recent_comments_id = ( $first_instance ) ? 'recentcomments' : "recentcomments-{$this->number}";
 		$first_instance     = false;
 
+		$format = current_theme_supports( 'html5', 'navigation-widgets' ) ? 'html5' : 'xhtml';
+
+		/** This filter is documented in wp-includes/widgets/class-wp-nav-menu-widget.php */
+		$format = apply_filters( 'navigation_widgets_format', $format );
+
+		if ( 'html5' === $format ) {
+			// The title may be filtered: Strip out HTML and make sure the aria-label is never empty.
+			$title      = trim( strip_tags( $title ) );
+			$aria_label = $title ? $title : $default_title;
+			$output    .= '<nav role="navigation" aria-label="' . esc_attr( $aria_label ) . '">';
+		}
+
 		$output .= '<ul id="' . esc_attr( $recent_comments_id ) . '">';
 		if ( is_array( $comments ) && $comments ) {
 			// Prime cache for associated posts. (Prime post term cache if we need it for permalinks.)
@@ -143,6 +154,11 @@ class WP_Widget_Recent_Comments extends WP_Widget {
 			}
 		}
 		$output .= '</ul>';
+
+		if ( 'html5' === $format ) {
+			$output .= '</nav>';
+		}
+
 		$output .= $args['after_widget'];
 
 		echo $output;

@@ -38,7 +38,7 @@ final class WP_Taxonomy {
 	 * @see get_taxonomy_labels()
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $labels;
 
@@ -152,7 +152,7 @@ final class WP_Taxonomy {
 	 * Capabilities for this taxonomy.
 	 *
 	 * @since 4.7.0
-	 * @var object
+	 * @var stdClass
 	 */
 	public $cap;
 
@@ -210,6 +210,43 @@ final class WP_Taxonomy {
 	public $rest_controller_class;
 
 	/**
+	 * The controller instance for this taxonomy's REST API endpoints.
+	 *
+	 * Lazily computed. Should be accessed using {@see WP_Taxonomy::get_rest_controller()}.
+	 *
+	 * @since 5.5.0
+	 * @var WP_REST_Controller $rest_controller
+	 */
+	public $rest_controller;
+
+	/**
+	 * The default term name for this taxonomy. If you pass an array you have
+	 * to set 'name' and optionally 'slug' and 'description'.
+	 *
+	 * @since 5.5.0
+	 * @var array|string
+	 */
+	public $default_term;
+
+	/**
+	 * Whether terms in this taxonomy should be sorted in the order they are provided to `wp_set_object_terms()`.
+	 *
+	 * Use this in combination with `'orderby' => 'term_order'` when fetching terms.
+	 *
+	 * @since 2.5.0
+	 * @var bool|null
+	 */
+	public $sort = null;
+
+	/**
+	 * Array of arguments to automatically use inside `wp_get_object_terms()` for this taxonomy.
+	 *
+	 * @since 2.6.0
+	 * @var array|null
+	 */
+	public $args = null;
+
+	/**
 	 * Whether it is a built-in taxonomy.
 	 *
 	 * @since 4.7.0
@@ -219,6 +256,8 @@ final class WP_Taxonomy {
 
 	/**
 	 * Constructor.
+	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
 	 *
 	 * @since 4.7.0
 	 *
@@ -238,6 +277,8 @@ final class WP_Taxonomy {
 	/**
 	 * Sets taxonomy properties.
 	 *
+	 * See the register_taxonomy() function for accepted arguments for `$args`.
+	 *
 	 * @since 4.7.0
 	 *
 	 * @param array|string $object_type Name of the object type for the taxonomy object.
@@ -252,6 +293,7 @@ final class WP_Taxonomy {
 		 * @since 4.4.0
 		 *
 		 * @param array    $args        Array of arguments for registering a taxonomy.
+		 *                              See the register_taxonomy() function for accepted arguments.
 		 * @param string   $taxonomy    Taxonomy key.
 		 * @param string[] $object_type Array of names of object types for the taxonomy.
 		 */
@@ -278,6 +320,9 @@ final class WP_Taxonomy {
 			'show_in_rest'          => false,
 			'rest_base'             => false,
 			'rest_controller_class' => false,
+			'default_term'          => null,
+			'sort'                  => null,
+			'args'                  => null,
 			'_builtin'              => false,
 		);
 
@@ -299,7 +344,7 @@ final class WP_Taxonomy {
 			$args['query_var'] = false;
 		}
 
-		if ( false !== $args['rewrite'] && ( is_admin() || '' != get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $args['rewrite'] && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			$args['rewrite'] = wp_parse_args(
 				$args['rewrite'],
 				array(
@@ -376,6 +421,21 @@ final class WP_Taxonomy {
 			}
 		}
 
+		// Default taxonomy term.
+		if ( ! empty( $args['default_term'] ) ) {
+			if ( ! is_array( $args['default_term'] ) ) {
+				$args['default_term'] = array( 'name' => $args['default_term'] );
+			}
+			$args['default_term'] = wp_parse_args(
+				$args['default_term'],
+				array(
+					'name'        => '',
+					'slug'        => '',
+					'description' => '',
+				)
+			);
+		}
+
 		foreach ( $args as $property_name => $property_value ) {
 			$this->$property_name = $property_value;
 		}
@@ -400,7 +460,7 @@ final class WP_Taxonomy {
 			$wp->add_query_var( $this->query_var );
 		}
 
-		if ( false !== $this->rewrite && ( is_admin() || '' != get_option( 'permalink_structure' ) ) ) {
+		if ( false !== $this->rewrite && ( is_admin() || get_option( 'permalink_structure' ) ) ) {
 			if ( $this->hierarchical && $this->rewrite['hierarchical'] ) {
 				$tag = '(.+?)';
 			} else {
@@ -451,5 +511,41 @@ final class WP_Taxonomy {
 	 */
 	public function remove_hooks() {
 		remove_filter( 'wp_ajax_add-' . $this->name, '_wp_ajax_add_hierarchical_term' );
+	}
+
+	/**
+	 * Gets the REST API controller for this taxonomy.
+	 *
+	 * Will only instantiate the controller class once per request.
+	 *
+	 * @since 5.5.0
+	 *
+	 * @return WP_REST_Controller|null The controller instance, or null if the taxonomy
+	 *                                 is set not to show in rest.
+	 */
+	public function get_rest_controller() {
+		if ( ! $this->show_in_rest ) {
+			return null;
+		}
+
+		$class = $this->rest_controller_class ? $this->rest_controller_class : WP_REST_Terms_Controller::class;
+
+		if ( ! class_exists( $class ) ) {
+			return null;
+		}
+
+		if ( ! is_subclass_of( $class, WP_REST_Controller::class ) ) {
+			return null;
+		}
+
+		if ( ! $this->rest_controller ) {
+			$this->rest_controller = new $class( $this->name );
+		}
+
+		if ( ! ( $this->rest_controller instanceof $class ) ) {
+			return null;
+		}
+
+		return $this->rest_controller;
 	}
 }

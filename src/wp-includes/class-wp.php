@@ -83,7 +83,7 @@ class WP {
 	public $did_permalink = false;
 
 	/**
-	 * Add name to list of public query variables.
+	 * Adds a query variable to the list of public query variables.
 	 *
 	 * @since 2.1.0
 	 *
@@ -107,19 +107,19 @@ class WP {
 	}
 
 	/**
-	 * Set the value of a query variable.
+	 * Sets the value of a query variable.
 	 *
 	 * @since 2.3.0
 	 *
-	 * @param string $key Query variable name.
-	 * @param mixed $value Query variable value.
+	 * @param string $key   Query variable name.
+	 * @param mixed  $value Query variable value.
 	 */
 	public function set_query_var( $key, $value ) {
 		$this->query_vars[ $key ] = $value;
 	}
 
 	/**
-	 * Parse request to find correct WordPress query.
+	 * Parses the request to find the correct WordPress query.
 	 *
 	 * Sets up the query variables based on the request. There are also many
 	 * filters and actions that can be used to further manipulate the result.
@@ -275,7 +275,7 @@ class WP {
 		}
 
 		/**
-		 * Filters the query variables whitelist before processing.
+		 * Filters the query variables allowed before processing.
 		 *
 		 * Allows (publicly allowed) query vars to be added, removed, or changed prior
 		 * to executing the query. Needed to allow custom rewrite rules using your own arguments
@@ -283,7 +283,7 @@ class WP {
 		 *
 		 * @since 1.5.0
 		 *
-		 * @param string[] $public_query_vars The array of whitelisted query variable names.
+		 * @param string[] $public_query_vars The array of allowed query variable names.
 		 */
 		$this->public_query_vars = apply_filters( 'query_vars', $this->public_query_vars );
 
@@ -404,6 +404,15 @@ class WP {
 
 		if ( is_user_logged_in() ) {
 			$headers = array_merge( $headers, wp_get_nocache_headers() );
+		} elseif ( ! empty( $_GET['unapproved'] ) && ! empty( $_GET['moderation-hash'] ) ) {
+			// Unmoderated comments are only visible for 10 minutes via the moderation hash.
+			$expires = 10 * MINUTE_IN_SECONDS;
+
+			$headers['Expires']       = gmdate( 'D, d M Y H:i:s', time() + $expires );
+			$headers['Cache-Control'] = sprintf(
+				'max-age=%d, must-revalidate',
+				$expires
+			);
 		}
 		if ( ! empty( $this->query_vars['error'] ) ) {
 			$status = (int) $this->query_vars['error'];
@@ -420,7 +429,7 @@ class WP {
 		} else {
 			// Set the correct content type for feeds.
 			$type = $this->query_vars['feed'];
-			if ( 'feed' == $this->query_vars['feed'] ) {
+			if ( 'feed' === $this->query_vars['feed'] ) {
 				$type = get_default_feed();
 			}
 			$headers['Content-Type'] = feed_content_type( $type ) . '; charset=' . get_option( 'blog_charset' );
@@ -481,7 +490,7 @@ class WP {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $headers Associative array of headers to be sent.
-		 * @param WP       $this    Current WordPress environment instance.
+		 * @param WP       $wp      Current WordPress environment instance.
 		 */
 		$headers = apply_filters( 'wp_headers', $headers, $this );
 
@@ -505,7 +514,7 @@ class WP {
 		}
 
 		if ( $exit_required ) {
-			exit();
+			exit;
 		}
 
 		/**
@@ -593,8 +602,8 @@ class WP {
 			$GLOBALS['single'] = 1;
 		}
 
-		if ( $wp_query->is_author() && isset( $wp_query->post ) ) {
-			$GLOBALS['authordata'] = get_userdata( $wp_query->post->post_author );
+		if ( $wp_query->is_author() ) {
+			$GLOBALS['authordata'] = get_userdata( get_queried_object_id() );
 		}
 	}
 

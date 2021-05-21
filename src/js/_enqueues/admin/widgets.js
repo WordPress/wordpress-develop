@@ -16,20 +16,6 @@ window.wpWidgets = {
 	hoveredSidebar: null,
 
 	/**
-	 * Translations.
-	 *
-	 * Exported from PHP in wp_default_scripts().
-	 *
-	 * @var {object}
-	 */
-	l10n: {
-		save: '{save}',
-		saved: '{saved}',
-		saveAlert: '{saveAlert}',
-		widgetAdded: '{widgetAdded}'
-	},
-
-	/**
 	 * Lookup of which widgets have had change events triggered.
 	 *
 	 * @var {object}
@@ -50,7 +36,7 @@ window.wpWidgets = {
 			 * Toggle the widgets containers when clicked and update the toggle
 			 * button `aria-expanded` attribute value.
 			 */
-			.click( function() {
+			.on( 'click', function() {
 				var $this = $( this ),
 					$wrap = $this.closest( '.widgets-holder-wrap '),
 					$toggle = $this.find( '.handlediv' );
@@ -95,7 +81,7 @@ window.wpWidgets = {
 				});
 				unsavedWidgetsElements.each( function() {
 					if ( ! $( this ).hasClass( 'open' ) ) {
-						$( this ).find( '.widget-title-action:first' ).click();
+						$( this ).find( '.widget-title-action:first' ).trigger( 'click' );
 					}
 				});
 
@@ -106,16 +92,16 @@ window.wpWidgets = {
 					} else {
 						this.scrollIntoView();
 					}
-					$( this ).find( '.widget-inside :tabbable:first' ).focus();
+					$( this ).find( '.widget-inside :tabbable:first' ).trigger( 'focus' );
 				} );
 
-				event.returnValue = wpWidgets.l10n.saveAlert;
+				event.returnValue = wp.i18n.__( 'The changes you made will be lost if you navigate away from this page.' );
 				return event.returnValue;
 			}
 		});
 
 		// Handle the widgets containers in the left column.
-		$( '#widgets-left .sidebar-name' ).click( function() {
+		$( '#widgets-left .sidebar-name' ).on( 'click', function() {
 			var $wrap = $( this ).closest( '.widgets-holder-wrap' );
 
 			$wrap
@@ -126,7 +112,7 @@ window.wpWidgets = {
 			$document.triggerHandler( 'wp-pin-menu' );
 		});
 
-		$(document.body).bind('click.widgets-toggle', function(e) {
+		$(document.body).on('click.widgets-toggle', function(e) {
 			var target = $(e.target), css = {},
 				widget, inside, targetWidth, widgetWidth, margin, saveButton, widgetId,
 				toggleBtn = target.closest( '.widget' ).find( '.widget-top button.widget-action' );
@@ -141,11 +127,11 @@ window.wpWidgets = {
 				// Save button is initially disabled, but is enabled when a field is changed.
 				if ( ! widget.data( 'dirty-state-initialized' ) ) {
 					saveButton = inside.find( '.widget-control-save' );
-					saveButton.prop( 'disabled', true ).val( wpWidgets.l10n.saved );
+					saveButton.prop( 'disabled', true ).val( wp.i18n.__( 'Saved' ) );
 					inside.on( 'input change', function() {
 						self.dirtyWidgets[ widgetId ] = true;
 						widget.addClass( 'widget-dirty' );
-						saveButton.prop( 'disabled', false ).val( wpWidgets.l10n.save );
+						saveButton.prop( 'disabled', false ).val( wp.i18n.__( 'Save' ) );
 					});
 					widget.data( 'dirty-state-initialized', true );
 				}
@@ -248,7 +234,7 @@ window.wpWidgets = {
 			 *
 			 * @ignore
 			 *
-			 * @param {object} event jQuery event object.
+			 * @param {Object} event jQuery event object.
 			 */
 			over: function( event ) {
 				var $wrap = $( event.target ).parent();
@@ -273,7 +259,7 @@ window.wpWidgets = {
 			 *
 			 * @ignore
 			 *
-			 * @param {object} event jQuery event object.
+			 * @param {Object} event jQuery event object.
 			 */
 			out: function( event ) {
 				if ( wpWidgets.hoveredSidebar ) {
@@ -433,7 +419,7 @@ window.wpWidgets = {
 		// Area Chooser.
 		$( '#widgets-right .widgets-holder-wrap' ).each( function( index, element ) {
 			var $element = $( element ),
-				name = $element.find( '.sidebar-name h2' ).text(),
+				name = $element.find( '.sidebar-name h2' ).text() || '',
 				ariaLabel = $element.find( '.sidebar-name' ).data( 'add-to' ),
 				id = $element.find( '.widgets-sortables' ).attr( 'id' ),
 				li = $( '<li>' ),
@@ -442,7 +428,7 @@ window.wpWidgets = {
 					'aria-pressed': 'false',
 					'class': 'widgets-chooser-button',
 					'aria-label': ariaLabel
-				} ).text( $.trim( name ) );
+				} ).text( name.toString().trim() );
 
 			li.append( button );
 
@@ -586,7 +572,7 @@ window.wpWidgets = {
 					wpWidgets.appendTitle( widget );
 
 					// Re-disable the save button.
-					widget.find( '.widget-control-save' ).prop( 'disabled', true ).val( wpWidgets.l10n.saved );
+					widget.find( '.widget-control-save' ).prop( 'disabled', true ).val( wp.i18n.__( 'Saved' ) );
 
 					widget.removeClass( 'widget-dirty' );
 
@@ -717,7 +703,7 @@ window.wpWidgets = {
 			// have to queue this "by hand".
 			widget.find( '.widget-title' ).trigger('click');
 			// At the end of the animation, announce the widget has been added.
-			window.wp.a11y.speak( wpWidgets.l10n.widgetAdded, 'assertive' );
+			window.wp.a11y.speak( wp.i18n.__( 'Widget has been added to the selected sidebar' ), 'assertive' );
 		}, 250 );
 	},
 
@@ -743,7 +729,7 @@ window.wpWidgets = {
 	 *
 	 * Used when a Widget gets dragged in/out of the Sidebar and never dropped.
 	 *
-	 * @param {object} event jQuery event object.
+	 * @param {Object} event jQuery event object.
 	 */
 	closeSidebar: function( event ) {
 		this.hoveredSidebar
@@ -755,6 +741,23 @@ window.wpWidgets = {
 	}
 };
 
-$document.ready( function(){ wpWidgets.init(); } );
+$( function(){ wpWidgets.init(); } );
 
 })(jQuery);
+
+/**
+ * Removed in 5.5.0, needed for back-compatibility.
+ *
+ * @since 4.9.0
+ * @deprecated 5.5.0
+ *
+ * @type {object}
+*/
+wpWidgets.l10n = wpWidgets.l10n || {
+	save: '',
+	saved: '',
+	saveAlert: '',
+	widgetAdded: ''
+};
+
+wpWidgets.l10n = window.wp.deprecateL10nObject( 'wpWidgets.l10n', wpWidgets.l10n, '5.5.0' );

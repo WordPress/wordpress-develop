@@ -21,7 +21,7 @@ ini_set( 'auto_detect_line_endings', 1 );
 if ( ! class_exists( 'PO', false ) ) :
 	class PO extends Gettext_Translations {
 
-		var $comments_before_headers = '';
+		public $comments_before_headers = '';
 
 		/**
 		 * Exports headers to a PO entry
@@ -71,8 +71,8 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Same as {@link export}, but writes the result to a file
 		 *
-		 * @param string $filename where to write the PO string
-		 * @param bool $include_headers whether to include tje headers in the export
+		 * @param string $filename        Where to write the PO string.
+		 * @param bool   $include_headers Whether to include the headers in the export.
 		 * @return bool true on success, false on error
 		 */
 		function export_to_file( $filename, $include_headers = true ) {
@@ -92,6 +92,8 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * Text to include as a comment before the start of the PO contents
 		 *
 		 * Doesn't need to include # in the beginning of lines, these are added automatically
+		 *
+		 * @param string $text Text to include as a comment.
 		 */
 		function set_comment_before_headers( $text ) {
 			$this->comments_before_headers = $text;
@@ -149,7 +151,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				$chars = $chars[0];
 				foreach ( $chars as $char ) {
 					if ( ! $previous_is_backslash ) {
-						if ( '\\' == $char ) {
+						if ( '\\' === $char ) {
 							$previous_is_backslash = true;
 						} else {
 							$unpoified .= $char;
@@ -210,11 +212,11 @@ if ( ! class_exists( 'PO', false ) ) :
 		/**
 		 * Builds a string from the entry for inclusion in PO file
 		 *
-		 * @param Translation_Entry $entry the entry to convert to po string (passed by reference).
+		 * @param Translation_Entry $entry the entry to convert to po string.
 		 * @return string|false PO-style formatted string for the entry or
 		 *  false if the entry is empty
 		 */
-		public static function export_entry( &$entry ) {
+		public static function export_entry( $entry ) {
 			if ( null === $entry->singular || '' === $entry->singular ) {
 				return false;
 			}
@@ -281,7 +283,7 @@ if ( ! class_exists( 'PO', false ) ) :
 
 		/**
 		 * @param string $filename
-		 * @return boolean
+		 * @return bool
 		 */
 		function import_from_file( $filename ) {
 			$f = fopen( $filename, 'r' );
@@ -294,7 +296,7 @@ if ( ! class_exists( 'PO', false ) ) :
 				if ( ! $res ) {
 					break;
 				}
-				if ( '' == $res['entry']->singular ) {
+				if ( '' === $res['entry']->singular ) {
 					$this->set_headers( $this->make_headers( $res['entry']->translations[0] ) );
 				} else {
 					$this->add_entry( $res['entry'] );
@@ -450,26 +452,23 @@ if ( ! class_exists( 'PO', false ) ) :
 		}
 
 		/**
-		 * @staticvar string   $last_line
-		 * @staticvar boolean  $use_last_line
-		 *
-		 * @param     resource $f
-		 * @param     string   $action
-		 * @return boolean
+		 * @param resource $f
+		 * @param string   $action
+		 * @return bool
 		 */
 		function read_line( $f, $action = 'read' ) {
 			static $last_line     = '';
 			static $use_last_line = false;
-			if ( 'clear' == $action ) {
+			if ( 'clear' === $action ) {
 				$last_line = '';
 				return true;
 			}
-			if ( 'put-back' == $action ) {
+			if ( 'put-back' === $action ) {
 				$use_last_line = true;
 				return true;
 			}
 			$line          = $use_last_line ? $last_line : fgets( $f );
-			$line          = ( "\r\n" == substr( $line, -2 ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
+			$line          = ( "\r\n" === substr( $line, -2 ) ) ? rtrim( $line, "\r\n" ) . "\n" : $line;
 			$last_line     = $line;
 			$use_last_line = false;
 			return $line;
@@ -482,11 +481,11 @@ if ( ! class_exists( 'PO', false ) ) :
 		function add_comment_to_entry( &$entry, $po_comment_line ) {
 			$first_two = substr( $po_comment_line, 0, 2 );
 			$comment   = trim( substr( $po_comment_line, 2 ) );
-			if ( '#:' == $first_two ) {
+			if ( '#:' === $first_two ) {
 				$entry->references = array_merge( $entry->references, preg_split( '/\s+/', $comment ) );
-			} elseif ( '#.' == $first_two ) {
+			} elseif ( '#.' === $first_two ) {
 				$entry->extracted_comments = trim( $entry->extracted_comments . "\n" . $comment );
-			} elseif ( '#,' == $first_two ) {
+			} elseif ( '#,' === $first_two ) {
 				$entry->flags = array_merge( $entry->flags, preg_split( '/,\s*/', $comment ) );
 			} else {
 				$entry->translator_comments = trim( $entry->translator_comments . "\n" . $comment );
@@ -498,10 +497,10 @@ if ( ! class_exists( 'PO', false ) ) :
 		 * @return string
 		 */
 		public static function trim_quotes( $s ) {
-			if ( substr( $s, 0, 1 ) == '"' ) {
+			if ( '"' === substr( $s, 0, 1 ) ) {
 				$s = substr( $s, 1 );
 			}
-			if ( substr( $s, -1, 1 ) == '"' ) {
+			if ( '"' === substr( $s, -1, 1 ) ) {
 				$s = substr( $s, 0, -1 );
 			}
 			return $s;

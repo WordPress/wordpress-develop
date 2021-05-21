@@ -72,7 +72,7 @@ class Walker_Nav_Menu extends Walker {
 		 * @param stdClass $args    An object of `wp_nav_menu()` arguments.
 		 * @param int      $depth   Depth of menu item. Used for padding.
 		 */
-		$class_names = join( ' ', apply_filters( 'nav_menu_submenu_css_class', $classes, $args, $depth ) );
+		$class_names = implode( ' ', apply_filters( 'nav_menu_submenu_css_class', $classes, $args, $depth ) );
 		$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
 
 		$output .= "{$n}{$indent}<ul$class_names>{$n}";
@@ -150,7 +150,7 @@ class Walker_Nav_Menu extends Walker {
 		 * @param stdClass $args    An object of wp_nav_menu() arguments.
 		 * @param int      $depth   Depth of menu item. Used for padding.
 		 */
-		$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args, $depth ) );
+		$class_names = implode( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args, $depth ) );
 		$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
 
 		/**
@@ -173,7 +173,7 @@ class Walker_Nav_Menu extends Walker {
 		$atts['title']  = ! empty( $item->attr_title ) ? $item->attr_title : '';
 		$atts['target'] = ! empty( $item->target ) ? $item->target : '';
 		if ( '_blank' === $item->target && empty( $item->xfn ) ) {
-			$atts['rel'] = 'noopener noreferrer';
+			$atts['rel'] = 'noopener';
 		} else {
 			$atts['rel'] = $item->xfn;
 		}
@@ -193,7 +193,7 @@ class Walker_Nav_Menu extends Walker {
 		 *     @type string $target       Target attribute.
 		 *     @type string $rel          The rel attribute.
 		 *     @type string $href         The href attribute.
-		 *     @type string $aria_current The aria-current attribute.
+		 *     @type string $aria-current The aria-current attribute.
 		 * }
 		 * @param WP_Post  $item  The current menu item.
 		 * @param stdClass $args  An object of wp_nav_menu() arguments.

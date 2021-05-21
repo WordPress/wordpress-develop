@@ -413,7 +413,7 @@ wp.customHtmlWidgets = ( function( $ ) {
 	 *
 	 * @alias wp.customHtmlWidgets.init
 	 *
-	 * @param {object} settings - Options for code editor, exported from PHP.
+	 * @param {Object} settings - Options for code editor, exported from PHP.
 	 *
 	 * @return {void}
 	 */
@@ -446,9 +446,15 @@ wp.customHtmlWidgets = ( function( $ ) {
 			});
 
 			// Accessibility mode.
-			$( window ).on( 'load', function() {
+			if ( document.readyState === 'complete' ) {
+				// Page is fully loaded.
 				component.setupAccessibleMode();
-			});
+			} else {
+				// Page is still loading.
+				$( window ).on( 'load', function() {
+					component.setupAccessibleMode();
+				});
+			}
 		});
 	};
 

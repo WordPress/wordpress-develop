@@ -5,7 +5,7 @@
  * @output wp-admin/js/inline-edit-post.js
  */
 
-/* global inlineEditL10n, ajaxurl, typenow, inlineEditPost */
+/* global ajaxurl, typenow, inlineEditPost */
 
 window.wp = window.wp || {};
 
@@ -19,7 +19,7 @@ window.wp = window.wp || {};
  * @type {Object}
  *
  * @property {string} type The type of inline editor.
- * @property {string} what The prefix before the post id.
+ * @property {string} what The prefix before the post ID.
  *
  */
 ( function( $, wp ) {
@@ -51,7 +51,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of revert.
 		 */
-		qeRow.keyup(function(e){
+		qeRow.on( 'keyup', function(e){
 			// Revert changes if Escape key is pressed.
 			if ( e.which === 27 ) {
 				return inlineEditPost.revert();
@@ -63,7 +63,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of revert.
 		 */
-		bulkRow.keyup(function(e){
+		bulkRow.on( 'keyup', function(e){
 			// Revert changes if Escape key is pressed.
 			if ( e.which === 27 ) {
 				return inlineEditPost.revert();
@@ -75,7 +75,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of revert.
 		 */
-		$( '.cancel', qeRow ).click( function() {
+		$( '.cancel', qeRow ).on( 'click', function() {
 			return inlineEditPost.revert();
 		});
 
@@ -84,7 +84,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of save.
 		 */
-		$( '.save', qeRow ).click( function() {
+		$( '.save', qeRow ).on( 'click', function() {
 			return inlineEditPost.save(this);
 		});
 
@@ -93,7 +93,7 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of save.
 		 */
-		$('td', qeRow).keydown(function(e){
+		$('td', qeRow).on( 'keydown', function(e){
 			if ( e.which === 13 && ! $( e.target ).hasClass( 'cancel' ) ) {
 				return inlineEditPost.save(this);
 			}
@@ -104,14 +104,14 @@ window.wp = window.wp || {};
 		 *
 		 * @return {boolean} The result of revert.
 		 */
-		$( '.cancel', bulkRow ).click( function() {
+		$( '.cancel', bulkRow ).on( 'click', function() {
 			return inlineEditPost.revert();
 		});
 
 		/**
 		 * Disables the password input field when the private post checkbox is checked.
 		 */
-		$('#inline-edit .inline-edit-private input[value="private"]').click( function(){
+		$('#inline-edit .inline-edit-private input[value="private"]').on( 'click', function(){
 			var pw = $('input.inline-edit-password-input');
 			if ( $(this).prop('checked') ) {
 				pw.val('').prop('disabled', true);
@@ -139,7 +139,7 @@ window.wp = window.wp || {};
 		/**
 		 * Adds onclick events to the apply buttons.
 		 */
-		$('#doaction, #doaction2').click(function(e){
+		$('#doaction').on( 'click', function(e){
 			var n;
 
 			t.whichBulkButtonId = $( this ).attr( 'id' );
@@ -198,8 +198,8 @@ window.wp = window.wp || {};
 			if ( $(this).prop('checked') ) {
 				c = false;
 				var id = $(this).val(), theTitle;
-				theTitle = $('#inline_'+id+' .post_title').html() || inlineEditL10n.notitle;
-				te += '<div id="ttle'+id+'"><a id="_'+id+'" class="ntdelbutton" title="'+inlineEditL10n.ntdeltitle+'">X</a>'+theTitle+'</div>';
+				theTitle = $('#inline_'+id+' .post_title').html() || wp.i18n.__( '(no title)' );
+				te += '<div id="ttle'+id+'"><a id="_'+id+'" class="ntdelbutton" title="'+ wp.i18n.__( 'Remove From Bulk Edit' ) +'">X</a>'+theTitle+'</div>';
 			}
 		});
 
@@ -215,7 +215,7 @@ window.wp = window.wp || {};
 		 *
 		 * @listens click
 		 */
-		$('#bulk-titles a').click(function(){
+		$('#bulk-titles a').on( 'click', function(){
 			var id = $(this).attr('id').substr(1);
 
 			$('table.widefat input[value="' + id + '"]').prop('checked', false);
@@ -249,7 +249,7 @@ window.wp = window.wp || {};
 	 *
 	 * @memberof inlineEditPost
 	 *
-	 * @param {number|Object} id The id of the clicked post or an element within a post
+	 * @param {number|Object} id The ID of the clicked post or an element within a post
 	 *                           table row.
 	 * @return {boolean} Always returns false at the end of execution.
 	 */
@@ -327,7 +327,12 @@ window.wp = window.wp || {};
 			var terms = $(this),
 				taxname = $(this).attr('id').replace('_' + id, ''),
 				textarea = $('textarea.tax_input_' + taxname, editRow),
-				comma = inlineEditL10n.comma;
+				comma = wp.i18n._x( ',', 'tag delimiter' ).trim();
+
+			// Ensure the textarea exists.
+			if ( ! textarea.length ) {
+				return;
+			}
 
 			terms.find( 'img' ).replaceWith( function() { return this.alt; } );
 			terms = terms.text();
@@ -378,20 +383,20 @@ window.wp = window.wp || {};
 		}
 
 		$(editRow).attr('id', 'edit-'+id).addClass('inline-editor').show();
-		$('.ptitle', editRow).focus();
+		$('.ptitle', editRow).trigger( 'focus' );
 
 		return false;
 	},
 
 	/**
 	 * Saves the changes made in the quick edit window to the post.
-	 * AJAX saving is only for Quick Edit and not for bulk edit.
+	 * Ajax saving is only for Quick Edit and not for bulk edit.
 	 *
 	 * @since 2.7.0
 	 *
-	 * @param  {int}     id The id for the post that has been changed.
-	 * @return {boolean}    False, so the form does not submit when pressing
-	 *                      Enter on a focused field.
+	 * @param {number} id The ID for the post that has been changed.
+	 * @return {boolean} False, so the form does not submit when pressing
+	 *                   Enter on a focused field.
 	 */
 	save : function(id) {
 		var params, fields, page = $('.post_status_page').val() || '';
@@ -420,7 +425,6 @@ window.wp = window.wp || {};
 					$error = $errorNotice.find( '.error' );
 
 				$( 'table.widefat .spinner' ).removeClass( 'is-active' );
-				$( '.ac_results' ).hide();
 
 				if (r) {
 					if ( -1 !== r.indexOf( '<tr' ) ) {
@@ -430,8 +434,8 @@ window.wp = window.wp || {};
 							// Move focus back to the Quick Edit button. $( this ) is the row being animated.
 							$( this ).find( '.editinline' )
 								.attr( 'aria-expanded', 'false' )
-								.focus();
-							wp.a11y.speak( inlineEditL10n.saved );
+								.trigger( 'focus' );
+							wp.a11y.speak( wp.i18n.__( 'Changes saved.' ) );
 						});
 					} else {
 						r = r.replace( /<.[^<>]*?>/g, '' );
@@ -441,8 +445,8 @@ window.wp = window.wp || {};
 					}
 				} else {
 					$errorNotice.removeClass( 'hidden' );
-					$error.html( inlineEditL10n.error );
-					wp.a11y.speak( inlineEditL10n.error );
+					$error.text( wp.i18n.__( 'Error while saving the changes.' ) );
+					wp.a11y.speak( wp.i18n.__( 'Error while saving the changes.' ) );
 				}
 			},
 		'html');
@@ -466,7 +470,6 @@ window.wp = window.wp || {};
 
 		if ( id ) {
 			$( '.spinner', $tableWideFat ).removeClass( 'is-active' );
-			$( '.ac_results' ).hide();
 
 			if ( 'bulk-edit' === id ) {
 
@@ -478,7 +481,7 @@ window.wp = window.wp || {};
 				$('#inlineedit').append( $('#bulk-edit') );
 
 				// Move focus back to the Bulk Action button that was activated.
-				$( '#' + inlineEditPost.whichBulkButtonId ).focus();
+				$( '#' + inlineEditPost.whichBulkButtonId ).trigger( 'focus' );
 			} else {
 
 				// Remove both the inline-editor and its hidden tr siblings.
@@ -488,7 +491,7 @@ window.wp = window.wp || {};
 				// Show the post row and move focus back to the Quick Edit button.
 				$( this.what + id ).show().find( '.editinline' )
 					.attr( 'aria-expanded', 'false' )
-					.focus();
+					.trigger( 'focus' );
 			}
 		}
 
@@ -496,15 +499,15 @@ window.wp = window.wp || {};
 	},
 
 	/**
-	 * Gets the id for a the post that you want to quick edit from the row in the quick
+	 * Gets the ID for a the post that you want to quick edit from the row in the quick
 	 * edit table.
 	 *
 	 * @since 2.7.0
 	 *
 	 * @memberof inlineEditPost
 	 *
-	 * @param  {Object} o DOM row object to get the id for.
-	 * @return {string}   The post id extracted from the table row in the object.
+	 * @param {Object} o DOM row object to get the ID for.
+	 * @return {string} The post ID extracted from the table row in the object.
 	 */
 	getId : function(o) {
 		var id = $(o).closest('tr').attr('id'),
@@ -513,10 +516,16 @@ window.wp = window.wp || {};
 	}
 };
 
-$( document ).ready( function(){ inlineEditPost.init(); } );
+$( function() { inlineEditPost.init(); } );
 
 // Show/hide locks on posts.
-$( document ).on( 'heartbeat-tick.wp-check-locked-posts', function( e, data ) {
+$( function() {
+
+	// Set the heartbeat interval to 15 seconds.
+	if ( typeof wp !== 'undefined' && wp.heartbeat ) {
+		wp.heartbeat.interval( 15 );
+	}
+}).on( 'heartbeat-tick.wp-check-locked-posts', function( e, data ) {
 	var locked = data['wp-check-locked-posts'] || {};
 
 	$('#the-list tr').each( function(i, el) {
@@ -529,7 +538,14 @@ $( document ).on( 'heartbeat-tick.wp-check-locked-posts', function( e, data ) {
 				row.find('.check-column checkbox').prop('checked', false);
 
 				if ( lock_data.avatar_src ) {
-					avatar = $( '<img class="avatar avatar-18 photo" width="18" height="18" alt="" />' ).attr( 'src', lock_data.avatar_src.replace( /&amp;/g, '&' ) );
+					avatar = $( '<img />', {
+						'class': 'avatar avatar-18 photo',
+						width: 18,
+						height: 18,
+						alt: '',
+						src: lock_data.avatar_src,
+						srcset: lock_data.avatar_src_2x ? lock_data.avatar_src_2x + ' 2x' : undefined
+					} );
 					row.find('.column-title .locked-avatar').empty().append( avatar );
 				}
 				row.addClass('wp-locked');
@@ -549,12 +565,6 @@ $( document ).on( 'heartbeat-tick.wp-check-locked-posts', function( e, data ) {
 
 	if ( check.length ) {
 		data['wp-check-locked-posts'] = check;
-	}
-}).ready( function() {
-
-	// Set the heartbeat interval to 15 seconds.
-	if ( typeof wp !== 'undefined' && wp.heartbeat ) {
-		wp.heartbeat.interval( 15 );
 	}
 });
 

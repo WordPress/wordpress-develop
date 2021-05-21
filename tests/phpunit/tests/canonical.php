@@ -231,6 +231,71 @@ class Tests_Canonical extends WP_Canonical_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 16557
+	 */
+	public function test_do_redirect_guess_404_permalink() {
+		// Test disable do_redirect_guess_404_permalink().
+		add_filter( 'do_redirect_guess_404_permalink', '__return_false' );
+		$this->go_to( '/child-page-1' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_pre_redirect_guess_404_permalink() {
+		// Test short-circuit filter.
+		add_filter(
+			'pre_redirect_guess_404_permalink',
+			function() {
+				return 'wp';
+			}
+		);
+		$this->go_to( '/child-page-1' );
+		$this->assertSame( 'wp', redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * @ticket 16557
+	 */
+	public function test_strict_redirect_guess_404_permalink() {
+		$post = self::factory()->post->create(
+			array(
+				'post_title' => 'strict-redirect-guess-404-permalink',
+			)
+		);
+
+		$this->go_to( 'strict-redirect' );
+
+		// Test default 'non-strict' redirect guess.
+		$this->assertSame( get_permalink( $post ), redirect_guess_404_permalink() );
+
+		// Test 'strict' redirect guess.
+		add_filter( 'strict_redirect_guess_404_permalink', '__return_true' );
+		$this->assertFalse( redirect_guess_404_permalink() );
+	}
+
+	/**
+	 * Ensure multiple post types do not throw a notice.
+	 *
+	 * @ticket 43056
+	 */
+	public function test_redirect_guess_404_permalink_post_types() {
+		/*
+		 * Sample-page is intentionally missspelt as sample-pag to ensure
+		 * the 404 post permalink guessing runs.
+		 *
+		 * Please do not correct the apparent typo.
+		 */
+
+		// String format post type.
+		$this->assertCanonical( '/?name=sample-pag&post_type=page', '/sample-page/' );
+		// Array formatted post type or types.
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page', '/sample-page/' );
+		$this->assertCanonical( '/?name=sample-pag&post_type[]=page&post_type[]=post', '/sample-page/' );
+	}
+
+	/**
 	 * @ticket 43745
 	 */
 	public function test_utf8_query_keys_canonical() {

@@ -15,6 +15,7 @@ add_action( 'activity_box_end', 'wp_dashboard_quota' );
 
 // Media hooks.
 add_action( 'attachment_submitbox_misc_actions', 'attachment_submitbox_metadata' );
+add_filter( 'plupload_init', 'wp_show_heic_upload_error' );
 
 add_action( 'media_upload_image', 'wp_media_upload_handler' );
 add_action( 'media_upload_audio', 'wp_media_upload_handler' );
@@ -43,7 +44,8 @@ add_action( 'login_init', 'wp_admin_headers' );
 add_action( 'admin_head', 'wp_admin_canonical_url' );
 add_action( 'admin_head', 'wp_color_scheme_settings' );
 add_action( 'admin_head', 'wp_site_icon' );
-add_action( 'admin_head', '_ipad_meta' );
+add_action( 'admin_head', 'wp_admin_viewport_meta' );
+add_action( 'customize_controls_head', 'wp_admin_viewport_meta' );
 
 // Prerendering.
 if ( ! is_customize_preview() ) {
@@ -74,7 +76,7 @@ add_filter( 'heartbeat_settings', 'wp_heartbeat_set_suspension' );
 add_action( 'admin_head-nav-menus.php', '_wp_delete_orphaned_draft_menu_items' );
 
 // Plugin hooks.
-add_filter( 'whitelist_options', 'option_update_filter' );
+add_filter( 'allowed_options', 'option_update_filter' );
 
 // Plugin Install hooks.
 add_action( 'install_plugins_featured', 'install_dashboard' );
