@@ -230,12 +230,6 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 							'size' => 'fontSize',
 						),
 					),
-					'fontFamilies' => array(
-						array(
-							'slug'       => 'fontFamily',
-							'fontFamily' => 'fontFamily',
-						),
-					),
 				),
 				'blocks'     => array(
 					'core/paragraph' => array(
