@@ -6,34 +6,16 @@
  */
 
 /**
- * Adds necessary filters to use 'wp_template' posts instead of theme template files.
- */
-function gutenberg_add_template_loader_filters() {
-	if ( ! gutenberg_supports_block_templates() ) {
-		return;
-	}
-
-	foreach ( gutenberg_get_template_type_slugs() as $template_type ) {
-		if ( 'embed' === $template_type ) { // Skip 'embed' for now because it is not a regular template type.
-			continue;
-		}
-		add_filter( str_replace( '-', '', $template_type ) . '_template', 'gutenberg_override_query_template', 20, 3 );
-	}
-}
-
-add_action( 'wp_loaded', 'gutenberg_add_template_loader_filters' );
-
-/**
- * Filters into the "{$type}_template" hooks to redirect them to the Full Site Editing template canvas.
+ * Find a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
  *
  * @param string $template  Path to the template. See locate_template().
  * @param string $type      Sanitized filename without extension.
  * @param array  $templates A list of template candidates, in descending order of priority.
- * @return string The path to the Full Site Editing template canvas file.
+ * @return string The path to the Full Site Editing template canvas file, or the fallback PHP template.
  */
-function gutenberg_override_query_template( $template, $type, array $templates ) {
+function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
 
 	if ( $template ) {
