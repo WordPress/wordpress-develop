@@ -434,7 +434,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
-		$query         = construct_wp_query_args( $block, 1 );
+		$query         = build_query_vars_from_query_block( $block, 1 );
 
 		$this->assertSame(
 			$query,
@@ -458,7 +458,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$parsed_blocks    = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
 		$parsed_block     = $parsed_blocks[0];
 		$block_no_context = new WP_Block( $parsed_block, array(), $this->registry );
-		$query            = construct_wp_query_args( $block_no_context, 1 );
+		$query            = build_query_vars_from_query_block( $block_no_context, 1 );
 
 		$this->assertSame(
 			$query,
@@ -489,7 +489,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
-		$query         = construct_wp_query_args( $block, 1 );
+		$query         = build_query_vars_from_query_block( $block, 1 );
 
 		$this->assertSame(
 			$query,
@@ -522,7 +522,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
-		$query         = construct_wp_query_args( $block, 3 );
+		$query         = build_query_vars_from_query_block( $block, 3 );
 		$this->assertSame(
 			$query,
 			array(
@@ -554,7 +554,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 			),
 		);
 		$block         = new WP_Block( $parsed_block, $context, $this->registry );
-		$query         = construct_wp_query_args( $block, 3 );
+		$query         = build_query_vars_from_query_block( $block, 3 );
 		$this->assertSame(
 			$query,
 			array(
