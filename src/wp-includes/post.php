@@ -345,6 +345,17 @@ function create_initial_post_types() {
 				'rest_base'             => 'templates',
 				'rest_controller_class' => 'WP_REST_Templates_Controller',
 				'capability_type'       => array( 'template', 'templates' ),
+				'capabilities'          => array(
+					'edit_posts'             => 'edit_theme_options',
+					'edit_others_posts'      => 'edit_theme_options',
+					'edit_published_posts'   => 'edit_theme_options',
+					'edit_private_posts'     => 'edit_theme_options',
+					'delete_posts'           => 'edit_theme_options',
+					'delete_others_posts'    => 'edit_theme_options',
+					'delete_published_posts' => 'edit_theme_options',
+					'delete_private_posts'   => 'edit_theme_options',
+					'read_private_posts'     => 'edit_theme_options',
+				),
 				'map_meta_cap'          => true,
 				'supports'              => array(
 					'title',
