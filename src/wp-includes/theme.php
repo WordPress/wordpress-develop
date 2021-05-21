@@ -3267,6 +3267,80 @@ function _delete_attachment_theme_mod( $id ) {
 }
 
 /**
+ * Exposes the theme-mods setting and the custom_logo item to the Settings REST API.
+ *
+ * @access private
+ * @since 5.8.0
+ */
+function _register_theme_mods_rest_api_custom_logo() {
+	register_setting(
+		'general',
+		'theme_mods_' . get_option( 'stylesheet' ),
+		array(
+			'type'         => 'object',
+			'show_in_rest' => array(
+				'name'   => 'theme_mods_' . get_option( 'stylesheet' ),
+				'schema' => array(
+					'type'       => 'object',
+					'properties' => array(
+						'custom_logo' => array(
+							'type' => array( 'integer', 'boolean' ),
+						),
+					),
+				),
+			),
+		)
+	);
+}
+
+/**
+ * Hijacks the REST-API call for theme-mods and includes the value for custom_logo only.
+ *
+ * @access private
+ * @since 5.8.0
+ *
+ * @param mixed  $result Value to use for the requested setting.
+ * @param string $name   Setting name (as shown in REST API responses).
+ *
+ * @return null|array
+ */
+function _theme_mods_custom_logo_rest_pre_get_setting( $result, $name ) {
+	if ( 'theme_mods_' . get_option( 'stylesheet' ) === $name ) {
+		return array(
+			'custom_logo' => get_theme_mod( 'custom_logo' ),
+		);
+	}
+	return $result;
+}
+
+/**
+ * Hijacks the REST-API saving method for theme-mods.
+ *
+ * Merges the saved option with existing theme-mods.
+ *
+ * @access private
+ * @since 5.8.0
+ *
+ * @param bool   $result Whether to override the default behavior for updating the
+ *                       value of a setting.
+ * @param string $name   Setting name (as shown in REST API responses).
+ * @param mixed  $value  Updated setting value.
+ *
+ * @return bool
+ */
+function _theme_mods_custom_logo_rest_pre_set_setting( $result, $name, $value ) {
+	$theme_mods_setting_name = 'theme_mods_' . get_option( 'stylesheet' );
+	if ( $theme_mods_setting_name === $name ) {
+		$value = (array) $value;
+		$value = wp_parse_args( $value, get_option( $theme_mods_setting_name, array() ) );
+
+		update_option( $theme_mods_setting_name, $value );
+		return true;
+	}
+	return $result;
+}
+
+/**
  * Checks if a theme has been changed and runs 'after_switch_theme' hook on the next WP load.
  *
  * See {@see 'after_switch_theme'}.

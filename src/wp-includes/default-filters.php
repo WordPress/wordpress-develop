@@ -335,6 +335,9 @@ add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
+add_action( 'init', '_register_theme_mods_rest_api_custom_logo' );
+add_filter( 'rest_pre_get_setting', '_theme_mods_custom_logo_rest_pre_get_setting', 10, 2 );
+add_filter( 'rest_pre_update_setting', '_theme_mods_custom_logo_rest_pre_set_setting', 10, 3 );
 
 if ( isset( $_GET['replytocom'] ) ) {
 	add_filter( 'wp_robots', 'wp_robots_no_robots' );
