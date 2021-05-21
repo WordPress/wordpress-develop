@@ -1182,6 +1182,7 @@ final class WP_Theme implements ArrayAccess {
 	 * Returns the theme's post templates.
 	 *
 	 * @since 4.7.0
+	 * @since 5.8.0 Include block templates.
 	 *
 	 * @return string[] Array of page templates, keyed by filename and post type,
 	 *                  with the value of the translated header name.
@@ -1216,6 +1217,14 @@ final class WP_Theme implements ArrayAccess {
 					}
 
 					$post_templates[ $type ][ $file ] = _cleanup_header_comment( $header[1] );
+				}
+			}
+
+			if ( gutenberg_supports_block_templates() ) {
+				$block_templates = gutenberg_get_block_templates( array(), 'wp_template' );
+				foreach ( $block_templates as $block_template ) {
+					// TODO: Allow using block templates for custom post types (rather than just pages).
+					$post_templates['page'][ $block_template->slug ] = $block_template->title;
 				}
 			}
 
