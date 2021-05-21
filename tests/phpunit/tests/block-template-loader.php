@@ -14,7 +14,7 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 	private static $template_part_post;
 
 	public static function wpSetUpBeforeClass() {
-		switch_theme( 'tt1-blocks' );
+		switch_theme( 'block-templates' );
 
 		// Set up a template post corresponding to a different theme.
 		// We do this to ensure resolution and slug creation works as expected,
@@ -79,7 +79,7 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 		$template = _gutenberg_build_template_result_from_file(
 			array(
 				'slug' => 'single',
-				'path' => __DIR__ . '/fixtures/template.html',
+				'path' => get_stylesheet_directory() . '/block-templates/index.html',
 			),
 			'wp_template'
 		);
