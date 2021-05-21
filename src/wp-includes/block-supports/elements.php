@@ -16,7 +16,7 @@
  * @param  array  $block         Block object.
  * @return string                Filtered block content.
  */
-function render_elements_support( $block_content, $block ) {
+function wp_render_elements_support( $block_content, $block ) {
 	$link_color = _wp_array_get( $block['attrs'], array( 'style', 'elements', 'link', 'color', 'text' ), null );
 
 	/*
@@ -60,8 +60,9 @@ function render_elements_support( $block_content, $block ) {
 		$first_element_offset = $html_element_matches[0][1];
 		$content              = substr_replace( $block_content, ' class="' . $class_name . '"', $first_element_offset + strlen( $first_element ) - 1, 0 );
 	}
+
 	return $content . $style;
 
 }
 
-add_filter( 'render_block', 'render_elements_support', 10, 2 );
+add_filter( 'render_block', 'wp_render_elements_support', 10, 2 );
