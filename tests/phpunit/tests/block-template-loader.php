@@ -15,10 +15,6 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 
 	public static function wpSetUpBeforeClass() {
 		switch_theme( 'tt1-blocks' );
-		gutenberg_register_template_post_type();
-		gutenberg_register_template_part_post_type();
-		gutenberg_register_wp_theme_taxonomy();
-		gutenberg_register_wp_template_part_area_taxonomy();
 
 		// Set up a template post corresponding to a different theme.
 		// We do this to ensure resolution and slug creation works as expected,
