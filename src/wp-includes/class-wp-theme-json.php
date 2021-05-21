@@ -18,7 +18,7 @@ class WP_Theme_JSON {
 	 */
 	private $theme_json = null;
 
-	const VALID_TOP_LEVEL_KEYS = array(
+	const ALLOWED_TOP_LEVEL_KEYS = array(
 		'version',
 		'settings',
 	);
@@ -88,7 +88,7 @@ class WP_Theme_JSON {
 			return $output;
 		}
 
-		$output = array_intersect_key( $input, array_flip( self::VALID_TOP_LEVEL_KEYS ) );
+		$output = array_intersect_key( $input, array_flip( self::ALLOWED_TOP_LEVEL_KEYS ) );
 
 		// Build the schema.
 		$schema                 = array();
