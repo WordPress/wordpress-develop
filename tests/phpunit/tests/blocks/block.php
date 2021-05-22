@@ -585,7 +585,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 				),
 			)
 		);
-		$block_type = $this->registry->get_registered( 'core/example' );
+		$block_type    = $this->registry->get_registered( 'core/example' );
 		$align_support = block_has_support( $block_type, array( 'align' ) );
 		$this->assertSame( $align_support, true );
 		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ) );
@@ -603,7 +603,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 */
 	public function test_block_has_support_no_supports() {
 		$this->registry->register( 'core/example', array() );
-		$block_type = $this->registry->get_registered( 'core/example' );
+		$block_type  = $this->registry->get_registered( 'core/example' );
 		$has_support = block_has_support( $block_type, array( 'color' ) );
 		$this->assertSame( $has_support, false );
 	}
@@ -622,7 +622,7 @@ class WP_Block_Test extends WP_UnitTestCase {
 				),
 			)
 		);
-		$block_type = $this->registry->get_registered( 'core/example' );
+		$block_type    = $this->registry->get_registered( 'core/example' );
 		$align_support = block_has_support( $block_type, array( 'align' ), true );
 		$this->assertSame( $align_support, true );
 		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
