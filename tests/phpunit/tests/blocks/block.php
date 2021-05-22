@@ -567,4 +567,65 @@ class WP_Block_Test extends WP_UnitTestCase {
 			)
 		);
 	}
+
+	/**
+	 * @ticket 53257
+	 */
+	public function test_block_has_support() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'supports' => array(
+					'align'    => array( 'wide', 'full' ),
+					'fontSize' => true,
+					'color'    => array(
+						'link'     => true,
+						'gradient' => false,
+					),
+				),
+			)
+		);
+		$block_type = $this->registry->get_registered( 'core/example' );
+		$align_support = block_has_support( $block_type, array( 'align' ) );
+		$this->assertSame( $align_support, true );
+		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ) );
+		$this->assertSame( $gradient_support, false );
+		$link_support = block_has_support( $block_type, array( 'color', 'link' ), false );
+		$this->assertSame( $link_support, true );
+		$text_support = block_has_support( $block_type, array( 'color', 'text' ) );
+		$this->assertSame( $text_support, false );
+		$font_nested = block_has_support( $block_type, array( 'fontSize', 'nested' ) );
+		$this->assertSame( $font_nested, false );
+	}
+
+	/**
+	 * @ticket 53257
+	 */
+	public function test_block_has_support_no_supports() {
+		$this->registry->register( 'core/example', array() );
+		$block_type = $this->registry->get_registered( 'core/example' );
+		$has_support = block_has_support( $block_type, array( 'color' ) );
+		$this->assertSame( $has_support, false );
+	}
+
+	/**
+	 * @ticket 53257
+	 */
+	public function test_block_has_support_provided_defaults() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'supports' => array(
+					'color' => array(
+						'gradient' => false,
+					),
+				),
+			)
+		);
+		$block_type = $this->registry->get_registered( 'core/example' );
+		$align_support = block_has_support( $block_type, array( 'align' ), true );
+		$this->assertSame( $align_support, true );
+		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
+		$this->assertSame( $gradient_support, false );
+	}
 }
