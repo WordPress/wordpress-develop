@@ -886,6 +886,9 @@ form#tags-filter {
 	padding: 0.1rem 0.5rem 0.15rem;
 	color: #2c3338;
 	font-weight: 600;
+}
+
+.privacy-settings-accordion-trigger .badge {
 	margin-left: 0.5rem;
 }
 
