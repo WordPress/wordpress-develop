@@ -122,21 +122,6 @@ function wp_default_packages_vendor( $scripts ) {
 	}
 
 	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
-	did_action( 'init' ) && $scripts->add_inline_script(
-		'wp-polyfill',
-		wp_get_script_polyfill(
-			$scripts,
-			array(
-				'\'fetch\' in window' => 'wp-polyfill-fetch',
-				'document.contains'   => 'wp-polyfill-node-contains',
-				'window.DOMRect'      => 'wp-polyfill-dom-rect',
-				'window.URL && window.URL.prototype && window.URLSearchParams' => 'wp-polyfill-url',
-				'window.FormData && window.FormData.prototype.keys' => 'wp-polyfill-formdata',
-				'Element.prototype.matches && Element.prototype.closest' => 'wp-polyfill-element-closest',
-				'\'objectFit\' in document.documentElement.style' => 'wp-polyfill-object-fit',
-			)
-		)
-	);
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
 
@@ -1572,7 +1557,7 @@ function wp_default_styles( $styles ) {
 		$handle = 'wp-' . $package;
 		$path   = "/wp-includes/css/dist/$package/style$suffix.css";
 
-		if ( 'block-library' === $package && should_load_separate_core_block_assets() ) {
+		if ( 'block-library' === $package && wp_should_load_separate_core_block_assets() ) {
 			$path = "/wp-includes/css/dist/$package/common$suffix.css";
 		}
 		$styles->add( $handle, $path, $dependencies );
@@ -2278,7 +2263,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  *
  * @return bool Whether separate assets will be loaded or not.
  */
-function should_load_separate_core_block_assets() {
+function wp_should_load_separate_core_block_assets() {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}
@@ -2292,7 +2277,7 @@ function should_load_separate_core_block_assets() {
 	 * @param bool $load_separate_assets Whether separate assets will be loaded or not.
 	 *                                   Default false.
 	 */
-	return apply_filters( 'separate_core_block_assets', false );
+	return apply_filters( 'should_load_separate_core_block_assets', false );
 }
 
 /**
@@ -2306,7 +2291,7 @@ function should_load_separate_core_block_assets() {
 function wp_enqueue_registered_block_scripts_and_styles() {
 	global $current_screen;
 
-	if ( should_load_separate_core_block_assets() ) {
+	if ( wp_should_load_separate_core_block_assets() ) {
 		return;
 	}
 
