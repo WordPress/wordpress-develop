@@ -11,6 +11,10 @@ are styled in the Privacy section of edit.css */
 	font-weight: 400;
 }
 
+.health-check-widget-title-section {
+	text-align: center;
+}
+
 .site-health-progress-wrapper {
 	margin-bottom: 1rem;
 }
