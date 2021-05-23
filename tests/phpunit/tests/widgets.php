@@ -23,6 +23,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 	function tearDown() {
 		global $wp_customize;
+
 		$wp_customize = null;
 
 		parent::tearDown();
@@ -36,6 +37,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		global $wp_widget_factory;
 
 		$widget_class = 'WP_Widget_Search';
+
 		register_widget( $widget_class );
 		$this->assertArrayHasKey( $widget_class, $wp_widget_factory->widgets );
 
@@ -52,6 +54,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 */
 	function test_register_and_unregister_widget_instance() {
 		global $wp_widget_factory, $wp_registered_widgets;
+
 		$this->assertEmpty( $wp_widget_factory->widgets );
 		$this->assertEmpty( $wp_registered_widgets );
 
@@ -127,7 +130,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @group sidebar
 	 */
 	function test_register_sidebars_single() {
-
 		global $wp_registered_sidebars;
 
 		register_sidebars( 1, array( 'id' => 'wp-unit-test' ) );
@@ -140,7 +142,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @group sidebar
 	 */
 	function test_register_sidebars_multiple() {
-
 		global $wp_registered_sidebars;
 
 		$result  = array();
@@ -199,7 +200,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * @group sidebar
 	 */
 	function test_register_sidebar_with_string_id() {
-
 		global $wp_registered_sidebars;
 
 		$sidebar_id = 'wp-unit-test';
@@ -426,6 +426,50 @@ class Tests_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 44098
+	 * @see WP_Widget::__construct()
+	 * @dataProvider data_wp_widget_id_base
+	 */
+	function test_wp_widget_id_base( $expected, $widget_class ) {
+		require_once DIR_TESTDATA . '/widgets/custom-widget-classes.php';
+
+		$widget = new $widget_class( '', 'Foo' );
+
+		$this->assertSame( $expected, $widget->id_base );
+	}
+
+	/**
+	 * Data provider.
+	 *
+	 * Passes the expected `id_base` value and the class name.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return array {
+	 *     @type array {
+	 *         @type string $expected     The expected `id_base` value to be returned.
+	 *         @type string $widget_class The widget class name for creating an instance.
+	 *     }
+	 * }
+	 */
+	function data_wp_widget_id_base() {
+		return array(
+			array(
+				'search',
+				'WP_Widget_Search',
+			),
+			array(
+				'test-sub-sub-namespaced_widget',
+				'Test\Sub\Sub\Namespaced_Widget',
+			),
+			array(
+				'non_namespaced_widget',
+				'Non_Namespaced_Widget',
+			),
+		);
+	}
+
+	/**
 	 * @see WP_Widget::get_field_name()
 	 * @dataProvider data_wp_widget_get_field_name
 	 */
@@ -450,7 +494,6 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 * }
 	 */
 	function data_wp_widget_get_field_name() {
-
 		return array(
 			array(
 				'widget-foo[2][title]',
