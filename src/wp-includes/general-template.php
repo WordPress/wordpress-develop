@@ -3289,8 +3289,11 @@ function wp_resource_hints() {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param array  $urls          URLs to print for resource hints.
-		 * @param string $relation_type The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
+		 * @param string[]|array[] $urls          Array of URLs to print for resource hints or
+		 * 										  array of arrays of resources and their
+		 *                                        attributes.
+		 * @param string           $relation_type The relation type the URLs are printed for, e.g.
+		 *                                        'preconnect' or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
