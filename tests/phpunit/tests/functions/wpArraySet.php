@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Tests for the _wp_array_get() function
+ * Tests for the _wp_array_set() function
  *
  * @since 5.8.0
  *
  * @group functions.php
- * @covers ::_wp_array_get
+ * @covers ::_wp_array_set
  */
 class Tests_Functions_wpArraySet extends WP_UnitTestCase {
 
