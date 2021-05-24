@@ -174,10 +174,10 @@ function create_initial_taxonomies() {
 	);
 
 	// FIXME: Uncomment once theme.json support lands
-	if ( gutenberg_supports_block_templates() /* || WP_Theme_JSON_Resolver::theme_has_support() */ ) {
+	if ( theme_supports_block_templates() /* || WP_Theme_JSON_Resolver::theme_has_support() */ ) {
 		register_taxonomy(
 			'wp_theme',
-			array( 'wp_template', 'wp_template_part', 'wp_global_styles' ),
+			array( 'wp_template', 'wp_global_styles' ),
 			array(
 				'public'            => false,
 				'hierarchical'      => false,

@@ -3233,11 +3233,11 @@ function get_registered_theme_feature( $feature ) {
 }
 
 /**
- * Returns whether the current theme is FSE-enabled or not.
+ * Returns whether the current theme supports block templates
  *
- * @return boolean Whether the current theme is FSE-enabled or not.
+ * @return boolean Whether the current theme supports block templates.
  */
-function gutenberg_supports_block_templates() {
+function theme_supports_block_templates() {
 	return current_theme_supports( 'block-templates' );
 }
 

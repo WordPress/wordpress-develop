@@ -37,7 +37,7 @@ add_action( 'save_post_wp_template', 'set_unique_slug_on_create_template' );
 function gutenberg_the_skip_link() {
 
 	// Early exit if not an FSE theme.
-	if ( ! gutenberg_supports_block_templates() ) {
+	if ( ! theme_supports_block_templates() ) {
 		return;
 	}
 	?>

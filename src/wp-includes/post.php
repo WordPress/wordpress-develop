@@ -310,7 +310,7 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( gutenberg_supports_block_templates() ) {
+	if ( theme_supports_block_templates() ) {
 		register_post_type(
 			'wp_template',
 			array(
