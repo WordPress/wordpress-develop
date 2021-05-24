@@ -1222,9 +1222,10 @@ final class WP_Theme implements ArrayAccess {
 
 			if ( gutenberg_supports_block_templates() ) {
 				$block_templates = gutenberg_get_block_templates( array(), 'wp_template' );
-				foreach ( $block_templates as $block_template ) {
-					// TODO: Allow using block templates for custom post types (rather than just pages).
-					$post_templates['page'][ $block_template->slug ] = $block_template->title;
+				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
+					foreach ( $block_templates as $block_template ) {
+						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;
+					}
 				}
 			}
 
