@@ -1,22 +1,63 @@
 <?php
-/**
- * _wp_array_set.
- *
- * @package WordPress
- */
 
 /**
- * Test _wp_array_set function.
+ * Tests for the _wp_array_get() function
  *
- * @package WordPress
+ * @since 5.8.0
+ *
+ * @group functions.php
+ * @covers ::_wp_array_get
  */
-class WP_Array_Set_Test extends WP_UnitTestCase {
+class Tests_Functions_wpArraySet extends WP_UnitTestCase {
+
 	/**
-	 * Test _wp_array_set() with simple non subtree path.
+	 * Test _wp_array_set() with invalid parameters.
 	 *
 	 * @ticket 53175
 	 */
-	public function test_simple_not_subtree_set() {
+	public function test_wp_array_set_invalid_parameters() {
+		$test = 3;
+		_wp_array_set( $test, array( 'a' ), 1 );
+		$this->assertSame(
+			$test,
+			3
+		);
+
+		$test_array = array( 'a' => 2 );
+		_wp_array_set( $test_array, 'a', 3 );
+		$this->assertSame(
+			$test_array,
+			array( 'a' => 2 )
+		);
+
+		$test_array = array( 'a' => 2 );
+		_wp_array_set( $test_array, null, 3 );
+		$this->assertSame(
+			$test_array,
+			array( 'a' => 2 )
+		);
+
+		$test_array = array( 'a' => 2 );
+		_wp_array_set( $test_array, array(), 3 );
+		$this->assertSame(
+			$test_array,
+			array( 'a' => 2 )
+		);
+
+		$test_array = array( 'a' => 2 );
+		_wp_array_set( $test_array, array( 'a', array() ), 3 );
+		$this->assertSame(
+			$test_array,
+			array( 'a' => 2 )
+		);
+	}
+
+	/**
+	 * Test _wp_array_set() with simple non-subtree path.
+	 *
+	 * @ticket 53175
+	 */
+	public function test_wp_array_set_simple_non_subtree() {
 		$test_array = array();
 		_wp_array_set( $test_array, array( 'a' ), 1 );
 		$this->assertSame(
@@ -47,7 +88,7 @@ class WP_Array_Set_Test extends WP_UnitTestCase {
 	 *
 	 * @ticket 53175
 	 */
-	public function test_subtree_set() {
+	public function test_wp_array_set_subtree() {
 		$test_array = array();
 		_wp_array_set( $test_array, array( 'a', 'b', 'c' ), 1 );
 		$this->assertSame(
@@ -89,48 +130,6 @@ class WP_Array_Set_Test extends WP_UnitTestCase {
 				'b' => 3,
 				'a' => array( 'b' => array( 'c' => 1 ) ),
 			)
-		);
-	}
-
-	/**
-	 * Test _wp_array_set() with invalid parameters.
-	 *
-	 * @ticket 53175
-	 */
-	public function test_invalid_parameters_set() {
-		$test = 3;
-		_wp_array_set( $test, array( 'a' ), 1 );
-		$this->assertSame(
-			$test,
-			3
-		);
-
-		$test_array = array( 'a' => 2 );
-		_wp_array_set( $test_array, 'a', 3 );
-		$this->assertSame(
-			$test_array,
-			array( 'a' => 2 )
-		);
-
-		$test_array = array( 'a' => 2 );
-		_wp_array_set( $test_array, null, 3 );
-		$this->assertSame(
-			$test_array,
-			array( 'a' => 2 )
-		);
-
-		$test_array = array( 'a' => 2 );
-		_wp_array_set( $test_array, array(), 3 );
-		$this->assertSame(
-			$test_array,
-			array( 'a' => 2 )
-		);
-
-		$test_array = array( 'a' => 2 );
-		_wp_array_set( $test_array, array( 'a', array() ), 3 );
-		$this->assertSame(
-			$test_array,
-			array( 'a' => 2 )
 		);
 	}
 }

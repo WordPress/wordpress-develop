@@ -57,12 +57,12 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test _wp_array_get() with non subtree paths.
+	 * Test _wp_array_get() with non-subtree paths.
 	 *
 	 * @ticket 51720
 	 */
 	public function test_wp_array_get_simple_non_subtree() {
-		// Simple non sub tree test.
+		// Simple non-subtree test.
 		$this->assertSame(
 			_wp_array_get(
 				array(
@@ -73,7 +73,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 			4
 		);
 
-		// Simple non sub tree not found.
+		// Simple non-subtree not found.
 		$this->assertSame(
 			_wp_array_get(
 				array(
@@ -84,7 +84,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 			null
 		);
 
-		// Simple non sub tree not found with a default.
+		// Simple non-subtree not found with a default.
 		$this->assertSame(
 			_wp_array_get(
 				array(
@@ -96,7 +96,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 			1
 		);
 
-		// Simple non sub tree integer path.
+		// Simple non-subtree integer path.
 		$this->assertSame(
 			_wp_array_get(
 				array(
@@ -107,6 +107,55 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				array( 1 )
 			),
 			'b'
+		);
+	}
+
+	/**
+	 * Test _wp_array_get() with subtrees.
+	 *
+	 * @ticket 51720
+	 */
+	public function test_wp_array_get_subtree() {
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b' )
+			),
+			array( 'c' => 1 )
+		);
+
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b', 'c' )
+			),
+			1
+		);
+
+		$this->assertSame(
+			_wp_array_get(
+				array(
+					'a' => array(
+						'b' => array(
+							'c' => 1,
+						),
+					),
+				),
+				array( 'a', 'b', 'c', 'd' )
+			),
+			null
 		);
 	}
 
@@ -158,56 +207,6 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				array( '0' )
 			),
 			'b'
-		);
-	}
-
-
-	/**
-	 * Test _wp_array_get() with subtrees.
-	 *
-	 * @ticket 51720
-	 */
-	public function test_wp_array_get_subtree() {
-		$this->assertSame(
-			_wp_array_get(
-				array(
-					'a' => array(
-						'b' => array(
-							'c' => 1,
-						),
-					),
-				),
-				array( 'a', 'b' )
-			),
-			array( 'c' => 1 )
-		);
-
-		$this->assertSame(
-			_wp_array_get(
-				array(
-					'a' => array(
-						'b' => array(
-							'c' => 1,
-						),
-					),
-				),
-				array( 'a', 'b', 'c' )
-			),
-			1
-		);
-
-		$this->assertSame(
-			_wp_array_get(
-				array(
-					'a' => array(
-						'b' => array(
-							'c' => 1,
-						),
-					),
-				),
-				array( 'a', 'b', 'c', 'd' )
-			),
-			null
 		);
 	}
 
