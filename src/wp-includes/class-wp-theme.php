@@ -1221,7 +1221,7 @@ final class WP_Theme implements ArrayAccess {
 			}
 
 			if ( theme_supports_block_templates() ) {
-				$block_templates = gutenberg_get_block_templates( array(), 'wp_template' );
+				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
 					foreach ( $block_templates as $block_template ) {
 						$post_templates[ $type ][ $block_template->slug ] = $block_template->title;

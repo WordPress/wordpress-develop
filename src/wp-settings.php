@@ -172,7 +172,7 @@ require ABSPATH . WPINC . '/theme.php';
 require ABSPATH . WPINC . '/class-wp-theme.php';
 require ABSPATH . WPINC . '/default-template-types.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
-require ABSPATH . WPINC . '/block-template-loader.php';
+require ABSPATH . WPINC . '/block-template-utils.php';
 require ABSPATH . WPINC . '/block-template.php';
 require ABSPATH . WPINC . '/theme-templates.php';
 require ABSPATH . WPINC . '/template.php';

@@ -142,7 +142,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$query['area'] = $request['area'];
 		}
 		$templates = array();
-		foreach ( gutenberg_get_block_templates( $query, $this->post_type ) as $template ) {
+		foreach ( get_block_templates( $query, $this->post_type ) as $template ) {
 			$data        = $this->prepare_item_for_response( $template, $request );
 			$templates[] = $this->prepare_response_for_collection( $data );
 		}
@@ -168,11 +168,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function get_item( $request ) {
-		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
-			$template = gutenberg_get_block_file_template( $request['id'], $this->post_type );
-		} else {
-			$template = gutenberg_get_block_template( $request['id'], $this->post_type );
-		}
+		$template = get_block_template( $request['id'], $this->post_type );
 
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
@@ -198,14 +194,9 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function update_item( $request ) {
-		$template = gutenberg_get_block_template( $request['id'], $this->post_type );
+		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
-		}
-
-		if ( isset( $request['source'] ) && 'theme' === $request['source'] ) {
-			wp_delete_post( $template->wp_id, true );
-			return $this->prepare_item_for_response( gutenberg_get_block_file_template( $request['id'], $this->post_type ), $request );
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
@@ -219,14 +210,14 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			return $result;
 		}
 
-		$template      = gutenberg_get_block_template( $request['id'], $this->post_type );
+		$template      = get_block_template( $request['id'], $this->post_type );
 		$fields_update = $this->update_additional_fields_for_object( $template, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
 		}
 
 		return $this->prepare_item_for_response(
-			gutenberg_get_block_template( $request['id'], $this->post_type ),
+			get_block_template( $request['id'], $this->post_type ),
 			$request
 		);
 	}
@@ -254,19 +245,19 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
-		$posts = gutenberg_get_block_templates( array( 'wp_id' => $result ), $this->post_type );
+		$posts = get_block_templates( array( 'wp_id' => $result ), $this->post_type );
 		if ( ! count( $posts ) ) {
 			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.', 'gutenberg' ) );
 		}
 		$id            = $posts[0]->id;
-		$template      = gutenberg_get_block_template( $id, $this->post_type );
+		$template      = get_block_template( $id, $this->post_type );
 		$fields_update = $this->update_additional_fields_for_object( $template, $request );
 		if ( is_wp_error( $fields_update ) ) {
 			return $fields_update;
 		}
 
 		return $this->prepare_item_for_response(
-			gutenberg_get_block_template( $id, $this->post_type ),
+			get_block_template( $id, $this->post_type ),
 			$request
 		);
 	}
@@ -288,7 +279,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		$template = gutenberg_get_block_template( $request['id'], $this->post_type );
+		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
 			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
 		}
@@ -335,7 +326,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return stdClass Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$template           = $request['id'] ? gutenberg_get_block_template( $request['id'], $this->post_type ) : null;
+		$template           = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
 		$changes            = new stdClass();
 		$changes->post_name = $template->slug;
 		if ( null === $template ) {

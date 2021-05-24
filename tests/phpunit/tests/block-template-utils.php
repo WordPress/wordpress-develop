@@ -9,7 +9,7 @@
 /**
  * Tests for the Block Template Loader abstraction layer.
  */
-class Block_Template_Loader_Test extends WP_UnitTestCase {
+class Block_Template_Utils_Test extends WP_UnitTestCase {
 	private static $post;
 
 	public static function wpSetUpBeforeClass() {
@@ -54,8 +54,8 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 		wp_delete_post( self::$post->ID );
 	}
 
-	function test_gutenberg_build_template_result_from_file() {
-		$template = _gutenberg_build_template_result_from_file(
+	function test_build_template_result_from_file() {
+		$template = _build_template_result_from_file(
 			array(
 				'slug' => 'single',
 				'path' => get_stylesheet_directory() . '/block-templates/index.html',
@@ -73,8 +73,8 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 		$this->assertEquals( 'wp_template', $template->type );
 	}
 
-	function test_gutenberg_build_template_result_from_post() {
-		$template = _gutenberg_build_template_result_from_post(
+	function test_build_template_result_from_post() {
+		$template = _build_template_result_from_post(
 			self::$post,
 			'wp_template'
 		);
@@ -93,9 +93,9 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 	/**
 	 * Should retrieve the template from the theme files.
 	 */
-	function test_gutenberg_get_block_template_from_file() {
+	function test_get_block_template_from_file() {
 		$id       = get_stylesheet() . '//' . 'index';
-		$template = gutenberg_get_block_template( $id, 'wp_template' );
+		$template = get_block_template( $id, 'wp_template' );
 		$this->assertEquals( $id, $template->id );
 		$this->assertEquals( get_stylesheet(), $template->theme );
 		$this->assertEquals( 'index', $template->slug );
@@ -107,9 +107,9 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 	/**
 	 * Should retrieve the template from the CPT.
 	 */
-	function test_gutenberg_get_block_template_from_post() {
+	function test_get_block_template_from_post() {
 		$id       = get_stylesheet() . '//' . 'my_template';
-		$template = gutenberg_get_block_template( $id, 'wp_template' );
+		$template = get_block_template( $id, 'wp_template' );
 		$this->assertEquals( $id, $template->id );
 		$this->assertEquals( get_stylesheet(), $template->theme );
 		$this->assertEquals( 'my_template', $template->slug );
@@ -121,7 +121,7 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 	/**
 	 * Should retrieve block templates (file and CPT)
 	 */
-	function test_gutenberg_get_block_templates() {
+	function test_get_block_templates() {
 		function get_template_ids( $templates ) {
 			return array_map(
 				function( $template ) {
@@ -132,7 +132,7 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 		}
 
 		// All results.
-		$templates    = gutenberg_get_block_templates( array(), 'wp_template' );
+		$templates    = get_block_templates( array(), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
 
 		// Avoid testing the entire array because the theme might add/remove templates.
@@ -140,36 +140,13 @@ class Block_Template_Loader_Test extends WP_UnitTestCase {
 		$this->assertContains( get_stylesheet() . '//' . 'index', $template_ids );
 
 		// Filter by slug.
-		$templates    = gutenberg_get_block_templates( array( 'slug__in' => array( 'my_template' ) ), 'wp_template' );
+		$templates    = get_block_templates( array( 'slug__in' => array( 'my_template' ) ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
 		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
 
 		// Filter by CPT ID.
-		$templates    = gutenberg_get_block_templates( array( 'wp_id' => self::$post->ID ), 'wp_template' );
+		$templates    = get_block_templates( array( 'wp_id' => self::$post->ID ), 'wp_template' );
 		$template_ids = get_template_ids( $templates );
 		$this->assertEquals( array( get_stylesheet() . '//' . 'my_template' ), $template_ids );
-	}
-
-	/**
-	 * Should flatten nested blocks
-	 */
-	function test_flatten_blocks() {
-		$content_template_part_inside_group = '<!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group -->';
-		$blocks                             = parse_blocks( $content_template_part_inside_group );
-		$actual                             = _flatten_blocks( $blocks );
-		$expected                           = array( $blocks[0], $blocks[0]['innerBlocks'][0] );
-		$this->assertEquals( $expected, $actual );
-
-		$content_template_part_inside_group_inside_group = '<!-- wp:group --><!-- wp:group --><!-- wp:template-part {"slug":"header"} /--><!-- /wp:group --><!-- /wp:group -->';
-		$blocks   = parse_blocks( $content_template_part_inside_group_inside_group );
-		$actual   = _flatten_blocks( $blocks );
-		$expected = array( $blocks[0], $blocks[0]['innerBlocks'][0], $blocks[0]['innerBlocks'][0]['innerBlocks'][0] );
-		$this->assertEquals( $expected, $actual );
-
-		$content_without_inner_blocks = '<!-- wp:group /-->';
-		$blocks                       = parse_blocks( $content_without_inner_blocks );
-		$actual                       = _flatten_blocks( $blocks );
-		$expected                     = array( $blocks[0] );
-		$this->assertEquals( $expected, $actual );
 	}
 }
