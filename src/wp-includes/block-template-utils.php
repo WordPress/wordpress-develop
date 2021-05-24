@@ -27,7 +27,7 @@ function _build_template_result_from_post( $post ) {
 		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 
-	$theme          = $terms[0]->name;
+	$theme = $terms[0]->name;
 
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
@@ -47,7 +47,7 @@ function _build_template_result_from_post( $post ) {
 
 /**
  * Retrieves a list of unified template objects based on a query.
- * 
+ *
  * @since 5.8.0
  *
  * @param array $query {
@@ -101,7 +101,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 
 /**
  * Retrieves a single unified template object using its id.
- * 
+ *
  * @since 5.8.0
  *
  * @param string $id Template unique identifier (example: theme_slug//template_slug).

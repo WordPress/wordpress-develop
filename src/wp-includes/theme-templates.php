@@ -2,7 +2,7 @@
 
 /**
  * Generates a unique slug for templates.
- * 
+ *
  * @access private
  * @since 5.8.0
  *
@@ -72,7 +72,7 @@ add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug',
  *
  * @access private
  * @since 5.8.0
- * 
+ *
  * @return void
  */
 function the_block_template_skip_link() {

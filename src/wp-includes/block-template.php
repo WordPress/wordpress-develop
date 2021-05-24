@@ -84,7 +84,7 @@ function locate_block_template( $template, $type, array $templates ) {
 
 /**
  * Return the correct 'wp_template' to render for the request template type.
- * 
+ *
  * @access private
  * @since 5.8.0
  *
@@ -131,7 +131,7 @@ function resolve_block_template( $template_type, $template_hierarchy ) {
 
 /**
  * Displays title tag with content, regardless of whether theme has title-tag support.
- * 
+ *
  * @access private
  * @since 5.8.0
  *
@@ -143,10 +143,10 @@ function _block_template_render_title_tag() {
 
 /**
  * Returns the markup for the current template.
- * 
+ *
  * @access private
  * @since 5.8.0
- * 
+ *
  * @return string block tempate markup.
  */
 function get_the_block_template_html() {
@@ -178,7 +178,7 @@ function get_the_block_template_html() {
 
 /**
  * Renders a 'viewport' meta tag.
- * 
+ *
  * @access private
  * @since 5.8.0
  *
@@ -206,7 +206,7 @@ function _strip_php_suffix( $template_file ) {
  *
  * @access private
  * @since 5.8.0
- * 
+ *
  * @param array $context Default context.
  *
  * @return array Filtered context.
@@ -219,7 +219,7 @@ function _block_template_render_without_post_block_context( $context ) {
 	 * they should not be available as post context because blocks like Post
 	 * Content would recurse infinitely.
 	 */
-	if ( isset( $context['postType'] ) && 'wp_template' === $context['postType']  ) {
+	if ( isset( $context['postType'] ) && 'wp_template' === $context['postType'] ) {
 		unset( $context['postId'] );
 		unset( $context['postType'] );
 	}
