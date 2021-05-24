@@ -26,13 +26,6 @@ class WP_Theme_JSON {
 	 */
 	private static $allowed_block_names = null;
 
-	/**
-	 * Holds the allowed schema.
-	 *
-	 * @var array
-	 */
-	private static $allowed_schema = null;
-
 	const ALLOWED_TOP_LEVEL_KEYS = array(
 		'version',
 		'settings',
@@ -94,27 +87,6 @@ class WP_Theme_JSON {
 	}
 
 	/**
-	 * Returns the allowed schema for a theme.json structure.
-	 *
-	 * @return array
-	 */
-	private static function get_allowed_schema() {
-		if ( null !== self::$allowed_schema ) {
-			return self::$allowed_schema;
-		}
-
-		self::$allowed_schema = apply_filters(
-			'theme_json_allowed_schema',
-			array(
-				'topLevel' => self::ALLOWED_TOP_LEVEL_KEYS,
-				'settings' => self::ALLOWED_SETTINGS,
-			)
-		);
-
-		return self::$allowed_schema;
-	}
-
-	/**
 	 * Sanitizes the input according to the schemas.
 	 *
 	 * @param array $input Structure to sanitize.
@@ -128,20 +100,17 @@ class WP_Theme_JSON {
 			return $output;
 		}
 
-		$allowed_blocks         = self::get_allowed_block_names();
-		$allowed_schema         = self::get_allowed_schema();
-		$allowed_top_level_keys = $allowed_schema['topLevel'];
-		$allowed_settings       = $allowed_schema['settings'];
+		$allowed_blocks = self::get_allowed_block_names();
 
-		$output = array_intersect_key( $input, array_flip( $allowed_top_level_keys ) );
+		$output = array_intersect_key( $input, array_flip( self::ALLOWED_TOP_LEVEL_KEYS ) );
 
 		// Build the schema.
 		$schema                 = array();
 		$schema_settings_blocks = array();
 		foreach ( $allowed_blocks as $block ) {
-			$schema_settings_blocks[ $block ] = $allowed_settings;
+			$schema_settings_blocks[ $block ] = self::ALLOWED_SETTINGS;
 		}
-		$schema['settings']           = $allowed_settings;
+		$schema['settings']           = self::ALLOWED_SETTINGS;
 		$schema['settings']['blocks'] = $schema_settings_blocks;
 
 		// Remove anything that's not present in the schema.

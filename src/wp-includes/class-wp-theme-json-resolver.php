@@ -234,7 +234,6 @@ class WP_Theme_JSON_Resolver {
 		}
 
 		$config     = self::read_json_file( __DIR__ . '/theme.json' );
-		$config     = apply_filters( 'theme_json_core_data', $config );
 		$config     = self::translate( $config );
 		self::$core = new WP_Theme_JSON( $config );
 
