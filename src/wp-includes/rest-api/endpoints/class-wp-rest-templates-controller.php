@@ -361,8 +361,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	 * @return stdClass Changes to pass to wp_update_post.
 	 */
 	protected function prepare_item_for_database( $request ) {
-		$template           = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
-		$changes            = new stdClass();
+		$template = $request['id'] ? get_block_template( $request['id'], $this->post_type ) : null;
+		$changes  = new stdClass();
 		if ( null === $template ) {
 			$changes->post_type   = $this->post_type;
 			$changes->post_status = 'publish';
@@ -377,7 +377,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 				'wp_theme' => $template->theme,
 			);
 		} else {
-			$changes->post_name = $template->slug;
+			$changes->post_name   = $template->slug;
 			$changes->ID          = $template->wp_id;
 			$changes->post_status = 'publish';
 		}
