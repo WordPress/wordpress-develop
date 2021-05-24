@@ -305,6 +305,7 @@ function create_initial_post_types() {
 			'supports'              => array(
 				'title',
 				'editor',
+				'revisions',
 			),
 		)
 	);
@@ -2630,6 +2631,11 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
+	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
 	}
 
 	return $value;

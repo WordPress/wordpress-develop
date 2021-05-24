@@ -259,6 +259,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50263
+	 * @ticket 50328
 	 */
 	function test_success_register_block_style_handle() {
 		$metadata = array(
@@ -270,6 +271,12 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 
 		$this->assertSame( 'unit-tests-test-block-style', $result );
 		$this->assertSame( 'replace', wp_styles()->get_data( 'unit-tests-test-block-style', 'rtl' ) );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
 	}
 
 	/**
@@ -301,6 +308,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	 * is found in the fixtures directory.
 	 *
 	 * @ticket 50263
+	 * @ticket 50328
 	 */
 	function test_block_registers_with_metadata_fixture() {
 		$result = register_block_type_from_metadata(
@@ -366,6 +374,24 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 		$this->assertSame( 'tests-notice-script', $result->script );
 		$this->assertSame( 'tests-notice-editor-style', $result->editor_style );
 		$this->assertSame( 'tests-notice-style', $result->style );
+
+		// @ticket 50328
+		$this->assertSame(
+			wp_normalize_path( realpath( DIR_TESTDATA . '/blocks/notice/block.css' ) ),
+			wp_normalize_path( wp_styles()->get_data( 'unit-tests-test-block-style', 'path' ) )
+		);
+	}
+
+	/**
+	 * @ticket 53233
+	 */
+	function test_block_register_block_type_proxy_for_metadata() {
+		$result = register_block_type(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 'tests/notice', $result->name );
 	}
 
 	/**

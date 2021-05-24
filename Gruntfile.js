@@ -1003,7 +1003,7 @@ module.exports = function(grunt) {
 						WORKING_DIR + 'wp-{admin,includes}/**/*.js',
 						WORKING_DIR + 'wp-content/themes/twenty*/**/*.js',
 						'!' + WORKING_DIR + 'wp-content/themes/twenty*/node_modules/**/*.js',
-						'!' + WORKING_DIR + 'wp-includes/js/dist/vendor/*.js',
+						'!' + WORKING_DIR + 'wp-includes/js/dist/**/*.js',
 					]
 				}
 			},

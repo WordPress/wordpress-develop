@@ -65,6 +65,24 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 */
+	function test_block_editor_context_no_settings() {
+		$context = new WP_Block_Editor_Context();
+
+		$this->assertNull( $context->post );
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_context_post() {
+		$context = new WP_Block_Editor_Context( array( 'post' => $this->post ) );
+
+		$this->assertSame( $this->post, $context->post );
+	}
+
+	/**
+	 * @ticket 52920
 	 * @expectedDeprecated block_categories
 	 */
 	function test_get_block_categories_deprecated_filter_post_object() {
@@ -238,19 +256,18 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 */
-	function test_get_block_editor_settings_returns_default_settings() {
-		$this->assertSameSets(
-			get_block_editor_settings( 'my-editor' ),
-			get_default_block_editor_settings()
-		);
-	}
-
-	/**
-	 * @ticket 52920
-	 */
-	function test_get_block_editor_settings_overrides_default_settings_my_editor() {
+	function test_get_block_editor_settings_overrides_default_settings_all_editors() {
 		function filter_allowed_block_types_my_editor() {
 			return array( 'test/filtered-my-block' );
+		}
+		function filter_block_categories_my_editor() {
+			return array(
+				array(
+					'slug'  => 'filtered-my-category',
+					'title' => 'Filtered My Category',
+					'icon'  => null,
+				),
+			);
 		}
 		function filter_block_editor_settings_my_editor( $editor_settings ) {
 			$editor_settings['maxUploadFileSize'] = 12345;
@@ -258,62 +275,28 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			return $editor_settings;
 		}
 
-		add_filter( 'allowed_block_types_my-editor', 'filter_allowed_block_types_my_editor', 10, 1 );
-		add_filter( 'block_editor_settings_my-editor', 'filter_block_editor_settings_my_editor', 10, 1 );
+		add_filter( 'allowed_block_types_all', 'filter_allowed_block_types_my_editor', 10, 1 );
+		add_filter( 'block_categories_all', 'filter_block_categories_my_editor', 10, 1 );
+		add_filter( 'block_editor_settings_all', 'filter_block_editor_settings_my_editor', 10, 1 );
 
 		$settings = get_block_editor_settings( 'my-editor' );
 
-		remove_filter( 'allowed_block_types_my-editor', 'filter_allowed_block_types_my_editor' );
-		remove_filter( 'block_editor_settings_my-editor', 'filter_block_editor_settings_my_editor' );
+		remove_filter( 'allowed_block_types_all', 'filter_allowed_block_types_my_editor' );
+		remove_filter( 'block_categories_all', 'filter_block_categories_my_editor' );
+		remove_filter( 'block_editor_settings_all', 'filter_block_editor_settings_my_editor' );
 
 		$this->assertSameSets( array( 'test/filtered-my-block' ), $settings['allowedBlockTypes'] );
-		$this->assertSame( 12345, $settings['maxUploadFileSize'] );
-	}
-
-	/**
-	 * @ticket 52920
-	 */
-	function test_get_block_editor_settings_overrides_default_settings_any_editor() {
-		function filter_allowed_block_types_any_editor() {
-			return array( 'test/filtered-any-block' );
-		}
-		function filter_block_categories_any_editor() {
-			return array(
-				array(
-					'slug'  => 'filtered-any-category',
-					'title' => 'Filtered Any Category',
-					'icon'  => null,
-				),
-			);
-		}
-		function filter_block_editor_settings_any_editor( $editor_settings ) {
-			$editor_settings['maxUploadFileSize'] = 54321;
-
-			return $editor_settings;
-		}
-
-		add_filter( 'allowed_block_types_all', 'filter_allowed_block_types_any_editor', 10, 1 );
-		add_filter( 'block_categories_all', 'filter_block_categories_any_editor', 10, 1 );
-		add_filter( 'block_editor_settings_all', 'filter_block_editor_settings_any_editor', 10, 1 );
-
-		$settings = get_block_editor_settings( 'any-editor' );
-
-		remove_filter( 'allowed_block_types_all', 'filter_allowed_block_types_any_editor' );
-		remove_filter( 'block_categories_all', 'filter_block_categories_any_editor' );
-		remove_filter( 'block_editor_settings_all', 'filter_block_editor_settings_any_editor' );
-
-		$this->assertSameSets( array( 'test/filtered-any-block' ), $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
 				array(
-					'slug'  => 'filtered-any-category',
-					'title' => 'Filtered Any Category',
+					'slug'  => 'filtered-my-category',
+					'title' => 'Filtered My Category',
 					'icon'  => null,
 				),
 			),
 			$settings['blockCategories']
 		);
-		$this->assertSame( 54321, $settings['maxUploadFileSize'] );
+		$this->assertSame( 12345, $settings['maxUploadFileSize'] );
 	}
 
 	/**
@@ -333,5 +316,72 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			),
 			$settings
 		);
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_rest_api_preload_no_paths() {
+		$context = new WP_Block_Editor_Context();
+		block_editor_rest_api_preload( array(), $context );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+	}
+
+	/**
+	 * @ticket 52920
+	 * @expectedDeprecated block_editor_preload_paths
+	 */
+	function test_block_editor_rest_api_preload_deprecated_filter_post_editor() {
+		function filter_remove_preload_paths( $preload_paths, $post ) {
+			if ( empty( $post ) ) {
+				return $preload_paths;
+			}
+			return array();
+		}
+		add_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths', 10, 2 );
+
+		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		block_editor_rest_api_preload(
+			array(
+				array( '/wp/v2/blocks', 'OPTIONS' ),
+			),
+			$context
+		);
+
+		remove_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths' );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_rest_api_preload_filter_all() {
+		function filter_add_preload_paths( $preload_paths, WP_Block_Editor_Context $context ) {
+			if ( empty( $context->post ) ) {
+				array_push( $preload_paths, array( '/wp/v2/types', 'OPTIONS' ) );
+			}
+
+			return $preload_paths;
+		}
+		add_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths', 10, 2 );
+
+		$context = new WP_Block_Editor_Context();
+		block_editor_rest_api_preload(
+			array(
+				array( '/wp/v2/blocks', 'OPTIONS' ),
+			),
+			$context
+		);
+
+		remove_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths' );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+		$this->assertContains( '"\/wp\/v2\/blocks"', $after );
+		$this->assertContains( '"\/wp\/v2\/types"', $after );
 	}
 }

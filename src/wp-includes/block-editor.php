@@ -120,21 +120,6 @@ function get_allowed_block_types( $editor_name ) {
 	 * @param string     $editor_name         The name of the editor, e.g. 'post-editor'.
 	 */
 	$allowed_block_types = apply_filters( 'allowed_block_types_all', $allowed_block_types, $editor_name );
-
-	/**
-	 * Filters the allowed block types for the given editor, defaulting to `true`
-	 * (all registered block types supported).
-	 *
-	 * The dynamic portion of the hook name, `$editor_name`, refers to the name
-	 * of the editor type, e.g. 'post-editor', 'site-editor', etc.
-	 *
-	 * @since 5.8.0
-	 *
-	 * @param bool|array $allowed_block_types Array of block type slugs, or
-	 *                                        boolean to enable/disable all.
-	 * @param string     $editor_name         The name of the editor, e.g. 'post-editor'.
-	 */
-	$allowed_block_types = apply_filters( "allowed_block_types_{$editor_name}", $allowed_block_types, $editor_name );
 	if ( 'post-editor' === $editor_name ) {
 		$post = get_post();
 
@@ -250,13 +235,57 @@ function get_default_block_editor_settings() {
  */
 function get_block_editor_settings( $editor_name, $custom_settings = array() ) {
 	$editor_settings = array_merge(
-		get_default_block_editor_settings( $editor_name ),
+		get_default_block_editor_settings(),
 		array(
 			'allowedBlockTypes' => get_allowed_block_types( $editor_name ),
 			'blockCategories'   => get_block_categories( $editor_name ),
 		),
 		$custom_settings
 	);
+
+	$editor_settings['__experimentalFeatures'] = WP_Theme_JSON_Resolver::get_merged_data( $editor_settings )->get_settings();
+
+	// These settings may need to be updated based on data coming from theme.json sources.
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['palette'] ) ) {
+		$editor_settings['colors'] = $editor_settings['__experimentalFeatures']['color']['palette'];
+		unset( $editor_settings['__experimentalFeatures']['color']['palette'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['gradients'] ) ) {
+		$editor_settings['gradients'] = $editor_settings['__experimentalFeatures']['color']['gradients'];
+		unset( $editor_settings['__experimentalFeatures']['color']['gradients'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['custom'] ) ) {
+		$editor_settings['disableCustomColors'] = $editor_settings['__experimentalFeatures']['color']['custom'];
+		unset( $editor_settings['__experimentalFeatures']['color']['custom'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['customGradient'] ) ) {
+		$editor_settings['disableCustomGradients'] = $editor_settings['__experimentalFeatures']['color']['customGradient'];
+		unset( $editor_settings['__experimentalFeatures']['color']['customGradient'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
+		$editor_settings['fontSizes'] = $editor_settings['__experimentalFeatures']['typography']['fontSizes'];
+		unset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['customFontSize'] ) ) {
+		$editor_settings['disableCustomFontSizes'] = $editor_settings['__experimentalFeatures']['typography']['customFontSize'];
+		unset( $editor_settings['__experimentalFeatures']['typography']['customFontSize'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] ) ) {
+		$editor_settings['enableCustomLineHeight'] = $editor_settings['__experimentalFeatures']['typography']['customLineHeight'];
+		unset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
+		if ( ! is_array( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
+			$editor_settings['enableCustomUnits'] = false;
+		} else {
+			$editor_settings['enableCustomUnits'] = count( $editor_settings['__experimentalFeatures']['spacing']['units'] ) > 0;
+		}
+		unset( $editor_settings['__experimentalFeatures']['spacing']['units'] );
+	}
+	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] ) ) {
+		$editor_settings['enableCustomSpacing'] = $editor_settings['__experimentalFeatures']['spacing']['customPadding'];
+		unset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] );
+	}
 
 	/**
 	 * Filters the settings to pass to the block editor for all editor type.
@@ -267,19 +296,6 @@ function get_block_editor_settings( $editor_name, $custom_settings = array() ) {
 	 * @param string $editor_name     The name of the editor, e.g. 'post-editor'.
 	 */
 	$editor_settings = apply_filters( 'block_editor_settings_all', $editor_settings, $editor_name );
-
-	/**
-	 * Filters the settings to pass to the block editor for a given editor type.
-	 *
-	 * The dynamic portion of the hook name, `$editor_name`, refers to the name
-	 * of the editor type, e.g. 'post-editor', 'site-editor', etc.
-	 *
-	 * @since 5.8.0
-	 *
-	 * @param array  $editor_settings Default editor settings.
-	 * @param string $editor_name     The name of the editor, e.g. 'post-editor'.
-	 */
-	$editor_settings = apply_filters( "block_editor_settings_{$editor_name}", $editor_settings, $editor_name );
 	if ( 'post-editor' === $editor_name ) {
 		$post = get_post();
 
@@ -296,4 +312,76 @@ function get_block_editor_settings( $editor_name, $custom_settings = array() ) {
 	}
 
 	return $editor_settings;
+}
+
+/**
+ * Preloads common data used with the block editor by specifying an array of
+ * REST API paths that will be preloaded for a given block editor context.
+ *
+ * @since 5.8.0
+ *
+ * @global WP_Post $post Global post object.
+ *
+ * @param array                   $preload_paths        List of paths to preload.
+ * @param WP_Block_Editor_Context $block_editor_context The current block editor context.
+ *
+ * @return void
+ */
+function block_editor_rest_api_preload( array $preload_paths, $block_editor_context ) {
+	global $post;
+
+	/**
+	 * Filters the array of REST API paths that will be used to preloaded common data
+	 * to use with the block editor.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string[] $preload_paths Array of paths to preload.
+	 */
+	$preload_paths = apply_filters( 'block_editor_rest_api_preload_paths', $preload_paths, $block_editor_context );
+	if ( ! empty( $block_editor_context->post ) ) {
+		$selected_post = $block_editor_context->post;
+
+		/**
+		 * Preload common data by specifying an array of REST API paths that will be preloaded.
+		 *
+		 * Filters the array of paths that will be preloaded.
+		 *
+		 * @since 5.0.0
+		 * @deprecated 5.8.0 The hook transitioned to support also screens that don't contain $post instance.
+		 *
+		 * @param string[] $preload_paths Array of paths to preload.
+		 * @param WP_Post  $selected_post Post being edited.
+		 */
+		$preload_paths = apply_filters_deprecated( 'block_editor_preload_paths', array( $preload_paths, $selected_post ), '5.8.0', 'block_editor_rest_api_preload_paths' );
+	}
+
+	if ( empty( $preload_paths ) ) {
+		return;
+	}
+
+	/*
+	 * Ensure the global $post remains the same after API data is preloaded.
+	 * Because API preloading can call the_content and other filters, plugins
+	 * can unexpectedly modify $post.
+	 */
+	$backup_global_post = ! empty( $post ) ? clone $post : $post;
+
+	$preload_data = array_reduce(
+		$preload_paths,
+		'rest_preload_api_request',
+		array()
+	);
+
+	// Restore the global $post as it was before API preloading.
+	$post = $backup_global_post;
+
+	wp_add_inline_script(
+		'wp-api-fetch',
+		sprintf(
+			'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );',
+			wp_json_encode( $preload_data )
+		),
+		'after'
+	);
 }

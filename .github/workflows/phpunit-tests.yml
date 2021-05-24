@@ -21,6 +21,13 @@ on:
   schedule:
     - cron: '0 0 * * 0'
 
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
+
 env:
   PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: ${{ true }}
   COMPOSER_INSTALL: ${{ false }}
@@ -30,20 +37,6 @@ env:
   SLOW_TESTS: 'external-http,media,restapi'
 
 jobs:
-  # Sets up the workflow for testing.
-  #
-  # Performs the following steps:
-  # - Cancels all previous workflow runs for pull requests that have not completed.
-  setup-workflow:
-    name: Setup Workflow
-    runs-on: ubuntu-latest
-    if: ${{ github.repository == 'WordPress/wordpress-develop' || github.event_name == 'pull_request' }}
-
-    steps:
-      - name: Cancel previous runs of this workflow (pull requests only)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: styfle/cancel-workflow-action@3d86a7cc43670094ac248017207be0295edbc31d # v0.8.0
-
   # Runs the PHPUnit tests for WordPress.
   #
   # Performs the following steps:
