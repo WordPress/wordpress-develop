@@ -4,10 +4,12 @@
  * Test WP_Theme_JSON_Resolver class.
  *
  * @package WordPress
+ * @subpackage Theme
  * @since 5.8.0
+ *
+ * @group themes
  */
-
-class WP_Theme_JSON_Resolver_Test extends WP_UnitTestCase {
+class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();

@@ -1,8 +1,14 @@
 <?php
 /**
+/**
+ * Test WP_Theme class.
+ *
+ * @package WordPress
+ * @subpackage Theme
+ *
  * @group themes
  */
-class Tests_Theme_WPTheme extends WP_UnitTestCase {
+class Tests_Theme_wpTheme extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
