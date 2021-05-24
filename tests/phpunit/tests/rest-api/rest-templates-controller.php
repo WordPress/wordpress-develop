@@ -5,6 +5,7 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 	 * @var int
 	 */
 	protected static $admin_id;
+	private static $post;
 
 	/**
 	 * Create fake data before our tests run.
@@ -12,21 +13,38 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 	 * @param WP_UnitTest_Factory $factory Helper that lets us create fake data.
 	 */
 	public static function wpSetupBeforeClass( $factory ) {
-		switch_theme( 'tt1-blocks' );
 		self::$admin_id = $factory->user->create(
 			array(
 				'role' => 'administrator',
 			)
 		);
+
+		// Set up template post.
+		$args       = array(
+			'post_type'    => 'wp_template',
+			'post_name'    => 'my_template',
+			'post_title'   => 'My Template',
+			'post_content' => 'Content',
+			'post_excerpt' => 'Description of my template',
+			'tax_input'    => array(
+				'wp_theme' => array(
+					get_stylesheet(),
+				),
+			),
+		);
+		self::$post = self::factory()->post->create_and_get( $args );
+		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
 	}
+
+	public static function wpTearDownAfterClass() {
+		wp_delete_post( self::$post->ID );
+	}
+
 
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
 		$this->assertArrayHasKey( '/wp/v2/templates', $routes );
 		$this->assertArrayHasKey( '/wp/v2/templates/(?P<id>[\/\w-]+)', $routes );
-
-		$this->assertArrayHasKey( '/wp/v2/template-parts', $routes );
-		$this->assertArrayHasKey( '/wp/v2/template-parts/(?P<id>[\/\w-]+)', $routes );
 	}
 
 	public function test_context_param() {
@@ -58,27 +76,27 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals(
 			array(
-				'id'             => 'tt1-blocks//index',
+				'id'             => 'tt1-blocks//my_template',
 				'theme'          => 'tt1-blocks',
-				'slug'           => 'index',
+				'slug'           => 'my_template',
 				'title'          => array(
-					'raw'      => 'Index',
-					'rendered' => 'Index',
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
 				),
-				'description'    => 'The default template used when no other template is available. This is a required template in WordPress.',
+				'description'    => 'Description of my template.',
 				'status'         => 'publish',
-				'source'         => 'theme',
+				'source'         => 'custom',
 				'type'           => 'wp_template',
-				'wp_id'          => null,
-				'has_theme_file' => true,
+				'wp_id'          => self::$post->ID,
+				'has_theme_file' => false,
 			),
-			find_and_normalize_template_by_id( $data, 'tt1-blocks//index' )
+			find_and_normalize_template_by_id( $data, 'tt1-blocks//my_template' )
 		);
 	}
 
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/tt1-blocks//index' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/tt1-blocks//my_template' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		unset( $data['content'] );
@@ -86,19 +104,19 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals(
 			array(
-				'id'             => 'tt1-blocks//index',
+				'id'             => 'tt1-blocks//my_template',
 				'theme'          => 'tt1-blocks',
-				'slug'           => 'index',
+				'slug'           => 'my_template',
 				'title'          => array(
-					'raw'      => 'Index',
-					'rendered' => 'Index',
+					'raw'      => 'My Template',
+					'rendered' => 'My Template',
 				),
-				'description'    => 'The default template used when no other template is available. This is a required template in WordPress.',
+				'description'    => 'Description of my template.',
 				'status'         => 'publish',
-				'source'         => 'theme',
+				'source'         => 'custom',
 				'type'           => 'wp_template',
-				'wp_id'          => null,
-				'has_theme_file' => true,
+				'wp_id'          => self::$post->ID,
+				'has_theme_file' => false,
 			),
 			$data
 		);

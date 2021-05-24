@@ -5,6 +5,7 @@
  *
  * @package WordPress
  * @subpackage Theme
+ *
  * @since 5.8.0
  *
  * @group themes
