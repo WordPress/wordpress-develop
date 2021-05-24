@@ -1557,6 +1557,14 @@ function wp_default_styles( $styles ) {
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
+			'wp-reusable-blocks',
+		),
+		'customize-widgets'    => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+			'wp-reusable-blocks',
 		),
 	);
 

@@ -159,7 +159,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 16, $settings );
+		$this->assertCount( 17, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertInternalType( 'array', $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -254,6 +254,29 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertInternalType( 'int', $settings['maxUploadFileSize'] );
+		$this->assertSameSets(
+			array(
+				'archives',
+				'block',
+				'calendar',
+				'categories',
+				'custom_html',
+				'media_audio',
+				'media_gallery',
+				'media_image',
+				'media_video',
+				'meta',
+				'nav_menu',
+				'pages',
+				'recent-comments',
+				'recent-posts',
+				'rss',
+				'search',
+				'tag_cloud',
+				'text',
+			),
+			$settings['widgetTypesToHideFromLegacyWidgetBlock']
+		);
 	}
 
 	/**

@@ -24,44 +24,7 @@ $preload_paths = array(
 );
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
-$editor_settings = get_block_editor_settings(
-	array(
-		/**
-		 * Filters the list of widget-type IDs that should **not** be offered by the
-		 * Legacy Widget block.
-		 *
-		 * Returning an empty array will make all widgets available.
-		 *
-		 * @since 5.8.0
-		 *
-		 * @param array $widgets An array of excluded widget-type IDs.
-		 */
-		'widgetTypesToHideFromLegacyWidgetBlock' => apply_filters(
-			'widget_types_to_hide_from_legacy_widget_block',
-			array(
-				'pages',
-				'calendar',
-				'archives',
-				'media_audio',
-				'media_image',
-				'media_gallery',
-				'media_video',
-				'meta',
-				'search',
-				'text',
-				'categories',
-				'recent-posts',
-				'recent-comments',
-				'rss',
-				'tag_cloud',
-				'nav_menu',
-				'custom_html',
-				'block',
-			)
-		),
-	),
-	$block_editor_context
-);
+$editor_settings = get_block_editor_settings( array(), $block_editor_context );
 
 wp_add_inline_script(
 	'wp-edit-widgets',

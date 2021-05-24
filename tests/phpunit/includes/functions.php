@@ -310,6 +310,7 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_loginout' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
+	remove_action( 'init', 'register_block_core_legacy_widget', 20 );
 	remove_action( 'init', 'register_block_core_post_author' );
 	remove_action( 'init', 'register_block_core_post_content' );
 	remove_action( 'init', 'register_block_core_post_date' );
