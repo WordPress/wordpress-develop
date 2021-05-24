@@ -1621,7 +1621,7 @@ function wp_default_styles( $styles ) {
 	if ( ! WP_Theme_JSON_Resolver_Gutenberg::theme_has_support() ) {
 		$rtl_styles[] = 'wp-editor-classic-layout-styles';
 	}
-	
+
 	foreach ( $rtl_styles as $rtl_style ) {
 		$styles->add_data( $rtl_style, 'rtl', 'replace' );
 		if ( $suffix ) {
