@@ -226,4 +226,3 @@ function _block_template_render_without_post_block_context( $context ) {
 
 	return $context;
 }
-add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );

@@ -65,7 +65,6 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 
 	return $override_slug;
 }
-add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug', 10, 5 );
 
 /**
  * Print the skip-link script & styles.
@@ -159,7 +158,6 @@ function the_block_template_skip_link() {
 	</script>
 	<?php
 }
-add_action( 'wp_footer', 'the_block_template_skip_link' );
 
 // By default, themes support block templates.
 add_theme_support( 'block-templates' );
