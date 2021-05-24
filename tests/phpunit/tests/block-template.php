@@ -1,7 +1,7 @@
 <?php
 /**
  * Block_Template_Test class
- *
+ * 
  * @package WordPress
  */
 

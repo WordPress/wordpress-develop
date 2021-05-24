@@ -1,4 +1,10 @@
 <?php
+/**
+ * Unit tests covering the templates endpoint..
+ *
+ * @package WordPress
+ * @subpackage REST API
+ */
 
 class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -25,7 +31,7 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 			'post_name'    => 'my_template',
 			'post_title'   => 'My Template',
 			'post_content' => 'Content',
-			'post_excerpt' => 'Description of my template',
+			'post_excerpt' => 'Description of my template.',
 			'tax_input'    => array(
 				'wp_theme' => array(
 					get_stylesheet(),
@@ -76,8 +82,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals(
 			array(
-				'id'             => 'tt1-blocks//my_template',
-				'theme'          => 'tt1-blocks',
+				'id'             => 'default//my_template',
+				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'title'          => array(
 					'raw'      => 'My Template',
@@ -90,13 +96,13 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 				'wp_id'          => self::$post->ID,
 				'has_theme_file' => false,
 			),
-			find_and_normalize_template_by_id( $data, 'tt1-blocks//my_template' )
+			find_and_normalize_template_by_id( $data, 'default//my_template' )
 		);
 	}
 
 	public function test_get_item() {
 		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/tt1-blocks//my_template' );
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/templates/default//my_template' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		unset( $data['content'] );
@@ -104,8 +110,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals(
 			array(
-				'id'             => 'tt1-blocks//my_template',
-				'theme'          => 'tt1-blocks',
+				'id'             => 'default//my_template',
+				'theme'          => 'default',
 				'slug'           => 'my_template',
 				'title'          => array(
 					'raw'      => 'My Template',
@@ -140,8 +146,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 		$this->assertEquals(
 			array(
-				'id'             => 'tt1-blocks//my_custom_template',
-				'theme'          => 'tt1-blocks',
+				'id'             => 'default//my_custom_template',
+				'theme'          => 'default',
 				'slug'           => 'my_custom_template',
 				'title'          => array(
 					'raw'      => 'My Template',
@@ -162,7 +168,7 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 
 	public function test_update_item() {
 		wp_set_current_user( self::$admin_id );
-		$request = new WP_REST_Request( 'PUT', '/wp/v2/templates/tt1-blocks//index' );
+		$request = new WP_REST_Request( 'PUT', '/wp/v2/templates/default//my_template' );
 		$request->set_body_params(
 			array(
 				'title' => 'My new Index Title',
@@ -179,11 +185,6 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/templates/justrandom//template' );
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertErrorResponse( 'rest_template_not_found', $response, 404 );
-
-		wp_set_current_user( self::$admin_id );
-		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/templates/tt1-blocks//single' );
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertErrorResponse( 'rest_invalid_template', $response, 400 );
 	}
 
 	public function test_prepare_item() {
