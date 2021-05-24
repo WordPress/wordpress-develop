@@ -428,42 +428,42 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @ticket 44098
 	 * @see WP_Widget::__construct()
-	 * @dataProvider data_wp_widget_id_base
+	 * @dataProvider data_wp_widget_classname
 	 */
-	function test_wp_widget_id_base( $expected, $widget_class ) {
+	function test_wp_widget_classname( $expected, $widget_class ) {
 		require_once DIR_TESTDATA . '/widgets/custom-widget-classes.php';
 
 		$widget = new $widget_class( '', 'Foo' );
 
-		$this->assertSame( $expected, $widget->id_base );
+		$this->assertSame( $expected, $widget->widget_options['classname'] );
 	}
 
 	/**
 	 * Data provider.
 	 *
-	 * Passes the expected `id_base` value and the class name.
+	 * Passes the expected `classname` value and the PHP class name.
 	 *
 	 * @since 5.8.0
 	 *
 	 * @return array {
 	 *     @type array {
-	 *         @type string $expected     The expected `id_base` value to be returned.
+	 *         @type string $expected     The expected `classname` value to be returned.
 	 *         @type string $widget_class The widget class name for creating an instance.
 	 *     }
 	 * }
 	 */
-	function data_wp_widget_id_base() {
+	function data_wp_widget_classname() {
 		return array(
 			array(
-				'search',
+				'widget_search',
 				'WP_Widget_Search',
 			),
 			array(
-				'test-sub-sub-namespaced_widget',
+				'widget_test_sub_sub_namespaced_widget',
 				'Test\Sub\Sub\Namespaced_Widget',
 			),
 			array(
-				'non_namespaced_widget',
+				'widget_non_namespaced_widget',
 				'Non_Namespaced_Widget',
 			),
 		);
