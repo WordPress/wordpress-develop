@@ -1600,7 +1600,6 @@ function wp_default_styles( $styles ) {
 		'wp-jquery-ui-dialog',
 		// Package styles.
 		'wp-reset-editor-styles',
-		'wp-editor-classic-layout-styles',
 		'wp-block-library-theme',
 		'wp-edit-blocks',
 		'wp-block-editor',
@@ -1618,6 +1617,11 @@ function wp_default_styles( $styles ) {
 		'farbtastic',
 	);
 
+	// Only load the default layout and margin styles for themes without theme.json file.
+	if ( ! WP_Theme_JSON_Resolver_Gutenberg::theme_has_support() ) {
+		$rtl_styles[] = 'wp-editor-classic-layout-styles';
+	}
+	
 	foreach ( $rtl_styles as $rtl_style ) {
 		$styles->add_data( $rtl_style, 'rtl', 'replace' );
 		if ( $suffix ) {
