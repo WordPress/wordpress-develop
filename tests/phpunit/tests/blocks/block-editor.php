@@ -65,6 +65,24 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52920
+	 */
+	function test_block_editor_context_no_settings() {
+		$context = new WP_Block_Editor_Context();
+
+		$this->assertNull( $context->post );
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_context_post() {
+		$context = new WP_Block_Editor_Context( array( 'post' => $this->post ) );
+
+		$this->assertSame( $this->post, $context->post );
+	}
+
+	/**
+	 * @ticket 52920
 	 * @expectedDeprecated block_categories
 	 */
 	function test_get_block_categories_deprecated_filter_post_object() {
@@ -298,5 +316,72 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			),
 			$settings
 		);
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_rest_api_preload_no_paths() {
+		$context = new WP_Block_Editor_Context();
+		block_editor_rest_api_preload( array(), $context );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+	}
+
+	/**
+	 * @ticket 52920
+	 * @expectedDeprecated block_editor_preload_paths
+	 */
+	function test_block_editor_rest_api_preload_deprecated_filter_post_editor() {
+		function filter_remove_preload_paths( $preload_paths, $post ) {
+			if ( empty( $post ) ) {
+				return $preload_paths;
+			}
+			return array();
+		}
+		add_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths', 10, 2 );
+
+		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		block_editor_rest_api_preload(
+			array(
+				array( '/wp/v2/blocks', 'OPTIONS' ),
+			),
+			$context
+		);
+
+		remove_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths' );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+	}
+
+	/**
+	 * @ticket 52920
+	 */
+	function test_block_editor_rest_api_preload_filter_all() {
+		function filter_add_preload_paths( $preload_paths, WP_Block_Editor_Context $context ) {
+			if ( empty( $context->post ) ) {
+				array_push( $preload_paths, array( '/wp/v2/types', 'OPTIONS' ) );
+			}
+
+			return $preload_paths;
+		}
+		add_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths', 10, 2 );
+
+		$context = new WP_Block_Editor_Context();
+		block_editor_rest_api_preload(
+			array(
+				array( '/wp/v2/blocks', 'OPTIONS' ),
+			),
+			$context
+		);
+
+		remove_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths' );
+
+		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
+		$this->assertContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
+		$this->assertContains( '"\/wp\/v2\/blocks"', $after );
+		$this->assertContains( '"\/wp\/v2\/types"', $after );
 	}
 }
