@@ -1513,7 +1513,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
-	if ( ! WP_Theme_JSON_Resolver_Gutenberg::theme_has_support() ) {
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
 	}
 
@@ -1618,7 +1618,7 @@ function wp_default_styles( $styles ) {
 	);
 
 	// Only load the default layout and margin styles for themes without theme.json file.
-	if ( ! WP_Theme_JSON_Resolver_Gutenberg::theme_has_support() ) {
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$rtl_styles[] = 'wp-editor-classic-layout-styles';
 	}
 
