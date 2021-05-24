@@ -47,7 +47,7 @@ function locate_block_template( $template, $type, array $templates ) {
 			$_wp_current_template_content =
 			sprintf(
 				/* translators: %s: Template title */
-				__( 'Empty template: %s', 'gutenberg' ),
+				__( 'Empty template: %s' ),
 				$block_template->title
 			);
 		} elseif ( ! empty( $block_template->content ) ) {
@@ -63,7 +63,7 @@ function locate_block_template( $template, $type, array $templates ) {
 
 		if ( 'index' === $type ) {
 			if ( isset( $_GET['_wp-find-template'] ) ) {
-				wp_send_json_error( array( 'message' => __( 'No matching template found.', 'gutenberg' ) ) );
+				wp_send_json_error( array( 'message' => __( 'No matching template found.' ) ) );
 			}
 		} else {
 			return false; // So that the template loader keeps looking for templates.
@@ -155,7 +155,7 @@ function get_the_block_template_html() {
 
 	if ( ! $_wp_current_template_content ) {
 		if ( is_user_logged_in() ) {
-			return '<h1>' . esc_html__( 'No matching template found', 'gutenberg' ) . '</h1>';
+			return '<h1>' . esc_html__( 'No matching template found' ) . '</h1>';
 		}
 		return;
 	}

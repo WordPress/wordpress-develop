@@ -67,7 +67,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'permission_callback' => array( $this, 'get_item_permissions_check' ),
 					'args'                => array(
 						'id' => array(
-							'description' => __( 'The id of a template', 'gutenberg' ),
+							'description' => __( 'The id of a template' ),
 							'type'        => 'string',
 						),
 					),
@@ -86,7 +86,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 						'force' => array(
 							'type'        => 'boolean',
 							'default'     => false,
-							'description' => __( 'Whether to bypass Trash and force deletion.', 'gutenberg' ),
+							'description' => __( 'Whether to bypass Trash and force deletion.' ),
 						),
 					),
 				),
@@ -106,7 +106,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
 			return new WP_Error(
 				'rest_cannot_manage_templates',
-				__( 'Sorry, you are not allowed to access the templates on this site.', 'gutenberg' ),
+				__( 'Sorry, you are not allowed to access the templates on this site.' ),
 				array(
 					'status' => rest_authorization_required_code(),
 				)
@@ -171,7 +171,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		$template = get_block_template( $request['id'], $this->post_type );
 
 		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
 		}
 
 		return $this->prepare_item_for_response( $template, $request );
@@ -196,7 +196,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
 		}
 
 		$changes = $this->prepare_item_for_database( $request );
@@ -247,7 +247,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		}
 		$posts = get_block_templates( array( 'wp_id' => $result ), $this->post_type );
 		if ( ! count( $posts ) ) {
-			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.', 'gutenberg' ) );
+			return new WP_Error( 'rest_template_insert_error', __( 'No templates exist with that id.' ) );
 		}
 		$id            = $posts[0]->id;
 		$template      = get_block_template( $id, $this->post_type );
@@ -281,10 +281,10 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	public function delete_item( $request ) {
 		$template = get_block_template( $request['id'], $this->post_type );
 		if ( ! $template ) {
-			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.', 'gutenberg' ), array( 'status' => 404 ) );
+			return new WP_Error( 'rest_template_not_found', __( 'No templates exist with that id.' ), array( 'status' => 404 ) );
 		}
 		if ( 'custom' !== $template->source ) {
-			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.', 'gutenberg' ), array( 'status' => 400 ) );
+			return new WP_Error( 'rest_invalid_template', __( 'Templates based on theme files can\'t be removed.' ), array( 'status' => 400 ) );
 		}
 
 		$id    = $template->wp_id;
@@ -309,7 +309,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		if ( 'trash' === $template->status ) {
 			return new WP_Error(
 				'rest_template_already_trashed',
-				__( 'The template has already been deleted.', 'gutenberg' ),
+				__( 'The template has already been deleted.' ),
 				array( 'status' => 410 )
 			);
 		}
@@ -359,16 +359,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			$changes->post_excerpt = $request['description'];
 		} elseif ( null !== $template && 'custom' !== $template->source ) {
 			$changes->post_excerpt = $template->description;
-		}
-
-		if ( 'wp_template_part' === $this->post_type ) {
-			if ( isset( $request['area'] ) ) {
-				$changes->tax_input['wp_template_part_area'] = gutenberg_filter_template_part_area( $request['area'] );
-			} elseif ( null !== $template && 'custom' !== $template->source && $template->area ) {
-				$changes->tax_input['wp_template_part_area'] = gutenberg_filter_template_part_area( $template->area );
-			} elseif ( ! $template->area ) {
-				$changes->tax_input['wp_template_part_area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
-			}
 		}
 
 		return $changes;
@@ -475,7 +465,7 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 		return array(
 			'context' => $this->get_context_param(),
 			'wp_id'   => array(
-				'description' => __( 'Limit to the specified post id.', 'gutenberg' ),
+				'description' => __( 'Limit to the specified post id.' ),
 				'type'        => 'integer',
 			),
 		);
@@ -497,13 +487,13 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			'type'       => 'object',
 			'properties' => array(
 				'id'             => array(
-					'description' => __( 'ID of template.', 'gutenberg' ),
+					'description' => __( 'ID of template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'slug'           => array(
-					'description' => __( 'Unique slug identifying the template.', 'gutenberg' ),
+					'description' => __( 'Unique slug identifying the template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'required'    => true,
@@ -511,48 +501,48 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 					'pattern'     => '[a-zA-Z_\-]+',
 				),
 				'theme'          => array(
-					'description' => __( 'Theme identifier for the template.', 'gutenberg' ),
+					'description' => __( 'Theme identifier for the template.' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'source'         => array(
-					'description' => __( 'Source of template', 'gutenberg' ),
+					'description' => __( 'Source of template' ),
 					'type'        => 'string',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'content'        => array(
-					'description' => __( 'Content of template.', 'gutenberg' ),
+					'description' => __( 'Content of template.' ),
 					'type'        => array( 'object', 'string' ),
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'title'          => array(
-					'description' => __( 'Title of template.', 'gutenberg' ),
+					'description' => __( 'Title of template.' ),
 					'type'        => array( 'object', 'string' ),
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'description'    => array(
-					'description' => __( 'Description of template.', 'gutenberg' ),
+					'description' => __( 'Description of template.' ),
 					'type'        => 'string',
 					'default'     => '',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'status'         => array(
-					'description' => __( 'Status of template.', 'gutenberg' ),
+					'description' => __( 'Status of template.' ),
 					'type'        => 'string',
 					'default'     => 'publish',
 					'context'     => array( 'embed', 'view', 'edit' ),
 				),
 				'wp_id'          => array(
-					'description' => __( 'Post ID.', 'gutenberg' ),
+					'description' => __( 'Post ID.' ),
 					'type'        => 'integer',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,
 				),
 				'has_theme_file' => array(
-					'description' => __( 'Theme file exists.', 'gutenberg' ),
+					'description' => __( 'Theme file exists.' ),
 					'type'        => 'bool',
 					'context'     => array( 'embed', 'view', 'edit' ),
 					'readonly'    => true,

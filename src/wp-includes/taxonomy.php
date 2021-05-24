@@ -182,8 +182,8 @@ function create_initial_taxonomies() {
 				'public'            => false,
 				'hierarchical'      => false,
 				'labels'            => array(
-					'name'          => __( 'Themes', 'gutenberg' ),
-					'singular_name' => __( 'Theme', 'gutenberg' ),
+					'name'          => __( 'Themes' ),
+					'singular_name' => __( 'Theme' ),
 				),
 				'query_var'         => false,
 				'rewrite'           => false,

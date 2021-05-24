@@ -24,7 +24,7 @@ function _build_template_result_from_post( $post ) {
 	}
 
 	if ( ! $terms ) {
-		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.', 'gutenberg' ) );
+		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 
 	$theme          = $terms[0]->name;
