@@ -3233,21 +3233,12 @@ function get_registered_theme_feature( $feature ) {
 }
 
 /**
- * Returns whether the current theme is an FSE theme or not.
- *
- * @return boolean Whether the current theme is an FSE theme or not.
- */
-function gutenberg_is_fse_theme() {
-	return is_readable( get_stylesheet_directory() . '/block-templates/index.html' );
-}
-
-/**
  * Returns whether the current theme is FSE-enabled or not.
  *
  * @return boolean Whether the current theme is FSE-enabled or not.
  */
 function gutenberg_supports_block_templates() {
-	return gutenberg_is_fse_theme() || current_theme_supports( 'block-templates' );
+	return current_theme_supports( 'block-templates' );
 }
 
 /**

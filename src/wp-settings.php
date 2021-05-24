@@ -174,6 +174,7 @@ require ABSPATH . WPINC . '/default-template-types.php';
 require ABSPATH . WPINC . '/class-wp-block-template.php';
 require ABSPATH . WPINC . '/block-template-loader.php';
 require ABSPATH . WPINC . '/block-template.php';
+require ABSPATH . WPINC . '/theme-templates.php';
 require ABSPATH . WPINC . '/template.php';
 require ABSPATH . WPINC . '/https-detection.php';
 require ABSPATH . WPINC . '/https-migration.php';
