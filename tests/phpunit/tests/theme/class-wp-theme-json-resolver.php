@@ -3,14 +3,15 @@
 /**
  * Test WP_Theme_JSON_Resolver class.
  *
- * @package Gutenberg
+ * @package WordPress
+ * @since 5.8.0
  */
 
 class WP_Theme_JSON_Resolver_Test extends WP_UnitTestCase {
 
 	function setUp() {
 		parent::setUp();
-		$this->theme_root = realpath( __DIR__ . '/data/themedir1' );
+		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
 		$this->orig_theme_dir = $GLOBALS['wp_theme_directories'];
 
@@ -40,6 +41,9 @@ class WP_Theme_JSON_Resolver_Test extends WP_UnitTestCase {
 		return 'pl_PL';
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_fields_are_extracted() {
 		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
 
@@ -84,9 +88,12 @@ class WP_Theme_JSON_Resolver_Test extends WP_UnitTestCase {
 		$this->assertEquals( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
-		load_textdomain( 'fse', realpath( __DIR__ . '/data/languages/themes/fse-pl_PL.mo' ) );
+		load_textdomain( 'fse', realpath( DIR_TESTDATA . '/languages/themes/fse-pl_PL.mo' ) );
 
 		switch_theme( 'fse' );
 
@@ -131,6 +138,9 @@ class WP_Theme_JSON_Resolver_Test extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_switching_themes_recalculates_data() {
 		// By default, the theme for unit tests is "default",
 		// which doesn't have theme.json support.

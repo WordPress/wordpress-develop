@@ -3,11 +3,15 @@
 /**
  * Test WP_Theme_JSON class.
  *
- * @package Gutenberg
+ * @package WordPress
+ * @since 5.8.0
  */
 
 class WP_Theme_JSON_Test extends WP_UnitTestCase {
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_settings() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -52,6 +56,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	public function test_merge_incoming_data() {
 		$initial = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -259,6 +266,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_from_editor_settings() {
 		$input = array(
 			'disableCustomColors'    => true,
@@ -332,6 +342,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_editor_settings_no_theme_support() {
 		$input = array(
 			'__unstableEnableFullSiteEditingBlocks' => false,
@@ -384,6 +397,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_editor_settings_blank() {
 		$expected = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -394,6 +410,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_editor_settings_custom_units_can_be_disabled() {
 		add_theme_support( 'custom-units', array() );
 		$input = get_default_block_editor_settings();
@@ -408,6 +427,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_editor_settings_custom_units_can_be_enabled() {
 		add_theme_support( 'custom-units' );
 		$input = get_default_block_editor_settings();
@@ -422,6 +444,9 @@ class WP_Theme_JSON_Test extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
 	function test_get_editor_settings_custom_units_can_be_filtered() {
 		add_theme_support( 'custom-units', 'rem', 'em' );
 		$input = get_default_block_editor_settings();
