@@ -15,7 +15,8 @@ mockedApiResponse.Schema = {
     "namespaces": [
         "oembed/1.0",
         "wp/v2",
-        "wp-site-health/v1"
+        "wp-site-health/v1",
+        "v1"
     ],
     "authentication": [],
     "routes": {
@@ -6623,6 +6624,496 @@ mockedApiResponse.Schema = {
                     }
                 ]
             }
+        },
+        "/v1": {
+            "namespace": "v1",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "namespace": {
+                            "default": "v1",
+                            "required": false
+                        },
+                        "context": {
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/v1"
+                    }
+                ]
+            }
+        },
+        "/v1/batch": {
+            "namespace": "v1",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "validation": {
+                            "type": "string",
+                            "enum": [
+                                "require-all-validate",
+                                "normal"
+                            ],
+                            "default": "normal",
+                            "required": false
+                        },
+                        "requests": {
+                            "type": "array",
+                            "maxItems": 25,
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "POST",
+                                            "PUT",
+                                            "PATCH",
+                                            "DELETE"
+                                        ],
+                                        "default": "POST"
+                                    },
+                                    "path": {
+                                        "type": "string",
+                                        "required": true
+                                    },
+                                    "body": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": true
+                                    },
+                                    "headers": {
+                                        "type": "object",
+                                        "properties": [],
+                                        "additionalProperties": {
+                                            "type": [
+                                                "string",
+                                                "array"
+                                            ],
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            "required": true
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/v1/batch"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/sidebars": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/sidebars"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/sidebars/(?P<id>[\\w-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The id of a registered sidebar",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "widgets": {
+                            "description": "Nested widgets.",
+                            "type": "array",
+                            "items": {
+                                "type": [
+                                    "object",
+                                    "string"
+                                ]
+                            },
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/widget-types": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/widget-types"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The widget type id.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/widget-types/(?P<id>[a-zA-Z0-9_-]+)/encode": {
+            "namespace": "wp/v2",
+            "methods": [
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "The widget type id.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "instance": {
+                            "description": "Current instance settings of the widget.",
+                            "type": "object",
+                            "required": false
+                        },
+                        "form_data": {
+                            "description": "Serialized widget form data to encode into instance settings.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ]
+        },
+        "/wp/v2/widgets": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        },
+                        "sidebar": {
+                            "description": "The sidebar to return widgets for.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the widget.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "id_base": {
+                            "description": "The type of the widget. Corresponds to ID in widget-types endpoint.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "sidebar": {
+                            "default": "wp_inactive_widgets",
+                            "description": "The sidebar the widget belongs to.",
+                            "type": "string",
+                            "required": true
+                        },
+                        "instance": {
+                            "description": "Instance settings of the widget, if supported.",
+                            "type": "object",
+                            "properties": {
+                                "encoded": {
+                                    "description": "Base64 encoded representation of the instance settings.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "hash": {
+                                    "description": "Cryptographic hash of the instance settings.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "raw": {
+                                    "description": "Unencoded instance settings, if supported.",
+                                    "type": "object",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                }
+                            },
+                            "required": false
+                        },
+                        "form_data": {
+                            "description": "URL-encoded form data from the widget admin form. Used to update a widget that does not support instance. Write only.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                }
+            ],
+            "_links": {
+                "self": [
+                    {
+                        "href": "http://example.org/index.php?rest_route=/wp/v2/widgets"
+                    }
+                ]
+            }
+        },
+        "/wp/v2/widgets/(?P<id>[\\w\\-]+)": {
+            "namespace": "wp/v2",
+            "methods": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+            ],
+            "endpoints": [
+                {
+                    "methods": [
+                        "GET"
+                    ],
+                    "args": {
+                        "context": {
+                            "description": "Scope under which the request is made; determines fields present in response.",
+                            "type": "string",
+                            "enum": [
+                                "view",
+                                "embed",
+                                "edit"
+                            ],
+                            "default": "view",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "POST",
+                        "PUT",
+                        "PATCH"
+                    ],
+                    "args": {
+                        "id": {
+                            "description": "Unique identifier for the widget.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "id_base": {
+                            "description": "The type of the widget. Corresponds to ID in widget-types endpoint.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "sidebar": {
+                            "description": "The sidebar the widget belongs to.",
+                            "type": "string",
+                            "required": false
+                        },
+                        "instance": {
+                            "description": "Instance settings of the widget, if supported.",
+                            "type": "object",
+                            "properties": {
+                                "encoded": {
+                                    "description": "Base64 encoded representation of the instance settings.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "hash": {
+                                    "description": "Cryptographic hash of the instance settings.",
+                                    "type": "string",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                },
+                                "raw": {
+                                    "description": "Unencoded instance settings, if supported.",
+                                    "type": "object",
+                                    "context": [
+                                        "view",
+                                        "edit",
+                                        "embed"
+                                    ]
+                                }
+                            },
+                            "required": false
+                        },
+                        "form_data": {
+                            "description": "URL-encoded form data from the widget admin form. Used to update a widget that does not support instance. Write only.",
+                            "type": "string",
+                            "required": false
+                        }
+                    }
+                },
+                {
+                    "methods": [
+                        "DELETE"
+                    ],
+                    "args": {
+                        "force": {
+                            "description": "Whether to force removal of the widget, or move it to the inactive sidebar.",
+                            "type": "boolean",
+                            "required": false
+                        }
+                    }
+                }
+            ]
         }
     }
 };
