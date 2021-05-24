@@ -66,7 +66,7 @@ function locate_block_template( $template, $type, array $templates ) {
 				wp_send_json_error( array( 'message' => __( 'No matching template found.' ) ) );
 			}
 		} else {
-			return false; // So that the template loader keeps looking for templates.
+			return ''; // So that the template loader keeps looking for templates.
 		}
 	}
 
