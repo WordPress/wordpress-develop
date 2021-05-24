@@ -2,8 +2,8 @@
 /**
  * Utilities used to fetch and create templates.
  *
- * @package    Gutenberg
- * @subpackage REST_API
+ * @package WordPress
+ * @since 5.8.0
  */
 
 /**

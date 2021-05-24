@@ -2,23 +2,32 @@
 /**
  * REST API: WP_REST_Templates_Controller class
  *
- * @package    Gutenberg
+ * @package    WordPress
  * @subpackage REST_API
+ * @since 5.8.0
  */
 
 /**
  * Base Templates REST API Controller.
+ *
+ * @since 5.8.0
+ *
+ * @see WP_REST_Controller
  */
 class WP_REST_Templates_Controller extends WP_REST_Controller {
+
 	/**
 	 * Post type.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	protected $post_type;
 
 	/**
 	 * Constructor.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param string $post_type Post type.
 	 */
@@ -31,6 +40,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Registers the controllers routes.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @return void
 	 */
@@ -98,6 +109,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if the user has permissions to make the request.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	protected function permissions_check() {
@@ -119,6 +132,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read templates.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
@@ -128,6 +143,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Returns a list of templates.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
@@ -153,6 +170,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to read a single template.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
@@ -162,6 +181,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Returns the given template
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request The request instance.
 	 *
@@ -180,6 +201,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to write a single template.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has write access for the item, WP_Error object otherwise.
 	 */
@@ -189,6 +212,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Updates a single template.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -225,6 +250,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to create a template.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has access to create items, WP_Error object otherwise.
 	 */
@@ -234,6 +261,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Creates a single template.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -265,6 +294,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Checks if a given request has access to delete a single template.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has delete access for the item, WP_Error object otherwise.
 	 */
@@ -274,6 +305,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Deletes a single template.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
@@ -322,6 +355,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares a single template for create or update.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param WP_REST_Request $request Request object.
 	 * @return stdClass Changes to pass to wp_update_post.
 	 */
@@ -366,6 +401,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Prepare a single template output for response
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_Block_Template $template Template instance.
 	 * @param WP_REST_Request   $request Request object.
@@ -414,6 +451,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Prepares links for the request.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param integer $id ID.
 	 * @return array Links for the given post.
 	 */
@@ -438,6 +477,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Get the link relations available for the post and current user.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @return array List of link relations.
 	 */
 	protected function get_available_actions() {
@@ -459,6 +500,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 	/**
 	 * Retrieves the query params for the posts collection.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @return array Collection parameters.
 	 */
 	public function get_collection_params() {
@@ -473,6 +516,8 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the block type' schema, conforming to JSON Schema.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
 	 */

@@ -3,17 +3,20 @@
  * Blocks API: WP_Block_Template class
  *
  * @package WordPress
- * @since 5.5.0
+ * @since 5.8.0
  */
 
 /**
  * Class representing a block template.
+ *
+ * @since 5.8.0
  */
 class WP_Block_Template {
 
 	/**
-	 * Type: wp_template or wp_template_part
+	 * Type: wp_template.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $type;
@@ -21,6 +24,7 @@ class WP_Block_Template {
 	/**
 	 * Theme.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $theme;
@@ -28,6 +32,7 @@ class WP_Block_Template {
 	/**
 	 * Template slug.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $slug;
@@ -35,6 +40,7 @@ class WP_Block_Template {
 	/**
 	 * Id.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $id;
@@ -42,6 +48,7 @@ class WP_Block_Template {
 	/**
 	 * Title.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $title = '';
@@ -49,6 +56,7 @@ class WP_Block_Template {
 	/**
 	 * Content.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $content = '';
@@ -56,6 +64,7 @@ class WP_Block_Template {
 	/**
 	 * Description.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $description = '';
@@ -63,6 +72,7 @@ class WP_Block_Template {
 	/**
 	 * Source of the content. `theme` and `custom` is used for now.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $source = 'theme';
@@ -70,6 +80,7 @@ class WP_Block_Template {
 	/**
 	 * Post Id.
 	 *
+	 * @since 5.8.0
 	 * @var integer|null
 	 */
 	public $wp_id;
@@ -77,6 +88,7 @@ class WP_Block_Template {
 	/**
 	 * Template Status.
 	 *
+	 * @since 5.8.0
 	 * @var string
 	 */
 	public $status;
@@ -84,6 +96,7 @@ class WP_Block_Template {
 	/**
 	 * Whether a template is, or is based upon, an existing template file.
 	 *
+	 * @since 5.8.0
 	 * @var boolean
 	 */
 	public $has_theme_file;

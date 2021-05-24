@@ -555,7 +555,6 @@ add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
 add_action( 'wp_head', 'wp_maybe_inline_styles', 1 ); // Run for styles enqueued in <head>.
 add_action( 'wp_footer', 'wp_maybe_inline_styles', 1 ); // Run for late-loaded styles in the footer.
 
-add_action( 'admin_footer-toplevel_page_gutenberg-edit-site', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-post.php', 'wp_add_iframed_editor_assets_html' );
 add_action( 'admin_footer-post-new.php', 'wp_add_iframed_editor_assets_html' );
 

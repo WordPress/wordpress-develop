@@ -2,7 +2,7 @@
 /**
  * Template canvas file to render the current 'wp_template'.
  *
- * @package gutenberg
+ * @package WordPress
  */
 
 /**
