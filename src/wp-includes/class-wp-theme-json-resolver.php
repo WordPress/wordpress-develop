@@ -9,6 +9,8 @@
 /**
  * Class that abstracts the processing
  * of the different data sources.
+ *
+ * @access private
  */
 class WP_Theme_JSON_Resolver {
 

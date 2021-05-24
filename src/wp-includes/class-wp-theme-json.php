@@ -8,6 +8,8 @@
 /**
  * Class that encapsulates the processing of
  * structures that adhere to the theme.json spec.
+ *
+ * @access private
  */
 class WP_Theme_JSON {
 
