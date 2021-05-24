@@ -1552,6 +1552,12 @@ function wp_default_styles( $styles ) {
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
+		'edit-widgets'         => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
