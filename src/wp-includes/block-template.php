@@ -2,13 +2,15 @@
 /**
  * Block template loader functions.
  *
- * @package gutenberg
+ * @package WordPress
  */
 
 /**
  * Find a block template with equal or higher specificity than a given PHP template file.
  *
  * Internally, this communicates the block content that needs to be used by the template canvas through a global variable.
+ *
+ * @since 5.8.0
  *
  * @param string $template  Path to the template. See locate_template().
  * @param string $type      Sanitized filename without extension.
@@ -38,7 +40,7 @@ function locate_block_template( $template, $type, array $templates ) {
 		$templates = array_slice( $templates, 0, $index + 1 );
 	}
 
-	$block_template = gutenberg_resolve_template( $type, $templates );
+	$block_template = resolve_block_template( $type, $templates );
 
 	if ( $block_template ) {
 		if ( empty( $block_template->content ) && is_user_logged_in() ) {
@@ -70,11 +72,11 @@ function locate_block_template( $template, $type, array $templates ) {
 
 	// Add hooks for template canvas.
 	// Add viewport meta tag.
-	add_action( 'wp_head', 'gutenberg_viewport_meta_tag', 0 );
+	add_action( 'wp_head', '_block_template_viewport_meta_tag', 0 );
 
 	// Render title tag with content, regardless of whether theme has title-tag support.
 	remove_action( 'wp_head', '_wp_render_title_tag', 1 );    // Remove conditional title tag rendering...
-	add_action( 'wp_head', 'gutenberg_render_title_tag', 1 ); // ...and make it unconditional.
+	add_action( 'wp_head', '_block_template_render_title_tag', 1 ); // ...and make it unconditional.
 
 	// This file will be included instead of the theme's template file.
 	return ABSPATH . WPINC . '/template-canvas.php';
@@ -82,6 +84,9 @@ function locate_block_template( $template, $type, array $templates ) {
 
 /**
  * Return the correct 'wp_template' to render for the request template type.
+ * 
+ * @access private
+ * @since 5.8.0
  *
  * Accepts an optional $template_hierarchy argument as a hint.
  *
@@ -89,7 +94,7 @@ function locate_block_template( $template, $type, array $templates ) {
  * @param string[] $template_hierarchy (optional) The current template hierarchy, ordered by priority.
  * @return WP_Block_Template|null template A template object, or null if none could be found.
  */
-function gutenberg_resolve_template( $template_type, $template_hierarchy ) {
+function resolve_block_template( $template_type, $template_hierarchy ) {
 	if ( ! $template_type ) {
 		return null;
 	}
@@ -99,7 +104,7 @@ function gutenberg_resolve_template( $template_type, $template_hierarchy ) {
 	}
 
 	$slugs = array_map(
-		'gutenberg_strip_php_suffix',
+		'_strip_php_suffix',
 		$template_hierarchy
 	);
 
@@ -126,17 +131,25 @@ function gutenberg_resolve_template( $template_type, $template_hierarchy ) {
 
 /**
  * Displays title tag with content, regardless of whether theme has title-tag support.
+ * 
+ * @access private
+ * @since 5.8.0
  *
  * @see _wp_render_title_tag()
  */
-function gutenberg_render_title_tag() {
+function _block_template_render_title_tag() {
 	echo '<title>' . wp_get_document_title() . '</title>' . "\n";
 }
 
 /**
  * Returns the markup for the current template.
+ * 
+ * @access private
+ * @since 5.8.0
+ * 
+ * @return string block tempate markup.
  */
-function gutenberg_get_the_template_html() {
+function get_the_block_template_html() {
 	global $_wp_current_template_content;
 	global $wp_embed;
 
@@ -164,18 +177,14 @@ function gutenberg_get_the_template_html() {
 }
 
 /**
- * Renders the markup for the current template.
- */
-function gutenberg_render_the_template() {
-	echo gutenberg_get_the_template_html(); // phpcs:ignore WordPress.Security.EscapeOutput
-}
-
-/**
  * Renders a 'viewport' meta tag.
+ * 
+ * @access private
+ * @since 5.8.0
  *
  * This is hooked into {@see 'wp_head'} to decouple its output from the default template canvas.
  */
-function gutenberg_viewport_meta_tag() {
+function _block_template_viewport_meta_tag() {
 	echo '<meta name="viewport" content="width=device-width, initial-scale=1" />' . "\n";
 }
 
@@ -183,22 +192,26 @@ function gutenberg_viewport_meta_tag() {
  * Strips .php suffix from template file names.
  *
  * @access private
+ * @since 5.8.0
  *
  * @param string $template_file Template file name.
  * @return string Template file name without extension.
  */
-function gutenberg_strip_php_suffix( $template_file ) {
+function _strip_php_suffix( $template_file ) {
 	return preg_replace( '/\.(php|html)$/', '', $template_file );
 }
 
 /**
  * Removes post details from block context when rendering a block template.
  *
+ * @access private
+ * @since 5.8.0
+ * 
  * @param array $context Default context.
  *
  * @return array Filtered context.
  */
-function gutenberg_template_render_without_post_block_context( $context ) {
+function _block_template_render_without_post_block_context( $context ) {
 	/*
 	 * When loading a template directly and not through a page
 	 * that resolves it, the top-level post ID and type context get set to that
@@ -213,4 +226,4 @@ function gutenberg_template_render_without_post_block_context( $context ) {
 
 	return $context;
 }
-add_filter( 'render_block_context', 'gutenberg_template_render_without_post_block_context' );
+add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
