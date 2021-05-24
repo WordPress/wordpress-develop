@@ -222,6 +222,14 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'customGradient' => true,
 					'palette'        => array(
 						array(
+							'slug'  => 'red',
+							'color' => 'red',
+						),
+						array(
+							'slug'  => 'green',
+							'color' => 'green',
+						),
+						array(
 							'slug'  => 'blue',
 							'color' => 'blue',
 						),
