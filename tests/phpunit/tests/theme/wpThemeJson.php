@@ -34,8 +34,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'styles'   => array(
-					'color' => array(
-						'link' => 'blue',
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text' => '#111',
+							),
+						),
 					),
 				),
 			)
@@ -57,6 +61,189 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
+	}
+
+	function test_get_stylesheet() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'text'    => 'value',
+						'palette' => array(
+							array(
+								'slug'  => 'grey',
+								'color' => 'grey',
+							),
+						),
+					),
+					'misc'   => 'value',
+					'blocks' => array(
+						'core/group' => array(
+							'custom' => array(
+								'base-font'   => 16,
+								'line-height' => array(
+									'small'  => 1.2,
+									'medium' => 1.4,
+									'large'  => 1.8,
+								),
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'color'    => array(
+						'text' => 'var:preset|color|grey',
+					),
+					'misc'     => 'value',
+					'elements' => array(
+						'link' => array(
+							'color' => array(
+								'text'       => '#111',
+								'background' => '#333',
+							),
+						),
+					),
+					'blocks'   => array(
+						'core/group'     => array(
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'text' => '#111',
+									),
+								),
+							),
+							'spacing'  => array(
+								'padding' => array(
+									'top'    => '12px',
+									'bottom' => '24px',
+								),
+							),
+						),
+						'core/heading'   => array(
+							'color'    => array(
+								'text' => '#123456',
+							),
+							'elements' => array(
+								'link' => array(
+									'color'      => array(
+										'text'       => '#111',
+										'background' => '#333',
+									),
+									'typography' => array(
+										'fontSize' => '60px',
+									),
+								),
+							),
+						),
+						'core/post-date' => array(
+							'color'    => array(
+								'text' => '#123456',
+							),
+							'elements' => array(
+								'link' => array(
+									'color' => array(
+										'background' => '#777',
+										'text'       => '#555',
+									),
+								),
+							),
+						),
+					),
+				),
+				'misc'     => 'value',
+			)
+		);
+
+		$this->assertEquals(
+			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+			$theme_json->get_stylesheet()
+		);
+		$this->assertEquals(
+			'body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+			$theme_json->get_stylesheet( 'block_styles' )
+		);
+		$this->assertEquals(
+			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}',
+			$theme_json->get_stylesheet( 'css_variables' )
+		);
+	}
+
+	function test_get_stylesheet_preset_rules_come_after_block_rules() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/group' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'grey',
+										'color' => 'grey',
+									),
+								),
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/group' => array(
+							'color' => array(
+								'text' => 'red',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertEquals(
+			'.wp-block-group{--wp--preset--color--grey: grey;}.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+			$theme_json->get_stylesheet()
+		);
+		$this->assertEquals(
+			'.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+			$theme_json->get_stylesheet( 'block_styles' )
+		);
+	}
+
+	public function test_get_stylesheet_preset_values_are_marked_as_important() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color' => array(
+						'palette' => array(
+							array(
+								'slug'  => 'grey',
+								'color' => 'grey',
+							),
+						),
+					),
+				),
+				'styles'   => array(
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color'      => array(
+								'text'       => 'red',
+								'background' => 'blue',
+							),
+							'typography' => array(
+								'fontSize'   => '12px',
+								'lineHeight' => '1.3',
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertEquals(
+			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+			$theme_json->get_stylesheet()
+		);
 	}
 
 	/**
@@ -250,6 +437,29 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'core/list'      => array(
 						'color' => array(
 							'custom' => false,
+						),
+					),
+				),
+			),
+			'styles'   => array(
+				'typography' => array(
+					'fontSize' => '12',
+				),
+				'blocks'     => array(
+					'core/group' => array(
+						'spacing' => array(
+							'padding' => array(
+								'top'    => '12px',
+								'bottom' => '12px',
+							),
+						),
+					),
+					'core/list'  => array(
+						'typography' => array(
+							'fontSize' => '12',
+						),
+						'color'      => array(
+							'background' => 'brown',
 						),
 					),
 				),
