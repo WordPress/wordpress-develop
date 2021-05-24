@@ -68,7 +68,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				array(
 					'key' => 4,
 				),
-				array( 'key' ),
+				array( 'key' )
 			),
 			4
 		);
@@ -79,7 +79,7 @@ class Tests_Functions_wpArrayGet extends WP_UnitTestCase {
 				array(
 					'key' => 4,
 				),
-				array( 'invalid' ),
+				array( 'invalid' )
 			),
 			null
 		);
