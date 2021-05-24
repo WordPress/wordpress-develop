@@ -76,9 +76,9 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	 * @ticket 52920
 	 */
 	function test_block_editor_context_post() {
-		$context = new WP_Block_Editor_Context( array( 'post' => $this->post ) );
+		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 
-		$this->assertSame( $this->post, $context->post );
+		$this->assertSame( get_post(), $context->post );
 	}
 
 	/**
@@ -111,7 +111,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	function test_get_block_categories_deprecated_filter_post_editor() {
 		add_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ), 10, 2 );
 
-		$block_categories = get_block_categories( 'post-editor' );
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		$block_categories    = get_block_categories( $post_editor_context );
 
 		remove_filter( 'block_categories', array( $this, 'filter_set_block_categories_post' ) );
 
@@ -131,7 +132,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	 * @ticket 52920
 	 */
 	function test_get_allowed_block_types_default() {
-		$allowed_block_types = get_allowed_block_types( 'post-editor' );
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		$allowed_block_types = get_allowed_block_types( $post_editor_context );
 
 		$this->assertTrue( $allowed_block_types );
 	}
@@ -143,7 +145,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	function test_get_allowed_block_types_deprecated_filter_post_editor() {
 		add_filter( 'allowed_block_types', array( $this, 'filter_set_allowed_block_types_post' ), 10, 2 );
 
-		$allowed_block_types = get_allowed_block_types( 'post-editor' );
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		$allowed_block_types = get_allowed_block_types( $post_editor_context );
 
 		remove_filter( 'allowed_block_types', array( $this, 'filter_set_allowed_block_types_post' ) );
 
@@ -279,7 +282,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		add_filter( 'block_categories_all', 'filter_block_categories_my_editor', 10, 1 );
 		add_filter( 'block_editor_settings_all', 'filter_block_editor_settings_my_editor', 10, 1 );
 
-		$settings = get_block_editor_settings( 'my-editor' );
+		$my_editor_context = new WP_Block_Editor_Context();
+		$settings          = get_block_editor_settings( array(), $my_editor_context );
 
 		remove_filter( 'allowed_block_types_all', 'filter_allowed_block_types_my_editor' );
 		remove_filter( 'block_categories_all', 'filter_block_categories_my_editor' );
@@ -306,7 +310,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	function test_get_block_editor_settings_deprecated_filter_post_editor() {
 		add_filter( 'block_editor_settings', array( $this, 'filter_set_block_editor_settings_post' ), 10, 2 );
 
-		$settings = get_block_editor_settings( 'post-editor' );
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		$settings            = get_block_editor_settings( array(), $post_editor_context );
 
 		remove_filter( 'block_editor_settings', array( $this, 'filter_set_block_editor_settings_post' ) );
 
@@ -322,8 +327,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	 * @ticket 52920
 	 */
 	function test_block_editor_rest_api_preload_no_paths() {
-		$context = new WP_Block_Editor_Context();
-		block_editor_rest_api_preload( array(), $context );
+		$editor_context = new WP_Block_Editor_Context();
+		block_editor_rest_api_preload( array(), $editor_context );
 
 		$after = implode( '', wp_scripts()->registered['wp-api-fetch']->extra['after'] );
 		$this->assertNotContains( 'wp.apiFetch.createPreloadingMiddleware', $after );
@@ -342,12 +347,12 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		}
 		add_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths', 10, 2 );
 
-		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 		block_editor_rest_api_preload(
 			array(
 				array( '/wp/v2/blocks', 'OPTIONS' ),
 			),
-			$context
+			$post_editor_context
 		);
 
 		remove_filter( 'block_editor_preload_paths', 'filter_remove_preload_paths' );
@@ -369,12 +374,12 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		}
 		add_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths', 10, 2 );
 
-		$context = new WP_Block_Editor_Context();
+		$editor_context = new WP_Block_Editor_Context();
 		block_editor_rest_api_preload(
 			array(
 				array( '/wp/v2/blocks', 'OPTIONS' ),
 			),
-			$context
+			$editor_context
 		);
 
 		remove_filter( 'block_editor_rest_api_preload_paths', 'filter_add_preload_paths' );
