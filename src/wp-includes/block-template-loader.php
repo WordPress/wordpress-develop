@@ -1,18 +1,18 @@
 <?php
 /**
- * Utilities used to fetch and create templates and template parts.
+ * Utilities used to fetch and create templates.
  *
  * @package    Gutenberg
  * @subpackage REST_API
  */
 
 /**
- * Finds all nested template part file paths in a theme's directory.
+ * Finds all nested template file paths in a theme's directory.
  *
  * @access private
  *
  * @param string $base_directory The theme's file path.
- * @return array $path_list A list of paths to all template part files.
+ * @return array $path_list A list of paths to all template files.
  */
 function _gutenberg_get_template_paths( $base_directory ) {
 	$path_list = array();
@@ -32,7 +32,7 @@ function _gutenberg_get_template_paths( $base_directory ) {
  * @access private
  * @internal
  *
- * @param array  $template_type wp_template or wp_template_part.
+ * @param array  $template_type wp_template.
  * @param string $slug template slug.
  *
  * @return array Template.
@@ -40,7 +40,6 @@ function _gutenberg_get_template_paths( $base_directory ) {
 function _gutenberg_get_template_file( $template_type, $slug ) {
 	$template_base_paths = array(
 		'wp_template'      => 'block-templates',
-		'wp_template_part' => 'block-template-parts',
 	);
 	$themes              = array(
 		get_stylesheet() => get_stylesheet_directory(),
@@ -56,9 +55,6 @@ function _gutenberg_get_template_file( $template_type, $slug ) {
 				'type'  => $template_type,
 			);
 
-			if ( 'wp_template_part' === $template_type ) {
-				return _gutenberg_add_template_part_area_info( $new_template_item );
-			}
 			return $new_template_item;
 		}
 	}
@@ -72,14 +68,13 @@ function _gutenberg_get_template_file( $template_type, $slug ) {
  * @access private
  * @internal
  *
- * @param array $template_type wp_template or wp_template_part.
+ * @param array $template_type wp_template.
  *
  * @return array Template.
  */
 function _gutenberg_get_template_files( $template_type ) {
 	$template_base_paths = array(
 		'wp_template'      => 'block-templates',
-		'wp_template_part' => 'block-template-parts',
 	);
 	$themes              = array(
 		get_stylesheet() => get_stylesheet_directory(),
@@ -105,36 +100,10 @@ function _gutenberg_get_template_files( $template_type ) {
 				'type'  => $template_type,
 			);
 
-			if ( 'wp_template_part' === $template_type ) {
-				$template_files[] = _gutenberg_add_template_part_area_info( $new_template_item );
-			} else {
-				$template_files[] = $new_template_item;
-			}
-		}
+			$template_files[] = $new_template_item;
 	}
 
 	return $template_files;
-}
-
-/**
- * Attempts to add the template part's area information to the input template.
- *
- * @param array $template_info Template to add information to (requires 'type' and 'slug' fields).
- *
- * @return array Template.
- */
-function _gutenberg_add_template_part_area_info( $template_info ) {
-	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$theme_data = WP_Theme_JSON_Resolver::get_theme_data()->get_template_parts();
-	}
-
-	if ( isset( $theme_data[ $template_info['slug'] ]['area'] ) ) {
-		$template_info['area'] = gutenberg_filter_template_part_area( $theme_data[ $template_info['slug'] ]['area'] );
-	} else {
-		$template_info['area'] = WP_TEMPLATE_PART_AREA_UNCATEGORIZED;
-	}
-
-	return $template_info;
 }
 
 /**
@@ -168,45 +137,10 @@ function _flatten_blocks( &$blocks ) {
 }
 
 /**
- * Parses wp_template content and injects the current theme's
- * stylesheet as a theme attribute into each wp_template_part
- *
- * @param string $template_content serialized wp_template content.
- *
- * @return string Updated wp_template content.
- */
-function _inject_theme_attribute_in_content( $template_content ) {
-	$has_updated_content = false;
-	$new_content         = '';
-	$template_blocks     = parse_blocks( $template_content );
-
-	$blocks = _flatten_blocks( $template_blocks );
-	foreach ( $blocks as &$block ) {
-		if (
-			'core/template-part' === $block['blockName'] &&
-			! isset( $block['attrs']['theme'] )
-		) {
-			$block['attrs']['theme'] = wp_get_theme()->get_stylesheet();
-			$has_updated_content     = true;
-		}
-	}
-
-	if ( $has_updated_content ) {
-		foreach ( $template_blocks as &$block ) {
-			$new_content .= serialize_block( $block );
-		}
-
-		return $new_content;
-	}
-
-	return $template_content;
-}
-
-/**
  * Build a unified template object based on a theme file.
  *
  * @param array $template_file Theme file.
- * @param array $template_type wp_template or wp_template_part.
+ * @param array $template_type wp_template.
  *
  * @return WP_Block_Template Template.
  */
@@ -218,7 +152,7 @@ function _gutenberg_build_template_result_from_file( $template_file, $template_t
 	$template                 = new WP_Block_Template();
 	$template->id             = $theme . '//' . $template_file['slug'];
 	$template->theme          = $theme;
-	$template->content        = _inject_theme_attribute_in_content( $template_content );
+	$template->content        = $template_content;
 	$template->slug           = $template_file['slug'];
 	$template->source         = 'theme';
 	$template->type           = $template_type;
@@ -229,10 +163,6 @@ function _gutenberg_build_template_result_from_file( $template_file, $template_t
 	if ( 'wp_template' === $template_type && isset( $default_template_types[ $template_file['slug'] ] ) ) {
 		$template->description = $default_template_types[ $template_file['slug'] ]['description'];
 		$template->title       = $default_template_types[ $template_file['slug'] ]['title'];
-	}
-
-	if ( 'wp_template_part' === $template_type && isset( $template_file['area'] ) ) {
-		$template->area = $template_file['area'];
 	}
 
 	return $template;
@@ -273,13 +203,6 @@ function _gutenberg_build_template_result_from_post( $post ) {
 	$template->status         = $post->post_status;
 	$template->has_theme_file = $has_theme_file;
 
-	if ( 'wp_template_part' === $post->post_type ) {
-		$type_terms = get_the_terms( $post, 'wp_template_part_area' );
-		if ( ! is_wp_error( $type_terms ) && false !== $type_terms ) {
-			$template->area = $type_terms[0]->name;
-		}
-	}
-
 	return $template;
 }
 
@@ -292,7 +215,7 @@ function _gutenberg_build_template_result_from_post( $post ) {
  *     @type array  $slug__in List of slugs to include.
  *     @type int    $wp_id Post ID of customized template.
  * }
- * @param array $template_type wp_template or wp_template_part.
+ * @param array $template_type wp_template.
  *
  * @return array Templates.
  */
@@ -311,20 +234,11 @@ function gutenberg_get_block_templates( $query = array(), $template_type = 'wp_t
 		),
 	);
 
-	if ( 'wp_template_part' === $template_type && isset( $query['area'] ) ) {
-		$wp_query_args['tax_query'][]           = array(
-			'taxonomy' => 'wp_template_part_area',
-			'field'    => 'name',
-			'terms'    => $query['area'],
-		);
-		$wp_query_args['tax_query']['relation'] = 'AND';
-	}
-
 	if ( isset( $query['slug__in'] ) ) {
 		$wp_query_args['post_name__in'] = $query['slug__in'];
 	}
 
-	// This is only needed for the regular templates/template parts CPT listing and editor.
+	// This is only needed for the regular templates CPT listing and editor.
 	if ( isset( $query['wp_id'] ) ) {
 		$wp_query_args['p'] = $query['wp_id'];
 	} else {
@@ -367,7 +281,7 @@ function gutenberg_get_block_templates( $query = array(), $template_type = 'wp_t
  * Retrieves a single unified template object using its id.
  *
  * @param string $id Template unique identifier (example: theme_slug//template_slug).
- * @param array  $template_type wp_template or wp_template_part.
+ * @param array  $template_type wp_template.
  *
  * @return WP_Block_Template|null Template.
  */
@@ -410,7 +324,7 @@ function gutenberg_get_block_template( $id, $template_type = 'wp_template' ) {
  * Retrieves the file template.
  *
  * @param string $id Template unique identifier (example: theme_slug//template_slug).
- * @param array  $template_type wp_template or wp_template_part.
+ * @param array  $template_type wp_template.
  *
  * @return WP_Block_Template|null File template.
  */
@@ -432,7 +346,7 @@ function gutenberg_get_block_file_template( $id, $template_type = 'wp_template' 
 }
 
 /**
- * Generates a unique slug for templates or template parts.
+ * Generates a unique slug for templates.
  *
  * @param string $override_slug The filtered value of the slug (starts as `null` from apply_filter).
  * @param string $slug          The original/un-filtered slug (post_name).
@@ -442,7 +356,7 @@ function gutenberg_get_block_file_template( $id, $template_type = 'wp_template' 
  * @return string The original, desired slug.
  */
 function gutenberg_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID, $post_status, $post_type ) {
-	if ( 'wp_template' !== $post_type && 'wp_template_part' !== $post_type ) {
+	if ( 'wp_template' !== $post_type ) {
 		return $override_slug;
 	}
 

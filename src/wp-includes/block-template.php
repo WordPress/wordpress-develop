@@ -87,10 +87,7 @@ function locate_block_template( $template, $type, array $templates ) {
  *
  * @param string   $template_type      The current template type.
  * @param string[] $template_hierarchy (optional) The current template hierarchy, ordered by priority.
- * @return null|array {
- *  @type WP_Post|null template_post A template post object, or null if none could be found.
- *  @type int[] A list of template parts IDs for the template.
- * }
+ * @return WP_Block_Template|null template A template object, or null if none could be found.
  */
 function gutenberg_resolve_template( $template_type, $template_hierarchy ) {
 	if ( ! $template_type ) {
@@ -203,14 +200,13 @@ function gutenberg_strip_php_suffix( $template_file ) {
  */
 function gutenberg_template_render_without_post_block_context( $context ) {
 	/*
-	 * When loading a template or template part directly and not through a page
+	 * When loading a template directly and not through a page
 	 * that resolves it, the top-level post ID and type context get set to that
-	 * of the template part. Templates are just the structure of a site, and
+	 * of the template. Templates are just the structure of a site, and
 	 * they should not be available as post context because blocks like Post
 	 * Content would recurse infinitely.
 	 */
-	if ( isset( $context['postType'] ) &&
-			( 'wp_template' === $context['postType'] || 'wp_template_part' === $context['postType'] ) ) {
+	if ( isset( $context['postType'] ) && 'wp_template' === $context['postType']  ) {
 		unset( $context['postId'] );
 		unset( $context['postType'] );
 	}

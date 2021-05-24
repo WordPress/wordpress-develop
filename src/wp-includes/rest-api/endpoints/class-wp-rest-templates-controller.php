@@ -569,14 +569,6 @@ class WP_REST_Templates_Controller extends WP_REST_Controller {
 			),
 		);
 
-		if ( 'wp_template_part' === $this->post_type ) {
-			$schema['properties']['area'] = array(
-				'description' => __( 'Where the template part is intended for use (header, footer, etc.)', 'gutenberg' ),
-				'type'        => 'string',
-				'context'     => array( 'embed', 'view', 'edit' ),
-			);
-		}
-
 		$this->schema = $schema;
 
 		return $this->add_additional_fields_schema( $this->schema );
