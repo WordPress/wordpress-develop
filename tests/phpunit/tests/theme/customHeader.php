@@ -2,7 +2,7 @@
 /**
  * @group themes
  */
-class Tests_Theme_Custom_Header extends WP_UnitTestCase {
+class Tests_Theme_CustomHeader extends WP_UnitTestCase {
 
 	public static $post;
 
