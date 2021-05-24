@@ -13,6 +13,8 @@
 class WP_Array_Set_Test extends WP_UnitTestCase {
 	/**
 	 * Test _wp_array_set() with simple non subtree path.
+	 *
+	 * @ticket 53175
 	 */
 	public function test_simple_not_subtree_set() {
 		$test_array = array();
@@ -42,6 +44,8 @@ class WP_Array_Set_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test _wp_array_set() with subtree paths.
+	 *
+	 * @ticket 53175
 	 */
 	public function test_subtree_set() {
 		$test_array = array();
@@ -90,6 +94,8 @@ class WP_Array_Set_Test extends WP_UnitTestCase {
 
 	/**
 	 * Test _wp_array_set() with invalid parameters.
+	 *
+	 * @ticket 53175
 	 */
 	public function test_invalid_parameters_set() {
 		$test = 3;
