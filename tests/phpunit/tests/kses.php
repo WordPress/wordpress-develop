@@ -1453,15 +1453,15 @@ EOF;
 	 * @ticket 53156
 	 */
 	function test_wp_kses_main_tag_standard_attributes() {
-		global $allowedposttags;
-
 		$test = array(
 			'<main',
 			'class="wp-group-block"',
 			'style="padding:10px"',
 			'/>',
 		);
+		
+		$html = implode( ' ', $test );
 
-		$this->assertSame( implode( ' ', $test ), wp_kses( implode( ' ', $test ), $allowedposttags ) );
+		$this->assertSame( $html, wp_kses_post( $html ) );
 	}
 }
