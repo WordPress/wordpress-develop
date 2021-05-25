@@ -10,6 +10,7 @@
  * Registers the layout block attribute for block types that support it.
  *
  * @since 5.8.0
+ * @access private
  *
  * @param WP_Block_Type $block_type Block Type.
  */
@@ -32,6 +33,7 @@ function wp_register_layout_support( $block_type ) {
  * Renders the layout config to the block wrapper.
  *
  * @since 5.8.0
+ * @access private
  *
  * @param  string $block_content Rendered block content.
  * @param  array  $block         Block object.
