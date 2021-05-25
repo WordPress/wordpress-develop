@@ -34,7 +34,7 @@ if ( function_exists( 'register_block_pattern' ) ) {
 			'categories'    => array( 'twentyfourteen' ),
 			'viewportWidth' => 1000,
 			'content'       => '<!-- wp:image {"id":31,"sizeSlug":"large","linkDestination":"none"} -->
-								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/person.jpg" alt="' . esc_html__( 'A person standing in front of a lake', 'twentyfourteen' ) . '" class="wp-image-31"/></figure>
+								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/person.jpg" alt="' . esc_attr__( 'A person standing in front of a lake', 'twentyfourteen' ) . '" class="wp-image-31"/></figure>
 								<!-- /wp:image -->
 								<!-- wp:heading {"fontSize":"large","style":{"typography":{"lineHeight":"1.4"}}} -->
 								<h2 class="has-large-font-size" style="line-height:1.4">' . esc_html__( 'Hello, my name is Joan. I am passionate about writing, travel, and photography.', 'twentyfourteen' ) . '</h2>
@@ -120,15 +120,15 @@ if ( function_exists( 'register_block_pattern' ) ) {
 								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/sunset.jpg" alt="' . esc_html__( 'Photo of a sunset', 'twentyfourteen' ) . '" class="wp-image-47"/><figcaption>' . esc_html__( 'Sunset', 'twentyfourteen' ) . '</figcaption></figure>
 								<!-- /wp:image -->
 								<!-- wp:image {"id":51,"sizeSlug":"large","linkDestination":"none"} -->
-								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/bridge.jpg" alt="' . esc_html__( 'Photo of a bridge', 'twentyfourteen' ) . '" class="wp-image-51"/><figcaption>' . esc_html__( 'Bridge', 'twentyfourteen' ) . '</figcaption></figure>
+								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/bridge.jpg" alt="' . esc_attr__( 'Photo of a bridge', 'twentyfourteen' ) . '" class="wp-image-51"/><figcaption>' . esc_html__( 'Bridge', 'twentyfourteen' ) . '</figcaption></figure>
 								<!-- /wp:image --></div>
 								<!-- /wp:column -->
 								<!-- wp:column -->
 								<div class="wp-block-column"><!-- wp:image {"id":50,"sizeSlug":"large","linkDestination":"none"} -->
-								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/street.jpg" alt="' . esc_html__( 'Photo of a streetscape', 'twentyfourteen' ) . '" class="wp-image-50"/><figcaption>' . esc_html__( 'Streetscape', 'twentyfourteen' ) . '</figcaption></figure>
+								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/street.jpg" alt="' . esc_attr__( 'Photo of a streetscape', 'twentyfourteen' ) . '" class="wp-image-50"/><figcaption>' . esc_html__( 'Streetscape', 'twentyfourteen' ) . '</figcaption></figure>
 								<!-- /wp:image -->
 								<!-- wp:image {"id":52,"sizeSlug":"large","linkDestination":"none"} -->
-								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/clouds.jpg" alt="' . esc_html__( 'Photo of a cloudy mountain', 'twentyfourteen' ) . '" class="wp-image-52"/><figcaption>' . esc_html__( 'Clouds', 'twentyfourteen' ) . '</figcaption></figure>
+								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/images/clouds.jpg" alt="' . esc_attr__( 'Photo of a cloudy mountain', 'twentyfourteen' ) . '" class="wp-image-52"/><figcaption>' . esc_html__( 'Clouds', 'twentyfourteen' ) . '</figcaption></figure>
 								<!-- /wp:image --></div>
 								<!-- /wp:column --></div>
 								<!-- /wp:columns -->
