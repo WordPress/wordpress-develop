@@ -94,6 +94,15 @@ class WP_Widget {
 	 */
 	public $updated = false;
 
+	/**
+	 * Whether or not to show the widget's instance settings array in the REST
+	 * API.
+	 *
+	 * @since 5.8.0
+	 * @var bool
+	 */
+	public $show_instance_in_rest = false;
+
 	//
 	// Member functions that must be overridden by subclasses.
 	//
