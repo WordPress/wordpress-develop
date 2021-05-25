@@ -4,12 +4,11 @@
  * @group image
  * @group media
  * @group upload
+ *
+ * @covers ::image_resize_dimensions
  */
 class Tests_Image_Dimensions extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_400x400_no_crop() {
 		// Landscape: resize 640x480 to fit 400x400: 400x300.
 		$out = image_resize_dimensions( 640, 480, 400, 400, false );
@@ -22,9 +21,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 0, 300, 400, 480, 640 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_400x0_no_crop() {
 		// Landscape: resize 640x480 to fit 400w: 400x300.
 		$out = image_resize_dimensions( 640, 480, 400, 0, false );
@@ -37,9 +33,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 0, 400, 533, 480, 640 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_0x400_no_crop() {
 		// Landscape: resize 640x480 to fit 400h: 533x400.
 		$out = image_resize_dimensions( 640, 480, 0, 400, false );
@@ -52,9 +45,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 0, 300, 400, 480, 640 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_800x800_no_crop() {
 		// Landscape: resize 640x480 to fit 800x800.
 		$out = image_resize_dimensions( 640, 480, 800, 800, false );
@@ -67,9 +57,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertFalse( $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_800x0_no_crop() {
 		// Landscape: resize 640x480 to fit 800w.
 		$out = image_resize_dimensions( 640, 480, 800, 0, false );
@@ -82,9 +69,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertFalse( $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_0x800_no_crop() {
 		// Landscape: resize 640x480 to fit 800h.
 		$out = image_resize_dimensions( 640, 480, 0, 800, false );
@@ -99,8 +83,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 
 	/**
 	 *  Cropped versions.
-	 *
-	 * @covers ::image_resize_dimensions
 	 */
 	function test_400x400_crop() {
 		// Landscape: crop 640x480 to fit 400x400: 400x400 taken from a 480x480 crop at (80. 0).
@@ -114,9 +96,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 80, 400, 400, 480, 480 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_400x0_crop() {
 		// Landscape: resize 640x480 to fit 400w: 400x300.
 		$out = image_resize_dimensions( 640, 480, 400, 0, true );
@@ -129,9 +108,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 0, 400, 533, 480, 640 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_0x400_crop() {
 		// Landscape: resize 640x480 to fit 400h: 533x400.
 		$out = image_resize_dimensions( 640, 480, 0, 400, true );
@@ -144,9 +120,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 0, 300, 400, 480, 640 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_400x500_crop() {
 		// Landscape: crop 640x480 to fit 400x500: 400x400 taken from a 480x480 crop at (80. 0).
 		$out = image_resize_dimensions( 640, 480, 400, 500, true );
@@ -159,9 +132,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertSame( array( 0, 0, 0, 20, 400, 500, 480, 600 ), $out );
 	}
 
-	/**
-	 * @covers ::image_resize_dimensions
-	 */
 	function test_640x480() {
 		// Crop 640x480 to fit 640x480 (no change).
 		$out = image_resize_dimensions( 640, 480, 640, 480, true );
@@ -189,8 +159,6 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 19393
-	 *
-	 * @covers ::image_resize_dimensions
 	 */
 	function test_crop_anchors() {
 		// Landscape: crop 640x480 to fit 400x500: 400x400 taken from a 480x480 crop.
@@ -217,5 +185,4 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		// dst_x, dst_y, src_x, src_y, dst_w, dst_h, src_w, src_h.
 		$this->assertSame( array( 0, 0, 0, 40, 400, 500, 480, 600 ), $out );
 	}
-
 }

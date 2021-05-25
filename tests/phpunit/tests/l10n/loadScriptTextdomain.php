@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::load_script_textdomain
  */
 class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 
@@ -13,8 +15,6 @@ class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 	 * @ticket 49145
 	 *
 	 * @dataProvider data_test_resolve_relative_path
-	 *
-	 * @covers ::file_get_contents
 	 */
 	public function test_resolve_relative_path( $translation_path, $handle, $src, $textdomain, $filter = array() ) {
 		if ( ! empty( $filter ) ) {

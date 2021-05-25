@@ -214,6 +214,8 @@ class Tests_Image_Editor extends WP_Image_UnitTestCase {
 	 * @ticket 35725
 	 * @dataProvider _test_wp_get_webp_info
 	 *
+	 * @covers ::wp_get_webp_info
+	 *
 	 */
 	public function test_wp_get_webp_info( $file, $expected ) {
 		$editor = wp_get_image_editor( $file );

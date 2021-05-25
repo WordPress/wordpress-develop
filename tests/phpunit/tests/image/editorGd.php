@@ -128,6 +128,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * both height and weight are missing, null, or 0.
 	 *
 	 * @ticket 26823
+	 *
+	 * @covers WP_Image_Editor_GD::multi_resize
 	 */
 	public function test_multi_resize_does_not_create() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -196,6 +198,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test multi_resize with multiple sizes
 	 *
 	 * @ticket 26823
+	 *
+	 * @covers WP_Image_Editor_GD::multi_resize
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -426,6 +430,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * @ticket 51937
 	 *
 	 * @dataProvider data_crop
+	 *
+	 * @covers WP_Image_Editor_GD::crop
 	 */
 	public function test_crop( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';
@@ -483,6 +489,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * @ticket 51937
 	 *
 	 * @dataProvider data_crop_invalid_dimensions
+	 *
+	 * @covers WP_Image_Editor_GD::crop
 	 */
 	public function test_crop_invalid_dimensions( $src_x, $src_y, $src_w, $src_h, $dst_w = null, $dst_h = null, $src_abs = false ) {
 		$file = DIR_TESTDATA . '/images/gradient-square.jpg';

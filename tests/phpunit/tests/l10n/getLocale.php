@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::get_locale
  */
 class Tests_L10n_GetLocale extends WP_UnitTestCase {
 	public function test_should_respect_locale_global() {
@@ -19,8 +21,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
-	 *
-	 * @covers ::get_locale
 	 */
 	public function test_local_option_should_take_precedence_on_multisite() {
 		global $locale;
@@ -38,8 +38,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-required
-	 *
-	 * @covers ::get_locale
 	 */
 	public function test_network_option_should_be_fallback_on_multisite() {
 		if ( ! is_multisite() ) {
@@ -60,8 +58,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
-	 *
-	 * @covers ::get_locale
 	 */
 	public function test_option_should_be_respected_on_nonmultisite() {
 		if ( is_multisite() ) {
@@ -81,9 +77,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 
 	}
 
-	/**
-	 * @covers ::get_locale
-	 */
 	public function test_should_fall_back_on_en_US() {
 		global $locale;
 		$old_locale = $locale;
@@ -95,9 +88,6 @@ class Tests_L10n_GetLocale extends WP_UnitTestCase {
 		$this->assertSame( 'en_US', $found );
 	}
 
-	/**
-	 * @covers ::get_locale
-	 */
 	public function test_should_respect_get_locale_filter() {
 		add_filter( 'locale', array( $this, 'filter_get_locale' ) );
 		$found = get_locale();

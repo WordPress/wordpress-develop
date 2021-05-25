@@ -4,6 +4,8 @@ require_once __DIR__ . '/base.php';
 
 /**
  * @group import
+ *
+ * @covers WP_Import::import
  */
 class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 	function setUp() {
@@ -24,9 +26,6 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 		require_once DIR_TESTDATA . '/plugins/wordpress-importer/wordpress-importer.php';
 	}
 
-	/**
-	 * @covers WP_Import::import
-	 */
 	function test_serialized_postmeta_no_cdata() {
 		$this->_import_wp( DIR_TESTDATA . '/export/test-serialized-postmeta-no-cdata.xml', array( 'johncoswell' => 'john' ) );
 		$expected['special_post_title'] = 'A special title';
@@ -34,9 +33,6 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 		$this->assertSame( $expected, get_post_meta( 122, 'post-options', true ) );
 	}
 
-	/**
-	 * @covers WP_Import::import
-	 */
 	function test_utw_postmeta() {
 		$this->_import_wp( DIR_TESTDATA . '/export/test-utw-post-meta-import.xml', array( 'johncoswell' => 'john' ) );
 
@@ -85,8 +81,6 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 
 	/**
 	 * @ticket 9633
-	 *
-	 * @covers WP_Import::import
 	 */
 	function test_serialized_postmeta_with_cdata() {
 		$this->_import_wp( DIR_TESTDATA . '/export/test-serialized-postmeta-with-cdata.xml', array( 'johncoswell' => 'johncoswell' ) );
@@ -101,8 +95,6 @@ class Tests_Import_Postmeta extends WP_Import_UnitTestCase {
 
 	/**
 	 * @ticket 11574
-	 *
-	 * @covers WP_Import::import
 	 */
 	function test_serialized_postmeta_with_evil_stuff_in_cdata() {
 		$this->_import_wp( DIR_TESTDATA . '/export/test-serialized-postmeta-with-cdata.xml', array( 'johncoswell' => 'johncoswell' ) );
