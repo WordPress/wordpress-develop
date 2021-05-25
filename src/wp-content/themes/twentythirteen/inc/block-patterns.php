@@ -65,7 +65,19 @@ if ( function_exists( 'register_block_pattern' ) ) {
 		array(
 			'title'      => esc_attr__( 'Callout Quote', 'twentythirteen' ),
 			'categories' => array( 'twentythirteen' ),
-			'content'    => '',
+			'content'    => '<!-- wp:columns {"verticalAlignment":"center"} -->
+			<div class="wp-block-columns are-vertically-aligned-center"><!-- wp:column {"verticalAlignment":"center"} -->
+			<div class="wp-block-column is-vertically-aligned-center"><!-- wp:separator {"className":"is-style-wide"} -->
+			<hr class="wp-block-separator is-style-wide"/>
+			<!-- /wp:separator --></div>
+			<!-- /wp:column -->
+			
+			<!-- wp:column {"verticalAlignment":"center"} -->
+			<div class="wp-block-column is-vertically-aligned-center"><!-- wp:quote -->
+			<blockquote class="wp-block-quote"><p>' . wp_kses_post( __( 'When you look at <br>the stars and the galaxy, you feel that you are not <br>just from any particular piece of land, but from the solar system.', 'twentythirteen' ) ) . '</p><cite>' . esc_html__( 'Kalpana Chawla', 'twentythirteen' ) . '</cite></blockquote>
+			<!-- /wp:quote --></div>
+			<!-- /wp:column --></div>
+			<!-- /wp:columns -->',
 		)
 	);
 
