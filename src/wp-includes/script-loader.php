@@ -35,6 +35,17 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
 /**
+ * get_stylsheet_directory is used by
+ * WP_Theme_JSON_Resolver::theme_has_support()
+ */
+if ( ! function_exists( 'get_stylesheet_directory' ) ) {
+	require_once ABSPATH . WPINC . '/theme.php';
+}
+if ( ! class_exists( 'WP_Theme_JSON_Resolver' ) ) {
+	require_once ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
+}
+
+/**
  * Registers TinyMCE scripts.
  *
  * @since 5.0.0
@@ -1510,12 +1521,13 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
-
-		// This dependency shouldn't be added for themes with theme.json support
-		// It's here for backward compatibility only.
-		// A check should be added here when theme.json is backported to Core.
-		'wp-editor-classic-layout-styles',
 	);
+
+	// Only load the default layout and margin styles for themes without theme.json file.
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
+	}
+
 	global $editor_styles;
 	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
 		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
@@ -1551,6 +1563,20 @@ function wp_default_styles( $styles ) {
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
+		'edit-widgets'         => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+			'wp-reusable-blocks',
+		),
+		'customize-widgets'    => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+			'wp-reusable-blocks',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
@@ -1789,7 +1815,7 @@ function wp_localize_community_events() {
 	 */
 	if ( $saved_ip_address && $current_ip_address && $current_ip_address !== $saved_ip_address ) {
 		$saved_location['ip'] = $current_ip_address;
-		update_user_option( $user_id, 'community-events-location', $saved_location, true );
+		update_user_meta( $user_id, 'community-events-location', $saved_location );
 	}
 
 	$events_client = new WP_Community_Events( $user_id, $saved_location );
@@ -2233,6 +2259,52 @@ function wp_common_block_scripts_and_styles() {
 }
 
 /**
+ * Enqueues the global styles defined via theme.json.
+ *
+ * @since 5.8.0
+ *
+ * @return void
+ */
+function wp_enqueue_global_styles() {
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		return;
+	}
+
+	$can_use_cache = (
+		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
+		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
+		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
+		! is_admin()
+	);
+
+	$stylesheet = null;
+	if ( $can_use_cache ) {
+		$cache = get_transient( 'global_styles' );
+		if ( $cache ) {
+			$stylesheet = $cache;
+		}
+	}
+
+	if ( null === $stylesheet ) {
+		$settings   = get_default_block_editor_settings();
+		$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $settings );
+		$stylesheet = $theme_json->get_stylesheet();
+
+		if ( $can_use_cache ) {
+			set_transient( 'global_styles', $stylesheet, MINUTE_IN_SECONDS );
+		}
+	}
+
+	if ( empty( $stylesheet ) ) {
+		return;
+	}
+
+	wp_register_style( 'global-styles', false, array(), true, true );
+	wp_add_inline_style( 'global-styles', $stylesheet );
+	wp_enqueue_style( 'global-styles' );
+}
+
+/**
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
@@ -2589,4 +2661,66 @@ function wp_maybe_inline_styles() {
 			$total_inline_size += (int) $style['size'];
 		}
 	}
+}
+
+/**
+ * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
+ *
+ * @since 5.8.0
+ */
+function wp_add_iframed_editor_assets_html() {
+	$script_handles = array();
+	$style_handles  = array(
+		'wp-block-editor',
+		'wp-block-library',
+		'wp-block-library-theme',
+		'wp-edit-blocks',
+	);
+
+	$block_registry = WP_Block_Type_Registry::get_instance();
+
+	foreach ( $block_registry->get_all_registered() as $block_type ) {
+		if ( ! empty( $block_type->style ) ) {
+			$style_handles[] = $block_type->style;
+		}
+
+		if ( ! empty( $block_type->editor_style ) ) {
+			$style_handles[] = $block_type->editor_style;
+		}
+
+		if ( ! empty( $block_type->script ) ) {
+			$script_handles[] = $block_type->script;
+		}
+	}
+
+	$style_handles = array_unique( $style_handles );
+	$done          = wp_styles()->done;
+
+	ob_start();
+
+	wp_styles()->done = array();
+	wp_styles()->do_items( $style_handles );
+	wp_styles()->done = $done;
+
+	$styles = ob_get_clean();
+
+	$script_handles = array_unique( $script_handles );
+	$done           = wp_scripts()->done;
+
+	ob_start();
+
+	wp_scripts()->done = array();
+	wp_scripts()->do_items( $script_handles );
+	wp_scripts()->done = $done;
+
+	$scripts = ob_get_clean();
+
+	$editor_assets = wp_json_encode(
+		array(
+			'styles'  => $styles,
+			'scripts' => $scripts,
+		)
+	);
+
+	echo "<script>window.__editorAssets = $editor_assets</script>";
 }

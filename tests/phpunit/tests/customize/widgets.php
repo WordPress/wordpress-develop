@@ -25,6 +25,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
+		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
@@ -83,6 +84,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'init' );
 		do_action( 'wp_loaded' );
 		do_action( 'wp', $GLOBALS['wp'] );
+	}
+
+	function remove_widgets_block_editor() {
+		remove_theme_support( 'widgets-block-editor' );
 	}
 
 	/**
@@ -258,31 +263,31 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 10, 2 );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'refresh',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'refresh',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_foo[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'WIDGET_FOO[2]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$args = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
@@ -304,17 +309,17 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 'WIDGET_BAR[3]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_sidebar_widgets' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_sidebar_widgets_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'sidebars_widgets[sidebar-1]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
