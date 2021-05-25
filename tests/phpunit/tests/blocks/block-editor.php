@@ -29,6 +29,17 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		);
 
 		$post = $this->factory()->post->create_and_get( $args );
+
+		global $wp_rest_server;
+		$wp_rest_server = new Spy_REST_Server;
+		do_action( 'rest_api_init', $wp_rest_server );
+	}
+
+	public function tearDown() {
+		/** @var WP_REST_Server $wp_rest_server */
+		global $wp_rest_server;
+		$wp_rest_server = null;
+		parent::tearDown();
 	}
 
 	function filter_set_block_categories_post( $block_categories, $post ) {
