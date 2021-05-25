@@ -181,7 +181,7 @@ class WP_REST_Pattern_Directory_Controller extends WP_REST_Controller {
 		 * @param object           $raw_pattern The unprepared pattern.
 		 * @param WP_REST_Request  $request     The request object.
 		 */
-		return apply_filters( 'rest_prepare_application_password', $response, $raw_pattern, $request );
+		return apply_filters( 'rest_prepare_block_pattern', $response, $raw_pattern, $request );
 	}
 
 	/**
