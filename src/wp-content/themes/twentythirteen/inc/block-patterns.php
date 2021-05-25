@@ -45,7 +45,21 @@ if ( function_exists( 'register_block_pattern' ) ) {
 		array(
 			'title'      => esc_attr__( 'Informational Section', 'twentythirteen' ),
 			'categories' => array( 'twentythirteen' ),
-			'content'    => '',
+			'content'    => '<!-- wp:media-text {"mediaLink":"' . esc_url( get_template_directory_uri() ) . '/images/block-patterns/toroidal-colony.jpg","mediaType":"image","imageFill":false,"backgroundColor":"off-white"} -->
+			<div class="wp-block-media-text alignwide is-stacked-on-mobile has-off-white-background-color has-background"><figure class="wp-block-media-text__media"><img src="' . esc_url( get_template_directory_uri() ) . '/images/block-patterns/toroidal-colony.jpg" alt=""/></figure><div class="wp-block-media-text__content"><!-- wp:heading -->
+			<h2>' . esc_html__( 'Exploring Space', 'twentythirteen' ) . '</h2>
+			<!-- /wp:heading -->
+			
+			<!-- wp:paragraph -->
+			<p>' . esc_html__( "In the 1970s, NASA's Ames Research Center illustrated some explorations around what future space colonies could look like. This piece, illustrated by Rick Guidice, shows the inside of a toroidal shaped colony.", 'twentythirteen' ) . '</p>
+			<!-- /wp:paragraph -->
+			
+			<!-- wp:buttons -->
+			<div class="wp-block-buttons"><!-- wp:button -->
+			<div class="wp-block-button"><a class="wp-block-button__link">' . esc_html__( 'Discover More', 'twentythirteen' ) . '</a></div>
+			<!-- /wp:button --></div>
+			<!-- /wp:buttons --></div></div>
+			<!-- /wp:media-text -->',
 		)
 	);
 
