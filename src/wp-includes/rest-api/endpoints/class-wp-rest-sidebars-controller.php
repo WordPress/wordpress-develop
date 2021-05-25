@@ -49,7 +49,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	/**
 	 * Registers the controllers routes.
 	 *
-	 * @return void
+	 * @since 5.8.0
 	 */
 	public function register_routes() {
 		register_rest_route(
@@ -103,7 +103,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_items_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_items_permissions_check( $request ) {
 		return $this->do_permissions_check();
 	}
 
@@ -140,7 +140,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	public function get_item_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function get_item_permissions_check( $request ) {
 		return $this->do_permissions_check();
 	}
 
@@ -170,7 +170,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
-	public function update_item_permissions_check( $request ) { // phpcs:ignore VariableAnalysis.CodeAnalysis.VariableAnalysis.UnusedVariable
+	public function update_item_permissions_check( $request ) {
 		return $this->do_permissions_check();
 	}
 

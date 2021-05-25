@@ -62,7 +62,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_register_routes() {
 		$routes = rest_get_server()->get_routes();
@@ -75,7 +75,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -93,7 +93,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -110,7 +110,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_item() {
 		$widget_name = 'calendar';
@@ -123,7 +123,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_widget_legacy() {
 		$widget_id = 'legacy';
@@ -141,7 +141,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_widget_invalid_name() {
 		$widget_type = 'fake';
@@ -153,7 +153,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -171,7 +171,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_items_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -181,7 +181,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_item_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -191,7 +191,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -201,7 +201,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -211,7 +211,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
-	 * @ticket 51460
+	 * @ticket 41683
 	 */
 	public function test_prepare_item() {
 		$endpoint    = new WP_REST_Widget_Types_Controller;
@@ -227,9 +227,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param WP_Widget_Type $widget_type Sample widget type.
-	 * @param array          $data Data to compare against.
-	 * @param array          $links Links to compare again.
+	 * @param array $widget_type Sample widget type.
+	 * @param array $data Data to compare against.
+	 * @param array $links Links to compare again.
 	 */
 	protected function check_widget_type_object( $widget_type, $data, $links ) {
 		// Test data.
@@ -253,6 +253,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$this->assertSame( rest_url( 'wp/v2/widget-types' ), $links['collection'][0]['href'] );
 	}
 
+	/**
+	 * @ticket 41683
+	 */
 	public function test_encode_form_data_with_no_input() {
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
@@ -285,6 +288,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
+	 * @ticket 41683
+	 */
 	public function test_encode_form_data_with_number() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
@@ -318,6 +324,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
+	 * @ticket 41683
+	 */
 	public function test_encode_form_data_with_instance() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
@@ -357,6 +366,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
+	 * @ticket 41683
+	 */
 	public function test_encode_form_data_with_form_data() {
 		wp_set_current_user( self::$admin_id );
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
@@ -390,6 +402,9 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 	}
 
+	/**
+	 * @ticket 41683
+	 */
 	public function test_encode_form_data_no_raw() {
 		global $wp_widget_factory;
 		wp_set_current_user( self::$admin_id );

@@ -313,19 +313,6 @@ function create_initial_rest_routes() {
 	$controller = new WP_REST_Plugins_Controller();
 	$controller->register_routes();
 
-	// Block Directory.
-	$controller = new WP_REST_Block_Directory_Controller();
-	$controller->register_routes();
-
-	// Site Health.
-	$site_health = WP_Site_Health::get_instance();
-	$controller  = new WP_REST_Site_Health_Controller( $site_health );
-	$controller->register_routes();
-
-	// Batch.
-	$controller = new WP_REST_Batch_Controller();
-	$controller->register_routes();
-
 	// Sidebars.
 	$controller = new WP_REST_Sidebars_Controller();
 	$controller->register_routes();
@@ -336,6 +323,15 @@ function create_initial_rest_routes() {
 
 	// Widgets.
 	$controller = new WP_REST_Widgets_Controller();
+	$controller->register_routes();
+
+	// Block Directory.
+	$controller = new WP_REST_Block_Directory_Controller();
+	$controller->register_routes();
+
+	// Site Health.
+	$site_health = WP_Site_Health::get_instance();
+	$controller  = new WP_REST_Site_Health_Controller( $site_health );
 	$controller->register_routes();
 }
 
