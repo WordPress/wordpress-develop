@@ -3233,15 +3233,6 @@ function get_registered_theme_feature( $feature ) {
 }
 
 /**
- * Returns whether the current theme supports block templates
- *
- * @return boolean Whether the current theme supports block templates.
- */
-function theme_supports_block_templates() {
-	return current_theme_supports( 'block-templates' );
-}
-
-/**
  * Checks an attachment being deleted to see if it's a header or background image.
  *
  * If true it removes the theme modification which would be pointing at the deleted

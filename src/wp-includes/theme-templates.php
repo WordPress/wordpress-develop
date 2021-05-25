@@ -77,7 +77,7 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 function the_block_template_skip_link() {
 
 	// Early exit if not an FSE theme.
-	if ( ! theme_supports_block_templates() ) {
+	if ( ! current_theme_supports( 'block-templates' ) ) {
 		return;
 	}
 	?>

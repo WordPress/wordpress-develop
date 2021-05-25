@@ -173,7 +173,7 @@ function create_initial_taxonomies() {
 		)
 	);
 
-	if ( theme_supports_block_templates() ) {
+	if ( current_theme_supports( 'block-templates' ) ) {
 		register_taxonomy(
 			'wp_theme',
 			array( 'wp_template' ),

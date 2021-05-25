@@ -310,7 +310,7 @@ function create_initial_post_types() {
 		)
 	);
 
-	if ( theme_supports_block_templates() ) {
+	if ( current_theme_supports( 'block-templates' ) ) {
 		register_post_type(
 			'wp_template',
 			array(

@@ -1220,7 +1220,7 @@ final class WP_Theme implements ArrayAccess {
 				}
 			}
 
-			if ( theme_supports_block_templates() ) {
+			if ( current_theme_supports( 'block-templates' ) ) {
 				$block_templates = get_block_templates( array(), 'wp_template' );
 				foreach ( get_post_types( array( 'public' => true ) ) as $type ) {
 					foreach ( $block_templates as $block_template ) {
