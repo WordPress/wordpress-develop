@@ -173,26 +173,24 @@ function create_initial_taxonomies() {
 		)
 	);
 
-	if ( current_theme_supports( 'block-templates' ) ) {
-		register_taxonomy(
-			'wp_theme',
-			array( 'wp_template' ),
-			array(
-				'public'            => false,
-				'hierarchical'      => false,
-				'labels'            => array(
-					'name'          => __( 'Themes' ),
-					'singular_name' => __( 'Theme' ),
-				),
-				'query_var'         => false,
-				'rewrite'           => false,
-				'show_ui'           => false,
-				'_builtin'          => true,
-				'show_in_nav_menus' => false,
-				'show_in_rest'      => false,
-			)
-		);
-	}
+	register_taxonomy(
+		'wp_theme',
+		array( 'wp_template' ),
+		array(
+			'public'            => false,
+			'hierarchical'      => false,
+			'labels'            => array(
+				'name'          => __( 'Themes' ),
+				'singular_name' => __( 'Theme' ),
+			),
+			'query_var'         => false,
+			'rewrite'           => false,
+			'show_ui'           => false,
+			'_builtin'          => true,
+			'show_in_nav_menus' => false,
+			'show_in_rest'      => false,
+		)
+	);
 }
 
 /**
