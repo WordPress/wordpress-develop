@@ -17,11 +17,6 @@
 class WP_Widget_Block extends WP_Widget {
 
 	/**
-	 * @inheritdoc
-	 */
-	public $show_instance_in_rest = true;
-
-	/**
 	 * Default instance.
 	 *
 	 * @since 5.8.0
@@ -41,6 +36,7 @@ class WP_Widget_Block extends WP_Widget {
 			'classname'                   => 'widget_block',
 			'description'                 => __( 'A widget containing a block.' ),
 			'customize_selective_refresh' => true,
+			'show_instance_in_rest'       => true,
 		);
 		$control_ops = array(
 			'width'  => 400,

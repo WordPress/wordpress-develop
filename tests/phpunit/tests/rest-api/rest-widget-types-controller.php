@@ -408,7 +408,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	public function test_encode_form_data_no_raw() {
 		global $wp_widget_factory;
 		wp_set_current_user( self::$admin_id );
-		$wp_widget_factory->widgets['WP_Widget_Search']->show_instance_in_rest = false;
+		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['show_instance_in_rest'] = false;
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
 		$request->set_param(
 			'instance',
@@ -443,7 +443,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			),
 			$data['instance']
 		);
-		$wp_widget_factory->widgets['WP_Widget_Search']->show_instance_in_rest = true;
+		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['show_instance_in_rest'] = true;
 	}
 
 
