@@ -55,7 +55,31 @@ if ( function_exists( 'register_block_pattern' ) ) {
 		array(
 			'title'      => esc_attr__( 'Decorative Columns', 'twentythirteen' ),
 			'categories' => array( 'twentythirteen' ),
-			'content'    => '',
+			'content'    => '<!-- wp:columns {"align":"wide"} -->
+			<div class="wp-block-columns alignwide"><!-- wp:column -->
+			<div class="wp-block-column"><!-- wp:cover {"overlayColor":"yellow"} -->
+			<div class="wp-block-cover has-yellow-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","placeholder":"Write title…","textColor":"medium-brown","fontSize":"large"} -->
+			<p class="has-text-align-center has-medium-brown-color has-text-color has-large-font-size">' . esc_html__( 'Space', 'twentythirteen' ) . '</p>
+			<!-- /wp:paragraph --></div></div>
+			<!-- /wp:cover --></div>
+			<!-- /wp:column -->
+			
+			<!-- wp:column -->
+			<div class="wp-block-column"><!-- wp:cover {"url":"' . esc_url( get_template_directory_uri() ) . '/images/block-patterns/torus-interior.jpg","dimRatio":0,"focalPoint":{"x":"0.63","y":"0.33"}} -->
+			<div class="wp-block-cover"><img class="wp-block-cover__image-background" alt="" src="' . esc_url( get_template_directory_uri() ) . '/images/block-patterns/torus-interior.jpg" style="object-position:63% 33%" data-object-fit="cover" data-object-position="63% 33%"/><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","placeholder":"Write title…","fontSize":"large"} -->
+			<p class="has-text-align-center has-large-font-size"></p>
+			<!-- /wp:paragraph --></div></div>
+			<!-- /wp:cover --></div>
+			<!-- /wp:column -->
+			
+			<!-- wp:column -->
+			<div class="wp-block-column"><!-- wp:cover {"overlayColor":"yellow"} -->
+			<div class="wp-block-cover has-yellow-background-color has-background-dim"><div class="wp-block-cover__inner-container"><!-- wp:paragraph {"align":"center","placeholder":"Write title…","textColor":"medium-brown","fontSize":"large"} -->
+			<p class="has-text-align-center has-medium-brown-color has-text-color has-large-font-size">' . esc_html__( 'Colonies', 'twentythirteen' ) . '</p>
+			<!-- /wp:paragraph --></div></div>
+			<!-- /wp:cover --></div>
+			<!-- /wp:column --></div>
+			<!-- /wp:columns -->',
 		)
 	);
 
