@@ -30,9 +30,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyfifteen/gallery-description',
 		array(
-			'title'         => esc_html__( 'Gallery and Description', 'twentyfifteen' ),
-			'categories'    => array( 'twentyfifteen' ),
-			'content'       => '<!-- wp:columns {"verticalAlignment":"top"} -->
+			'title'      => esc_html__( 'Gallery and Description', 'twentyfifteen' ),
+			'categories' => array( 'twentyfifteen' ),
+			'content'    => '<!-- wp:columns {"verticalAlignment":"top"} -->
 								<div class="wp-block-columns are-vertically-aligned-top"><!-- wp:column {"verticalAlignment":"top","width":"70%"} -->
 								<div class="wp-block-column is-vertically-aligned-top" style="flex-basis:70%"><!-- wp:gallery {"ids":[57,58,59],"columns":2,"linkTo":"none"} -->
 								<figure class="wp-block-gallery columns-2 is-cropped"><ul class="blocks-gallery-grid"><li class="blocks-gallery-item"><figure><img src="' . esc_url( get_template_directory_uri() ) . '/assets/pier-seagull.jpg" alt="' . esc_attr__( 'A pier with a seagull.', 'twentyfifteen' ) . '" data-id="57" data-full-url="' . esc_url( get_template_directory_uri() ) . '/assets/pier-seagull.jpg" data-link="#" class="wp-image-57"/></figure></li><li class="blocks-gallery-item"><figure><img src="' . esc_url( get_template_directory_uri() ) . '/assets/pier-seagulls.jpg" alt="' . esc_attr__( 'A pier with seagulls.', 'twentyfifteen' ) . '" data-id="58" data-full-url="' . esc_url( get_template_directory_uri() ) . '/assets/pier-seagulls.jpg" data-link="#" class="wp-image-58"/></figure></li><li class="blocks-gallery-item"><figure><img src="' . esc_url( get_template_directory_uri() ) . '/assets/pier-sunset.jpg" alt="' . esc_attr__( 'A pier at sunset', 'twentyfifteen' ) . '" data-id="59" data-full-url="' . esc_url( get_template_directory_uri() ) . '/assets/pier-sunset.jpg" data-link="#" class="wp-image-59"/></figure></li></ul></figure>
@@ -54,9 +54,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyfifteen/contact-area',
 		array(
-			'title'         => esc_html__( 'Contact area', 'twentyfifteen' ),
-			'categories'    => array( 'twentyfifteen' ),
-			'content'       => '<!-- wp:group {"backgroundColor":"light-gray","textColor":"dark-gray"} -->
+			'title'      => esc_html__( 'Contact area', 'twentyfifteen' ),
+			'categories' => array( 'twentyfifteen' ),
+			'content'    => '<!-- wp:group {"backgroundColor":"light-gray","textColor":"dark-gray"} -->
 								<div class="wp-block-group has-dark-gray-color has-light-gray-background-color has-text-color has-background"><div class="wp-block-group__inner-container"><!-- wp:columns -->
 								<div class="wp-block-columns"><!-- wp:column -->
 								<div class="wp-block-column"><!-- wp:paragraph -->
@@ -89,9 +89,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyfifteen/two-columns-with-images',
 		array(
-			'title'         => esc_html__( 'Two Columns with Images', 'twentyfifteen' ),
-			'categories'    => array( 'twentyfifteen' ),
-			'content'       => '<!-- wp:columns -->
+			'title'      => esc_html__( 'Two Columns with Images', 'twentyfifteen' ),
+			'categories' => array( 'twentyfifteen' ),
+			'content'    => '<!-- wp:columns -->
 								<div class="wp-block-columns"><!-- wp:column -->
 								<div class="wp-block-column"><!-- wp:image {"id":57,"sizeSlug":"large","linkDestination":"none"} -->
 								<figure class="wp-block-image size-large"><img src="' . esc_url( get_template_directory_uri() ) . '/assets/pier-seagull.jpg" alt="' . esc_attr__( 'A pier with a seagull.', 'twentyfifteen' ) . '" class="wp-image-57"/></figure>
@@ -122,9 +122,9 @@ if ( function_exists( 'register_block_pattern' ) ) {
 	register_block_pattern(
 		'twentyfifteen/columns-with-list',
 		array(
-			'title'         => esc_html__( 'Columns with a List', 'twentyfifteen' ),
-			'categories'    => array( 'twentyfifteen' ),
-			'content'       => '<!-- wp:heading -->
+			'title'      => esc_html__( 'Columns with a List', 'twentyfifteen' ),
+			'categories' => array( 'twentyfifteen' ),
+			'content'    => '<!-- wp:heading -->
 								<h2>' . esc_html__( 'What to pack for the beach', 'twentyfifteen' ) . '</h2>
 								<!-- /wp:heading -->
 								<!-- wp:paragraph {"style":{"color":{"text":"#707070"}}} -->
