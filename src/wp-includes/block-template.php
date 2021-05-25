@@ -104,7 +104,7 @@ function resolve_block_template( $template_type, $template_hierarchy ) {
 	}
 
 	$slugs = array_map(
-		'_strip_php_suffix',
+		'_strip_template_file_suffix',
 		$template_hierarchy
 	);
 
@@ -189,7 +189,7 @@ function _block_template_viewport_meta_tag() {
 }
 
 /**
- * Strips .php suffix from template file names.
+ * Strips .php or .html suffix from template file names.
  *
  * @access private
  * @since 5.8.0
@@ -197,7 +197,7 @@ function _block_template_viewport_meta_tag() {
  * @param string $template_file Template file name.
  * @return string Template file name without extension.
  */
-function _strip_php_suffix( $template_file ) {
+function _strip_template_file_suffix( $template_file ) {
 	return preg_replace( '/\.(php|html)$/', '', $template_file );
 }
 
