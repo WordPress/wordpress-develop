@@ -4392,28 +4392,28 @@ function wp_is_application_passwords_available_for_user( $user ) {
   */
 function wp_list_users( $args = array() ) {
 	$defaults = array(
-		'orderby' => 'name',
-		'order' => 'ASC',
-		'number' => '',
+		'orderby'       => 'name',
+		'order'         => 'ASC',
+		'number'        => '',
 		'exclude_admin' => true,
 		'show_fullname' => false,
-		'feed' => '',
-		'feed_image' => '',
-		'feed_type' => '',
-		'echo' => true,
-		'style' => 'list',
-		'html' => true,
-		'exclude' => '',
-		'include' => '',
+		'feed'          => '',
+		'feed_image'    => '',
+		'feed_type'     => '',
+		'echo'          => true,
+		'style'         => 'list',
+		'html'          => true,
+		'exclude'       => '',
+		'include'       => '',
 	);
 
 	$args = wp_parse_args( $args, $defaults );
 
 	$output = '';
 
-	$query_args = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
 	$query_args['fields'] = 'ids';
-	$users = get_users( $query_args );
+	$users                = get_users( $query_args );
 
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
@@ -4450,7 +4450,7 @@ function wp_list_users( $args = array() ) {
 
 			$alt = '';
 			if ( ! empty( $args['feed'] ) ) {
-				$alt = ' alt="' . esc_attr( $args['feed'] ) . '"';
+				$alt  = ' alt="' . esc_attr( $args['feed'] ) . '"';
 				$name = $args['feed'];
 			}
 
@@ -4474,20 +4474,20 @@ function wp_list_users( $args = array() ) {
 	}
 
 	$output = rtrim( $return, ', ' );
-	
+
 	/**
-        * Filters the HTML output of the pages to list.
-        *
-        * @since 5.8.0
-        *
-        * @see wp_list_users()
-        *
-        * @param string    $output      HTML output of the users list.
-        * @param array     $parsed_args An array of user-listing arguments. See wp_list_users()
-        *                               for information on accepted arguments.
-        * @param WP_User[] $users       Array of the user objects.
-        */
-        $html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
+		* Filters the HTML output of the pages to list.
+		*
+		* @since 5.8.0
+		*
+		* @see wp_list_users()
+		*
+		* @param string    $output      HTML output of the users list.
+		* @param array     $parsed_args An array of user-listing arguments. See wp_list_users()
+		*                               for information on accepted arguments.
+		* @param WP_User[] $users       Array of the user objects.
+		*/
+		$html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
 
 	if ( ! $args['echo'] ) {
 		return $output;
