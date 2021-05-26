@@ -205,6 +205,22 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53235
+	 */
+	public function test_numeric_properties_should_be_cast_to_ints() {
+		$post_id  = self::factory()->post->create();
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'attribute', 'js' );
+
+		foreach ( $contexts as $context ) {
+			$post = get_post( $post_id, OBJECT, $context );
+
+			$this->assertInternalType( 'int', $post->ID );
+			$this->assertInternalType( 'int', $post->post_parent );
+			$this->assertInternalType( 'int', $post->menu_order );
+		}
+	}
+
+	/**
 	 * @covers ::get_post
 	 */
 	function test_get_post_identity() {

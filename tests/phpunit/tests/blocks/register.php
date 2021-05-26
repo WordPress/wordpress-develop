@@ -414,6 +414,18 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53233
+	 */
+	function test_block_register_block_type_proxy_for_metadata() {
+		$result = register_block_type(
+			DIR_TESTDATA . '/blocks/notice'
+		);
+
+		$this->assertInstanceOf( 'WP_Block_Type', $result );
+		$this->assertSame( 'tests/notice', $result->name );
+	}
+
+	/**
 	 * @ticket 52301
 	 *
 	 * @covers ::register_block_type_from_metadata

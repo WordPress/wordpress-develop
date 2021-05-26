@@ -112,9 +112,26 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'file',
 		'latest-comments',
 		'latest-posts',
+		'legacy-widget',
+		'loginout',
+		'post-content',
+		'post-date',
+		'post-excerpt',
+		'post-featured-image',
+		'post-terms',
+		'post-title',
+		'query',
+		'query-loop',
+		'query-pagination',
+		'query-pagination-next',
+		'query-pagination-numbers',
+		'query-pagination-previous',
+		'query-title',
 		'rss',
 		'search',
 		'shortcode',
+		'site-tagline',
+		'site-title',
 		'social-link',
 		'tag-cloud',
 	];
@@ -275,6 +292,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 				},
 			],
 		},
+		optimization: {
+			moduleIds: 'named',
+		},
 		plugins: [
 			new DefinePlugin( {
 				// Inject the `GUTENBERG_PHASE` global, used for feature flagging.
@@ -347,7 +367,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		delete config.devtool;
 		config.mode = 'production';
 		config.optimization = {
-			minimize: false
+			minimize: false,
+			moduleIds: 'hashed',
 		};
 	}
 

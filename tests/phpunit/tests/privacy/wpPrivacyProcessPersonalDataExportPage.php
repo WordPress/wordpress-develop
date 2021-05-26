@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Privacy_WpPrivacyProcessPersonalDataExportPage class.
+ * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
  * @covers ::wp_privacy_process_personal_data_export_page
  *
  * @since 5.2.0
  */
-class Tests_Privacy_WpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**
 	 * Request ID.
 	 *

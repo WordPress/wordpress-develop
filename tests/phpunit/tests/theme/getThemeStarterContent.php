@@ -5,7 +5,7 @@
  *
  * @group themes
  */
-class Tests_WP_Theme_Get_Theme_Starter_Content extends WP_UnitTestCase {
+class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 
 	/**
 	 * Testing passing an empty array as starter content.

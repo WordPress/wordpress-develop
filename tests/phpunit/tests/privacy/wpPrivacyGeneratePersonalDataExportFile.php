@@ -15,7 +15,7 @@
  *
  * @since 5.2.0
  */
-class Tests_Privacy_WpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**
 	 * An Export Request ID
 	 *
