@@ -341,6 +341,20 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53235
+	 */
+	public function test_numeric_properties_should_be_cast_to_ints() {
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'attribute', 'js' );
+
+		foreach ( $contexts as $context ) {
+			$bookmark = get_bookmark( self::$bookmark->link_id, OBJECT, $context );
+
+			$this->assertInternalType( 'int', $bookmark->link_id );
+			$this->assertInternalType( 'int', $bookmark->link_rating );
+		}
+	}
+
+	/**
 	 * Initialize the get_bookmark's function arguments to match the order of the function's signature and
 	 * reduce code in the tests.
 	 *

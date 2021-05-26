@@ -23,11 +23,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 global $post_type, $post_type_object, $post, $title, $editor_styles, $wp_meta_boxes;
 
-$editor_name = 'post-editor';
+$block_editor_context = new WP_Block_Editor_Context( array( 'post' => $post ) );
 
 // Flag that we're loading the block editor.
 $current_screen = get_current_screen();
 $current_screen->is_block_editor( true );
+
+// Default to is-fullscreen-mode to avoid jumps in the UI.
+add_filter(
+	'admin_body_class',
+	function( $classes ) {
+		return "$classes is-fullscreen-mode";
+	}
+);
 
 /*
  * Emoji replacement is disabled for now, until it plays nicely with React.
@@ -58,40 +66,7 @@ $preload_paths = array(
 	sprintf( '/wp/v2/%s/%d/autosaves?context=edit', $rest_base, $post->ID ),
 );
 
-
-/**
- * Preload common data by specifying an array of REST API paths that will be preloaded.
- *
- * Filters the array of paths that will be preloaded.
- *
- * @since 5.0.0
- *
- * @param string[] $preload_paths Array of paths to preload.
- * @param WP_Post  $post          Post being edited.
- */
-$preload_paths = apply_filters( 'block_editor_preload_paths', $preload_paths, $post );
-
-/*
- * Ensure the global $post remains the same after API data is preloaded.
- * Because API preloading can call the_content and other filters, plugins
- * can unexpectedly modify $post.
- */
-$backup_global_post = clone $post;
-
-$preload_data = array_reduce(
-	$preload_paths,
-	'rest_preload_api_request',
-	array()
-);
-
-// Restore the global $post as it was before API preloading.
-$post = $backup_global_post;
-
-wp_add_inline_script(
-	'wp-api-fetch',
-	sprintf( 'wp.apiFetch.use( wp.apiFetch.createPreloadingMiddleware( %s ) );', wp_json_encode( $preload_data ) ),
-	'after'
-);
+block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
 wp_add_inline_script(
 	'wp-blocks',
@@ -242,8 +217,10 @@ $editor_settings = array(
 		'unlockNonce' => wp_create_nonce( 'update-post_' . $post->ID ),
 		'ajaxUrl'     => admin_url( 'admin-ajax.php' ),
 	),
+	'supportsLayout'                       => WP_Theme_JSON_Resolver::theme_has_support(),
 	'__experimentalBlockPatterns'          => WP_Block_Patterns_Registry::get_instance()->get_all_registered(),
 	'__experimentalBlockPatternCategories' => WP_Block_Pattern_Categories_Registry::get_instance()->get_all_registered(),
+	'supportsTemplateMode'                 => current_theme_supports( 'block-templates' ),
 
 	// Whether or not to load the 'postcustom' meta box is stored as a user meta
 	// field so that we're not always loading its assets.
@@ -312,7 +289,7 @@ if ( ! isset( $core_meta_boxes['postcustom'] ) || ! $core_meta_boxes['postcustom
 	unset( $editor_settings['enableCustomFields'] );
 }
 
-$editor_settings = get_block_editor_settings( $editor_name, $editor_settings );
+$editor_settings = get_block_editor_settings( $editor_settings, $block_editor_context );
 
 $init_script = <<<JS
 ( function() {

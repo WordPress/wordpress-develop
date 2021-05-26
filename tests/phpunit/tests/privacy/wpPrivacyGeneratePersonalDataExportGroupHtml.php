@@ -8,14 +8,14 @@
  */
 
 /**
- * Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml class.
+ * Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml class.
  *
  * @group privacy
  * @covers ::wp_privacy_generate_personal_data_export_group_html
  *
  * @since 5.2.0
  */
-class Tests_Privacy_WpPrivacyGeneratePersonalDataExportGroupHtml extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyGeneratePersonalDataExportGroupHtml extends WP_UnitTestCase {
 
 	/**
 	 * Test when a single data item is passed.

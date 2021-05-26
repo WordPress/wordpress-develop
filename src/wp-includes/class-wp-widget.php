@@ -160,13 +160,19 @@ class WP_Widget {
 	 *                                information on accepted arguments. Default empty array.
 	 */
 	public function __construct( $id_base, $name, $widget_options = array(), $control_options = array() ) {
-		$this->id_base         = empty( $id_base ) ? preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) ) : strtolower( $id_base );
+		if ( ! empty( $id_base ) ) {
+			$id_base = strtolower( $id_base );
+		} else {
+			$id_base = preg_replace( '/(wp_)?widget_/', '', strtolower( get_class( $this ) ) );
+		}
+
+		$this->id_base         = $id_base;
 		$this->name            = $name;
 		$this->option_name     = 'widget_' . $this->id_base;
 		$this->widget_options  = wp_parse_args(
 			$widget_options,
 			array(
-				'classname'                   => $this->option_name,
+				'classname'                   => str_replace( '\\', '_', $this->option_name ),
 				'customize_selective_refresh' => false,
 			)
 		);
