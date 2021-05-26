@@ -307,6 +307,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							serialize(
 								array(
 									'title' => 'RSS test',
+									'url'   => 'https://wordpress.org/news/feed'
 								)
 							)
 						),
@@ -314,6 +315,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							serialize(
 								array(
 									'title' => 'RSS test',
+									'url'   => 'https://wordpress.org/news/feed'
 								)
 							)
 						),
