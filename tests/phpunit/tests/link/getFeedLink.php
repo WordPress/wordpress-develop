@@ -2,6 +2,7 @@
 
 /**
  * @group link
+ *
  * @covers ::get_feed_link
  */
 class Tests_Link_GetFeedLink extends WP_UnitTestCase {

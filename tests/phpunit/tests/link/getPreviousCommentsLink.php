@@ -3,6 +3,8 @@
 /**
  * @group link
  * @group comment
+ *
+ * @covers ::get_previous_comments_link
  */
 class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 
@@ -20,10 +22,6 @@ class Tests_Link_GetPreviousCommentsLink extends WP_UnitTestCase {
 		set_query_var( 'cpage', $cpage );
 	}
 
-	/**
-	 *
-	 * @covers ::get_previous_comments_link
-	 */
 	public function test_page_should_default_to_1_when_no_cpage_query_var_is_found() {
 		$p = self::factory()->post->create();
 		$this->go_to( get_permalink( $p ) );
