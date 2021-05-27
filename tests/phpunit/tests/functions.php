@@ -1320,6 +1320,8 @@ class Tests_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 35725
 	 * @dataProvider data_wp_getimagesize
+	 *
+	 * @covers ::wp_getimagesize
 	 */
 	public function test_wp_getimagesize( $file, $expected ) {
 		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {

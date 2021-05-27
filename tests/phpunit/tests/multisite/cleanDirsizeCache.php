@@ -226,6 +226,8 @@ if ( is_multisite() ) :
 		 * Test whether the filter to calculate space for an existing directory works as expected.
 		 *
 		 * @ticket 19879
+		 *
+		 * @covers ::recurse_dirsize
 		 */
 		function test_pre_recurse_dirsize_filter() {
 			add_filter( 'pre_recurse_dirsize', array( $this, '_filter_pre_recurse_dirsize' ) );
@@ -259,6 +261,8 @@ if ( is_multisite() ) :
 		 * Test that 5.6+ gracefully handles the old 5.5 transient structure.
 		 *
 		 * @ticket 51913
+		 *
+		 * @covers ::recurse_dirsize
 		 */
 		function test_5_5_transient_structure_compat() {
 			$blog_id = self::factory()->blog->create();

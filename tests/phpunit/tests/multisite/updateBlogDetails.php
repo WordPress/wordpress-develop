@@ -5,13 +5,13 @@ if ( is_multisite() ) :
 	/**
 	 * @group ms-site
 	 * @group multisite
+	 *
+	 * @covers ::update_blog_details
 	 */
 	class Tests_Multisite_Update_Blog_Details extends WP_UnitTestCase {
 		/**
 		 * If `update_blog_details()` is called with any kind of empty arguments, it
 		 * should return false.
-		 *
-		 * @covers ::update_blog_details
 		 */
 		function test_update_blog_details_with_empty_args() {
 			$result = update_blog_details( 1, array() );
@@ -20,17 +20,12 @@ if ( is_multisite() ) :
 
 		/**
 		 * If the ID passed is not that of a current site, we should expect false.
-		 *
-		 * @covers ::update_blog_details
 		 */
 		function test_update_blog_details_invalid_blog_id() {
 			$result = update_blog_details( 999, array( 'domain' => 'example.com' ) );
 			$this->assertFalse( $result );
 		}
 
-		/**
-		 * @covers ::update_blog_details
-		 */
 		function test_update_blog_details() {
 			$blog_id = self::factory()->blog->create();
 
@@ -61,8 +56,6 @@ if ( is_multisite() ) :
 		 * @param string $action     The hook expected to fire for the flag name and flag combination.
 		 *
 		 * @dataProvider data_flag_hooks
-		 *
-		 * @covers ::update_blog_details
 		 */
 		public function test_update_blog_details_flag_action( $flag, $flag_value, $hook ) {
 			global $test_action_counter;
@@ -120,8 +113,6 @@ if ( is_multisite() ) :
 		 * should have a leading and trailing slash.
 		 *
 		 * @dataProvider data_single_directory_path
-		 *
-		 * @covers ::update_blog_details
 		 */
 		public function test_update_blog_details_single_directory_path( $path, $expected ) {
 			update_blog_details( 1, array( 'path' => $path ) );

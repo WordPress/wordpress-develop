@@ -6,6 +6,8 @@ if ( is_multisite() ) :
 	 * @group wp-get-site
 	 * @group ms-site
 	 * @group multisite
+	 *
+	 * @covers ::wp_get_sites
 	 */
 	class Tests_Multisite_WP_Get_Sites extends WP_UnitTestCase {
 		protected static $site_ids;
@@ -51,8 +53,6 @@ if ( is_multisite() ) :
 
 		/**
 		 * @expectedDeprecated wp_get_sites
-		 *
-		 * @covers ::wp_get_sites
 		 */
 		public function test_wp_get_sites_site_is_expected_array() {
 
@@ -84,8 +84,6 @@ if ( is_multisite() ) :
 		 * @param $expected
 		 * @param $args
 		 * @param $error
-		 *
-		 * @covers ::wp_get_sites
 		 */
 		public function test_wp_get_sites( $expected, $args, $error ) {
 			$this->assertCount( $expected, wp_get_sites( $args ), $error );

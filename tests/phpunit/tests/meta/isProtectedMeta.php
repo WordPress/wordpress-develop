@@ -2,14 +2,13 @@
 
 /**
  * @group meta
+ *
  * @covers ::is_protected_meta
  */
 class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider protected_data
-	 *
-	 * @covers ::is_protected_meta
 	 */
 	public function test_protected( $key ) {
 		$this->assertTrue( is_protected_meta( $key ) );
@@ -32,8 +31,6 @@ class Tests_Meta_isProtectedMeta extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider unprotected_data
-	 *
-	 * @covers ::is_protected_meta
 	 */
 	public function test_unprotected( $key ) {
 		$this->assertFalse( is_protected_meta( $key ) );

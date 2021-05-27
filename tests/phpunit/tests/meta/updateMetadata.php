@@ -2,13 +2,12 @@
 
 /**
  * @group meta
+ *
  * @covers ::update_metadata
  */
 class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 	/**
 	 * @ticket 35795
-	 *
-	 * @covers ::update_metadata
 	 */
 	public function test_slashed_key_for_new_metadata() {
 		update_metadata( 'post', 123, wp_slash( 'foo\foo' ), 'bar' );
@@ -19,8 +18,6 @@ class Tests_Meta_UpdateMetadata extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35795
-	 *
-	 * @covers ::update_metadata
 	 */
 	public function test_slashed_key_for_existing_metadata() {
 		global $wpdb;

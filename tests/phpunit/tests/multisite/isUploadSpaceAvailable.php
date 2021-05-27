@@ -9,6 +9,8 @@ if ( is_multisite() ) :
 	 * environment. Tests for `get_space_used()` are handled elsewhere.
 	 *
 	 * @group multisite
+	 *
+	 * @covers ::is_upload_space_available
 	 */
 	class Tests_Multisite_Is_Upload_Space_Available extends WP_UnitTestCase {
 		protected $suppress = false;
@@ -31,8 +33,6 @@ if ( is_multisite() ) :
 		/**
 		 * A default of 100MB is used when no `blog_upload_space` option
 		 * exists at the site or network level.
-		 *
-		 * @covers ::is_upload_space_available
 		 */
 		public function test_is_upload_space_available_default() {
 			delete_option( 'blog_upload_space' );
@@ -45,9 +45,6 @@ if ( is_multisite() ) :
 			$this->assertTrue( $available );
 		}
 
-		/**
-		 * @covers ::is_upload_space_available
-		 */
 		public function test_is_upload_space_available_check_disabled() {
 			update_site_option( 'blog_upload_space', 10 );
 			update_site_option( 'upload_space_check_disabled', true );
@@ -59,9 +56,6 @@ if ( is_multisite() ) :
 			$this->assertTrue( $available );
 		}
 
-		/**
-		 * @covers ::is_upload_space_available
-		 */
 		public function test_is_upload_space_available_space_used_is_less_then_allowed() {
 			update_option( 'blog_upload_space', 350 );
 
@@ -72,9 +66,6 @@ if ( is_multisite() ) :
 			$this->assertTrue( $available );
 		}
 
-		/**
-		 * @covers ::is_upload_space_available
-		 */
 		function test_is_upload_space_available_space_used_is_more_than_allowed() {
 			update_option( 'blog_upload_space', 350 );
 
@@ -88,8 +79,6 @@ if ( is_multisite() ) :
 		/**
 		 * More comprehensive testing a 0 condition is handled in the tests
 		 * for `get_space_allowed()`. We cover one scenario here.
-		 *
-		 * @covers ::is_upload_space_available
 		 */
 		function test_is_upload_space_available_upload_space_0_defaults_to_100() {
 			update_option( 'blog_upload_space', 0 );
@@ -101,9 +90,6 @@ if ( is_multisite() ) :
 			$this->assertFalse( $available );
 		}
 
-		/**
-		 * @covers ::is_upload_space_available
-		 */
 		function test_is_upload_space_available_upload_space_negative() {
 			update_site_option( 'blog_upload_space', -1 );
 

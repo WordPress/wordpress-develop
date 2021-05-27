@@ -3,11 +3,11 @@
 /**
  * @group menu
  * @ticket 36590
+ *
+ * @covers ::_wp_expand_nav_menu_post_data
  */
 class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
-	/**
-	 * @covers ::_wp_expand_nav_menu_post_data
-	 */
+
 	public function test_unnested_data_should_expand() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
@@ -31,9 +31,6 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 		$this->assertSame( $expected, $_POST );
 	}
 
-	/**
-	 * @covers ::_wp_expand_nav_menu_post_data
-	 */
 	public function test_multidimensional_nested_array_should_expand() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 
@@ -64,9 +61,6 @@ class Tests_Menu_WpExpandNavMenuPostData extends WP_UnitTestCase {
 		$this->assertSame( $expected, $_POST );
 	}
 
-	/**
-	 * @covers ::_wp_expand_nav_menu_post_data
-	 */
 	public function test_multidimensional_nested_array_should_expand_and_merge() {
 		require_once ABSPATH . 'wp-admin/includes/nav-menu.php';
 

@@ -2,6 +2,8 @@
 /**
  * @group menu
  * @group walker
+ *
+ * @covers Walker_Nav_Menu::start_el
  */
 class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 
@@ -39,8 +41,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * Tests when an item's target is _blank, that rel="noopener" is added.
 	 *
 	 * @ticket 43290
-	 *
-	 * @covers Walker_Nav_Menu::start_el
 	 */
 	public function test_noopener_no_referrer_for_target_blank() {
 		$expected   = '';
@@ -72,8 +72,6 @@ class Tests_Menu_Walker_Nav_Menu extends WP_UnitTestCase {
 	 * @ticket 47720
 	 *
 	 * @dataProvider data_start_el_with_empty_attributes
-	 *
-	 * @covers Walker_Nav_Menu::start_el
 	 */
 	public function test_start_el_with_empty_attributes( $value, $expected ) {
 		$output     = '';
