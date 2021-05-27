@@ -293,7 +293,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			],
 		},
 		optimization: {
-			moduleIds: 'named',
+			moduleIds: mode === 'production' ? 'hashed' : 'named',
 		},
 		plugins: [
 			new DefinePlugin( {
