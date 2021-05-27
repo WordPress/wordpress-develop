@@ -94,6 +94,9 @@ class Tests_Embed_Template extends WP_UnitTestCase {
 		$this->assertNotFalse( strpos( $actual, 'That embed can&#8217;t be found.' ) );
 	}
 
+	/**
+	 * @covers ::get_post_embed_url
+	 */
 	function test_oembed_output_attachment() {
 		$post          = self::factory()->post->create_and_get();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';

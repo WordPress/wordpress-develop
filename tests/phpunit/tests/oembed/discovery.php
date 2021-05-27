@@ -2,20 +2,18 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_oembed_add_discovery_links
  */
 class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
-	 * @covers ::wp_oembed_add_discovery_links
 	 */
 	function test_add_oembed_discovery_links_non_singular() {
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	/**
-	 * @covers ::wp_oembed_add_discovery_links
-	 */
 	function test_add_oembed_discovery_links_front_page() {
 		$this->go_to( home_url() );
 		$this->assertSame( '', get_echo( 'wp_oembed_add_discovery_links' ) );
@@ -24,7 +22,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34971
-	 * @covers ::wp_oembed_add_discovery_links
 	 */
 	function test_add_oembed_discovery_links_static_front_page() {
 		update_option( 'show_on_front', 'page' );
@@ -49,9 +46,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		update_option( 'show_on_front', 'posts' );
 	}
 
-	/**
-	 * @covers ::wp_oembed_add_discovery_links
-	 */
 	function test_add_oembed_discovery_links_to_post() {
 		$post_id = self::factory()->post->create();
 		$this->go_to( get_permalink( $post_id ) );
@@ -63,9 +57,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	/**
-	 * @covers ::wp_oembed_add_discovery_links
-	 */
 	function test_add_oembed_discovery_links_to_page() {
 		$post_id = self::factory()->post->create(
 			array(
@@ -81,9 +72,6 @@ class Tests_oEmbed_Discovery extends WP_UnitTestCase {
 		$this->assertSame( $expected, get_echo( 'wp_oembed_add_discovery_links' ) );
 	}
 
-	/**
-	 * @covers ::wp_oembed_add_discovery_links
-	 */
 	function test_add_oembed_discovery_links_to_attachment() {
 		$post_id       = self::factory()->post->create();
 		$file          = DIR_TESTDATA . '/images/canola.jpg';

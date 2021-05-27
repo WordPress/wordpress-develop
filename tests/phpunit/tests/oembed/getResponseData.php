@@ -2,7 +2,6 @@
 
 /**
  * @group oembed
- * @covers ::get_oembed_response_data
  */
 class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 	public function setUp() {
@@ -153,6 +152,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47574
+	 *
+	 * @covers ::get_oembed_response_data
 	 */
 	function test_get_oembed_response_data_with_public_true_custom_post_status() {
 		// Custom status with 'public' => true.
@@ -169,6 +170,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47574
+	 *
+	 * @covers ::get_oembed_response_data
 	 */
 	function test_get_oembed_response_data_with_public_false_custom_post_status() {
 		// Custom status with 'public' => false.
@@ -185,6 +188,8 @@ class Tests_oEmbed_Response_Data extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47574
+	 *
+	 * @covers ::get_oembed_response_data
 	 */
 	function test_get_oembed_response_data_with_unregistered_custom_post_status() {
 		$post = self::factory()->post->create_and_get(

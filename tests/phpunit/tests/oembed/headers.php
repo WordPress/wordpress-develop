@@ -6,14 +6,14 @@
  * @group oembed
  * @group oembed-headers
  * @group xdebug
+ *
+ * @covers WP_REST_Request
+ * @covers WP_REST_Server::dispatch
  */
 class Tests_oEmbed_HTTP_Headers extends WP_UnitTestCase {
 
 	/**
 	 * @requires function xdebug_get_headers
-	 *
-	 * @covers WP_REST_Request
-	 * @covers WP_REST_Server::dispatch
 	 */
 	function test_rest_pre_serve_request_headers() {
 		$post = $this->factory()->post->create_and_get(

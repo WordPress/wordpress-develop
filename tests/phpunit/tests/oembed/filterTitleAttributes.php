@@ -2,6 +2,8 @@
 
 /**
  * @group oembed
+ *
+ * @covers ::wp_filter_oembed_iframe_title_attribute
  */
 class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 	public function data_filter_oembed_iframe_title_attribute() {
@@ -63,8 +65,6 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_filter_oembed_iframe_title_attribute
-	 *
-	 * @covers ::wp_filter_oembed_iframe_title_attribute
 	 */
 	public function test_oembed_iframe_title_attribute( $html, $oembed_data, $url, $expected ) {
 		$actual = wp_filter_oembed_iframe_title_attribute( $html, (object) $oembed_data, $url );
@@ -72,9 +72,6 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 		$this->assertSame( $expected, $actual );
 	}
 
-	/**
-	 * @covers ::wp_filter_oembed_iframe_title_attribute
-	 */
 	public function test_filter_oembed_iframe_title_attribute() {
 		add_filter( 'oembed_iframe_title_attribute', array( $this, '_filter_oembed_iframe_title_attribute' ) );
 
@@ -92,9 +89,6 @@ class Tests_Filter_oEmbed_Iframe_Title_Attribute extends WP_UnitTestCase {
 		$this->assertSame( '<iframe title="Baz" src=""></iframe>', $actual );
 	}
 
-	/**
-	 * @covers ::wp_filter_oembed_iframe_title_attribute
-	 */
 	public function test_filter_oembed_iframe_title_attribute_does_not_modify_other_tags() {
 		add_filter( 'oembed_iframe_title_attribute', array( $this, '_filter_oembed_iframe_title_attribute' ) );
 
