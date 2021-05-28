@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_edit_term_link
  */
 class Tests_Term_GetEditTermLink extends WP_UnitTestCase {
 	public function setUp() {

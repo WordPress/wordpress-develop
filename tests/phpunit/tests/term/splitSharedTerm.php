@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_insert_term
  */
 class Tests_Term_SplitSharedTerm extends WP_UnitTestCase {
 	protected $terms = array();

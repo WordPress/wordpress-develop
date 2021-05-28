@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Index
  */
 class Test_WP_Sitemaps_Index extends WP_UnitTestCase {
 	public function test_get_sitemap_list() {

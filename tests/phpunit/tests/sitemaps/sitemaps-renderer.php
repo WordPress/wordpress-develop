@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Renderer
  */
 class Test_WP_Sitemaps_Renderer extends WP_Test_XML_TestCase {
 	public function test_get_sitemap_stylesheet_url() {

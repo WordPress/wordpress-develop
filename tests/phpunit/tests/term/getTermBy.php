@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_term_by
  */
 class Tests_Term_GetTermBy extends WP_UnitTestCase {
 

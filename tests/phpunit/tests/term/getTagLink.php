@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ *
  * @covers ::get_tag_link
  */
 class Tests_Term_GetTagLink extends WP_UnitTestCase {

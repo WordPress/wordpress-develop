@@ -6,6 +6,8 @@
 class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	/**
 	 * Test getting the correct number of URLs for a sitemap.
+	 *
+	 * @covers ::wp_sitemaps_get_max_urls
 	 */
 	public function test_wp_sitemaps_get_max_urls() {
 		// Apply a filter to test filterable values.
@@ -42,6 +44,8 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 
 	/**
 	 * Test wp_get_sitemap_providers default functionality.
+	 *
+	 * @covers ::wp_get_sitemap_providers
 	 */
 	public function test_wp_get_sitemap_providers() {
 		$sitemaps = wp_get_sitemap_providers();
@@ -63,6 +67,8 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	 * Test get_sitemap_url() with ugly permalinks.
 	 *
 	 * @dataProvider ugly_permalinks_provider
+	 *
+	 * @covers ::get_sitemap_url
 	 */
 	public function test_get_sitemap_url_ugly_permalinks( $name, $subtype_name, $page, $expected ) {
 		$actual = get_sitemap_url( $name, $subtype_name, $page );
@@ -74,6 +80,8 @@ class Test_Sitemaps_Functions extends WP_UnitTestCase {
 	 * Test get_sitemap_url() with pretty permalinks.
 	 *
 	 * @dataProvider pretty_permalinks_provider
+	 *
+	 * @covers ::get_sitemap_url
 	 */
 	public function test_get_sitemap_url_pretty_permalinks( $name, $subtype_name, $page, $expected ) {
 		$this->set_permalink_structure( '/%postname%/' );

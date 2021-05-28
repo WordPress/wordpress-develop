@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_update_term
  */
 class Tests_Term_WpUpdateTerm extends WP_UnitTestCase {
 	public function test_wp_update_term_taxonomy_does_not_exist() {

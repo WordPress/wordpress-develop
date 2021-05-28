@@ -2,6 +2,7 @@
 
 /**
  * @group taxonomy
+ *
  * @covers ::wp_delete_object_term_relationships
  */
 class Tests_Term_WpDeleteObjectTermRelationships extends WP_UnitTestCase {

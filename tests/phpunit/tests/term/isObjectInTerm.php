@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::is_object_in_term
  */
 class Tests_IsObjectInTerm extends WP_UnitTestCase {
 	public function test_terms_are_ints() {

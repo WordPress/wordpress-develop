@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Users
  */
 class Test_WP_Sitemaps_Users extends WP_UnitTestCase {
 	/**

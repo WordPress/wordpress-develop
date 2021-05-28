@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::term_exists
  */
 class Tests_TermExists extends WP_UnitTestCase {
 	public function test_term_exists_term_0() {
