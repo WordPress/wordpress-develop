@@ -5,7 +5,7 @@
  *
  * @group query
  *
- * @covers WP_Query
+ * @covers ::stick_post
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
 	public static $posts = array();

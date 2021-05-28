@@ -6,7 +6,7 @@
  *
  * @group query
  *
- * @covers WP_Query
+ * @covers WP_Query::query
  */
 class Tests_Query_Results extends WP_UnitTestCase {
 	protected $q;
