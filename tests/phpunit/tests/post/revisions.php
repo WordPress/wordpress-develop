@@ -603,6 +603,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 51550
+	 *
+	 * @covers ::wp_revisions_to_keep
 	 */
 	public function test_wp_revisions_to_keep_filter() {
 		$post = self::factory()->post->create_and_get(
@@ -628,6 +630,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 	/*
 	 * @ticket 51550
+	 *
+	 * @covers ::wp_revisions_to_keep
 	 */
 	public function test_wp_post_type_revisions_to_keep_filter() {
 		$post = self::factory()->post->create_and_get(

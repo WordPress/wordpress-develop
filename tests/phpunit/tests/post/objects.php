@@ -206,6 +206,8 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 53235
+	 *
+	 * @covers ::get_post
 	 */
 	public function test_numeric_properties_should_be_cast_to_ints() {
 		$post_id  = self::factory()->post->create();

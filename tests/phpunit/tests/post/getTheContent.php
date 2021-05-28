@@ -3,12 +3,12 @@
 /**
  * @group post
  * @group formatting
+ *
+ * @covers ::get_the_content
  */
 class Tests_Post_GetTheContent extends WP_UnitTestCase {
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_content
 	 */
 	public function test_argument_back_compat_more_link_text() {
 		$text = 'Foo<!--more-->Bar';
@@ -26,8 +26,6 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_content
 	 */
 	public function test_argument_back_compat_strip_teaser() {
 		$text = 'Foo<!--more-->Bar';
@@ -47,8 +45,6 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_content
 	 */
 	public function test_content_other_post() {
 		$text_1 = 'Foo<!--nextpage-->Bar<!--nextpage-->Baz';
@@ -64,8 +60,6 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_content
 	 */
 	public function test_should_respect_pagination_of_inner_post() {
 		$text_1 = 'Foo<!--nextpage-->Bar<!--nextpage-->Baz';
@@ -86,8 +80,6 @@ class Tests_Post_GetTheContent extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47824
-	 *
-	 * @covers ::get_the_content
 	 */
 	public function test_should_fall_back_to_post_global_outside_of_the_loop() {
 		$GLOBALS['post'] = self::factory()->post->create( array( 'post_content' => 'Foo' ) );

@@ -2,13 +2,13 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_page_uri
  */
 class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22883
-	 *
-	 * @covers ::get_page_uri
 	 */
 	function test_get_page_uri_with_stdclass_post_object() {
 		$post_id = self::factory()->post->create( array( 'post_name' => 'get-page-uri-post-name' ) );
@@ -23,8 +23,6 @@ class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 24491
-	 *
-	 * @covers ::get_page_uri
 	 */
 	function test_get_page_uri_with_nonexistent_post() {
 		global $wpdb;
@@ -34,8 +32,6 @@ class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 15963
-	 *
-	 * @covers ::get_page_uri
 	 */
 	function test_get_post_uri_check_orphan() {
 		$parent_id = self::factory()->post->create( array( 'post_name' => 'parent' ) );
@@ -59,8 +55,6 @@ class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36174
-	 *
-	 * @covers ::get_page_uri
 	 */
 	function test_get_page_uri_with_a_draft_parent_with_empty_slug() {
 		$parent_id = self::factory()->post->create( array( 'post_name' => 'parent' ) );
@@ -84,8 +78,6 @@ class Tests_Post_GetPageUri extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 26284
-	 *
-	 * @covers ::get_page_uri
 	 */
 	function test_get_page_uri_without_argument() {
 		$post_id = self::factory()->post->create(

@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers WP_Post::get_instance
  */
 class Tests_Post_wpPost extends WP_UnitTestCase {
 	protected static $post_id;
@@ -25,8 +27,6 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37738
-	 *
-	 * @covers WP_Post::get_instance
 	 */
 	public function test_get_instance_should_work_for_numeric_string() {
 		$found = WP_Post::get_instance( (string) self::$post_id );
@@ -36,8 +36,6 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37738
-	 *
-	 * @covers WP_Post::get_instance
 	 */
 	public function test_get_instance_should_fail_for_negative_number() {
 		$found = WP_Post::get_instance( -self::$post_id );
@@ -47,8 +45,6 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37738
-	 *
-	 * @covers WP_Post::get_instance
 	 */
 	public function test_get_instance_should_fail_for_non_numeric_string() {
 		$found = WP_Post::get_instance( 'abc' );
@@ -58,8 +54,6 @@ class Tests_Post_wpPost extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37738
-	 *
-	 * @covers WP_Post::get_instance
 	 */
 	public function test_get_instance_should_succeed_for_float_that_is_equal_to_post_id() {
 		$found = WP_Post::get_instance( 1.0 );

@@ -4,6 +4,10 @@
  * @group post
  */
 class Tests_Post_Formats extends WP_UnitTestCase {
+
+	/**
+	* @covers ::get_post_format
+	*/
 	function test_set_get_post_format_for_post() {
 		$post_id = self::factory()->post->create();
 

@@ -11,9 +11,10 @@
  * Test cases for `wp_privacy_generate_personal_data_export_file()`.
  *
  * @group privacy
- * @covers ::wp_privacy_generate_personal_data_export_file
  *
  * @since 5.2.0
+ *
+ * @covers ::wp_privacy_generate_personal_data_export_file
  */
 class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**
@@ -159,8 +160,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * When a remove request ID is passed to the export function an error should be displayed.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_rejects_remove_requests() {
 		$request_id = wp_create_user_request( 'removal-requester@example.com', 'remove_personal_data' );
@@ -174,8 +173,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * When an invalid request ID is passed an error should be displayed.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_invalid_request_id() {
 		$this->expectException( 'WPDieException' );
@@ -187,8 +184,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * When the request post title is not a valid email an error should be displayed.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_rejects_requests_with_bad_email_addresses() {
 		$request_id = wp_create_user_request( 'bad-email-requester@example.com', 'export_personal_data' );
@@ -209,8 +204,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * When the export directory fails to be created an error should be displayed.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_detect_cannot_create_folder() {
 		// Create a file with the folder name to ensure the function cannot create a folder.
@@ -294,8 +287,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * Test that an index.php file can be added to the export directory.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_creates_index_in_export_folder() {
 		$this->expectOutputString( '' );
@@ -308,8 +299,6 @@ class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestC
 	 * Test that an export file is successfully created.
 	 *
 	 * @ticket 44233
-	 *
-	 * @covers ::wp_privacy_generate_personal_data_export_file
 	 */
 	public function test_can_succeed() {
 		wp_privacy_generate_personal_data_export_file( self::$export_request_id );

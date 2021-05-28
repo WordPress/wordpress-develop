@@ -11,9 +11,10 @@
  * Test cases for `wp_privacy_delete_old_export_files()`.
  *
  * @group privacy
- * @covers ::wp_privacy_delete_old_export_files
  *
  * @since 4.9.6
+ *
+ * @covers ::wp_privacy_delete_old_export_files
  */
 class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
@@ -83,8 +84,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * The function should not throw notices when the exports directory doesn't exist.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @covers ::wp_privacy_delete_old_export_files
 	 */
 	public function test_non_existent_folders_should_not_cause_errors() {
 		add_filter( 'wp_privacy_exports_dir', array( $this, 'filter_bad_exports_dir' ) );
@@ -117,8 +116,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * The function should delete files that are past the expiration date.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @covers ::wp_privacy_delete_old_export_files
 	 */
 	public function test_expired_files_should_be_deleted() {
 		wp_privacy_delete_old_export_files();
@@ -130,8 +127,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * The function should not delete files that are not past the expiration date.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @covers ::wp_privacy_delete_old_export_files
 	 */
 	public function test_unexpired_files_should_not_be_deleted() {
 		wp_privacy_delete_old_export_files();
@@ -143,8 +138,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * The function should never delete the index file, even if it's past the expiration date.
 	 *
 	 * @since 4.9.6
-	 *
-	 * @covers ::wp_privacy_delete_old_export_files
 	 */
 	public function test_index_file_should_never_be_deleted() {
 		wp_privacy_delete_old_export_files();
@@ -156,8 +149,6 @@ class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	 * Test the correct files are deleted when the expiration time is filtered.
 	 *
 	 * @since 4.9.9
-	 *
-	 * @covers ::wp_privacy_delete_old_export_files
 	 */
 	public function test_filtered_expiration_time() {
 		add_filter( 'wp_privacy_export_expiration', array( $this, 'filter_export_file_expiration_time' ) );

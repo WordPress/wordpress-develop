@@ -2,12 +2,11 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_post_type_labels
  */
 class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_returns_an_object() {
 		$this->assertInternalType(
 			'object',
@@ -21,9 +20,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_returns_hierachical_labels() {
 		$labels = get_post_type_labels(
 			(object) array(
@@ -36,9 +32,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertSame( 'Pages', $labels->name );
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_existing_labels_are_not_overridden() {
 		$labels = get_post_type_labels(
 			(object) array(
@@ -53,9 +46,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertSame( 'Foo', $labels->singular_name );
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_name_admin_bar_label_should_fall_back_to_singular_name() {
 		$labels = get_post_type_labels(
 			(object) array(
@@ -70,10 +60,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertSame( 'Foo', $labels->name_admin_bar );
 	}
 
-
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_name_admin_bar_label_should_fall_back_to_post_type_name() {
 		$labels = get_post_type_labels(
 			(object) array(
@@ -86,9 +72,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertSame( 'bar', $labels->name_admin_bar );
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_menu_name_should_fall_back_to_name() {
 		$labels = get_post_type_labels(
 			(object) array(
@@ -103,9 +86,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertSame( 'Bar', $labels->menu_name );
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_labels_should_be_added_when_registering_a_post_type() {
 		$post_type_object = register_post_type(
 			'foo',
@@ -123,9 +103,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 		$this->assertObjectHasAttribute( 'not_found_in_trash', $post_type_object->labels );
 	}
 
-	/**
-	 * @covers ::get_post_type_labels
-	 */
 	public function test_label_should_be_derived_from_labels_when_registering_a_post_type() {
 		$post_type_object = register_post_type(
 			'foo',
@@ -143,8 +120,6 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33543
-	 *
-	 * @covers ::get_post_type_labels
 	 */
 	public function test_should_fall_back_on_defaults_when_filtered_labels_do_not_contain_the_keys() {
 		add_filter( 'post_type_labels_foo', array( $this, 'filter_post_type_labels' ) );

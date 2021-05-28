@@ -244,6 +244,9 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 21963
+	 *
+	 * @covers ::wp_insert_attachment
+	 * @covers ::wp_update_post
 	 */
 	function test_update_attachment_fields() {
 		$filename = ( DIR_TESTDATA . '/images/test-image.jpg' );
@@ -488,7 +491,10 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$this->assertFalse( wp_attachment_is( 'audio', $attachment_id ) );
 		$this->assertFalse( wp_attachment_is( 'video', $attachment_id ) );
 	}
-
+	/**
+	 * @covers ::wp_attachment_is_image
+	 * @covers ::wp_attachment_is
+	 */
 	public function test_wp_attachment_is_default() {
 		// On Multisite, psd is not an allowed mime type by default.
 		if ( is_multisite() ) {

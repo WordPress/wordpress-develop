@@ -11,9 +11,10 @@
  * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
- * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  *
  * @since 5.1.0
+ *
+ * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  */
 class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitTestCase {
 	/**
@@ -108,8 +109,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The function should send an email when a valid request ID is passed.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_email_no_privacy_policy() {
 
@@ -131,8 +130,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The email should include a link to the site's privacy policy when set.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_email_with_privacy_policy() {
 		$privacy_policy = $this->factory->post->create(
@@ -158,8 +155,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The function should send a fulfillment email only once.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_email_only_once() {
 		// First function call.
@@ -188,8 +183,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The email address of the recipient of the fulfillment notification should be filterable.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_email_address_of_recipient_should_be_filterable() {
 		add_filter( 'user_erasure_fulfillment_email_to', array( $this, 'filter_email_address' ) );
@@ -216,8 +209,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The email subject of the fulfillment notification should be filterable.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_email_subject_should_be_filterable() {
 		add_filter( 'user_erasure_complete_email_subject', array( $this, 'filter_email_subject' ) );
@@ -244,8 +235,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The email body text of the fulfillment notification should be filterable.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_email_body_text_should_be_filterable() {
 		add_filter( 'user_confirmed_action_email_content', array( $this, 'filter_email_body_text' ) );
@@ -274,8 +263,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.4.0
 	 *
 	 * @ticket 44501
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_email_headers_should_be_filterable() {
 		add_filter( 'user_erasure_complete_email_headers', array( $this, 'modify_email_headers' ) );
@@ -306,8 +293,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The function should not send an email when the request ID does not exist.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_not_send_email_when_passed_invalid_request_id() {
 		_wp_privacy_send_erasure_fulfillment_notification( 1234567890 );
@@ -321,8 +306,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The function should not send an email when the ID passed does not correspond to a user request.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_not_send_email_when_not_user_request() {
 		$post_id = $this->factory->post->create(
@@ -341,8 +324,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * The function should not send an email when the request is not completed.
 	 *
 	 * @ticket 44234
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_not_send_email_when_request_not_completed() {
 		wp_update_post(
@@ -366,8 +347,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_user_locale() {
 		update_user_meta( self::$request_user->ID, 'locale', 'es_ES' );
@@ -385,8 +364,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_user_locale_when_site_is_not_en_us() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -408,8 +385,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_user_locale_when_admin_and_site_have_different_locales() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -431,8 +406,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_user_locale_when_both_have_different_locales_than_site() {
 		update_option( 'WPLANG', 'es_ES' );
@@ -456,8 +429,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_site_locale() {
 		update_user_meta( self::$admin_user->ID, 'locale', 'es_ES' );
@@ -484,8 +455,6 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @since 5.2.0
 	 * @ticket 44721
 	 * @group l10n
-	 *
-	 * @covers ::_wp_privacy_send_erasure_fulfillment_notification
 	 */
 	public function test_should_send_fulfillment_email_in_site_locale_when_not_en_us_and_admin_has_different_locale() {
 		update_option( 'WPLANG', 'es_ES' );

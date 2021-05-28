@@ -3,13 +3,13 @@
 /**
  * @group post
  * @group formatting
+ *
+ * @covers ::get_the_excerpt
  */
 class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27246
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_the_excerpt_invalid_post() {
 		$this->assertSame( '', get_echo( 'the_excerpt' ) );
@@ -19,8 +19,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 	/**
 	 * @ticket 27246
 	 * @expectedDeprecated get_the_excerpt
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_the_excerpt_deprecated() {
 		$this->assertSame( '', get_the_excerpt( true ) );
@@ -29,8 +27,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27246
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_the_excerpt() {
 		$GLOBALS['post'] = self::factory()->post->create_and_get( array( 'post_excerpt' => 'Post excerpt' ) );
@@ -41,8 +37,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 	/**
 	 * @ticket 27246
 	 * @ticket 35486
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_the_excerpt_password_protected_post() {
 		$post = self::factory()->post->create_and_get(
@@ -59,8 +53,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 27246
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_the_excerpt_specific_post() {
 		$GLOBALS['post'] = self::factory()->post->create_and_get( array( 'post_excerpt' => 'Foo' ) );
@@ -70,8 +62,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_should_fall_back_on_post_content_if_excerpt_is_empty_and_post_is_inferred_from_context() {
 		$post_id = self::factory()->post->create(
@@ -97,8 +87,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_should_fall_back_on_post_content_if_excerpt_is_empty_and_post_is_provided() {
 		$GLOBALS['post'] = self::factory()->post->create_and_get(
@@ -112,8 +100,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_should_respect_post_parameter_in_the_loop() {
 		$p1 = self::factory()->post->create_and_get( array( 'post_excerpt' => 'Foo' ) );
@@ -134,8 +120,6 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42814
-	 *
-	 * @covers ::get_the_excerpt
 	 */
 	public function test_should_respect_post_parameter_in_the_loop_when_falling_back_on_post_content() {
 		$p1 = self::factory()->post->create_and_get(

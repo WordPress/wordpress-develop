@@ -2,13 +2,13 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_lastpostmodified
  */
 class Tests_Post_GetLastPostModified extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47777
-	 *
-	 * @covers ::get_lastpostmodified
 	 */
 	public function test_get_lastpostmodified() {
 		global $wpdb;

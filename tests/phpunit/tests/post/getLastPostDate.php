@@ -2,13 +2,13 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_lastpostdate
  */
 class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47777
-	 *
-	 * @covers ::get_lastpostdate
 	 */
 	public function test_get_lastpostdate() {
 		$post_post_date_first = '2020-01-30 16:09:28';

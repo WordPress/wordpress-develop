@@ -483,6 +483,8 @@ NO;
 
 	/**
 	 * @ticket 33045
+	 *
+	 * @covers ::get_post_parent
 	 */
 	public function test_get_parent_post() {
 		$post = array(
@@ -514,6 +516,8 @@ NO;
 
 	/**
 	 * @ticket 33045
+	 *
+	 * @covers ::has_post_parent
 	 */
 	public function test_has_parent_post() {
 		$post = array(

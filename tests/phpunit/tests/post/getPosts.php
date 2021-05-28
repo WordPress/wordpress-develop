@@ -3,12 +3,11 @@
 /**
  * @group post
  * @group query
+ *
+ * @covers ::get_posts
  */
 class Tests_Post_GetPosts extends WP_UnitTestCase {
 
-	/**
-	 * @covers ::get_posts
-	 */
 	public function test_offset_should_be_null_by_default() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -33,9 +32,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		$this->assertSame( array( $p1 ), $found );
 	}
 
-	/**
-	 * @covers ::get_posts
-	 */
 	public function test_offset_0_should_be_respected() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -61,9 +57,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		$this->assertSame( array( $p1 ), $found );
 	}
 
-	/**
-	 * @covers ::get_posts
-	 */
 	public function test_offset_non_0_should_be_respected() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -91,8 +84,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 34060
-	 *
-	 * @covers ::get_posts
 	 */
 	public function test_paged_should_not_be_overridden_by_default_offset() {
 		$p1 = self::factory()->post->create(
@@ -119,9 +110,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		$this->assertSame( array( $p2 ), $found );
 	}
 
-	/**
-	 * @covers ::get_posts
-	 */
 	public function test_explicit_offset_0_should_override_paged() {
 		$p1 = self::factory()->post->create(
 			array(
@@ -148,9 +136,6 @@ class Tests_Post_GetPosts extends WP_UnitTestCase {
 		$this->assertSame( array( $p1 ), $found );
 	}
 
-	/**
-	 * @covers ::get_posts
-	 */
 	public function test_explicit_offset_non_0_should_override_paged() {
 		$p1 = self::factory()->post->create(
 			array(

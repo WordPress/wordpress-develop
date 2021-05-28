@@ -2,6 +2,7 @@
 
 /**
  * @group post
+ *
  * @covers ::get_body_class
  */
 class Tests_Post_GetBodyClass extends WP_UnitTestCase {
@@ -14,8 +15,6 @@ class Tests_Post_GetBodyClass extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30883
-	 *
-	 * @covers ::get_body_class
 	 */
 	public function test_with_utf8_category_slugs() {
 		$cat_id1 = self::factory()->category->create( array( 'name' => 'Первая рубрика' ) );

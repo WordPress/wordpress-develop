@@ -1046,6 +1046,8 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * of it to ensure that this data is maintained during an import.
 	 *
 	 * @ticket 52189
+	 *
+	 * @covers ::wp_update_nav_menu_item
 	 */
 	function test_wp_update_nav_menu_item_with_post_date() {
 		$post_date     = '2020-12-28 11:26:35';

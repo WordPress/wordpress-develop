@@ -26,8 +26,6 @@ class Tests_Post_Filtering extends WP_UnitTestCase {
 
 	/**
 	 * A simple test to make sure unclosed tags are fixed.
-	 *
-	 * @covers ::wp_insert_post
 	 */
 	function test_post_content_unknown_tag() {
 
@@ -47,8 +45,6 @@ EOF;
 
 	/**
 	 * A simple test to make sure unbalanced tags are fixed.
-	 *
-	 * @covers ::wp_insert_post
 	 */
 	function test_post_content_unbalanced_tag() {
 
@@ -68,8 +64,6 @@ EOF;
 
 	/**
 	 * Test KSES filtering of disallowed attribute.
-	 *
-	 * @covers ::wp_insert_post
 	 */
 
 	function test_post_content_disallowed_attr() {
@@ -92,8 +86,6 @@ EOF;
 	 * test kses bug. xhtml does not require space before closing empty element
 	 *
 	 * @ticket 12394
-	 *
-	 * @covers ::wp_insert_post
 	 */
 	function test_post_content_xhtml_empty_elem() {
 		$content = <<<EOF
@@ -114,9 +106,6 @@ EOF;
 
 	/**
 	 * Make sure unbalanced tags are untouched when the balance option is off.
-	 *
-	 *
-	 * @covers ::wp_insert_post
 	 */
 	function test_post_content_nobalance_nextpage_more() {
 
