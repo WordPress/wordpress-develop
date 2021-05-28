@@ -22,7 +22,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	<!-- wp:column -->
 	<div class="wp-block-column">
 		<!-- wp:archives {"displayAsDropdown":false,"showPostCounts":false} /-->
-
+		
 		<!-- wp:paragraph -->
 		<p>paragraph inside column</p>
 		<!-- /wp:paragraph -->
@@ -40,7 +40,7 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 
 
 		<p>paragraph inside column</p>
-
+		
 ';
 
 	/**
