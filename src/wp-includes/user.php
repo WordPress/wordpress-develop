@@ -4374,7 +4374,7 @@ function wp_is_application_passwords_available_for_user( $user ) {
   *                                 'display_name', 'post_count', 'ID', 'meta_value', 'user_login'. Default 'name'.
   *     @type string $order         Sorting direction for $orderby. Accepts 'ASC', 'DESC'. Default 'ASC'.
   *     @type int    $number        Maximum users to return or display. Default empty (all users).
-  *     @type bool   $exclude_admin Whether to exclude the 'admin' account, if it exists. Default false.
+  *     @type bool   $roles         An array of user roles. Default ()'subscriber', 'author', 'editor').
   *     @type bool   $show_fullname Whether to show the user's full name. Default false.
   *     @type string $feed          If not empty, show a link to the user's feed and use this text as the alt
   *                                 parameter of the link. Default empty.
@@ -4395,7 +4395,7 @@ function wp_list_users( $args = array() ) {
 		'orderby'       => 'name',
 		'order'         => 'ASC',
 		'number'        => '',
-		'exclude_admin' => true,
+		'roles'         => array( 'subscriber', 'author', 'editor' ),
 		'show_fullname' => false,
 		'feed'          => '',
 		'feed_image'    => '',
@@ -4408,19 +4408,16 @@ function wp_list_users( $args = array() ) {
 	);
 
 	$args = wp_parse_args( $args, $defaults );
+	$args['role__in'] = $args['roles'];
 
 	$output = '';
 
-	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include' ) );
+	$query_args           = wp_array_slice_assoc( $args, array( 'orderby', 'order', 'number', 'exclude', 'include', 'role__in' ) );
 	$query_args['fields'] = 'ids';
 	$users                = get_users( $query_args );
 
 	foreach ( $users as $user_id ) {
 		$user = get_userdata( $user_id );
-
-		if ( $args['exclude_admin'] && 'admin' == $user->display_name ) {
-			continue;
-		}
 
 		if ( $args['show_fullname'] && $user->first_name && $user->last_name ) {
 			$name = "$user->first_name $user->last_name";
@@ -4473,7 +4470,7 @@ function wp_list_users( $args = array() ) {
 		$output .= ( 'list' == $args['style'] ) ? '</li>' : ', ';
 	}
 
-	$output = rtrim( $return, ', ' );
+	$output = rtrim( $output, ', ' );
 
 	/**
 		* Filters the HTML output of the pages to list.
@@ -4487,7 +4484,7 @@ function wp_list_users( $args = array() ) {
 		*                               for information on accepted arguments.
 		* @param WP_User[] $users       Array of the user objects.
 		*/
-		$html = apply_filters( 'wp_list_users', $output, $parsed_args, $users );
+		$html = apply_filters( 'wp_list_users', $output, $args, $users );
 
 	if ( ! $args['echo'] ) {
 		return $output;
