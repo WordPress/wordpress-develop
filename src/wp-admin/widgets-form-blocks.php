@@ -55,6 +55,14 @@ wp_enqueue_style( 'wp-edit-widgets' );
 /** This action is documented in wp-admin/edit-form-blocks.php */
 do_action( 'enqueue_block_editor_assets' );
 
+/**
+ * Fires early before the Widgets administration screen loads,
+ * after scripts are enqueued.
+ *
+ * @since 2.2.0
+ */
+do_action( 'sidebar_admin_setup' );
+
 require_once ABSPATH . 'wp-admin/admin-header.php';
 
 /** This action is documented in wp-admin/widgets-form.php */
@@ -64,4 +72,11 @@ do_action( 'widgets_admin_page' );
 <div id="widgets-editor" class="blocks-widgets-container"></div> 
 
 <?php
+/**
+ * Fires after the available widgets and sidebars have loaded, before the admin footer.
+ *
+ * @since 2.2.0
+ */
+do_action( 'sidebar_admin_page' );
+
 require_once ABSPATH . 'wp-admin/admin-footer.php';

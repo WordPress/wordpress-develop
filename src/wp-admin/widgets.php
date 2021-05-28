@@ -12,12 +12,24 @@ require_once __DIR__ . '/admin.php';
 /** WordPress Administration Widgets API */
 require_once ABSPATH . 'wp-admin/includes/widgets.php';
 
+$widgets_access = get_user_setting( 'widgets_access' );
+if ( isset( $_GET['widgets-access'] ) ) {
+	check_admin_referer( 'widgets-access' );
+
+	$widgets_access = 'on' === $_GET['widgets-access'] ? 'on' : 'off';
+	set_user_setting( 'widgets_access', $widgets_access );
+}
+
 if ( ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
 		'<p>' . __( 'Sorry, you are not allowed to edit theme options on this site.' ) . '</p>',
 		403
 	);
+}
+
+if ( ! current_theme_supports( 'widgets' ) ) {
+	wp_die( __( 'The theme you are currently using isn&#8217;t widget-aware, meaning that it has no sidebars that you are able to change. For information on making your theme widget-aware, please <a href="https://developer.wordpress.org/themes/functionality/widgets/">follow these instructions</a>.' ) );
 }
 
 $title       = __( 'Widgets' );
