@@ -643,6 +643,7 @@ function is_serialized( $data ) {
 	if ( ! is_string( $data ) ) {
 		return false;
 	}
+	$data = trim( $data );
 	if ( PHP_VERSION_ID < 70000 ) {
 		return false !== @unserialize( $data ) || serialize( false ) === $data;
 	} else {
