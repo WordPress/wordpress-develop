@@ -3289,11 +3289,19 @@ function wp_resource_hints() {
 		 *
 		 * @since 4.6.0
 		 *
-		 * @param string[]|array[] $urls          Array of URLs to print for resource hints or
-		 * 										  array of arrays of resources and their
-		 *                                        attributes.
-		 * @param string           $relation_type The relation type the URLs are printed for, e.g.
-		 *                                        'preconnect' or 'prerender'.
+		 * @param array  $urls Resources to be hinted {
+		 *     String of URLs or array of resources and their attributes.
+		 *
+		 *     @type string $as          How the browser should treat the asset (CSS, JavaScript, etc).
+		 *     @type string $crossorigin How the element handles crossorigin requests.
+		 *     @type string $href        URL to include in resource hints.
+		 *     @type float  $pr          Expected probability that the resource will be used.
+		 *     @type string $rel         Relationship between the resource and the current document.
+		 *     @type string $type        Type of the resource (text/html, text/css, etc).
+		 *
+		 * }
+		 * @param string $relation_type  The relation type the URLs are printed for, e.g.
+		 *                               'preconnect' or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
