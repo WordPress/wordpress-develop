@@ -647,7 +647,9 @@ function is_serialized( $data ) {
 	if ( PHP_VERSION_ID < 70000 ) {
 		return false !== @unserialize( $data ) || serialize( false ) === $data;
 	} else {
-		return false !== @unserialize( $data, [ 'allowed_classes' => false ] ) || serialize( false ) === $data;
+		$options                    = array();
+		$options['allowed_classes'] = false;
+		return false !== @unserialize( $data, $options ) || serialize( false ) === $data;
 	}
 }
 
