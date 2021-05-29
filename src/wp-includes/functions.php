@@ -667,18 +667,12 @@ function is_serialized_string( $data ) {
 		return false;
 	}
 	$data = trim( $data );
-	if ( strlen( $data ) < 4 ) {
-		return false;
-	} elseif ( ':' !== $data[1] ) {
-		return false;
-	} elseif ( ';' !== substr( $data, -1 ) ) {
-		return false;
-	} elseif ( 's' !== $data[0] ) {
-		return false;
-	} elseif ( '"' !== substr( $data, -2, 1 ) ) {
-		return false;
+	if ( PHP_VERSION_ID < 70000 ) {
+		return is_string( @unserialize( $data ) );
 	} else {
-		return true;
+		$options                    = array();
+		$options['allowed_classes'] = false;
+		return is_string( @unserialize( $data, $options ) );
 	}
 }
 
