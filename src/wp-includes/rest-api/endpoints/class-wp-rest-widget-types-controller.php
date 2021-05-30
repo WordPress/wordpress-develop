@@ -223,9 +223,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 					$classname .= '_' . get_class( $cn );
 				}
 			}
-			$widget['classname'] = ltrim( $classname, '_' );
+			$classname           = ltrim( $classname, '_' );
+			$widget['classname'] = $classname;
 
-			$widgets[] = $widget;
+			$widgets[ $classname ] = $widget;
 		}
 
 		return $widgets;
