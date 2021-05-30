@@ -361,10 +361,10 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @ticket 17375
+	 * @ticket 53295
 	 */
-	function test_no_new_serializable_types() {
-		$this->assertFalse( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
+	function test_is_serialized_should_return_true_for_serializable_classes() {
+		$this->assertTrue( is_serialized( 'C:16:"Serialized_Class":6:{a:0:{}}' ) );
 	}
 
 	/**
