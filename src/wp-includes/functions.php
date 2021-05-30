@@ -649,6 +649,7 @@ function is_serialized( $data ) {
 	} else {
 		$options                    = array();
 		$options['allowed_classes'] = false;
+		// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters.unserialize_optionsFound
 		return false !== @unserialize( $data, $options ) || serialize( false ) === $data;
 	}
 }
@@ -672,6 +673,7 @@ function is_serialized_string( $data ) {
 	} else {
 		$options                    = array();
 		$options['allowed_classes'] = false;
+		// phpcs:ignore PHPCompatibility.FunctionUse.NewFunctionParameters.unserialize_optionsFound
 		return is_string( @unserialize( $data, $options ) );
 	}
 }
