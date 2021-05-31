@@ -3,6 +3,8 @@
 /**
  * @group user
  * @group datequery
+ *
+ * @covers WP_User_Query::__construct
  */
 class Tests_User_DateQuery extends WP_UnitTestCase {
 	/**

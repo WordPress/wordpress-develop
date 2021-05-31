@@ -3,6 +3,8 @@
 /**
  * @group xmlrpc
  * @group user
+ *
+ * @covers wp_xmlrpc_server::wp_getUsers
  */
 class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 

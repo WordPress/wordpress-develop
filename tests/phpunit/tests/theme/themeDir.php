@@ -39,6 +39,9 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_themes
+	 * @covers ::get_theme
 	 */
 	function test_theme_default() {
 		$themes = get_themes();
@@ -70,6 +73,9 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_themes
+	 * @covers ::get_theme
 	 */
 	function test_theme_sandbox() {
 		$theme = get_theme( 'Sandbox' );
@@ -106,6 +112,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	 * A CSS-only theme
 	 *
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_themes
 	 */
 	function test_theme_stylesheet_only() {
 		$themes = get_themes();
@@ -136,6 +144,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_themes
 	 */
 	function test_theme_list() {
 		$themes = get_themes();
@@ -173,6 +183,9 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_themes
 	 * @expectedDeprecated get_broken_themes
+	 *
+	 * @covers ::get_themes
+	 * @covers ::get_broken_themes
 	 */
 	function test_broken_themes() {
 		$themes = get_themes();
@@ -200,6 +213,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_themes
 	 */
 	function test_page_templates() {
 		$themes = get_themes();
@@ -213,9 +228,11 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated get_theme_data
+	 *
+	 * @covers ::get_themes_data
 	 */
 	function test_get_theme_data_top_level() {
-		$theme_data = get_theme_data( DIR_TESTDATA . '/themedir1/theme1/style.css' );
+		$theme_data = get_theme( DIR_TESTDATA . '/themedir1/theme1/style.css' );
 
 		$this->assertSame( 'My Theme', $theme_data['Name'] );
 		$this->assertSame( 'http://example.org/', $theme_data['URI'] );
@@ -232,6 +249,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @expectedDeprecated get_theme_data
+	 *
+	 * @covers ::get_themes_data
 	 */
 	function test_get_theme_data_subdir() {
 		$theme_data = get_theme_data( $this->theme_root . '/subdir/theme2/style.css' );
@@ -251,6 +270,8 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28662
+	 *
+	 * @covers ::register_theme_directory
 	 */
 	function test_theme_dir_slashes() {
 		$size = count( $GLOBALS['wp_theme_directories'] );

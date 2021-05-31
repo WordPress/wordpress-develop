@@ -2,6 +2,8 @@
 
 /**
  * @group user
+ *
+ * @covers ::update_user_caches
  */
 class Tests_User_UpdateUserCaches extends WP_UnitTestCase {
 	public function test_should_store_entire_database_row_in_users_bucket() {

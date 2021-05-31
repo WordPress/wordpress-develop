@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getRevisions
  */
 class Tests_XMLRPC_wp_getRevisions extends WP_XMLRPC_UnitTestCase {
 

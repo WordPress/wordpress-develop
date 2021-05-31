@@ -32,6 +32,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data.
+	 *
+	 * @covers ::add_user
 	 */
 	function test_add_user() {
 		$_POST                 = array();
@@ -87,6 +89,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the controller function that expects slashed data.
+	 *
+	 * @covers ::get_user_to_edit
 	 */
 	function test_edit_user() {
 		$user_id = self::$user_id;
@@ -138,6 +142,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_insert_user
 	 */
 	function test_wp_insert_user() {
 		$user_id = wp_insert_user(
@@ -185,6 +191,8 @@ class Tests_User_Slashes extends WP_UnitTestCase {
 
 	/**
 	 * Tests the model function that expects slashed data.
+	 *
+	 * @covers ::wp_update_user
 	 */
 	function test_wp_update_user() {
 		$user_id = self::$user_id;

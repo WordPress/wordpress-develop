@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::mw_getPost
  */
 class Tests_XMLRPC_mw_getPost extends WP_XMLRPC_UnitTestCase {
 	protected static $post_id;

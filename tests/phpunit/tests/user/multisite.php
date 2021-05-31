@@ -24,6 +24,9 @@ if ( is_multisite() ) :
 			parent::tearDown();
 		}
 
+		/**
+		 * @covers ::remove_user_from_blog
+		 */
 		function test_remove_user_from_blog() {
 			$user1 = self::factory()->user->create_and_get();
 			$user2 = self::factory()->user->create_and_get();
@@ -40,6 +43,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * Test the returned data from get_blogs_of_user()
+		 *
+		 * @covers ::get_blogs_of_user
 		 */
 		function test_get_blogs_of_user() {
 			$user1_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -110,6 +115,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @expectedDeprecated is_blog_user
+		 *
+		 * @covers ::is_blog_user
 		 */
 		function test_is_blog_user() {
 			global $wpdb;
@@ -132,6 +139,9 @@ if ( is_multisite() ) :
 			wp_set_current_user( $old_current );
 		}
 
+		/**
+		 * @covers ::is_user_member_of_blog
+		 */
 		function test_is_user_member_of_blog() {
 			global $wpdb;
 
@@ -192,6 +202,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 23192
+		 *
+		 * @covers ::is_user_spammy
 		 */
 		function test_is_user_spammy() {
 			$user_id = self::factory()->user->create(
@@ -221,6 +233,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 20601
+		 *
+		 * @covers ::get_blogs_of_user
 		 */
 		function test_user_member_of_blog() {
 			global $wp_rewrite;
@@ -261,6 +275,10 @@ if ( is_multisite() ) :
 			$this->assertQueryTrue( 'is_author', 'is_archive' );
 		}
 
+		/**
+		 * @covers ::revoke_super_admin
+		 * @covers ::wpmu_delete_user
+		 */
 		function test_revoked_super_admin_can_be_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
@@ -278,6 +296,10 @@ if ( is_multisite() ) :
 			}
 		}
 
+		/**
+		 * @covers ::revoke_super_admin
+		 * @covers ::wpmu_delete_user
+		 */
 		function test_revoked_super_admin_is_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
@@ -297,6 +319,9 @@ if ( is_multisite() ) :
 			}
 		}
 
+		/**
+		 * @covers ::wpmu_delete_user
+		 */
 		function test_super_admin_cannot_be_deleted() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
 				$old_global = $GLOBALS['super_admins'];
@@ -315,6 +340,10 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 27205
+		 *
+		 * @covers ::is_super_admin
+		 * @covers ::revoke_super_admin
+		 * @covers ::grant_super_admin
 		 */
 		function test_granting_super_admins() {
 			if ( isset( $GLOBALS['super_admins'] ) ) {
@@ -348,6 +377,9 @@ if ( is_multisite() ) :
 			}
 		}
 
+		/**
+		 * @covers ::wpmu_delete_user
+		 */
 		public function test_numeric_string_user_id() {
 			$u = self::factory()->user->create();
 
@@ -358,6 +390,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 33800
+		 *
+		 * @covers ::wpmu_delete_user
 		 */
 		public function test_should_return_false_for_non_numeric_string_user_id() {
 			$this->assertFalse( wpmu_delete_user( 'abcde' ) );
@@ -365,6 +399,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 33800
+		 *
+		 * @covers ::wpmu_delete_user
 		 */
 		public function test_should_return_false_for_object_user_id() {
 			$u_obj = self::factory()->user->create_and_get();
@@ -374,6 +410,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 38356
+		 *
+		 * @covers ::add_user_to_blog
 		 */
 		public function test_add_user_to_blog_subscriber() {
 			$site_id = self::factory()->blog->create();
@@ -393,6 +431,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 38356
+		 *
+		 * @covers ::add_user_to_blog
 		 */
 		public function test_add_user_to_blog_invalid_user() {
 			$site_id = self::factory()->blog->create();
@@ -406,6 +446,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 41101
+		 *
+		 * @covers ::add_user_to_blog
 		 */
 		public function test_should_fail_can_add_user_to_blog_filter() {
 			$site_id = self::factory()->blog->create();
@@ -419,6 +461,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 41101
+		 *
+		 * @covers ::add_user_to_blog
 		 */
 		public function test_should_succeed_can_add_user_to_blog_filter() {
 			$site_id = self::factory()->blog->create();
@@ -432,6 +476,8 @@ if ( is_multisite() ) :
 
 		/**
 		 * @ticket 23016
+		 *
+		 * @covers ::restore_current_blog
 		 */
 		public function test_wp_roles_global_is_reset() {
 			global $wp_roles;

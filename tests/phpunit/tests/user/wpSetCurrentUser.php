@@ -2,6 +2,8 @@
 
 /**
  * @group user
+ *
+ * @covers ::wp_set_current_user
  */
 class Tests_User_WpSetCurrentUser extends WP_UnitTestCase {
 	protected static $user_id;

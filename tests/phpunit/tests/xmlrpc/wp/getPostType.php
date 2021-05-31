@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_getPostType
  */
 class Tests_XMLRPC_wp_getPostType extends WP_XMLRPC_UnitTestCase {
 	public $cpt_name;

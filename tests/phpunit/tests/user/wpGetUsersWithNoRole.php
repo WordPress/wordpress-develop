@@ -2,6 +2,8 @@
 
 /**
  * @group user
+ *
+ * @covers ::wp_get_users_with_no_role
  */
 class Tests_User_GetUsersWithNoRole extends WP_UnitTestCase {
 

@@ -9,6 +9,9 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	 * Test that usermeta cache is cleared after user deletion.
 	 *
 	 * @ticket 19500
+	 *
+	 * @covers ::wpmu_delete_user
+	 * @covers ::wp_delete_user
 	 */
 	function test_get_blogs_of_user() {
 		// Logged out users don't have blogs.
@@ -30,6 +33,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	 * Test that usermeta cache is cleared after user deletion.
 	 *
 	 * @ticket 19500
+	 *
+	 * @covers ::wp_delete_user
 	 */
 	function test_is_user_member_of_blog() {
 		$old_current = get_current_user_id();
@@ -53,6 +58,9 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 		wp_set_current_user( $old_current );
 	}
 
+	/**
+	 * @covers ::wp_delete_user
+	 */
 	function test_delete_user() {
 		$user_id = self::factory()->user->create( array( 'role' => 'author' ) );
 		$user    = new WP_User( $user_id );
@@ -110,6 +118,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 20447
+	 *
+	 * @covers ::wp_delete_user
 	 */
 	function test_wp_delete_user_reassignment_clears_post_caches() {
 		$user_id  = self::factory()->user->create();
@@ -126,6 +136,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 	/**
 	 * @group ms-excluded
+	 *
+	 * @covers ::wp_delete_user
 	 */
 	public function test_numeric_string_user_id() {
 		$u = self::factory()->user->create();
@@ -137,6 +149,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33800
+	 *
+	 * @covers ::wp_delete_user
 	 */
 	public function test_should_return_false_for_non_numeric_string_user_id() {
 		$this->assertFalse( wp_delete_user( 'abcde' ) );
@@ -145,6 +159,8 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	/**
 	 * @ticket 33800
 	 * @group ms-excluded
+	 *
+	 * @covers ::wp_delete_user
 	 */
 	public function test_should_return_false_for_object_user_id() {
 		$u_obj = self::factory()->user->create_and_get();

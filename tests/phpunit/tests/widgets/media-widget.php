@@ -106,6 +106,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 	 * Test constructor in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
+	 *
 	 * @covers WP_Widget_Media::__construct
 	 * @covers WP_Widget_Media::_register
 	 */
