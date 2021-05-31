@@ -206,6 +206,21 @@ class Tests_User extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 53235
+	 */
+	public function test_numeric_properties_should_be_cast_to_ints() {
+		$user     = new WP_User( self::$author_id );
+		$contexts = array( 'raw', 'edit', 'db', 'display', 'attribute', 'js' );
+
+		foreach ( $contexts as $context ) {
+			$user->filter = $context;
+			$user->init( $user->data );
+
+			$this->assertInternalType( 'int', $user->ID );
+		}
+	}
+
+	/**
 	 * Test the magic __unset() method.
 	 *
 	 * @ticket 20043
