@@ -6573,20 +6573,6 @@ mockedApiResponse.Schema = {
                         "PATCH"
                     ],
                     "args": {
-                        "theme_mods_default": {
-                            "description": "",
-                            "type": "object",
-                            "properties": {
-                                "custom_logo": {
-                                    "type": [
-                                        "integer",
-                                        "boolean"
-                                    ]
-                                }
-                            },
-                            "additionalProperties": false,
-                            "required": false
-                        },
                         "title": {
                             "description": "Site title.",
                             "type": "string",
@@ -6594,11 +6580,6 @@ mockedApiResponse.Schema = {
                         },
                         "description": {
                             "description": "Site tagline.",
-                            "type": "string",
-                            "required": false
-                        },
-                        "stylesheet": {
-                            "description": "",
                             "type": "string",
                             "required": false
                         },
@@ -6675,6 +6656,11 @@ mockedApiResponse.Schema = {
                                 "open",
                                 "closed"
                             ],
+                            "required": false
+                        },
+                        "site_logo": {
+                            "description": "Site logo.",
+                            "type": "integer",
                             "required": false
                         }
                     }
@@ -8945,12 +8931,8 @@ mockedApiResponse.CommentModel = {
 };
 
 mockedApiResponse.settings = {
-    "theme_mods_default": {
-        "custom_logo": false
-    },
     "title": "Test Blog",
     "description": "Just another WordPress site",
-    "stylesheet": "default",
     "url": "http://example.org",
     "email": "admin@example.org",
     "timezone": "",
@@ -8963,5 +8945,6 @@ mockedApiResponse.settings = {
     "default_post_format": "0",
     "posts_per_page": 10,
     "default_ping_status": "open",
-    "default_comment_status": "open"
+    "default_comment_status": "open",
+    "site_logo": null
 };
