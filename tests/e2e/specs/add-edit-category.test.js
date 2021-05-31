@@ -89,8 +89,7 @@ describe( 'Categories tests', () => {
 		const [ editLink ] = await page.$x(
 			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
 		);
-		await editLink.focus();
-		await page.keyboard.press( 'Enter' );
+		await editLink.click();
 
 		await page.waitForNavigation();
 
