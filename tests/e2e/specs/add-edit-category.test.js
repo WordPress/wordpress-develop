@@ -156,10 +156,13 @@ describe( 'Categories tests', () => {
 		// Tab to the Delete button and press Enter to delete the category.
 		await pressKeyTimes( 'Tab', 3 );
 		await page.keyboard.press( 'Enter' );
+
 		await page.reload();
 		
 		// Expect there to be only one row in the categories list.
-		const categories = await page.$$( '#the-list tr' );
+		const categories = await page.$x(
+			`//tbody[contains( @id, "the-list" )]/tr`
+		);
 		expect( categories.length ).toBe( 1 );
 
 		// Expect to remaining category to be the default "Uncategorized"
