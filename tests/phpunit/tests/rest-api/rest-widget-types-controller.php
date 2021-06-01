@@ -61,6 +61,22 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		self::delete_user( self::$subscriber_id );
 	}
 
+	private function setup_widget( $id_base, $number, $settings ) {
+		global $wp_widget_factory;
+
+		$option_name = "widget_$id_base";
+		update_option(
+			$option_name,
+			array(
+				$number => $settings,
+			)
+		);
+
+		$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+		$widget_object->_set( $number );
+		$widget_object->_register_one( $number );
+	}
+
 	/**
 	 * @ticket 41683
 	 */
@@ -106,7 +122,37 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			$widget_type = $endpoint->get_widget( $item['name'] );
 			$this->check_widget_type_object( $widget_type, $item, $item['_links'] );
 		}
+	}
 
+	/**
+	 * @ticket 53305
+	 */
+	public function test_get_items_removes_duplicates() {
+		wp_set_current_user( self::$admin_id );
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_widget(
+			'text',
+			2,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$request      = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$response     = rest_get_server()->dispatch( $request );
+		$data         = $response->get_data();
+		$text_widgets = array_filter(
+			$data,
+			function( $widget ) {
+				return 'text' === $widget['id'];
+			}
+		);
+		$this->assertCount( 1, $text_widgets );
 	}
 
 	/**

@@ -131,14 +131,14 @@ foreach ( array( 'content_save_pre', 'excerpt_save_pre', 'comment_save_pre', 'pr
 add_action( 'init', 'wp_init_targeted_link_rel_filters' );
 
 // Format strings for display.
-foreach ( array( 'comment_author', 'term_name', 'link_name', 'link_description', 'link_notes', 'bloginfo', 'wp_title', 'widget_title' ) as $filter ) {
+foreach ( array( 'comment_author', 'term_name', 'link_name', 'link_description', 'link_notes', 'bloginfo', 'wp_title', 'document_title', 'widget_title' ) as $filter ) {
 	add_filter( $filter, 'wptexturize' );
 	add_filter( $filter, 'convert_chars' );
 	add_filter( $filter, 'esc_html' );
 }
 
 // Format WordPress.
-foreach ( array( 'the_content', 'the_title', 'wp_title' ) as $filter ) {
+foreach ( array( 'the_content', 'the_title', 'wp_title', 'document_title' ) as $filter ) {
 	add_filter( $filter, 'capital_P_dangit', 11 );
 }
 add_filter( 'comment_text', 'capital_P_dangit', 31 );
@@ -315,6 +315,7 @@ add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
 add_action( 'init', '_register_core_block_patterns_and_categories' );
+add_action( 'current_screen', '_load_remote_block_patterns' );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
