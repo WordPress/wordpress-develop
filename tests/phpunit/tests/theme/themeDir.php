@@ -232,7 +232,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	 * @covers ::get_themes_data
 	 */
 	function test_get_theme_data_top_level() {
-		$theme_data = get_theme( DIR_TESTDATA . '/themedir1/theme1/style.css' );
+		$theme_data = get_theme_data( DIR_TESTDATA . '/themedir1/theme1/style.css' );
 
 		$this->assertSame( 'My Theme', $theme_data['Name'] );
 		$this->assertSame( 'http://example.org/', $theme_data['URI'] );
