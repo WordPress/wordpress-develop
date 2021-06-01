@@ -1627,7 +1627,7 @@ function add_settings_section( $id, $title, $callback, $page ) {
  *     @type string $class     CSS Class to be added to the `<tr>` element when the
  *                             field is output.
  * }
- * 
+ *
  * @param int      $position   The position in the settings order this item should appear.
  */
 function add_settings_field( $id, $title, $callback, $page, $section = 'default', $args = array(), $position = null ) {
@@ -1729,9 +1729,12 @@ function do_settings_fields( $page, $section ) {
 
 	$fields = (array) $wp_settings_fields[ $page ][ $section ];
 
-	usort( $fields, function( $a, $b ) {
-		return $a['position'] - $b['position'];
-	} );
+	usort(
+		$fields,
+		function ( $a, $b ) {
+			return $a['position'] - $b['position'];
+		}
+	);
 
 	foreach ( $fields as $field ) {
 		$class = '';
