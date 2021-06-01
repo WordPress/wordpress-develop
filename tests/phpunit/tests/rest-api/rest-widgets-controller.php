@@ -14,7 +14,7 @@
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widgets_Controller
+ * @coversDefaultClass  WP_REST_Widgets_Controller
  */
 class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
@@ -199,12 +199,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
 	}
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_no_widgets() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets' );
@@ -216,6 +218,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -226,6 +229,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -236,6 +240,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items() {
 		add_filter( 'pre_http_request', array( $this, 'mocked_rss_response' ) );
@@ -359,6 +364,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	 * Test a GET request in edit context. In particular, we expect rendered_form to be served correctly.
 	 *
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_edit_context() {
 		$this->setup_widget(
@@ -427,6 +433,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item() {
 		$this->setup_widget(
@@ -479,6 +486,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -505,6 +513,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -529,6 +538,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item() {
 		$this->setup_sidebar(
@@ -577,6 +587,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_malformed_instance() {
 		$this->setup_sidebar(
@@ -609,6 +620,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_bad_instance() {
 		$this->setup_sidebar(
@@ -632,6 +644,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_using_raw_instance() {
 		$this->setup_sidebar(
@@ -667,6 +680,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_raw_instance_not_supported() {
 		global $wp_widget_factory;
@@ -700,6 +714,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_using_form_data() {
 		$this->setup_sidebar(
@@ -733,6 +748,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_multiple_in_a_row() {
 		$this->setup_sidebar(
@@ -795,6 +811,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_second_instance() {
 		$this->setup_widget(
@@ -839,6 +856,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item() {
 		$this->setup_widget(
@@ -886,6 +904,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_reassign_sidebar() {
 		$this->setup_widget(
@@ -930,6 +949,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_shouldnt_require_id_base() {
 		$this->setup_widget(
@@ -1044,6 +1064,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_legacy_widget() {
 		$this->setup_sidebar(
@@ -1080,6 +1101,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::create_item
 	 */
 	public function test_create_item_legacy_widget() {
 		$this->setup_sidebar(
@@ -1117,6 +1139,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -1133,6 +1156,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -1149,6 +1173,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * Tests if the endpoint correctly handles "slashable" characters such as " or '.
+	 * @covers ::update_item
 	 */
 	public function test_update_item_slashing() {
 		$this->setup_widget( 'text', 1, array( 'text' => 'Custom text test' ) );
@@ -1187,6 +1212,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item() {
 		$this->setup_widget(
@@ -1243,6 +1269,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_force() {
 		$this->setup_widget(
@@ -1308,6 +1335,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_logged_out() {
 		wp_set_current_user( 0 );
@@ -1335,6 +1363,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_author() {
 		wp_set_current_user( self::$author_id );
@@ -1368,6 +1397,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );

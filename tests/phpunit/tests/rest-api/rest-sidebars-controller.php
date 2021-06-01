@@ -12,7 +12,7 @@
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Sidebars_Controller
+ * @coversDefaultClass  WP_REST_Sidebars_Controller
  */
 class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -108,6 +108,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -126,6 +127,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items() {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
@@ -137,6 +139,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -147,6 +150,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -157,6 +161,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_basic_sidebar() {
 		$this->setup_sidebar(
@@ -191,6 +196,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_active_sidebar_with_widgets() {
 		$this->setup_widget(
@@ -243,6 +249,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item() {
 		$this->setup_sidebar(
@@ -275,6 +282,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -292,6 +300,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -315,6 +324,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item() {
 		$this->setup_widget(
@@ -380,6 +390,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_removes_widget_from_existing_sidebar() {
 		$this->setup_widget(
@@ -421,6 +432,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_moves_omitted_widget_to_inactive_sidebar() {
 		$this->setup_widget(
@@ -463,6 +475,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_inactive_widgets() {
 		$this->setup_widget(
@@ -538,6 +551,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -554,6 +568,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::update_item
 	 */
 	public function test_update_item_wrong_permission_author() {
 		wp_set_current_user( self::$author_id );
@@ -582,6 +597,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );

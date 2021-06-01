@@ -14,7 +14,7 @@
  *
  * @see WP_TEST_REST_Controller_Testcase
  * @group restapi
- * @covers WP_REST_Widget_Types_Controller
+ * @coversDefaultClass WP_REST_Widget_Types_Controller
  */
 class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testcase {
 
@@ -92,6 +92,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -110,6 +111,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items() {
 		wp_set_current_user( self::$admin_id );
@@ -126,6 +128,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 53305
+	 * @covers ::get_items
 	 */
 	public function test_get_items_removes_duplicates() {
 		wp_set_current_user( self::$admin_id );
@@ -157,6 +160,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_item() {
 		$widget_name = 'calendar';
@@ -170,6 +174,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_widget
 	 */
 	public function test_get_widget_legacy() {
 		$widget_id = 'legacy';
@@ -188,6 +193,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
 	 */
 	public function test_get_widget_invalid_name() {
 		$widget_type = 'fake';
@@ -200,6 +206,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		wp_set_current_user( self::$admin_id );
@@ -218,6 +225,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_items
 	 */
 	public function test_get_items_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -228,6 +236,8 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_wrong_permission() {
 		wp_set_current_user( self::$subscriber_id );
@@ -238,6 +248,8 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_items_no_permission() {
 		wp_set_current_user( 0 );
@@ -248,6 +260,8 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::get_item
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_no_permission() {
 		wp_set_current_user( 0 );
@@ -258,6 +272,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
 		$endpoint    = new WP_REST_Widget_Types_Controller;
@@ -301,6 +316,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::encode_form_data
 	 */
 	public function test_encode_form_data_with_no_input() {
 		wp_set_current_user( self::$admin_id );
@@ -336,6 +352,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::encode_form_data
 	 */
 	public function test_encode_form_data_with_number() {
 		wp_set_current_user( self::$admin_id );
@@ -372,6 +389,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::encode_form_data
 	 */
 	public function test_encode_form_data_with_instance() {
 		wp_set_current_user( self::$admin_id );
@@ -414,6 +432,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::encode_form_data
 	 */
 	public function test_encode_form_data_with_form_data() {
 		wp_set_current_user( self::$admin_id );
@@ -450,6 +469,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 
 	/**
 	 * @ticket 41683
+	 * @covers ::encode_form_data
 	 */
 	public function test_encode_form_data_no_raw() {
 		global $wp_widget_factory;
