@@ -693,6 +693,13 @@
 		construct = this;
 		params = params || {};
 		focus = function () {
+			// If a child section is currently expanded, collapse it.
+			api.section.each( function ( section ) {
+				if ( section.expanded() && section.params.panel == construct.id ) {
+					section.collapse()
+				}
+			} );
+
 			var focusContainer;
 			if ( ( construct.extended( api.Panel ) || construct.extended( api.Section ) ) && construct.expanded && construct.expanded() ) {
 				focusContainer = construct.contentContainer;
@@ -706,13 +713,6 @@
 				focusElement = focusContainer.find( 'input, select, textarea, button, object, a[href], [tabindex]' ).filter( ':visible' ).first();
 			}
 			focusElement.focus();
-
-			// If a child section is currently expanded, collapse it.
-			api.section.each( function ( section ) {
-				if ( section.expanded() && section.params.panel == construct.id ) {
-					section.collapse()
-				}
-			} );
 		};
 		if ( params.completeCallback ) {
 			completeCallback = params.completeCallback;
