@@ -287,12 +287,12 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
 		$editor_settings['styles'][] = array(
 			'css'                        => $theme_json->get_stylesheet( 'block_styles' ),
-			'__experimentalGlobalStyles' => true
+			'__experimentalGlobalStyles' => true,
 		);
 		$editor_settings['styles'][] = array(
 			'css'                        => $theme_json->get_stylesheet( 'css_variables' ),
 			'__experimentalNoWrapper'    => true,
-			'__experimentalGlobalStyles' => true
+			'__experimentalGlobalStyles' => true,
 		);
 	}
 
