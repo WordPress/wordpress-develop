@@ -310,7 +310,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_loginout' );
 	remove_action( 'init', 'register_block_core_latest_comments' );
 	remove_action( 'init', 'register_block_core_latest_posts' );
-	remove_action( 'init', 'register_block_core_legacy_widget', 20 );
 	remove_action( 'init', 'register_block_core_post_author' );
 	remove_action( 'init', 'register_block_core_post_content' );
 	remove_action( 'init', 'register_block_core_post_date' );
@@ -334,5 +333,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'init_legacy_widget_block' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
