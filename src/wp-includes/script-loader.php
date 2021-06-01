@@ -34,6 +34,11 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
+// WP_CONTENT_DIR ends up being used by get_stylesheet_directory
+// through the get_theme_root call.
+if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+	define( 'WP_CONTENT_DIR', ABSPATH . 'wp-content' );
+}
 // get_stylesheet_directory() is used by WP_Theme_JSON_Resolver::theme_has_support().
 if ( ! function_exists( 'get_stylesheet_directory' ) ) {
 	require_once ABSPATH . WPINC . '/theme.php';
