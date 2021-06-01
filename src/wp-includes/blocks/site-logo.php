@@ -117,8 +117,6 @@ add_filter( 'theme_mod_custom_logo', '_override_custom_logo_theme_mod' );
  *
  * @param mixed $old_value The old option value.
  * @param mixed $value     The new option value.
- *
- * @return string The custom logo.
  */
 function _sync_custom_logo_to_site_logo( $old_value, $value ) {
 	// Delete the option when the custom logo does not exist or was removed.
