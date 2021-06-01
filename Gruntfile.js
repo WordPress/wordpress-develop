@@ -1218,10 +1218,6 @@ module.exports = function(grunt) {
 
 
 	// Register tasks.
-	grunt.loadNpmTasks('grunt-patch-wordpress');
-	// patch_wordpress{
-	// 	tracUrl: 'core.trac.wordpress.org'
-	// }
 
 	// Webpack task.
 	grunt.loadNpmTasks( 'grunt-webpack' );
