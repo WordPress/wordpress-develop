@@ -112,7 +112,7 @@ EOF;
   <p class='graf'>another graf with whitespace</p>
 
 <p>An <p class='graf'>inline graf</p>
-, this doesn&#8217;t make much sense.</p>
+, this does not make much sense.</p>
 <p>A graf with a single EOL first:<br />
 <p class='graf'>blah</p>
 </p>

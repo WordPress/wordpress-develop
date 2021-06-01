@@ -202,7 +202,7 @@ if ( $file_description !== $file_show ) {
 			<?php
 			printf(
 				/* translators: %s: Link to Custom CSS section in the Customizer. */
-				__( 'There&#8217;s no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
+				__( 'There is no need to change your CSS here &mdash; you can edit and live preview CSS changes in the <a href="%s">built-in CSS editor</a>.' ),
 				esc_url( add_query_arg( 'autofocus[section]', 'custom_css', admin_url( 'customize.php' ) ) )
 			);
 			?>
@@ -356,7 +356,7 @@ if ( ! in_array( 'theme_editor_notice', $dismissed_pointers, true ) ) :
 					<h1><?php _e( 'Heads up!' ); ?></h1>
 					<p>
 						<?php
-						_e( 'You appear to be making direct edits to your theme in the WordPress dashboard. We recommend that you don&#8217;t! Editing your theme directly could break your site and your changes may be lost in future updates.' );
+						_e( 'You appear to be making direct edits to your theme in the WordPress dashboard. We recommend that you do not do this! Editing your theme directly could break your site and your changes may be lost in future updates.' );
 						?>
 					</p>
 						<?php
