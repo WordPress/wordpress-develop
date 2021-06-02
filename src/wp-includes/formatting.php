@@ -2288,7 +2288,7 @@ function sanitize_title_with_dashes( $title, $raw_title = '', $context = 'displa
 				'%cc%80',
 				'%cc%84',
 				'%cc%8c',
-				// Non-visible characters that display without a width
+				// Non-visible characters that display without a width.
 				'%e2%80%8b',
 				'%e2%80%8c',
 				'%e2%80%8d',
