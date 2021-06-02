@@ -293,7 +293,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
-		$id_base    = wp_parse_widget_id( $widget_id )['id_base'];
 
 		if ( is_null( $sidebar_id ) ) {
 			return new WP_Error(
