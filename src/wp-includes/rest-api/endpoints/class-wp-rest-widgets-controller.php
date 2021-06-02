@@ -204,6 +204,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$response->set_status( 201 );
 
+		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
+		do_action( 'wp_ajax_save-widget' );
+
 		return $response;
 	}
 
@@ -262,6 +265,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		}
 
 		$request['context'] = 'edit';
+
+		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
+		do_action( 'wp_ajax_save-widget' );
 
 		return $this->prepare_item_for_response( compact( 'widget_id', 'sidebar_id' ), $request );
 	}
@@ -355,6 +361,9 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 				$request
 			);
 		}
+
+		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
+		do_action( 'wp_ajax_save-widget' );
 
 		return $response;
 	}
