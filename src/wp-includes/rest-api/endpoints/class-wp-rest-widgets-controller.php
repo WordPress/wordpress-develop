@@ -320,7 +320,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 				'delete_widget'   => '1',
 			);
 			$_REQUEST = $_POST;
-			
+
 			/** This action is documented in wp-admin/widgets-form.php */
 			do_action( 'delete_widget', $widget_id, $sidebar_id, $id_base );
 
