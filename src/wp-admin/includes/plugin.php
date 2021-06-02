@@ -1001,6 +1001,12 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 
 		// Remove language files, silently.
 		$plugin_slug = dirname( $plugin_file );
+
+		// Add the correct slug for Hello Dolly.
+		if ( 'hello.php' === $plugin_file ) {
+			$plugin_slug = 'hello-dolly';
+		}
+
 		if ( '.' !== $plugin_slug && ! empty( $plugin_translations[ $plugin_slug ] ) ) {
 			$translations = $plugin_translations[ $plugin_slug ];
 
