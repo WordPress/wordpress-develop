@@ -1304,6 +1304,9 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$response = rest_do_request( '/wp/v2/widgets/text-1' );
 		$this->assertEquals( 404, $response->get_status() );
+
+		$this->assertArrayNotHasKey( 'text-1', get_option( 'sidebars_widgets' )['sidebar-1'] );
+		$this->assertArrayNotHasKey( 1, get_option( 'widget_text' ) );
 	}
 
 	/**
