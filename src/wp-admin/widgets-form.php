@@ -11,6 +11,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die( '-1' );
 }
 
+$widgets_access = get_user_setting( 'widgets_access' );
+if ( isset( $_GET['widgets-access'] ) ) {
+	check_admin_referer( 'widgets-access' );
+
+	$widgets_access = 'on' === $_GET['widgets-access'] ? 'on' : 'off';
+	set_user_setting( 'widgets_access', $widgets_access );
+}
+
 if ( 'on' === $widgets_access ) {
 	add_filter( 'admin_body_class', 'wp_widgets_access_body_class' );
 } else {

@@ -12,14 +12,6 @@ require_once __DIR__ . '/admin.php';
 /** WordPress Administration Widgets API */
 require_once ABSPATH . 'wp-admin/includes/widgets.php';
 
-$widgets_access = get_user_setting( 'widgets_access' );
-if ( isset( $_GET['widgets-access'] ) ) {
-	check_admin_referer( 'widgets-access' );
-
-	$widgets_access = 'on' === $_GET['widgets-access'] ? 'on' : 'off';
-	set_user_setting( 'widgets_access', $widgets_access );
-}
-
 if ( ! current_user_can( 'edit_theme_options' ) ) {
 	wp_die(
 		'<h1>' . __( 'You need a higher level of permission.' ) . '</h1>' .
