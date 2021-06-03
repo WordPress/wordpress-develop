@@ -412,6 +412,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$id_base       = $parsed_id['id_base'];
 			$number        = isset( $parsed_id['number'] ) ? $parsed_id['number'] : null;
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+			$sidebar_id    = wp_find_widgets_sidebar( $id );
 			$creating      = false;
 		} elseif ( $request['id_base'] ) {
 			// Saving a new widget.
@@ -419,6 +420,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			$number        = $widget_object ? next_widget_id_number( $id_base ) : null;
 			$id            = $widget_object ? $id_base . '-' . $number : $id_base;
+			$sidebar_id    = $request['sidebar'];
 			$creating      = true;
 		} else {
 			return new WP_Error(
@@ -483,16 +485,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$form_data = array();
 		}
 
-		/**
-		 * Fires after a widget is created or updated via the REST API.
-		 *
-		 * @since 5.8.0
-		 * @param WP_Widget       $widget_object Inserted or updated widget object.
-		 * @param WP_REST_Request $request       Request object.
-		 * @param bool            $creating      True when creating a post, false when updating.
-		 */
-		do_action( 'rest_save_widget', $widget_object, $request, $creating );
-
 		$original_post    = $_POST;
 		$original_request = $_REQUEST;
 
@@ -526,14 +518,15 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		}
 
 		/**
-		 * Fires after a widget is completely created or updated via the REST API.
+		 * Fires after a widget is created or updated via the REST API.
 		 *
 		 * @since 5.8.0
-		 * @param WP_Widget       $widget_object Inserted or updated widget object.
-		 * @param WP_REST_Request $request       Request object.
-		 * @param bool            $creating      True when creating a post, false when updating.
+		 * @param string          $id         ID of the widget being saved.
+		 * @param string          $sidebar_id ID of the sidebar containing the widget being saved.
+		 * @param WP_REST_Request $request    Request object.
+		 * @param bool            $creating   True when creating a widget, false when updating.
 		 */
-		do_action( 'rest_after_save_widget', $widget_object, $request, $creating );
+		do_action( 'rest_after_save_widget', $id, $sidebar_id, $request, $creating );
 
 		return $id;
 	}
