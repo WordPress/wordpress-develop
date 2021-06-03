@@ -360,8 +360,12 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * Fires after a widget is deleted via the REST API.
 		 *
 		 * @since 5.8.0
+		 * @param string           $widget_id  ID of the widget marked for deletion.
+		 * @param string           $sidebar_id ID of the sidebar the widget was deleted from.
+		 * @param WP_REST_Response $response   The response data.
+		 * @param WP_REST_Request  $request    The request sent to the API.
 		 */
-		do_action( 'rest_delete_widget' );
+		do_action( 'rest_delete_widget', $widget_id, $sidebar_id, $response, $request );
 
 		return $response;
 	}
@@ -408,12 +412,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$id_base       = $parsed_id['id_base'];
 			$number        = isset( $parsed_id['number'] ) ? $parsed_id['number'] : null;
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+			$creating      = false;
 		} elseif ( $request['id_base'] ) {
 			// Saving a new widget.
 			$id_base       = $request['id_base'];
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			$number        = $widget_object ? next_widget_id_number( $id_base ) : null;
 			$id            = $widget_object ? $id_base . '-' . $number : $id_base;
+			$creating      = true;
 		} else {
 			return new WP_Error(
 				'rest_invalid_widget',
@@ -481,8 +487,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * Fires after a widget is created or updated via the REST API.
 		 *
 		 * @since 5.8.0
+		 * @param WP_Widget       $widget_object Inserted or updated widget object.
+		 * @param WP_REST_Request $request       Request object.
+		 * @param bool            $creating      True when creating a post, false when updating.
 		 */
-		do_action( 'rest_save_widget' );
+		do_action( 'rest_save_widget', $widget_object, $request, $creating );
 
 		$original_post    = $_POST;
 		$original_request = $_REQUEST;
@@ -520,8 +529,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * Fires after a widget is completely created or updated via the REST API.
 		 *
 		 * @since 5.8.0
+		 * @param WP_Widget       $widget_object Inserted or updated widget object.
+		 * @param WP_REST_Request $request       Request object.
+		 * @param bool            $creating      True when creating a post, false when updating.
 		 */
-		do_action( 'rest_after_save_widget' );
+		do_action( 'rest_after_save_widget', $widget_object, $request, $creating );
 
 		return $id;
 	}
