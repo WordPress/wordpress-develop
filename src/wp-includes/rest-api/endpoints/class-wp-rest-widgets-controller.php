@@ -254,13 +254,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			}
 		}
 
-		/**
-		 * Fires after a widget is updated via the REST API.
-		 *
-		 * @since 5.8.0
-		 */
-		do_action( 'rest_save_sidebar' );
-
 		if ( $request->has_param( 'sidebar' ) ) {
 			if ( $sidebar_id !== $request['sidebar'] ) {
 				$sidebar_id = $request['sidebar'];
@@ -269,13 +262,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		}
 
 		$request['context'] = 'edit';
-
-		/**
-		 * Fires after a widget is completely updated via the REST API.
-		 *
-		 * @since 5.8.0
-		 */
-		do_action( 'rest_after_save_sidebar' );
 
 		return $this->prepare_item_for_response( compact( 'widget_id', 'sidebar_id' ), $request );
 	}

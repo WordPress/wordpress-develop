@@ -255,6 +255,7 @@ foreach (
 		'customize_save_after',
 		'rest_after_save_widget',
 		'rest_delete_widget',
+		'rest_save_sidebar',
 	) as $action
 ) {
 	add_action( $action, '_delete_option_fresh_site', 0 );
