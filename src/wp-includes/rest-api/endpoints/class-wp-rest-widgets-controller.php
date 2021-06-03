@@ -204,9 +204,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$response->set_status( 201 );
 
-		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
-		do_action( 'wp_ajax_save-widget' );
-
 		return $response;
 	}
 
@@ -257,6 +254,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			}
 		}
 
+		do_action( 'rest_save_sidebar' );
+
 		if ( $request->has_param( 'sidebar' ) ) {
 			if ( $sidebar_id !== $request['sidebar'] ) {
 				$sidebar_id = $request['sidebar'];
@@ -267,7 +266,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		$request['context'] = 'edit';
 
 		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
-		do_action( 'wp_ajax_save-widget' );
+		do_action( 'rest_after_save_sidebar' );
 
 		return $this->prepare_item_for_response( compact( 'widget_id', 'sidebar_id' ), $request );
 	}
@@ -363,7 +362,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		}
 
 		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
-		do_action( 'wp_ajax_save-widget' );
+		do_action( 'rest_delete_widget' );
 
 		return $response;
 	}
@@ -479,6 +478,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$form_data = array();
 		}
 
+		do_action( 'rest_save_widget' );
+
 		$original_post    = $_POST;
 		$original_request = $_REQUEST;
 
@@ -510,6 +511,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			// want in the REST API, though, as we support batch requests.
 			$widget_object->updated = false;
 		}
+
+		do_action( 'rest_after_save_widget' );
 
 		return $id;
 	}
