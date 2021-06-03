@@ -186,7 +186,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	public function create_item( $request ) {
 		$sidebar_id = $request['sidebar'];
 
-		$widget_id = $this->save_widget( $request );
+		$widget_id = $this->save_widget( $request, $sidebar_id );
 
 		if ( is_wp_error( $widget_id ) ) {
 			return $widget_id;
@@ -248,7 +248,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$request->has_param( 'instance' ) ||
 			$request->has_param( 'form_data' )
 		) {
-			$maybe_error = $this->save_widget( $request );
+			$maybe_error = $this->save_widget( $request, $sidebar_id );
 			if ( is_wp_error( $maybe_error ) ) {
 				return $maybe_error;
 			}
@@ -396,11 +396,12 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param WP_REST_Request $request Full details about the request.
+	 * @param WP_REST_Request $request    Full details about the request.
+	 * @param string          $sidebar_id ID of the sidebar the widget belongs to.
 	 *
 	 * @return string|WP_Error The saved widget ID.
 	 */
-	protected function save_widget( $request ) {
+	protected function save_widget( $request, $sidebar_id ) {
 		global $wp_widget_factory, $wp_registered_widget_updates;
 
 		require_once ABSPATH . 'wp-admin/includes/widgets.php'; // For next_widget_id_number().
@@ -412,7 +413,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$id_base       = $parsed_id['id_base'];
 			$number        = isset( $parsed_id['number'] ) ? $parsed_id['number'] : null;
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
-			$sidebar_id    = wp_find_widgets_sidebar( $id );
 			$creating      = false;
 		} elseif ( $request['id_base'] ) {
 			// Saving a new widget.
@@ -420,7 +420,6 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
 			$number        = $widget_object ? next_widget_id_number( $id_base ) : null;
 			$id            = $widget_object ? $id_base . '-' . $number : $id_base;
-			$sidebar_id    = $request['sidebar'];
 			$creating      = true;
 		} else {
 			return new WP_Error(
