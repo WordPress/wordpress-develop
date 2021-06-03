@@ -44,6 +44,7 @@
  *
  * @since 1.5.0
  * @since 5.3.0 Added support for `Requires at least` and `Requires PHP` headers.
+ * @since 5.8.0 Added support for `Update URI` header.
  *
  * @param string $plugin_file Absolute path to the main plugin file.
  * @param bool   $markup      Optional. If the returned data should have HTML markup applied.
@@ -63,6 +64,7 @@
  *     @type bool   $Network     Whether the plugin can only be activated network-wide.
  *     @type string $RequiresWP  Minimum required version of WordPress.
  *     @type string $RequiresPHP Minimum required version of PHP.
+ *     @type string $UpdateURI   ID of the plugin for update purposes, should be a URI.
  * }
  */
 function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
@@ -79,6 +81,7 @@ function get_plugin_data( $plugin_file, $markup = true, $translate = true ) {
 		'Network'     => 'Network',
 		'RequiresWP'  => 'Requires at least',
 		'RequiresPHP' => 'Requires PHP',
+		'UpdateURI'   => 'Update URI',
 		// Site Wide Only is deprecated in favor of Network.
 		'_sitewide'   => 'Site Wide Only',
 	);
@@ -661,14 +664,8 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 
 		ob_start();
 
-		if ( ! defined( 'WP_SANDBOX_SCRAPING' ) ) {
-			define( 'WP_SANDBOX_SCRAPING', true );
-		}
-
-		wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
-		$_wp_plugin_file = $plugin;
-		include_once WP_PLUGIN_DIR . '/' . $plugin;
-		$plugin = $_wp_plugin_file; // Avoid stomping of the $plugin variable in a plugin.
+		// Load the plugin to test whether it throws any errors.
+		plugin_sandbox_scrape( $plugin );
 
 		if ( ! $silent ) {
 			/**
@@ -732,6 +729,7 @@ function activate_plugin( $plugin, $redirect = '', $network_wide = false, $silen
 			$output = ob_get_clean();
 			return new WP_Error( 'unexpected_output', __( 'The plugin generated unexpected output.' ), $output );
 		}
+
 		ob_end_clean();
 	}
 
@@ -1001,8 +999,13 @@ function delete_plugins( $plugins, $deprecated = '' ) {
 			continue;
 		}
 
-		// Remove language files, silently.
 		$plugin_slug = dirname( $plugin_file );
+
+		if ( 'hello.php' === $plugin_file ) {
+			$plugin_slug = 'hello-dolly';
+		}
+
+		// Remove language files, silently.
 		if ( '.' !== $plugin_slug && ! empty( $plugin_translations[ $plugin_slug ] ) ) {
 			$translations = $plugin_translations[ $plugin_slug ];
 
@@ -2297,7 +2300,7 @@ function plugin_sandbox_scrape( $plugin ) {
 	}
 
 	wp_register_plugin_realpath( WP_PLUGIN_DIR . '/' . $plugin );
-	include WP_PLUGIN_DIR . '/' . $plugin;
+	include_once WP_PLUGIN_DIR . '/' . $plugin;
 }
 
 /**

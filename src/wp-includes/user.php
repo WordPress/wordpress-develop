@@ -747,7 +747,7 @@ function delete_user_option( $user_id, $option_name, $global = false ) {
  *
  * @see WP_User_Query
  *
- * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query().
+ * @param array $args Optional. Arguments to retrieve users. See WP_User_Query::prepare_query()
  *                    for more information on accepted arguments.
  * @return array List of users.
  */
@@ -1530,6 +1530,12 @@ function sanitize_user_field( $field, $value, $user_id, $context ) {
 	} elseif ( 'js' === $context ) {
 		$value = esc_js( $value );
 	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
+	}
+
 	return $value;
 }
 
@@ -1561,10 +1567,15 @@ function update_user_caches( $user ) {
  *
  * @since 3.0.0
  * @since 4.4.0 'clean_user_cache' action was added.
+ * @since 5.8.0 Refreshes the global user instance if cleaning the user cache for the current user.
+ *
+ * @global WP_User $current_user The current user object which holds the user data.
  *
  * @param WP_User|int $user User object or ID to be cleaned from the cache
  */
 function clean_user_cache( $user ) {
+	global $current_user;
+
 	if ( is_numeric( $user ) ) {
 		$user = new WP_User( $user );
 	}
@@ -1587,6 +1598,13 @@ function clean_user_cache( $user ) {
 	 * @param WP_User $user    User object.
 	 */
 	do_action( 'clean_user_cache', $user->ID, $user );
+
+	// Refresh the global user instance if the cleaning current user.
+	if ( get_current_user_id() === (int) $user->ID ) {
+		$user_id      = (int) $user->ID;
+		$current_user = null;
+		wp_set_current_user( $user_id, '' );
+	}
 }
 
 /**
@@ -1994,6 +2012,7 @@ function wp_insert_user( $userdata ) {
 	 * It only includes data in the users table, not any user metadata.
 	 *
 	 * @since 4.9.0
+	 * @since 5.8.0 The $userdata parameter was added.
 	 *
 	 * @param array    $data {
 	 *     Values and keys for the user.
@@ -2007,10 +2026,11 @@ function wp_insert_user( $userdata ) {
 	 *     @type string $user_registered MySQL timestamp describing the moment when the user registered. Defaults to
 	 *                                   the current UTC timestamp.
 	 * }
-	 * @param bool     $update Whether the user is being updated rather than created.
-	 * @param int|null $id     ID of the user to be updated, or NULL if the user is being created.
+	 * @param bool     $update   Whether the user is being updated rather than created.
+	 * @param int|null $id       ID of the user to be updated, or NULL if the user is being created.
+	 * @param array    $userdata The raw array of data passed to wp_insert_user().
 	 */
-	$data = apply_filters( 'wp_pre_insert_user_data', $data, $update, $update ? (int) $ID : null );
+	$data = apply_filters( 'wp_pre_insert_user_data', $data, $update, ( $update ? (int) $ID : null ), $userdata );
 
 	if ( empty( $data ) || ! is_array( $data ) ) {
 		return new WP_Error( 'empty_data', __( 'Not enough data to create this user.' ) );
@@ -2036,6 +2056,7 @@ function wp_insert_user( $userdata ) {
 	 * Does not include contact methods. These are added using `wp_get_user_contact_methods( $user )`.
 	 *
 	 * @since 4.4.0
+	 * @since 5.8.0 The $userdata parameter was added.
 	 *
 	 * @param array $meta {
 	 *     Default meta values and keys for the user.
@@ -2054,10 +2075,11 @@ function wp_insert_user( $userdata ) {
 	 *                                          Default 'true'.
 	 *     @type string   $locale               User's locale. Default empty.
 	 * }
-	 * @param WP_User $user   User object.
-	 * @param bool    $update Whether the user is being updated rather than created.
+	 * @param WP_User $user     User object.
+	 * @param bool    $update   Whether the user is being updated rather than created.
+	 * @param array   $userdata The raw array of data passed to wp_insert_user().
 	 */
-	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update );
+	$meta = apply_filters( 'insert_user_meta', $meta, $user, $update, $userdata );
 
 	// Update user meta.
 	foreach ( $meta as $key => $value ) {
@@ -2083,11 +2105,13 @@ function wp_insert_user( $userdata ) {
 		 * Fires immediately after an existing user is updated.
 		 *
 		 * @since 2.0.0
+		 * @since 5.8.0 The $userdata parameter was added.
 		 *
 		 * @param int     $user_id       User ID.
 		 * @param WP_User $old_user_data Object containing user's data prior to update.
+		 * @param array   $userdata      The raw array of data passed to wp_insert_user().
 		 */
-		do_action( 'profile_update', $user_id, $old_user_data );
+		do_action( 'profile_update', $user_id, $old_user_data, $userdata );
 
 		if ( isset( $userdata['spam'] ) && $userdata['spam'] != $old_user_data->spam ) {
 			if ( 1 == $userdata['spam'] ) {
@@ -2115,10 +2139,12 @@ function wp_insert_user( $userdata ) {
 		 * Fires immediately after a new user is registered.
 		 *
 		 * @since 1.5.0
+		 * @since 5.8.0 The $userdata parameter was added.
 		 *
-		 * @param int $user_id User ID.
+		 * @param int   $user_id  User ID.
+		 * @param array $userdata The raw array of data passed to wp_insert_user().
 		 */
-		do_action( 'user_register', $user_id );
+		do_action( 'user_register', $user_id, $userdata );
 	}
 
 	return $user_id;
@@ -2855,7 +2881,7 @@ function reset_password( $user, $new_pass ) {
 	do_action( 'password_reset', $user, $new_pass );
 
 	wp_set_password( $new_pass, $user->ID );
-	update_user_option( $user->ID, 'default_password_nag', false, true );
+	update_user_meta( $user->ID, 'default_password_nag', false );
 
 	/**
 	 * Fires after the user's password is reset.
@@ -2966,7 +2992,7 @@ function register_new_user( $user_login, $user_email ) {
 		return $errors;
 	}
 
-	update_user_option( $user_id, 'default_password_nag', true, true ); // Set up the password change nag.
+	update_user_meta( $user_id, 'default_password_nag', true ); // Set up the password change nag.
 
 	/**
 	 * Fires after a new user registration has been recorded.

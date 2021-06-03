@@ -2,19 +2,21 @@
 /**
  * Test cases for the `_wp_privacy_send_request_confirmation_notification()` function.
  *
+ * @package WordPress
+ * @subpackage UnitTests
  * @since 4.9.8
  */
 
 /**
- * Tests_User_WpPrivacySendRequestConfirmationNotification class.
- *
- * @since 4.9.8
+ * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
  * @covers ::_wp_privacy_send_request_confirmation_notification
+ *
+ * @since 4.9.8
  */
-class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
 	 * Reset the mocked PHPMailer instance before each test method.
 	 *
