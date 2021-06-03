@@ -22,7 +22,7 @@ class Tests_Post_wpListUsers extends WP_UnitTestCase {
 		);
 
 		$expected = '';
-		$users = self::$users;
+		$users    = self::$users;
 		unset( $users[0] );
 
 		foreach ( $users as $user ) {
@@ -39,7 +39,7 @@ class Tests_Post_wpListUsers extends WP_UnitTestCase {
 		);
 
 		$expected = '';
-		$users = self::$users;
+		$users    = self::$users;
 
 		foreach ( $users as $user ) {
 			$expected .= '<li>' . $user->user_login . '</li>';
