@@ -254,6 +254,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			}
 		}
 
+		/**
+		 * Fires after a widget is updated via the REST API.
+		 *
+		 * @since 5.8.0
+		 */
 		do_action( 'rest_save_sidebar' );
 
 		if ( $request->has_param( 'sidebar' ) ) {
@@ -265,7 +270,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 		$request['context'] = 'edit';
 
-		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
+		/**
+		 * Fires after a widget is completely updated via the REST API.
+		 *
+		 * @since 5.8.0
+		 */
 		do_action( 'rest_after_save_sidebar' );
 
 		return $this->prepare_item_for_response( compact( 'widget_id', 'sidebar_id' ), $request );
@@ -361,7 +370,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			);
 		}
 
-		// Triggers _delete_option_fresh_site to mark the site as no longer fresh.
+		/**
+		 * Fires after a widget is deleted via the REST API.
+		 *
+		 * @since 5.8.0
+		 */
 		do_action( 'rest_delete_widget' );
 
 		return $response;
@@ -478,6 +491,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$form_data = array();
 		}
 
+		/**
+		 * Fires after a widget is created or updated via the REST API.
+		 *
+		 * @since 5.8.0
+		 */
 		do_action( 'rest_save_widget' );
 
 		$original_post    = $_POST;
@@ -512,6 +530,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$widget_object->updated = false;
 		}
 
+		/**
+		 * Fires after a widget is completely created or updated via the REST API.
+		 *
+		 * @since 5.8.0
+		 */
 		do_action( 'rest_after_save_widget' );
 
 		return $id;
