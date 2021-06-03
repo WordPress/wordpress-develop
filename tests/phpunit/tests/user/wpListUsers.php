@@ -12,7 +12,7 @@ class Tests_Post_wpListUsers extends WP_UnitTestCase {
 		self::$users[] = get_userdata( $factory->user->create( array( 'role' => 'subscriber' ) ) );
 		self::$users[] = get_userdata( $factory->user->create( array( 'role' => 'author' ) ) );
 		self::$users[] = get_userdata( $factory->user->create( array( 'role' => 'author' ) ) );
-		self::$users[] = get_userdata( $factory->user->create( array( 'role' => 'admin' ) ) );
+		$factory->user->create( array( 'role' => 'admin' ) );
 	}
 
 	function test_wp_list_users_exclude() {
@@ -24,6 +24,7 @@ class Tests_Post_wpListUsers extends WP_UnitTestCase {
 		$expected = '';
 		$users = self::$users;
 		unset( $users[0] );
+
 		foreach ( $users as $user ) {
 			$expected .= '<li>' . $user->user_login . '</li>';
 		}
@@ -39,7 +40,6 @@ class Tests_Post_wpListUsers extends WP_UnitTestCase {
 
 		$expected = '';
 		$users = self::$users;
-		unset( $users[ count( $users ) -1 ] );
 
 		foreach ( $users as $user ) {
 			$expected .= '<li>' . $user->user_login . '</li>';
