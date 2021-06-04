@@ -60,6 +60,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( $headers, $enveloped['headers'] );
 	}
 
+	/**
+	 * @covers ::register_rest_route
+	 */
 	public function test_default_param() {
 
 		register_rest_route(
@@ -83,6 +86,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 'bar', $request['foo'] );
 	}
 
+	/**
+	 * @covers ::register_rest_route
+	 */
 	public function test_default_param_is_overridden() {
 
 		register_rest_route(
@@ -107,6 +113,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertEquals( '123', $request['foo'] );
 	}
 
+	/**
+	 * @covers ::register_rest_route
+	 */
 	public function test_optional_param() {
 		register_rest_route(
 			'optional',
@@ -129,6 +138,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertArrayNotHasKey( 'foo', (array) $request );
 	}
 
+	/**
+	 * @covers ::register_rest_route
+	 */
 	public function test_no_zero_param() {
 		register_rest_route(
 			'no-zero',
@@ -149,6 +161,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( array( 'foo' => 'bar' ), $request->get_params() );
 	}
 
+	/**
+	 * @covers ::register_rest_route
+	 */
 	public function test_head_request_handled_by_get() {
 		register_rest_route(
 			'head-request',
@@ -169,6 +184,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	 * GET callback.
 	 *
 	 * @depends test_head_request_handled_by_get
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_explicit_head_callback() {
 		register_rest_route(
@@ -192,6 +209,9 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertSame( 200, $response->get_status() );
 	}
 
+	/**
+	 * @covers WP_REST_Server::register_route
+	 */
 	public function test_url_params_no_numeric_keys() {
 
 		rest_get_server()->register_route(
@@ -217,6 +237,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * Pass a capability which the user does not have, this should
 	 * result in a 403 error.
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_rest_route_capability_authorization_fails() {
 		register_rest_route(
@@ -239,6 +261,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * An editor should be able to get access to an route with the
 	 * edit_posts capability.
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_rest_route_capability_authorization() {
 		register_rest_route(
@@ -266,6 +290,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * An "Allow" HTTP header should be sent with a request
 	 * for all available methods on that route.
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_allow_header_sent() {
 
@@ -294,6 +320,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * The "Allow" HTTP header should include all available
 	 * methods that can be sent to a route.
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_allow_header_sent_with_multiple_methods() {
 
@@ -334,6 +362,8 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 	/**
 	 * The "Allow" HTTP header should NOT include other methods
 	 * which the user does not have access to.
+	 *
+	 * @covers ::register_rest_route
 	 */
 	public function test_allow_header_send_only_permitted_methods() {
 
