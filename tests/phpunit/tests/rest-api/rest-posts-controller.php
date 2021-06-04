@@ -5158,15 +5158,15 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 	 * @ticket 52422
 	 *
 	 */
-	public function test_draft_post_do_not_have_the_same_slug_as_existing_post () {
+	public function test_draft_post_do_not_have_the_same_slug_as_existing_post() {
 		wp_set_current_user( self::$editor_id );
-		$this->factory()->post->create( array( 'post_name' => 'sample-slug') );
+		$this->factory()->post->create( array( 'post_name' => 'sample-slug' ) );
 
 		$request = new WP_REST_Request( 'PUT', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$params  = $this->set_post_data(
 			array(
 				'status' => 'draft',
-				'slug' => 'sample-slug',
+				'slug'   => 'sample-slug',
 			)
 		);
 		$request->set_body_params( $params );
