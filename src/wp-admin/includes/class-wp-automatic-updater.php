@@ -342,6 +342,7 @@ class WP_Automatic_Updater {
 					if ( $this->should_update( $type, $autoupdate_item, $context ) ) {
 						$item          = $autoupdate_item;
 						$should_update = true;
+						break;
 					}
 				}
 			}
