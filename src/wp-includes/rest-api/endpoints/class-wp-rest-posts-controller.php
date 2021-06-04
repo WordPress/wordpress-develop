@@ -635,7 +635,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		}
 
 		// Hack: wp_unique_post_slug() doesn't work for drafts, so we will fake that our post is published.
-		if ( ! empty( $prepared_post->post_name ) && in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true ) ) {
+		if ( ! empty( $prepared_post->post_name ) && ! empty( $prepared_post->post_status ) && in_array( $prepared_post->post_status, array( 'draft', 'pending' ), true ) ) {
 			$prepared_post->post_name = wp_unique_post_slug( $prepared_post->post_name, $prepared_post->id, 'publish', $prepared_post->post_type, $prepared_post->post_parent );
 		}
 
@@ -820,7 +820,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 			return $post;
 		}
 
-		if ( $post->post_status ) {
+		if ( ! empty( $post->post_status ) ) {
 			$post_status = $post->post_status;
 		} else {
 			$post_status = $post_before->post_status;
