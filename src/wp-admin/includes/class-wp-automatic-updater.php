@@ -338,7 +338,7 @@ class WP_Automatic_Updater {
 			} else {
 				// Try the autoupdates.
 				foreach ( $autoupdates as $autoupdate_item ) {
-					$autoupdate_item = (object) array_merge( $item, $autoupdate_item, array( 'autoupdate' => true ) );
+					$autoupdate_item = (object) array_merge( (array) $item, (array) $autoupdate_item, array( 'autoupdate' => true ) );
 					if ( $this->should_update( $type, $autoupdate_item, $context ) ) {
 						$item          = $autoupdate_item;
 						$should_update = true;
