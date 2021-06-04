@@ -100,8 +100,8 @@ function wp_default_packages_vendor( $scripts ) {
 		'moment'                      => '2.29.1',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.0.0',
-		'wp-polyfill-formdata'        => '3.0.20',
-		'wp-polyfill-node-contains'   => '3.104.0',
+		'wp-polyfill-formdata'        => '4.0.0',
+		'wp-polyfill-node-contains'   => '3.105.0',
 		'wp-polyfill-url'             => '3.6.4',
 		'wp-polyfill-dom-rect'        => '3.104.0',
 		'wp-polyfill-element-closest' => '2.0.2',
@@ -875,6 +875,7 @@ function wp_default_scripts( $scripts ) {
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
 		'unsupported_image'         => __( 'This image cannot be displayed in a web browser. For best results convert it to JPEG before uploading.' ),
+		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
 
 	$scripts->add( 'moxiejs', "/wp-includes/js/plupload/moxie$suffix.js", array(), '1.3.5' );
@@ -884,7 +885,7 @@ function wp_default_scripts( $scripts ) {
 		$scripts->add( "plupload-$handle", false, array( 'plupload' ), '2.1.1' );
 	}
 
-	$scripts->add( 'plupload-handlers', "/wp-includes/js/plupload/handlers$suffix.js", array( 'plupload', 'jquery' ) );
+	$scripts->add( 'plupload-handlers', "/wp-includes/js/plupload/handlers$suffix.js", array( 'clipboard', 'jquery', 'plupload', 'underscore', 'wp-a11y', 'wp-i18n' ) );
 	did_action( 'init' ) && $scripts->localize( 'plupload-handlers', 'pluploadL10n', $uploader_l10n );
 
 	$scripts->add( 'wp-plupload', "/wp-includes/js/plupload/wp-plupload$suffix.js", array( 'plupload', 'jquery', 'json2', 'media-models' ), false, 1 );
@@ -1510,12 +1511,13 @@ function wp_default_styles( $styles ) {
 		'wp-reset-editor-styles',
 		'wp-block-library',
 		'wp-reusable-blocks',
-
-		// This dependency shouldn't be added for themes with theme.json support
-		// It's here for backward compatibility only.
-		// A check should be added here when theme.json is backported to Core.
-		'wp-editor-classic-layout-styles',
 	);
+
+	// Only load the default layout and margin styles for themes without theme.json file.
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		$wp_edit_blocks_dependencies[] = 'wp-editor-classic-layout-styles';
+	}
+
 	global $editor_styles;
 	if ( ! is_array( $editor_styles ) || count( $editor_styles ) === 0 ) {
 		// Include opinionated block styles if no $editor_styles are declared, so the editor never appears broken.
@@ -1551,6 +1553,20 @@ function wp_default_styles( $styles ) {
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
+		'edit-widgets'         => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+			'wp-reusable-blocks',
+		),
+		'customize-widgets'    => array(
+			'wp-components',
+			'wp-block-editor',
+			'wp-edit-blocks',
+			'wp-block-library',
+			'wp-reusable-blocks',
+		),
 	);
 
 	foreach ( $package_styles as $package => $dependencies ) {
@@ -1789,7 +1805,7 @@ function wp_localize_community_events() {
 	 */
 	if ( $saved_ip_address && $current_ip_address && $current_ip_address !== $saved_ip_address ) {
 		$saved_location['ip'] = $current_ip_address;
-		update_user_option( $user_id, 'community-events-location', $saved_location, true );
+		update_user_meta( $user_id, 'community-events-location', $saved_location );
 	}
 
 	$events_client = new WP_Community_Events( $user_id, $saved_location );
@@ -2233,6 +2249,52 @@ function wp_common_block_scripts_and_styles() {
 }
 
 /**
+ * Enqueues the global styles defined via theme.json.
+ *
+ * @since 5.8.0
+ *
+ * @return void
+ */
+function wp_enqueue_global_styles() {
+	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {
+		return;
+	}
+
+	$can_use_cache = (
+		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
+		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
+		( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) &&
+		! is_admin()
+	);
+
+	$stylesheet = null;
+	if ( $can_use_cache ) {
+		$cache = get_transient( 'global_styles' );
+		if ( $cache ) {
+			$stylesheet = $cache;
+		}
+	}
+
+	if ( null === $stylesheet ) {
+		$settings   = get_default_block_editor_settings();
+		$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $settings );
+		$stylesheet = $theme_json->get_stylesheet();
+
+		if ( $can_use_cache ) {
+			set_transient( 'global_styles', $stylesheet, MINUTE_IN_SECONDS );
+		}
+	}
+
+	if ( empty( $stylesheet ) ) {
+		return;
+	}
+
+	wp_register_style( 'global-styles', false, array(), true, true );
+	wp_add_inline_style( 'global-styles', $stylesheet );
+	wp_enqueue_style( 'global-styles' );
+}
+
+/**
  * Checks if the editor scripts and styles for all registered block types
  * should be enqueued on the current screen.
  *
@@ -2261,7 +2323,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  *
  * @since 5.8.0
  *
- * @return bool Whether separate assets will be loaded or not.
+ * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
@@ -2269,12 +2331,12 @@ function wp_should_load_separate_core_block_assets() {
 	}
 
 	/**
-	 * Filters the flag that decides whether or not separate scripts and styles
-	 * will be loaded for core blocks on-render or not.
+	 * Filters the flag that decides whether separate scripts and styles
+	 * will be loaded for core blocks on-render.
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param bool $load_separate_assets Whether separate assets will be loaded or not.
+	 * @param bool $load_separate_assets Whether separate assets will be loaded.
 	 *                                   Default false.
 	 */
 	return apply_filters( 'should_load_separate_core_block_assets', false );
@@ -2533,6 +2595,8 @@ function wp_maybe_inline_styles() {
 	/**
 	 * The maximum size of inlined styles in bytes.
 	 *
+	 * @since 5.8.0
+	 *
 	 * @param int $total_inline_limit The file-size threshold, in bytes. Defaults to 20000.
 	 */
 	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
@@ -2589,4 +2653,66 @@ function wp_maybe_inline_styles() {
 			$total_inline_size += (int) $style['size'];
 		}
 	}
+}
+
+/**
+ * Inject the block editor assets that need to be loaded into the editor's iframe as an inline script.
+ *
+ * @since 5.8.0
+ */
+function wp_add_iframed_editor_assets_html() {
+	$script_handles = array();
+	$style_handles  = array(
+		'wp-block-editor',
+		'wp-block-library',
+		'wp-block-library-theme',
+		'wp-edit-blocks',
+	);
+
+	$block_registry = WP_Block_Type_Registry::get_instance();
+
+	foreach ( $block_registry->get_all_registered() as $block_type ) {
+		if ( ! empty( $block_type->style ) ) {
+			$style_handles[] = $block_type->style;
+		}
+
+		if ( ! empty( $block_type->editor_style ) ) {
+			$style_handles[] = $block_type->editor_style;
+		}
+
+		if ( ! empty( $block_type->script ) ) {
+			$script_handles[] = $block_type->script;
+		}
+	}
+
+	$style_handles = array_unique( $style_handles );
+	$done          = wp_styles()->done;
+
+	ob_start();
+
+	wp_styles()->done = array();
+	wp_styles()->do_items( $style_handles );
+	wp_styles()->done = $done;
+
+	$styles = ob_get_clean();
+
+	$script_handles = array_unique( $script_handles );
+	$done           = wp_scripts()->done;
+
+	ob_start();
+
+	wp_scripts()->done = array();
+	wp_scripts()->do_items( $script_handles );
+	wp_scripts()->done = $done;
+
+	$scripts = ob_get_clean();
+
+	$editor_assets = wp_json_encode(
+		array(
+			'styles'  => $styles,
+			'scripts' => $scripts,
+		)
+	);
+
+	echo "<script>window.__editorAssets = $editor_assets</script>";
 }

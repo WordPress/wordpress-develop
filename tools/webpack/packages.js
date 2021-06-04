@@ -112,6 +112,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'file',
 		'latest-comments',
 		'latest-posts',
+		'legacy-widget',
 		'loginout',
 		'post-content',
 		'post-date',
@@ -292,7 +293,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 			],
 		},
 		optimization: {
-			moduleIds: 'named',
+			moduleIds: mode === 'production' ? 'hashed' : 'named',
 		},
 		plugins: [
 			new DefinePlugin( {

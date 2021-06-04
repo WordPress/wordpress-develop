@@ -7,10 +7,10 @@ require_once __DIR__ . '/class-basic-object.php';
  * @return double The version number.
  */
 function tests_get_phpunit_version() {
-	if ( class_exists( 'PHPUnit_Runner_Version' ) ) {
-		$version = PHPUnit_Runner_Version::id();
-	} elseif ( class_exists( 'PHPUnit\Runner\Version' ) ) {
+	if ( class_exists( 'PHPUnit\Runner\Version' ) ) {
 		$version = PHPUnit\Runner\Version::id();
+	} elseif ( class_exists( 'PHPUnit_Runner_Version' ) ) {
+		$version = PHPUnit_Runner_Version::id();
 	} else {
 		$version = 0;
 	}
@@ -333,5 +333,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
+	remove_action( 'init', 'init_legacy_widget_block' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );

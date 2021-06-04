@@ -665,31 +665,24 @@ module.exports = function(grunt) {
 		},
 		phpunit: {
 			'default': {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'phpunit.xml.dist']
 			},
 			ajax: {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'ajax']
 			},
 			multisite: {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml']
 			},
 			'ms-ajax': {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ajax']
 			},
 			'ms-files': {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'tests/phpunit/multisite.xml', '--group', 'ms-files']
 			},
 			'external-http': {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'external-http']
 			},
 			'restapi-jsclient': {
-				cmd: 'phpunit',
 				args: ['--verbose', '-c', 'phpunit.xml.dist', '--group', 'restapi-jsclient']
 			}
 		},
@@ -1604,24 +1597,31 @@ module.exports = function(grunt) {
 	] );
 
 	// Testing tasks.
-	grunt.registerMultiTask('phpunit', 'Runs PHPUnit tests, including the ajax, external-http, and multisite tests.', function() {
+	grunt.registerMultiTask( 'phpunit', 'Runs PHPUnit tests, including the ajax, external-http, and multisite tests.', function() {
+		var args = phpUnitWatchGroup ? this.data.args.concat( [ '--group', phpUnitWatchGroup ] ) : this.data.args;
+
+		args.unshift( 'test', '--' );
+
 		grunt.util.spawn({
-			cmd: this.data.cmd,
-			args: phpUnitWatchGroup ? this.data.args.concat( [ '--group', phpUnitWatchGroup ] ) : this.data.args,
-			opts: {stdio: 'inherit'}
+			cmd: 'composer',
+			args: args,
+			opts: { stdio: 'inherit' }
 		}, this.async());
 	});
 
-	grunt.registerTask('qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
-		['build', 'copy:qunit', 'qunit']);
+	grunt.registerTask( 'qunit:compiled', 'Runs QUnit tests on compiled as well as uncompiled scripts.',
+		['build', 'copy:qunit', 'qunit']
+	);
 
-	grunt.registerTask('test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit']);
+	grunt.registerTask( 'test', 'Runs all QUnit and PHPUnit tasks.', ['qunit:compiled', 'phpunit'] );
 
 	grunt.registerTask( 'format:php', 'Runs the code formatter on changed files.', function() {
 		var done = this.async();
 		var flags = this.flags;
 		var args = changedFiles.php;
+
 		args.unshift( 'format' );
+
 		grunt.util.spawn( {
 			cmd: 'composer',
 			args: args,
