@@ -393,7 +393,7 @@ function wp_update_plugins( $extra_stats = array() ) {
 		$options['body']['update_stats'] = wp_json_encode( $extra_stats );
 	}
 
-	$url      = 'http://api.wordpress.org/plugins/update-check/1.1/';
+	$url      = 'http://api.wordpress.org/plugins/update-check/1.2/';
 	$http_url = $url;
 	$ssl      = wp_http_supports( array( 'ssl' ) );
 
