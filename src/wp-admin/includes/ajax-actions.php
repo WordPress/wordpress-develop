@@ -2994,13 +2994,9 @@ function wp_ajax_query_attachments() {
 
 	$posts = array_map( 'wp_prepare_attachment_for_js', $query->posts );
 	$posts = array_filter( $posts );
+	header( 'X-WP-TotalPages: ' . $query->found_posts );
 
-	$result = array(
-		'attachments'      => $posts,
-		'totalAttachments' => $query->found_posts,
-	);
-
-	wp_send_json_success( $result );
+	wp_send_json_success( $posts );
 }
 
 /**
