@@ -759,14 +759,21 @@ switch ( $action ) {
 			$user_login = wp_unslash( $_POST['user_login'] );
 		}
 
-		$action_url = sprintf(
-			'wp-login.php?%s',
-			esc_html( sanitize_text_field( $_SERVER['QUERY_STRING'] ) )
-		);
+		$action_url          = network_site_url( 'wp-login.php?action=lostpassword', 'login_post' );
+		$login_url           = wp_login_url();
+		$wp_registration_url = wp_registration_url();
+
+		if ( ! empty( $_GET['wp_lang'] ) ) {
+			$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
+
+			$action_url          = add_query_arg( 'wp_lang', $wp_lang, $action_url );
+			$login_url           = add_query_arg( 'wp_lang', $wp_lang, $login_url );
+			$wp_registration_url = add_query_arg( 'wp_lang', $wp_lang, $wp_registration_url );
+		}
 
 		?>
 
-		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( network_site_url( $action_url, 'login_post' ) ); ?>" method="post">
+		<form name="lostpasswordform" id="lostpasswordform" action="<?php echo esc_url( $action_url ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" />
@@ -788,11 +795,11 @@ switch ( $action ) {
 		</form>
 
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a href="<?php echo esc_url( $login_url ); ?>"><?php _e( 'Log in' ); ?></a>
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( $wp_registration_url ), __( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
