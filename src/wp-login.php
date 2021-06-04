@@ -286,7 +286,7 @@ function login_footer( $input_id = '' ) {
 			<?php
 			$html_link = sprintf(
 				'<a href="%s">%s</a>',
-				esc_url( home_url( '/' ) ),
+				esc_url( maybe_add_wp_lang_query_arg( home_url( '/' ) ) ),
 				sprintf(
 					/* translators: %s: Site title. */
 					_x( '&larr; Go to %s', 'site' ),
@@ -472,7 +472,7 @@ switch ( $action ) {
 		 * However this action runs on a redirect after logging in.
 		 */
 		if ( ! is_user_logged_in() ) {
-			wp_safe_redirect( wp_login_url() );
+			wp_safe_redirect( maybe_add_wp_lang_query_arg( wp_login_url() ) );
 			exit;
 		}
 
@@ -485,7 +485,7 @@ switch ( $action ) {
 		if ( current_user_can( 'manage_options' ) ) {
 			$admin_email = get_option( 'admin_email' );
 		} else {
-			wp_safe_redirect( $redirect_to );
+			wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 			exit;
 		}
 
@@ -502,7 +502,7 @@ switch ( $action ) {
 
 		if ( ! empty( $_GET['remind_me_later'] ) ) {
 			if ( ! wp_verify_nonce( $_GET['remind_me_later'], 'remind_me_later_nonce' ) ) {
-				wp_safe_redirect( wp_login_url() );
+				wp_safe_redirect( maybe_add_wp_lang_query_arg( wp_login_url() ) );
 				exit;
 			}
 
@@ -510,14 +510,14 @@ switch ( $action ) {
 				update_option( 'admin_email_lifespan', time() + $remind_interval );
 			}
 
-			$redirect_to = add_query_arg( 'admin_email_remind_later', 1, $redirect_to );
+			$redirect_to = maybe_add_wp_lang_query_arg( add_query_arg( 'admin_email_remind_later', 1, $redirect_to ) );
 			wp_safe_redirect( $redirect_to );
 			exit;
 		}
 
 		if ( ! empty( $_POST['correct-admin-email'] ) ) {
 			if ( ! check_admin_referer( 'confirm_admin_email', 'confirm_admin_email_nonce' ) ) {
-				wp_safe_redirect( wp_login_url() );
+				wp_safe_redirect( maybe_add_wp_lang_query_arg( wp_login_url() ) );
 				exit;
 			}
 
@@ -536,7 +536,7 @@ switch ( $action ) {
 				update_option( 'admin_email_lifespan', time() + $admin_email_check_interval );
 			}
 
-			wp_safe_redirect( $redirect_to );
+			wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 			exit;
 		}
 
@@ -554,7 +554,7 @@ switch ( $action ) {
 
 		?>
 
-		<form class="admin-email-confirm-form" name="admin-email-confirm-form" action="<?php echo esc_url( site_url( 'wp-login.php?action=confirm_admin_email', 'login_post' ) ); ?>" method="post">
+		<form class="admin-email-confirm-form" name="admin-email-confirm-form" action="<?php echo esc_url( maybe_add_wp_lang_query_arg( site_url( 'wp-login.php?action=confirm_admin_email', 'login_post' ) ) ); ?>" method="post">
 			<?php
 			/**
 			 * Fires inside the admin-email-confirm-form form tags, before the hidden fields.
@@ -566,7 +566,7 @@ switch ( $action ) {
 			wp_nonce_field( 'confirm_admin_email', 'confirm_admin_email_nonce' );
 
 			?>
-			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
+			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( maybe_add_wp_lang_query_arg( $redirect_to ) ); ?>" />
 
 			<h1 class="admin-email__heading">
 				<?php _e( 'Administration email verification' ); ?>
@@ -630,7 +630,7 @@ switch ( $action ) {
 						);
 
 						?>
-						<a href="<?php echo esc_url( $remind_me_link ); ?>"><?php _e( 'Remind me later' ); ?></a>
+						<a href="<?php echo esc_url( maybe_add_wp_lang_query_arg( $remind_me_link ) ); ?>"><?php _e( 'Remind me later' ); ?></a>
 					</div>
 				<?php endif; ?>
 			</div>
@@ -707,7 +707,7 @@ switch ( $action ) {
 		 */
 		$redirect_to = apply_filters( 'logout_redirect', $redirect_to, $requested_redirect_to, $user );
 
-		wp_safe_redirect( $redirect_to );
+		wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 		exit;
 
 	case 'lostpassword':
@@ -717,7 +717,7 @@ switch ( $action ) {
 
 			if ( ! is_wp_error( $errors ) ) {
 				$redirect_to = ! empty( $_REQUEST['redirect_to'] ) ? $_REQUEST['redirect_to'] : 'wp-login.php?checkemail=confirm';
-				wp_safe_redirect( $redirect_to );
+				wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 				exit;
 			}
 		}
@@ -759,17 +759,9 @@ switch ( $action ) {
 			$user_login = wp_unslash( $_POST['user_login'] );
 		}
 
-		$action_url          = network_site_url( 'wp-login.php?action=lostpassword', 'login_post' );
-		$login_url           = wp_login_url();
-		$wp_registration_url = wp_registration_url();
-
-		if ( ! empty( $_GET['wp_lang'] ) ) {
-			$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
-
-			$action_url          = add_query_arg( 'wp_lang', $wp_lang, $action_url );
-			$login_url           = add_query_arg( 'wp_lang', $wp_lang, $login_url );
-			$wp_registration_url = add_query_arg( 'wp_lang', $wp_lang, $wp_registration_url );
-		}
+		$action_url          = maybe_add_wp_lang_query_arg( network_site_url( 'wp-login.php?action=lostpassword', 'login_post' ) );
+		$login_url           = maybe_add_wp_lang_query_arg( wp_login_url() );
+		$wp_registration_url = maybe_add_wp_lang_query_arg( wp_registration_url() );
 
 		?>
 
@@ -788,7 +780,7 @@ switch ( $action ) {
 			do_action( 'lostpassword_form' );
 
 			?>
-			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
+			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( maybe_add_wp_lang_query_arg( $redirect_to ) ); ?>" />
 			<p class="submit">
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Get New Password' ); ?>" />
 			</p>
@@ -880,8 +872,9 @@ switch ( $action ) {
 
 		login_header( __( 'Reset Password' ), '<p class="message reset-pass">' . __( 'Enter your new password below or generate one.' ) . '</p>', $errors );
 
+		$action_url = maybe_add_wp_lang_query_arg( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) );
 		?>
-		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( network_site_url( 'wp-login.php?action=resetpass', 'login_post' ) ); ?>" method="post" autocomplete="off">
+		<form name="resetpassform" id="resetpassform" action="<?php echo esc_url( $action_url ); ?>" method="post" autocomplete="off">
 			<input type="hidden" id="user_login" value="<?php echo esc_attr( $rp_login ); ?>" autocomplete="off" />
 
 			<div class="user-pass1-wrap">
@@ -935,7 +928,7 @@ switch ( $action ) {
 			<?php
 
 			if ( get_option( 'users_can_register' ) ) {
-				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+				$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( maybe_add_wp_lang_query_arg( wp_registration_url() ) ), __( 'Register' ) );
 
 				echo esc_html( $login_link_separator );
 
@@ -964,7 +957,7 @@ switch ( $action ) {
 		}
 
 		if ( ! get_option( 'users_can_register' ) ) {
-			wp_redirect( site_url( 'wp-login.php?registration=disabled' ) );
+			wp_redirect( maybe_add_wp_lang_query_arg( site_url( 'wp-login.php?registration=disabled' ) ) );
 			exit;
 		}
 
@@ -984,7 +977,7 @@ switch ( $action ) {
 
 			if ( ! is_wp_error( $errors ) ) {
 				$redirect_to = ! empty( $_POST['redirect_to'] ) ? $_POST['redirect_to'] : 'wp-login.php?checkemail=registered';
-				wp_safe_redirect( $redirect_to );
+				wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 				exit;
 			}
 		}
@@ -1003,7 +996,7 @@ switch ( $action ) {
 		login_header( __( 'Registration Form' ), '<p class="message register">' . __( 'Register For This Site' ) . '</p>', $errors );
 
 		?>
-		<form name="registerform" id="registerform" action="<?php echo esc_url( site_url( 'wp-login.php?action=register', 'login_post' ) ); ?>" method="post" novalidate="novalidate">
+		<form name="registerform" id="registerform" action="<?php echo esc_url( maybe_add_wp_lang_query_arg( site_url( 'wp-login.php?action=register', 'login_post' ) ) ); ?>" method="post" novalidate="novalidate">
 			<p>
 				<label for="user_login"><?php _e( 'Username' ); ?></label>
 				<input type="text" name="user_login" id="user_login" class="input" value="<?php echo esc_attr( wp_unslash( $user_login ) ); ?>" size="20" autocapitalize="off" />
@@ -1026,16 +1019,21 @@ switch ( $action ) {
 				<?php _e( 'Registration confirmation will be emailed to you.' ); ?>
 			</p>
 			<br class="clear" />
-			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
+			<input type="hidden" name="redirect_to" value="<?php echo esc_attr( maybe_add_wp_lang_query_arg( $redirect_to ) ); ?>" />
 			<p class="submit">
 				<input type="submit" name="wp-submit" id="wp-submit" class="button button-primary button-large" value="<?php esc_attr_e( 'Register' ); ?>" />
 			</p>
 		</form>
 
+		<?php
+		$login_url        = maybe_add_wp_lang_query_arg( wp_login_url() );
+		$lostpassword_url = maybe_add_wp_lang_query_arg( wp_lostpassword_url() );
+		?>
+
 		<p id="nav">
-			<a href="<?php echo esc_url( wp_login_url() ); ?>"><?php _e( 'Log in' ); ?></a>
+			<a href="<?php echo esc_url( $login_url ); ?>"><?php _e( 'Log in' ); ?></a>
 				<?php echo esc_html( $login_link_separator ); ?>
-			<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+			<a href="<?php echo esc_url( $lostpassword_url ); ?>"><?php _e( 'Lost your password?' ); ?></a>
 		</p>
 		<?php
 
@@ -1052,7 +1050,7 @@ switch ( $action ) {
 				sprintf(
 					/* translators: %s: Link to the login page. */
 					__( 'Check your email for the confirmation link, then visit the <a href="%s">login page</a>.' ),
-					wp_login_url()
+					maybe_add_wp_lang_query_arg( wp_login_url() )
 				),
 				'message'
 			);
@@ -1062,7 +1060,7 @@ switch ( $action ) {
 				sprintf(
 					/* translators: %s: Link to the login page. */
 					__( 'Registration complete. Please check your email, then visit the <a href="%s">login page</a>.' ),
-					wp_login_url()
+					maybe_add_wp_lang_query_arg( wp_login_url() )
 				),
 				'message'
 			);
@@ -1245,11 +1243,11 @@ switch ( $action ) {
 					$redirect_to = $user->has_cap( 'read' ) ? admin_url( 'profile.php' ) : home_url();
 				}
 
-				wp_redirect( $redirect_to );
+				wp_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 				exit;
 			}
 
-			wp_safe_redirect( $redirect_to );
+			wp_safe_redirect( maybe_add_wp_lang_query_arg( $redirect_to ) );
 			exit;
 		}
 
@@ -1325,7 +1323,7 @@ switch ( $action ) {
 		wp_enqueue_script( 'user-profile' );
 		?>
 
-		<form name="loginform" id="loginform" action="<?php echo esc_url( site_url( 'wp-login.php', 'login_post' ) ); ?>" method="post">
+		<form name="loginform" id="loginform" action="<?php echo esc_url( maybe_add_wp_lang_query_arg( site_url( 'wp-login.php', 'login_post' ) ) ); ?>" method="post">
 			<p>
 				<label for="user_login"><?php _e( 'Username or Email Address' ); ?></label>
 				<input type="text" name="log" id="user_login"<?php echo $aria_describedby_error; ?> class="input" value="<?php echo esc_attr( $user_login ); ?>" size="20" autocapitalize="off" />
@@ -1361,7 +1359,7 @@ switch ( $action ) {
 					<?php
 				} else {
 					?>
-					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( $redirect_to ); ?>" />
+					<input type="hidden" name="redirect_to" value="<?php echo esc_attr( maybe_add_wp_lang_query_arg( $redirect_to ) ); ?>" />
 					<?php
 				}
 
@@ -1383,8 +1381,11 @@ switch ( $action ) {
 			<p id="nav">
 				<?php
 
+				$wp_registration_url = maybe_add_wp_lang_query_arg( wp_registration_url() );
+				$lostpassword_url    = maybe_add_wp_lang_query_arg( wp_lostpassword_url() );
+
 				if ( get_option( 'users_can_register' ) ) {
-					$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( wp_registration_url() ), __( 'Register' ) );
+					$registration_url = sprintf( '<a href="%s">%s</a>', esc_url( $wp_registration_url ), __( 'Register' ) );
 
 					/** This filter is documented in wp-includes/general-template.php */
 					echo apply_filters( 'register', $registration_url );
@@ -1393,7 +1394,7 @@ switch ( $action ) {
 				}
 
 				?>
-				<a href="<?php echo esc_url( wp_lostpassword_url() ); ?>"><?php _e( 'Lost your password?' ); ?></a>
+				<a href="<?php echo esc_url( $lostpassword_url ); ?>"><?php _e( 'Lost your password?' ); ?></a>
 			</p>
 			<?php
 		}
@@ -1458,3 +1459,22 @@ switch ( $action ) {
 		login_footer();
 		break;
 } // End action switch.
+
+/**
+ * Add wp_lang query arg in the url if its exists on the GET param.
+ *
+ * @param string $url URL of the specific page.
+ *
+ * @since 5.8.0
+ *
+ * @return string;
+ */
+function maybe_add_wp_lang_query_arg( $url ) {
+	if ( ! empty( $_GET['wp_lang'] ) && ! empty( $url ) ) {
+		$wp_lang = sanitize_text_field( $_GET['wp_lang'] );
+
+		$url = add_query_arg( 'wp_lang', $wp_lang, $url );
+	}
+
+	return $url;
+}
