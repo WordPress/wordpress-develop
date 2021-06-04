@@ -384,7 +384,6 @@ function wp_update_plugins( $extra_stats = array() ) {
 			'plugins'      => wp_json_encode( $to_send ),
 			'translations' => wp_json_encode( $translations ),
 			'locale'       => wp_json_encode( $locales ),
-			'all'          => wp_json_encode( true ),
 		),
 		'user-agent' => 'WordPress/' . $wp_version . '; ' . home_url( '/' ),
 	);
