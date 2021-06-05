@@ -639,7 +639,7 @@ function maybe_unserialize( $data ) {
  * @param bool   $strict Optional. Whether to be strict about the end of the string. Default true.
  * @return bool False if not serialized or is an object implementing the Serializable interface, true otherwise (including other objects).
  */
-function is_serialized( $data ) {
+function is_serialized( $data, $strict = true ) {
 	// If it isn't a string, it isn't serialized.
 	if ( ! is_string( $data ) ) {
 		return false;
@@ -648,7 +648,7 @@ function is_serialized( $data ) {
 	if ( PHP_VERSION_ID >= 70000 ) {
 		// https://core.trac.wordpress.org/ticket/17375
 		if ( 'C' !== $data[0] ) {
-			return false
+			return false;
 		}
 		$options                    = array();
 		$options['allowed_classes'] = false;
