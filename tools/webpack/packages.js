@@ -109,11 +109,29 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block',
 		'calendar',
 		'categories',
+		'file',
 		'latest-comments',
 		'latest-posts',
+		'legacy-widget',
+		'loginout',
+		'post-content',
+		'post-date',
+		'post-excerpt',
+		'post-featured-image',
+		'post-terms',
+		'post-title',
+		'query',
+		'query-loop',
+		'query-pagination',
+		'query-pagination-next',
+		'query-pagination-numbers',
+		'query-pagination-previous',
+		'query-title',
 		'rss',
 		'search',
 		'shortcode',
+		'site-tagline',
+		'site-title',
 		'social-link',
 		'tag-cloud',
 	];
@@ -124,8 +142,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'code',
 		'column',
 		'columns',
+		'cover',
 		'embed',
-		'file',
 		'freeform',
 		'gallery',
 		'group',
@@ -144,7 +162,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'separator',
 		'social-links',
 		'spacer',
-		'subhead',
 		'table',
 		'text-columns',
 		'verse',
@@ -214,6 +231,32 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
+	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
+		flatten: true,
+		transform: ( content ) => {
+			if ( mode === 'production' ) {
+				return postcss( [
+					require( 'cssnano' )( {
+						preset: 'default',
+					} ),
+				] )
+					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+					.then( ( result ) => result.css );
+			}
+
+			return content;
+		},
+		transformPath: ( targetPath, sourcePath ) => {
+			if ( mode === 'production' ) {
+				return targetPath.replace( /\.css$/, '.min.css' );
+			}
+
+			return targetPath;
+		}
+	} ) );
+
 	const config = {
 		mode,
 
@@ -248,6 +291,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					enforce: 'pre',
 				},
 			],
+		},
+		optimization: {
+			moduleIds: mode === 'production' ? 'hashed' : 'named',
 		},
 		plugins: [
 			new DefinePlugin( {
@@ -302,6 +348,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...cssCopies,
 					...phpCopies,
 					...blockMetadataCopies,
+					...blockStylesheetCopies,
 				],
 			),
 		],
@@ -320,7 +367,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		delete config.devtool;
 		config.mode = 'production';
 		config.optimization = {
-			minimize: false
+			minimize: false,
+			moduleIds: 'hashed',
 		};
 	}
 

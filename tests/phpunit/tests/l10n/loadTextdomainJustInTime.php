@@ -110,7 +110,7 @@ class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 		remove_filter( 'override_load_textdomain', '__return_true' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
-		$this->assertTrue( $translations instanceof NOOP_Translations );
+		$this->assertInstanceOf( 'NOOP_Translations', $translations );
 	}
 
 	/**

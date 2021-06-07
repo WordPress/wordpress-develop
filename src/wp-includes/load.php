@@ -334,6 +334,19 @@ function wp_is_maintenance_mode() {
 }
 
 /**
+ * Get the time elapsed so far during this PHP script.
+ *
+ * Uses REQUEST_TIME_FLOAT that appeared in PHP 5.4.0.
+ *
+ * @since 5.8.0
+ *
+ * @return float Seconds since the PHP script started.
+ */
+function timer_float() {
+	return microtime( true ) - $_SERVER['REQUEST_TIME_FLOAT'];
+}
+
+/**
  * Start the WordPress micro-timer.
  *
  * @since 0.71
@@ -1574,7 +1587,7 @@ function wp_start_scraping_edited_file_errors() {
 		echo wp_json_encode(
 			array(
 				'code'    => 'scrape_nonce_failure',
-				'message' => __( 'Scrape nonce check failed. Please try again.' ),
+				'message' => __( 'Scrape key check failed. Please try again.' ),
 			)
 		);
 		echo "###### wp_scraping_result_end:$key ######";

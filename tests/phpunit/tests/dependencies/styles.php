@@ -420,4 +420,38 @@ CSS;
 		wp_common_block_scripts_and_styles();
 		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
 	}
+
+	/**
+	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	function test_block_styles_for_viewing_without_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/style.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
+	}
+
+	/**
+	 * Tests that the "common.css" file gets enqueued when the site opts in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	function test_block_styles_for_viewing_with_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/common.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
+	}
 }
