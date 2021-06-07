@@ -220,7 +220,7 @@ class WP_Themes_List_Table extends WP_List_Table {
 				$actions['preview'] .= sprintf(
 					'<a href="%s" class="load-customize hide-if-no-customize">%s</a>',
 					wp_customize_url( $stylesheet ),
-					__( 'Live Preview' )
+					__( 'Live preview' )
 				);
 			}
 

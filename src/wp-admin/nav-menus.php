@@ -673,7 +673,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					admin_url( 'customize.php' )
 				)
 			),
-			__( 'Manage with Live Preview' )
+			__( 'Manage with \'Live preview\'' )
 		);
 	endif;
 
