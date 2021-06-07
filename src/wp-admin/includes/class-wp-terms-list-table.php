@@ -492,7 +492,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 				'<button type="button" class="button-link editinline" aria-label="%s" aria-expanded="false">%s</button>',
 				/* translators: %s: Taxonomy term name. */
 				esc_attr( sprintf( __( 'Quick edit &#8220;%s&#8221; inline' ), $tag->name ) ),
-				__( 'Quick&nbsp;edit' )
+				__( 'Quick&nbsp;Edit' )
 			);
 		}
 
@@ -524,7 +524,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 * @since 5.4.2 Restored (un-deprecated).
 		 *
 		 * @param string[] $actions An array of action links to be displayed. Default
-		 *                          'Edit', 'Quick edit', 'Delete', and 'View'.
+		 *                          'Edit', 'Quick Edit', 'Delete', and 'View'.
 		 * @param WP_Term  $tag     Term object.
 		 */
 		$actions = apply_filters( 'tag_row_actions', $actions, $tag );
@@ -542,7 +542,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 		 * @since 3.0.0
 		 *
 		 * @param string[] $actions An array of action links to be displayed. Default
-		 *                          'Edit', 'Quick edit', 'Delete', and 'View'.
+		 *                          'Edit', 'Quick Edit', 'Delete', and 'View'.
 		 * @param WP_Term  $tag     Term object.
 		 */
 		$actions = apply_filters( "{$taxonomy}_row_actions", $actions, $tag );
@@ -665,7 +665,7 @@ class WP_Terms_List_Table extends WP_List_Table {
 			<td colspan="<?php echo $this->get_column_count(); ?>" class="colspanchange">
 
 			<fieldset>
-				<legend class="inline-edit-legend"><?php _e( 'Quick edit' ); ?></legend>
+				<legend class="inline-edit-legend"><?php _e( 'Quick Edit' ); ?></legend>
 				<div class="inline-edit-col">
 				<label>
 					<span class="title"><?php _ex( 'Name', 'term name' ); ?></span>

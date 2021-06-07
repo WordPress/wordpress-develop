@@ -148,7 +148,7 @@ final class WP_Customize_Nav_Menus {
 
 			/*
 			 * If we're dealing with pages, let's prioritize the Front Page,
-			 * Posts page and Privacy policy page at the top of the list.
+			 * Posts Page and Privacy Policy Page at the top of the list.
 			 */
 			$important_pages   = array();
 			$suppress_page_ids = array();
@@ -171,7 +171,7 @@ final class WP_Customize_Nav_Menus {
 					);
 				}
 
-				// Insert Posts page.
+				// Insert Posts Page.
 				$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
 				if ( ! empty( $posts_page ) ) {
 					$posts_page_obj      = get_post( $posts_page );
@@ -179,7 +179,7 @@ final class WP_Customize_Nav_Menus {
 					$suppress_page_ids[] = $posts_page_obj->ID;
 				}
 
-				// Insert Privacy policy page.
+				// Insert Privacy Policy Page.
 				$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 				if ( ! empty( $privacy_policy_page_id ) ) {
 					$privacy_policy_page = get_post( $privacy_policy_page_id );

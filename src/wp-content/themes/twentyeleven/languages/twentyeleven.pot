@@ -565,7 +565,7 @@ msgid "Number of posts to show:"
 msgstr ""
 
 #: search.php:18
-msgid "Search results for: %s"
+msgid "Search Results for: %s"
 msgstr ""
 
 #: search.php:51

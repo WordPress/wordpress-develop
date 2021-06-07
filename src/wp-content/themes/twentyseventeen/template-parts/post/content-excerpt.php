@@ -2,7 +2,7 @@
 /**
  * Template part for displaying posts with excerpts
  *
- * Used in Search results and for Recent Posts in Front Page panels.
+ * Used in Search Results and for Recent Posts in Front Page panels.
  *
  * @link https://developer.wordpress.org/themes/basics/template-hierarchy/
  *

@@ -689,7 +689,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 		$untrash_url   = esc_url( $url . "&action=untrashcomment&$del_nonce" );
 		$delete_url    = esc_url( $url . "&action=deletecomment&$del_nonce" );
 
-		// Preorder it: Approve | Reply | "Quick edit" | Edit | Spam | Trash.
+		// Preorder it: Approve | Reply | Quick Edit | Edit | Spam | Trash.
 		$actions = array(
 			'approve'   => '',
 			'unapprove' => '',
@@ -755,7 +755,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$unspam_url,
 				"delete:the-comment-list:comment-{$comment->comment_ID}:66cc66:unspam=1",
 				esc_attr__( 'Restore this comment from the spam' ),
-				_x( 'Not spam', 'comment' )
+				_x( 'Not Spam', 'comment' )
 			);
 		}
 
@@ -775,7 +775,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				$delete_url,
 				"delete:the-comment-list:comment-{$comment->comment_ID}::delete=1",
 				esc_attr__( 'Delete this comment permanently' ),
-				__( 'Delete permanently' )
+				__( 'Delete Permanently' )
 			);
 		} else {
 			$actions['trash'] = sprintf(
@@ -804,7 +804,7 @@ class WP_Comments_List_Table extends WP_List_Table {
 				'edit',
 				'vim-q comment-inline',
 				esc_attr__( 'Quick edit this comment inline' ),
-				__( 'Quick&nbsp;edit' )
+				__( 'Quick&nbsp;Edit' )
 			);
 
 			$actions['reply'] = sprintf(

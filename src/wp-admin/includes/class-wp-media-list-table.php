@@ -721,7 +721,7 @@ class WP_Media_List_Table extends WP_List_Table {
 						$delete_ays,
 						/* translators: %s: Attachment title. */
 						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete permanently' )
+						__( 'Delete Permanently' )
 					);
 				}
 			}
@@ -781,7 +781,7 @@ class WP_Media_List_Table extends WP_List_Table {
 						$delete_ays,
 						/* translators: %s: Attachment title. */
 						esc_attr( sprintf( __( 'Delete &#8220;%s&#8221; permanently' ), $att_title ) ),
-						__( 'Delete permanently' )
+						__( 'Delete Permanently' )
 					);
 				}
 			}
@@ -803,7 +803,7 @@ class WP_Media_List_Table extends WP_List_Table {
 		 * @since 2.8.0
 		 *
 		 * @param string[] $actions  An array of action links for each attachment.
-		 *                           Default 'Edit', 'Delete permanently', 'View'.
+		 *                           Default 'Edit', 'Delete Permanently', 'View'.
 		 * @param WP_Post  $post     WP_Post object for the current attachment.
 		 * @param bool     $detached Whether the list table contains media not attached
 		 *                           to any posts. Default true.

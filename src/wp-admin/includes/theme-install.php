@@ -184,7 +184,7 @@ function install_themes_upload() {
 	<?php wp_nonce_field( 'theme-upload' ); ?>
 	<label class="screen-reader-text" for="themezip"><?php _e( 'Theme zip file' ); ?></label>
 	<input type="file" id="themezip" name="themezip" accept=".zip" />
-	<?php submit_button( __( 'Install now' ), '', 'install-theme-submit', false ); ?>
+	<?php submit_button( __( 'Install Now' ), '', 'install-theme-submit', false ); ?>
 </form>
 	<?php
 }

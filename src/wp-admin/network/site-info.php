@@ -177,7 +177,7 @@ if ( ! empty( $messages ) ) {
 			<td><input name="blog[registered]" type="text" id="blog_registered" value="<?php echo esc_attr( $details->registered ); ?>" /></td>
 		</tr>
 		<tr class="form-field">
-			<th scope="row"><label for="blog_last_updated"><?php _e( 'Last updated' ); ?></label></th>
+			<th scope="row"><label for="blog_last_updated"><?php _e( 'Last Updated' ); ?></label></th>
 			<td><input name="blog[last_updated]" type="text" id="blog_last_updated" value="<?php echo esc_attr( $details->last_updated ); ?>" /></td>
 		</tr>
 		<?php

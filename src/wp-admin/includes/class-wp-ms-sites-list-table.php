@@ -361,7 +361,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		$sites_columns = array(
 			'cb'          => '<input type="checkbox" />',
 			'blogname'    => __( 'URL' ),
-			'lastupdated' => __( 'Last updated' ),
+			'lastupdated' => __( 'Last Updated' ),
 			'registered'  => _x( 'Registered', 'site' ),
 			'users'       => __( 'Users' ),
 		);
@@ -707,7 +707,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 			}
 
 			if ( '1' == $blog['spam'] ) {
-				$actions['unspam'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=unspamblog&amp;id=' . $blog['blog_id'] ), 'unspamblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Not spam', 'site' ) . '</a>';
+				$actions['unspam'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=unspamblog&amp;id=' . $blog['blog_id'] ), 'unspamblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Not Spam', 'site' ) . '</a>';
 			} else {
 				$actions['spam'] = '<a href="' . esc_url( wp_nonce_url( network_admin_url( 'sites.php?action=confirm&amp;action2=spamblog&amp;id=' . $blog['blog_id'] ), 'spamblog_' . $blog['blog_id'] ) ) . '">' . _x( 'Spam', 'site' ) . '</a>';
 			}
@@ -725,7 +725,7 @@ class WP_MS_Sites_List_Table extends WP_List_Table {
 		 * The 'Edit', 'Dashboard', 'Delete', and 'Visit' links are displayed by
 		 * default for each site. The site's status determines whether to show the
 		 * 'Activate' or 'Deactivate' link, 'Unarchive' or 'Archive' links, and
-		 * 'Not spam' or 'Spam' link for each site.
+		 * 'Not Spam' or 'Spam' link for each site.
 		 *
 		 * @since 3.1.0
 		 *

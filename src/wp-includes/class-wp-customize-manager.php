@@ -4543,7 +4543,7 @@ final class WP_Customize_Manager {
 			$document_title_tmpl = __( 'Customize: %s' );
 		} else {
 			/* translators: %s: Document title from the preview. */
-			$document_title_tmpl = __( 'Live preview: %s' );
+			$document_title_tmpl = __( 'Live Preview: %s' );
 		}
 		$document_title_tmpl = html_entity_decode( $document_title_tmpl, ENT_QUOTES, 'UTF-8' ); // Because exported to JS and assigned to document.title.
 		return $document_title_tmpl;

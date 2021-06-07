@@ -103,7 +103,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$tabs = array();
 
 		if ( 'search' === $tab ) {
-			$tabs['search'] = __( 'Search results' );
+			$tabs['search'] = __( 'Search Results' );
 		}
 
 		if ( 'beta' === $tab || false !== strpos( get_bloginfo( 'version' ), '-' ) ) {
@@ -118,7 +118,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		if ( current_user_can( 'upload_plugins' ) ) {
 			// No longer a real tab. Here for filter compatibility.
 			// Gets skipped in get_views().
-			$tabs['upload'] = __( 'Upload plugin' );
+			$tabs['upload'] = __( 'Upload Plugin' );
 		}
 
 		$nonmenu_tabs = array( 'plugin-information' ); // Valid actions to perform which do not have a Menu item.
@@ -289,7 +289,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 	public function no_items() {
 		if ( isset( $this->error ) ) { ?>
 			<div class="inline error"><p><?php echo $this->error->get_error_message(); ?></p>
-				<p class="hide-if-no-js"><button class="button try-again"><?php _e( 'Try again' ); ?></button></p>
+				<p class="hide-if-no-js"><button class="button try-again"><?php _e( 'Try Again' ); ?></button></p>
 			</div>
 		<?php } else { ?>
 			<div class="no-plugin-results"><?php _e( 'No plugins found. Try a different search.' ); ?></div>
@@ -545,12 +545,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 									/* translators: %s: Plugin name and version. */
 									esc_attr( sprintf( _x( 'Install %s now', 'plugin' ), $name ) ),
 									esc_attr( $name ),
-									__( 'Install now' )
+									__( 'Install Now' )
 								);
 							} else {
 								$action_links[] = sprintf(
 									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-									_x( 'Cannot install', 'plugin' )
+									_x( 'Cannot Install', 'plugin' )
 								);
 							}
 						}
@@ -567,12 +567,12 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 									/* translators: %s: Plugin name and version. */
 									esc_attr( sprintf( _x( 'Update %s now', 'plugin' ), $name ) ),
 									esc_attr( $name ),
-									__( 'Update now' )
+									__( 'Update Now' )
 								);
 							} else {
 								$action_links[] = sprintf(
 									'<button type="button" class="button button-disabled" disabled="disabled">%s</button>',
-									_x( 'Cannot update', 'plugin' )
+									_x( 'Cannot Update', 'plugin' )
 								);
 							}
 						}
@@ -599,9 +599,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 							);
 
 							if ( is_network_admin() ) {
-								$button_text = __( 'Network activate' );
+								$button_text = __( 'Network Activate' );
 								/* translators: %s: Plugin name. */
-								$button_label = _x( 'Network activate %s', 'plugin' );
+								$button_label = _x( 'Network Activate %s', 'plugin' );
 								$activate_url = add_query_arg( array( 'networkwide' => 1 ), $activate_url );
 							}
 
@@ -650,7 +650,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			 *
 			 * @since 2.7.0
 			 *
-			 * @param string[] $action_links An array of plugin action links. Defaults are links to Details and Install now.
+			 * @param string[] $action_links An array of plugin action links. Defaults are links to Details and Install Now.
 			 * @param array    $plugin       The plugin currently being listed.
 			 */
 			$action_links = apply_filters( 'plugin_install_action_links', $action_links, $plugin );
@@ -743,7 +743,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 					<span class="num-ratings" aria-hidden="true">(<?php echo number_format_i18n( $plugin['num_ratings'] ); ?>)</span>
 				</div>
 				<div class="column-updated">
-					<strong><?php _e( 'Last updated:' ); ?></strong>
+					<strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
 						/* translators: %s: Human-readable time difference. */
 						printf( __( '%s ago' ), human_time_diff( $last_updated_timestamp ) );

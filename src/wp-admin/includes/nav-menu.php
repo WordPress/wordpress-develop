@@ -364,7 +364,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 
 	/*
 	 * If we're dealing with pages, let's prioritize the Front Page,
-	 * Posts page and Privacy policy page at the top of the list.
+	 * Posts Page and Privacy Policy Page at the top of the list.
 	 */
 	$important_pages = array();
 	if ( 'page' === $post_type_name ) {
@@ -398,7 +398,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 			$important_pages[] = $front_page_obj;
 		}
 
-		// Insert Posts page.
+		// Insert Posts Page.
 		$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
 
 		if ( ! empty( $posts_page ) ) {
@@ -409,7 +409,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 			$suppress_page_ids[] = $posts_page_obj->ID;
 		}
 
-		// Insert Privacy policy page.
+		// Insert Privacy Policy Page.
 		$privacy_policy_page_id = (int) get_option( 'wp_page_for_privacy_policy' );
 
 		if ( ! empty( $privacy_policy_page_id ) ) {
@@ -669,7 +669,7 @@ function wp_nav_menu_item_post_type_meta_box( $object, $box ) {
 		<p class="button-controls wp-clearfix" data-items-type="posttype-<?php echo esc_attr( $post_type_name ); ?>">
 			<span class="list-controls hide-if-no-js">
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> id="<?php echo esc_attr( $tab_name ); ?>" class="select-all" />
-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select all' ); ?></label>
+				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">
@@ -900,7 +900,7 @@ function wp_nav_menu_item_taxonomy_meta_box( $object, $box ) {
 		<p class="button-controls wp-clearfix" data-items-type="taxonomy-<?php echo esc_attr( $taxonomy_name ); ?>">
 			<span class="list-controls hide-if-no-js">
 				<input type="checkbox"<?php wp_nav_menu_disabled_check( $nav_menu_selected_id ); ?> id="<?php echo esc_attr( $tab_name ); ?>" class="select-all" />
-				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select all' ); ?></label>
+				<label for="<?php echo esc_attr( $tab_name ); ?>"><?php _e( 'Select All' ); ?></label>
 			</span>
 
 			<span class="add-to-menu">

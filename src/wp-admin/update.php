@@ -153,7 +153,7 @@ if ( isset( $_GET['action'] ) ) {
 
 		$file_upload = new File_Upload_Upgrader( 'pluginzip', 'package' );
 
-		$title        = __( 'Upload plugin' );
+		$title        = __( 'Upload Plugin' );
 		$parent_file  = 'plugins.php';
 		$submenu_file = 'plugin-install.php';
 		require_once ABSPATH . 'wp-admin/admin-header.php';

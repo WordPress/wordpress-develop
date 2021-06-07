@@ -464,7 +464,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		);
 
 		if ( $this->show_autoupdates ) {
-			$columns['auto-updates'] = __( 'Automatic updates' );
+			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
 
 		return $columns;
@@ -512,8 +512,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'recently_activated':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Recently active <span class="count">(%s)</span>',
-						'Recently active <span class="count">(%s)</span>',
+						'Recently Active <span class="count">(%s)</span>',
+						'Recently Active <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -528,8 +528,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'mustuse':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Must-use <span class="count">(%s)</span>',
-						'Must-use <span class="count">(%s)</span>',
+						'Must-Use <span class="count">(%s)</span>',
+						'Must-Use <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -552,24 +552,24 @@ class WP_Plugins_List_Table extends WP_List_Table {
 				case 'upgrade':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Update available <span class="count">(%s)</span>',
-						'Update available <span class="count">(%s)</span>',
+						'Update Available <span class="count">(%s)</span>',
+						'Update Available <span class="count">(%s)</span>',
 						$count
 					);
 					break;
 				case 'auto-update-enabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Auto-updates enabled <span class="count">(%s)</span>',
-						'Auto-updates enabled <span class="count">(%s)</span>',
+						'Auto-updates Enabled <span class="count">(%s)</span>',
+						'Auto-updates Enabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
 				case 'auto-update-disabled':
 					/* translators: %s: Number of plugins. */
 					$text = _n(
-						'Auto-updates disabled <span class="count">(%s)</span>',
-						'Auto-updates disabled <span class="count">(%s)</span>',
+						'Auto-updates Disabled <span class="count">(%s)</span>',
+						'Auto-updates Disabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -598,11 +598,11 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		$actions = array();
 
 		if ( 'active' !== $status ) {
-			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network activate' ) : __( 'Activate' );
+			$actions['activate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Activate' ) : __( 'Activate' );
 		}
 
 		if ( 'inactive' !== $status && 'recent' !== $status ) {
-			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network deactivate' ) : __( 'Deactivate' );
+			$actions['deactivate-selected'] = $this->screen->in_admin( 'network' ) ? __( 'Network Deactivate' ) : __( 'Deactivate' );
 		}
 
 		if ( ! is_multisite() || $this->screen->in_admin( 'network' ) ) {
@@ -616,10 +616,10 @@ class WP_Plugins_List_Table extends WP_List_Table {
 
 			if ( $this->show_autoupdates ) {
 				if ( 'auto-update-enabled' !== $status ) {
-					$actions['enable-auto-update-selected'] = __( 'Enable auto-updates' );
+					$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
 				}
 				if ( 'auto-update-disabled' !== $status ) {
-					$actions['disable-auto-update-selected'] = __( 'Disable auto-updates' );
+					$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );
 				}
 			}
 		}
@@ -655,7 +655,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 		echo '<div class="alignleft actions">';
 
 		if ( 'recently_activated' === $status ) {
-			submit_button( __( 'Clear list' ), '', 'clear-recent-list', false );
+			submit_button( __( 'Clear List' ), '', 'clear-recent-list', false );
 		} elseif ( 'top' === $which && 'mustuse' === $status ) {
 			echo '<p>' . sprintf(
 				/* translators: %s: mu-plugins directory name. */
@@ -786,8 +786,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							wp_nonce_url( 'plugins.php?action=deactivate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'deactivate-plugin_' . $plugin_file ),
 							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Network deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Network deactivate' )
+							esc_attr( sprintf( _x( 'Network Deactivate %s', 'plugin' ), $plugin_data['Name'] ) ),
+							__( 'Network Deactivate' )
 						);
 					}
 				} else {
@@ -797,8 +797,8 @@ class WP_Plugins_List_Table extends WP_List_Table {
 							wp_nonce_url( 'plugins.php?action=activate&amp;plugin=' . urlencode( $plugin_file ) . '&amp;plugin_status=' . $context . '&amp;paged=' . $page . '&amp;s=' . $s, 'activate-plugin_' . $plugin_file ),
 							esc_attr( $plugin_id_attr ),
 							/* translators: %s: Plugin name. */
-							esc_attr( sprintf( _x( 'Network activate %s', 'plugin' ), $plugin_data['Name'] ) ),
-							__( 'Network activate' )
+							esc_attr( sprintf( _x( 'Network Activate %s', 'plugin' ), $plugin_data['Name'] ) ),
+							__( 'Network Activate' )
 						);
 					}
 
@@ -820,7 +820,7 @@ class WP_Plugins_List_Table extends WP_List_Table {
 					);
 				} elseif ( $restrict_network_only ) {
 					$actions = array(
-						'network_only' => __( 'Network only' ),
+						'network_only' => __( 'Network Only' ),
 					);
 				} elseif ( $is_active ) {
 					if ( current_user_can( 'deactivate_plugin', $plugin_file ) ) {

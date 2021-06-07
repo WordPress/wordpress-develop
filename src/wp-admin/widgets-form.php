@@ -390,7 +390,7 @@ if ( current_user_can( 'customize' ) ) {
 				admin_url( 'customize.php' )
 			)
 		),
-		__( 'Manage with \'Live preview\'' )
+		__( 'Manage with Live Preview' )
 	);
 }
 

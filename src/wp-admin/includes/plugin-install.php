@@ -354,7 +354,7 @@ function install_plugins_upload() {
 		<?php wp_nonce_field( 'plugin-upload' ); ?>
 		<label class="screen-reader-text" for="pluginzip"><?php _e( 'Plugin zip file' ); ?></label>
 		<input type="file" id="pluginzip" name="pluginzip" accept=".zip" />
-		<?php submit_button( __( 'Install now' ), '', 'install-plugin-submit', false ); ?>
+		<?php submit_button( __( 'Install Now' ), '', 'install-plugin-submit', false ); ?>
 	</form>
 </div>
 	<?php
@@ -655,7 +655,7 @@ function install_plugin_information() {
 			<?php } if ( ! empty( $api->author ) ) { ?>
 				<li><strong><?php _e( 'Author:' ); ?></strong> <?php echo links_add_target( $api->author, '_blank' ); ?></li>
 			<?php } if ( ! empty( $api->last_updated ) ) { ?>
-				<li><strong><?php _e( 'Last updated:' ); ?></strong>
+				<li><strong><?php _e( 'Last Updated:' ); ?></strong>
 					<?php
 					/* translators: %s: Human-readable time difference. */
 					printf( __( '%s ago' ), human_time_diff( strtotime( $api->last_updated ) ) );
@@ -857,11 +857,11 @@ function install_plugin_information() {
 			case 'install':
 				if ( $status['url'] ) {
 					if ( $compatible_php && $compatible_wp ) {
-						echo '<a data-slug="' . esc_attr( $api->slug ) . '" id="plugin_install_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install now' ) . '</a>';
+						echo '<a data-slug="' . esc_attr( $api->slug ) . '" id="plugin_install_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Now' ) . '</a>';
 					} else {
 						printf(
 							'<button type="button" class="button button-primary button-disabled right" disabled="disabled">%s</button>',
-							_x( 'Cannot install', 'plugin' )
+							_x( 'Cannot Install', 'plugin' )
 						);
 					}
 				}
@@ -869,11 +869,11 @@ function install_plugin_information() {
 			case 'update_available':
 				if ( $status['url'] ) {
 					if ( $compatible_php ) {
-						echo '<a data-slug="' . esc_attr( $api->slug ) . '" data-plugin="' . esc_attr( $status['file'] ) . '" id="plugin_update_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install \'Update now\'' ) . '</a>';
+						echo '<a data-slug="' . esc_attr( $api->slug ) . '" data-plugin="' . esc_attr( $status['file'] ) . '" id="plugin_update_from_iframe" class="button button-primary right" href="' . $status['url'] . '" target="_parent">' . __( 'Install Update Now' ) . '</a>';
 					} else {
 						printf(
 							'<button type="button" class="button button-primary button-disabled right" disabled="disabled">%s</button>',
-							_x( 'Cannot update', 'plugin' )
+							_x( 'Cannot Update', 'plugin' )
 						);
 					}
 				}

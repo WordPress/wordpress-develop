@@ -2216,12 +2216,12 @@ function get_post_states( $post ) {
 		}
 
 		if ( (int) get_option( 'page_for_posts' ) === $post->ID ) {
-			$post_states['page_for_posts'] = _x( 'Posts page', 'page label' );
+			$post_states['page_for_posts'] = _x( 'Posts Page', 'page label' );
 		}
 	}
 
 	if ( (int) get_option( 'wp_page_for_privacy_policy' ) === $post->ID ) {
-		$post_states['page_for_privacy_policy'] = _x( 'Privacy policy page', 'page label' );
+		$post_states['page_for_privacy_policy'] = _x( 'Privacy Policy Page', 'page label' );
 	}
 
 	/**

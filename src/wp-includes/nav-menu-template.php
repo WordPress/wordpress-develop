@@ -395,7 +395,7 @@ function _wp_menu_item_classes_by_context( &$menu_items ) {
 			$classes[] = 'menu-item-home';
 		}
 
-		// This menu item is set as the 'Privacy policy page'.
+		// This menu item is set as the 'Privacy Policy Page'.
 		if ( 'post_type' === $menu_item->type && $privacy_policy_page_id === (int) $menu_item->object_id ) {
 			$classes[] = 'menu-item-privacy-policy';
 		}

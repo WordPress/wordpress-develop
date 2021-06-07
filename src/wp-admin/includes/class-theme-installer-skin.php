@@ -128,9 +128,9 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 				'<a href="%s" class="hide-if-no-customize load-customize">' .
 				'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 				esc_url( $customize_url ),
-				__( 'Live preview' ),
+				__( 'Live Preview' ),
 				/* translators: %s: Theme name. */
-				sprintf( __( 'Live preview &#8220;%s&#8221;' ), $name )
+				sprintf( __( 'Live Preview &#8220;%s&#8221;' ), $name )
 			);
 		}
 
@@ -147,7 +147,7 @@ class Theme_Installer_Skin extends WP_Upgrader_Skin {
 			$install_actions['network_enable'] = sprintf(
 				'<a href="%s" target="_parent">%s</a>',
 				esc_url( wp_nonce_url( 'themes.php?action=enable&amp;theme=' . urlencode( $stylesheet ), 'enable-theme_' . $stylesheet ) ),
-				__( 'Network enable' )
+				__( 'Network Enable' )
 			);
 		}
 

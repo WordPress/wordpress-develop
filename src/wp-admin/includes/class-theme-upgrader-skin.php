@@ -100,9 +100,9 @@ class Theme_Upgrader_Skin extends WP_Upgrader_Skin {
 						'<a href="%s" class="hide-if-no-customize load-customize">' .
 						'<span aria-hidden="true">%s</span><span class="screen-reader-text">%s</span></a>',
 						esc_url( $customize_url ),
-						__( 'Live preview' ),
+						__( 'Live Preview' ),
 						/* translators: %s: Theme name. */
-						sprintf( __( 'Live preview &#8220;%s&#8221;' ), $name )
+						sprintf( __( 'Live Preview &#8220;%s&#8221;' ), $name )
 					);
 				}
 

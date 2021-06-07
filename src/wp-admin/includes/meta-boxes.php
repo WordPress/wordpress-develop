@@ -114,7 +114,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 						_e( 'Scheduled' );
 						break;
 					case 'pending':
-						_e( 'Pending review' );
+						_e( 'Pending Review' );
 						break;
 					case 'draft':
 					case 'auto-draft':
@@ -144,7 +144,7 @@ function post_submit_meta_box( $post, $args = array() ) {
 						<?php elseif ( 'future' === $post->post_status ) : ?>
 							<option<?php selected( $post->post_status, 'future' ); ?> value='future'><?php _e( 'Scheduled' ); ?></option>
 						<?php endif; ?>
-							<option<?php selected( $post->post_status, 'pending' ); ?> value='pending'><?php _e( 'Pending review' ); ?></option>
+							<option<?php selected( $post->post_status, 'pending' ); ?> value='pending'><?php _e( 'Pending Review' ); ?></option>
 						<?php if ( 'auto-draft' === $post->post_status ) : ?>
 							<option<?php selected( $post->post_status, 'auto-draft' ); ?> value='draft'><?php _e( 'Draft' ); ?></option>
 						<?php else : ?>

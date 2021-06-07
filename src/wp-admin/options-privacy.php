@@ -238,7 +238,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<label for="create-page">
 				<?php
 				if ( $has_pages ) {
-					_e( 'Create a new Privacy policy page' );
+					_e( 'Create a new Privacy Policy Page' );
 				} else {
 					_e( 'There are no pages.' );
 				}

@@ -333,7 +333,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		);
 
 		if ( $this->show_autoupdates ) {
-			$columns['auto-updates'] = __( 'Automatic updates' );
+			$columns['auto-updates'] = __( 'Automatic Updates' );
 		}
 
 		return $columns;
@@ -404,8 +404,8 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				case 'upgrade':
 					/* translators: %s: Number of themes. */
 					$text = _nx(
-						'Update available <span class="count">(%s)</span>',
-						'Update available <span class="count">(%s)</span>',
+						'Update Available <span class="count">(%s)</span>',
+						'Update Available <span class="count">(%s)</span>',
 						$count,
 						'themes'
 					);
@@ -422,16 +422,16 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				case 'auto-update-enabled':
 					/* translators: %s: Number of themes. */
 					$text = _n(
-						'Auto-updates enabled <span class="count">(%s)</span>',
-						'Auto-updates enabled <span class="count">(%s)</span>',
+						'Auto-updates Enabled <span class="count">(%s)</span>',
+						'Auto-updates Enabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
 				case 'auto-update-disabled':
 					/* translators: %s: Number of themes. */
 					$text = _n(
-						'Auto-updates disabled <span class="count">(%s)</span>',
-						'Auto-updates disabled <span class="count">(%s)</span>',
+						'Auto-updates Disabled <span class="count">(%s)</span>',
+						'Auto-updates Disabled <span class="count">(%s)</span>',
 						$count
 					);
 					break;
@@ -466,10 +466,10 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		$actions = array();
 		if ( 'enabled' !== $status ) {
-			$actions['enable-selected'] = $this->is_site_themes ? __( 'Enable' ) : __( 'Network enable' );
+			$actions['enable-selected'] = $this->is_site_themes ? __( 'Enable' ) : __( 'Network Enable' );
 		}
 		if ( 'disabled' !== $status ) {
-			$actions['disable-selected'] = $this->is_site_themes ? __( 'Disable' ) : __( 'Network disable' );
+			$actions['disable-selected'] = $this->is_site_themes ? __( 'Disable' ) : __( 'Network Disable' );
 		}
 		if ( ! $this->is_site_themes ) {
 			if ( current_user_can( 'update_themes' ) ) {
@@ -482,11 +482,11 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 		if ( $this->show_autoupdates ) {
 			if ( 'auto-update-enabled' !== $status ) {
-				$actions['enable-auto-update-selected'] = __( 'Enable auto-updates' );
+				$actions['enable-auto-update-selected'] = __( 'Enable Auto-updates' );
 			}
 
 			if ( 'auto-update-disabled' !== $status ) {
-				$actions['disable-auto-update-selected'] = __( 'Disable auto-updates' );
+				$actions['disable-auto-update-selected'] = __( 'Disable Auto-updates' );
 			}
 		}
 
@@ -567,14 +567,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 					$aria_label = sprintf( __( 'Enable %s' ), $theme->display( 'Name' ) );
 				} else {
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( __( 'Network enable %s' ), $theme->display( 'Name' ) );
+					$aria_label = sprintf( __( 'Network Enable %s' ), $theme->display( 'Name' ) );
 				}
 
 				$actions['enable'] = sprintf(
 					'<a href="%s" class="edit" aria-label="%s">%s</a>',
 					esc_url( wp_nonce_url( $url, 'enable-theme_' . $stylesheet ) ),
 					esc_attr( $aria_label ),
-					( $this->is_site_themes ? __( 'Enable' ) : __( 'Network enable' ) )
+					( $this->is_site_themes ? __( 'Enable' ) : __( 'Network Enable' ) )
 				);
 			}
 		} else {
@@ -593,14 +593,14 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				$aria_label = sprintf( __( 'Disable %s' ), $theme->display( 'Name' ) );
 			} else {
 				/* translators: %s: Theme name. */
-				$aria_label = sprintf( __( 'Network disable %s' ), $theme->display( 'Name' ) );
+				$aria_label = sprintf( __( 'Network Disable %s' ), $theme->display( 'Name' ) );
 			}
 
 			$actions['disable'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				esc_url( wp_nonce_url( $url, 'disable-theme_' . $stylesheet ) ),
 				esc_attr( $aria_label ),
-				( $this->is_site_themes ? __( 'Disable' ) : __( 'Network disable' ) )
+				( $this->is_site_themes ? __( 'Disable' ) : __( 'Network Disable' ) )
 			);
 		}
 
@@ -641,7 +641,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 		 * non-network enabled themes when editing a site in the Network admin.
 		 *
 		 * The default action links for the Network themes list table include
-		 * 'Network enable', 'Network disable', and 'Delete'.
+		 * 'Network Enable', 'Network Disable', and 'Delete'.
 		 *
 		 * The default action links for the Site themes list table include
 		 * 'Enable', and 'Disable'.
@@ -724,7 +724,7 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 				'<a href="%s" aria-label="%s">%s</a>',
 				$theme->display( 'ThemeURI' ),
 				esc_attr( $aria_label ),
-				__( 'Visit theme site' )
+				__( 'Visit Theme Site' )
 			);
 		}
 
@@ -909,12 +909,12 @@ class WP_MS_Themes_List_Table extends WP_List_Table {
 
 						/* Add a label for the active template */
 						if ( $item->get_template() === $template ) {
-							$active_theme_label = ' &mdash; ' . __( 'Active theme' );
+							$active_theme_label = ' &mdash; ' . __( 'Active Theme' );
 						}
 
 						/* In case this is a child theme, label it properly */
 						if ( $stylesheet !== $template && $item->get_stylesheet() === $stylesheet ) {
-							$active_theme_label = ' &mdash; ' . __( 'Active child theme' );
+							$active_theme_label = ' &mdash; ' . __( 'Active Child Theme' );
 						}
 					}
 
