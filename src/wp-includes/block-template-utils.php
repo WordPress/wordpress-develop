@@ -17,24 +17,30 @@
  * @return WP_Block_Template|WP_Error Template.
  */
 function _build_template_result_from_post( $post ) {
-	$terms = get_the_terms( $post, 'wp_theme' );
+	$template_type = $post->post_type;
 
-	if ( is_wp_error( $terms ) ) {
-		return $terms;
+	if ( $template_type !== 'wp_template' ) {
+		return new WP_Error( 'template_wrong_post_type', __( 'An invalid post was provided for this template.', 'gutenberg' ) );
 	}
 
-	if ( ! $terms ) {
-		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
+	$ids    = get_theme_mod( $template_type, array() );
+	$active = in_array( $post->ID, $ids, true );
+
+	// Temporarily disable inactive access for 5.8 version.
+	if ( ! $active ) {
+		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.', 'gutenberg' ) );
 	}
 
-	$theme = $terms[0]->name;
+	$theme          = wp_get_theme()->get_stylesheet();
+	$slug           = array_search( $post->ID, $ids, true );
+	$has_theme_file = null !== _gutenberg_get_template_file( $post->post_type, $slug );
 
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
-	$template->id             = $theme . '//' . $post->post_name;
+	$template->id             = $theme . '//' . $slug;
 	$template->theme          = $theme;
 	$template->content        = $post->post_content;
-	$template->slug           = $post->post_name;
+	$template->slug           = $slug;
 	$template->source         = 'custom';
 	$template->type           = $post->post_type;
 	$template->description    = $post->post_excerpt;
@@ -66,17 +72,16 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		'post_type'      => $template_type,
 		'posts_per_page' => -1,
 		'no_found_rows'  => true,
-		'tax_query'      => array(
-			array(
-				'taxonomy' => 'wp_theme',
-				'field'    => 'name',
-				'terms'    => wp_get_theme()->get_stylesheet(),
-			),
-		),
+		'post__in'      => array_values( get_theme_mod( $template_type, array() ) )
 	);
 
 	if ( isset( $query['slug__in'] ) ) {
-		$wp_query_args['post_name__in'] = $query['slug__in'];
+		$wp_query_args['post__in'] = array();
+		foreach ( $query['slug__in'] as $slug ) {
+			if ( ! empty( $theme_slugs[ $slug ] ) ) {
+				$wp_query_args['post__in'][] = $theme_slugs[ $slug ];
+			}
+		}
 	}
 
 	// This is only needed for the regular templates CPT listing and editor.
@@ -86,13 +91,15 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		$wp_query_args['post_status'] = 'publish';
 	}
 
-	$template_query = new WP_Query( $wp_query_args );
-	$query_result   = array();
-	foreach ( $template_query->get_posts() as $post ) {
-		$template = _build_template_result_from_post( $post );
+	// See https://core.trac.wordpress.org/ticket/28099 for context.
+	if ( ! isset( $wp_query_args['post__in'] ) || array() !== $wp_query_args['post__in'] ) {
+		$template_query = new WP_Query( $wp_query_args );
+		foreach ( $template_query->get_posts() as $post ) {
+			$template = _gutenberg_build_template_result_from_post( $post, $template_type );
 
-		if ( ! is_wp_error( $template ) ) {
-			$query_result[] = $template;
+			if ( ! is_wp_error( $template ) ) {
+				$query_result[] = $template;
+			}
 		}
 	}
 
@@ -115,25 +122,21 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 		return null;
 	}
 	list( $theme, $slug ) = $parts;
-	$wp_query_args        = array(
-		'post_name__in'  => array( $slug ),
-		'post_type'      => $template_type,
-		'post_status'    => array( 'auto-draft', 'draft', 'publish', 'trash' ),
-		'posts_per_page' => 1,
-		'no_found_rows'  => true,
-		'tax_query'      => array(
-			array(
-				'taxonomy' => 'wp_theme',
-				'field'    => 'name',
-				'terms'    => $theme,
-			),
-		),
-	);
-	$template_query       = new WP_Query( $wp_query_args );
-	$posts                = $template_query->get_posts();
 
-	if ( count( $posts ) > 0 ) {
-		$template = _build_template_result_from_post( $posts[0] );
+	$active = wp_get_theme()->get_stylesheet() === $theme;
+
+	if ( ! $active ) {
+		return null;
+	}
+
+	$ids = get_theme_mod( $template_type, array() );
+
+	if ( ! empty( $ids[ $slug ] ) ) {
+		$post = get_post( $ids[ $slug ] );
+	}
+
+	if ( $post && $template_type === $post->post_type ) {
+		$template = _gutenberg_build_template_result_from_post( $post, $template_type );
 
 		if ( ! is_wp_error( $template ) ) {
 			return $template;
