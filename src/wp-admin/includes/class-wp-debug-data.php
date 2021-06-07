@@ -149,7 +149,7 @@ class WP_Debug_Data {
 		);
 
 		$info['wp-active-theme'] = array(
-			'label'  => __( 'Active Theme' ),
+			'label'  => __( 'Active theme' ),
 			'fields' => array(),
 		);
 

@@ -1021,7 +1021,7 @@ function get_post_status( $post = null ) {
 function get_post_statuses() {
 	$status = array(
 		'draft'   => __( 'Draft' ),
-		'pending' => __( 'Pending Review' ),
+		'pending' => __( 'Pending review' ),
 		'private' => __( 'Private' ),
 		'publish' => __( 'Published' ),
 	);

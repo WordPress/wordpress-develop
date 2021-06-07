@@ -1,6 +1,6 @@
 <?php
 /**
- * Privacy tools, Erase Personal Data screen.
+ * "Privacy tools", "Erase personal data" screen.
  *
  * @package WordPress
  * @subpackage Administration
@@ -51,7 +51,7 @@ get_current_screen()->add_help_tab(
 		'id'      => 'plugin-data',
 		'title'   => __( 'Plugin Data' ),
 		'content' =>
-					'<p>' . __( 'Many plugins may collect or store personal data either in the WordPress database or remotely. Any Erase Personal Data request should delete data from plugins as well.' ) . '</p>' .
+					'<p>' . __( 'Many plugins may collect or store personal data either in the WordPress database or remotely. Any \'Erase personal data\' request should delete data from plugins as well.' ) . '</p>' .
 					'<p>' . __( 'Plugin authors can <a href="https://developer.wordpress.org/plugins/privacy/adding-the-personal-data-eraser-to-your-plugin/" target="_blank">learn more about how to add support for the Personal Data Eraser to a plugin here</a>.' ) . '</p>' .
 					$privacy_policy_guide,
 	)
@@ -59,7 +59,7 @@ get_current_screen()->add_help_tab(
 
 get_current_screen()->set_help_sidebar(
 	'<p><strong>' . __( 'For more information:' ) . '</strong></p>' .
-	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-erase-personal-data-screen/">Documentation on Erase Personal Data</a>' ) . '</p>' .
+	'<p>' . __( '<a href="https://wordpress.org/support/article/tools-erase-personal-data-screen/">Documentation on \'Erase personal data\'</a>' ) . '</p>' .
 	'<p>' . __( '<a href="https://wordpress.org/support/">Support</a>' ) . '</p>'
 );
 
@@ -101,14 +101,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 ?>
 
 <div class="wrap nosubsub">
-	<h1><?php esc_html_e( 'Erase Personal Data' ); ?></h1>
+	<h1><?php esc_html_e( 'Erase personal data' ); ?></h1>
 	<p><?php _e( 'This tool helps site owners comply with local laws and regulations by deleting or anonymizing known data for a given user.' ); ?></p>
 	<hr class="wp-header-end" />
 
 	<?php settings_errors(); ?>
 
 	<form action="<?php echo esc_url( admin_url( 'erase-personal-data.php' ) ); ?>" method="post" class="wp-privacy-request-form">
-		<h2><?php esc_html_e( 'Add Data Erasure Request' ); ?></h2>
+		<h2><?php esc_html_e( 'Add data erasure request' ); ?></h2>
 		<div class="wp-privacy-request-form-field">
 			<table class="form-table">
 				<tr>

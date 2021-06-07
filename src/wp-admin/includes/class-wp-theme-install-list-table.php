@@ -58,7 +58,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$tabs              = array();
 		$tabs['dashboard'] = __( 'Search' );
 		if ( 'search' === $tab ) {
-			$tabs['search'] = __( 'Search Results' );
+			$tabs['search'] = __( 'Search results' );
 		}
 		$tabs['upload']   = __( 'Upload' );
 		$tabs['featured'] = _x( 'Featured', 'themes' );
@@ -156,7 +156,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		$api = themes_api( 'query_themes', $args );
 
 		if ( is_wp_error( $api ) ) {
-			wp_die( '<p>' . $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try Again' ) . '</a></p>' );
+			wp_die( '<p>' . $api->get_error_message() . '</p> <p><a href="#" onclick="document.location.reload(); return false;">' . __( 'Try again' ) . '</a></p>' );
 		}
 
 		$this->items = $api->themes;
@@ -332,7 +332,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					esc_url( wp_nonce_url( $install_url, 'install-theme_' . $theme->slug ) ),
 					/* translators: %s: Theme name. */
 					esc_attr( sprintf( _x( 'Install %s', 'theme' ), $name ) ),
-					__( 'Install Now' )
+					__( 'Install now' )
 				);
 				break;
 		}
@@ -351,7 +351,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 		 * @since 3.4.0
 		 *
 		 * @param string[] $actions An array of theme action links. Defaults are
-		 *                          links to Install Now, Preview, and Details.
+		 *                          links to "Install now", Preview, and Details.
 		 * @param WP_Theme $theme   Theme object.
 		 */
 		$actions = apply_filters( 'theme_install_actions', $actions, $theme );
@@ -397,7 +397,7 @@ class WP_Theme_Install_List_Table extends WP_Themes_List_Table {
 					<div class="install-theme-info"></div>
 				</div>
 				<div class="wp-full-overlay-footer">
-					<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
+					<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse sidebar' ); ?>">
 						<span class="collapse-sidebar-arrow"></span>
 						<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 					</button>

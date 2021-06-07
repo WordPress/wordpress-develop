@@ -1158,7 +1158,7 @@ function wp_get_document_title() {
 		// If it's a search, use a dynamic search results title.
 	} elseif ( is_search() ) {
 		/* translators: %s: Search query. */
-		$title['title'] = sprintf( __( 'Search Results for &#8220;%s&#8221;' ), get_search_query() );
+		$title['title'] = sprintf( __( 'Search results for &#8220;%s&#8221;' ), get_search_query() );
 
 		// If on the front page, use the site title.
 	} elseif ( is_front_page() ) {
@@ -1370,7 +1370,7 @@ function wp_title( $sep = '&raquo;', $display = true, $seplocation = '' ) {
 	// If it's a search.
 	if ( is_search() ) {
 		/* translators: 1: Separator, 2: Search query. */
-		$title = sprintf( __( 'Search Results %1$s %2$s' ), $t_sep, strip_tags( $search ) );
+		$title = sprintf( __( 'Search results %1$s %2$s' ), $t_sep, strip_tags( $search ) );
 	}
 
 	// If it's a 404 page.
@@ -3115,7 +3115,7 @@ function feed_links_extra( $args = array() ) {
 		/* translators: 1: Blog name, 2: Separator (raquo), 3: Author name. */
 		'authortitle'   => __( '%1$s %2$s Posts by %3$s Feed' ),
 		/* translators: 1: Blog name, 2: Separator (raquo), 3: Search query. */
-		'searchtitle'   => __( '%1$s %2$s Search Results for &#8220;%3$s&#8221; Feed' ),
+		'searchtitle'   => __( '%1$s %2$s \'Search results\' for &#8220;%3$s&#8221; Feed' ),
 		/* translators: 1: Blog name, 2: Separator (raquo), 3: Post type name. */
 		'posttypetitle' => __( '%1$s %2$s %3$s Feed' ),
 	);

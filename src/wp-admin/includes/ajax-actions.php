@@ -1971,7 +1971,7 @@ function wp_ajax_sample_permalink() {
 }
 
 /**
- * Ajax handler for Quick Edit saving a post from a list table.
+ * Ajax handler for "Quick edit" saving a post from a list table.
  *
  * @since 3.1.0
  *
@@ -2048,7 +2048,7 @@ function wp_ajax_inline_save() {
 		$data['ping_status'] = 'closed';
 	}
 
-	// Exclude terms from taxonomies that are not supposed to appear in Quick Edit.
+	// Exclude terms from taxonomies that are not supposed to appear in Quick edit.
 	if ( ! empty( $data['tax_input'] ) ) {
 		foreach ( $data['tax_input'] as $taxonomy => $terms ) {
 			$tax_object = get_taxonomy( $taxonomy );
@@ -2194,7 +2194,7 @@ function wp_ajax_find_posts() {
 				$stat = __( 'Scheduled' );
 				break;
 			case 'pending':
-				$stat = __( 'Pending Review' );
+				$stat = __( 'Pending review' );
 				break;
 			case 'draft':
 				$stat = __( 'Draft' );
