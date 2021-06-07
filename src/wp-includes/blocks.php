@@ -982,9 +982,6 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	return $metadata;
 }
 
-
-add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
-
 /**
  * Helper function that constructs a WP_Query args array from
  * a `Query` block properties.
