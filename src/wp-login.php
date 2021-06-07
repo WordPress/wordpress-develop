@@ -1033,6 +1033,7 @@ switch ( $action ) {
 	case 'checkemail':
 		$redirect_to = admin_url();
 		$errors      = new WP_Error();
+		$title       = __( 'Check your email' );
 
 		if ( 'confirm' === $_GET['checkemail'] ) {
 			$errors->add(
@@ -1054,12 +1055,23 @@ switch ( $action ) {
 				),
 				'message'
 			);
+		} else {
+			$errors->add(
+				'checkemail_status_missing',
+				sprintf(
+					/* translators: %s: Link to the login page. */
+					__( 'An error occurred. Please <a href="%s">login</a> or contact the administrator.' ),
+					wp_login_url()
+				),
+				'message'
+			);
+			$title = __( 'An error occurred' );
 		}
 
 		/** This action is documented in wp-login.php */
 		$errors = apply_filters( 'wp_login_errors', $errors, $redirect_to );
 
-		login_header( __( 'Check your email' ), '', $errors );
+		login_header( $title, '', $errors );
 		login_footer();
 		break;
 
