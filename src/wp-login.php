@@ -1035,7 +1035,7 @@ switch ( $action ) {
 		$errors      = new WP_Error();
 		$title       = __( 'Check your email' );
 
-		if ( 'confirm' === $_GET['checkemail'] ) {
+		if ( isset( $_GET['checkemail'] ) && 'confirm' === $_GET['checkemail'] ) {
 			$errors->add(
 				'confirm',
 				sprintf(
@@ -1045,7 +1045,7 @@ switch ( $action ) {
 				),
 				'message'
 			);
-		} elseif ( 'registered' === $_GET['checkemail'] ) {
+		} elseif ( isset( $_GET['checkemail'] ) && 'registered' === $_GET['checkemail'] ) {
 			$errors->add(
 				'registered',
 				sprintf(
