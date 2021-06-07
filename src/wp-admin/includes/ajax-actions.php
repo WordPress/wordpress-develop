@@ -2994,7 +2994,6 @@ function wp_ajax_query_attachments() {
 
 	$posts = array_map( 'wp_prepare_attachment_for_js', $attachments_query->posts );
 	$posts = array_filter( $posts );
-
 	$total_posts = $attachments_query->found_posts;
 
 	if ( $total_posts < 1 ) {
@@ -3006,10 +3005,10 @@ function wp_ajax_query_attachments() {
 		$total_posts = $count_query->found_posts;
 	}
 
-	$max_pages = ceil( $total_posts / (int) $query->query['posts_per_page'] );
+	$max_pages = ceil( $total_posts / (int) $attachments_query->query['posts_per_page'] );
 
-	header( 'X-WP-Total', (int) $total_posts );
-	header( 'X-WP-TotalPages', (int) $max_pages );
+	header( 'X-WP-Total: ' . (int) $total_posts );
+	header( 'X-WP-TotalPages: ' . (int) $max_pages );
 
 	wp_send_json_success( $posts );
 }
