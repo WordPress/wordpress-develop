@@ -170,6 +170,33 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
+	function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'blocks' => array(
+						'core/heading' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'white',
+										'color' => '#fff',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertEquals(
+			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: #fff !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: #fff !important;}',
+			$theme_json->get_stylesheet( 'block_styles' )
+		);
+	}
+
 	function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -617,28 +644,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
 		$this->assertEqualSetsWithIndex( $expected, $actual );
-	}
-
-	/**
-	 * Function that appends a sub-selector to a existing one.
-	 *
-	 * Given the compounded $selector "h1, h2, h3"
-	 * and the $to_append selector ".some-class" the result will be
-	 * "h1.some-class, h2.some-class, h3.some-class".
-	 *
-	 * @param string $selector Original selector.
-	 * @param string $to_append Selector to append.
-	 *
-	 * @return string
-	 */
-	private static function append_to_selector( $selector, $to_append ) {
-		$new_selectors = array();
-		$selectors     = explode( ',', $selector );
-		foreach ( $selectors as $sel ) {
-			$new_selectors[] = $sel . $to_append;
-		}
-
-		return implode( ',', $new_selectors );
 	}
 
 	/**

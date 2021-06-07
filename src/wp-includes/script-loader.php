@@ -34,14 +34,6 @@ require ABSPATH . WPINC . '/class.wp-styles.php';
 /** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
-// get_stylesheet_directory() is used by WP_Theme_JSON_Resolver::theme_has_support().
-if ( ! function_exists( 'get_stylesheet_directory' ) ) {
-	require_once ABSPATH . WPINC . '/theme.php';
-}
-if ( ! class_exists( 'WP_Theme_JSON_Resolver' ) ) {
-	require_once ABSPATH . WPINC . '/class-wp-theme-json-resolver.php';
-}
-
 /**
  * Registers TinyMCE scripts.
  *
@@ -2331,7 +2323,7 @@ function wp_should_load_block_editor_scripts_and_styles() {
  *
  * @since 5.8.0
  *
- * @return bool Whether separate assets will be loaded or not.
+ * @return bool Whether separate assets will be loaded.
  */
 function wp_should_load_separate_core_block_assets() {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
@@ -2339,12 +2331,12 @@ function wp_should_load_separate_core_block_assets() {
 	}
 
 	/**
-	 * Filters the flag that decides whether or not separate scripts and styles
-	 * will be loaded for core blocks on-render or not.
+	 * Filters the flag that decides whether separate scripts and styles
+	 * will be loaded for core blocks on-render.
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param bool $load_separate_assets Whether separate assets will be loaded or not.
+	 * @param bool $load_separate_assets Whether separate assets will be loaded.
 	 *                                   Default false.
 	 */
 	return apply_filters( 'should_load_separate_core_block_assets', false );
@@ -2602,6 +2594,8 @@ function wp_maybe_inline_styles() {
 	$total_inline_limit = 20000;
 	/**
 	 * The maximum size of inlined styles in bytes.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param int $total_inline_limit The file-size threshold, in bytes. Defaults to 20000.
 	 */
