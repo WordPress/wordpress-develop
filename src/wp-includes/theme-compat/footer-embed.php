@@ -1,6 +1,6 @@
 <?php
 /**
- * Contains the post embed footer template
+ * Contains the post Embed footer template
  *
  * When a post is embedded in an iframe, this file is used to create the footer output
  * if the active theme does not include a footer-embed.php template.

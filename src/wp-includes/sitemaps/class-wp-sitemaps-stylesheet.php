@@ -59,7 +59,7 @@ class WP_Sitemaps_Stylesheet {
 
 		$lang       = get_language_attributes( 'html' );
 		$url        = esc_xml( __( 'URL' ) );
-		$lastmod    = esc_xml( __( 'Last Modified' ) );
+		$lastmod    = esc_xml( __( 'Last modified' ) );
 		$changefreq = esc_xml( __( 'Change Frequency' ) );
 		$priority   = esc_xml( __( 'Priority' ) );
 
@@ -173,7 +173,7 @@ XSL;
 
 		$lang    = get_language_attributes( 'html' );
 		$url     = esc_xml( __( 'URL' ) );
-		$lastmod = esc_xml( __( 'Last Modified' ) );
+		$lastmod = esc_xml( __( 'Last modified' ) );
 
 		$xsl_content = <<<XSL
 <?xml version="1.0" encoding="UTF-8"?>

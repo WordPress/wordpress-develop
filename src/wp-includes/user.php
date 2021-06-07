@@ -4053,7 +4053,7 @@ function wp_user_request_action_description( $action_name ) {
 			$description = __( 'Export Personal Data' );
 			break;
 		case 'remove_personal_data':
-			$description = __( 'Erase Personal Data' );
+			$description = __( 'Erase personal data' );
 			break;
 		default:
 			/* translators: %s: Action name. */

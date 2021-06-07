@@ -759,7 +759,7 @@ function _wp_dashboard_recent_comments_row( &$comment, $show_date = true ) {
 				$delete_url,
 				"delete:the-comment-list:comment-{$comment->comment_ID}::trash=1",
 				esc_attr__( 'Delete this comment permanently' ),
-				__( 'Delete Permanently' )
+				__( 'Delete permanently' )
 			);
 		} else {
 			$actions['trash'] = sprintf(

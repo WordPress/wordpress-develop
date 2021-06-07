@@ -62,11 +62,11 @@ wp_localize_script(
 				__( 'An unexpected error occurred. Something may be wrong with WordPress.org or this server&#8217;s configuration. If you continue to have problems, please try the <a href="%s">support forums</a>.' ),
 				__( 'https://wordpress.org/support/forums/' )
 			),
-			'tryAgain'            => __( 'Try Again' ),
+			'tryAgain'            => __( 'Try again' ),
 			/* translators: %d: Number of themes. */
 			'themesFound'         => __( 'Number of Themes found: %d' ),
 			'noThemesFound'       => __( 'No themes found. Try a different search.' ),
-			'collapseSidebar'     => __( 'Collapse Sidebar' ),
+			'collapseSidebar'     => __( 'Collapse sidebar' ),
 			'expandSidebar'       => __( 'Expand Sidebar' ),
 			/* translators: Accessibility text. */
 			'selectFeatureFilter' => __( 'Select one or more Theme features to filter by' ),
@@ -124,7 +124,7 @@ get_current_screen()->add_help_tab(
 
 $help_installing =
 	'<p>' . __( 'Once you have generated a list of themes, you can preview and install any of them. Click on the thumbnail of the theme you&#8217;re interested in previewing. It will open up in a full-screen Preview page to give you a better idea of how that theme will look.' ) . '</p>' .
-	'<p>' . __( 'To install the theme so you can preview it with your site&#8217;s content and customize its theme options, click the "Install" button at the top of the left-hand pane. The theme files will be downloaded to your website automatically. When this is complete, the theme is now available for activation, which you can do by clicking the "Activate" link, or by navigating to your Manage Themes screen and clicking the "Live Preview" link under any installed theme&#8217;s thumbnail image.' ) . '</p>';
+	'<p>' . __( 'To install the theme so you can preview it with your site&#8217;s content and customize its theme options, click the "Install" button at the top of the left-hand pane. The theme files will be downloaded to your website automatically. When this is complete, the theme is now available for activation, which you can do by clicking the "Activate" link, or by navigating to your Manage Themes screen and clicking the "Live preview" link under any installed theme&#8217;s thumbnail image.' ) . '</p>';
 
 get_current_screen()->add_help_tab(
 	array(
@@ -373,7 +373,7 @@ if ( $tab ) {
 					<# } #>
 					<# if ( data.customize_url ) { #>
 						<# if ( ! data.active ) { #>
-							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live Preview' ); ?></a>
+							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Live preview' ); ?></a>
 						<# } else { #>
 							<a class="button load-customize" href="{{ data.customize_url }}"><?php _e( 'Customize' ); ?></a>
 						<# } #>
@@ -389,7 +389,7 @@ if ( $tab ) {
 						<a class="button button-primary disabled" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Activate', 'theme' ); ?></a>
 					<# } #>
 					<# if ( data.customize_url ) { #>
-						<a class="button disabled"><?php _e( 'Live Preview' ); ?></a>
+						<a class="button disabled"><?php _e( 'Live preview' ); ?></a>
 					<# } else { #>
 						<button class="button disabled"><?php _e( 'Preview' ); ?></button>
 					<# } #>
@@ -405,9 +405,9 @@ if ( $tab ) {
 				<# } else { #>
 					<?php
 					/* translators: %s: Theme name. */
-					$aria_label = sprintf( _x( 'Cannot Install %s', 'theme' ), '{{ data.name }}' );
+					$aria_label = sprintf( _x( 'Cannot install %s', 'theme' ), '{{ data.name }}' );
 					?>
-					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot Install', 'theme' ); ?></a>
+					<a class="button button-primary disabled" data-name="{{ data.name }}" aria-label="<?php echo esc_attr( $aria_label ); ?>"><?php _ex( 'Cannot install', 'theme' ); ?></a>
 					<button class="button disabled"><?php _e( 'Preview' ); ?></button>
 				<# } #>
 			<# } #>
@@ -439,7 +439,7 @@ if ( $tab ) {
 				<# if ( data.compatible_wp && data.compatible_php ) { #>
 					<a href="{{ data.install_url }}" class="button button-primary theme-install" data-name="{{ data.name }}" data-slug="{{ data.id }}"><?php _e( 'Install' ); ?></a>
 				<# } else { #>
-					<a class="button button-primary disabled" ><?php _ex( 'Cannot Install', 'theme' ); ?></a>
+					<a class="button button-primary disabled" ><?php _ex( 'Cannot install', 'theme' ); ?></a>
 				<# } #>
 			<# } #>
 		</div>
@@ -537,7 +537,7 @@ if ( $tab ) {
 				</div>
 			</div>
 			<div class="wp-full-overlay-footer">
-				<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse Sidebar' ); ?>">
+				<button type="button" class="collapse-sidebar button" aria-expanded="true" aria-label="<?php esc_attr_e( 'Collapse sidebar' ); ?>">
 					<span class="collapse-sidebar-arrow"></span>
 					<span class="collapse-sidebar-label"><?php _e( 'Collapse' ); ?></span>
 				</button>
