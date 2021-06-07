@@ -655,13 +655,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'block-2', $data['id'] );
+		$this->assertEquals( 'block-7', $data['id'] );
 		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
 		$this->assertEqualSets(
 			array(
 				'content' => '<!-- wp:paragraph --><p>Block test</p><!-- /wp:paragraph -->',
 			),
-			get_option( 'widget_block' )[2]
+			get_option( 'widget_block' )[7]
 		);
 	}
 
