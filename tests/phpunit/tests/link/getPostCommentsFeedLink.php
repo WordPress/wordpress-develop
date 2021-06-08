@@ -148,7 +148,7 @@ class Tests_Link_GetPostCommentsFeedLink extends WP_UnitTestCase {
 		// Use the largest integer to ensure the post does not exist.
 		$post_id = PHP_INT_MAX;
 		$link    = get_post_comments_feed_link( $post_id );
-		
+
 		$this->assertEmpty( $link );
 	}
 }

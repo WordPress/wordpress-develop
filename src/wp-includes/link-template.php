@@ -754,7 +754,7 @@ function get_post_comments_feed_link( $post_id = 0, $feed = '' ) {
 	if ( ! $post instanceof WP_Post ) {
 		return '';
 	}
-	
+
 	$unattached = 'attachment' === $post->post_type && 0 === (int) $post->post_parent;
 
 	if ( get_option( 'permalink_structure' ) ) {
