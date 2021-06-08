@@ -1630,7 +1630,8 @@ function _upgrade_422_find_genericons_files_in_folder( $directory ) {
 	}
 
 	$dirs = glob( $directory . '*', GLOB_ONLYDIR );
-	$dirs = array_filter( $dirs,
+	$dirs = array_filter(
+		$dirs,
 		function( $dir ) {
 			return false === strpos( $dir, 'node_modules' );
 		}
