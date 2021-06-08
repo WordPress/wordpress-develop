@@ -152,6 +152,27 @@ class Tests_Link_wpGetCanonicalUrl extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Limit pagination for comments.
+	 *
+	 *  @ticket 50233
+	 */
+	public function test_comments_limit_paged_with_plain_permalink_structure() {
+		$cpage = 5;
+
+		$link = add_query_arg(
+			array(
+				'cpage' => $cpage,
+				'foo'   => 'bar',
+			),
+			get_permalink( self::$post_id )
+		);
+
+		$this->go_to( $link );
+		$expected = get_permalink( self::$post_id ) . '#comments';
+		$this->assertSame( $expected, wp_get_canonical_url( self::$post_id ) );
+	}
+
+	/**
 	 * Filter callback for testing of filter usage.
 	 *
 	 * @return string
