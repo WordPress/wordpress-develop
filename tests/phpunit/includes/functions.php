@@ -318,7 +318,8 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_post_terms' );
 	remove_action( 'init', 'register_block_core_post_title' );
 	remove_action( 'init', 'register_block_core_query' );
-	remove_action( 'init', 'register_block_core_query_loop' );
+	remove_action( 'init', 'register_block_core_post_template' );
+	remove_action( 'init', 'gutenberg_register_legacy_query_loop_block' );
 	remove_action( 'init', 'register_block_core_query_pagination' );
 	remove_action( 'init', 'register_block_core_query_pagination_next' );
 	remove_action( 'init', 'register_block_core_query_pagination_numbers' );
