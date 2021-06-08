@@ -229,7 +229,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -262,7 +262,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -300,7 +300,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 
 		// Diff checks if you can read both left and right revisions.
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $revision->ID ) );
 		}
@@ -340,7 +340,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		$this->assertTrue( user_can( self::$editor_user_id, 'read_post', $post_id ) );
 
 		foreach ( $revisions as $revision ) {
@@ -387,7 +387,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 1, $revisions );
+		$this->assertCount( 2, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertTrue( user_can( self::$editor_user_id, 'edit_post', $revision->post_parent ) );
 		}
@@ -451,7 +451,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 
 		$revisions = wp_get_post_revisions( $post_id );
-		$this->assertCount( 2, $revisions );
+		$this->assertCount( 3, $revisions );
 		foreach ( $revisions as $revision ) {
 			$this->assertFalse( current_user_can( 'edit_post', $revision->post_parent ) );
 			$this->assertFalse( current_user_can( 'edit_post', $revision->ID ) );
@@ -512,20 +512,25 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	function test_wp_get_post_revisions_should_order_by_post_date() {
 		global $wpdb;
 
+		$now  = time();
+		$date = date( 'Y-m-d H:i:s', $now );
 		$post = self::factory()->post->create_and_get(
 			array(
-				'post_title'   => 'some-post',
-				'post_type'    => 'post',
-				'post_content' => 'some_content',
+				'post_title'    => 'some-post',
+				'post_type'     => 'post',
+				'post_content'  => 'some_content',
+				'post_date'     => $date,
+				'post_date_gmt' => $date
 			)
 		);
 
 		$post                 = (array) $post;
+		$revision_ids         = array();
+		$revisions            = wp_get_post_revisions( $post['ID'] );
+		$revision_ids[]       = current( $revisions )->ID;
 		$post_revision_fields = _wp_post_revision_data( $post );
 		$post_revision_fields = wp_slash( $post_revision_fields );
 
-		$revision_ids = array();
-		$now          = time();
 		for ( $j = 1; $j < 3; $j++ ) {
 			// Manually modify dates to ensure they're different.
 			$date                                  = gmdate( 'Y-m-d H:i:s', $now - ( $j * 10 ) );
@@ -546,20 +551,24 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 26042
 	 */
 	function test_wp_get_post_revisions_should_order_by_ID_when_post_date_matches() {
-		$post = self::factory()->post->create_and_get(
+		$revision_ids = array();
+		$date         = date( 'Y-m-d H:i:s', time() - 10 );
+		$post         = self::factory()->post->create_and_get(
 			array(
-				'post_title'   => 'some-post',
-				'post_type'    => 'post',
-				'post_content' => 'some_content',
+				'post_title'    => 'some-post',
+				'post_type'     => 'post',
+				'post_content'  => 'some_content',
+				'post_date'     => $date,
+				'post_date_gmt' => $date
 			)
 		);
 
 		$post                 = (array) $post;
 		$post_revision_fields = _wp_post_revision_data( $post );
 		$post_revision_fields = wp_slash( $post_revision_fields );
+		$revisions = wp_get_post_revisions( $post['ID'] );
+		$revision_ids[] = current( $revisions )->ID;
 
-		$revision_ids = array();
-		$date         = gmdate( 'Y-m-d H:i:s', time() - 10 );
 		for ( $j = 1; $j < 3; $j++ ) {
 			// Manually modify dates to ensure they're the same.
 			$post_revision_fields['post_date']     = $date;
@@ -634,5 +643,31 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 			}
 		);
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
+	}
+
+	/**
+	 * @ticket 30854
+	 */
+	function test_wp_first_revision_is_not_lost() {
+		$post = self::factory()->post->create_and_get( array(
+			'post_title' => 'some-post',
+			'post_type' => 'post',
+			'post_content' => 'Initial Content',
+		) );
+
+		wp_update_post( array(
+			'ID' => $post->ID,
+			'post_content' => 'Update #1',
+		) );
+
+		wp_update_post( array(
+			'ID' => $post->ID,
+			'post_content' => 'Update #2',
+		) );
+
+		$revisions = wp_get_post_revisions( $post->ID );
+		$earliest_revision = end( $revisions );
+
+		$this->assertEquals( 'Initial Content', $earliest_revision->post_content );
 	}
 }
