@@ -1,6 +1,62 @@
 <?php
 
 /**
+ * Finds whether a template slug is customized for the currently active theme.
+ *
+ * @access private
+ * @since 5.8.0
+ *
+ * @param string $slug          Template slug.
+ * @param string $template_type wp_template.
+ *
+ * @return bool Whether the template is customized for the currently active theme.
+ */
+function template_is_customized( $slug, $template_type = 'wp_template' ) {
+	$templates = get_theme_mod( $template_type, array() );
+
+	if ( ! isset( $templates[ $slug ] ) ) {
+		return false;
+	}
+
+	$customized = get_post( $templates[ $slug ] );
+	if ( $customized && $customized->post_type === $template_type ) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+/**
+ * Sets a custom slug when creating new templates.
+ *
+ * @access private
+ * @since 5.8.0
+ *
+ * @param int     $post_id Post ID.
+ * @param WP_Post $post    Post object.
+ * @param bool    $update  Update post or new post.
+ */
+function wp_filter_save_post_wp_template( $post_id, $post, $update ) {
+	if ( $update || ! $post->post_name ) {
+		return;
+	}
+
+	$templates = get_theme_mod( $post->post_type, array() );
+	$slug      = $post->post_name;
+
+	if ( template_is_customized( $slug, $post->post_type ) ) {
+		$suffix = 2;
+		do {
+			$slug = _truncate_post_slug( $post->post_name, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
+			$suffix++;
+		} while ( template_is_customized( $slug, $post->post_type ) );
+	}
+
+	$templates[ $slug ] = $post->ID;
+	set_theme_mod( $post->post_type, $templates );
+}
+
+/**
  * Print the skip-link script & styles.
  *
  * @access private

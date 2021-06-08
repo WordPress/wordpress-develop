@@ -653,6 +653,7 @@ add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
 
 // Block Templates CPT and Rendering
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
+add_action( 'save_post_wp_template', 'wp_filter_save_post_wp_template', 10, 3 );
 add_action( 'wp_footer', 'the_block_template_skip_link' );
 
 unset( $filter, $action );
