@@ -375,9 +375,6 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * passing through the JSON response. We override this to add attributes to
 	 * the collection items.
 	 *
-	 * @since 5.8.0 The response header `X-WP-TotalPages` holds the total number
-	 * of attachments found.
-	 *
 	 * @param {Object|Array} response The raw response Object/Array.
 	 * @param {Object} xhr
 	 * @return {Array} The array of model attributes to be added to the collection
