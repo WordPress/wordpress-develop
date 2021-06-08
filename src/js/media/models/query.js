@@ -112,10 +112,8 @@ Query = Attachments.extend(/** @lends wp.media.model.Query.prototype */{
 		options = options || {};
 		options.remove = false;
 
-		return this._more = this.fetch( options ).done( function( response ) {
-			var attachments = response.attachments;
-
-			if ( _.isEmpty( attachments ) || -1 === this.args.posts_per_page || attachments.length < this.args.posts_per_page ) {
+		return this._more = this.fetch( options ).done( function( attachments ) {
+			if ( _.isEmpty( attachments ) || -1 === query.args.posts_per_page || attachments.length < query.args.posts_per_page ) {
 				query._hasMore = false;
 			}
 		});

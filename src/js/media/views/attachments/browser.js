@@ -635,11 +635,10 @@ AttachmentsBrowser = View.extend(/** @lends wp.media.view.AttachmentsBrowser.pro
 		});
 
 		view.loadMoreSpinner.show();
-
-		this.collection.more().done( function() {
-			// Within done(), `this` is the returned collection.
+		this.collection.once( 'attachments:received', function() {
 			view.loadMoreSpinner.hide();
 		} );
+		this.collection.more();
 	},
 
 	/**
