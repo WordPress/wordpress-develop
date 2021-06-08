@@ -33,7 +33,6 @@ function _build_template_result_from_post( $post ) {
 
 	$theme          = wp_get_theme()->get_stylesheet();
 	$slug           = array_search( $post->ID, $ids, true );
-	$has_theme_file = null !== _gutenberg_get_template_file( $post->post_type, $slug );
 
 	$template                 = new WP_Block_Template();
 	$template->wp_id          = $post->ID;
@@ -91,11 +90,13 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		$wp_query_args['post_status'] = 'publish';
 	}
 
+	$query_result = array();
+
 	// See https://core.trac.wordpress.org/ticket/28099 for context.
 	if ( ! isset( $wp_query_args['post__in'] ) || array() !== $wp_query_args['post__in'] ) {
 		$template_query = new WP_Query( $wp_query_args );
 		foreach ( $template_query->get_posts() as $post ) {
-			$template = _gutenberg_build_template_result_from_post( $post, $template_type );
+			$template = _build_template_result_from_post( $post, $template_type );
 
 			if ( ! is_wp_error( $template ) ) {
 				$query_result[] = $template;
@@ -136,7 +137,7 @@ function get_block_template( $id, $template_type = 'wp_template' ) {
 	}
 
 	if ( $post && $template_type === $post->post_type ) {
-		$template = _gutenberg_build_template_result_from_post( $post, $template_type );
+		$template = _build_template_result_from_post( $post, $template_type );
 
 		if ( ! is_wp_error( $template ) ) {
 			return $template;
