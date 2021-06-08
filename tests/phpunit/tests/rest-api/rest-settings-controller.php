@@ -99,6 +99,7 @@ class WP_Test_REST_Settings_Controller extends WP_Test_REST_Controller_Testcase 
 			'timezone',
 			'date_format',
 			'time_format',
+			'site_logo',
 			'start_of_week',
 			'language',
 			'use_smilies',
