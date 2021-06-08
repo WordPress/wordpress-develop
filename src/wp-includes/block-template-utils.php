@@ -20,7 +20,7 @@ function _build_template_result_from_post( $post ) {
 	$template_type = $post->post_type;
 
 	if ( 'wp_template' !== $template_type ) {
-		return new WP_Error( 'template_wrong_post_type', __( 'An invalid post was provided for this template.', 'gutenberg' ) );
+		return new WP_Error( 'template_wrong_post_type', __( 'An invalid post was provided for this template.' ) );
 	}
 
 	$ids    = get_theme_mod( $template_type, array() );
@@ -28,7 +28,7 @@ function _build_template_result_from_post( $post ) {
 
 	// Temporarily disable inactive access for 5.8 version.
 	if ( ! $active ) {
-		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.', 'gutenberg' ) );
+		return new WP_Error( 'template_missing_theme', __( 'No theme is defined for this template.' ) );
 	}
 
 	$theme          = wp_get_theme()->get_stylesheet();
