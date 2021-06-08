@@ -666,7 +666,6 @@ class WP_Upgrader {
 	 *                              or false if unable to connect to the filesystem.
 	 */
 	public function run( $options ) {
-
 		$defaults = array(
 			'package'                     => '', // Please always pass this.
 			'destination'                 => '', // ...and this.
@@ -947,6 +946,89 @@ class WP_Upgrader {
 		return delete_option( $lock_name . '.lock' );
 	}
 
+	/**
+	 * Send upgrade WP_Error data to WordPress.org.
+	 *
+	 * @since 5.6.1
+	 *
+	 * @global string             $wp_version    The WordPress version string.
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 * @param  WP_Error           $result        WP_Error data from failed upgrade process.
+	 * @param  array              $args          Args.
+	 *
+	 * @return void
+	 */
+	protected function send_error_data( $result, $args = array() ) {
+		global $wp_version, $wp_filesystem;
+
+		if ( ! is_wp_error( $result ) ) {
+			return;
+		}
+
+		$time_taken = null;
+		if ( isset( $args['time_taken'] ) ) {
+			$time_taken = (int) $args['time_taken'];
+		} elseif ( isset( $_SERVER['REQUEST_TIME'] ) ) {
+			$time_taken = time() - (int) $_SERVER['REQUEST_TIME'];
+		}
+
+		$slug    = null;
+		$version = null;
+		if ( isset( $args['slug'] ) ) {
+			// Upgrade plugin/theme.
+			$slug    = $args['slug'];
+			$version = $args['version'];
+		} elseif ( ! empty( $this->skin->options['api']->slug ) ) {
+			// Install plugin/theme.
+			$slug    = $this->skin->options['api']->slug;
+			$version = $this->skin->options['api']->version;
+		}
+
+		/*
+		 * Examples of the type field:
+		 *  - plugin_install_upload
+		 *  - plugin_install_ajax
+		 *  - plugin_install
+		 *  - plugin_upgrade
+		 *  - plugin_upgrade_ajax
+		 *  - plugin_upgrade_automatic
+		 *  - theme_install_upload
+		 *  - theme_upgrade
+		 *  - theme_upgrade_automatic
+		 */
+		$type = '';
+		if ( ! empty( $args['type'] ) ) {
+			$type = $args['type'];
+		}
+		foreach ( array( 'automatic', 'ajax', 'upload' ) as $field ) {
+			if ( false !== stripos( get_class( $this->skin ), $field ) ) {
+				$type .= '_' . $field;
+			}
+		}
+
+		$stats = array(
+			'type'             => $type,
+			'slug'             => $slug,
+			'version'          => $version,
+			'success'          => false,
+			'fs_method'        => $wp_filesystem->method,
+			'fs_method_forced' => defined( 'FS_METHOD' ) || has_filter( 'filesystem_method' ),
+			'fs_method_direct' => ! empty( $GLOBALS['_wp_filesystem_direct_method'] ) ? $GLOBALS['_wp_filesystem_direct_method'] : '',
+			'time_taken'       => $time_taken,
+			'wp_version'       => $wp_version,
+			'error_code'       => $result->get_error_code(),
+			'error_message'    => $result->get_error_message(),
+			'error_data'       => $result->get_error_data(),
+		);
+
+		if ( $this instanceof Plugin_Upgrader ) {
+			wp_update_plugins( $stats );
+		}
+
+		if ( $this instanceof Theme_Upgrader ) {
+			wp_update_themes( $stats );
+		}
+	}
 }
 
 /** Plugin_Upgrader class */

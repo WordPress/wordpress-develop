@@ -137,6 +137,8 @@ class Theme_Upgrader extends WP_Upgrader {
 			return $install_result;
 		}
 
+		$start_time = time();
+
 		// We don't have the parent theme, let's install it.
 		$api = themes_api(
 			'theme_information',
@@ -180,6 +182,15 @@ class Theme_Upgrader extends WP_Upgrader {
 		);
 
 		if ( is_wp_error( $parent_result ) ) {
+			$this->send_error_data(
+				$parent_result,
+				array(
+					'type'       => 'theme_install',
+					'slug'       => $api->slug,
+					'version'    => $api->version,
+					'time_taken' => time() - $start_time,
+				)
+			);
 			add_filter( 'install_theme_complete_actions', array( $this, 'hide_activate_preview_actions' ) );
 		}
 
@@ -245,7 +256,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			add_action( 'upgrader_process_complete', 'wp_clean_themes_cache', 9, 0 );
 		}
 
-		$this->run(
+		$result = $this->run(
 			array(
 				'package'           => $package,
 				'destination'       => get_theme_root(),
@@ -261,6 +272,15 @@ class Theme_Upgrader extends WP_Upgrader {
 		remove_action( 'upgrader_process_complete', 'wp_clean_themes_cache', 9 );
 		remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'check_parent_theme_filter' ) );
+
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type' => 'theme_install',
+				)
+			);
+		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			return $this->result;
@@ -321,7 +341,7 @@ class Theme_Upgrader extends WP_Upgrader {
 			add_action( 'upgrader_process_complete', 'wp_clean_themes_cache', 9, 0 );
 		}
 
-		$this->run(
+		$result = $this->run(
 			array(
 				'package'           => $r['package'],
 				'destination'       => get_theme_root( $theme ),
@@ -339,6 +359,17 @@ class Theme_Upgrader extends WP_Upgrader {
 		remove_filter( 'upgrader_pre_install', array( $this, 'current_before' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'current_after' ) );
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ) );
+
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type'    => 'theme_update',
+					'slug'    => $r['theme'],
+					'version' => $r['new_version'],
+				)
+			);
+		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			return $this->result;
@@ -432,6 +463,8 @@ class Theme_Upgrader extends WP_Upgrader {
 				continue;
 			}
 
+			$start_time = time();
+
 			// Get the URL to the zip file.
 			$r = $current->response[ $theme ];
 
@@ -449,6 +482,18 @@ class Theme_Upgrader extends WP_Upgrader {
 			);
 
 			$results[ $theme ] = $this->result;
+
+			if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+				$this->send_error_data(
+					is_wp_error( $result ) ? $result : $this->result,
+					array(
+						'type'       => 'theme_update',
+						'slug'       => $r['theme'],
+						'version'    => $r['new_version'],
+						'time_taken' => time() - $start_time,
+					)
+				);
+			}
 
 			// Prevent credentials auth screen from displaying multiple times.
 			if ( false === $result ) {

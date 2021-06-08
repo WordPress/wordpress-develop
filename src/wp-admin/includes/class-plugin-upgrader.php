@@ -132,7 +132,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			add_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9, 0 );
 		}
 
-		$this->run(
+		$result = $this->run(
 			array(
 				'package'           => $package,
 				'destination'       => WP_PLUGIN_DIR,
@@ -147,6 +147,15 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		remove_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9 );
 		remove_filter( 'upgrader_source_selection', array( $this, 'check_package' ) );
+
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type' => 'plugin_install',
+				)
+			);
+		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			return $this->result;
@@ -219,7 +228,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 			add_action( 'upgrader_process_complete', 'wp_clean_plugins_cache', 9, 0 );
 		}
 
-		$this->run(
+		$result = $this->run(
 			array(
 				'package'           => $r->package,
 				'destination'       => WP_PLUGIN_DIR,
@@ -239,6 +248,17 @@ class Plugin_Upgrader extends WP_Upgrader {
 		remove_filter( 'upgrader_pre_install', array( $this, 'active_before' ) );
 		remove_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ) );
 		remove_filter( 'upgrader_post_install', array( $this, 'active_after' ) );
+
+		if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+			$this->send_error_data(
+				is_wp_error( $result ) ? $result : $this->result,
+				array(
+					'type'    => 'plugin_update',
+					'slug'    => $r->slug,
+					'version' => $r->new_version,
+				)
+			);
+		}
 
 		if ( ! $this->result || is_wp_error( $this->result ) ) {
 			return $this->result;
@@ -329,6 +349,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 				continue;
 			}
 
+			$start_time = time();
+
 			// Get the URL to the zip file.
 			$r = $current->response[ $plugin ];
 
@@ -348,6 +370,18 @@ class Plugin_Upgrader extends WP_Upgrader {
 			);
 
 			$results[ $plugin ] = $this->result;
+
+			if ( is_wp_error( $result ) || is_wp_error( $this->result ) ) {
+				$this->send_error_data(
+					is_wp_error( $result ) ? $result : $this->result,
+					array(
+						'type'       => 'plugin_update',
+						'slug'       => $r->slug,
+						'version'    => $r->new_version,
+						'time_taken' => time() - $start_time,
+					)
+				);
+			}
 
 			// Prevent credentials auth screen from displaying multiple times.
 			if ( false === $result ) {
