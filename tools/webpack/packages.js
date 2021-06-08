@@ -114,6 +114,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'latest-posts',
 		'legacy-widget',
 		'loginout',
+		'page-list',
 		'post-content',
 		'post-date',
 		'post-excerpt',
