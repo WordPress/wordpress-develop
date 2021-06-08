@@ -19,7 +19,7 @@
 function _build_template_result_from_post( $post ) {
 	$template_type = $post->post_type;
 
-	if ( $template_type !== 'wp_template' ) {
+	if ( 'wp_template' !== $template_type ) {
 		return new WP_Error( 'template_wrong_post_type', __( 'An invalid post was provided for this template.', 'gutenberg' ) );
 	}
 
@@ -72,7 +72,7 @@ function get_block_templates( $query = array(), $template_type = 'wp_template' )
 		'post_type'      => $template_type,
 		'posts_per_page' => -1,
 		'no_found_rows'  => true,
-		'post__in'      => array_values( get_theme_mod( $template_type, array() ) )
+		'post__in'       => array_values( get_theme_mod( $template_type, array() ) ),
 	);
 
 	if ( isset( $query['slug__in'] ) ) {
