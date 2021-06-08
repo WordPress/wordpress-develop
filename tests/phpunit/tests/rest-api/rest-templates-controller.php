@@ -32,14 +32,8 @@ class WP_REST_Template_Controller_Test extends WP_Test_REST_Controller_Testcase 
 			'post_title'   => 'My Template',
 			'post_content' => 'Content',
 			'post_excerpt' => 'Description of my template.',
-			'tax_input'    => array(
-				'wp_theme' => array(
-					get_stylesheet(),
-				),
-			),
 		);
 		self::$post = self::factory()->post->create_and_get( $args );
-		wp_set_post_terms( self::$post->ID, get_stylesheet(), 'wp_theme' );
 	}
 
 	public static function wpTearDownAfterClass() {
