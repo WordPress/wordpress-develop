@@ -333,6 +333,6 @@ function _unhook_block_registration() {
 	remove_action( 'init', 'register_block_core_social_link' );
 	remove_action( 'init', 'register_block_core_tag_cloud' );
 	remove_action( 'init', 'register_core_block_types_from_metadata' );
-	remove_action( 'init', 'init_legacy_widget_block' );
+	remove_action( 'init', 'register_block_core_legacy_widget' );
 }
 tests_add_filter( 'init', '_unhook_block_registration', 1000 );
