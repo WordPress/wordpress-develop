@@ -66,12 +66,14 @@ function _build_template_result_from_post( $post ) {
  * @return array Templates.
  */
 function get_block_templates( $query = array(), $template_type = 'wp_template' ) {
+	$theme_slugs = get_theme_mod( $template_type, array() );
+
 	$wp_query_args = array(
 		'post_status'    => array( 'auto-draft', 'draft', 'publish' ),
 		'post_type'      => $template_type,
 		'posts_per_page' => -1,
 		'no_found_rows'  => true,
-		'post__in'       => array_values( get_theme_mod( $template_type, array() ) ),
+		'post__in'       => array_values( $theme_slugs ),
 	);
 
 	if ( isset( $query['slug__in'] ) ) {
