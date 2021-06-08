@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Finds whether a template slug is customized for the currently active theme.
+ * Finds whether a customized block template with the given slug exists for the currently active theme.
  *
  * @access private
  * @since 5.8.0
@@ -11,7 +11,7 @@
  *
  * @return bool Whether the template is customized for the currently active theme.
  */
-function template_is_customized( $slug, $template_type = 'wp_template' ) {
+function customized_block_template_exists( $slug, $template_type = 'wp_template' ) {
 	$templates = get_theme_mod( $template_type, array() );
 
 	if ( ! isset( $templates[ $slug ] ) ) {
@@ -44,12 +44,12 @@ function wp_filter_save_post_wp_template( $post_id, $post, $update ) {
 	$templates = get_theme_mod( $post->post_type, array() );
 	$slug      = $post->post_name;
 
-	if ( template_is_customized( $slug, $post->post_type ) ) {
+	if ( customized_block_template_exists( $slug, $post->post_type ) ) {
 		$suffix = 2;
 		do {
 			$slug = _truncate_post_slug( $post->post_name, 200 - ( strlen( $suffix ) + 1 ) ) . "-$suffix";
 			$suffix++;
-		} while ( template_is_customized( $slug, $post->post_type ) );
+		} while ( customized_block_template_exists( $slug, $post->post_type ) );
 	}
 
 	$templates[ $slug ] = $post->ID;
