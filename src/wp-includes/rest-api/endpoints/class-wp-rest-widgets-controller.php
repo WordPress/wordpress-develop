@@ -360,6 +360,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * Fires after a widget is deleted via the REST API.
 		 *
 		 * @since 5.8.0
+		 *
 		 * @param string           $widget_id  ID of the widget marked for deletion.
 		 * @param string           $sidebar_id ID of the sidebar the widget was deleted from.
 		 * @param WP_REST_Response $response   The response data.
@@ -520,6 +521,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		 * Fires after a widget is created or updated via the REST API.
 		 *
 		 * @since 5.8.0
+		 *
 		 * @param string          $id         ID of the widget being saved.
 		 * @param string          $sidebar_id ID of the sidebar containing the widget being saved.
 		 * @param WP_REST_Request $request    Request object.
