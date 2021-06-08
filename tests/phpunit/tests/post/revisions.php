@@ -635,4 +635,21 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		);
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
+
+
+	/*
+	 * Verify that trying to create a revision with an invalid ID returns a WP_Error.
+	 *
+	 *
+	 * @ticket 30009
+	 */
+	public function test_wp_save_post_revision_error() {
+		$post     = self::factory()->post->create_and_get(
+			array(
+				'ID' => PHP_INT_MAX,
+			)
+		);
+		$revision = _wp_put_post_revision( $post );
+		$this->assertTrue( is_wp_error( $revision ) );
+	}
 }
