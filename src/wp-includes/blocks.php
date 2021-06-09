@@ -151,23 +151,27 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir    = dirname( $metadata['file'] );
 	$style_file   = realpath( "$block_dir/$style_path" );
-	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
-	$result       = wp_register_style(
-		$style_handle,
-		$style_uri,
-		array(),
-		$version
-	);
-	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
-		wp_style_add_data( $style_handle, 'rtl', 'replace' );
-	}
-	if ( file_exists( $style_file ) ) {
-		wp_style_add_data( $style_handle, 'path', $style_file );
-	}
 
-	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
-	if ( is_rtl() && file_exists( $rtl_file ) ) {
-		wp_style_add_data( $style_handle, 'path', $rtl_file );
+	if ( file_exists( $style_file ) ) {
+		$result = wp_register_style(
+			$style_handle,
+			$style_uri,
+			array(),
+			filemtime( $style_file )
+		);
+
+		if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
+			wp_style_add_data( $style_handle, 'rtl', 'replace' );
+		}
+
+		wp_style_add_data( $style_handle, 'path', $style_file );
+
+		$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
+		if ( is_rtl() && file_exists( $rtl_file ) ) {
+			wp_style_add_data( $style_handle, 'path', $rtl_file );
+		}
+	} else {
+		$result = wp_register_style( $style_handle, false );
 	}
 
 	return $result ? $style_handle : false;
