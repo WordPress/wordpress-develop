@@ -3672,6 +3672,7 @@ function _wp_privacy_send_request_confirmation_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, USER_EMAIL, DESCRIPTION, MANAGE_URL, SITEURL; those are placeholders. */
 	$content = __(
+// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
 'Howdy,
 
 A user data privacy request has been confirmed on ###SITENAME###:
@@ -3904,6 +3905,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 
 	/* translators: Do not translate SITENAME, SITEURL; those are placeholders. */
 	$content = __(
+// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
 'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
@@ -3918,6 +3920,7 @@ All at ###SITENAME###
 	if ( ! empty( $email_data['privacy_policy_url'] ) ) {
 		/* translators: Do not translate SITENAME, SITEURL, PRIVACY_POLICY_URL; those are placeholders. */
 		$content = __(
+// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
 'Howdy,
 
 Your request to erase your personal data on ###SITENAME### has been completed.
@@ -4283,6 +4286,7 @@ function wp_send_user_request( $request_id ) {
 
 	/* translators: Do not translate DESCRIPTION, CONFIRM_URL, SITENAME, SITEURL: those are placeholders. */
 	$content = __(
+// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
 'Howdy,
 
 A request has been made to perform the following action on your account:
