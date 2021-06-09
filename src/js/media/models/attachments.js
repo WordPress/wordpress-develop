@@ -380,6 +380,9 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * @return {Array} The array of model attributes to be added to the collection
 	 */
 	parse: function( response, xhr ) {
+		if ( ! _.isArray( response ) ) {
+			  response = [response];
+		}
 		return _.map( response, function( attrs ) {
 			var id, attachment, newAttributes;
 
