@@ -1996,7 +1996,11 @@ function wp_iframe_tag_add_loading_attr( $iframe, $context ) {
 	}
 
 	// Iframes should have source and dimension attributes for the `loading` attribute to be added.
-	if ( false === strpos( $iframe, ' src="' ) || false === strpos( $iframe, ' width="' ) || false === strpos( $iframe, ' height="' ) ) {
+	if (
+		( false === strpos( $iframe, ' src="' ) && false === strpos( $iframe, " src='" ) )
+		|| ( false === strpos( $iframe, ' width="' ) && false === strpos( $iframe, " width='" ) )
+		|| ( false === strpos( $iframe, ' height="' ) && false === strpos( $iframe, " height='" ) )
+	) {
 		return $iframe;
 	}
 
