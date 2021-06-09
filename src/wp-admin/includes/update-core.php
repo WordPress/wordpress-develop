@@ -803,6 +803,8 @@ $_old_files = array(
 	'wp-includes/js/jquery/ui/widget.min.js',
 	// 5.7
 	'wp-includes/blocks/classic/block.json',
+	// 5.8
+	'wp-content/plugins/hello.php',
 );
 
 /**
