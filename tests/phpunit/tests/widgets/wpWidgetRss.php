@@ -65,6 +65,8 @@ class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
 	 * @param string $expected Expected output.
 	 */
 	public function test_url_happy_path( $url, $expected ) {
+		add_filter( 'pre_http_request', array( $this, 'mocked_rss_response' ) );
+
 		$widget   = new WP_Widget_RSS();
 		$args     = array(
 			'before_title'  => '<h2>',
@@ -91,9 +93,27 @@ class Test_Widgets_wpWidgetRss extends WP_UnitTestCase {
 	public function data_url_happy_path() {
 		return array(
 			'when url is given' => array(
-				'url' => 'http://wordpress.org/news/feed/',
-				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget" href="http://wordpress.org/news/feed/">',
+				'url' => 'https://wordpress.org/news/feed/',
+				'<section id="widget_rss-5" class="widget widget_rss"><h2><a class="rsswidget" href="https://wordpress.org/news/feed/">',
 			),
+		);
+	}
+
+	public function mocked_rss_response() {
+		$single_value_headers = array(
+			'content-type' => 'application/rss+xml; charset=UTF-8',
+			'link'         => '<https://wordpress.org/news/wp-json/>; rel="https://api.w.org/"',
+		);
+
+		return array(
+			'headers'  => new Requests_Utility_CaseInsensitiveDictionary( $single_value_headers ),
+			'body'     => file_get_contents( DIR_TESTDATA . '/feed/wordpress-org-news.xml' ),
+			'response' => array(
+				'code'    => 200,
+				'message' => 'OK',
+			),
+			'cookies'  => array(),
+			'filename' => null,
 		);
 	}
 }
