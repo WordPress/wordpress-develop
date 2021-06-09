@@ -3707,7 +3707,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.6
 	 *
-	 * @deprecated 5.7.0 Use {@see 'user_request_confirmed_email_content'} instead. For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_request_confirmed_email_content'} instead. For fulfillment email content use {@see 'user_erasure_fulfillment_email_content'} instead.
 	 *
 	 * @param string $content    The email content.
 	 * @param array  $email_data {
@@ -3725,7 +3725,7 @@ All at ###SITENAME###
 	$content = apply_filters_deprecated(
 		'user_confirmed_action_email_content',
 		array( $content, $email_data ),
-		'5.7.0',
+		'5.8.0',
 		sprintf(
 			/* translators: 1 & 2: Deprecation replacement options */
 			__( '%1$s or %2$s' ),
@@ -3746,7 +3746,7 @@ All at ###SITENAME###
 	 * ###MANAGE_URL###  The URL to manage requests.
 	 * ###SITEURL###     The URL to the site.
 	 *
-	 * @since 5.7.0
+	 * @since 5.8.0
 	 *
 	 * @param string $content    The email content.
 	 * @param array  $email_data {
@@ -3863,7 +3863,7 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 *
 	 * @since 4.9.8
 	 *
-	 * @deprecated 5.7.0 Use {@see 'user_erasure_fulfillment_email_subject'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_subject'} instead.
 	 *
 	 * @param string $subject    The email subject.
 	 * @param string $sitename   The name of the site.
@@ -3879,12 +3879,12 @@ function _wp_privacy_send_erasure_fulfillment_notification( $request_id ) {
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$subject = apply_filters_deprecated( 'user_erasure_complete_email_subject', array( $subject, $email_data['sitename'], $email_data ), '5.7.0', 'user_erasure_fulfillment_email_subject' );
+	$subject = apply_filters_deprecated( 'user_erasure_complete_email_subject', array( $subject, $email_data['sitename'], $email_data ), '5.8.0', 'user_erasure_fulfillment_email_subject' );
 
 	/**
 	 * Filters the subject of the email sent when an erasure request is completed.
 	 *
-	 * @since 5.7.0
+	 * @since 5.8.0
 	 *
 	 * @param string $subject    The email subject.
 	 * @param string $sitename   The name of the site.
@@ -3950,7 +3950,7 @@ All at ###SITENAME###
 	 *
 	 * @since 4.9.6
 	 *
-	 * @deprecated 5.7.0 Use {@see 'user_erasure_fulfillment_email_content'} instead. For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_content'} instead. For user request confirmation email content use {@see 'user_request_confirmed_email_content'} instead.
 	 *
 	 * @param string $content The email content.
 	 * @param array  $email_data {
@@ -3968,7 +3968,7 @@ All at ###SITENAME###
 	$content = apply_filters_deprecated(
 		'user_confirmed_action_email_content',
 		array( $content, $email_data ),
-		'5.7.0',
+		'5.8.0',
 		sprintf(
 			/* translators: 1 & 2: Deprecation replacement options */
 			__( '%1$s or %2$s' ),
@@ -3989,7 +3989,7 @@ All at ###SITENAME###
 	 * ###PRIVACY_POLICY_URL### Privacy policy page URL.
 	 * ###SITEURL###            The URL to the site.
 	 *
-	 * @since 5.7.0
+	 * @since 5.8.0
 	 *
 	 * @param string $content The email content.
 	 * @param array  $email_data {
@@ -4019,7 +4019,7 @@ All at ###SITENAME###
 	 *
 	 * @since 5.4.0
 	 *
-	 * @deprecated 5.7.0 Use {@see 'user_erasure_fulfillment_email_headers'} instead.
+	 * @deprecated 5.8.0 Use {@see 'user_erasure_fulfillment_email_headers'} instead.
 	 *
 	 * @param string|array $headers    The email headers.
 	 * @param string       $subject    The email subject.
@@ -4037,7 +4037,7 @@ All at ###SITENAME###
 	 *     @type string          $siteurl            The site URL sending the mail.
 	 * }
 	 */
-	$headers = apply_filters_deprecated( 'user_erasure_complete_email_headers', array( $headers, $subject, $content, $request_id, $email_data ), '5.7.0', 'user_erasure_fulfillment_email_headers' );
+	$headers = apply_filters_deprecated( 'user_erasure_complete_email_headers', array( $headers, $subject, $content, $request_id, $email_data ), '5.8.0', 'user_erasure_fulfillment_email_headers' );
 
 	/**
 	 * Filters the headers of the data erasure fulfillment notification.
