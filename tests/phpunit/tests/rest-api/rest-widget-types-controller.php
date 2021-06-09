@@ -307,7 +307,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"\" />\n" .
@@ -343,7 +343,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'number', 8 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search-8-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search-8-title\" name=\"widget-search[8][title]\" type=\"text\" value=\"\" />\n" .
@@ -385,7 +385,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .
@@ -421,7 +421,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'form_data', 'widget-search[-1][title]=Updated+title' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Updated title\" />\n" .
@@ -465,7 +465,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .

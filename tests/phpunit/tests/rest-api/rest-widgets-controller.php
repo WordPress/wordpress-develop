@@ -381,12 +381,17 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 		$data               = $this->remove_links( $data );
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				array(
 					'id'            => 'text-1',
 					'id_base'       => 'text',
 					'sidebar'       => 'sidebar-1',
+					'rendered'      => '<div class="textwidget">Custom text test</div>',
+					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 					'instance'      => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -406,11 +411,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'text' => 'Custom text test',
 						),
 					),
-					'rendered'      => '<div class="textwidget">Custom text test</div>',
-					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 				),
 				array(
 					'id'            => 'testwidget',
@@ -1207,11 +1207,16 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/widgets/text-1' );
 		$response = rest_do_request( $request );
 
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				'id'            => 'text-1',
 				'id_base'       => 'text',
 				'sidebar'       => 'wp_inactive_widgets',
+				'rendered'      => '',
+				'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+								'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+								'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+								'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 				'instance'      => array(
 					'encoded' => base64_encode(
 						serialize(
@@ -1231,11 +1236,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 						'text' => 'Custom text test',
 					),
 				),
-				'rendered'      => '',
-				'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-								'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-								'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-								'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 			),
 			$response->get_data()
 		);
@@ -1264,7 +1264,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_query_params( array( 'force' => true ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				'deleted'  => true,
 				'previous' => array(
@@ -1272,6 +1272,11 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					'id'            => 'text-1',
 					'id_base'       => 'text',
 					'sidebar'       => 'sidebar-1',
+					'rendered'      => '<div class="textwidget">Custom text test</div>',
+					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 					'instance'      => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -1291,11 +1296,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'text' => 'Custom text test',
 						),
 					),
-					'rendered'      => '<div class="textwidget">Custom text test</div>',
-					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 
 				),
 			),
