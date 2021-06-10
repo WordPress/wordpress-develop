@@ -228,8 +228,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assetEquals. Why? The object pulled from cache will have the same
-		 * property values but will be a different object than the expected object.
+		 * For non-array output type, use assertEquals(). Why? The object pulled from the cache
+		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );
@@ -286,8 +286,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		$actual_bookmark = get_bookmark( ...$args );
 
 		/*
-		 * For non-array output type, use assetEquals. Why? The object pulled from the database will have the same
-		 * property values but will be a different object than the expected object.
+		 * For non-array output type, use assertEquals(). Why? The object pulled from the database
+		 * will have the same property values but will be a different object than the expected object.
 		 */
 		if ( is_object( $expected ) ) {
 			$this->assertEquals( $expected, $actual_bookmark );

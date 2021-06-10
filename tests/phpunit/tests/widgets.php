@@ -574,7 +574,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	function test_wp_widget__register() {
 		global $wp_registered_widgets;
 
-		$settings = get_option( 'widget_search' );
+		$settings = get_option( 'widget_block' );
 		unset( $settings['_multiwidget'] );
 		$this->assertArrayHasKey( 2, $settings );
 
@@ -583,7 +583,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		// Note: We cannot use array_keys() here because $settings could be an ArrayIterator.
 		foreach ( $settings as $widget_number => $instance ) {
-			$widget_id = "search-$widget_number";
+			$widget_id = "block-$widget_number";
 			$this->assertArrayHasKey( $widget_id, $wp_registered_widgets );
 		}
 	}
@@ -619,13 +619,13 @@ class Tests_Widgets extends WP_UnitTestCase {
 	function test_wp_widget_get_settings() {
 		global $wp_registered_widgets;
 
-		$option_value = get_option( 'widget_search' );
+		$option_value = get_option( 'widget_block' );
 		$this->assertArrayHasKey( '_multiwidget', $option_value );
 		$this->assertSame( 1, $option_value['_multiwidget'] );
 		$this->assertArrayHasKey( 2, $option_value );
 		$instance = $option_value[2];
 		$this->assertInternalType( 'array', $instance );
-		$this->assertArrayHasKey( 'title', $instance );
+		$this->assertArrayHasKey( 'content', $instance );
 		unset( $option_value['_multiwidget'] );
 
 		// Pretend this widget is new.
@@ -634,9 +634,9 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertSame( array(), (array) $never_used );
 
 		wp_widgets_init();
-		$wp_widget_search = $wp_registered_widgets['search-2']['callback'][0];
+		$wp_widget_block = $wp_registered_widgets['block-2']['callback'][0];
 
-		$settings = $wp_widget_search->get_settings();
+		$settings = $wp_widget_block->get_settings();
 		// @todo $this->assertArrayNotHasKey( '_multiwidget', $settings ); ?
 		$this->assertArrayHasKey( 2, $settings );
 
@@ -657,10 +657,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 		global $wp_registered_widgets;
 
 		wp_widgets_init();
-		$wp_widget_search = $wp_registered_widgets['search-2']['callback'][0];
+		$wp_widget_block = $wp_registered_widgets['block-2']['callback'][0];
 
-		$settings         = $wp_widget_search->get_settings();
-		$overridden_title = 'Unit Tested';
+		$settings           = $wp_widget_block->get_settings();
+		$overridden_content = 'Unit Tested';
 
 		/*
 		 * Note that if a plugin is filtering $settings to be an ArrayIterator,
@@ -670,15 +670,15 @@ class Tests_Widgets extends WP_UnitTestCase {
 		 * > Indirect modification of overloaded element of X has no effect.
 		 * So this is why the value must be obtained.
 		 */
-		$instance          = $settings[2];
-		$instance['title'] = $overridden_title;
-		$settings[2]       = $instance;
+		$instance            = $settings[2];
+		$instance['content'] = $overridden_content;
+		$settings[2]         = $instance;
 
-		$wp_widget_search->save_settings( $settings );
+		$wp_widget_block->save_settings( $settings );
 
-		$option_value = get_option( $wp_widget_search->option_name );
+		$option_value = get_option( $wp_widget_block->option_name );
 		$this->assertArrayHasKey( '_multiwidget', $option_value );
-		$this->assertSame( $overridden_title, $option_value[2]['title'] );
+		$this->assertSame( $overridden_content, $option_value[2]['content'] );
 	}
 
 	/**
@@ -688,13 +688,13 @@ class Tests_Widgets extends WP_UnitTestCase {
 		global $wp_registered_widgets;
 
 		wp_widgets_init();
-		$wp_widget_search = $wp_registered_widgets['search-2']['callback'][0];
+		$wp_widget_block = $wp_registered_widgets['block-2']['callback'][0];
 
-		$settings = $wp_widget_search->get_settings();
+		$settings = $wp_widget_block->get_settings();
 		$this->assertArrayHasKey( 2, $settings );
 		unset( $settings[2] );
-		$wp_widget_search->save_settings( $settings );
-		$option_value = get_option( $wp_widget_search->option_name );
+		$wp_widget_block->save_settings( $settings );
+		$option_value = get_option( $wp_widget_block->option_name );
 		$this->assertArrayNotHasKey( 2, $option_value );
 	}
 
@@ -703,6 +703,23 @@ class Tests_Widgets extends WP_UnitTestCase {
 	 */
 	function test_wp_widget_control() {
 		global $wp_registered_widgets;
+
+		update_option(
+			'widget_search',
+			array(
+				2              => array( 'title' => '' ),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'sidebar-2'           => array(),
+				'array_version'       => 3,
+			)
+		);
 
 		wp_widgets_init();
 		require_once ABSPATH . '/wp-admin/includes/widgets.php';
@@ -873,15 +890,14 @@ class Tests_Widgets extends WP_UnitTestCase {
 		// Unregistered widget should be filtered out.
 		$this->assertNotContains( 'unregistered_widget-1', $sidebars_widgets['sidebar-3'] );
 
-		// 6 default widgets - 1 active text widget + 1 orphaned widget = 6.
-		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+		// 5 default widgets - 1 active text widget + 1 orphaned widget = 5.
+		$this->assertCount( 5, $sidebars_widgets['wp_inactive_widgets'] );
 
-		$this->assertContains( 'meta-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'search-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'archives-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'categories-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-posts-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-3', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-4', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-5', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-6', $sidebars_widgets['wp_inactive_widgets'] );
 
 		// Sidebar_widgets option was updated.
 		$this->assertSame( $sidebars_widgets, wp_get_sidebars_widgets() );
@@ -965,15 +981,14 @@ class Tests_Widgets extends WP_UnitTestCase {
 		// We should not have orphaned widgets, because widget was not registered.
 		$this->assertArrayNotHasKey( 'orphaned_widgets_1', $sidebars_widgets );
 
-		// 6 default widgets.
-		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+		// 5 default widgets.
+		$this->assertCount( 5, $sidebars_widgets['wp_inactive_widgets'] );
 
-		$this->assertContains( 'archives-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'meta-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'search-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'categories-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-posts-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-3', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-4', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-5', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-6', $sidebars_widgets['wp_inactive_widgets'] );
 
 		// Sidebar_widgets option was updated.
 		$this->assertSame( $sidebars_widgets, wp_get_sidebars_widgets() );
@@ -982,7 +997,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$sidebars_widgets = array(
 			'sidebar-1'           => array( 'tag_cloud-1' ),
 			'sidebar-2'           => array( 'text-1' ),
-			'fantasy'             => array( 'archives-2' ),
+			'fantasy'             => array( 'block-4' ),
 			'wp_inactive_widgets' => array(),
 		);
 
@@ -1004,16 +1019,15 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
 		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
 
-		// 6 default widgets - 1 active text widget = 5.
-		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+		// 5 default widgets - 1 active text widget = 5.
+		$this->assertCount( 5, $sidebars_widgets['wp_inactive_widgets'] );
 
-		$this->assertContains( 'meta-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'search-2', $sidebars_widgets['wp_inactive_widgets'] );
-		// archives-2 ends up as inactive because fantasy sidebar doesn't exist.
-		$this->assertContains( 'archives-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'categories-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-posts-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-3', $sidebars_widgets['wp_inactive_widgets'] );
+		// block-4 ends up as inactive because fantasy sidebar doesn't exist.
+		$this->assertContains( 'block-4', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-5', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-6', $sidebars_widgets['wp_inactive_widgets'] );
 
 		// Sidebar_widgets option was updated.
 		$this->assertSame( $sidebars_widgets, wp_get_sidebars_widgets() );
@@ -1053,14 +1067,13 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertContains( 'text-1', $sidebars_widgets['sidebar-2'] );
 		$this->assertArrayHasKey( 'sidebar-3', $sidebars_widgets );
 		$this->assertEmpty( $sidebars_widgets['sidebar-3'] );
-		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertCount( 5, $sidebars_widgets['wp_inactive_widgets'] );
 
-		$this->assertContains( 'meta-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'search-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'archives-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'categories-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-posts-2', $sidebars_widgets['wp_inactive_widgets'] );
-		$this->assertContains( 'recent-comments-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-2', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-3', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-4', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-5', $sidebars_widgets['wp_inactive_widgets'] );
+		$this->assertContains( 'block-6', $sidebars_widgets['wp_inactive_widgets'] );
 
 		// Theme mod with previous widgets was not removed.
 		$this->assertSameSets( $old_sidebars_widgets, get_theme_mod( 'sidebars_widgets' ) );
@@ -1117,8 +1130,8 @@ class Tests_Widgets extends WP_UnitTestCase {
 			$this->assertInternalType( 'array', $widgets );
 		}
 
-		// 6 default widgets + 1 orphaned calendar widget = 7.
-		$this->assertCount( 7, $sidebars_widgets['wp_inactive_widgets'] );
+		// 5 default widgets + 1 orphaned calendar widget = 6.
+		$this->assertCount( 6, $sidebars_widgets['wp_inactive_widgets'] );
 		$this->assertContains( 'calendar-1', $sidebars_widgets['wp_inactive_widgets'] );
 		$this->assertArrayNotHasKey( 'orphaned_widgets_1', $sidebars_widgets );
 

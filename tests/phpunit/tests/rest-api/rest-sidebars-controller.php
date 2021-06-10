@@ -132,7 +132,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( array(), $data );
+		$this->assertSame( array(), $data );
 	}
 
 	/**
@@ -170,19 +170,19 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
-					'status'        => 'active',
-					'widgets'       => array(),
 					'class'         => '',
 					'before_widget' => '',
 					'after_widget'  => '',
 					'before_title'  => '',
 					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
 				),
 			),
 			$data
@@ -219,22 +219,22 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
-					'status'        => 'active',
-					'widgets'       => array(
-						'text-1',
-						'rss-1',
-					),
 					'class'         => '',
 					'before_widget' => '',
 					'after_widget'  => '',
 					'before_title'  => '',
 					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(
+						'text-1',
+						'rss-1',
+					),
 				),
 			),
 			$data
@@ -256,18 +256,18 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'            => 'sidebar-1',
 				'name'          => 'Test sidebar',
 				'description'   => '',
-				'status'        => 'active',
-				'widgets'       => array(),
 				'class'         => '',
 				'before_widget' => '',
 				'after_widget'  => '',
 				'before_title'  => '',
 				'after_title'   => '',
+				'status'        => 'active',
+				'widgets'       => array(),
 			),
 			$data
 		);
@@ -358,21 +358,21 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'            => 'sidebar-1',
 				'name'          => 'Test sidebar',
 				'description'   => '',
-				'status'        => 'active',
-				'widgets'       => array(
-					'text-1',
-					'text-2',
-				),
 				'class'         => '',
 				'before_widget' => '',
 				'after_widget'  => '',
 				'before_title'  => '',
 				'after_title'   => '',
+				'status'        => 'active',
+				'widgets'       => array(
+					'text-1',
+					'text-2',
+				),
 			),
 			$data
 		);
@@ -501,35 +501,35 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				array(
 					'id'            => 'sidebar-1',
 					'name'          => 'Test sidebar',
 					'description'   => '',
-					'status'        => 'active',
-					'widgets'       => array(
-						'text-1',
-					),
 					'class'         => '',
 					'before_widget' => '',
 					'after_widget'  => '',
 					'before_title'  => '',
 					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(
+						'text-1',
+					),
 				),
 				array(
 					'id'            => 'wp_inactive_widgets',
 					'name'          => 'Inactive widgets',
 					'description'   => '',
-					'status'        => 'inactive',
-					'widgets'       => array(
-						'rss-1',
-					),
 					'class'         => '',
 					'before_widget' => '',
 					'after_widget'  => '',
 					'before_title'  => '',
 					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(
+						'rss-1',
+					),
 				),
 			),
 			$data
