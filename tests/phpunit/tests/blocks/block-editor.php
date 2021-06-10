@@ -276,8 +276,6 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 				'media_gallery',
 				'media_image',
 				'media_video',
-				'meta',
-				'nav_menu',
 				'pages',
 				'recent-comments',
 				'recent-posts',

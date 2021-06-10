@@ -178,9 +178,9 @@ class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_Unit
 
 		_wp_privacy_account_request_confirmed( $request_id );
 
-		add_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10, 2 );
+		add_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10, 2 );
 		_wp_privacy_send_request_confirmation_notification( $request_id );
-		remove_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10 );
+		remove_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10 );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertContains( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );

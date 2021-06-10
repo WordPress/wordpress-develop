@@ -245,7 +245,6 @@ function get_default_block_editor_settings() {
 			'media_image',
 			'media_gallery',
 			'media_video',
-			'meta',
 			'search',
 			'text',
 			'categories',
@@ -253,7 +252,6 @@ function get_default_block_editor_settings() {
 			'recent-comments',
 			'rss',
 			'tag_cloud',
-			'nav_menu',
 			'custom_html',
 			'block',
 		)
@@ -285,10 +283,14 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 	$theme_json = WP_Theme_JSON_Resolver::get_merged_data( $editor_settings );
 
 	if ( WP_Theme_JSON_Resolver::theme_has_support() ) {
-		$editor_settings['styles'][] = array( 'css' => $theme_json->get_stylesheet( 'block_styles' ) );
+		$editor_settings['styles'][] = array(
+			'css'            => $theme_json->get_stylesheet( 'block_styles' ),
+			'__unstableType' => 'globalStyles',
+		);
 		$editor_settings['styles'][] = array(
 			'css'                     => $theme_json->get_stylesheet( 'css_variables' ),
 			'__experimentalNoWrapper' => true,
+			'__unstableType'          => 'globalStyles',
 		);
 	}
 

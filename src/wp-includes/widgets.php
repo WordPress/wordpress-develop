@@ -1565,7 +1565,7 @@ function wp_widget_rss_output( $rss, $args = array() ) {
 	echo '<ul>';
 	foreach ( $rss->get_items( 0, $items ) as $item ) {
 		$link = $item->get_link();
-		while ( stristr( $link, 'http' ) !== $link ) {
+		while ( ! empty( $link ) && stristr( $link, 'http' ) !== $link ) {
 			$link = substr( $link, 1 );
 		}
 		$link = esc_url( strip_tags( $link ) );
@@ -1823,6 +1823,8 @@ function wp_widgets_init() {
 function wp_use_widgets_block_editor() {
 	/**
 	 * Filters whether or not to use the block editor to manage widgets.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param boolean $use_widgets_block_editor Whether or not to use the block editor to manage widgets.
 	 */
