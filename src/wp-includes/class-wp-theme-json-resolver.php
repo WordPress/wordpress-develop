@@ -284,7 +284,7 @@ class WP_Theme_JSON_Resolver {
 		 * to override the ones declared via add_theme_support.
 		 */
 		$with_theme_supports = new WP_Theme_JSON( $theme_support_data );
-		$with_theme_supports->merge( self::$theme );
+		$with_theme_supports->merge( self::$theme, 'theme' );
 
 		return $with_theme_supports;
 	}
@@ -309,8 +309,8 @@ class WP_Theme_JSON_Resolver {
 		$theme_support_data = WP_Theme_JSON::get_from_editor_settings( $settings );
 
 		$result = new WP_Theme_JSON();
-		$result->merge( self::get_core_data() );
-		$result->merge( self::get_theme_data( $theme_support_data ) );
+		$result->merge( self::get_core_data(), 'core' );
+		$result->merge( self::get_theme_data( $theme_support_data ), 'theme' );
 
 		return $result;
 	}
