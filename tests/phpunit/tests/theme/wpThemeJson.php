@@ -476,7 +476,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					),
 				),
 				'typography' => array(
-					'fontSizes'    => array(
+					'fontSizes' => array(
 						'core' => array(
 							array(
 								'slug' => 'fontSize',
