@@ -90,7 +90,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEquals( $expected, $actual );
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**

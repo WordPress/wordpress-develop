@@ -660,12 +660,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Asserts that two values have the same type and value, with EOL differences discarded.
 	 *
 	 * @since 5.6.0
+	 * @since 5.8.0 Added support for nested arrays.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param string|array $expected The expected value.
+	 * @param string|array $actual   The actual value.
 	 */
 	public function assertSameIgnoreEOL( $expected, $actual ) {
-		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+		$expected = map_deep(
+			$expected,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$actual = map_deep(
+			$actual,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
