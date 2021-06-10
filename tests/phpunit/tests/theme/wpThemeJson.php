@@ -61,7 +61,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	function test_get_stylesheet() {
@@ -656,7 +656,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 		$actual   = WP_Theme_JSON::get_from_editor_settings( array() );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
@@ -673,7 +673,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
@@ -690,7 +690,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
@@ -707,7 +707,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 }
