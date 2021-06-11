@@ -19,7 +19,9 @@ You will need Node and npm installed on your computer. Node is a JavaScript runt
 
 If you are not using a package manager, see the [Node.js download page](https://nodejs.org/en/download/) for installers and binaries.
 
-You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application.
+You will also need [Docker](https://www.docker.com/products/docker-desktop) installed and running on your computer. Docker is the virtualization software that powers the local development environment. Docker can be installed just like any other regular application. Make sure it is running before you run the commands.
+
+You will need svn on your machine. For windows you can install [Tortoise SVN](https://tortoisesvn.net/downloads.html) which is one of the most popular SVN software. During installation it make sure you tick command line clinet tools.
 
 ### Development Environment Commands
 
