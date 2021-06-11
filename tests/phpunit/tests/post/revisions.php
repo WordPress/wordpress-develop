@@ -577,7 +577,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $revision_ids, array_values( wp_list_pluck( $revisions, 'ID' ) ) );
 	}
 
-	/*
+	/**
 	 * @ticket 51550
 	 */
 	public function test_wp_revisions_to_keep_filter() {
@@ -602,7 +602,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
 
-	/*
+	/**
 	 * @ticket 51550
 	 */
 	public function test_wp_post_type_revisions_to_keep_filter() {
@@ -636,10 +636,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
 
-
-	/*
-	 * Verify that trying to create a revision with an invalid ID returns a WP_Error.
-	 *
+	/**
+	 * Verifies that trying to create a revision with an invalid ID returns a WP_Error.
 	 *
 	 * @ticket 30009
 	 */
