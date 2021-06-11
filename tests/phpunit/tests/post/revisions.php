@@ -670,6 +670,8 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 *
 	 *
 	 * @ticket 30009
+	 *
+	 * @covers ::_wp_put_post_revision
 	 */
 	public function test_wp_save_post_revision_error() {
 		$post     = self::factory()->post->create_and_get(
