@@ -77,7 +77,6 @@
 		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
-		"@babel/polyfill": "7.10.1",
 		"@wordpress/a11y": "3.1.1",
 		"@wordpress/annotations": "2.1.1",
 		"@wordpress/api-fetch": "5.1.1",
