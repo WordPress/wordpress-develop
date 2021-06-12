@@ -647,7 +647,7 @@ function is_serialized( $data, $strict = true ) {
 	$data = trim( $data );
 	if ( PHP_VERSION_ID >= 70000 ) {
 		// https://core.trac.wordpress.org/ticket/17375
-		if ( empty($data) || 'C' === $data[0] ) {
+		if ( empty( $data ) || 'C' === $data[0] ) {
 			return false;
 		}
 		$options                    = array();
