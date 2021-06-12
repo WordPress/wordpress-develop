@@ -631,22 +631,22 @@ class WP_Debug_Data {
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
 
-		$gd_image_formats = array();
+		$gd_image_formats     = array();
 		$gd_supported_formats = array(
 			'GIF Create' => 'GIF',
-			'JPEG' => 'JPEG',
-			'PNG' => 'PNG',
-			'WebP' => 'WebP',
-			'BMP' => 'BMP',
-			'AVIF' => 'AVIF',
-			'HEIF' => 'HEIF',
-			'TIFF' => 'TIFF',
-			'XPM' => 'XPM',
+			'JPEG'       => 'JPEG',
+			'PNG'        => 'PNG',
+			'WebP'       => 'WebP',
+			'BMP'        => 'BMP',
+			'AVIF'       => 'AVIF',
+			'HEIF'       => 'HEIF',
+			'TIFF'       => 'TIFF',
+			'XPM'        => 'XPM',
 		);
 
 		foreach ( $gd_supported_formats as $format_key => $format ) {
 			$index = $format_key . ' Support';
-			if ( isset( $gd[ $index ] ) &&  $gd[ $index ] ) {
+			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
 				array_push( $gd_image_formats, $format );
 			}
 		}
