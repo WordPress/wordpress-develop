@@ -1,212 +1,159 @@
-/**
- * WordPress dependencies
- */
-import {
+import { 
 	visitAdminPage,
-	pressKeyWithModifier,
-	pressKeyTimes
-} from '@wordpress/e2e-test-utils'
-import { addQueryArgs } from '@wordpress/url';
-
-const query = addQueryArgs( '', {
-	taxonomy: 'category',
-} );
+} from "@wordpress/e2e-test-utils";
+import { addQueryArgs } from "@wordpress/url";
 
 async function deleteAllCategories() {
-	/**
-	 * Delete all categories before anything
-	 * This is useful because after running more than one test
-	 * there could be existing categories
-	 */
-	await visitAdminPage( 'edit-tags.php', query );
-	
+	const categoriesPageQuery = addQueryArgs( '', {
+		taxonomy: 'category',
+	} );
+	await visitAdminPage( 'edit-tags.php', categoriesPageQuery );
+
+	// Wait for the categories rows to appear
 	await page.waitForSelector( '#the-list tr' );
-	const categoriesRows = await page.$$( '#the-list tr' );
-	if( categoriesRows.length > 1 ) {
+
+	const allCategoriesRows = await page.$$( '#the-list tr' );
+	
+	// If there is more than one category row, delete all the categories
+	if( allCategoriesRows.length > 1 ) {
 		await page.click( '[id^=cb-select-all-]' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
-
-		// This is to prevent a buggy behaviour when the top of the 
-		// category table is not on the viewport
 		await page.focus( '#doaction' );
 		await page.keyboard.press( 'Enter' );
 	}
 }
 
-async function createNewCategory( title ) {
-	/**
-	 * Create a new category with the title 'New Category'
-	 */
-	await visitAdminPage( 'edit-tags.php', query );
-	await page.waitForSelector('#tag-name');
-	await page.focus( '#tag-name' );
-	await pressKeyWithModifier( 'primary', 'a' );
-	await page.type( '#tag-name', title );
-	await page.click( '#submit' );
+async function createNewCategory() {
+	const categoriesPageQuery = addQueryArgs( '', {
+		taxonomy: 'category',
+	} );
+	await visitAdminPage( 'edit-tags.php', categoriesPageQuery );
+
+	// Wait for the input for new category name to appear and focus it
+	const newCategoryNameInput = await page.waitForSelector( 'input#tag-name' );
+	await newCategoryNameInput.focus();
+
+	// Type the new category name
+	await page.keyboard.type( 'New category' );
+	
+	// Save the new category
+	await page.keyboard.press( 'Enter' );
+
+	// Wait for the two categories rows to be present
 	await page.waitForSelector( '#the-list tr + tr' )
 }
 
-describe( 'Categories tests', () => {
-
-	const categoryTitle = 'New Category';
-
+describe( 'Core Categories', () => {
 	beforeEach( async () => {
 		await deleteAllCategories();
-		await createNewCategory( categoryTitle );
 	} );
 
-/* 	it( 'shows only the default Uncategorized category', async () => {
-		// Expect there to be only one row in the categories list.
+	it( 'Shows correctly the Uncategorized category', async () => {
+		// Wait for the categories rows to appear
 		await page.waitForSelector( '#the-list tr' );
-		const categories = await page.$$( '#the-list tr' );
-		expect( categories.length ).toBe( 1 );
 
-		// Expect the default category title to be correct.
-		const uncategorizedTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "Uncategorized" )]`
-		);
-		expect( uncategorizedTitle.length ).toBe( 1 );
-	} ); */
+		// Check that there is only one category row
+		const allCategoriesRows = await page.$$( '#the-list tr' );
+		expect( allCategoriesRows.length ).toBe( 1 );
 
-	it( 'shows the new created category with the correct title', async () => {
-		// Expect there to be two rows in the categories list.
-		await page.waitForSelector( '#the-list tr' );
-		const categories = await page.$$( '#the-list tr' );
-		expect( categories.length ).toBe( 2 );
-
-		// Expect the new created category title to be correct.
-		const firstRowCategoryTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-		expect( firstRowCategoryTitle.length ).toBe( 1 );
+		// Check that the "Uncategorized" category is present
+		const categoryTitle = await page.waitForSelector( '#the-list .row-title' );
+		expect(
+			await categoryTitle.evaluate( ( element ) => element.innerText )
+		).toContain( 'Uncategorized' );
 	} );
 
-	it( 'allows an existing category to be edited using the Edit button', async () => {
-		const newCategoryEditedTitle = "New Category Edited Title"
+	it( 'Creates a new category and shows it correctly', async () => {
+		await createNewCategory();
 
-		await page.waitForSelector( '#the-list tr' );
+		// Wait for the new category row to appear
+		await page.waitForSelector( '#the-list tr:first-child .row-title' );
+
+		// Check that the new category is added and shows correctly
+		const newCategoryLink = await page.$x(
+			`//a[contains( @class, "row-title" )][contains( text(), "New category" )]`
+		);
+		expect( newCategoryLink.length ).toBe( 1 );
+	} );
+
+	it( 'Allows an existing category to be deleted using the delete link', async () => {
+		await createNewCategory();
+
+		// Wait for the new category row to appear
+		await page.waitForSelector( '#the-list tr:first-child .row-title' );
+
+		// Check that the new category is added and shows correctly
+		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
 		
-		const [ editLink ] = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-		await editLink.click();
+		// Focus on the new category link and move to the delete link
+		newCategoryLink.focus();
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
 
-		await page.waitForNavigation();
-
-		// Edit the category title
-		await page.waitForSelector( '.term-name-wrap input#name' );
-		await page.focus( '.term-name-wrap input#name' );
-		await pressKeyWithModifier( 'primary', 'a' );
-		await page.type( '.term-name-wrap input#name', newCategoryEditedTitle );
-		await page.click( 'input.button' );
-
-		await visitAdminPage( 'edit-tags.php', query );
-
-		// Expect the edited category title to be correct.
-		const editedCategoryTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ newCategoryEditedTitle }" )]`
-		);
-		expect( editedCategoryTitle.length ).toBe( 1 );
-	} );
-
-	it( 'allows an existing category to be quick edited using the Quick Edit button', async () => {
-		await visitAdminPage( 'edit-tags.php', query );
-		await page.waitForSelector( '#the-list tr' );
-
-		// Focus on the first (new created) category title (edit) link
-		const [ editLink ] = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-		await editLink.focus();
-
-		// Tab to the Quick Edit button and press Enter to quick edit.
-		await pressKeyTimes( 'Tab', 2 );
-		await page.keyboard.press( 'Enter' );
-
-		// Type in the currently focused (title) field to modify the title, testing that focus is moved to the input.
-		await page.keyboard.type( ' Edited' );
-
-		// Update the category.
-		await page.click( '.button.save' );
-
-		// Wait for the quick edit button to reappear.
-		await page.waitForSelector( 'button.editinline', { visible: true } );
-
-		// Expect there to be two rows in the categories list.
-		const categories = await page.$$( '#the-list tr' );
-		expect( categories.length ).toBe( 2 );
-
-		// Expect the category title to be correct.
-		const firstRowCategoryTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle } Edited" )]`
-		);
-		expect( firstRowCategoryTitle.length ).toBe( 1 );
-	} );
-
-	it( 'allows an existing category to be deleted using the Delete button', async () => {
-		await page.waitForSelector( '#the-list tr' );
-
-		// Focus on the first (new created) category title (edit) link
-		const [ editLink ] = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-		await editLink.focus();
-
-		// Tab to the Delete button and press Enter to delete the category.
-		await pressKeyTimes( 'Tab', 3 );
+		// Click on the delete link
 		await page.keyboard.press( 'Enter' );
 
 		await page.reload();
+
+		// Check that there is only one remaining row
+		const allCategoriesRows = await page.$$( '#the-list tr' );
+		expect( allCategoriesRows.length ).toBe( 1 );
+
+		// Check that the remaining category is "Uncategorized"
+		const categoryTitle = await page.waitForSelector( '#the-list .row-title' );
+		expect(
+			await categoryTitle.evaluate( ( element ) => element.innerText )
+		).toContain( 'Uncategorized' );
+	} );
+
+	it( 'Returns the appropriate result when searching for an existing category', async () => {
+		await createNewCategory();
+
+		// Wait for the search field to appear and focus it
+		const categorySearchInput = await page.waitForSelector( '#tag-search-input' );
+		categorySearchInput.focus();
+
+		// Type the new category title in the search input
+		await page.keyboard.type( 'New category' );
+
+		// Move to the search button and click on it
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Enter' );
+		await page.waitForNavigation();
+
+		// Check that there is only one category row
+		const allCategoriesRows = await page.$$( '#the-list tr' );
+		expect( allCategoriesRows.length ).toBe( 1 );
 		
-		// Expect there to be only one row in the categories list.
-		const categories = await page.$x(
-			`//tbody[contains( @id, "the-list" )]/tr`
-		);
-		expect( categories.length ).toBe( 1 );
-
-		// Expect to remaining category to be the default "Uncategorized"
-		const uncategorizedCategoryTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "Uncategorized" )]`
-		);
-		expect( uncategorizedCategoryTitle.length ).toBe( 1 );
+		// Check that the remaining category is "New Category"
+		const categoryTitle = await page.waitForSelector( '#the-list .row-title' );
+		expect(
+			await categoryTitle.evaluate( ( element ) => element.innerText )
+		).toContain( 'New category' );
 	} );
 
-	it( 'should return the appropriate results on a category search', async () => {
-		const searchQuery = addQueryArgs( '', {
-			taxonomy: 'category',
-			s: categoryTitle
-		} );
+	it( 'Should return No categories found. when searching for a category that does not exist', async () => {
+		// Wait for the search field to appear and focus it
+		const categorySearchInput = await page.waitForSelector( '#tag-search-input' );
+		categorySearchInput.focus();
 
-		await visitAdminPage( 'edit-tags.php', searchQuery );
+		// Type the new category title in the search input
+		await page.keyboard.type( 'New category' );
 
-		// Expect the title of the category returned by the search to match
-		// the new created category title
-		const firstRowCategoryTitle = await page.$x(
-			`//a[contains( @class, "row-title" )][contains( text(), "${ categoryTitle }" )]`
-		);
-		expect( firstRowCategoryTitle.length ).toBe( 1 );
+		// Move to the search button and click on it
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Enter' );
+		await page.waitForNavigation();
+
+		// Check that there is only one category row
+		const allCategoriesRows = await page.$$( '#the-list tr.no-items' );
+		expect( allCategoriesRows.length ).toBe( 1 );
+
+		// Check that the remaining category contains "No categories found."
+		const categoryTitle = await page.waitForSelector( '#the-list tr.no-items' );
+		expect(
+			await categoryTitle.evaluate( ( element ) => element.innerText )
+		).toContain( 'No categories found.' );
 	} );
-
-	it( 'should return "No categories found." if the searched category is not found', async () => {
-		const searchQuery = addQueryArgs( '', {
-			taxonomy: 'category',
-			s: "Non existing category"
-		} );
-
-		await visitAdminPage( 'edit-tags.php', searchQuery );
-		await page.waitForSelector( '#the-list tr' );
-
-		// Expect the categories table to have only one row with the class "no-items"
-		const notFoundRow = await page.$x(
-			`//tr[contains( @class, "no-items" )]`
-		);
-		expect( notFoundRow.length ).toBe( 1 );
-
-		// Expect the row of the categories table to contain the text "No categories found."
-		const notFoundText = await page.$x(
-			`//td[contains( text(), "No categories found." )]`
-		);
-		expect( notFoundText.length ).toBe( 1 );
-	} );
-
 } );
