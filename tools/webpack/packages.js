@@ -73,7 +73,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
-		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
+		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
@@ -88,7 +88,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
+		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',

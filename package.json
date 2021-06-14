@@ -24,6 +24,7 @@
 		"last 2 Opera versions"
 	],
 	"devDependencies": {
+		"@wordpress/babel-preset-default": "6.2.0",
 		"@wordpress/custom-templated-path-webpack-plugin": "2.0.5",
 		"@wordpress/dependency-extraction-webpack-plugin": "3.1.4",
 		"@wordpress/e2e-test-utils": "5.3.0",
@@ -76,7 +77,6 @@
 		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
-		"@babel/polyfill": "7.10.1",
 		"@wordpress/a11y": "3.1.1",
 		"@wordpress/annotations": "2.1.1",
 		"@wordpress/api-fetch": "5.1.1",
