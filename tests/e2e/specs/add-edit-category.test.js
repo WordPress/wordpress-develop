@@ -40,7 +40,7 @@ async function createNewCategory() {
 	await page.keyboard.press( 'Enter' );
 
 	// Wait for the two categories rows to be present
-	await page.waitForSelector( '#the-list tr + tr' )
+	await page.waitForSelector( '#the-list tr + tr' );
 }
 
 describe( 'Core Categories', () => {
@@ -155,5 +155,73 @@ describe( 'Core Categories', () => {
 		expect(
 			await categoryTitle.evaluate( ( element ) => element.innerText )
 		).toContain( 'No categories found.' );
+	} );
+
+	it( 'Allows an existing category to be edited with the Quick Edit link', async () => {
+		await createNewCategory();
+
+		// Check that the new category is added and shows correctly
+		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
+		
+		// Focus on the new category link and move to the delete link
+		newCategoryLink.focus();
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Tab' );
+
+		// Click on the quick edit link
+		await page.keyboard.press( 'Enter' );
+
+		// Add some content at the end of the category name
+		await page.keyboard.type( ' edited' );
+
+		// Save the edited category
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the quick edit button to reappear.
+		await page.waitForSelector( 'button.editinline', { visible: true } );
+
+		// Check that the edited category title is "New category edited"
+		const editedCategoryLink = await page.$x(
+			`//a[contains( @class, "row-title" )][contains( text(), "New category edited" )]`
+		);
+		expect( editedCategoryLink.length ).toBe( 1 );
+	} );
+
+	it( 'Allows an existing category to be edited using the Edit link', async () => {
+		await createNewCategory();
+
+		// Check that the new category is added and shows correctly
+		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
+		
+		// Focus on the new category link and move to the delete link
+		newCategoryLink.focus();
+		await page.keyboard.press( 'Tab' );
+
+		// Click on the edit link
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the category name input to appears
+		await page.waitForSelector( 'input#name' );
+
+		// Add some content at the beginning of the category name
+		await page.keyboard.type( 'Edited ' );
+		
+		// Save the edited category
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the success notice message to show
+		await page.waitForSelector( '.notice-success' );
+
+		// Go back to the categories list page
+		const categoriesPageQuery = addQueryArgs( '', {
+			taxonomy: 'category',
+		} );
+		await visitAdminPage( 'edit-tags.php', categoriesPageQuery );
+		
+		// Check that the edited category title is "New category edited"
+		const editedCategoryLink = await page.$x(
+			`//a[contains( @class, "row-title" )][contains( text(), "Edited New category" )]`
+		);
+		expect( editedCategoryLink.length ).toBe( 1 );
 	} );
 } );
