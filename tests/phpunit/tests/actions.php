@@ -398,6 +398,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	 * @ticket 9968
 	 * @ticket 17817
 	 *
+	 * @covers ::remove_action
 	 * @covers ::add_action
 	 */
 	function test_action_callback_manipulation_while_running() {
