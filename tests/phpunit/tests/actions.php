@@ -471,7 +471,9 @@ class Tests_Actions extends WP_UnitTestCase {
 	 *
 	 * @ticket 17817
 	 *
-	 * @covers ::has_action
+ 	 * @covers WP_Hook::offsetGet
+	 * @covers WP_Hook::offsetSet
+ 	 * @covers WP_Hook::offsetUnset
 	 */
 	function test_array_access_of_wp_filter_global() {
 		global $wp_filter;
