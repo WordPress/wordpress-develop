@@ -596,9 +596,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertFalse( doing_filter( 'testing_nested' ) );
 	}
 
-	/**
-	 * @covers ::doing_filter
-	 */
 	function apply_testing_nested_filter() {
 		$this->apply_testing_nested_filter = true;
 		$this->assertTrue( doing_filter() );
