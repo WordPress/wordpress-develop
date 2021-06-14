@@ -575,9 +575,6 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertFalse( doing_filter( 'testing' ) ); // No longer doing this filter.
 	}
 
-	/**
-	 * @covers ::doing_filter
-	 */
 	function apply_testing_filter() {
 		$this->apply_testing_filter = true;
 
