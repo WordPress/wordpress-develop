@@ -69,7 +69,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	/**
 	 * One tag with multiple actions.
 	 *
-	 * @covers ::add_action
+	 * @covers ::do_action
 	 */
 	function test_multiple_actions() {
 		$a1  = new MockAction();
