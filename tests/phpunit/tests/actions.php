@@ -324,7 +324,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	/**
 	 * @ticket 11241
 	 *
-	 * @covers ::add_action
+	 * @covers ::do_action
 	 */
 	function test_action_keyed_array() {
 		$a = new MockAction();
