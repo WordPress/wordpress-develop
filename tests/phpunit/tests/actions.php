@@ -253,7 +253,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::add_action
+	 * @covers ::do_action
 	 */
 	function test_all_action() {
 		$a    = new MockAction();
