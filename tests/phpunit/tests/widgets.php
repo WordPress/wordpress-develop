@@ -1149,7 +1149,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 	/**
 	 * @covers ::retrieve_widgets
 	 */
-	function test_retreive_widgets_with_single_widget() {
+	function test_retrieve_widgets_with_single_widget() {
 		global $sidebars_widgets;
 
 		wp_widgets_init();
