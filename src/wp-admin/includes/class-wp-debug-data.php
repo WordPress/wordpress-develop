@@ -655,7 +655,6 @@ class WP_Debug_Data {
 			$info['wp-media']['fields']['gd_formats'] = array(
 				'label' => __( 'GD supported file formats' ),
 				'value' => implode( ', ', $gd_image_formats ),
-				'debug' => implode( ', ', $gd_image_formats ),
 			);
 		}
 
