@@ -351,7 +351,7 @@ class Tests_Actions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers ::do_action
+	 * @covers ::remove_action
 	 */
 	function test_action_self_removal() {
 		add_action( 'test_action_self_removal', array( $this, 'action_self_removal' ) );
