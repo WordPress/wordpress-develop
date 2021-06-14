@@ -1148,17 +1148,23 @@ function do_block_editor_incompatible_meta_box( $object, $box ) {
 
 	if ( empty( $plugins['classic-editor/classic-editor.php'] ) ) {
 		if ( current_user_can( 'install_plugins' ) ) {
-			echo '<p>';
-			printf(
-				/* translators: %s: A link to install the Classic Editor plugin. */
-				__( 'Please install the <a href="%s">Classic Editor plugin</a> to use this meta box.' ),
-				esc_url( wp_nonce_url( self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ), 'save_wporg_username_' . get_current_user_id() ) )
+			$install_url = wp_nonce_url(
+				self_admin_url( 'plugin-install.php?tab=favorites&user=wordpressdotorg&save=0' ),
+				'save_wporg_username_' . get_current_user_id()
 			);
+
+			echo '<p>';
+			/* translators: %s: A link to install the Classic Editor plugin. */
+			printf( __( 'Please install the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $install_url ) );
 			echo '</p>';
 		}
 	} elseif ( is_plugin_inactive( 'classic-editor/classic-editor.php' ) ) {
 		if ( current_user_can( 'activate_plugins' ) ) {
-			$activate_url = wp_nonce_url( self_admin_url( 'plugins.php?action=activate&plugin=classic-editor/classic-editor.php' ), 'activate-plugin_classic-editor/classic-editor.php' );
+			$activate_url = wp_nonce_url(
+				self_admin_url( 'plugins.php?action=activate&plugin=classic-editor/classic-editor.php' ),
+				'activate-plugin_classic-editor/classic-editor.php'
+			);
+
 			echo '<p>';
 			/* translators: %s: A link to activate the Classic Editor plugin. */
 			printf( __( 'Please activate the <a href="%s">Classic Editor plugin</a> to use this meta box.' ), esc_url( $activate_url ) );
@@ -2667,4 +2673,21 @@ function wp_star_rating( $args = array() ) {
  */
 function _wp_posts_page_notice() {
 	echo '<div class="notice notice-warning inline"><p>' . __( 'You are currently editing the page that shows your latest posts.' ) . '</p></div>';
+}
+
+/**
+ * Output a notice when editing the page for posts in the block editor (internal use only).
+ *
+ * @ignore
+ * @since 5.8.0
+ */
+function _wp_block_editor_posts_page_notice() {
+	wp_add_inline_script(
+		'wp-notices',
+		sprintf(
+			'wp.data.dispatch( "core/notices" ).createWarningNotice( "%s", { isDismissible: false } )',
+			__( 'You are currently editing the page that shows your latest posts.' )
+		),
+		'after'
+	);
 }

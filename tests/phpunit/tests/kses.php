@@ -1478,4 +1478,22 @@ EOF;
 
 		$this->assertSame( $html, wp_kses_post( $html ) );
 	}
+
+	/**
+	 * Test filtering a standard main tag.
+	 *
+	 * @ticket 53156
+	 */
+	function test_wp_kses_main_tag_standard_attributes() {
+		$test = array(
+			'<main',
+			'class="wp-group-block"',
+			'style="padding:10px"',
+			'/>',
+		);
+
+		$html = implode( ' ', $test );
+
+		$this->assertSame( $html, wp_kses_post( $html ) );
+	}
 }

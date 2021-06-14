@@ -172,6 +172,25 @@ function create_initial_taxonomies() {
 			'show_in_nav_menus' => current_theme_supports( 'post-formats' ),
 		)
 	);
+
+	register_taxonomy(
+		'wp_theme',
+		array( 'wp_template' ),
+		array(
+			'public'            => false,
+			'hierarchical'      => false,
+			'labels'            => array(
+				'name'          => __( 'Themes' ),
+				'singular_name' => __( 'Theme' ),
+			),
+			'query_var'         => false,
+			'rewrite'           => false,
+			'show_ui'           => false,
+			'_builtin'          => true,
+			'show_in_nav_menus' => false,
+			'show_in_rest'      => false,
+		)
+	);
 }
 
 /**
@@ -1760,6 +1779,12 @@ function sanitize_term_field( $field, $value, $term_id, $taxonomy, $context ) {
 	} elseif ( 'js' === $context ) {
 		$value = esc_js( $value );
 	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
+	}
+
 	return $value;
 }
 
