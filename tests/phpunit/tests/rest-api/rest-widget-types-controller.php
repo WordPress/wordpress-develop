@@ -61,6 +61,22 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		self::delete_user( self::$subscriber_id );
 	}
 
+	private function setup_widget( $id_base, $number, $settings ) {
+		global $wp_widget_factory;
+
+		$option_name = "widget_$id_base";
+		update_option(
+			$option_name,
+			array(
+				$number => $settings,
+			)
+		);
+
+		$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+		$widget_object->_set( $number );
+		$widget_object->_register_one( $number );
+	}
+
 	/**
 	 * @ticket 41683
 	 */
@@ -106,7 +122,37 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			$widget_type = $endpoint->get_widget( $item['name'] );
 			$this->check_widget_type_object( $widget_type, $item, $item['_links'] );
 		}
+	}
 
+	/**
+	 * @ticket 53305
+	 */
+	public function test_get_items_removes_duplicates() {
+		wp_set_current_user( self::$admin_id );
+		$this->setup_widget(
+			'text',
+			1,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$this->setup_widget(
+			'text',
+			2,
+			array(
+				'text' => 'Custom text test',
+			)
+		);
+		$request      = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
+		$response     = rest_get_server()->dispatch( $request );
+		$data         = $response->get_data();
+		$text_widgets = array_filter(
+			$data,
+			function( $widget ) {
+				return 'text' === $widget['id'];
+			}
+		);
+		$this->assertCount( 1, $text_widgets );
 	}
 
 	/**
@@ -261,7 +307,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request  = new WP_REST_Request( 'POST', '/wp/v2/widget-types/search/encode' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"\" />\n" .
@@ -297,7 +343,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'number', 8 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search-8-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search-8-title\" name=\"widget-search[8][title]\" type=\"text\" value=\"\" />\n" .
@@ -339,7 +385,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .
@@ -356,7 +402,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),
@@ -375,7 +421,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$request->set_param( 'form_data', 'widget-search[-1][title]=Updated+title' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Updated title\" />\n" .
@@ -392,7 +438,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Updated title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Updated title' ) ) ),
@@ -419,7 +465,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals(
+		$this->assertSameIgnoreEOL(
 			"<p>\n" .
 			"\t\t\t<label for=\"widget-search--1-title\">Title:</label>\n" .
 			"\t\t\t<input class=\"widefat\" id=\"widget-search--1-title\" name=\"widget-search[-1][title]\" type=\"text\" value=\"Test title\" />\n" .
@@ -436,7 +482,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),

@@ -214,6 +214,11 @@ add_filter( 'widget_text_content', 'wp_filter_content_tags' );
 add_filter( 'widget_text_content', 'wp_replace_insecure_home_url' );
 add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop(); note that $post global will be null when shortcodes run.
 
+add_filter( 'widget_block_content', 'do_blocks', 9 );
+add_filter( 'widget_block_content', 'do_shortcode', 11 );
+
+add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
+
 add_filter( 'wp_get_custom_css', 'wp_replace_insecure_home_url' );
 
 // RSS filters.
@@ -243,7 +248,18 @@ add_filter( 'wp_robots', 'wp_robots_noindex_search' );
 add_filter( 'wp_robots', 'wp_robots_max_image_preview_large' );
 
 // Mark site as no longer fresh.
-foreach ( array( 'publish_post', 'publish_page', 'wp_ajax_save-widget', 'wp_ajax_widgets-order', 'customize_save_after' ) as $action ) {
+foreach (
+	array(
+		'publish_post',
+		'publish_page',
+		'wp_ajax_save-widget',
+		'wp_ajax_widgets-order',
+		'customize_save_after',
+		'rest_after_save_widget',
+		'rest_delete_widget',
+		'rest_save_sidebar',
+	) as $action
+) {
 	add_action( $action, '_delete_option_fresh_site', 0 );
 }
 
