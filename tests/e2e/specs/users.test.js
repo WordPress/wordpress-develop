@@ -55,4 +55,28 @@ describe( 'Core Users', () => {
 		);
 		expect( newUserLink.length ).toBe( 1 );
 	} );
+
+	it( 'Returns the appropriate result when searching for an existing user', async () => {
+		// Wait for the search field to appear and focus it
+		const userSearchInput = await page.waitForSelector( '#user-search-input' );
+		userSearchInput.focus();
+
+		// Type the new username in the search input
+		await page.keyboard.type( 'testuser' );
+
+		// Move to the search button and click on it
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Enter' );
+		await page.waitForNavigation();
+
+		// Check that there is only one user row
+		const allUsersRows = await page.$$( '#the-list tr' );
+		expect( allUsersRows.length ).toBe( 1 );
+		
+		// Check that the remaining user is "testuser"
+		const newUserLink = await page.$x(
+			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
+		);
+		expect( newUserLink.length ).toBe( 1 );
+	} );
 } );
