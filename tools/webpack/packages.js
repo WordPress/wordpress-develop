@@ -112,7 +112,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'file',
 		'latest-comments',
 		'latest-posts',
-		'legacy-widget',
 		'loginout',
 		'page-list',
 		'post-content',
@@ -172,12 +171,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
 		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
 		} , {} ),
 	};
 	const blockMetadataFiles = {
+		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
