@@ -170,7 +170,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	function test_get_default_block_editor_settings() {
 		$settings = get_default_block_editor_settings();
 
-		$this->assertCount( 17, $settings );
+		$this->assertCount( 16, $settings );
 		$this->assertFalse( $settings['alignWide'] );
 		$this->assertInternalType( 'array', $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
@@ -265,6 +265,14 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			$settings['imageSizes']
 		);
 		$this->assertInternalType( 'int', $settings['maxUploadFileSize'] );
+	}
+
+	/**
+	 * @ticket 53397
+	 */
+	function test_get_legacy_widget_block_editor_settings() {
+		$settings = get_legacy_widget_block_editor_settings();
+		$this->assertCount( 1, $settings );
 		$this->assertSameSets(
 			array(
 				'archives',
