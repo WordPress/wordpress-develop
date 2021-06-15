@@ -986,34 +986,36 @@ function block_has_support( $block_type, $feature, $default = false ) {
  * @return array Filtered metadata for registering a block type.
  */
 function wp_migrate_old_typography_shape( $metadata ) {
-	$typography_keys = array(
-		'__experimentalFontFamily',
-		'__experimentalFontStyle',
-		'__experimentalFontWeight',
-		'__experimentalLetterSpacing',
-		'__experimentalTextDecoration',
-		'__experimentalTextTransform',
-		'fontSize',
-		'lineHeight',
-	);
-	foreach ( $typography_keys as $typography_key ) {
-		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
-		if ( null !== $support_for_key ) {
-			_doing_it_wrong(
-				'register_block_type_from_metadata()',
-				sprintf(
-					/* translators: 1: Block type, 2: Typography supports key, e.g: fontSize, lineHeight, etc. 3: block.json, 4: Old metadata key, 5: New metadata key. */
-					__( 'Block "%1$s" is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
-					$metadata['name'],
-					"<code>$typography_key</code>",
-					'<code>block.json</code>',
-					"<code>supports.$typography_key</code>",
-					"<code>supports.typography.$typography_key</code>"
-				),
-				'5.8.0'
-			);
-			_wp_array_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
-			unset( $metadata['supports'][ $typography_key ] );
+	if ( isset( $metadata['supports'] ) ) {
+		$typography_keys = array(
+			'__experimentalFontFamily',
+			'__experimentalFontStyle',
+			'__experimentalFontWeight',
+			'__experimentalLetterSpacing',
+			'__experimentalTextDecoration',
+			'__experimentalTextTransform',
+			'fontSize',
+			'lineHeight',
+		);
+		foreach ( $typography_keys as $typography_key ) {
+			$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
+			if ( null !== $support_for_key ) {
+				_doing_it_wrong(
+					'register_block_type_from_metadata()',
+					sprintf(
+						/* translators: 1: Block type, 2: Typography supports key, e.g: fontSize, lineHeight, etc. 3: block.json, 4: Old metadata key, 5: New metadata key. */
+						__( 'Block "%1$s" is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
+						$metadata['name'],
+						"<code>$typography_key</code>",
+						'<code>block.json</code>',
+						"<code>supports.$typography_key</code>",
+						"<code>supports.typography.$typography_key</code>"
+					),
+					'5.8.0'
+				);
+				_wp_array_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
+				unset( $metadata['supports'][ $typography_key ] );
+			}
 		}
 	}
 	return $metadata;
