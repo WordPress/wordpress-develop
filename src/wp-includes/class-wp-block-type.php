@@ -322,6 +322,8 @@ class WP_Block_Type {
 			$args,
 			array(
 				'render_callback' => null,
+				'style'           => null,
+				'editor_style'    => null,
 			)
 		);
 
@@ -330,12 +332,8 @@ class WP_Block_Type {
 		// Make sure core blocks register a stylesheet.
 		if ( 0 === strpos( $args['name'], 'core/' ) ) {
 			$block_name           = str_replace( 'core/', '', $args['name'] );
-			$args['style']        = isset( $args['style'] )
-				? $args['style']
-				: "wp-block-$block_name";
-			$args['editor_style'] = isset( $args['editor_style'] )
-				? $args['editor_style']
-				: "wp-block-$block_name-editor";
+			$args['style']        = $args['style'] ? $args['style'] : "wp-block-$block_name";
+			$args['editor_style'] = $args['editor_style'] ? $args['editor_style'] : "wp-block-$block_name-editor";
 		}
 
 		/**
