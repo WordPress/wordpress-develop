@@ -154,17 +154,17 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
 	$block_dir    = dirname( $metadata['file'] );
 	$style_file   = realpath( "$block_dir/$style_path" );
-	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
+	$version      = ! $is_core_block && $style_file ? filemtime( $style_file ) : false;
 	$result       = wp_register_style(
 		$style_handle,
-		$style_uri,
+		$style_file ? $style_uri : false,
 		array(),
 		$version
 	);
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
-	if ( file_exists( $style_file ) ) {
+	if ( $style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
