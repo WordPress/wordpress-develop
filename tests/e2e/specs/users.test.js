@@ -74,9 +74,33 @@ describe( 'Core Users', () => {
 		expect( allUsersRows.length ).toBe( 1 );
 		
 		// Check that the remaining user is "testuser"
-		const newUserLink = await page.$x(
-			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
-		);
-		expect( newUserLink.length ).toBe( 1 );
+		const foundUserRow = await page.waitForSelector( '#the-list td.column-username a' );
+		expect(
+			await foundUserRow.evaluate( ( element ) => element.innerText )
+		).toContain( 'testuser' );
+	} );
+
+	it( 'Should return No users found. when searching for a user that does not exist', async () => {
+		// Wait for the search field to appear and focus it
+		const userSearchInput = await page.waitForSelector( '#user-search-input' );
+		userSearchInput.focus();
+
+		// Type the new username in the search input
+		await page.keyboard.type( 'nonexistinguser' );
+
+		// Move to the search button and click on it
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.press( 'Enter' );
+		await page.waitForNavigation();
+
+		// Check that there is only one user row
+		const allUsersRows = await page.$$( '#the-list tr.no-items' );
+		expect( allUsersRows.length ).toBe( 1 );
+		
+		// Check that the remaining row contains "No users found."
+		const notFoundUserRow = await page.waitForSelector( '#the-list tr.no-items' );
+		expect(
+			await notFoundUserRow.evaluate( ( element ) => element.innerText )
+		).toContain( 'No users found.' );
 	} );
 } );
