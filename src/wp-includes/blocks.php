@@ -157,7 +157,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$version      = ! $is_core_block && $style_file ? filemtime( $style_file ) : false;
 	$result       = wp_register_style(
 		$style_handle,
-		$style_file ? $style_uri : false,
+		$is_core_block && $style_file ? $style_uri : false,
 		array(),
 		$version
 	);
