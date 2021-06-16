@@ -410,9 +410,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 
 		$url = wp_get_attachment_url( $attachment_id );
 
-		// Cleanup.
-		set_current_screen( 'front' );
-
 		$this->assertSame( set_url_scheme( $url, 'http' ), $url );
 	}
 
@@ -438,7 +435,6 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$url = wp_get_attachment_url( $attachment_id );
 
 		// Cleanup.
-		set_current_screen( 'front' );
 		remove_filter( 'upload_dir', '_upload_dir_https' );
 
 		$this->assertSame( 'https', parse_url( $url, PHP_URL_SCHEME ) );
