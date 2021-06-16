@@ -1197,7 +1197,9 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * Make sure the user_level is correctly set and changed with the user's role.
 	 *
-	 * @covers WP_Role::set_role
+	 * @covers WP_User::__construct
+	 * @covers WP_User::set_role
+	 * @covers WP_User::add_role
 	 */
 	function test_user_level_update() {
 		// User starts as an author.
@@ -1774,7 +1776,7 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 28374
 	 *
-	 * @covers ::add_cap
+	 * @covers WP_USer::add_cap
 	 */
 	function test_current_user_edit_caps() {
 		$user = self::$users['contributor'];
@@ -2408,7 +2410,8 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	/**
 	 * @ticket 38645
 	 *
-	 * @covers WP_Roles::roles
+	 * @covers WP_Roles::__construct
+	 * @covers WP_Roles::$roles
 	 */
 	function test_get_roles_data() {
 		global $wpdb;

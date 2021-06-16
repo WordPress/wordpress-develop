@@ -55,7 +55,7 @@ class Test_WP_Customize_Selective_Refresh extends WP_UnitTestCase {
 	 *
 	 * @see WP_Customize_Selective_Refresh::register_scripts()
 	 *
-	 * @covers WP_Customize_Selective_Refresh::register_scripts
+	 * @covers WP_Scripts::__construct
 	 */
 	function test_register_scripts() {
 		$scripts = new WP_Scripts();

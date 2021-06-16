@@ -28,7 +28,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 16840
 	 *
-	 * @covers ::add_rule
+	 * @covers WP_Rewrite::add_rule
 	 */
 	public function test_add_rule() {
 		global $wp_rewrite;
@@ -48,7 +48,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 16840
 	 *
-	 * @covers ::add_rule
+	 * @covers WP_Rewrite::add_rule
 	 */
 	public function test_add_rule_redirect_array() {
 		global $wp_rewrite;
@@ -74,7 +74,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 16840
 	 *
-	 * @covers ::add_rule
+	 * @covers WP_Rewrite::add_rule
 	 */
 	public function test_add_rule_top() {
 		global $wp_rewrite;
@@ -525,7 +525,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 	/**
 	 * @ticket 29107
 	 *
-	 * @covers ::flush_rules
+	 * @covers WP_Rewrite::flush_rules
 	 */
 	public function test_flush_rules_does_not_delete_option() {
 		$this->set_permalink_structure( '' );

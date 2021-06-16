@@ -1008,7 +1008,7 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 *
 	 * @ticket 48011
 	 *
-	 * @covers ::wp_get_nav_menu_item
+	 * @covers ::wp_update_nav_menu_item
 	 */
 	function test_wp_update_nav_menu_item_with_special_characters_in_category_name() {
 		$category_name = 'Test Cat - \"Pre-Slashed\" Cat Name & >';

@@ -273,7 +273,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @see _delete_option_fresh_site()
 	 * @ticket 41039
 	 *
-	 * @covers ::_publish_changeset_values
+	 * @covers WP_Customize_Manager::_publish_changeset_values
 	 */
 	function test_fresh_site_flag_clearing() {
 		global $wp_customize, $wpdb;

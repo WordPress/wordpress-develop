@@ -89,7 +89,7 @@ class WP_Test_Block_Register extends WP_UnitTestCase {
 	/**
 	 * @ticket 45109
 	 *
-	 * @covers ::register_block_type	 *
+	 * @covers ::register_block_type
 	 * @covers ::unregister_block_type
 	 */
 	function test_unregister_affects_main_registry() {

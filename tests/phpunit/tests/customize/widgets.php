@@ -482,7 +482,7 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	/**
 	 * @see WP_Widget_Form_Customize_Control::json()
 	 *
-	 * @covers WP_Customize_Widgets::json
+	 * @covers WP_Customize_Control::json
 	 */
 	function test_wp_widget_form_customize_control_json() {
 		$this->do_customize_boot_actions();

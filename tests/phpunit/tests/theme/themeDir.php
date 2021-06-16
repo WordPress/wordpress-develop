@@ -229,7 +229,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_theme_data
 	 *
-	 * @covers ::get_themes_data
+	 * @covers WP_Theme::__construct
 	 */
 	function test_get_theme_data_top_level() {
 		$theme_data = get_theme_data( DIR_TESTDATA . '/themedir1/theme1/style.css' );
@@ -250,7 +250,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	/**
 	 * @expectedDeprecated get_theme_data
 	 *
-	 * @covers ::get_themes_data
+	 * @covers WP_Theme::__construct
 	 */
 	function test_get_theme_data_subdir() {
 		$theme_data = get_theme_data( $this->theme_root . '/subdir/theme2/style.css' );

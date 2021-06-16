@@ -2508,7 +2508,7 @@ EOF;
 	/**
 	 * @ticket 36084
 	 *
-	 * @covers :get_image_send_to_editor:
+	 * @covers ::get_image_send_to_editor
 	 */
 	function test_get_image_send_to_editor_defaults() {
 		$id      = self::$large_id;

@@ -6,12 +6,7 @@
 class Tests_POMO_TranslationEntry extends WP_UnitTestCase {
 
 	/**
-	 * @covers Translation_Entry::singular
-	 * @covers Translation_Entry::plural
-	 * @covers Translation_Entry::is_plural
-	 * @covers Translation_Entry::translations
-	 * @covers Translation_Entry::references
-	 * @covers Translation_Entry::flags
+	 * @covers Translation_Entry::__construct
 	 */
 	function test_create_entry() {
 		// No singular => empty object.

@@ -258,7 +258,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Tests getting a URL list for post type page with included home page
 	 *
-	 * @covers ::wp_get_sitemap_providers.
+	 * @covers  WP_Sitemaps_Provider::get_url_list.
 	 */
 	public function test_get_url_list_page_with_home() {
 		$providers = wp_get_sitemap_providers();
@@ -480,7 +480,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * @ticket 50643
 	 *
-	 * @covers WP_Sitemaps:sitemaps_enabled
+	 * @covers WP_Sitemaps::sitemaps_enabled
 	 */
 	public function test_sitemaps_enabled() {
 		$before = wp_sitemaps_get_server()->sitemaps_enabled();
@@ -497,7 +497,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 *
-	 * @covers WP_Sitemaps:render_sitemaps
+	 * @covers WP_Sitemaps::render_sitemaps
 	 */
 	public function test_disable_sitemap_should_return_404() {
 		add_filter( 'wp_sitemaps_enabled', '__return_false' );
@@ -516,7 +516,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 *
-	 * @covers WP_Sitemaps:render_sitemaps
+	 * @covers WP_Sitemaps::render_sitemaps
 	 */
 	public function test_empty_url_list_should_return_404() {
 		wp_register_sitemap_provider( 'foo', new WP_Sitemaps_Empty_Test_Provider( 'foo' ) );

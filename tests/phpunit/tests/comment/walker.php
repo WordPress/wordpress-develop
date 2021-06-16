@@ -3,7 +3,7 @@
 /**
  * @group comment
  *
- * @covers Walker_Comment::__construct
+ * @covers ::wp_list_comments
  */
 class Tests_Comment_Walker extends WP_UnitTestCase {
 

@@ -221,7 +221,8 @@ class Tests_Theme extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers WP_Theme::wp_get_theme
+	 * @covers WP_Theme::exists
+	 * @covers WP_Theme::get
 	 */
 	function test_default_themes_have_textdomain() {
 		foreach ( $this->default_themes as $theme ) {
@@ -234,7 +235,7 @@ class Tests_Theme extends WP_UnitTestCase {
 	/**
 	 * @ticket 48566
 	 *
-	 * @covers WP_Theme::wp_get_theme
+	 * @covers WP_Theme::__construct
 	 */
 	function test_year_in_readme() {
 		// This test is designed to only run on trunk/master.

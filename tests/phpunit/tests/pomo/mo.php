@@ -6,7 +6,6 @@
 class Tests_POMO_MO extends WP_UnitTestCase {
 
 	/**
-	 * @covers MO::headers
 	 * @covers MO::import_from_file
 	 */
 	function test_mo_simple() {
@@ -54,7 +53,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers Translation_Entry::context
+	 * @covers Translation_Entry::__construct
 	 */
 	function test_mo_context() {
 		$mo = new MO();

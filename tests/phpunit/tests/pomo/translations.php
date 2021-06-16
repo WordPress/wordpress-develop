@@ -6,7 +6,7 @@
 class Tests_POMO_Translations extends WP_UnitTestCase {
 
 	/**
-	 * @covers Translation_Entry::add_entry
+	 * @covers Translations::add_entry
 	 */
 	function test_add_entry() {
 		$entry  = new Translation_Entry( array( 'singular' => 'baba' ) );
@@ -46,7 +46,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers Translation_Entry::translate
+	 * @covers Translations::translate
 	 */
 	function test_translate() {
 		$entry1 = new Translation_Entry(
@@ -72,7 +72,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers Translation_Entry::translate_plural
+	 * @covers Translations::translate_plural
 	 */
 	function test_translate_plural() {
 		$entry_incomplete = new Translation_Entry(
@@ -115,7 +115,7 @@ class Tests_POMO_Translations extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers Translation_Entry::translate
+	 * @covers Translations::translate
 	 * @covers Translation_Entry::merge_with
 	 */
 	function test_digit_and_merge() {

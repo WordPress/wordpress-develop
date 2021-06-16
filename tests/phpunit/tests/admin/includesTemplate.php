@@ -7,6 +7,8 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	/**
 	 * @ticket 51147
 	 * @dataProvider data_wp_terms_checklist_with_selected_cats
+	 *
+	 * @covers ::wp_terms_checklist
 	 */
 	public function test_wp_terms_checklist_with_selected_cats( $term_id ) {
 		$output = wp_terms_checklist(
@@ -46,7 +48,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @covers :: add_meta_box
+	 * @covers ::add_meta_box
 	 */
 	public function test_add_meta_box() {
 		global $wp_meta_boxes;
@@ -78,7 +80,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	/**
 	 * @ticket 15000
 	 *
-	 * @covers :: add_meta_box
+	 * @covers ::add_meta_box
 	 */
 	public function test_add_meta_box_on_multiple_screens() {
 		global $wp_meta_boxes;
@@ -120,7 +122,7 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 	/**
 	 * @ticket 50019
 	 *
-	 * @covers :: add_meta_box
+	 * @covers ::add_meta_box
 	 * @covers ::remove_meta_box
 	 */
 	public function test_add_meta_box_with_previously_removed_box_and_sorted_priority() {

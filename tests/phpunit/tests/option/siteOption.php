@@ -209,7 +209,6 @@ class Tests_Option_SiteOption extends WP_UnitTestCase {
 	 * @ticket 15497
 	 *
 	 * @covers ::update_site_option
-	 * @covers ::flush_cache
 	 * @covers ::get_site_option
 	 */
 	function test_update_adds_falsey_value() {

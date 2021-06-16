@@ -10,8 +10,7 @@ class Tests_User_WpDeleteUser extends WP_UnitTestCase {
 	 *
 	 * @ticket 19500
 	 *
-	 * @covers ::wpmu_delete_user
-	 * @covers ::wp_delete_user
+	 * @covers ::get_blogs_of_user
 	 */
 	function test_get_blogs_of_user() {
 		// Logged out users don't have blogs.
