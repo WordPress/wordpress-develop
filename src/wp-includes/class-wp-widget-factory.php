@@ -120,4 +120,22 @@ class WP_Widget_Factory {
 
 		return null;
 	}
+
+	/**
+	 * Returns the registered key for the given widget type.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $id_base Widget type ID.
+	 * @return string|null
+	 */
+	public function get_widget_key( $id_base ) {
+		foreach ( $this->widgets as $key => $widget_object ) {
+			if ( $widget_object->id_base === $id_base ) {
+				return $key;
+			}
+		}
+
+		return null;
+	}
 }
