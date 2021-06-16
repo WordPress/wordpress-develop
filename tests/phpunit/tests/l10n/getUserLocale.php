@@ -20,12 +20,6 @@ class Tests_L10n_GetUserLocale extends WP_UnitTestCase {
 		wp_set_current_user( $this->user_id );
 	}
 
-	public function tearDown() {
-		set_current_screen( 'front' );
-
-		parent::tearDown();
-	}
-
 	public function test_user_locale_property() {
 		set_current_screen( 'dashboard' );
 		$this->assertSame( 'de_DE', get_user_locale() );
