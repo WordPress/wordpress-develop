@@ -20,6 +20,14 @@ body {
 	}
 
 	.wp-block[data-align="left"],
+	.wp-block.alignleft,
+	.wp-block[data-align="right"],
+	.wp-block.alignright {
+		height: auto;
+		overflow: auto;
+	}
+
+	.wp-block[data-align="left"],
 	.wp-block.alignleft {
 		margin-right: $size__spacing-unit;
 		width: inherit;
