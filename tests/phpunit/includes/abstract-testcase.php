@@ -160,6 +160,15 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 		// Reset $wp_sitemap global so that sitemap-related dynamic $wp->public_query_vars are added when the next test runs.
 		$GLOBALS['wp_sitemaps'] = null;
 
+		/*
+		 * Reset globals related to current screen.
+		 * Ticket #53431
+		 */
+		$current_screen_globals = array( 'current_screen', 'taxnow', 'typenow' );
+		foreach ( $current_screen_globals as $global ) {
+			$GLOBALS[ $global ] = null;
+		}
+
 		$this->unregister_all_meta_keys();
 		remove_theme_support( 'html5' );
 		remove_filter( 'query', array( $this, '_create_temporary_tables' ) );
