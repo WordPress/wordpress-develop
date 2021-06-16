@@ -54,7 +54,7 @@ class WP_Test_Block_Serialization extends WP_UnitTestCase {
 
 	/*
 	 * @covers ::strip_core_block_namespace
- 	*/
+	 */
 	function test_serialized_block_name() {
 		$this->assertNull( strip_core_block_namespace( null ) );
 		$this->assertSame( 'example', strip_core_block_namespace( 'example' ) );

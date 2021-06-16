@@ -980,7 +980,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * Any user with 'edit_posts' on a show_in_rest post type
 	 * can view authors. Others (e.g. subscribers) cannot.
-     *
+	 *
 	 * @covers ::get_items
 	 */
 	public function test_get_items_who_unauthorized_query() {

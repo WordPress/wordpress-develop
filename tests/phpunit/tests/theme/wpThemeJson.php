@@ -195,7 +195,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
-  /**
+	/**
 	 * @covers WP_Theme_JSON::get_stylesheet
 	 */
 	function test_get_stylesheet() {

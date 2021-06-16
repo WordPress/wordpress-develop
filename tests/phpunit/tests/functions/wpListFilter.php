@@ -39,10 +39,10 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			$this->object_list[ $key ] = (object) $value;
 		}
 	}
- 	/*
-  	*
-  	* @covers ::wp_filter_object_list
-  	*/
+	/*
+	 *
+	 * @covers ::wp_filter_object_list
+	 */
 	function test_filter_object_list_and() {
 		$list = wp_filter_object_list(
 			$this->object_list,

@@ -689,7 +689,7 @@ JS;
 
 	/**
 	 * @ticket 36392
-     *
+	 *
 	 * @covers ::wp_add_inline_script
 	 */
 	public function test_wp_add_inline_script_after_with_concat_and_core_dependency() {
@@ -943,7 +943,7 @@ JS;
 
 	/**
 	 * @ticket 45103
-     *
+	 *
 	 * @covers ::wp_set_script_translations
 	 */
 	public function test_wp_set_script_translations_for_plugin() {
