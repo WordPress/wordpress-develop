@@ -6,7 +6,7 @@
 class Tests_Admin_includesMisc extends WP_UnitTestCase {
 
 	/**
-	 * @covers ::url_shorten;
+	 * @covers ::url_shorten
 	 */
 	function test_shorten_url() {
 		$tests = array(

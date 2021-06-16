@@ -2411,7 +2411,6 @@ class Tests_User_Capabilities extends WP_UnitTestCase {
 	 * @ticket 38645
 	 *
 	 * @covers WP_Roles::__construct
-	 * @covers WP_Roles::$roles
 	 */
 	function test_get_roles_data() {
 		global $wpdb;

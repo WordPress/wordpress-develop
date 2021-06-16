@@ -258,7 +258,7 @@ class Test_Sitemaps extends WP_UnitTestCase {
 	/**
 	 * Tests getting a URL list for post type page with included home page
 	 *
-	 * @covers  WP_Sitemaps_Provider::get_url_list.
+	 * @covers  WP_Sitemaps_Provider::get_url_list
 	 */
 	public function test_get_url_list_page_with_home() {
 		$providers = wp_get_sitemap_providers();

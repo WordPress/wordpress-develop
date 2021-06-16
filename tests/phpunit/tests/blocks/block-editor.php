@@ -88,7 +88,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	/**
 	 * @ticket 52920
 	 *
-	 * @covers ::WP_Block_Editor_Context
+	 * @covers WP_Block_Editor_Context::__construct
 	 */
 	function test_block_editor_context_post() {
 		$context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );

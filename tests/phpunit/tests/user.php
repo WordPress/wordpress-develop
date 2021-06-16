@@ -198,8 +198,6 @@ class Tests_User extends WP_UnitTestCase {
 	 * Test property magic functions for property get/set/isset.
 	 *
 	 * @covers WP_User::__construct
-	 * @covers WP_User::$data
-	 * @covers WP_User::$key
 	 */
 	function test_user_properties() {
 		$user = new WP_User( self::$author_id );

@@ -201,7 +201,6 @@ EOT;
 	}
 
 	/**
-	 * @covers Services_JSON::encodeUnsafe
 	 * @covers Services_JSON::decode
 	 */
 	function test_json_encode_decode() {
