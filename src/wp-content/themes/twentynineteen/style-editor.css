@@ -583,8 +583,18 @@ h6:lang(vi), figcaption:lang(vi),
 /** === Editor Frame === */
 body .wp-block[data-align="full"],
 body .wp-block.alignfull {
-  width: calc(100% + 20px);
-  max-width: calc(100% + 20px);
+  max-width: calc(100% + 16px);
+  padding-left: 8px;
+  padding-right: 8px;
+  width: calc(100% + 16px);
+}
+
+body .wp-block[data-align="left"],
+body .wp-block.alignleft,
+body .wp-block[data-align="right"],
+body .wp-block.alignright {
+  height: auto;
+  overflow: auto;
 }
 
 body .wp-block[data-align="left"],
@@ -620,8 +630,8 @@ body .wp-block.aligncenter {
   }
   body .wp-block[data-align="full"],
   body .wp-block.alignfull {
-    width: calc( 125% + 20px);
-    max-width: calc( 125% + 20px);
+    width: calc(125% + 16px);
+    max-width: calc(125% + 16px);
     position: relative;
     left: -12.5%;
   }
