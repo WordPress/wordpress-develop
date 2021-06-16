@@ -84,13 +84,16 @@ function register_block_script_handle( $metadata, $field_name ) {
 		substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
 	);
 	if ( ! file_exists( $script_asset_path ) ) {
-		$message = sprintf(
-			/* translators: %1: field name. %2: block name */
-			__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.', 'default' ),
-			$field_name,
-			$metadata['name']
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: Field name, 2: Block name. */
+				__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.' ),
+				$field_name,
+				$metadata['name']
+			),
+			'5.5.0'
 		);
-		_doing_it_wrong( __FUNCTION__, $message, '5.5.0' );
 		return false;
 	}
 	$script_asset = require $script_asset_path;
@@ -972,6 +975,16 @@ function block_has_support( $block_type, $feature, $default = false ) {
 	return true === $block_support || is_array( $block_support );
 }
 
+/**
+ * Converts typography keys declared under `supports.*` to `supports.typography.*`.
+ *
+ * Displays a `_doing_it_wrong()` notice when a block using the older format is detected.
+ *
+ * @since 5.8.0
+ *
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Filtered metadata for registering a block type.
+ */
 function wp_migrate_old_typography_shape( $metadata ) {
 	$typography_keys = array(
 		'__experimentalFontFamily',
@@ -986,12 +999,20 @@ function wp_migrate_old_typography_shape( $metadata ) {
 	foreach ( $typography_keys as $typography_key ) {
 		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
 		if ( null !== $support_for_key ) {
-			trigger_error(
-				/* translators: %1$s: Block type, %2$s: typography supports key e.g: fontSize, lineHeight etc... */
-				sprintf( __( 'Block %1$s is declaring %2$s support on block.json under supports.%2$s. %2$s support is now declared under supports.typography.%2$s.', 'gutenberg' ), $metadata['name'], $typography_key ),
-				headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+			_doing_it_wrong(
+				'register_block_type_from_metadata()',
+				sprintf(
+					/* translators: 1: Block type, 2: Typography supports key, e.g: fontSize, lineHeight, etc. 3: block.json, 4: Old metadata key, 5: New metadata key. */
+					__( 'Block "%1$s" is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
+					$metadata['name'],
+					"<code>$typography_key</code>",
+					'<code>block.json</code>',
+					"<code>supports.$typography_key</code>",
+					"<code>supports.typography.$typography_key</code>"
+				),
+				'5.8.0'
 			);
-			gutenberg_experimental_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
+			_wp_array_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
 			unset( $metadata['supports'][ $typography_key ] );
 		}
 	}

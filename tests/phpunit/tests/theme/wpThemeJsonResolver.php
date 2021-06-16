@@ -114,15 +114,17 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 			array(
 				'color'  => array(
 					'palette' => array(
-						array(
-							'slug'  => 'light',
-							'name'  => 'Jasny',
-							'color' => '#f5f7f9',
-						),
-						array(
-							'slug'  => 'dark',
-							'name'  => 'Ciemny',
-							'color' => '#000',
+						'theme' => array(
+							array(
+								'slug'  => 'light',
+								'name'  => 'Jasny',
+								'color' => '#f5f7f9',
+							),
+							array(
+								'slug'  => 'dark',
+								'name'  => 'Ciemny',
+								'color' => '#000',
+							),
 						),
 					),
 					'custom'  => false,
@@ -131,10 +133,12 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 					'core/paragraph' => array(
 						'color' => array(
 							'palette' => array(
-								array(
-									'slug'  => 'light',
-									'name'  => 'Jasny',
-									'color' => '#f5f7f9',
+								'theme' => array(
+									array(
+										'slug'  => 'light',
+										'name'  => 'Jasny',
+										'color' => '#f5f7f9',
+									),
 								),
 							),
 						),
