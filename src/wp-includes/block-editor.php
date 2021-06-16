@@ -466,7 +466,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
 }
 
 /**
- * Creates an array of theme styles to load into the block editor
+ * Creates an array of theme styles to load into the block editor.
  *
  * @since 5.8.0
  *
