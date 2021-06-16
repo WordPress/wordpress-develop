@@ -112,13 +112,12 @@ class WP_Widget_Factory {
 	 * @return WP_Widget|null
 	 */
 	public function get_widget_object( $id_base ) {
-		foreach ( $this->widgets as $widget_object ) {
-			if ( $widget_object->id_base === $id_base ) {
-				return $widget_object;
-			}
+		$key = $this->get_widget_key( $id_base );
+		if ( ! $key ) {
+			return null;
 		}
 
-		return null;
+		return $this->widgets[ $key ];
 	}
 
 	/**
@@ -127,7 +126,7 @@ class WP_Widget_Factory {
 	 * @since 5.8.0
 	 *
 	 * @param string $id_base Widget type ID.
-	 * @return string|null
+	 * @return string
 	 */
 	public function get_widget_key( $id_base ) {
 		foreach ( $this->widgets as $key => $widget_object ) {
@@ -136,6 +135,6 @@ class WP_Widget_Factory {
 			}
 		}
 
-		return null;
+		return "";
 	}
 }
