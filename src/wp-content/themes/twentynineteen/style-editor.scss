@@ -884,100 +884,112 @@ $group-block-background__padding: $font__size_base;
 // Full alignment
 .wp-block[data-align="full"] > .wp-block-group {
 
-		// Margins & padding are added to this container to mimic
-		// the style + spacing of the .editor-writing-flow global
-		// container. This way, child items sync up with the placement
-		// and size of other top-level blocks.
-		> .wp-block-group__inner-container {
+	// Margins & padding are added to this container to mimic
+	// the style + spacing of the .editor-writing-flow global
+	// container. This way, child items sync up with the placement
+	// and size of other top-level blocks.
+	> .wp-block-group__inner-container {
 
-			// 2px of extra padding are added to each side here
-			// To better match up with the spacing of the whole
-			// document.
+		// 2px of extra padding are added to each side here
+		// To better match up with the spacing of the whole
+		// document.
+		@include media(tablet) {
+			width: 80%;
+			margin-left: 10%;
+			margin-right: 10%;
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+
+		// Child blocks: Normal Alignments
+		> .wp-block:not([data-align="wide"]):not(.alignwide):not([data-align="full"]):not(.alignfull) {
+
 			@include media(tablet) {
-				width: 80%;
-				margin-left: 10%;
-				margin-right: 10%;
-				padding-left: 10px;
-				padding-right: 10px;
+				max-width: calc(8 * (100vw / 12));
 			}
 
-			// Child blocks: Normal Alignments
-			> .wp-block:not([data-align="wide"]):not(.alignwide):not([data-align="full"]):not(.alignfull) {
-
-				@include media(tablet) {
-					max-width: calc(8 * (100vw / 12));
-				}
-
-				@include media(desktop) {
-					max-width: calc(6 * (100vw / 12));
-				}
-			}
-
-			// Child blocks: Not Full Alignments
-			> .wp-block:not([data-align="full"]):not(.alignfull) {
-				padding-left: 10px;
-				padding-right: 10px;
-
-				@include media(tablet) {
-					padding-left: 0;
-					padding-right: 0;
-				}
-			}
-
-			// Child blocks: Right alignments
-			> .wp-block[data-align="right"] {
-
-				@include media(tablet) {
-					max-width: 125%;
-				}
-			}
-
-			// Child blocks: Wide alignments
-			> .wp-block[data-align="wide"],
-			> .wp-block.alignwide {
-
-				@include media(tablet) {
-					width: 100%;
-					max-width: 100%;
-				}
-			}
-
-			// Child blocks: Full alignments
-			> .wp-block[data-align=full],
-			> .wp-block.alignfull {
-
-				@include media(tablet) {
-					left: calc( -12.5% - 13px );
-					width: calc( 125% + 26px );
-					max-width: calc( 125% + 25px );
-				}
+			@include media(desktop) {
+				max-width: calc(6 * (100vw / 12));
 			}
 		}
 
-		// Group block with background color
-		&.has-background {
+		// Child blocks: Not Full Alignments
+		> .wp-block:not([data-align="full"]):not(.alignfull) {
+			padding-left: 10px;
+			padding-right: 10px;
 
-			// When the Group block is full width, we can remove the left/right padding.
-			padding: $group-block-background__padding 0;
-
-			@include media(mobile) {
+			@include media(tablet) {
 				padding-left: 0;
 				padding-right: 0;
 			}
+		}
 
-			// Child blocks: Full alignment
-			> .wp-block-group__inner-container > .wp-block[data-align="full"],
-			> .wp-block-group__inner-container > .wp-block.alignfull {
-				margin-left: 0;
+		// Child blocks: Right alignments
+		> .wp-block[data-align="right"] {
+
+			@include media(tablet) {
+				max-width: 125%;
+			}
+		}
+
+		// Child blocks: Wide alignments
+		> .wp-block[data-align="wide"],
+		> .wp-block.alignwide {
+
+			@include media(tablet) {
 				width: 100%;
+				max-width: 100%;
+			}
+		}
 
-				@include media(mobile) {
-					width: calc(100% + 92px);
-				}
+		// Child blocks: Full alignments
+		> .wp-block[data-align=full],
+		> .wp-block.alignfull {
 
-				@include media(tablet) {
-					width: calc(125% + 120px);
-				}
+			@include media(tablet) {
+				left: calc( -12.5% - 13px );
+				width: calc( 125% + 26px );
+				max-width: calc( 125% + 25px );
 			}
 		}
 	}
+
+	// Group block with background color
+	&.has-background {
+
+		// When the Group block is full width, we can remove the left/right padding.
+		padding: $group-block-background__padding 0;
+
+		@include media(mobile) {
+			padding-left: 0;
+			padding-right: 0;
+		}
+
+		// Child blocks: Full alignment
+		> .wp-block-group__inner-container > .wp-block[data-align="full"],
+		> .wp-block-group__inner-container > .wp-block.alignfull {
+			margin-left: 0;
+			width: 100%;
+
+			@include media(mobile) {
+				width: calc(100% + 92px);
+			}
+
+			@include media(tablet) {
+				width: calc(125% + 120px);
+			}
+		}
+	}
+}
+
+.wp-block-post-template {
+
+	.wp-block[data-align="full"],
+	.wp-block.alignfull {
+		left: 0;
+		max-width: 100%;
+		padding-left: 0;
+		padding-right: 0;
+		width: 100%;
+	}
+}

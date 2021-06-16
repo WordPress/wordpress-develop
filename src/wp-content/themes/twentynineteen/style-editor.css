@@ -1570,3 +1570,12 @@ ul.wp-block-archives li ul,
     width: calc(125% + 120px);
   }
 }
+
+.wp-block-post-template .wp-block[data-align="full"],
+.wp-block-post-template .wp-block.alignfull {
+  left: 0;
+  max-width: 100%;
+  padding-left: 0;
+  padding-right: 0;
+  width: 100%;
+}
