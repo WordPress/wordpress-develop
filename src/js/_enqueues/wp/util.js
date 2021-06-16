@@ -118,7 +118,7 @@ window.wp = window.wp || {};
 
 						// When handling a media attachments request, get the total attachments from response headers.
 						var context = this;
-						deferred.done( function( r ) {
+						deferred.done( function() {
 							if (
 								'query-attachments' === action.data.action &&
 								deferred.jqXHR.hasOwnProperty( 'getResponseHeader' ) &&
