@@ -24,39 +24,8 @@ $preload_paths = array(
 );
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
-
-// Editor Styles.
-$styles = array(
-	array(
-		'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
-		'__unstableType' => 'core',
-	),
-);
-if ( $editor_styles && current_theme_supports( 'editor-styles' ) ) {
-	foreach ( $editor_styles as $style ) {
-		if ( preg_match( '~^(https?:)?//~', $style ) ) {
-			$response = wp_remote_get( $style );
-			if ( ! is_wp_error( $response ) ) {
-				$styles[] = array(
-					'css'            => wp_remote_retrieve_body( $response ),
-					'__unstableType' => 'theme',
-				);
-			}
-		} else {
-			$file = get_theme_file_path( $style );
-			if ( is_file( $file ) ) {
-				$styles[] = array(
-					'css'            => file_get_contents( $file ),
-					'baseURL'        => get_theme_file_uri( $style ),
-					'__unstableType' => 'theme',
-				);
-			}
-		}
-	}
-}
-
 $editor_settings = get_block_editor_settings(
-	array_merge( get_legacy_widget_block_editor_settings(), array( 'styles' => $styles ) ),
+	array_merge( get_legacy_widget_block_editor_settings(), array( 'styles' => get_block_editor_theme_styles() ) ),
 	$block_editor_context
 );
 
