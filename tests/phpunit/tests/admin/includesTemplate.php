@@ -234,8 +234,6 @@ class Tests_Admin_includesTemplate extends WP_UnitTestCase {
 
 		// This doesn't actually get removed due to the invalid priority.
 		remove_meta_box( 'dashboard2', 'dashboard', 'normal' );
-
-		set_current_screen( 'front' );
 	}
 
 }
