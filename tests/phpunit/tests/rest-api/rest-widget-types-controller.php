@@ -402,7 +402,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),
@@ -438,7 +438,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Updated title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Updated title' ) ) ),
@@ -482,7 +482,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 			"\t\t\t</form></div>",
 			$data['preview']
 		);
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'encoded' => base64_encode( serialize( array( 'title' => 'Test title' ) ) ),
 				'hash'    => wp_hash( serialize( array( 'title' => 'Test title' ) ) ),

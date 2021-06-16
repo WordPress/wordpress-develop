@@ -121,7 +121,7 @@ class Tests_Bookmark_GetBookmarks extends WP_UnitTestCase {
 		$this->assertEqualSets( $bookmarks, $found_ids );
 	}
 
-	public function test_category_param_propelry_gets_parsed_as_list() {
+	public function test_category_param_properly_gets_parsed_as_list() {
 		$bookmarks  = self::factory()->bookmark->create_many( 3 );
 		$categories = self::factory()->term->create_many(
 			3,

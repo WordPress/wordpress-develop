@@ -272,12 +272,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				array(
 					'id'       => 'block-1',
 					'id_base'  => 'block',
 					'sidebar'  => 'sidebar-1',
+					'rendered' => '<p>Block test</p>',
 					'instance' => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -297,12 +298,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'content' => $block_content,
 						),
 					),
-					'rendered' => '<p>Block test</p>',
 				),
 				array(
 					'id'       => 'rss-1',
 					'id_base'  => 'rss',
 					'sidebar'  => 'sidebar-1',
+					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
 					'instance' => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -321,14 +322,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							)
 						),
 					),
-					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
 				),
 				array(
 					'id'       => 'testwidget',
 					'id_base'  => 'testwidget',
 					'sidebar'  => 'sidebar-1',
-					'instance' => null,
 					'rendered' => '<h1>Default id</h1><span>Default text</span>',
+					'instance' => null,
 				),
 			),
 			$data
@@ -447,11 +447,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'id'       => 'text-1',
 				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
+				'rendered' => '<div class="textwidget">Custom text test</div>',
 				'instance' => array(
 					'encoded' => base64_encode(
 						serialize(
@@ -471,7 +472,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 						'text' => 'Custom text test',
 					),
 				),
-				'rendered' => '<div class="textwidget">Custom text test</div>',
 			),
 			$data
 		);
@@ -565,7 +565,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'text-2', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -657,7 +657,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'block-7', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'content' => '<!-- wp:paragraph --><p>Block test</p><!-- /wp:paragraph -->',
 			),
@@ -721,7 +721,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'text-2', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -756,7 +756,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'text-2', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Text 1',
 				'title'  => '',
@@ -779,7 +779,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'text-3', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Text 2',
 				'title'  => '',
@@ -827,7 +827,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( 'text-2', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -874,7 +874,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 'text-1', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -963,7 +963,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 
 		$this->assertSame( 'text-1', $data['id'] );
 		$this->assertSame( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -1170,7 +1170,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated \\" \\\' text test',
 				'title'  => '',
