@@ -459,6 +459,8 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Screen::add_option
 	 * @covers WP_Screen::get_option
+	 * @covers WP_Screen::remove_option
+	 * @covers WP_Screen::remove_options
 	 */
 	function test_options() {
 		$option      = __FUNCTION__;
