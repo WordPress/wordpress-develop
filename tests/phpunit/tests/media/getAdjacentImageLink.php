@@ -3,7 +3,7 @@
 require_once __DIR__ . '/testcase-adjacent-image-link.php';
 
 /**
- * @group  media
+ * @group media
  * @covers ::get_adjacent_image_link
  */
 class Tests_Media_GetAdjacentImageLink extends WP_Test_Adjacent_Image_Link_TestCase {
