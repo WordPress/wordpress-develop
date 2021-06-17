@@ -199,6 +199,27 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	}
 
 	/**
+	 * @ticket 53407
+	 */
+	public function test_get_widgets_decodes_html_entities() {
+		wp_set_current_user( self::$admin_id );
+		$widget_id = 'archives';
+		wp_register_sidebar_widget(
+			$widget_id,
+			'Legacy &#8209; Archive &#8209; Widget',
+			function() {},
+			array(
+				'description' => 'A great &amp; interesting archive of your site&#8217;s posts!',
+			)
+		);
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/archives' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$this->assertSame( 'Legacy ‑ Archive ‑ Widget', $data['name'] );
+		$this->assertSame( 'A great & interesting archive of your site’s posts!', $data['description'] );
+	}
+
+	/**
 	 * @ticket 41683
 	 */
 	public function test_get_item_schema() {
@@ -491,7 +512,6 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		);
 		$wp_widget_factory->widgets['WP_Widget_Search']->widget_options['show_instance_in_rest'] = true;
 	}
-
 
 	/**
 	 * The test_create_item() method does not exist for widget types.
