@@ -178,6 +178,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_grandchildren_hierarchical_pages_second_page() {
 		// Page 7 is the second page with grandchildren.
