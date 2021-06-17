@@ -82,8 +82,6 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 	 * @param int $expected_position Where the new item is expected to appear.
 	 *
 	 * @dataProvider data_submenu_position
-	 *
-	 * @covers ::add_submenu_page
 	 */
 	function test_submenu_position( $position, $expected_position ) {
 		global $submenu;
