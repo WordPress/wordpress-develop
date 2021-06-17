@@ -137,7 +137,7 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 	 *
 	 * @ticket 25272
 	 *
-	 * @covers ::wp_insert_post
+	 * @covers ::edit_post
 	 */
 	function test_edit_post_auto_draft() {
 		wp_set_current_user( self::$editor_id );
