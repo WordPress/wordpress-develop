@@ -462,7 +462,7 @@ OPTIONS;
 	/**
 	 * @ticket 45089
 	 *
-	 * @covers WP_Posts_List_Table::get_sortable_columns
+	 * @covers WP_Posts_List_Table::print_column_headers
 	 */
 	public function test_sortable_columns_with_current_ordering() {
 		require_once ABSPATH . 'wp-admin/includes/class-wp-comments-list-table.php';
