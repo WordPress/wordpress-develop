@@ -60,6 +60,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Test: get_events() should return an instance of WP_Error if the response code is not 200.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_events_bad_response_code() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_bad_response_code' ) );
@@ -73,6 +75,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Test: The response body should not be cached if the response code is not 200.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_cached_events_bad_response_code() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_bad_response_code' ) );
@@ -108,6 +112,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * the required properties.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_events_invalid_response() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_invalid_response' ) );
@@ -121,6 +127,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Test: The response body should not be cached if it does not have the required properties.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_cached_events_invalid_response() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_invalid_response' ) );
@@ -156,6 +164,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * an events array with individual events that have Unix start/end timestamps.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_events_valid_response() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
@@ -175,6 +185,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * timestamps for each event.
 	 *
 	 * @since 4.8.0
+	 *
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_cached_events_valid_response() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_valid_response' ) );
@@ -278,9 +290,9 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Test: `trim_events()` should immediately remove expired events.
 	 *
-	 * @covers WP_Community_Events::trim_events
-	 *
 	 * @since 5.5.2
+	 *
+	 * @covers WP_Community_Events::trim_events
 	 */
 	public function test_trim_expired_events() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -306,10 +318,10 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	/**
 	 * Test: get_events() should return the events with the WordCamp pinned in the prepared list.
 	 *
-	 * @covers WP_Community_Events::trim_events
-	 *
 	 * @since 4.9.7
 	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
+	 *
+	 * @covers WP_Community_Events::trim_events
 	 */
 	public function test_trim_events_pin_wordcamp() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -411,10 +423,10 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * Test: get_events() shouldn't stick an extra WordCamp when there's already one that naturally
 	 * falls into the list.
 	 *
-	 * @covers WP_Community_Events::trim_events
-	 *
 	 * @since 4.9.7
 	 * @since 5.5.2 Tests `trim_events()` directly instead of indirectly via `get_events()`.
+	 *
+	 * @covers WP_Community_Events::trim_events
 	 */
 	public function test_trim_events_dont_pin_multiple_wordcamps() {
 		$trim_events = new ReflectionMethod( $this->instance, 'trim_events' );
@@ -536,6 +548,8 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 * @dataProvider data_get_unsafe_client_ip
 	 *
 	 * @ticket 41083
+	 *
+	 * @covers WP_Community_Events::get_unsafe_client_ip
 	 */
 	public function test_get_unsafe_client_ip( $raw_ip, $expected_result ) {
 		$_SERVER['REMOTE_ADDR']    = 'this should not be used';
