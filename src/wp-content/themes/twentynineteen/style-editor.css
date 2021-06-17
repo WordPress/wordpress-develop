@@ -590,14 +590,6 @@ body .wp-block.alignfull {
 }
 
 body .wp-block[data-align="left"],
-body .wp-block.alignleft,
-body .wp-block[data-align="right"],
-body .wp-block.alignright {
-  height: auto;
-  overflow: auto;
-}
-
-body .wp-block[data-align="left"],
 body .wp-block.alignleft {
   margin-right: 1rem;
   width: inherit;
