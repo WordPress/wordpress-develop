@@ -231,7 +231,7 @@ class Tests_Admin_Includes_Schema extends WP_UnitTestCase {
 	 * @group multisite
 	 * @dataProvider data_populate_network_meta
 	 *
-	 * @covers ::populate_site_meta
+	 * @covers ::populate_network_meta
 	 */
 	function test_populate_network_meta( $meta, $expected ) {
 		global $wpdb;
