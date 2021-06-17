@@ -115,6 +115,7 @@ class Tests_Admin_includesListTable extends WP_UnitTestCase {
 	 * @ticket 15459
 	 *
 	 * @covers WP_Posts_List_Table::display_rows
+	 * @covers WP_Posts_List_Table::set_hierarchical_display
 	 */
 	function test_search_hierarchical_pages_first_page() {
 		$this->_test_list_hierarchical_page(
