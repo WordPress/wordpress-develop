@@ -7,6 +7,8 @@ class Tests_Actions_Callbacks extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23265
+	 *
+	 * @covers ::add_action
 	 */
 	function test_callback_representations() {
 		$tag = __FUNCTION__;
