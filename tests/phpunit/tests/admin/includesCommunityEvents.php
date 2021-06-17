@@ -128,7 +128,7 @@ class Test_WP_Community_Events extends WP_UnitTestCase {
 	 *
 	 * @since 4.8.0
 	 *
-	 * @covers WP_Community_Events::get_cached_events
+	 * @covers WP_Community_Events::get_events
 	 */
 	public function test_get_cached_events_invalid_response() {
 		add_filter( 'pre_http_request', array( $this, '_http_request_invalid_response' ) );
