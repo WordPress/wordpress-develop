@@ -24,12 +24,7 @@ function render_block_core_legacy_widget( $attributes ) {
 		return '';
 	}
 
-	if ( method_exists( $wp_widget_factory, 'get_widget_object' ) ) {
-		$widget_object = $wp_widget_factory->get_widget_object( $attributes['idBase'] );
-	} else {
-		$widget_object = gutenberg_get_widget_object( $attributes['idBase'] );
-	}
-
+	$widget_object = $wp_widget_factory->get_widget_object( $attributes['idBase'] );
 	if ( ! $widget_object ) {
 		return '';
 	}
