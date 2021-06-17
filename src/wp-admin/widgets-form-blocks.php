@@ -29,6 +29,26 @@ $editor_settings = get_block_editor_settings(
 	$block_editor_context
 );
 
+// The widgets editor doesn't support the Block Directory, so don't load any of
+// its assets. This also prevents 'wp-editor' from being enqueued which we
+// cannot load in the widgets screen because many widget scripts rely on
+// `wp.editor`.
+remove_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
+
+// Remove 'wp-editor' as a dependency of 'wp-block-library'. We must not load
+// 'wp-editor' in the widgets screen because many widget scripts rely on
+// `wp.editor`. The block library will still function without this dependency as
+// it is only used by the Classic block which is disabled in the widgets editor.
+$wp_block_library = wp_scripts()->query( 'wp-block-library' );
+wp_scripts()->remove( $wp_block_library->handle );
+wp_scripts()->add(
+	$wp_block_library->handle,
+	$wp_block_library->src,
+	array_diff( $wp_block_library->deps, array( 'wp-editor' ) ),
+	$wp_block_library->ver,
+	$wp_block_library->args
+);
+
 wp_add_inline_script(
 	'wp-edit-widgets',
 	sprintf(
