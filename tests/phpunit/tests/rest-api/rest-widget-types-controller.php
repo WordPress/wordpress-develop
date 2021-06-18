@@ -206,17 +206,17 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 		$widget_id = 'archives';
 		wp_register_sidebar_widget(
 			$widget_id,
-			'Legacy &#8209; Archive &#8209; Widget',
+			'&#8216;Legacy &#8209; Archive &#8209; Widget&#8217;',
 			function() {},
 			array(
-				'description' => 'A great &amp; interesting archive of your site&#8217;s posts!',
+				'description' => '&#8220;A great &amp; interesting archive of your site&#8217;s posts!&#8221;',
 			)
 		);
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types/archives' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 'Legacy ‑ Archive ‑ Widget', $data['name'] );
-		$this->assertSame( 'A great & interesting archive of your site’s posts!', $data['description'] );
+		$this->assertSame( '‘Legacy ‑ Archive ‑ Widget’', $data['name'] );
+		$this->assertSame( '“A great & interesting archive of your site’s posts!”', $data['description'] );
 	}
 
 	/**
