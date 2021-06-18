@@ -109,13 +109,13 @@ class Walker_Nav_Menu extends Walker {
 	 *
 	 * @see Walker::start_el()
 	 *
-	 * @param string   $output      Used to append additional content (passed by reference).
-	 * @param WP_Post  $data_object Menu item data object.
-	 * @param int      $depth       Depth of menu item. Used for padding.
-	 * @param stdClass $args        An object of wp_nav_menu() arguments.
-	 * @param int      $id          Current item ID.
+	 * @param string   $output            Used to append additional content (passed by reference).
+	 * @param WP_Post  $data_object       Menu item data object.
+	 * @param int      $depth             Depth of menu item. Used for padding.
+	 * @param stdClass $args              An object of wp_nav_menu() arguments.
+	 * @param int      $current_object_id Current item ID.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		if ( isset( $args->item_spacing ) && 'discard' === $args->item_spacing ) {
 			$t = '';
 			$n = '';

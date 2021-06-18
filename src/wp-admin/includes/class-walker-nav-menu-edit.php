@@ -49,13 +49,13 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 	 *
 	 * @global int $_wp_nav_menu_max_depth
 	 *
-	 * @param string   $output      Used to append additional content (passed by reference).
-	 * @param WP_Post  $data_object Menu item data object.
-	 * @param int      $depth       Depth of menu item. Used for padding.
-	 * @param stdClass $args        Not used.
-	 * @param int      $id          Not used.
+	 * @param string   $output            Used to append additional content (passed by reference).
+	 * @param WP_Post  $data_object       Menu item data object.
+	 * @param int      $depth             Depth of menu item. Used for padding.
+	 * @param stdClass $args              An object of menu item arguments.
+	 * @param int      $current_object_id Nav menu ID.
 	 */
-	public function start_el( &$output, $data_object, $depth = 0, $args = null, $id = 0 ) {
+	public function start_el( &$output, $data_object, $depth = 0, $args = null, $current_object_id = 0 ) {
 		global $_wp_nav_menu_max_depth;
 
 		/*
@@ -243,13 +243,13 @@ class Walker_Nav_Menu_Edit extends Walker_Nav_Menu {
 				 *
 				 * @since 5.4.0
 				 *
-				 * @param int      $item_id   Menu item ID.
-				 * @param WP_Post  $menu_item Menu item data object.
-				 * @param int      $depth     Depth of menu item. Used for padding.
-				 * @param stdClass $args      An object of menu item arguments.
-				 * @param int      $id        Nav menu ID.
+				 * @param int      $item_id           Menu item ID.
+				 * @param WP_Post  $menu_item         Menu item data object.
+				 * @param int      $depth             Depth of menu item. Used for padding.
+				 * @param stdClass $args              An object of menu item arguments.
+				 * @param int      $current_object_id Nav menu ID.
 				 */
-				do_action( 'wp_nav_menu_item_custom_fields', $item_id, $menu_item, $depth, $args, $id );
+				do_action( 'wp_nav_menu_item_custom_fields', $item_id, $menu_item, $depth, $args, $current_object_id );
 				?>
 
 				<fieldset class="field-move hide-if-no-js description description-wide">
