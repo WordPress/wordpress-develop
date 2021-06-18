@@ -271,6 +271,110 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
+	public function test_meta_query_single_query_compare_startswith() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'bar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'     => 'foo',
+						'value'   => 'ba',
+						'compare' => 'STARTSWITH',
+					),
+				),
+			)
+		);
+
+		$expected = array( $p1 );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_not_startswith() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'bar' );
+		add_post_meta( $p2, 'foo', 'rab' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'     => 'foo',
+						'value'   => 'ba',
+						'compare' => 'NOT STARTSWITH',
+					),
+				),
+			)
+		);
+
+		$expected = array( $p2 );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_endswith() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'bar' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'     => 'foo',
+						'value'   => 'ar',
+						'compare' => 'ENDSWITH',
+					),
+				),
+			)
+		);
+
+		$expected = array( $p1 );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
+	public function test_meta_query_single_query_compare_not_endswith() {
+		$p1 = self::factory()->post->create();
+		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+
+		add_post_meta( $p1, 'foo', 'bar' );
+		add_post_meta( $p2, 'foo', 'rab' );
+
+		$query = new WP_Query(
+			array(
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+				'meta_query'             => array(
+					array(
+						'key'     => 'foo',
+						'value'   => 'ar',
+						'compare' => 'NOT ENDSWITH',
+					),
+				),
+			)
+		);
+
+		$expected = array( $p2 );
+		$this->assertSameSets( $expected, $query->posts );
+	}
+
 	public function test_meta_query_single_query_compare_between_not_between() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();

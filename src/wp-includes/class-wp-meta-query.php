@@ -102,6 +102,7 @@ class WP_Meta_Query {
 	 * @since 5.1.0 Introduced $compare_key clause parameter, which enables LIKE key matches.
 	 * @since 5.3.0 Increased the number of operators available to $compare_key. Introduced $type_key,
 	 *              which enables the $key to be cast to a new data type for comparisons.
+	 * @since 5.9.0 Adds LIKE based STARTSWITH and ENDSWITH operators for value compares
 	 *
 	 * @param array $meta_query {
 	 *     Array of meta query clauses. When first-order clauses or sub-clauses use strings as
@@ -123,6 +124,7 @@ class WP_Meta_Query {
 	 *         @type string $value       Meta value to filter by.
 	 *         @type string $compare     MySQL operator used for comparing the $value. Accepts '=',
 	 *                                   '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE',
+	 *                                   'STARTSWITH', 'NOT STARTSWITH', 'ENDSWITH', 'NOT ENDSWITH',
 	 *                                   'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'REGEXP',
 	 *                                   'NOT REGEXP', 'RLIKE', 'EXISTS' or 'NOT EXISTS'.
 	 *                                   Default is 'IN' when `$value` is an array, '=' otherwise.
@@ -509,7 +511,11 @@ class WP_Meta_Query {
 			'=',
 			'!=',
 			'LIKE',
+			'STARTSWITH',
+			'ENDSWITH',
 			'NOT LIKE',
+			'NOT STARTSWITH',
+			'NOT ENDSWITH',
 			'IN',
 			'NOT IN',
 			'EXISTS',
@@ -711,6 +717,20 @@ class WP_Meta_Query {
 				case 'NOT LIKE':
 					$meta_value = '%' . $wpdb->esc_like( $meta_value ) . '%';
 					$where      = $wpdb->prepare( '%s', $meta_value );
+					break;
+
+				case 'STARTSWITH':
+				case 'NOT STARTSWITH':
+					$meta_compare = $meta_compare === 'STARTSWITH' ? 'LIKE' : 'NOT LIKE';
+					$meta_value   = $wpdb->esc_like( $meta_value ) . '%';
+					$where        = $wpdb->prepare( '%s', $meta_value );
+					break;
+
+				case 'ENDSSWITH':
+				case 'NOT ENDSWITH':
+					$meta_compare = $meta_compare === 'ENDSSWITH' ? 'LIKE' : 'NOT LIKE';
+					$meta_value   = '%' . $wpdb->esc_like( $meta_value );
+					$where        = $wpdb->prepare( '%s', $meta_value );
 					break;
 
 				// EXISTS with a value is interpreted as '='.
