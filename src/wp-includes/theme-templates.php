@@ -22,12 +22,13 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
 		$override_slug = $slug;
 	}
 
-	// Template slugs must be unique within the same theme.
-	// TODO - Figure out how to update this to work for a multi-theme
-	// environment.  Unfortunately using `get_the_terms` for the 'wp-theme'
-	// term does not work in the case of new entities since is too early in
-	// the process to have been saved to the entity.  So for now we use the
-	// currently activated theme for creation.
+	/*
+	 * Template slugs must be unique within the same theme.
+	 * TODO - Figure out how to update this to work for a multi-theme environment.
+	 * Unfortunately using `get_the_terms()` for the 'wp-theme' term does not work
+	 * in the case of new entities since is too early in the process to have been saved
+	 * to the entity. So for now we use the currently activated theme for creation.
+	 */
 	$theme = wp_get_theme()->get_stylesheet();
 	$terms = get_the_terms( $post_ID, 'wp_theme' );
 	if ( $terms && ! is_wp_error( $terms ) ) {
@@ -72,9 +73,12 @@ function wp_filter_wp_template_unique_post_slug( $override_slug, $slug, $post_ID
  * @access private
  * @since 5.8.0
  *
+ * @global string $_wp_current_template_content
+ *
  * @return void
  */
 function the_block_template_skip_link() {
+	global $_wp_current_template_content;
 
 	// Early exit if not a block theme.
 	if ( ! current_theme_supports( 'block-templates' ) ) {
@@ -82,7 +86,6 @@ function the_block_template_skip_link() {
 	}
 
 	// Early exit if not a block template.
-	global $_wp_current_template_content;
 	if ( ! $_wp_current_template_content ) {
 		return;
 	}
