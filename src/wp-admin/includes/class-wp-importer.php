@@ -73,7 +73,7 @@ class WP_Importer {
 		}
 
 		// Unset to save memory.
-		unset( $results );
+		unset( $result );
 
 		return $count;
 	}
