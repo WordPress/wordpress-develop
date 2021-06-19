@@ -4490,10 +4490,12 @@ ul.footer-social li {
 }
 
 .footer-copyright a,
+.privacy-policy a,
 .powered-by-wordpress a {
 	color: inherit;
 }
 
+.privacy-policy,
 .powered-by-wordpress,
 .to-the-top {
 	color: #6d6d6d;
@@ -4508,7 +4510,8 @@ a.to-the-top > * {
 	margin: 0;
 }
 
-.powered-by-wordpress {
+.powered-by-wordpress,
+.privacy-policy {
 	display: none;
 	margin: 0 0 0 2.4rem;
 }
@@ -5630,6 +5633,7 @@ a.to-the-top > * {
 		font-weight: 700;
 	}
 
+	.privacy-policy,
 	.powered-by-wordpress {
 		display: block;
 	}

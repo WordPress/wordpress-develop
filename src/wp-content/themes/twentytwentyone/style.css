@@ -3974,6 +3974,12 @@ table.wp-calendar-table caption {
 .site-footer > .site-info .powered-by {
 	margin-top: calc(0.5 * var(--global--spacing-vertical));
 }
+
+.site-footer > .site-info .privacy-policy-link {
+	margin-top: calc(0.5 * var(--global--spacing-vertical));
+	margin-right: 10px;
+}
+
 @media only screen and (min-width: 822px) {
 
 	.site-footer > .site-info {
