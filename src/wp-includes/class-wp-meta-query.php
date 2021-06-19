@@ -721,14 +721,14 @@ class WP_Meta_Query {
 
 				case 'STARTSWITH':
 				case 'NOT STARTSWITH':
-					$meta_compare = $meta_compare === 'STARTSWITH' ? 'LIKE' : 'NOT LIKE';
+					$meta_compare = 'STARTSWITH' === $meta_compare ? 'LIKE' : 'NOT LIKE';
 					$meta_value   = $wpdb->esc_like( $meta_value ) . '%';
 					$where        = $wpdb->prepare( '%s', $meta_value );
 					break;
 
 				case 'ENDSSWITH':
 				case 'NOT ENDSWITH':
-					$meta_compare = $meta_compare === 'ENDSSWITH' ? 'LIKE' : 'NOT LIKE';
+					$meta_compare = 'ENDSSWITH' === $meta_compare ? 'LIKE' : 'NOT LIKE';
 					$meta_value   = '%' . $wpdb->esc_like( $meta_value );
 					$where        = $wpdb->prepare( '%s', $meta_value );
 					break;
