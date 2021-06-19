@@ -326,8 +326,10 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	public function test_meta_query_single_query_compare_endswith() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
 
 		add_post_meta( $p1, 'foo', 'bar' );
+		add_post_meta( $p2, 'foo', 'foobar' );
 
 		$query = new WP_Query(
 			array(
@@ -344,7 +346,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p1 );
+		$expected = array( $p1, $p2 );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 

@@ -726,7 +726,7 @@ class WP_Meta_Query {
 					$where        = $wpdb->prepare( '%s', $meta_value );
 					break;
 
-				case 'ENDSSWITH':
+				case 'ENDSWITH':
 				case 'NOT ENDSWITH':
 					$meta_compare = 'ENDSSWITH' === $meta_compare ? 'LIKE' : 'NOT LIKE';
 					$meta_value   = '%' . $wpdb->esc_like( $meta_value );
