@@ -204,6 +204,9 @@ class Tests_Link extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( home_url( user_trailingslashit( $attachment->post_name ) ), get_permalink( $attachment_id ) );
+		$this->assertSame( home_url( "/?attachment_id={$attachment->ID}" ), get_permalink( $attachment_id ) );
+		// Visit permalink.
+		$this->go_to( get_permalink( $attachment_id ) );
+		$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
 	}
 }

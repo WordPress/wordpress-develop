@@ -396,7 +396,7 @@ class WP_List_Table {
 		 * Filters the list of available list table views.
 		 *
 		 * The dynamic portion of the hook name, `$this->screen->id`, refers
-		 * to the ID of the current screen, usually a string.
+		 * to the ID of the current screen.
 		 *
 		 * @since 3.1.0
 		 *
@@ -526,10 +526,6 @@ class WP_List_Table {
 			return $_REQUEST['action'];
 		}
 
-		if ( isset( $_REQUEST['action2'] ) && -1 != $_REQUEST['action2'] ) {
-			return $_REQUEST['action2'];
-		}
-
 		return false;
 	}
 
@@ -599,25 +595,37 @@ class WP_List_Table {
 			return;
 		}
 
-		$extra_checks = "AND post_status != 'auto-draft'";
-		if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
-			$extra_checks .= " AND post_status != 'trash'";
-		} elseif ( isset( $_GET['post_status'] ) ) {
-			$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
-		}
+		/**
+		 * Filters to short-circuit performing the months dropdown query.
+		 *
+		 * @since 5.7.0
+		 *
+		 * @param object[]|false $months   'Months' drop-down results. Default false.
+		 * @param string         $post_type The post type.
+		 */
+		$months = apply_filters( 'pre_months_dropdown_query', false, $post_type );
 
-		$months = $wpdb->get_results(
-			$wpdb->prepare(
-				"
-			SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
-			FROM $wpdb->posts
-			WHERE post_type = %s
-			$extra_checks
-			ORDER BY post_date DESC
-		",
-				$post_type
-			)
-		);
+		if ( ! is_array( $months ) ) {
+			$extra_checks = "AND post_status != 'auto-draft'";
+			if ( ! isset( $_GET['post_status'] ) || 'trash' !== $_GET['post_status'] ) {
+				$extra_checks .= " AND post_status != 'trash'";
+			} elseif ( isset( $_GET['post_status'] ) ) {
+				$extra_checks = $wpdb->prepare( ' AND post_status = %s', $_GET['post_status'] );
+			}
+
+			$months = $wpdb->get_results(
+				$wpdb->prepare(
+					"
+				SELECT DISTINCT YEAR( post_date ) AS year, MONTH( post_date ) AS month
+				FROM $wpdb->posts
+				WHERE post_type = %s
+				$extra_checks
+				ORDER BY post_date DESC
+			",
+					$post_type
+				)
+			);
+		}
 
 		/**
 		 * Filters the 'Months' drop-down results.
@@ -637,7 +645,7 @@ class WP_List_Table {
 
 		$m = isset( $_GET['m'] ) ? (int) $_GET['m'] : 0;
 		?>
-		<label for="filter-by-date" class="screen-reader-text"><?php _e( 'Filter by date' ); ?></label>
+		<label for="filter-by-date" class="screen-reader-text"><?php echo get_post_type_object( $post_type )->labels->filter_by_date; ?></label>
 		<select name="m" id="filter-by-date">
 			<option<?php selected( $m, 0 ); ?> value="0"><?php _e( 'All dates' ); ?></option>
 		<?php
@@ -1103,8 +1111,13 @@ class WP_List_Table {
 	protected function get_column_info() {
 		// $_column_headers is already set / cached.
 		if ( isset( $this->_column_headers ) && is_array( $this->_column_headers ) ) {
-			// Back-compat for list tables that have been manually setting $_column_headers for horse reasons.
-			// In 4.3, we added a fourth argument for primary column.
+			/*
+			 * Backward compatibility for `$_column_headers` format prior to WordPress 4.3.
+			 *
+			 * In WordPress 4.3 the primary column name was added as a fourth item in the
+			 * column headers property. This ensures the primary column name is included
+			 * in plugins setting the property directly in the three item format.
+			 */
 			$column_headers = array( array(), array(), array(), $this->get_primary_column_name() );
 			foreach ( $this->_column_headers as $key => $value ) {
 				$column_headers[ $key ] = $value;
@@ -1412,8 +1425,8 @@ class WP_List_Table {
 			}
 
 			// Comments column uses HTML in the display name with screen reader text.
-			// Instead of using esc_attr(), we strip tags to get closer to a user-friendly string.
-			$data = 'data-colname="' . wp_strip_all_tags( $column_display_name ) . '"';
+			// Strip tags to get closer to a user-friendly string.
+			$data = 'data-colname="' . esc_attr( wp_strip_all_tags( $column_display_name ) ) . '"';
 
 			$attributes = "class='$classes' $data";
 

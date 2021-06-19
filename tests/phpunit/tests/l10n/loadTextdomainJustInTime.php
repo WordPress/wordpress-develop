@@ -4,7 +4,7 @@
  * @group l10n
  * @group i18n
  */
-class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
+class Tests_L10n_LoadTextdomainJustInTime extends WP_UnitTestCase {
 	protected $orig_theme_dir;
 	protected $theme_root;
 	protected static $user_id;
@@ -40,9 +40,6 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 
 	public function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, 'filter_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, 'filter_theme_root' ) );
-		remove_filter( 'template_root', array( $this, 'filter_theme_root' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 		unset( $GLOBALS['l10n'] );
@@ -113,7 +110,7 @@ class Tests_L10n_loadTextdomainJustInTime extends WP_UnitTestCase {
 		remove_filter( 'override_load_textdomain', '__return_true' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_german' ) );
 
-		$this->assertTrue( $translations instanceof NOOP_Translations );
+		$this->assertInstanceOf( 'NOOP_Translations', $translations );
 	}
 
 	/**

@@ -2,6 +2,12 @@
 /**
  * @group dependencies
  * @group scripts
+ * @covers ::wp_enqueue_script
+ * @covers ::wp_register_script
+ * @covers ::wp_print_scripts
+ * @covers ::wp_script_add_data
+ * @covers ::wp_add_inline_script
+ * @covers ::wp_set_script_translations
  */
 class Tests_Dependencies_Scripts extends WP_UnitTestCase {
 	protected $old_wp_scripts;
@@ -264,6 +270,10 @@ JS;
 	 * Test mismatch of groups in dependencies outputs all scripts in right order.
 	 *
 	 * @ticket 35873
+	 *
+	 * @covers WP_Dependencies::add
+	 * @covers WP_Dependencies::enqueue
+	 * @covers WP_Dependencies::do_items
 	 */
 	public function test_group_mismatch_in_deps() {
 		$scripts = new WP_Scripts;
@@ -713,15 +723,13 @@ JS;
 
 		$ver       = get_bloginfo( 'version' );
 		$suffix    = wp_scripts_get_suffix();
-		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate&amp;ver={$ver}'></script>\n";
+		$expected  = "<script type='text/javascript' src='/wp-admin/load-scripts.php?c=0&amp;load%5Bchunk_0%5D=jquery-core,jquery-migrate,wp-polyfill,wp-dom-ready,wp-hooks&amp;ver={$ver}'></script>\n";
 		$expected .= "<script type='text/javascript' id='test-example-js-before'>\nconsole.log(\"before\");\n</script>\n";
 		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/vendor/wp-polyfill{$suffix}.js' id='wp-polyfill-js'></script>\n";
-		$expected .= "<script type='text/javascript' id='wp-polyfill-js-after'>\n";
-		$expected .= "( 'fetch' in window ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-fetch{$suffix}.js\"></scr' + 'ipt>' );( document.contains ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-node-contains{$suffix}.js\"></scr' + 'ipt>' );( window.DOMRect ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-dom-rect{$suffix}.js\"></scr' + 'ipt>' );( window.URL && window.URL.prototype && window.URLSearchParams ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-url{$suffix}.js\"></scr' + 'ipt>' );( window.FormData && window.FormData.prototype.keys ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-formdata{$suffix}.js\"></scr' + 'ipt>' );( Element.prototype.matches && Element.prototype.closest ) || document.write( '<script src=\"http://example.org/wp-includes/js/dist/vendor/wp-polyfill-element-closest{$suffix}.js\"></scr' + 'ipt>' );\n";
-		$expected .= "</script>\n";
-		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/dom-ready{$suffix}.js' id='wp-dom-ready-js'></script>\n";
 		$expected .= "<script type='text/javascript' src='/wp-includes/js/dist/i18n{$suffix}.js' id='wp-i18n-js'></script>\n";
+		$expected .= "<script type='text/javascript' id='wp-i18n-js-after'>\n";
+		$expected .= "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ 'ltr' ] } );\n";
+		$expected .= "</script>\n";
 		$expected .= "<script type='text/javascript' id='wp-a11y-js-translations'>\n";
 		$expected .= "( function( domain, translations ) {\n";
 		$expected .= "	var localeData = translations.locale_data[ domain ] || translations.locale_data.messages;\n";
@@ -1403,15 +1411,66 @@ JS;
 		);
 	}
 
-	function test_no_source_mapping() {
-		$all_files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( dirname( ABSPATH ) . '/build/' ) );
-		$js_files  = new RegexIterator( $all_files, '/\.js$/' );
-		foreach ( $js_files as $js_file ) {
-			$contents = trim( file_get_contents( $js_file ) );
-
-			// We allow data: URLs.
-			$found = preg_match( '/sourceMappingURL=((?!data:).)/', $contents );
-			$this->assertSame( $found, 0, "sourceMappingURL found in $js_file" );
+	/**
+	 * @ticket 52534
+	 * @covers ::wp_localize_script
+	 *
+	 * @dataProvider data_wp_localize_script_data_formats
+	 *
+	 * @param mixed  $l10n_data Localization data passed to wp_localize_script().
+	 * @param string $expected  Expected transformation of localization data.
+	 * @param string $warning   Optional. Whether a PHP native warning/error is expected. Default false.
+	 */
+	public function test_wp_localize_script_data_formats( $l10n_data, $expected, $warning = false ) {
+		if ( $warning ) {
+			if ( PHP_VERSION_ID < 80000 ) {
+				$this->expectException( 'PHPUnit_Framework_Error_Warning' );
+			} else {
+				// As this exception will only be set on PHP 8 in combination with PHPUnit 7, this will work (for now).
+				$this->expectException( 'Error' );
+			}
 		}
+
+		if ( ! is_array( $l10n_data ) ) {
+			$this->setExpectedIncorrectUsage( 'WP_Scripts::localize' );
+		}
+
+		wp_enqueue_script( 'test-example', 'example.com', array(), null );
+		wp_localize_script( 'test-example', 'testExample', $l10n_data );
+
+		$expected  = "<script type='text/javascript' id='test-example-js-extra'>\n/* <![CDATA[ */\nvar testExample = {$expected};\n/* ]]> */\n</script>\n";
+		$expected .= "<script type='text/javascript' src='http://example.com' id='test-example-js'></script>\n";
+
+		$this->assertSame( $expected, get_echo( 'wp_print_scripts' ) );
+	}
+
+	/**
+	 * Data provider for test_wp_localize_script_data_formats().
+	 *
+	 * @return array[] {
+	 *     Array of arguments for test.
+	 *
+	 *     @type mixed  $l10n_data Localization data passed to wp_localize_script().
+	 *     @type string $expected  Expected transformation of localization data.
+	 *     @type string $warning   Optional. Whether a PHP native warning/error is expected.
+	 * }
+	 */
+	public function data_wp_localize_script_data_formats() {
+		return array(
+			// Officially supported formats.
+			array( array( 'array value, no key' ), '["array value, no key"]' ),
+			array( array( 'foo' => 'bar' ), '{"foo":"bar"}' ),
+			array( array( 'foo' => array( 'bar' => 'foobar' ) ), '{"foo":{"bar":"foobar"}}' ),
+			array( array( 'foo' => 6.6 ), '{"foo":"6.6"}' ),
+			array( array( 'foo' => 6 ), '{"foo":"6"}' ),
+
+			// Unofficially supported format.
+			array( 'string', '"string"' ),
+
+			// Unsupported formats.
+			array( 1.5, '1.5', true ),
+			array( 1, '1', true ),
+			array( false, '[""]' ),
+		);
 	}
 }

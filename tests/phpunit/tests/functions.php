@@ -281,7 +281,7 @@ class Tests_Functions extends WP_UnitTestCase {
 			$callback_value = $property->getValue( $new_value );
 			$this->assertSame( null, $callback_value );
 		} else {
-			$this->assertEquals( $value->count(), unserialize( $serialized )->count() );
+			$this->assertSame( $value->count(), unserialize( $serialized )->count() );
 		}
 	}
 
@@ -1226,6 +1226,29 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 35725
+	 * @dataProvider data_wp_getimagesize
+	 */
+	public function test_wp_getimagesize( $file, $expected ) {
+		if ( ! is_callable( 'exif_imagetype' ) && ! function_exists( 'getimagesize' ) ) {
+			$this->markTestSkipped( 'The exif PHP extension is not loaded.' );
+		}
+
+		$result = wp_getimagesize( $file );
+
+		// The getimagesize() function varies in its response, so
+		// let's restrict comparison to expected keys only.
+		if ( is_array( $expected ) ) {
+			foreach ( $expected as $k => $v ) {
+				$this->assertArrayHasKey( $k, $result );
+				$this->assertSame( $expected[ $k ], $result[ $k ] );
+			}
+		} else {
+			$this->assertSame( $expected, $result );
+		}
+	}
+
+	/**
 	 * @ticket 39550
 	 * @dataProvider _wp_check_filetype_and_ext_data
 	 * @requires extension fileinfo
@@ -1289,7 +1312,7 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Data provider for test_wp_get_image_mime();
+	 * Data provider for test_wp_get_image_mime().
 	 */
 	public function _wp_get_image_mime() {
 		$data = array(
@@ -1312,6 +1335,129 @@ class Tests_Functions extends WP_UnitTestCase {
 			array(
 				DIR_TESTDATA . '/images/test-image-mime-jpg.png',
 				'image/jpeg',
+			),
+			// Animated WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-animated.webp',
+				'image/webp',
+			),
+			// Lossless WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossless.webp',
+				'image/webp',
+			),
+			// Lossy WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossy.webp',
+				'image/webp',
+			),
+			// Transparent WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-transparent.webp',
+				'image/webp',
+			),
+			// Not an image.
+			array(
+				DIR_TESTDATA . '/uploads/dashicons.woff',
+				false,
+			),
+		);
+
+		return $data;
+	}
+
+	/**
+	 * Data profider for test_wp_getimagesize().
+	 */
+	public function data_wp_getimagesize() {
+		$data = array(
+			// Standard JPEG.
+			array(
+				DIR_TESTDATA . '/images/test-image.jpg',
+				array(
+					50,
+					50,
+					IMAGETYPE_JPEG,
+					'width="50" height="50"',
+					'mime' => 'image/jpeg',
+				),
+			),
+			// Standard GIF.
+			array(
+				DIR_TESTDATA . '/images/test-image.gif',
+				array(
+					50,
+					50,
+					IMAGETYPE_GIF,
+					'width="50" height="50"',
+					'mime' => 'image/gif',
+				),
+			),
+			// Standard PNG.
+			array(
+				DIR_TESTDATA . '/images/test-image.png',
+				array(
+					50,
+					50,
+					IMAGETYPE_PNG,
+					'width="50" height="50"',
+					'mime' => 'image/png',
+				),
+			),
+			// Image with wrong extension.
+			array(
+				DIR_TESTDATA . '/images/test-image-mime-jpg.png',
+				array(
+					50,
+					50,
+					IMAGETYPE_JPEG,
+					'width="50" height="50"',
+					'mime' => 'image/jpeg',
+				),
+			),
+			// Animated WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-animated.webp',
+				array(
+					100,
+					100,
+					IMAGETYPE_WEBP,
+					'width="100" height="100"',
+					'mime' => 'image/webp',
+				),
+			),
+			// Lossless WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossless.webp',
+				array(
+					1200,
+					675,
+					IMAGETYPE_WEBP,
+					'width="1200" height="675"',
+					'mime' => 'image/webp',
+				),
+			),
+			// Lossy WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-lossy.webp',
+				array(
+					1200,
+					675,
+					IMAGETYPE_WEBP,
+					'width="1200" height="675"',
+					'mime' => 'image/webp',
+				),
+			),
+			// Transparent WebP.
+			array(
+				DIR_TESTDATA . '/images/webp-transparent.webp',
+				array(
+					1200,
+					675,
+					IMAGETYPE_WEBP,
+					'width="1200" height="675"',
+					'mime' => 'image/webp',
+				),
 			),
 			// Not an image.
 			array(

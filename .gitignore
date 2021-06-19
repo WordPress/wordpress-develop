@@ -28,6 +28,7 @@ wp-tests-config.php
 /src/wp-includes/css/dist
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
+/src/wp-includes/blocks/**/*.css
 /packagehash.txt
 
 # Files and folders that get created in wp-content
@@ -45,6 +46,7 @@ wp-tests-config.php
 !/src/wp-content/themes/twentysixteen
 !/src/wp-content/themes/twentyseventeen
 !/src/wp-content/themes/twentynineteen
+!/src/wp-content/themes/twentytwenty
 !/src/wp-content/themes/twentytwentyone
 /src/wp-content/upgrade
 /src/wp-content/uploads
@@ -61,6 +63,11 @@ wp-tests-config.php
 /src/wp-content/object-cache.php
 /src/wp-content/php-error.php
 /src/wp-content/sunrise.php
+
+# Files and folders relating to wp-content build tools.
+/src/wp-content/themes/twentynineteen/node_modules
+/src/wp-content/themes/twentytwentyone/node_modules
+/src/wp-content/themes/twentytwenty/node_modules
 
 # Operating system specific files
 .DS_Store

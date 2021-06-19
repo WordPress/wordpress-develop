@@ -26,9 +26,6 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 
 	function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
-		remove_filter( 'theme_root', array( $this, '_theme_root' ) );
-		remove_filter( 'stylesheet_root', array( $this, '_theme_root' ) );
-		remove_filter( 'template_root', array( $this, '_theme_root' ) );
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 		parent::tearDown();
@@ -164,6 +161,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Internationalized Theme',
 			'camelCase',
 			'REST Theme',
+			'FSE Theme',
 		);
 
 		sort( $theme_names );

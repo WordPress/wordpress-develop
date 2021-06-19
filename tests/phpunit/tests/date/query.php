@@ -7,8 +7,9 @@
  *
  * @group datequery
  * @group date
+ * @covers WP_Date_Query
  */
-class Tests_WP_Date_Query extends WP_UnitTestCase {
+class Tests_Date_Query extends WP_UnitTestCase {
 	/**
 	 * @var WP_Date_Query $q
 	 */
@@ -225,10 +226,10 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		$found = $q->get_compare(
 			array(
-				'compare' => 'BETWEEN',
+				'compare' => 'NOT BETWEEN',
 			)
 		);
-		$this->assertSame( 'BETWEEN', $found );
+		$this->assertSame( 'NOT BETWEEN', $found );
 	}
 
 	public function test_validate_column_post_date() {
@@ -291,6 +292,11 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 		$this->assertSame( 'my_custom_column', $q->validate_column( 'my_custom_column' ) );
 
 		remove_filter( 'date_query_valid_columns', array( $this, 'date_query_valid_columns_callback' ) );
+	}
+
+	public function date_query_valid_columns_callback( $columns ) {
+		$columns[] = 'my_custom_column';
+		return $columns;
 	}
 
 	/**
@@ -1128,12 +1134,5 @@ class Tests_WP_Date_Query extends WP_UnitTestCase {
 
 		// MySQL ignores the invalid clause.
 		$this->assertSame( array( $p1, $p2 ), $q->posts );
-	}
-
-	/** Helpers */
-
-	public function date_query_valid_columns_callback( $columns ) {
-		$columns[] = 'my_custom_column';
-		return $columns;
 	}
 }

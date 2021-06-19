@@ -3,7 +3,7 @@
 /** Sets up the WordPress Environment. */
 require __DIR__ . '/wp-load.php';
 
-add_action( 'wp_head', 'wp_no_robots' );
+add_filter( 'wp_robots', 'wp_robots_no_robots' );
 
 require __DIR__ . '/wp-blog-header.php';
 
@@ -229,6 +229,7 @@ function show_blog_form( $blogname = '', $blog_title = '', $errors = '' ) {
  * @since MU (3.0.0)
  *
  * @return array Contains the new site data and error messages.
+ *               See wpmu_validate_blog_signup() for details.
  */
 function validate_blog_form() {
 	$user = '';
@@ -292,6 +293,7 @@ function show_user_form( $user_name = '', $user_email = '', $errors = '' ) {
  * @since MU (3.0.0)
  *
  * @return array Contains username, email, and error messages.
+ *               See wpmu_validate_user_signup() for details.
  */
 function validate_user_form() {
 	return wpmu_validate_user_signup( $_POST['user_name'], $_POST['user_email'] );
@@ -861,7 +863,8 @@ function confirm_blog_signup( $domain, $path, $blog_title, $user_name = '', $use
  *
  * @see get_available_languages()
  *
- * @return array List of available languages.
+ * @return string[] Array of available language codes. Language codes are formed by
+ *                  stripping the .mo extension from the language file names.
  */
 function signup_get_available_languages() {
 	/**
@@ -874,7 +877,8 @@ function signup_get_available_languages() {
 	 *
 	 * @since 4.4.0
 	 *
-	 * @param array $available_languages Available languages.
+	 * @param string[] $languages Array of available language codes. Language codes are formed by
+	 *                            stripping the .mo extension from the language file names.
 	 */
 	$languages = (array) apply_filters( 'signup_get_available_languages', get_available_languages() );
 
@@ -984,13 +988,13 @@ if ( 'none' === $active_signup ) {
 				if ( 'blog' === $active_signup || 'all' === $active_signup ) {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist, but you can create it now!' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				} else {
 					printf(
 						/* translators: %s: Site address. */
-						'<p><em>' . __( 'The site you were looking for, %s, does not exist.' ) . '</em></p>',
+						'<p>' . __( 'The site you were looking for, %s, does not exist.' ) . '</p>',
 						'<strong>' . $newblog . '</strong>'
 					);
 				}

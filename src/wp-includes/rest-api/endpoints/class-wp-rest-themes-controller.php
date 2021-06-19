@@ -27,7 +27,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for themes.
 	 *
 	 * @since 5.0.0
 	 *
@@ -580,7 +580,7 @@ class WP_REST_Themes_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filters collection parameters for the themes controller.
+		 * Filters REST API collection parameters for the themes controller.
 		 *
 		 * @since 5.0.0
 		 *

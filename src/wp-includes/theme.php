@@ -899,10 +899,8 @@ function validate_current_theme() {
  * Uses the information from `Requires at least` and `Requires PHP` headers
  * defined in the theme's `style.css` file.
  *
- * If the headers are not present in the theme's stylesheet file,
- * `readme.txt` is also checked as a fallback.
- *
  * @since 5.5.0
+ * @since 5.8.0 Removed support for using `readme.txt` as a fallback.
  *
  * @param string $stylesheet Directory name for the theme.
  * @return true|WP_Error True if requirements are met, WP_Error on failure.
@@ -914,21 +912,6 @@ function validate_theme_requirements( $stylesheet ) {
 		'requires'     => ! empty( $theme->get( 'RequiresWP' ) ) ? $theme->get( 'RequiresWP' ) : '',
 		'requires_php' => ! empty( $theme->get( 'RequiresPHP' ) ) ? $theme->get( 'RequiresPHP' ) : '',
 	);
-
-	$readme_file = $theme->theme_root . '/' . $stylesheet . '/readme.txt';
-
-	if ( file_exists( $readme_file ) ) {
-		$readme_headers = get_file_data(
-			$readme_file,
-			array(
-				'requires'     => 'Requires at least',
-				'requires_php' => 'Requires PHP',
-			),
-			'theme'
-		);
-
-		$requirements = array_merge( $readme_headers, $requirements );
-	}
 
 	$compatible_wp  = is_wp_version_compatible( $requirements['requires'] );
 	$compatible_php = is_php_version_compatible( $requirements['requires_php'] );
@@ -2485,14 +2468,37 @@ function get_theme_starter_content() {
  *
  * @global array $_wp_theme_features
  *
- * @param string $feature The feature being added. Likely core values include 'post-formats', 'post-thumbnails',
- *                        'custom-header', 'custom-background', 'custom-logo', 'menus', 'automatic-feed-links',
- *                        'html5', 'title-tag', 'customize-selective-refresh-widgets', 'starter-content',
- *                        'responsive-embeds', 'align-wide', 'dark-editor-style', 'disable-custom-colors',
- *                        'disable-custom-font-sizes', 'editor-color-palette', 'editor-font-sizes',
- *                        'editor-styles', 'wp-block-styles', and 'core-block-patterns'.
+ * @param string $feature The feature being added. Likely core values include:
+ *                          - 'admin-bar'
+ *                          - 'align-wide'
+ *                          - 'automatic-feed-links'
+ *                          - 'core-block-patterns'
+ *                          - 'custom-background'
+ *                          - 'custom-header'
+ *                          - 'custom-line-height'
+ *                          - 'custom-logo'
+ *                          - 'customize-selective-refresh-widgets'
+ *                          - 'custom-spacing'
+ *                          - 'custom-units'
+ *                          - 'dark-editor-style'
+ *                          - 'disable-custom-colors'
+ *                          - 'disable-custom-font-sizes'
+ *                          - 'editor-color-palette'
+ *                          - 'editor-gradient-presets'
+ *                          - 'editor-font-sizes'
+ *                          - 'editor-styles'
+ *                          - 'featured-content'
+ *                          - 'html5'
+ *                          - 'menus'
+ *                          - 'post-formats'
+ *                          - 'post-thumbnails'
+ *                          - 'responsive-embeds'
+ *                          - 'starter-content'
+ *                          - 'title-tag'
+ *                          - 'wp-block-styles'
+ *                          - 'widgets'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
- * @return void|false False on failure, void otherwise.
+ * @return void|false Void on success, false on failure.
  */
 function add_theme_support( $feature, ...$args ) {
 	global $_wp_theme_features;

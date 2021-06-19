@@ -90,7 +90,8 @@ function wp_image_editor( $post_id, $msg = false ) {
 		<input type="hidden" id="imgedit-y-<?php echo $post_id; ?>" value="<?php echo isset( $meta['height'] ) ? $meta['height'] : 0; ?>" />
 
 		<div id="imgedit-crop-<?php echo $post_id; ?>" class="imgedit-crop-wrap">
-		<img id="image-preview-<?php echo $post_id; ?>" onload="imageEdit.imgLoaded('<?php echo $post_id; ?>')" src="<?php echo admin_url( 'admin-ajax.php', 'relative' ); ?>?action=imgedit-preview&amp;_ajax_nonce=<?php echo $nonce; ?>&amp;postid=<?php echo $post_id; ?>&amp;rand=<?php echo rand( 1, 99999 ); ?>" alt="" />
+		<img id="image-preview-<?php echo $post_id; ?>" onload="imageEdit.imgLoaded('<?php echo $post_id; ?>')"
+			src="<?php echo esc_url( admin_url( 'admin-ajax.php', 'relative' ) ) . '?action=imgedit-preview&amp;_ajax_nonce=' . $nonce . '&amp;postid=' . $post_id . '&amp;rand=' . rand( 1, 99999 ); ?>" alt="" />
 		</div>
 
 		<div class="imgedit-submit">
@@ -117,7 +118,7 @@ function wp_image_editor( $post_id, $msg = false ) {
 			);
 			?>
 		</p>
-		<?php endif ?>
+		<?php endif; ?>
 		<div class="imgedit-submit">
 
 		<fieldset class="imgedit-scale">
@@ -306,6 +307,12 @@ function wp_stream_image( $image, $mime_type, $attachment_id ) {
 			case 'image/gif':
 				header( 'Content-Type: image/gif' );
 				return imagegif( $image );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					header( 'Content-Type: image/webp' );
+					return imagewebp( $image, null, 90 );
+				}
+				return false;
 			default:
 				return false;
 		}
@@ -391,6 +398,11 @@ function wp_save_image_file( $filename, $image, $mime_type, $post_id ) {
 				return imagepng( $image, $filename );
 			case 'image/gif':
 				return imagegif( $image, $filename );
+			case 'image/webp':
+				if ( function_exists( 'imagewebp' ) ) {
+					return imagewebp( $image, $filename );
+				}
+				return false;
 			default:
 				return false;
 		}

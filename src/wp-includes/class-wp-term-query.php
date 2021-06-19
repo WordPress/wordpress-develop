@@ -97,16 +97,16 @@ class WP_Term_Query {
 	 *     @type int|int[]    $object_ids             Optional. Object ID, or array of object IDs. Results will be
 	 *                                                limited to terms associated with these objects.
 	 *     @type string       $orderby                Field(s) to order terms by. Accepts:
-	 *                                                - term fields ('name', 'slug', 'term_group', 'term_id', 'id',
+	 *                                                * term fields ('name', 'slug', 'term_group', 'term_id', 'id',
 	 *                                                  'description', 'parent', 'term_order'). Unless `$object_ids`
 	 *                                                  is not empty, 'term_order' is treated the same as 'term_id'.
-	 *                                                - 'count' to use the number of objects associated with the term.
-	 *                                                - 'include' to match the 'order' of the $include param.
-	 *                                                - 'slug__in' to match the 'order' of the $slug param.
-	 *                                                - 'meta_value', 'meta_value_num'.
-	 *                                                - the value of `$meta_key`.
-	 *                                                - the array keys of `$meta_query`.
-	 *                                                - 'none' to omit the ORDER BY clause.
+	 *                                                * 'count' to use the number of objects associated with the term.
+	 *                                                * 'include' to match the 'order' of the $include param.
+	 *                                                * 'slug__in' to match the 'order' of the $slug param.
+	 *                                                * 'meta_value', 'meta_value_num'.
+	 *                                                  the value of `$meta_key`.
+	 *                                                  the array keys of `$meta_query`.
+	 *                                                * 'none' to omit the ORDER BY clause.
 	 *                                                Defaults to 'name'.
 	 *     @type string       $order                  Whether to order terms in ascending or descending order.
 	 *                                                Accepts 'ASC' (ascending) or 'DESC' (descending).
@@ -127,20 +127,20 @@ class WP_Term_Query {
 	 *                                                See #41796 for details.
 	 *     @type int          $offset                 The number by which to offset the terms query. Default empty.
 	 *     @type string       $fields                 Term fields to query for. Accepts:
-	 *                                                - 'all' Returns an array of complete term objects (`WP_Term[]`).
-	 *                                                - 'all_with_object_id' Returns an array of term objects
+	 *                                                * 'all' Returns an array of complete term objects (`WP_Term[]`).
+	 *                                                * 'all_with_object_id' Returns an array of term objects
 	 *                                                  with the 'object_id' param (`WP_Term[]`). Works only
 	 *                                                  when the `$object_ids` parameter is populated.
-	 *                                                - 'ids' Returns an array of term IDs (`int[]`).
-	 *                                                - 'tt_ids' Returns an array of term taxonomy IDs (`int[]`).
-	 *                                                - 'names' Returns an array of term names (`string[]`).
-	 *                                                - 'slugs' Returns an array of term slugs (`string[]`).
-	 *                                                - 'count' Returns the number of matching terms (`int`).
-	 *                                                - 'id=>parent' Returns an associative array of parent term IDs,
+	 *                                                * 'ids' Returns an array of term IDs (`int[]`).
+	 *                                                * 'tt_ids' Returns an array of term taxonomy IDs (`int[]`).
+	 *                                                * 'names' Returns an array of term names (`string[]`).
+	 *                                                * 'slugs' Returns an array of term slugs (`string[]`).
+	 *                                                * 'count' Returns the number of matching terms (`int`).
+	 *                                                * 'id=>parent' Returns an associative array of parent term IDs,
 	 *                                                   keyed by term ID (`int[]`).
-	 *                                                - 'id=>name' Returns an associative array of term names,
+	 *                                                * 'id=>name' Returns an associative array of term names,
 	 *                                                   keyed by term ID (`string[]`).
-	 *                                                - 'id=>slug' Returns an associative array of term slugs,
+	 *                                                * 'id=>slug' Returns an associative array of term slugs,
 	 *                                                   keyed by term ID (`string[]`).
 	 *                                                Default 'all'.
 	 *     @type bool         $count                  Whether to return a term count. If true, will take precedence
@@ -285,12 +285,16 @@ class WP_Term_Query {
 	}
 
 	/**
-	 * Sets up the query for retrieving terms.
+	 * Sets up the query and retrieves the results.
+	 *
+	 * The return type varies depending on the value passed to `$args['fields']`. See
+	 * WP_Term_Query::get_terms() for details.
 	 *
 	 * @since 4.6.0
 	 *
 	 * @param string|array $query Array or URL query string of parameters.
-	 * @return array|int List of terms, or number of terms when 'count' is passed as a query var.
+	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
+	 *                                         when 'count' is passed as a query var.
 	 */
 	public function query( $query ) {
 		$this->query_vars = wp_parse_args( $query );
@@ -298,13 +302,41 @@ class WP_Term_Query {
 	}
 
 	/**
-	 * Get terms, based on query_vars.
+	 * Retrieves the query results.
+	 *
+	 * The return type varies depending on the value passed to `$args['fields']`.
+	 *
+	 * The following will result in an array of `WP_Term` objects being returned:
+	 *
+	 *   - 'all'
+	 *   - 'all_with_object_id'
+	 *
+	 * The following will result in a numeric string being returned:
+	 *
+	 *   - 'count'
+	 *
+	 * The following will result in an array of text strings being returned:
+	 *
+	 *   - 'id=>name'
+	 *   - 'id=>slug'
+	 *   - 'names'
+	 *   - 'slugs'
+	 *
+	 * The following will result in an array of numeric strings being returned:
+	 *
+	 *   - 'id=>parent'
+	 *
+	 * The following will result in an array of integers being returned:
+	 *
+	 *   - 'ids'
+	 *   - 'tt_ids'
 	 *
 	 * @since 4.6.0
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 *
-	 * @return array List of terms.
+	 * @return WP_Term[]|int[]|string[]|string Array of terms, or number of terms as numeric string
+	 *                                         when 'count' is passed as a query var.
 	 */
 	public function get_terms() {
 		global $wpdb;
@@ -696,7 +728,7 @@ class WP_Term_Query {
 		 *
 		 * @param array|null    $terms Return an array of term data to short-circuit WP's term query,
 		 *                             or null to allow WP queries to run normally.
-		 * @param WP_Term_Query $this  The WP_Term_Query instance, passed by reference.
+		 * @param WP_Term_Query $query The WP_Term_Query instance, passed by reference.
 		 */
 		$this->terms = apply_filters_ref_array( 'terms_pre_query', array( $this->terms, &$this ) );
 

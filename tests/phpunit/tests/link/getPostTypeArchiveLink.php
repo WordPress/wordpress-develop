@@ -1,6 +1,7 @@
 <?php
 /**
  * @group link
+ * @covers ::get_post_type_archive_link
  */
 class Tests_Link_GetPostTypeArchiveLink extends WP_UnitTestCase {
 

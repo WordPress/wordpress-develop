@@ -348,20 +348,42 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		return this.mirroring ? this.mirroring.hasMore() : false;
 	},
 	/**
+	 * Holds the total number of attachments.
+	 *
+	 * @since 5.8.0
+	 */
+	totalAttachments: 0,
+
+	/**
+	 * Gets the total number of attachments.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @return {number} The total number of attachments.
+	 */
+	getTotalAttachments: function() {
+		return this.mirroring ? this.mirroring.totalAttachments : 0;
+	},
+
+	/**
 	 * A custom Ajax-response parser.
 	 *
-	 * See trac ticket #24753
+	 * See trac ticket #24753.
 	 *
-	 * @param {Object|Array} resp The raw response Object/Array.
+	 * Called automatically by Backbone whenever a collection's models are returned
+	 * by the server, in fetch. The default implementation is a no-op, simply
+	 * passing through the JSON response. We override this to add attributes to
+	 * the collection items.
+	 *
+	 * @param {Object|Array} response The raw response Object/Array.
 	 * @param {Object} xhr
 	 * @return {Array} The array of model attributes to be added to the collection
 	 */
-	parse: function( resp, xhr ) {
-		if ( ! _.isArray( resp ) ) {
-			resp = [resp];
+	parse: function( response, xhr ) {
+		if ( ! _.isArray( response ) ) {
+			  response = [response];
 		}
-
-		return _.map( resp, function( attrs ) {
+		return _.map( response, function( attrs ) {
 			var id, attachment, newAttributes;
 
 			if ( attrs instanceof Backbone.Model ) {
@@ -381,16 +403,31 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			return attachment;
 		});
 	},
+
+	// Customize fetch so we can extract the total post count from the response headers.
+	fetch: function(options) {
+		var collection = this;
+		var fetched = Backbone.Collection.prototype.fetch.call(this, options)
+			.done( function() {
+				if ( this.hasOwnProperty( 'getResponseHeader' ) ) {
+					collection.totalAttachments = parseInt( this.getResponseHeader( 'X-WP-Total' ), 10 );
+				} else {
+					collection.totalAttachments = 0;
+				}
+			} );
+		return fetched;
+	},
+
 	/**
 	 * If the collection is a query, create and mirror an Attachments Query collection.
 	 *
 	 * @access private
+	 * @param {Boolean} refresh Deprecated, refresh parameter no longer used.
 	 */
-	_requery: function( refresh ) {
+	_requery: function() {
 		var props;
 		if ( this.props.get('query') ) {
 			props = this.props.toJSON();
-			props.cache = ( true !== refresh );
 			this.mirror( wp.media.model.Query.get( props ) );
 		}
 	},

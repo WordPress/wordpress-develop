@@ -247,6 +247,7 @@ function get_search_form( $args = array() ) {
 	 * @link https://core.trac.wordpress.org/ticket/19321
 	 *
 	 * @param array $args The array of arguments for building the search form.
+	 *                    See get_search_form() for information on accepted arguments.
 	 */
 	do_action( 'pre_get_search_form', $args );
 
@@ -278,6 +279,7 @@ function get_search_form( $args = array() ) {
 	 * @since 5.2.0
 	 *
 	 * @param array $args The array of arguments for building the search form.
+	 *                    See get_search_form() for information on accepted arguments.
 	 */
 	$args = apply_filters( 'search_form_args', $args );
 
@@ -295,6 +297,7 @@ function get_search_form( $args = array() ) {
 	 * @param string $format The type of markup to use in the search form.
 	 *                       Accepts 'html5', 'xhtml'.
 	 * @param array  $args   The array of arguments for building the search form.
+	 *                       See get_search_form() for information on accepted arguments.
 	 */
 	$format = apply_filters( 'search_form_format', $format, $args );
 
@@ -343,6 +346,7 @@ function get_search_form( $args = array() ) {
 	 *
 	 * @param string $form The search form HTML output.
 	 * @param array  $args The array of arguments for building the search form.
+	 *                     See get_search_form() for information on accepted arguments.
 	 */
 	$result = apply_filters( 'get_search_form', $form, $args );
 
@@ -1002,7 +1006,8 @@ function has_custom_logo( $blog_id = 0 ) {
  * Returns a custom logo, linked to home unless the theme supports removing the link on the home page.
  *
  * @since 4.5.0
- * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support.
+ * @since 5.5.0 Added option to remove the link on the home page with `unlink-homepage-logo` theme support
+ *              for the `custom-logo` theme feature.
  * @since 5.5.1 Disabled lazy-loading by default.
  *
  * @param int $blog_id Optional. ID of the blog in question. Default is the ID of the current blog.
@@ -1081,7 +1086,7 @@ function get_custom_logo( $blog_id = 0 ) {
 	} elseif ( is_customize_preview() ) {
 		// If no logo is set but we're in the Customizer, leave a placeholder (needed for the live preview).
 		$html = sprintf(
-			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo"/></a>',
+			'<a href="%1$s" class="custom-logo-link" style="display:none;"><img class="custom-logo" alt="" /></a>',
 			esc_url( home_url( '/' ) )
 		);
 	}
@@ -1233,10 +1238,15 @@ function wp_get_document_title() {
 	$title = apply_filters( 'document_title_parts', $title );
 
 	$title = implode( " $sep ", array_filter( $title ) );
-	$title = wptexturize( $title );
-	$title = convert_chars( $title );
-	$title = esc_html( $title );
-	$title = capital_P_dangit( $title );
+
+	/**
+	 * Filters the document title.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param string $title Document title.
+	 */
+	$title = apply_filters( 'document_title', $title );
 
 	return $title;
 }
@@ -3187,59 +3197,17 @@ function wlwmanifest_link() {
 }
 
 /**
- * Displays a noindex meta tag if required by the blog configuration.
+ * Displays a referrer strict-origin-when-cross-origin meta tag.
  *
- * If a blog is marked as not being public then the noindex meta tag will be
- * output to tell web robots not to index the page content. Add this to the
- * {@see 'wp_head'} action.
- *
- * Typical usage is as a {@see 'wp_head'} callback:
- *
- *     add_action( 'wp_head', 'noindex' );
- *
- * @see wp_no_robots()
- *
- * @since 2.1.0
- */
-function noindex() {
-	// If the blog is not public, tell robots to go away.
-	if ( '0' == get_option( 'blog_public' ) ) {
-		wp_no_robots();
-	}
-}
-
-/**
- * Display a noindex meta tag.
- *
- * Outputs a noindex meta tag that tells web robots not to index the page content.
- * Typical usage is as a {@see 'wp_head'} callback. add_action( 'wp_head', 'wp_no_robots' );
- *
- * @since 3.3.0
- * @since 5.3.0 Echo "noindex,nofollow" if search engine visibility is discouraged.
- */
-function wp_no_robots() {
-	if ( get_option( 'blog_public' ) ) {
-		echo "<meta name='robots' content='noindex,follow' />\n";
-		return;
-	}
-
-	echo "<meta name='robots' content='noindex,nofollow' />\n";
-}
-
-/**
- * Display a noindex,noarchive meta tag and referrer origin-when-cross-origin meta tag.
- *
- * Outputs a noindex,noarchive meta tag that tells web robots not to index or cache the page content.
  * Outputs a referrer origin-when-cross-origin meta tag that tells the browser not to send the full
  * url as a referrer to other sites when cross-origin assets are loaded.
  *
- * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_sensitive_page_meta' );
+ * Typical usage is as a wp_head callback. add_action( 'wp_head', 'wp_strict_cross_origin_referrer' );
  *
- * @since 5.0.1
+ * @since 5.7.0
  */
-function wp_sensitive_page_meta() {
+function wp_strict_cross_origin_referrer() {
 	?>
-	<meta name='robots' content='noindex,noarchive' />
 	<meta name='referrer' content='strict-origin-when-cross-origin' />
 	<?php
 }
@@ -3326,9 +3294,25 @@ function wp_resource_hints() {
 		 * Filters domains and URLs for resource hints of relation type.
 		 *
 		 * @since 4.6.0
+		 * @since 4.7.0 The `$urls` parameter accepts arrays of specific HTML attributes
+		 *              as its child elements.
 		 *
-		 * @param array  $urls          URLs to print for resource hints.
-		 * @param string $relation_type The relation type the URLs are printed for, e.g. 'preconnect' or 'prerender'.
+		 * @param array  $urls {
+		 *     Array of resources and their attributes, or URLs to print for resource hints.
+		 *
+		 *     @type array|string ...$0 {
+		 *         Array of resource attributes, or a URL string.
+		 *
+		 *         @type string $href        URL to include in resource hints. Required.
+		 *         @type string $as          How the browser should treat the resource
+		 *                                   (`script`, `style`, `image`, `document`, etc).
+		 *         @type string $crossorigin Indicates the CORS policy of the specified resource.
+		 *         @type float  $pr          Expected probability that the resource hint will be used.
+		 *         @type string $type        Type of the resource (`text/html`, `text/css`, etc).
+		 *     }
+		 * }
+		 * @param string $relation_type The relation type the URLs are printed for,
+		 *                              e.g. 'preconnect' or 'prerender'.
 		 */
 		$urls = apply_filters( 'wp_resource_hints', $urls, $relation_type );
 
@@ -3572,7 +3556,7 @@ function wp_enqueue_editor() {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the enqueued code editor, or false if the editor was not enqueued.
  */
@@ -3663,7 +3647,7 @@ function wp_enqueue_code_editor( $args ) {
  *     @type array    $codemirror Additional CodeMirror setting overrides.
  *     @type array    $csslint    CSSLint rule overrides.
  *     @type array    $jshint     JSHint rule overrides.
- *     @type array    $htmlhint   JSHint rule overrides.
+ *     @type array    $htmlhint   HTMLHint rule overrides.
  * }
  * @return array|false Settings for the code editor.
  */
@@ -4000,7 +3984,7 @@ function wp_get_code_editor_settings( $args ) {
 	 *     @type array    $codemirror Additional CodeMirror setting overrides.
 	 *     @type array    $csslint    CSSLint rule overrides.
 	 *     @type array    $jshint     JSHint rule overrides.
-	 *     @type array    $htmlhint   JSHint rule overrides.
+	 *     @type array    $htmlhint   HTMLHint rule overrides.
 	 * }
 	 */
 	return apply_filters( 'wp_code_editor_settings', $settings, $args );
@@ -4111,7 +4095,7 @@ function language_attributes( $doctype = 'html' ) {
 }
 
 /**
- * Retrieve paginated link for archive post pages.
+ * Retrieves paginated links for archive post pages.
  *
  * Technically, the function can be used to create paginated link list for any
  * area. The 'base' argument is used to reference the url, which will be used to
@@ -4357,6 +4341,17 @@ function paginate_links( $args = '' ) {
 			break;
 	}
 
+	/**
+	 * Filters the HTML output of paginated links for archives.
+	 *
+	 * @since 5.7.0
+	 *
+	 * @param string $r    HTML output.
+	 * @param array  $args An array of arguments. See paginate_links()
+	 *                     for information on accepted arguments.
+	 */
+	$r = apply_filters( 'paginate_links_output', $r, $args );
+
 	return $r;
 }
 
@@ -4419,10 +4414,10 @@ function register_admin_color_schemes() {
 		'fresh',
 		_x( 'Default', 'admin color scheme' ),
 		false,
-		array( '#222', '#333', '#0073aa', '#00a0d2' ),
+		array( '#1d2327', '#2c3338', '#2271b1', '#72aee6' ),
 		array(
-			'base'    => '#a0a5aa',
-			'focus'   => '#00a0d2',
+			'base'    => '#a7aaad',
+			'focus'   => '#72aee6',
 			'current' => '#fff',
 		)
 	);
@@ -4745,6 +4740,16 @@ function get_the_generator( $type = '' ) {
 	 * Filters the HTML for the retrieved generator type.
 	 *
 	 * The dynamic portion of the hook name, `$type`, refers to the generator type.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `get_the_generator_atom`
+	 *  - `get_the_generator_comment`
+	 *  - `get_the_generator_export`
+	 *  - `get_the_generator_html`
+	 *  - `get_the_generator_rdf`
+	 *  - `get_the_generator_rss2`
+	 *  - `get_the_generator_xhtml`
 	 *
 	 * @since 2.5.0
 	 *

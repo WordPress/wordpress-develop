@@ -15,7 +15,7 @@
  *
  * @since 4.9.6
  */
-class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
 	 * Path to the index file that blocks directory listing on poorly-configured servers.
 	 *
@@ -55,7 +55,7 @@ class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 			wp_mkdir_p( $exports_dir );
 		}
 
-		self::$index_path          = $exports_dir . 'index.html';
+		self::$index_path          = $exports_dir . 'index.php';
 		self::$expired_export_file = $exports_dir . 'wp-personal-data-file-0123456789abcdef.zip';
 		self::$active_export_file  = $exports_dir . 'wp-personal-data-file-fedcba9876543210.zip';
 	}

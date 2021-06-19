@@ -659,7 +659,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'header_image_data',
 			'background_image',
 			'widget_text[2]',
-			'widget_meta[3]',
+			'widget_meta[2]',
 			'sidebars_widgets[sidebar-1]',
 			'nav_menus_created_posts',
 			'nav_menu[-1]',
@@ -676,14 +676,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 		$this->assertSameSets( $expected_setting_ids, array_keys( $changeset_values ) );
 
-		foreach ( array( 'widget_text[2]', 'widget_meta[3]' ) as $setting_id ) {
+		foreach ( array( 'widget_text[2]', 'widget_meta[2]' ) as $setting_id ) {
 			$this->assertInternalType( 'array', $changeset_values[ $setting_id ] );
 			$instance_data = $wp_customize->widgets->sanitize_widget_instance( $changeset_values[ $setting_id ] );
 			$this->assertInternalType( 'array', $instance_data );
 			$this->assertArrayHasKey( 'title', $instance_data );
 		}
 
-		$this->assertSame( array( 'text-2', 'meta-3' ), $changeset_values['sidebars_widgets[sidebar-1]'] );
+		$this->assertSame( array( 'text-2', 'meta-2' ), $changeset_values['sidebars_widgets[sidebar-1]'] );
 
 		$posts_by_name = array();
 		$this->assertCount( 7, $changeset_values['nav_menus_created_posts'] );
@@ -893,7 +893,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$wp_customize->customize_preview_init();
 		$this->assertSame( $did_action_customize_preview_init + 1, did_action( 'customize_preview_init' ) );
 
-		$this->assertSame( 10, has_action( 'wp_head', 'wp_no_robots' ) );
+		$this->assertSame( 10, has_filter( 'wp_robots', 'wp_robots_no_robots' ) );
 		$this->assertSame( 10, has_action( 'wp_head', array( $wp_customize, 'remove_frameless_preview_messenger_channel' ) ) );
 		$this->assertSame( 10, has_filter( 'wp_headers', array( $wp_customize, 'filter_iframe_security_headers' ) ) );
 		$this->assertSame( 10, has_filter( 'wp_redirect', array( $wp_customize, 'add_state_query_params' ) ) );

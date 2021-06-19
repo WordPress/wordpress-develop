@@ -36,9 +36,9 @@ class WP_Block_Test extends WP_UnitTestCase {
 	 * Tear down each test method.
 	 */
 	public function tearDown() {
-		parent::tearDown();
-
 		$this->registry = null;
+
+		parent::tearDown();
 	}
 
 	function filter_render_block( $content, $parsed_block ) {
@@ -328,7 +328,26 @@ class WP_Block_Test extends WP_UnitTestCase {
 		remove_filter( 'render_block', array( $this, 'filter_render_block' ) );
 
 		$this->assertSame( 'Original: "StaticOriginal: "Inner", from block "core/example"", from block "core/example"', $rendered_content );
+	}
 
+	/**
+	 * @ticket 46187
+	 */
+	function test_render_applies_dynamic_render_block_filter() {
+		$this->registry->register( 'core/example', array() );
+
+		add_filter( 'render_block_core/example', array( $this, 'filter_render_block' ), 10, 2 );
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example -->Static<!-- wp:example -->Inner<!-- /wp:example --><!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array();
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+
+		$rendered_content = $block->render();
+
+		remove_filter( 'render_block_core/example', array( $this, 'filter_render_block' ) );
+
+		$this->assertSame( 'Original: "StaticOriginal: "Inner", from block "core/example"", from block "core/example"', $rendered_content );
 	}
 
 	/**
@@ -394,4 +413,219 @@ class WP_Block_Test extends WP_UnitTestCase {
 		$this->assertSame( 'abc', $block->render() );
 	}
 
+	/**
+	 * @ticket 52991
+	 */
+	public function test_build_query_vars_from_query_block() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'postType'    => 'page',
+				'exclude'     => array( 1, 2 ),
+				'categoryIds' => array( 56 ),
+				'orderBy'     => 'title',
+				'tagIds'      => array( 3, 11, 10 ),
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'page',
+				'order'        => 'DESC',
+				'orderby'      => 'title',
+				'post__not_in' => array( 1, 2 ),
+				'category__in' => array( 56 ),
+				'tag__in'      => array( 3, 11, 10 ),
+			)
+		);
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_build_query_vars_from_query_block_no_context() {
+		$this->registry->register( 'core/example', array() );
+
+		$parsed_blocks    = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block     = $parsed_blocks[0];
+		$block_no_context = new WP_Block( $parsed_block, array(), $this->registry );
+		$query            = build_query_vars_from_query_block( $block_no_context, 1 );
+
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'    => 'post',
+				'order'        => 'DESC',
+				'orderby'      => 'date',
+				'post__not_in' => array(),
+			)
+		);
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_build_query_vars_from_query_block_first_page() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'perPage' => 2,
+				'offset'  => 0,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 1 );
+
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 0,
+				'posts_per_page' => 2,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_build_query_vars_from_query_block_page_no_offset() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'perPage' => 5,
+				'offset'  => 0,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 3 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 10,
+				'posts_per_page' => 5,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_build_query_vars_from_query_block_page_with_offset() {
+		$this->registry->register(
+			'core/example',
+			array( 'uses_context' => array( 'query' ) )
+		);
+
+		$parsed_blocks = parse_blocks( '<!-- wp:example {"ok":true} -->a<!-- wp:example /-->b<!-- /wp:example -->' );
+		$parsed_block  = $parsed_blocks[0];
+		$context       = array(
+			'query' => array(
+				'perPage' => 5,
+				'offset'  => 2,
+			),
+		);
+		$block         = new WP_Block( $parsed_block, $context, $this->registry );
+		$query         = build_query_vars_from_query_block( $block, 3 );
+		$this->assertSame(
+			$query,
+			array(
+				'post_type'      => 'post',
+				'order'          => 'DESC',
+				'orderby'        => 'date',
+				'post__not_in'   => array(),
+				'offset'         => 12,
+				'posts_per_page' => 5,
+			)
+		);
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_block_has_support() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'supports' => array(
+					'align'    => array( 'wide', 'full' ),
+					'fontSize' => true,
+					'color'    => array(
+						'link'     => true,
+						'gradient' => false,
+					),
+				),
+			)
+		);
+		$block_type    = $this->registry->get_registered( 'core/example' );
+		$align_support = block_has_support( $block_type, array( 'align' ) );
+		$this->assertTrue( $align_support );
+		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ) );
+		$this->assertFalse( $gradient_support );
+		$link_support = block_has_support( $block_type, array( 'color', 'link' ), false );
+		$this->assertTrue( $link_support );
+		$text_support = block_has_support( $block_type, array( 'color', 'text' ) );
+		$this->assertFalse( $text_support );
+		$font_nested = block_has_support( $block_type, array( 'fontSize', 'nested' ) );
+		$this->assertFalse( $font_nested );
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_block_has_support_no_supports() {
+		$this->registry->register( 'core/example', array() );
+		$block_type  = $this->registry->get_registered( 'core/example' );
+		$has_support = block_has_support( $block_type, array( 'color' ) );
+		$this->assertFalse( $has_support );
+	}
+
+	/**
+	 * @ticket 52991
+	 */
+	public function test_block_has_support_provided_defaults() {
+		$this->registry->register(
+			'core/example',
+			array(
+				'supports' => array(
+					'color' => array(
+						'gradient' => false,
+					),
+				),
+			)
+		);
+		$block_type    = $this->registry->get_registered( 'core/example' );
+		$align_support = block_has_support( $block_type, array( 'align' ), true );
+		$this->assertTrue( $align_support );
+		$gradient_support = block_has_support( $block_type, array( 'color', 'gradient' ), true );
+		$this->assertFalse( $gradient_support );
+	}
 }

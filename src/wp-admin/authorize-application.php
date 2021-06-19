@@ -12,7 +12,7 @@ require_once __DIR__ . '/admin.php';
 $error        = null;
 $new_password = '';
 
-// This is the no-js fallback script.  Generally this will all be handled by `auth-app.js`
+// This is the no-js fallback script. Generally this will all be handled by `auth-app.js`.
 if ( isset( $_POST['action'] ) && 'authorize_application_password' === $_POST['action'] ) {
 	check_admin_referer( 'authorize_application_password' );
 
@@ -88,7 +88,7 @@ if ( is_wp_error( $is_valid ) ) {
 	);
 }
 
-if ( ! empty( $_SERVER['PHP_AUTH_USER'] ) || ! empty( $_SERVER['PHP_AUTH_PW'] ) ) {
+if ( wp_is_site_protected_by_basic_auth( 'front' ) ) {
 	wp_die(
 		__( 'Your website appears to use Basic Authentication, which is not currently compatible with Application Passwords.' ),
 		__( 'Cannot Authorize Application' ),
@@ -141,7 +141,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 	<?php endif; ?>
 
 	<div class="card auth-app-card">
-		<h2 class="title"><?php __( 'An application would like to connect to your account.' ); ?></h2>
+		<h2 class="title"><?php _e( 'An application would like to connect to your account.' ); ?></h2>
 		<?php if ( $app_name ) : ?>
 			<p>
 				<?php
@@ -165,10 +165,10 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: 1: URL to my-sites.php, 2: Number of blogs the user has. */
+						/* translators: 1: URL to my-sites.php, 2: Number of sites the user has. */
 						_n(
-							'This will grant access to <a href="%1$s">the %2$s blog in this installation that you have permissions on</a>.',
-							'This will grant access to <a href="%1$s">all %2$s blogs in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">the %2$s site in this installation that you have permissions on</a>.',
+							'This will grant access to <a href="%1$s">all %2$s sites in this installation that you have permissions on</a>.',
 							$blogs_count
 						),
 						admin_url( 'my-sites.php' ),

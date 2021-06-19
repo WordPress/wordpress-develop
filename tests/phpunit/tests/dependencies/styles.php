@@ -2,6 +2,11 @@
 /**
  * @group dependencies
  * @group scripts
+ * @covers ::wp_enqueue_style
+ * @covers ::wp_register_style
+ * @covers ::wp_print_styles
+ * @covers ::wp_style_add_data
+ * @covers ::wp_add_inline_style
  */
 class Tests_Dependencies_Styles extends WP_UnitTestCase {
 	private $old_wp_styles;
@@ -349,6 +354,8 @@ CSS;
 	 * Tests that visual block styles are enqueued in the editor even when there is not theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 *
+	 * @covers ::wp_enqueue_style
 	 */
 	function test_block_styles_for_editing_without_theme_support() {
 		// Confirm we are without theme support by default.
@@ -365,6 +372,8 @@ CSS;
 	 * Tests that visual block styles are enqueued when there is theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should always be enqueued when editing to avoid the appearance of a broken editor.
+	 *
+	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	function test_block_styles_for_editing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );
@@ -381,6 +390,8 @@ CSS;
 	 *
 	 * Visual block styles should not be enqueued unless a theme opts in.
 	 * This way we avoid style conflicts with existing themes.
+	 *
+	 * @covers ::wp_enqueue_style
 	 */
 	function test_no_block_styles_for_viewing_without_theme_support() {
 		// Confirm we are without theme support by default.
@@ -397,6 +408,8 @@ CSS;
 	 * Tests that visual block styles are enqueued for viewing when there is theme support for 'wp-block-styles'.
 	 *
 	 * Visual block styles should be enqueued when a theme opts in.
+	 *
+	 * @covers ::wp_common_block_scripts_and_styles
 	 */
 	function test_block_styles_for_viewing_with_theme_support() {
 		add_theme_support( 'wp-block-styles' );
@@ -406,5 +419,39 @@ CSS;
 		$this->assertFalse( wp_style_is( 'wp-block-library-theme' ) );
 		wp_common_block_scripts_and_styles();
 		$this->assertTrue( wp_style_is( 'wp-block-library-theme' ) );
+	}
+
+	/**
+	 * Tests that the main "style.css" file gets enqueued when the site doesn't opt in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	function test_block_styles_for_viewing_without_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_false' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/style.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
+	}
+
+	/**
+	 * Tests that the "common.css" file gets enqueued when the site opts in to separate core block assets.
+	 *
+	 * @ticket 50263
+	 *
+	 * @covers ::wp_default_styles
+	 */
+	function test_block_styles_for_viewing_with_split_styles() {
+		add_filter( 'should_load_separate_core_block_assets', '__return_true' );
+		wp_default_styles( $GLOBALS['wp_styles'] );
+
+		$this->assertSame(
+			'/' . WPINC . '/css/dist/block-library/common.css',
+			$GLOBALS['wp_styles']->registered['wp-block-library']->src
+		);
 	}
 }

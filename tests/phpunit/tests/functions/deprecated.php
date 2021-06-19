@@ -53,7 +53,7 @@ class Tests_Functions_Deprecated extends WP_UnitTestCase {
 	/**
 	 * Tears down the test fixture.
 	 */
-	public function teardown() {
+	public function tearDown() {
 		remove_action( 'deprecated_function_run', array( $this, 'deprecated_function' ), 10, 3 );
 		remove_action( 'deprecated_function_trigger_error', '__return_false' );
 		remove_action( 'deprecated_argument_run', array( $this, 'deprecated_argument' ), 10, 3 );

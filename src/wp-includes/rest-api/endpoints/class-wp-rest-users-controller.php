@@ -37,7 +37,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 	}
 
 	/**
-	 * Registers the routes for the objects of the controller.
+	 * Registers the routes for users.
 	 *
 	 * @since 4.7.0
 	 *
@@ -1520,7 +1520,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 
 		$query_params['orderby'] = array(
 			'default'     => 'name',
-			'description' => __( 'Sort collection by object attribute.' ),
+			'description' => __( 'Sort collection by user attribute.' ),
 			'enum'        => array(
 				'id',
 				'include',
@@ -1559,7 +1559,7 @@ class WP_REST_Users_Controller extends WP_REST_Controller {
 		);
 
 		/**
-		 * Filters collection parameters for the users controller.
+		 * Filters REST API collection parameters for the users controller.
 		 *
 		 * This filter registers the collection parameter, but does not map the
 		 * collection parameter to an internal WP_User_Query parameter.  Use the

@@ -280,6 +280,8 @@ CAP;
 
 	/**
 	 * @ticket 23776
+	 *
+	 * @group external-http
 	 */
 	function test_autoembed_no_paragraphs_around_urls() {
 		global $wp_embed;
@@ -1280,6 +1282,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_multiline_comment_with_embeds() {
 		$content = <<<EOF
@@ -1323,6 +1327,8 @@ EOF;
 
 	/**
 	 * @ticket 33016
+	 *
+	 * @group external-http
 	 */
 	function test_oembed_explicit_media_link() {
 		global $wp_embed;
@@ -2449,7 +2455,7 @@ EOF;
 	 */
 	public function test_return_type_when_inserting_attachment_with_error_in_data() {
 		$data = array(
-			'post_status'  => 'public',
+			'post_status'  => 'publish',
 			'post_content' => 'Attachment content',
 			'post_title'   => 'Attachment Title',
 			'post_date'    => '2012-02-30 00:00:00',
@@ -2935,6 +2941,19 @@ EOF;
 	function test_wp_iframe_tag_add_loading_attr_opt_out() {
 		$iframe = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
 		add_filter( 'wp_iframe_tag_add_loading_attr', '__return_false' );
+		$iframe = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
+
+		$this->assertNotContains( ' loading=', $iframe );
+	}
+
+	/**
+	 * @ticket 52768
+	 */
+	function test_wp_iframe_tag_add_loading_attr_skip_wp_embed() {
+		$iframe   = '<iframe src="https://www.example.com" width="640" height="360"></iframe>';
+		$fallback = '<blockquote>Fallback content.</blockquote>';
+		$iframe   = wp_filter_oembed_result( $fallback . $iframe, (object) array( 'type' => 'rich' ), 'https://www.example.com' );
+		$iframe   = wp_iframe_tag_add_loading_attr( $iframe, 'test' );
 
 		$this->assertNotContains( ' loading=', $iframe );
 	}
@@ -3122,11 +3141,11 @@ EOF;
 	 * @ticket 51776
 	 *
 	 * @param string $post_key     Post as keyed in the shared fixture array.
-	 * @param string $expected     Expected result.
+	 * @param string $expected_url Expected permalink.
 	 * @param bool   $expected_404 Whether the page is expected to return a 404 result.
 	 *
 	 */
-	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected, $expected_404 ) {
+	function test_attachment_permalinks_based_on_parent_status( $post_key, $expected_url, $expected_404 ) {
 		$this->set_permalink_structure( '/%postname%' );
 		$post = get_post( self::$post_ids[ $post_key ] );
 
@@ -3134,11 +3153,16 @@ EOF;
 		 * The dataProvider runs before the fixures are set up, therefore the
 		 * post object IDs are placeholders that needs to be replaced.
 		 */
-		$expected = home_url( str_replace( '%ID%', $post->ID, $expected ) );
+		$expected_url = home_url( str_replace( '%ID%', $post->ID, $expected_url ) );
 
-		$this->assertSame( $expected, get_permalink( $post ) );
 		$this->go_to( get_permalink( $post ) );
-		$this->assertSame( $expected_404, is_404() );
+		$this->assertSame( $expected_url, get_permalink( $post ) );
+		if ( $expected_404 ) {
+			$this->assertQueryTrue( 'is_404' );
+		} else {
+			$this->assertQueryTrue( 'is_attachment', 'is_single', 'is_singular' );
+		}
+		$this->assertSame( 'attachment', $post->post_type );
 	}
 
 	/**
@@ -3146,7 +3170,7 @@ EOF;
 	 *
 	 * @return array[] {
 	 *     @type string $post_key     Post as keyed in the shared fixture array.
-	 *     @type string $expected     Expected result.
+	 *     @type string $expected_url Expected permalink.
 	 *     $type bool   $expected_404 Whether the page is expected to return a 404 result.
 	 * }
 	 */

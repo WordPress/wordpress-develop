@@ -16,12 +16,6 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		add_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
 	}
 
-	public function tearDown() {
-		remove_filter( 'wp_image_editors', array( $this, 'wp_image_editors' ) );
-
-		parent::tearDown();
-	}
-
 	public function wp_image_editors() {
 		return array( $this->editor_engine );
 	}
@@ -67,6 +61,24 @@ abstract class WP_Tests_Image_Resize_UnitTestCase extends WP_Image_UnitTestCase 
 		$this->assertSame( 25, $h );
 		$this->assertSame( IMAGETYPE_GIF, $type );
 
+		unlink( $image );
+	}
+
+	function test_resize_webp() {
+		$file   = DIR_TESTDATA . '/images/test-image.webp';
+		$editor = wp_get_image_editor( $file );
+
+		// Check if the editor supports the webp mime type.
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->markTestSkipped( sprintf( 'No WebP support in the editor engine %s on this system.', $this->editor_engine ) );
+		}
+
+		$image = $this->resize_helper( $file, 25, 25 );
+		$this->assertSame( 'test-image-25x25.webp', wp_basename( $image ) );
+		list($w, $h, $type) = wp_getimagesize( $image );
+		$this->assertSame( 25, $w );
+		$this->assertSame( 25, $h );
+		$this->assertSame( IMAGETYPE_WEBP, $type );
 		unlink( $image );
 	}
 

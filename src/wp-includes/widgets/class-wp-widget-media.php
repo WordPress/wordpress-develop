@@ -59,6 +59,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 			array(
 				'description'                 => __( 'A media item.' ),
 				'customize_selective_refresh' => true,
+				'show_instance_in_rest'       => true,
 				'mime_type'                   => '',
 			)
 		);
@@ -162,7 +163,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 		 * @since 4.9.0
 		 *
 		 * @param array           $schema Instance schema.
-		 * @param WP_Widget_Media $this   Widget object.
+		 * @param WP_Widget_Media $widget Widget object.
 		 */
 		$schema = apply_filters( "widget_{$this->id_base}_instance_schema", $schema, $this );
 
@@ -245,7 +246,7 @@ abstract class WP_Widget_Media extends WP_Widget {
 		 *
 		 * @param array           $instance Instance data.
 		 * @param array           $args     Widget args.
-		 * @param WP_Widget_Media $this     Widget object.
+		 * @param WP_Widget_Media $widget   Widget object.
 		 */
 		$instance = apply_filters( "widget_{$this->id_base}_instance", $instance, $args, $this );
 

@@ -1212,6 +1212,8 @@ EOF;
 	 * @dataProvider data_kses_style_attr_with_url
 	 *
 	 * @ticket 45067
+	 * @ticket 46197
+	 * @ticket 46498
 	 *
 	 * @param $input string The style attribute saved in the editor.
 	 * @param $expected string The sanitized style attribute.
@@ -1287,6 +1289,24 @@ EOF;
 				'background: red',
 			),
 
+			// CSS calc().
+			array(
+				'width: calc(2em + 3px)',
+				'width: calc(2em + 3px)',
+			),
+
+			// CSS variable.
+			array(
+				'padding: var(--wp-var1) var(--wp-var2)',
+				'padding: var(--wp-var1) var(--wp-var2)',
+			),
+
+			// CSS calc() with var().
+			array(
+				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+				'margin-top: calc(var(--wp-var1) * 3 + 2em)',
+			),
+
 			/*
 			 * Invalid use cases.
 			 */
@@ -1348,6 +1368,18 @@ EOF;
 			// Malformed, no closing `"`.
 			array(
 				'background-image: url( "http://example.com );',
+				'',
+			),
+
+			// Malformed calc, no closing `)`.
+			array(
+				'width: calc(3em + 10px',
+				'',
+			),
+
+			// Malformed var, no closing `)`.
+			array(
+				'width: var(--wp-var1',
 				'',
 			),
 		);
@@ -1443,6 +1475,24 @@ EOF;
 		);
 
 		$html = implode( ' ', $html );
+
+		$this->assertSame( $html, wp_kses_post( $html ) );
+	}
+
+	/**
+	 * Test filtering a standard main tag.
+	 *
+	 * @ticket 53156
+	 */
+	function test_wp_kses_main_tag_standard_attributes() {
+		$test = array(
+			'<main',
+			'class="wp-group-block"',
+			'style="padding:10px"',
+			'/>',
+		);
+
+		$html = implode( ' ', $test );
 
 		$this->assertSame( $html, wp_kses_post( $html ) );
 	}

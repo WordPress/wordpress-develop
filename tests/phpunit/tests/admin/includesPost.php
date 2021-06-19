@@ -839,13 +839,15 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 		$this->assertArrayHasKey( $name, $blocks );
 		$this->assertSame(
 			array(
+				'apiVersion'  => 1,
 				'title'       => '',
 				'description' => '',
 				'icon'        => 'text',
-				'category'    => 'common',
-				'keywords'    => array(),
 				'usesContext' => array(),
+				'category'    => 'common',
 				'styles'      => array(),
+				'keywords'    => array(),
+				'variations'  => array(),
 			),
 			$blocks[ $name ]
 		);
@@ -900,5 +902,84 @@ class Tests_Admin_Includes_Post extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( 0, post_exists( $title, null, null, 'post' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_status() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, null, $post_status ) );
+	}
+
+
+	/**
+	 * Test the type and status query in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_support_post_type_status_combined() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( $post_id, post_exists( $title, null, null, $post_type, $post_status ) );
+	}
+
+	/**
+	 * Test that post_exists() doesn't find an existing draft post when looking for publish
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_only_match_correct_post_status() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'draft';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+		$this->assertSame( 0, post_exists( $title, null, null, null, 'publish' ) );
+	}
+
+	/**
+	 * Test the status support in post_exists()
+	 *
+	 * @ticket 34012
+	 */
+	public function test_post_exists_should_not_match_invalid_post_type_and_status_combined() {
+		$title       = 'Foo Bar';
+		$post_type   = 'post';
+		$post_status = 'publish';
+		$post_id     = self::factory()->post->create(
+			array(
+				'post_title'  => $title,
+				'post_type'   => $post_type,
+				'post_status' => $post_status,
+			)
+		);
+
+		$this->assertSame( 0, post_exists( $title, null, null, $post_type, 'draft' ) );
+		$this->assertSame( 0, post_exists( $title, null, null, 'wp_tests', $post_status ) );
 	}
 }

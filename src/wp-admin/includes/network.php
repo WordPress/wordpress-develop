@@ -107,7 +107,7 @@ function get_clean_basedomain() {
  *
  * @global bool $is_apache
  *
- * @param WP_Error $errors
+ * @param false|WP_Error $errors Optional. Error object. Default false.
  */
 function network_step1( $errors = false ) {
 	global $is_apache;
@@ -384,7 +384,7 @@ function network_step1( $errors = false ) {
  * @global wpdb $wpdb     WordPress database abstraction object.
  * @global bool $is_nginx Whether the server software is Nginx or something else.
  *
- * @param WP_Error $errors
+ * @param false|WP_Error $errors Optional. Error object. Default false.
  */
 function network_step2( $errors = false ) {
 	global $wpdb, $is_nginx;
@@ -487,12 +487,12 @@ function network_step2( $errors = false ) {
 		?>
 		</p>
 		<textarea class="code" readonly="readonly" cols="100" rows="7">
-define('MULTISITE', true);
-define('SUBDOMAIN_INSTALL', <?php echo $subdomain_install ? 'true' : 'false'; ?>);
-define('DOMAIN_CURRENT_SITE', '<?php echo $hostname; ?>');
-define('PATH_CURRENT_SITE', '<?php echo $base; ?>');
-define('SITE_ID_CURRENT_SITE', 1);
-define('BLOG_ID_CURRENT_SITE', 1);
+define( 'MULTISITE', true );
+define( 'SUBDOMAIN_INSTALL', <?php echo $subdomain_install ? 'true' : 'false'; ?> );
+define( 'DOMAIN_CURRENT_SITE', '<?php echo $hostname; ?>' );
+define( 'PATH_CURRENT_SITE', '<?php echo $base; ?>' );
+define( 'SITE_ID_CURRENT_SITE', 1 );
+define( 'BLOG_ID_CURRENT_SITE', 1 );
 </textarea>
 		<?php
 		$keys_salts = array(

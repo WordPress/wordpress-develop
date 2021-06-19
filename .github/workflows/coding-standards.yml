@@ -1,13 +1,45 @@
 name: Coding Standards
 
 on:
+  # JSHint was introduced in WordPress 3.8.
+  # PHPCS checking was introduced in WordPress 5.1.
   push:
     branches:
       - master
-      # PHPCS checking was introduced in WordPress 5.1.
-      - '5.[1-9]'
-      - '[6-9].*'
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    tags:
+      - '3.[89]*'
+      - '[4-9].[0-9]*'
   pull_request:
+    branches:
+      - master
+      - trunk
+      - '3.[89]'
+      - '[4-9].[0-9]'
+    paths:
+      # Any change to a PHP or JavaScript file should run checks.
+      - '**.js'
+      - '**.php'
+      # These files configure NPM. Changes could affect the outcome.
+      - 'package*.json'
+      # These files configure Composer. Changes could affect the outcome.
+      - 'composer.*'
+      # This file configures JSHint. Changes could affect the outcome.
+      - '.jshintrc'
+      # This file configures PHPCS. Changes could affect the outcome.
+      - 'phpcs.xml.dist'
+      # Changes to workflow files should always verify all workflows are successful.
+      - '.github/workflows/*.yml'
+  workflow_dispatch:
+
+# Cancels all previous workflow runs for pull requests that have not completed.
+concurrency:
+  # The concurrency group contains the workflow name and the branch name for pull requests
+  # or the commit hash for any other events.
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.sha }}
+  cancel-in-progress: true
 
 jobs:
   # Runs PHP coding standards checks.
@@ -16,10 +48,10 @@ jobs:
   #
   # Performs the following steps:
   # - Checks out the repository.
-  # - Configures caching for Composer.
   # - Sets up PHP.
   # - Logs debug information.
-  # - Installs Composer dependencies (from cache if possible).
+  # - Installs Composer dependencies (use cache if possible).
+  # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
@@ -31,24 +63,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Get Composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Set up Composer caching
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-composer-dependencies
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@afefcaf556d98dc7896cca380e181decb609ca44 # v2.10.0
         with:
           php-version: '7.4'
           coverage: none
@@ -60,9 +78,12 @@ jobs:
           composer --version
 
       - name: Install Composer dependencies
-        run: |
-          composer install --prefer-dist --no-suggest --no-progress --no-ansi --no-interaction
-          echo "${PWD}/vendor/bin" >> $GITHUB_PATH
+        uses: ramsey/composer-install@92a7904348d4ad30236f3611e33b7f0c6f9edd70 # v1.1.0
+        with:
+          composer-options: "--no-progress --no-ansi --no-interaction"
+
+      - name: Make Composer packages available globally
+        run: echo "${PWD}/vendor/bin" >> $GITHUB_PATH
 
       - name: Log PHPCS debug information
         run: phpcs -i
@@ -75,10 +96,12 @@ jobs:
 
   # Runs the JavaScript coding standards checks.
   #
+  # JSHint violations are not currently reported inline with annotations.
+  #
   # Performs the following steps:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
-  # - Installs NodeJS 12 (todo: install the version of NPM specified in the `.nvmrc` file to support older branches)
+  # - Installs NodeJS 14.
   # - Sets up caching for NPM.
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
@@ -93,7 +116,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@5a4ac9002d0be2fb38bd78e4b4dbde5606d7042f # v2.3.4
 
       - name: Log debug information
         run: |
@@ -103,20 +126,18 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
         with:
           node-version: 14
 
       - name: Cache NodeJS modules
-        uses: actions/cache@v2
+        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
         env:
           cache-name: cache-node-modules
         with:
           # npm cache files are stored in `~/.npm` on Linux/macOS
           path: ~/.npm
           key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-npm-
 
       - name: Log debug information
         run: |
@@ -124,7 +145,7 @@ jobs:
           node --version
 
       - name: Install Dependencies
-        run: npx install-changed --install-command="npm ci"
+        run: npm ci
 
       - name: Run JSHint
         run: npm run grunt jshint
