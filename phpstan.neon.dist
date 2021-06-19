@@ -68,3 +68,5 @@ parameters:
     - '#Access to protected property WP_List_Table::#'
     # WP_Theme::__get() provides public access to private properties:
     - '#Access to private property WP_Theme::#'
+    # These are too noisy at the moment:
+    - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
