@@ -15,7 +15,7 @@
  *
  * @since 4.9.6
  */
-class Tests_Privacy_WpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacyDeleteOldExportFiles extends WP_UnitTestCase {
 	/**
 	 * Path to the index file that blocks directory listing on poorly-configured servers.
 	 *

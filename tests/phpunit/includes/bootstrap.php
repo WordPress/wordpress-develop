@@ -193,7 +193,7 @@ require_once ABSPATH . '/wp-settings.php';
 // Delete any default posts & related data.
 _delete_all_posts();
 
-if ( version_compare( tests_get_phpunit_version(), '7.0', '>=' ) ) {
+if ( version_compare( tests_get_phpunit_version(), '7.5', '>=' ) ) {
 	require __DIR__ . '/phpunit7/testcase.php';
 } else {
 	require __DIR__ . '/testcase.php';

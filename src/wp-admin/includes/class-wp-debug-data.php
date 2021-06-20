@@ -515,20 +515,27 @@ class WP_Debug_Data {
 		// Get ImageMagic information, if available.
 		if ( class_exists( 'Imagick' ) ) {
 			// Save the Imagick instance for later use.
-			$imagick         = new Imagick();
-			$imagick_version = $imagick->getVersion();
+			$imagick             = new Imagick();
+			$imagemagick_version = $imagick->getVersion();
 		} else {
-			$imagick_version = __( 'Not available' );
+			$imagemagick_version = __( 'Not available' );
 		}
 
 		$info['wp-media']['fields']['imagick_module_version'] = array(
 			'label' => __( 'ImageMagick version number' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionNumber'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionNumber'] : $imagemagick_version ),
 		);
 
 		$info['wp-media']['fields']['imagemagick_version'] = array(
 			'label' => __( 'ImageMagick version string' ),
-			'value' => ( is_array( $imagick_version ) ? $imagick_version['versionString'] : $imagick_version ),
+			'value' => ( is_array( $imagemagick_version ) ? $imagemagick_version['versionString'] : $imagemagick_version ),
+		);
+
+		$imagick_version = phpversion( 'imagick' );
+
+		$info['wp-media']['fields']['imagick_version'] = array(
+			'label' => __( 'Imagick version' ),
+			'value' => ( $imagick_version ) ? $imagick_version : __( 'Not available' ),
 		);
 
 		if ( ! function_exists( 'ini_get' ) ) {
@@ -597,6 +604,18 @@ class WP_Debug_Data {
 				'value' => $limits,
 				'debug' => $limits_debug,
 			);
+
+			try {
+				$formats = Imagick::queryFormats( '*' );
+			} catch ( Exception $e ) {
+				$formats = array();
+			}
+
+			$info['wp-media']['fields']['imagemagick_file_formats'] = array(
+				'label' => __( 'ImageMagick supported file formats' ),
+				'value' => ( empty( $formats ) ) ? __( 'Unable to determine' ) : implode( ', ', $formats ),
+				'debug' => ( empty( $formats ) ) ? 'Unable to determine' : implode( ', ', $formats ),
+			);
 		}
 
 		// Get GD information, if available.
@@ -611,6 +630,33 @@ class WP_Debug_Data {
 			'value' => ( is_array( $gd ) ? $gd['GD Version'] : $not_available ),
 			'debug' => ( is_array( $gd ) ? $gd['GD Version'] : 'not available' ),
 		);
+
+		$gd_image_formats     = array();
+		$gd_supported_formats = array(
+			'GIF Create' => 'GIF',
+			'JPEG'       => 'JPEG',
+			'PNG'        => 'PNG',
+			'WebP'       => 'WebP',
+			'BMP'        => 'BMP',
+			'AVIF'       => 'AVIF',
+			'HEIF'       => 'HEIF',
+			'TIFF'       => 'TIFF',
+			'XPM'        => 'XPM',
+		);
+
+		foreach ( $gd_supported_formats as $format_key => $format ) {
+			$index = $format_key . ' Support';
+			if ( isset( $gd[ $index ] ) && $gd[ $index ] ) {
+				array_push( $gd_image_formats, $format );
+			}
+		}
+
+		if ( ! empty( $gd_image_formats ) ) {
+			$info['wp-media']['fields']['gd_formats'] = array(
+				'label' => __( 'GD supported file formats' ),
+				'value' => implode( ', ', $gd_image_formats ),
+			);
+		}
 
 		// Get Ghostscript information, if available.
 		if ( function_exists( 'exec' ) ) {

@@ -52,14 +52,40 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	function test_make_intermediate_size_successful() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 75, true );
 
+		unlink( DIR_TESTDATA . '/images/a2-small-100x75.jpg' );
+
 		$this->assertInternalType( 'array', $image );
 		$this->assertSame( 100, $image['width'] );
 		$this->assertSame( 75, $image['height'] );
 		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
 		$this->assertFalse( isset( $image['path'] ) );
+	}
 
-		unlink( DIR_TESTDATA . '/images/a2-small-100x75.jpg' );
+	/**
+	 * @ticket 52867
+	 * @requires function imagejpeg
+	 */
+	function test_image_editor_output_format_filter() {
+		add_filter(
+			'image_editor_output_format',
+			function() {
+				return array( 'image/jpeg' => 'image/webp' );
+			}
+		);
+
+		$file   = DIR_TESTDATA . '/images/waffles.jpg';
+		$image  = image_make_intermediate_size( $file, 100, 75, true );
+		$editor = wp_get_image_editor( $file );
+
+		unlink( DIR_TESTDATA . '/images/' . $image['file'] );
+		remove_all_filters( 'image_editor_output_format' );
+
+		if ( is_wp_error( $editor ) || ! $editor->supports_mime_type( 'image/webp' ) ) {
+			$this->assertSame( 'image/jpeg', $image['mime-type'] );
+		} else {
+			$this->assertSame( 'image/webp', $image['mime-type'] );
+		}
 	}
 
 	/**

@@ -1155,7 +1155,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets( $post_ids, array_column( $data, 'id' ) );
+		$this->assertSameSets( $post_ids, array_column( $data, 'id' ) );
 	}
 
 	/**
@@ -1292,6 +1292,47 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertNotContains( $p1, $found_ids );
 		$this->assertContains( $p2, $found_ids );
+	}
+
+	/**
+	 * @ticket 41287
+	 */
+	public function test_get_items_with_all_categories() {
+		$taxonomy   = get_taxonomy( 'category' );
+		$categories = static::factory()->term->create_many( 2, array( 'taxonomy' => $taxonomy->name ) );
+
+		$p1 = static::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_category' => array( $categories[0] ),
+			)
+		);
+		$p2 = static::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_category' => array( $categories[1] ),
+			)
+		);
+		$p3 = static::factory()->post->create(
+			array(
+				'post_status'   => 'publish',
+				'post_category' => $categories,
+			)
+		);
+
+		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
+		$request->set_param(
+			$taxonomy->rest_base,
+			array(
+				'terms'    => $categories,
+				'operator' => 'AND',
+			)
+		);
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+
+		$this->assertCount( 1, $data );
+		$this->assertSame( $p3, $data[0]['id'] );
 	}
 
 	/**
