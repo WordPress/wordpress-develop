@@ -112,7 +112,7 @@ class WP_Meta_Query {
 	 *     @type array  ...$0 {
 	 *         Optional. An array of first-order clause parameters, or another fully-formed meta query.
 	 *
-	 *         @type string $key         Meta key to filter by.
+	 *         @type string|string[] $key Meta key or keys to filter by.
 	 *         @type string $compare_key MySQL operator used for comparing the $key. Accepts '=', '!='
 	 *                                   'LIKE', 'NOT LIKE', 'IN', 'NOT IN', 'REGEXP', 'NOT REGEXP', 'RLIKE',
 	 *                                   'EXISTS' (alias of '=') or 'NOT EXISTS' (alias of '!=').
@@ -120,7 +120,7 @@ class WP_Meta_Query {
 	 *         @type string $type_key    MySQL data type that the meta_key column will be CAST to for
 	 *                                   comparisons. Accepts 'BINARY' for case-sensitive regular expression
 	 *                                   comparisons. Default is ''.
-	 *         @type string $value       Meta value to filter by.
+	 *         @type string|string[] $value Meta value or values to filter by.
 	 *         @type string $compare     MySQL operator used for comparing the $value. Accepts '=',
 	 *                                   '!=', '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE',
 	 *                                   'IN', 'NOT IN', 'BETWEEN', 'NOT BETWEEN', 'REGEXP',

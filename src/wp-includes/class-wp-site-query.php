@@ -157,8 +157,8 @@ class WP_Site_Query {
 	 *                                                Default empty array.
 	 *     @type bool         $update_site_cache      Whether to prime the cache for found sites. Default true.
 	 *     @type bool         $update_site_meta_cache Whether to prime the metadata cache for found sites. Default true.
-	 *     @type string       $meta_key               Meta key to filter by.
-	 *     @type string       $meta_value             Meta value to filter by.
+	 *     @type string|string[] $meta_key            Meta key or keys to filter by.
+	 *     @type string|string[] $meta_value          Meta value or values to filter by.
 	 *     @type string       $meta_compare           MySQL operator used for comparing the meta value.
 	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
 	 *     @type string       $meta_compare_key       MySQL operator used for comparing the meta key.

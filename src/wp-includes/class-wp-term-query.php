@@ -177,8 +177,8 @@ class WP_Term_Query {
 	 *     @type string       $cache_domain           Unique cache key to be produced when this query is stored in
 	 *                                                an object cache. Default is 'core'.
 	 *     @type bool         $update_term_meta_cache Whether to prime meta caches for matched terms. Default true.
-	 *     @type string       $meta_key               Meta key to filter by.
-	 *     @type string       $meta_value             Meta value to filter by.
+	 *     @type string|string[] $meta_key            Meta key or keys to filter by.
+	 *     @type string|string[] $meta_value          Meta value or values to filter by.
 	 *     @type string       $meta_compare           MySQL operator used for comparing the meta value.
 	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
 	 *     @type string       $meta_compare_key       MySQL operator used for comparing the meta key.

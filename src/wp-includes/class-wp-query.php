@@ -664,8 +664,8 @@ class WP_Query {
 	 *                                                 Default false.
 	 *     @type int          $m                       Combination YearMonth. Accepts any four-digit year and month
 	 *                                                 numbers 1-12. Default empty.
-	 *     @type string       $meta_key                Meta key to filter by.
-	 *     @type string       $meta_value              Meta value to filter by.
+	 *     @type string|string[] $meta_key             Meta key or keys to filter by.
+	 *     @type string|string[] $meta_value           Meta value or values to filter by.
 	 *     @type string       $meta_compare            MySQL operator used for comparing the meta value.
 	 *                                                 See WP_Meta_Query::__construct for accepted values and default value.
 	 *     @type string       $meta_compare_key        MySQL operator used for comparing the meta key.
