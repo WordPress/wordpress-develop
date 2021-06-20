@@ -88,6 +88,8 @@ class WP_Term_Query {
 	 * @since 4.6.0 Introduced 'term_taxonomy_id' parameter.
 	 * @since 4.7.0 Introduced 'object_ids' parameter.
 	 * @since 4.9.0 Added 'slug__in' support for 'orderby'.
+	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
+	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of term query parameters. Default empty.
@@ -175,15 +177,18 @@ class WP_Term_Query {
 	 *     @type string       $cache_domain           Unique cache key to be produced when this query is stored in
 	 *                                                an object cache. Default is 'core'.
 	 *     @type bool         $update_term_meta_cache Whether to prime meta caches for matched terms. Default true.
-	 *     @type array        $meta_query             Optional. Meta query clauses to limit retrieved terms by.
-	 *                                                See `WP_Meta_Query`. Default empty.
-	 *     @type string       $meta_key               Limit terms to those matching a specific metadata key.
-	 *                                                Can be used in conjunction with `$meta_value`. Default empty.
-	 *     @type string       $meta_value             Limit terms to those matching a specific metadata value.
-	 *                                                Usually used in conjunction with `$meta_key`. Default empty.
-	 *     @type string       $meta_type              MySQL data type that the `$meta_value` will be CAST to for
-	 *                                                comparisons. Default empty.
-	 *     @type string       $meta_compare           Comparison operator to test the 'meta_value'. Default empty.
+	 *     @type string       $meta_key               Meta key to filter by.
+	 *     @type string       $meta_value             Meta value to filter by.
+	 *     @type string       $meta_compare           MySQL operator used for comparing the meta value.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_compare_key       MySQL operator used for comparing the meta key.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type              MySQL data type that the meta_value column will be CAST to for comparisons.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type_key          MySQL data type that the meta_key column will be CAST to for comparisons.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type array        $meta_query             An associative array of WP_Meta_Query arguments.
+	 *                                                See WP_Meta_Query::__construct for accepted values.
 	 * }
 	 */
 	public function __construct( $query = '' ) {

@@ -664,13 +664,18 @@ class WP_Query {
 	 *                                                 Default false.
 	 *     @type int          $m                       Combination YearMonth. Accepts any four-digit year and month
 	 *                                                 numbers 1-12. Default empty.
-	 *     @type string       $meta_compare            Comparison operator to test the 'meta_value'.
-	 *     @type string       $meta_compare_key        Comparison operator to test the 'meta_key'.
-	 *     @type string       $meta_key                Custom field key.
-	 *     @type array        $meta_query              An associative array of WP_Meta_Query arguments. See WP_Meta_Query.
-	 *     @type string       $meta_value              Custom field value.
-	 *     @type int          $meta_value_num          Custom field value number.
-	 *     @type string       $meta_type_key           Cast for 'meta_key'. See WP_Meta_Query::construct().
+	 *     @type string       $meta_key                Meta key to filter by.
+	 *     @type string       $meta_value              Meta value to filter by.
+	 *     @type string       $meta_compare            MySQL operator used for comparing the meta value.
+	 *                                                 See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_compare_key        MySQL operator used for comparing the meta key.
+	 *                                                 See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type               MySQL data type that the meta_value column will be CAST to for comparisons.
+	 *                                                 See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type_key           MySQL data type that the meta_key column will be CAST to for comparisons.
+	 *                                                 See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type array        $meta_query              An associative array of WP_Meta_Query arguments.
+	 *                                                 See WP_Meta_Query::__construct for accepted values.
 	 *     @type int          $menu_order              The menu order of the posts.
 	 *     @type int          $monthnum                The two-digit month. Default empty. Accepts numbers 1-12.
 	 *     @type string       $name                    Post slug.

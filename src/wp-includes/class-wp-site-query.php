@@ -109,7 +109,8 @@ class WP_Site_Query {
 	 * @since 4.6.0
 	 * @since 4.8.0 Introduced the 'lang_id', 'lang__in', and 'lang__not_in' parameters.
 	 * @since 5.1.0 Introduced the 'update_site_meta_cache', 'meta_query', 'meta_key',
-	 *              'meta_value', 'meta_type' and 'meta_compare' parameters.
+	 *              'meta_compare_key', 'meta_value', 'meta_type', and 'meta_compare' parameters.
+	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of site query parameters. Default empty.
@@ -156,15 +157,18 @@ class WP_Site_Query {
 	 *                                                Default empty array.
 	 *     @type bool         $update_site_cache      Whether to prime the cache for found sites. Default true.
 	 *     @type bool         $update_site_meta_cache Whether to prime the metadata cache for found sites. Default true.
-	 *     @type array        $meta_query             Meta query clauses to limit retrieved sites by. See `WP_Meta_Query`.
-	 *                                                Default empty.
-	 *     @type string       $meta_key               Limit sites to those matching a specific metadata key.
-	 *                                                Can be used in conjunction with `$meta_value`. Default empty.
-	 *     @type string       $meta_value             Limit sites to those matching a specific metadata value.
-	 *                                                Usually used in conjunction with `$meta_key`. Default empty.
-	 *     @type string       $meta_type              Data type that the `$meta_value` column will be CAST to for
-	 *                                                comparisons. Default empty.
-	 *     @type string       $meta_compare           Comparison operator to test the `$meta_value`. Default empty.
+	 *     @type string       $meta_key               Meta key to filter by.
+	 *     @type string       $meta_value             Meta value to filter by.
+	 *     @type string       $meta_compare           MySQL operator used for comparing the meta value.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_compare_key       MySQL operator used for comparing the meta key.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type              MySQL data type that the meta_value column will be CAST to for comparisons.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type_key          MySQL data type that the meta_key column will be CAST to for comparisons.
+	 *                                                See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type array        $meta_query             An associative array of WP_Meta_Query arguments.
+	 *                                                See WP_Meta_Query::__construct for accepted values.
 	 * }
 	 */
 	public function __construct( $query = '' ) {

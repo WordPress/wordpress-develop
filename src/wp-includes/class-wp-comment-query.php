@@ -141,6 +141,8 @@ class WP_Comment_Query {
 	 * @since 4.5.0 Introduced the `$author_url` argument.
 	 * @since 4.6.0 Introduced the `$cache_domain` argument.
 	 * @since 4.9.0 Introduced the `$paged` argument.
+	 * @since 5.1.0 Introduced the `$meta_compare_key` argument.
+	 * @since 5.3.0 Introduced the `$meta_type_key` argument.
 	 *
 	 * @param string|array $query {
 	 *     Optional. Array or query string of comment query parameters. Default empty.
@@ -163,12 +165,18 @@ class WP_Comment_Query {
 	 *                                                   `$status`. Default empty.
 	 *     @type int          $karma                     Karma score to retrieve matching comments for.
 	 *                                                   Default empty.
-	 *     @type string       $meta_key                  Include comments with a matching comment meta key.
-	 *                                                   Default empty.
-	 *     @type string       $meta_value                Include comments with a matching comment meta value.
-	 *                                                   Requires `$meta_key` to be set. Default empty.
-	 *     @type array        $meta_query                Meta query clauses to limit retrieved comments by.
-	 *                                                   See WP_Meta_Query. Default empty.
+	 *     @type string       $meta_key                  Meta key to filter by.
+	 *     @type string       $meta_value                Meta value to filter by.
+	 *     @type string       $meta_compare              MySQL operator used for comparing the meta value.
+	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_compare_key          MySQL operator used for comparing the meta key.
+	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type                 MySQL data type that the meta_value column will be CAST to for comparisons.
+	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type_key             MySQL data type that the meta_key column will be CAST to for comparisons.
+	 *                                                   See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type array        $meta_query                An associative array of WP_Meta_Query arguments.
+	 *                                                   See WP_Meta_Query::__construct for accepted values.
 	 *     @type int          $number                    Maximum number of comments to retrieve.
 	 *                                                   Default empty (no limit).
 	 *     @type int          $paged                     When used with $number, defines the page of results to return.

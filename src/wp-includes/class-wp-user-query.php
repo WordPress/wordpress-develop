@@ -133,6 +133,8 @@ class WP_User_Query {
 	 *              querying for all users with using -1.
 	 * @since 4.7.0 Added 'nicename', 'nicename__in', 'nicename__not_in', 'login', 'login__in',
 	 *              and 'login__not_in' parameters.
+	 * @since 5.1.0 Introduced the 'meta_compare_key' parameter.
+	 * @since 5.3.0 Introduced the 'meta_type_key' parameter.
 	 *
 	 * @global wpdb $wpdb WordPress database abstraction object.
 	 * @global int  $blog_id
@@ -148,12 +150,18 @@ class WP_User_Query {
 	 *                                             roles. Default empty array.
 	 *     @type string[]     $role__not_in        An array of role names to exclude. Users matching one or more of these
 	 *                                             roles will not be included in results. Default empty array.
-	 *     @type string       $meta_key            User meta key. Default empty.
-	 *     @type string       $meta_value          User meta value. Default empty.
-	 *     @type string       $meta_compare        Comparison operator to test the `$meta_value`. Accepts '=', '!=',
-	 *                                             '>', '>=', '<', '<=', 'LIKE', 'NOT LIKE', 'IN', 'NOT IN',
-	 *                                             'BETWEEN', 'NOT BETWEEN', 'EXISTS', 'NOT EXISTS', 'REGEXP',
-	 *                                             'NOT REGEXP', or 'RLIKE'. Default '='.
+	 *     @type string       $meta_key            Meta key to filter by.
+	 *     @type string       $meta_value          Meta value to filter by.
+	 *     @type string       $meta_compare        MySQL operator used for comparing the meta value.
+	 *                                             See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_compare_key    MySQL operator used for comparing the meta key.
+	 *                                             See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type           MySQL data type that the meta_value column will be CAST to for comparisons.
+	 *                                             See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type string       $meta_type_key       MySQL data type that the meta_key column will be CAST to for comparisons.
+	 *                                             See WP_Meta_Query::__construct for accepted values and default value.
+	 *     @type array        $meta_query          An associative array of WP_Meta_Query arguments.
+	 *                                             See WP_Meta_Query::__construct for accepted values.
 	 *     @type int[]        $include             An array of user IDs to include. Default empty array.
 	 *     @type int[]        $exclude             An array of user IDs to exclude. Default empty array.
 	 *     @type string       $search              Search keyword. Searches for possible string matches on columns.
