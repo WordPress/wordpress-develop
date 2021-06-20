@@ -330,7 +330,7 @@ abstract class WP_Image_Editor {
 		 *     An array of mime type mappings. Maps a source mime type to a new
 		 *     destination mime type. Default empty array.
 		 *
-		 *     @type string $0... The new mime type.
+		 *     @type string ...$0 The new mime type.
 		 * }
 		 * @param string $filename  Path to the image.
 		 * @param string $mime_type The source image mime type.
