@@ -1,4 +1,4 @@
-§<?php
+<?php
 /**
  * WP_REST_Block_Types_Controller tests.
  *
