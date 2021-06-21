@@ -647,7 +647,6 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 	 * @param bool   $expected The expected `is_block_editor` value.
 	 *
 	 * @covers ::set_current_screen
-	 * @covers ::get_current_screen
 	 */
 	public function test_is_block_editor( $hook, $filter, $expected ) {
 		if ( ! empty( $filter['name'] ) && ! empty( $filter['function'] ) ) {
