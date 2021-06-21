@@ -484,7 +484,7 @@ function wp_network_dashboard_right_now() {
 		do_action( 'wpmuadminresult' );
 	?>
 
-	<form action="<?php echo network_admin_url( 'users.php' ); ?>" method="get">
+	<form action="<?php echo esc_url( network_admin_url( 'users.php' ) ); ?>" method="get">
 		<p>
 			<label class="screen-reader-text" for="search-users"><?php _e( 'Search Users' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-users" />
@@ -492,7 +492,7 @@ function wp_network_dashboard_right_now() {
 		</p>
 	</form>
 
-	<form action="<?php echo network_admin_url( 'sites.php' ); ?>" method="get">
+	<form action="<?php echo esc_url( network_admin_url( 'sites.php' ) ); ?>" method="get">
 		<p>
 			<label class="screen-reader-text" for="search-sites"><?php _e( 'Search Sites' ); ?></label>
 			<input type="search" name="s" value="" size="30" autocomplete="off" id="search-sites" />
@@ -1996,7 +1996,7 @@ function wp_welcome_panel() {
 			<h3><?php _e( 'Get Started' ); ?></h3>
 			<a class="button button-primary button-hero load-customize hide-if-no-customize" href="<?php echo wp_customize_url(); ?>"><?php _e( 'Customize Your Site' ); ?></a>
 		<?php endif; ?>
-		<a class="button button-primary button-hero hide-if-customize" href="<?php echo admin_url( 'themes.php' ); ?>"><?php _e( 'Customize Your Site' ); ?></a>
+		<a class="button button-primary button-hero hide-if-customize" href="<?php echo esc_url( admin_url( 'themes.php' ) ); ?>"><?php _e( 'Customize Your Site' ); ?></a>
 		<?php if ( current_user_can( 'install_themes' ) || ( current_user_can( 'switch_themes' ) && count( wp_get_themes( array( 'allowed' => true ) ) ) > 1 ) ) : ?>
 			<?php $themes_link = current_user_can( 'customize' ) ? add_query_arg( 'autofocus[panel]', 'themes', admin_url( 'customize.php' ) ) : admin_url( 'themes.php' ); ?>
 			<p class="hide-if-no-customize">

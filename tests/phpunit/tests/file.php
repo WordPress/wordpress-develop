@@ -44,20 +44,42 @@ class Tests_File extends WP_UnitTestCase {
 	}
 
 	/**
+	 * @ticket 19854
 	 * @group plugins
 	 * @group themes
 	 */
-	function test_get_file_data_cr_line_endings() {
-		$headers  = array(
+	function test_get_file_data_with_cr_line_endings() {
+		$headers = array(
 			'SomeHeader'  => 'Some Header',
 			'Description' => 'Description',
 			'Author'      => 'Author',
 		);
-		$actual   = get_file_data( DIR_TESTDATA . '/formatting/cr-line-endings-file-header.php', $headers );
+
+		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-cr-line-endings.php', $headers );
 		$expected = array(
 			'SomeHeader'  => 'Some header value!',
 			'Description' => 'This file is using CR line endings for a testcase.',
 			'Author'      => 'A Very Old Mac',
+		);
+
+		foreach ( $actual as $header => $value ) {
+			$this->assertSame( $expected[ $header ], $value, $header );
+		}
+	}
+
+	/**
+	 * @ticket 47186
+	 * @group plugins
+	 * @group themes
+	 */
+	function test_get_file_data_with_php_open_tag_prefix() {
+		$headers = array(
+			'TemplateName' => 'Template Name',
+		);
+
+		$actual   = get_file_data( DIR_TESTDATA . '/formatting/file-header-php-open-tag-prefix.php', $headers );
+		$expected = array(
+			'TemplateName' => 'Something',
 		);
 
 		foreach ( $actual as $header => $value ) {
