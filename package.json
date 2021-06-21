@@ -77,6 +77,7 @@
 		"webpack-livereload-plugin": "2.3.0"
 	},
 	"dependencies": {
+		"@babel/polyfill": "7.12.1",
 		"@wordpress/a11y": "3.1.1",
 		"@wordpress/annotations": "2.1.2",
 		"@wordpress/api-fetch": "5.1.1",
@@ -147,6 +148,7 @@
 		"polyfill-library": "3.105.0",
 		"react": "16.13.1",
 		"react-dom": "16.13.1",
+		"regenerator-runtime": "0.13.7",
 		"twemoji": "13.1.0",
 		"underscore": "1.13.1",
 		"whatwg-fetch": "3.0.0"
