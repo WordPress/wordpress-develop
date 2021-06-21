@@ -322,6 +322,10 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 
 	/**
 	 * @covers WP_Screen::add_help_tab
+	 * @covers WP_Screen:: get_help_tab
+	 * @covers WP_Screen:: get_help_tabs
+	 * @covers WP_Screen::remove_help_tab
+	 * @covers WP_Screen::remove_help_tabs
 	 */
 	function test_help_tabs() {
 		$tab      = __FUNCTION__;
