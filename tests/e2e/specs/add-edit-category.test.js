@@ -163,7 +163,7 @@ describe( 'Core Categories', () => {
 		// Check that the new category is added and shows correctly
 		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
 		
-		// Focus on the new category link and move to the delete link
+		// Focus on the new category link and move to the quick edit link
 		newCategoryLink.focus();
 		await page.keyboard.press( 'Tab' );
 		await page.keyboard.press( 'Tab' );
@@ -193,7 +193,7 @@ describe( 'Core Categories', () => {
 		// Check that the new category is added and shows correctly
 		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
 		
-		// Focus on the new category link and move to the delete link
+		// Focus on the new category link and move to the edit link
 		newCategoryLink.focus();
 		await page.keyboard.press( 'Tab' );
 
