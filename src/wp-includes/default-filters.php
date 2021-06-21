@@ -216,6 +216,7 @@ add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop()
 
 add_filter( 'widget_block_content', 'do_blocks', 9 );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
+add_filter( 'widget_block_content', 'wp_filter_content_tags' );
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
 
