@@ -105,4 +105,44 @@ describe( 'Core Users', () => {
 			await notFoundUserRow.evaluate( ( element ) => element.innerText )
 		).toContain( 'No users found.' );
 	} );
+
+	it( 'Correctly edit a user first and last names', async () => {
+		const [ newUserLink ] = await page.$x(
+			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
+		);
+
+		// Focus on the new user link and move to the edit link
+		newUserLink.focus();
+		await page.keyboard.press( 'Tab' );
+
+		// Click on the edit link
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the user first name input to appears
+		await page.waitForSelector( 'input#first_name' );
+		
+		// Focus on the user first name input field
+		await page.focus( 'input#first_name' );
+
+		// Edit the user first and last names
+		await page.keyboard.type( 'Test' );
+		await page.keyboard.press( 'Tab' );
+		await page.keyboard.type( 'User' );
+
+		// Focus on the submit button and save the changes
+		await page.focus( 'input#submit' );
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the success notice message to show
+		await page.waitForSelector( '#message' );
+
+		// Go back to the users list page
+		await visitAdminPage( 'users.php' );
+
+		// Check that the new user complete name is "Test User"
+		const editedUserFullName = await page.$x(
+			`//td[contains( @class, "column-name" )][contains( text(), "Test User" )]`
+		);
+		expect( editedUserFullName.length ).toBe( 1 );
+	} );
 } );
