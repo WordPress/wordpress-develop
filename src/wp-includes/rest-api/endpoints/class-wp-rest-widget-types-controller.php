@@ -213,6 +213,14 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			$widget['id']       = $parsed_id['id_base'];
 			$widget['is_multi'] = (bool) $widget_object;
 
+			if ( isset( $widget['name'] ) ) {
+				$widget['name'] = html_entity_decode( $widget['name'], ENT_QUOTES, get_bloginfo( 'charset' ) );
+			}
+
+			if ( isset( $widget['description'] ) ) {
+				$widget['description'] = html_entity_decode( $widget['description'], ENT_QUOTES, get_bloginfo( 'charset' ) );
+			}
+
 			unset( $widget['callback'] );
 
 			$classname = '';
