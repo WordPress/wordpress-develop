@@ -20,6 +20,8 @@ async function deleteNonDefaultUsers() {
 
 		await page.waitForSelector( 'input#submit' );
 		await page.click( 'input#submit' );
+
+		await page.waitForNavigation();
 	}
 }
 
