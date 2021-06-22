@@ -584,8 +584,6 @@ h6:lang(vi), figcaption:lang(vi),
 body .wp-block[data-align="full"],
 body .wp-block.alignfull {
   max-width: calc(100% + 16px);
-  padding-left: 8px;
-  padding-right: 8px;
   width: calc(100% + 16px);
 }
 
