@@ -304,7 +304,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'callback' => false,
 		);
 
-		set_current_screen( 'front' );
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 		$screen->add_help_tab( $tab_args );
 		$this->assertSame(
@@ -366,7 +366,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			// Don't include a priority.
 		);
 
-		set_current_screen( 'front' );
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		// Add help tabs.
@@ -435,7 +435,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 			'option'  => $option,
 		);
 
-		set_current_screen( 'front' );
+		set_current_screen( 'edit.php' );
 		$screen = get_current_screen();
 
 		$screen->add_option( $option, $option_args );
