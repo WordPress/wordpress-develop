@@ -61,4 +61,55 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 
 		$this->assertSame( $string, wp_date( 'F', $datetime->getTimestamp(), $utc ) );
 	}
+
+	/**
+	 * Test if no timestamp provides
+	 *
+	 * @ticket 53485
+	 */
+	public function test_no_timestamp() {
+
+		$this->assertSame( (string) strtotime( 'now' ), wp_date( 'U' ) );
+	}
+
+	/**
+	 * Test if format is set to F weekday_abbrev
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_F() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'Thu', wp_date( 'D', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to M month_abbrev
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_M() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'Oct', wp_date( 'M', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to M month_abbrev
+	 *
+	 * @ticket 53485
+	 */
+	public function test_wp_date_filter() {
+		add_filter( 'wp_date', array( $this, '_test_wp_date_filter' ), 99 );
+
+		$this->assertSame( 'filtered', wp_date( '') );
+
+		remove_filter('wp_date', array( $this, '_test_wp_date_filter' ), 99 );
+	}
+
+	public function _test_wp_date_filter(){
+		return 'filtered';
+	}
 }
