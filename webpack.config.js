@@ -1,4 +1,5 @@
 const mediaConfig = require( './tools/webpack/media' );
+const blocksConfig = require( './tools/webpack/blocks' );
 const packagesConfig = require( './tools/webpack/packages' );
 
 module.exports = function( env = { environment: "production", watch: false, buildTarget: false } ) {
@@ -13,6 +14,7 @@ module.exports = function( env = { environment: "production", watch: false, buil
 	const config = [
 		mediaConfig( env ),
 		packagesConfig( env ),
+		blocksConfig( env ),
 	];
 
 	return config;
