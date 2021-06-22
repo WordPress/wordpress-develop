@@ -3300,6 +3300,19 @@ function get_allowed_mime_types( $user = null ) {
 		unset( $t['htm|html'], $t['js'] );
 	}
 
+	// Add WebP if the server supports it.
+	unset( $t['webp'] );
+	if ( 'WP_Image_Editor_Imagick' === _wp_image_editor_choose() ) {
+		if ( WP_Image_Editor_Imagick::supports_mime_type( 'image/webp' ) ) {
+			$t['webp'] = 'image/webp';
+		}
+	} else {
+		// GD is the image editor.
+		if ( WP_Image_Editor_GD::supports_mime_type( 'image/webp' ) ) {
+			$t['webp'] = 'image/webp';
+		}
+	}
+
 	/**
 	 * Filters list of allowed mime types and file extensions.
 	 *
