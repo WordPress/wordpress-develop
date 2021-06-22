@@ -1931,7 +1931,4 @@ class Tests_Functions extends WP_UnitTestCase {
 			array( 'application/activity+json, application/nojson', true ),
 		);
 	}
-
-
-
 }
