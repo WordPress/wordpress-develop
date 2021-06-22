@@ -1782,7 +1782,7 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_stick_post_with_duplicate_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		stick_post( 2 );
-		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 
 	/**
@@ -1794,6 +1794,6 @@ class Tests_Post extends WP_UnitTestCase {
 	function test_unstick_post_with_non_sticky_post_id_does_not_update_option() {
 		update_option( 'sticky_posts', array( 1, 2, 2 ) );
 		unstick_post( 3 );
-		$this->assertEquals( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
+		$this->assertSameSets( array( 1, 2, 2 ), get_option( 'sticky_posts' ) );
 	}
 }

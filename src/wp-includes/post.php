@@ -177,8 +177,6 @@ function create_initial_post_types() {
 			'labels'           => array(
 				'name'               => _x( 'Changesets', 'post type general name' ),
 				'singular_name'      => _x( 'Changeset', 'post type singular name' ),
-				'menu_name'          => _x( 'Changesets', 'admin menu' ),
-				'name_admin_bar'     => _x( 'Changeset', 'add new on admin bar' ),
 				'add_new'            => _x( 'Add New', 'Customize Changeset' ),
 				'add_new_item'       => __( 'Add New Changeset' ),
 				'new_item'           => __( 'New Changeset' ),
@@ -259,27 +257,25 @@ function create_initial_post_types() {
 		'wp_block',
 		array(
 			'labels'                => array(
-				'name'                     => _x( 'Reusable Blocks', 'post type general name' ),
-				'singular_name'            => _x( 'Reusable Block', 'post type singular name' ),
-				'menu_name'                => _x( 'Reusable Blocks', 'admin menu' ),
-				'name_admin_bar'           => _x( 'Reusable Block', 'add new on admin bar' ),
-				'add_new'                  => _x( 'Add New', 'Reusable Block' ),
-				'add_new_item'             => __( 'Add New Reusable Block' ),
-				'new_item'                 => __( 'New Reusable Block' ),
-				'edit_item'                => __( 'Edit Reusable Block' ),
-				'view_item'                => __( 'View Reusable Block' ),
-				'all_items'                => __( 'All Reusable Blocks' ),
-				'search_items'             => __( 'Search Reusable Blocks' ),
+				'name'                     => _x( 'Reusable blocks', 'post type general name' ),
+				'singular_name'            => _x( 'Reusable block', 'post type singular name' ),
+				'add_new'                  => _x( 'Add New', 'Reusable block' ),
+				'add_new_item'             => __( 'Add new Reusable block' ),
+				'new_item'                 => __( 'New Reusable block' ),
+				'edit_item'                => __( 'Edit Reusable block' ),
+				'view_item'                => __( 'View Reusable block' ),
+				'all_items'                => __( 'All Reusable blocks' ),
+				'search_items'             => __( 'Search Reusable blocks' ),
 				'not_found'                => __( 'No reusable blocks found.' ),
 				'not_found_in_trash'       => __( 'No reusable blocks found in Trash.' ),
 				'filter_items_list'        => __( 'Filter reusable blocks list' ),
-				'items_list_navigation'    => __( 'Reusable Blocks list navigation' ),
-				'items_list'               => __( 'Reusable Blocks list' ),
-				'item_published'           => __( 'Reusable Block published.' ),
-				'item_published_privately' => __( 'Reusable Block published privately.' ),
-				'item_reverted_to_draft'   => __( 'Reusable Block reverted to draft.' ),
-				'item_scheduled'           => __( 'Reusable Block scheduled.' ),
-				'item_updated'             => __( 'Reusable Block updated.' ),
+				'items_list_navigation'    => __( 'Reusable blocks list navigation' ),
+				'items_list'               => __( 'Reusable blocks list' ),
+				'item_published'           => __( 'Reusable block published.' ),
+				'item_published_privately' => __( 'Reusable block published privately.' ),
+				'item_reverted_to_draft'   => __( 'Reusable block reverted to draft.' ),
+				'item_scheduled'           => __( 'Reusable block scheduled.' ),
+				'item_updated'             => __( 'Reusable block updated.' ),
 			),
 			'public'                => false,
 			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
@@ -305,6 +301,66 @@ function create_initial_post_types() {
 			'supports'              => array(
 				'title',
 				'editor',
+				'revisions',
+			),
+		)
+	);
+
+	register_post_type(
+		'wp_template',
+		array(
+			'labels'                => array(
+				'name'                  => __( 'Templates' ),
+				'singular_name'         => __( 'Template' ),
+				'add_new'               => _x( 'Add New', 'Template' ),
+				'add_new_item'          => __( 'Add New Template' ),
+				'new_item'              => __( 'New Template' ),
+				'edit_item'             => __( 'Edit Template' ),
+				'view_item'             => __( 'View Template' ),
+				'all_items'             => __( 'All Templates' ),
+				'search_items'          => __( 'Search Templates' ),
+				'parent_item_colon'     => __( 'Parent Template:' ),
+				'not_found'             => __( 'No templates found.' ),
+				'not_found_in_trash'    => __( 'No templates found in Trash.' ),
+				'archives'              => __( 'Template archives' ),
+				'insert_into_item'      => __( 'Insert into template' ),
+				'uploaded_to_this_item' => __( 'Uploaded to this template' ),
+				'filter_items_list'     => __( 'Filter templates list' ),
+				'items_list_navigation' => __( 'Templates list navigation' ),
+				'items_list'            => __( 'Templates list' ),
+			),
+			'description'           => __( 'Templates to include in your theme.' ),
+			'public'                => false,
+			'_builtin'              => true, /* internal use only. don't use this when registering your own post type. */
+			'has_archive'           => false,
+			'show_ui'               => false,
+			'show_in_menu'          => false,
+			'show_in_rest'          => true,
+			'rewrite'               => false,
+			'rest_base'             => 'templates',
+			'rest_controller_class' => 'WP_REST_Templates_Controller',
+			'capability_type'       => array( 'template', 'templates' ),
+			'capabilities'          => array(
+				'create_posts'           => 'edit_theme_options',
+				'delete_posts'           => 'edit_theme_options',
+				'delete_others_posts'    => 'edit_theme_options',
+				'delete_private_posts'   => 'edit_theme_options',
+				'delete_published_posts' => 'edit_theme_options',
+				'edit_posts'             => 'edit_theme_options',
+				'edit_others_posts'      => 'edit_theme_options',
+				'edit_private_posts'     => 'edit_theme_options',
+				'edit_published_posts'   => 'edit_theme_options',
+				'publish_posts'          => 'edit_theme_options',
+				'read'                   => 'edit_theme_options',
+				'read_private_posts'     => 'edit_theme_options',
+			),
+			'map_meta_cap'          => true,
+			'supports'              => array(
+				'title',
+				'slug',
+				'excerpt',
+				'editor',
+				'revisions',
 			),
 		)
 	);
@@ -2236,10 +2292,12 @@ function delete_post_meta( $post_id, $meta_key, $meta_value = '' ) {
  * @param string $key     Optional. The meta key to retrieve. By default,
  *                        returns data for all keys. Default empty.
  * @param bool   $single  Optional. Whether to return a single value.
- *                        This parameter has no effect if $key is not specified.
+ *                        This parameter has no effect if `$key` is not specified.
  *                        Default false.
- * @return mixed An array if $single is false. The value of the meta field
- *               if $single is true. False for an invalid $post_id.
+ * @return mixed An array of values if `$single` is false.
+ *               The value of the meta field if `$single` is true.
+ *               False for an invalid `$post_id` (non-numeric, zero, or negative value).
+ *               An empty string if a valid but non-existing post ID is passed.
  */
 function get_post_meta( $post_id, $key = '', $single = false ) {
 	return get_metadata( 'post', $post_id, $key, $single );
@@ -2628,6 +2686,11 @@ function sanitize_post_field( $field, $value, $post_id, $context = 'display' ) {
 		} elseif ( 'js' === $context ) {
 			$value = esc_js( $value );
 		}
+	}
+
+	// Restore the type for integer fields after esc_attr().
+	if ( in_array( $field, $int_fields, true ) ) {
+		$value = (int) $value;
 	}
 
 	return $value;
@@ -3756,6 +3819,8 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type int    $menu_order            The order the post should be displayed in. Default 0.
  *     @type string $post_mime_type        The mime type of the post. Default empty.
  *     @type string $guid                  Global Unique ID for referencing the post. Default empty.
+ *     @type int    $import_id             The post ID to be used when inserting a new post.
+ *                                         If specified, must not match any existing post ID. Default 0.
  *     @type int[]  $post_category         Array of category IDs.
  *                                         Defaults to value of the 'default_category' option.
  *     @type array  $tags_input            Array of tag names, slugs, or IDs. Default empty.
@@ -5719,10 +5784,13 @@ function get_pages( $args = array() ) {
 	$cache_key = "get_pages:$key:$last_changed";
 	$cache     = wp_cache_get( $cache_key, 'posts' );
 	if ( false !== $cache ) {
+		_prime_post_caches( $cache, false, false );
+
 		// Convert to WP_Post instances.
 		$pages = array_map( 'get_post', $cache );
 		/** This filter is documented in wp-includes/post.php */
 		$pages = apply_filters( 'get_pages', $pages, $parsed_args );
+
 		return $pages;
 	}
 
@@ -5883,6 +5951,7 @@ function get_pages( $args = array() ) {
 
 		/** This filter is documented in wp-includes/post.php */
 		$pages = apply_filters( 'get_pages', array(), $parsed_args );
+
 		return $pages;
 	}
 
@@ -6535,7 +6604,7 @@ function wp_attachment_is( $type, $post = null ) {
 
 	switch ( $type ) {
 		case 'image':
-			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png' );
+			$image_exts = array( 'jpg', 'jpeg', 'jpe', 'gif', 'png', 'webp' );
 			return in_array( $ext, $image_exts, true );
 
 		case 'audio':
@@ -7540,7 +7609,7 @@ function _update_term_count_on_transition_post_status( $new_status, $old_status,
 }
 
 /**
- * Adds any posts from the given IDs to the cache that do not already exist in cache
+ * Adds any posts from the given IDs to the cache that do not already exist in cache.
  *
  * @since 3.4.0
  * @access private

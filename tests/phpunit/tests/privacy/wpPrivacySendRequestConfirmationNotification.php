@@ -2,19 +2,21 @@
 /**
  * Test cases for the `_wp_privacy_send_request_confirmation_notification()` function.
  *
+ * @package WordPress
+ * @subpackage UnitTests
  * @since 4.9.8
  */
 
 /**
- * Tests_User_WpPrivacySendRequestConfirmationNotification class.
- *
- * @since 4.9.8
+ * Tests_Privacy_wpPrivacySendRequestConfirmationNotification class.
  *
  * @group privacy
  * @group user
  * @covers ::_wp_privacy_send_request_confirmation_notification
+ *
+ * @since 4.9.8
  */
-class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
+class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**
 	 * Reset the mocked PHPMailer instance before each test method.
 	 *
@@ -176,9 +178,9 @@ class Tests_User_WpPrivacySendRequestConfirmationNotification extends WP_UnitTes
 
 		_wp_privacy_account_request_confirmed( $request_id );
 
-		add_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10, 2 );
+		add_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10, 2 );
 		_wp_privacy_send_request_confirmation_notification( $request_id );
-		remove_filter( 'user_confirmed_action_email_content', array( $this, 'modify_email_content' ), 10 );
+		remove_filter( 'user_request_confirmed_email_content', array( $this, 'modify_email_content' ), 10 );
 
 		$mailer = tests_retrieve_phpmailer_instance();
 		$this->assertContains( 'Custom content containing email address:' . $email, $mailer->get_sent()->body );

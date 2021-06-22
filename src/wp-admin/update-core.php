@@ -421,6 +421,14 @@ function core_auto_updates_settings() {
 	 * Fires after the major core auto-update settings.
 	 *
 	 * @since 5.6.0
+	 *
+	 * @param array $auto_update_settings {
+	 *     Array of core auto-update settings.
+	 *
+	 *     @type bool $dev   Whether to enable automatic updates for development versions.
+	 *     @type bool $minor Whether to enable minor automatic core updates.
+	 *     @type bool $major Whether to enable major automatic core updates.
+	 * }
 	 */
 	do_action( 'after_core_auto_updates_settings', $auto_update_settings );
 }
@@ -449,8 +457,18 @@ function list_plugin_updates() {
 	} else {
 		$core_update_version = $core_updates[0]->current;
 	}
+
+	$plugins_count = count( $plugins );
 	?>
-<h2><?php _e( 'Plugins' ); ?></h2>
+<h2>
+	<?php
+	printf(
+		'%s <span class="count">(%d)</span>',
+		__( 'Plugins' ),
+		number_format_i18n( $plugins_count )
+	);
+	?>
+</h2>
 <p><?php _e( 'The following plugins have new versions available. Check the ones you want to update and then click &#8220;Update Plugins&#8221;.' ); ?></p>
 <form method="post" action="<?php echo esc_url( $form_action ); ?>" name="upgrade-plugins" class="upgrade">
 	<?php wp_nonce_field( 'upgrade-core' ); ?>
@@ -602,8 +620,18 @@ function list_theme_updates() {
 	}
 
 	$form_action = 'update-core.php?action=do-theme-upgrade';
+
+	$themes_count = count( $themes );
 	?>
-<h2><?php _e( 'Themes' ); ?></h2>
+<h2>
+	<?php
+	printf(
+		'%s <span class="count">(%d)</span>',
+		__( 'Themes' ),
+		number_format_i18n( $themes_count )
+	);
+	?>
+</h2>
 <p><?php _e( 'The following themes have new versions available. Check the ones you want to update and then click &#8220;Update Themes&#8221;.' ); ?></p>
 <p>
 	<?php

@@ -1286,6 +1286,54 @@ class WP_Test_REST_Term_Meta_Fields extends WP_Test_REST_TestCase {
 	}
 
 	/**
+	 * @ticket 53099
+	 */
+	public function test_get_term_metadata_returning_false_does_not_cause_php_warnings() {
+		add_filter( 'get_term_metadata', '__return_false', 11 );
+
+		// No PHP warning during GET request.
+		add_term_meta( self::$category_id, 'test_single', 'testvalue' );
+		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$response = rest_get_server()->dispatch( $request );
+
+		// No PHP warning during POST request.
+		$this->grant_write_permission();
+		$data    = array(
+			'meta' => array(
+				'test_multi' => array( 'val1' ),
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$request->set_body_params( $data );
+		$response = rest_get_server()->dispatch( $request );
+
+		// No PHP warning during validation.
+		register_meta(
+			'term',
+			'my_meta_key',
+			array(
+				'show_in_rest' => true,
+				'single'       => true,
+				'type'         => 'integer',
+			)
+		);
+		$this->grant_write_permission();
+		$data    = array(
+			'meta' => array(
+				'my_meta_key' => '1', // Set to a string.
+			),
+		);
+		$request = new WP_REST_Request( 'POST', sprintf( '/wp/v2/categories/%d', self::$category_id ) );
+		$request->set_body_params( $data );
+		$response = rest_get_server()->dispatch( $request );
+
+		remove_filter( 'get_term_metadata', '__return_false', 11 );
+
+		$data = $response->get_data();
+		$this->assertSame( 0, $data['meta']['my_meta_key'] );
+	}
+
+	/**
 	 * Internal function used to disable an insert query which
 	 * will trigger a wpdb error for testing purposes.
 	 */

@@ -63,7 +63,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	buildTarget = buildTarget  + '/wp-includes';
 
 	const WORDPRESS_NAMESPACE = '@wordpress/';
-	const BUNDLED_PACKAGES = [ '@wordpress/icons' ];
+	const BUNDLED_PACKAGES = [ '@wordpress/icons', '@wordpress/interface' ];
 	const packages = Object.keys( dependencies )
 		.filter( ( packageName ) =>
  			! BUNDLED_PACKAGES.includes( packageName ) &&
@@ -73,12 +73,12 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const vendors = {
 		'lodash.js': 'lodash/lodash.js',
-		'wp-polyfill.js': '@babel/polyfill/dist/polyfill.js',
+		'wp-polyfill.js': '@wordpress/babel-preset-default/build/polyfill.js',
 		'wp-polyfill-fetch.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
+		'wp-polyfill-node-contains.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
 		'wp-polyfill-url.js': 'core-js-url-browser/url.js',
-		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-dom-rect.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 		'wp-polyfill-formdata.js': 'formdata-polyfill/FormData.js',
 		'wp-polyfill-object-fit.js': 'objectFitPolyfill/src/objectFitPolyfill.js',
 		'moment.js': 'moment/moment.js',
@@ -88,7 +88,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 
 	const minifiedVendors = {
 		'lodash.min.js': 'lodash/lodash.min.js',
-		'wp-polyfill.min.js': '@babel/polyfill/dist/polyfill.min.js',
+		'wp-polyfill.min.js': '@wordpress/babel-preset-default/build/polyfill.min.js',
 		'wp-polyfill-formdata.min.js': 'formdata-polyfill/formdata.min.js',
 		'wp-polyfill-url.min.js': 'core-js-url-browser/url.min.js',
 		'wp-polyfill-object-fit.min.js': 'objectFitPolyfill/dist/objectFitPolyfill.min.js',
@@ -100,8 +100,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	const minifyVendors = {
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
-		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/Node/prototype/contains/polyfill.js',
-		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/DOMRect/polyfill.js',
+		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',
+		'wp-polyfill-dom-rect.min.js': 'polyfill-library/polyfills/__dist/DOMRect/raw.js',
 	};
 
 	const dynamicBlockFolders = [
@@ -109,11 +109,30 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'block',
 		'calendar',
 		'categories',
+		'file',
 		'latest-comments',
 		'latest-posts',
+		'loginout',
+		'page-list',
+		'post-content',
+		'post-date',
+		'post-excerpt',
+		'post-featured-image',
+		'post-terms',
+		'post-title',
+		'post-template',
+		'query',
+		'query-pagination',
+		'query-pagination-next',
+		'query-pagination-numbers',
+		'query-pagination-previous',
+		'query-title',
 		'rss',
 		'search',
 		'shortcode',
+		'site-logo',
+		'site-tagline',
+		'site-title',
 		'social-link',
 		'tag-cloud',
 	];
@@ -124,8 +143,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'code',
 		'column',
 		'columns',
+		'cover',
 		'embed',
-		'file',
 		'freeform',
 		'gallery',
 		'group',
@@ -144,7 +163,6 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'separator',
 		'social-links',
 		'spacer',
-		'subhead',
 		'table',
 		'text-columns',
 		'verse',
@@ -153,12 +171,14 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	];
 	const phpFiles = {
 		'block-serialization-default-parser/parser.php': 'wp-includes/class-wp-block-parser.php',
+		'widgets/src/blocks/legacy-widget/index.php': 'wp-includes/blocks/legacy-widget.php',
 		...dynamicBlockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/index.php` ] = `wp-includes/blocks/${ blockName }.php`;
 			return files;
 		} , {} ),
 	};
 	const blockMetadataFiles = {
+		'widgets/src/blocks/legacy-widget/block.json': 'wp-includes/blocks/legacy-widget/block.json',
 		...blockFolders.reduce( ( files, blockName ) => {
 			files[ `block-library/src/${ blockName }/block.json` ] = `wp-includes/blocks/${ blockName }/block.json`;
 			return files;
@@ -214,6 +234,32 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		to: join( baseDir, `src/${ blockMetadataFiles[ filename ] }` ),
 	} ) );
 
+	const blockStylesheetCopies = blockFolders.map( ( blockName ) => ( {
+		from: join( baseDir, `node_modules/@wordpress/block-library/build-style/${ blockName }/*.css` ),
+		to: join( baseDir, `${ buildTarget }/blocks/${ blockName }/` ),
+		flatten: true,
+		transform: ( content ) => {
+			if ( mode === 'production' ) {
+				return postcss( [
+					require( 'cssnano' )( {
+						preset: 'default',
+					} ),
+				] )
+					.process( content, { from: 'src/app.css', to: 'dest/app.css' } )
+					.then( ( result ) => result.css );
+			}
+
+			return content;
+		},
+		transformPath: ( targetPath, sourcePath ) => {
+			if ( mode === 'production' ) {
+				return targetPath.replace( /\.css$/, '.min.css' );
+			}
+
+			return targetPath;
+		}
+	} ) );
+
 	const config = {
 		mode,
 
@@ -248,6 +294,9 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					enforce: 'pre',
 				},
 			],
+		},
+		optimization: {
+			moduleIds: mode === 'production' ? 'hashed' : 'named',
 		},
 		plugins: [
 			new DefinePlugin( {
@@ -302,6 +351,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 					...cssCopies,
 					...phpCopies,
 					...blockMetadataCopies,
+					...blockStylesheetCopies,
 				],
 			),
 		],
@@ -320,7 +370,8 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		delete config.devtool;
 		config.mode = 'production';
 		config.optimization = {
-			minimize: false
+			minimize: false,
+			moduleIds: 'hashed',
 		};
 	}
 

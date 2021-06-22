@@ -1296,7 +1296,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		remove_action( 'pre_get_users', array( $this, 'filter_pre_get_users_args' ) );
 
 		foreach ( $query_vars as $query_var ) {
-			$this->assertTrue( array_key_exists( $query_var, $q->query_vars ), "$query_var does not exist." );
+			$this->assertArrayHasKey( $query_var, $q->query_vars, "$query_var does not exist." );
 		}
 
 	}

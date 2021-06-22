@@ -659,7 +659,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 			'header_image_data',
 			'background_image',
 			'widget_text[2]',
-			'widget_meta[3]',
+			'widget_meta[2]',
 			'sidebars_widgets[sidebar-1]',
 			'nav_menus_created_posts',
 			'nav_menu[-1]',
@@ -676,14 +676,14 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 		$this->assertSameSets( $expected_setting_ids, array_keys( $changeset_values ) );
 
-		foreach ( array( 'widget_text[2]', 'widget_meta[3]' ) as $setting_id ) {
+		foreach ( array( 'widget_text[2]', 'widget_meta[2]' ) as $setting_id ) {
 			$this->assertInternalType( 'array', $changeset_values[ $setting_id ] );
 			$instance_data = $wp_customize->widgets->sanitize_widget_instance( $changeset_values[ $setting_id ] );
 			$this->assertInternalType( 'array', $instance_data );
 			$this->assertArrayHasKey( 'title', $instance_data );
 		}
 
-		$this->assertSame( array( 'text-2', 'meta-3' ), $changeset_values['sidebars_widgets[sidebar-1]'] );
+		$this->assertSame( array( 'text-2', 'meta-2' ), $changeset_values['sidebars_widgets[sidebar-1]'] );
 
 		$posts_by_name = array();
 		$this->assertCount( 7, $changeset_values['nav_menus_created_posts'] );

@@ -287,8 +287,8 @@ function login_footer( $input_id = '' ) {
 			$html_link = sprintf(
 				'<a href="%s">%s</a>',
 				esc_url( home_url( '/' ) ),
-				/* translators: %s: Site title. */
 				sprintf(
+					/* translators: %s: Site title. */
 					_x( '&larr; Go to %s', 'site' ),
 					get_bloginfo( 'title', 'display' )
 				)
@@ -807,7 +807,7 @@ switch ( $action ) {
 		list( $rp_path ) = explode( '?', wp_unslash( $_SERVER['REQUEST_URI'] ) );
 		$rp_cookie       = 'wp-resetpass-' . COOKIEHASH;
 
-		if ( isset( $_GET['key'] ) ) {
+		if ( isset( $_GET['key'] ) && isset( $_GET['login'] ) ) {
 			$value = sprintf( '%s:%s', wp_unslash( $_GET['login'] ), wp_unslash( $_GET['key'] ) );
 			setcookie( $rp_cookie, $value, 0, $rp_path, COOKIE_DOMAIN, is_ssl(), true );
 

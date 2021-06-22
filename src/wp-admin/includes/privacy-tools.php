@@ -413,6 +413,16 @@ function wp_privacy_generate_personal_data_export_file( $request_id ) {
 	// Convert the groups to JSON format.
 	$groups_json = wp_json_encode( $groups );
 
+	if ( false === $groups_json ) {
+		$error_message = sprintf(
+			/* translators: %s: Error message. */
+			__( 'Unable to encode the personal data for export. Error: %s' ),
+			json_last_error_msg()
+		);
+
+		wp_send_json_error( $error_message );
+	}
+
 	/*
 	 * Handle the JSON export.
 	 */
@@ -652,7 +662,8 @@ function wp_privacy_send_personal_data_export_email( $request_id ) {
 
 	/* translators: Do not translate EXPIRATION, LINK, SITENAME, SITEURL: those are placeholders. */
 	$email_text = __(
-		'Howdy,
+// phpcs:ignore Generic.WhiteSpace.ScopeIndent.Incorrect, PEAR.Functions.FunctionCallSignature.Indent
+'Howdy,
 
 Your request for an export of personal data has been completed. You may
 download your personal data by clicking on the link below. For privacy
