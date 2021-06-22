@@ -3022,6 +3022,7 @@ EOF;
 
 	/**
 	 * @ticket 50425
+	 * @ticket 53463
 	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
 	 *
 	 * @param string $context  Function context.
@@ -3041,6 +3042,7 @@ EOF;
 			'the_content => true'             => array( 'the_content', true ),
 			'the_excerpt => true'             => array( 'the_excerpt', true ),
 			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'widget_block_content => true'    => array( 'widget_block_content', true ),
 			'get_avatar => true'              => array( 'get_avatar', true ),
 			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
 		);
