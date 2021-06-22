@@ -472,7 +472,7 @@ function block_editor_rest_api_preload( array $preload_paths, $block_editor_cont
  *
  * @global array $editor_styles
  *
- * @return array
+ * @return array Includes default font family style and theme stylesheets.
  */
 function get_block_editor_theme_styles() {
 	global $editor_styles;
