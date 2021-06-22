@@ -26,7 +26,7 @@ function render_block_core_legacy_widget( $attributes ) {
 
 
 	$widget_key = $wp_widget_factory->get_widget_key( $attributes['idBase'] );
-	if ( ! $widget_key ) {
+	if ( '' === $widget_key ) {
 		return '';
 	}
 
