@@ -12,6 +12,8 @@
  *
  * @since 5.8.0
  *
+ * @global string $_wp_current_template_content
+ *
  * @param string $template  Path to the template. See locate_template().
  * @param string $type      Sanitized filename without extension.
  * @param array  $templates A list of template candidates, in descending order of priority.
@@ -21,11 +23,14 @@ function locate_block_template( $template, $type, array $templates ) {
 	global $_wp_current_template_content;
 
 	if ( $template ) {
-		// locate_template() has found a PHP template at the path specified by $template.
-		// That means that we have a fallback candidate if we cannot find a block template
-		// with higher specificity.
-		// Thus, before looking for matching block themes, we shorten our list of candidate
-		// templates accordingly.
+		/*
+		 * locate_template() has found a PHP template at the path specified by $template.
+		 * That means that we have a fallback candidate if we cannot find a block template
+		 * with higher specificity.
+		 *
+		 * Thus, before looking for matching block themes, we shorten our list of candidate
+		 * templates accordingly.
+		 */
 
 		// Locate the index of $template (without the theme directory path) in $templates.
 		$relative_template_path = str_replace(
@@ -147,7 +152,10 @@ function _block_template_render_title_tag() {
  * @access private
  * @since 5.8.0
  *
- * @return string block tempate markup.
+ * @global string   $_wp_current_template_content
+ * @global WP_Embed $wp_embed
+ *
+ * @return string Block template markup.
  */
 function get_the_block_template_html() {
 	global $_wp_current_template_content;
@@ -213,11 +221,10 @@ function _strip_template_file_suffix( $template_file ) {
  */
 function _block_template_render_without_post_block_context( $context ) {
 	/*
-	 * When loading a template directly and not through a page
-	 * that resolves it, the top-level post ID and type context get set to that
-	 * of the template. Templates are just the structure of a site, and
-	 * they should not be available as post context because blocks like Post
-	 * Content would recurse infinitely.
+	 * When loading a template directly and not through a page that resolves it,
+	 * the top-level post ID and type context get set to that of the template.
+	 * Templates are just the structure of a site, and they should not be available
+	 * as post context because blocks like Post Content would recurse infinitely.
 	 */
 	if ( isset( $context['postType'] ) && 'wp_template' === $context['postType'] ) {
 		unset( $context['postId'] );

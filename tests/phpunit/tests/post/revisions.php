@@ -623,6 +623,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 				return $generic;
 			}
 		);
+
 		$this->assertSame( $generic, wp_revisions_to_keep( $post ) );
 
 		$expected = $generic + 1;
@@ -633,6 +634,7 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 				return $expected;
 			}
 		);
+
 		$this->assertSame( $expected, wp_revisions_to_keep( $post ) );
 	}
 
@@ -642,12 +644,14 @@ class Tests_Post_Revisions extends WP_UnitTestCase {
 	 * @ticket 30009
 	 */
 	public function test_wp_save_post_revision_error() {
-		$post     = self::factory()->post->create_and_get(
+		$post = self::factory()->post->create_and_get(
 			array(
 				'ID' => PHP_INT_MAX,
 			)
 		);
+
 		$revision = _wp_put_post_revision( $post );
-		$this->assertTrue( is_wp_error( $revision ) );
+
+		$this->assertWPError( $revision );
 	}
 }

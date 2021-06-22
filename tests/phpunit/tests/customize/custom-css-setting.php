@@ -380,6 +380,6 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 		// Check for markup.
 		$unclosed_comment = $basic_css . '</style>';
 		$result           = $this->setting->validate( $unclosed_comment );
-		$this->assertTrue( array_key_exists( 'illegal_markup', $result->errors ) );
+		$this->assertArrayHasKey( 'illegal_markup', $result->errors );
 	}
 }
