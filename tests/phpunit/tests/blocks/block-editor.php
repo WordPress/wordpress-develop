@@ -429,4 +429,19 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		$this->assertContains( '"\/wp\/v2\/blocks"', $after );
 		$this->assertContains( '"\/wp\/v2\/types"', $after );
 	}
+
+	/**
+	 * @ticket 53344
+	 */
+	function test_get_block_editor_theme_styles() {
+		$theme_styles = get_block_editor_theme_styles();
+		$this->assertCount( 1, $theme_styles );
+		$this->assertSameSets(
+			array(
+				'css'            => 'body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif }',
+				'__unstableType' => 'core',
+			),
+			$theme_styles[0]
+		);
+	}
 }
