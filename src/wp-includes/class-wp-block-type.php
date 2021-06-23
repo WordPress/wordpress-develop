@@ -327,13 +327,6 @@ class WP_Block_Type {
 
 		$args['name'] = $this->name;
 
-		// Make sure core blocks register a stylesheet.
-		if ( 0 === strpos( $args['name'], 'core/' ) ) {
-			$block_name           = str_replace( 'core/', '', $args['name'] );
-			$args['style']        = ! empty( $args['style'] ) ? $args['style'] : "wp-block-$block_name";
-			$args['editor_style'] = ! empty( $args['editor_style'] ) ? $args['editor_style'] : "wp-block-$block_name-editor";
-		}
-
 		/**
 		 * Filters the arguments for registering a block type.
 		 *
