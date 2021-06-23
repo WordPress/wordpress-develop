@@ -169,7 +169,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 		if ( ! is_string( $data ) && false !== $data ) {
 			$this->fail( 'Unexpected type for $data.' );
 		}
-		$this->assertIsString(  $url );
+		$this->assertIsString( $url );
 		$this->assertIsArray( $args );
 		$this->oembed_result_filter_count++;
 		return $data;
@@ -631,7 +631,7 @@ class Test_oEmbed_Controller extends WP_UnitTestCase {
 
 		$this->assertNotEmpty( $data );
 		$this->assertIsObject( $data );
-		$this->assertIsString(  $data->html );
+		$this->assertIsString( $data->html );
 		$this->assertIsArray( $data->scripts );
 	}
 

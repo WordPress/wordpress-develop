@@ -27,10 +27,10 @@ class Tests_XMLRPC_wp_uploadFile extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertIsString(  $result['id'] );
+		$this->assertIsString( $result['id'] );
 		$this->assertStringMatchesFormat( '%d', $result['id'] );
-		$this->assertIsString(  $result['file'] );
-		$this->assertIsString(  $result['url'] );
-		$this->assertIsString(  $result['type'] );
+		$this->assertIsString( $result['file'] );
+		$this->assertIsString( $result['url'] );
+		$this->assertIsString( $result['type'] );
 	}
 }

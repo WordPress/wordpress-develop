@@ -69,18 +69,18 @@ class Tests_XMLRPC_wp_getUser extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// Check data types.
-		$this->assertIsString(  $result['user_id'] );
+		$this->assertIsString( $result['user_id'] );
 		$this->assertStringMatchesFormat( '%d', $result['user_id'] );
-		$this->assertIsString(  $result['username'] );
-		$this->assertIsString(  $result['first_name'] );
-		$this->assertIsString(  $result['last_name'] );
+		$this->assertIsString( $result['username'] );
+		$this->assertIsString( $result['first_name'] );
+		$this->assertIsString( $result['last_name'] );
 		$this->assertInstanceOf( 'IXR_Date', $result['registered'] );
-		$this->assertIsString(  $result['bio'] );
-		$this->assertIsString(  $result['email'] );
-		$this->assertIsString(  $result['nickname'] );
-		$this->assertIsString(  $result['nicename'] );
-		$this->assertIsString(  $result['url'] );
-		$this->assertIsString(  $result['display_name'] );
+		$this->assertIsString( $result['bio'] );
+		$this->assertIsString( $result['email'] );
+		$this->assertIsString( $result['nickname'] );
+		$this->assertIsString( $result['nicename'] );
+		$this->assertIsString( $result['url'] );
+		$this->assertIsString( $result['display_name'] );
 		$this->assertIsArray( $result['roles'] );
 
 		// Check expected values.

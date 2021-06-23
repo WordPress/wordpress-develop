@@ -58,26 +58,26 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 			$post = get_post( $result['postid'] );
 
 			// Check data types.
-			$this->assertIsString(  $result['userid'] );
-			$this->assertIsString(  $result['postid'] );
-			$this->assertIsString(  $result['description'] );
-			$this->assertIsString(  $result['title'] );
-			$this->assertIsString(  $result['link'] );
-			$this->assertIsString(  $result['permaLink'] );
+			$this->assertIsString( $result['userid'] );
+			$this->assertIsString( $result['postid'] );
+			$this->assertIsString( $result['description'] );
+			$this->assertIsString( $result['title'] );
+			$this->assertIsString( $result['link'] );
+			$this->assertIsString( $result['permaLink'] );
 			$this->assertIsArray( $result['categories'] );
-			$this->assertIsString(  $result['mt_excerpt'] );
-			$this->assertIsString(  $result['mt_text_more'] );
-			$this->assertIsString(  $result['wp_more_text'] );
+			$this->assertIsString( $result['mt_excerpt'] );
+			$this->assertIsString( $result['mt_text_more'] );
+			$this->assertIsString( $result['wp_more_text'] );
 			$this->assertIsInt( $result['mt_allow_comments'] );
 			$this->assertIsInt( $result['mt_allow_pings'] );
-			$this->assertIsString(  $result['mt_keywords'] );
-			$this->assertIsString(  $result['wp_slug'] );
-			$this->assertIsString(  $result['wp_password'] );
-			$this->assertIsString(  $result['wp_author_id'] );
-			$this->assertIsString(  $result['wp_author_display_name'] );
-			$this->assertIsString(  $result['post_status'] );
+			$this->assertIsString( $result['mt_keywords'] );
+			$this->assertIsString( $result['wp_slug'] );
+			$this->assertIsString( $result['wp_password'] );
+			$this->assertIsString( $result['wp_author_id'] );
+			$this->assertIsString( $result['wp_author_display_name'] );
+			$this->assertIsString( $result['post_status'] );
 			$this->assertIsArray( $result['custom_fields'] );
-			$this->assertIsString(  $result['wp_post_format'] );
+			$this->assertIsString( $result['wp_post_format'] );
 
 			// Check expected values.
 			$this->assertStringMatchesFormat( '%d', $result['userid'] );
@@ -106,7 +106,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $results );
 
 		foreach ( $results as $result ) {
-			$this->assertIsString(  $result['wp_post_thumbnail'] );
+			$this->assertIsString( $result['wp_post_thumbnail'] );
 			$this->assertStringMatchesFormat( '%d', $result['wp_post_thumbnail'] );
 
 			if ( ! empty( $result['wp_post_thumbnail'] ) || $result['postid'] === self::$post_id ) {

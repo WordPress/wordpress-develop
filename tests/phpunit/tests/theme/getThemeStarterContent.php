@@ -144,7 +144,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 		foreach ( $hydrated_starter_content['widgets']['sidebar-1'] as $widget ) {
 			$this->assertIsArray( $widget );
 			$this->assertCount( 2, $widget );
-			$this->assertIsString(  $widget[0] );
+			$this->assertIsString( $widget[0] );
 			$this->assertIsArray( $widget[1] );
 			$this->assertArrayHasKey( 'title', $widget[1] );
 		}
@@ -158,7 +158,7 @@ class Tests_Theme_GetThemeStarterContent extends WP_UnitTestCase {
 		$this->assertSame( 'Email Us', $hydrated_starter_content['nav_menus']['top']['items'][4]['title'], 'Core content extended' );
 
 		foreach ( $hydrated_starter_content['posts'] as $key => $post ) {
-			$this->assertIsString(  $key );
+			$this->assertIsString( $key );
 			$this->assertFalse( is_numeric( $key ) );
 			$this->assertIsArray( $post );
 			$this->assertArrayHasKey( 'post_type', $post );
