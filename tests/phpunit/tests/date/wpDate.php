@@ -73,7 +73,19 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if format is set to F weekday_abbrev
+	 * Test if format is set to D weekday_abbrev
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_D() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'Thu', wp_date( 'D', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to F Month
 	 *
 	 * @ticket 53485
 	 */
@@ -81,7 +93,19 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 		$utc      = new DateTimeZone( 'UTC' );
 		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
 
-		$this->assertSame( 'Thu', wp_date( 'D', $datetime->getTimestamp(), $utc ) );
+		$this->assertSame( 'October', wp_date( 'F', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to L weekday
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_l() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'Thursday', wp_date( 'l', $datetime->getTimestamp(), $utc ) );
 	}
 
 	/**
@@ -97,19 +121,69 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test if format is set to M month_abbrev
+	 * Test if format is set to a am/pm lowercase
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_a() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'am', wp_date( 'a', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to A  am/pm uppercase
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_upper_A() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'AM', wp_date( 'A', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test if format is set to A with an escaped A
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format_slash() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( 'A AM', wp_date( '\\A A', $datetime->getTimestamp(), $utc ) );
+	}
+
+
+	/**
+	 * Test if format is set directly
+	 *
+	 * @ticket 53485
+	 */
+	public function test_format() {
+		$utc      = new DateTimeZone( 'UTC' );
+		$datetime = new DateTimeImmutable( '2019-10-17', $utc );
+
+		$this->assertSame( '041', wp_date( 'B', $datetime->getTimestamp(), $utc ) );
+	}
+
+	/**
+	 * Test wp_date Filter runs
 	 *
 	 * @ticket 53485
 	 */
 	public function test_wp_date_filter() {
 		add_filter( 'wp_date', array( $this, '_test_wp_date_filter' ), 99 );
 
-		$this->assertSame( 'filtered', wp_date( '') );
+		$this->assertSame( 'filtered', wp_date( '' ) );
 
-		remove_filter('wp_date', array( $this, '_test_wp_date_filter' ), 99 );
+		remove_filter( 'wp_date', array( $this, '_test_wp_date_filter' ), 99 );
 	}
 
-	public function _test_wp_date_filter(){
+	public function _test_wp_date_filter() {
+
 		return 'filtered';
 	}
 }
