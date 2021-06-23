@@ -731,7 +731,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 		);
 		$result   = $widget->update( $instance, array() );
 		$this->assertSame( $expected, $result );
-		$this->assertTrue( ! empty( $expected['filter'] ), 'Expected filter prop to be truthy, to handle case where 4.8 is downgraded to 4.7.' );
+		$this->assertNotEmpty( $expected['filter'], 'Expected filter prop to be truthy, to handle case where 4.8 is downgraded to 4.7.' );
 
 		add_filter( 'map_meta_cap', array( $this, 'grant_unfiltered_html_cap' ), 10, 2 );
 		$this->assertTrue( current_user_can( 'unfiltered_html' ) );
@@ -765,7 +765,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => false,
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertSame( $instance, $result, 'Updating a widget without visual prop and explicit filter=false leaves visual prop absent' );
+		$this->assertSameSets( $instance, $result, 'Updating a widget without visual prop and explicit filter=false leaves visual prop absent' );
 
 		// --
 		$instance = array(
@@ -774,7 +774,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			'filter' => true,
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertSame( $instance, $result, 'Updating a widget without visual prop and explicit filter=true leaves legacy prop absent.' );
+		$this->assertSameSets( $instance, $result, 'Updating a widget without visual prop and explicit filter=true leaves legacy prop absent.' );
 
 		// --
 		$instance     = array(
@@ -795,7 +795,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			)
 		);
 		$result       = $widget->update( $instance, $old_instance );
-		$this->assertSame( $expected, $result, 'Updating a pre-existing widget with visual mode forces filter to be true.' );
+		$this->assertSameSets( $expected, $result, 'Updating a pre-existing widget with visual mode forces filter to be true.' );
 
 		// --
 		$instance     = array(
@@ -816,7 +816,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertSame( $expected, $result, 'Updating a pre-existing visual widget retains visual mode when updated.' );
+		$this->assertSameSets( $expected, $result, 'Updating a pre-existing visual widget retains visual mode when updated.' );
 
 		// --
 		$instance     = array(
@@ -837,7 +837,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => true,
 			)
 		);
-		$this->assertSame( $expected, $result, 'Updating a pre-existing visual widget retains visual=true and supplies missing filter=true.' );
+		$this->assertSameSets( $expected, $result, 'Updating a pre-existing visual widget retains visual=true and supplies missing filter=true.' );
 
 		// --
 		$instance = array(
@@ -852,7 +852,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 			)
 		);
 		$result   = $widget->update( $instance, array() );
-		$this->assertEquals( $expected, $result, 'Updating a widget with explicit visual=true and absent filter prop causes filter to be set to true.' );
+		$this->assertSameSets( $expected, $result, 'Updating a widget with explicit visual=true and absent filter prop causes filter to be set to true.' );
 
 		// --
 		$instance = array(
@@ -867,7 +867,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => false,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a widget in legacy mode results in filter=false as if checkbox not checked.' );
+		$this->assertSameSets( $expected, $result, 'Updating a widget in legacy mode results in filter=false as if checkbox not checked.' );
 
 		// --
 		$instance     = array(
@@ -890,7 +890,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => false,
 			)
 		);
-		$this->assertSame( $expected, $result, 'Updating a widget that previously had legacy form results in filter allowed to be false.' );
+		$this->assertSameSets( $expected, $result, 'Updating a widget that previously had legacy form results in filter allowed to be false.' );
 
 		// --
 		$instance = array(
@@ -906,7 +906,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertSame( $expected, $result, 'Updating a widget that had \'content\' as its filter value persists non-legacy mode. This only existed in WP 4.8.0.' );
+		$this->assertSameSets( $expected, $result, 'Updating a widget that had \'content\' as its filter value persists non-legacy mode. This only existed in WP 4.8.0.' );
 
 		// --
 		$instance     = array(
@@ -927,7 +927,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'filter' => true,
 			)
 		);
-		$this->assertEquals( $expected, $result, 'Updating a pre-existing widget with the filter=content prop in WP 4.8.0 upgrades to filter=true&visual=true.' );
+		$this->assertSameSets( $expected, $result, 'Updating a pre-existing widget with the filter=content prop in WP 4.8.0 upgrades to filter=true&visual=true.' );
 
 		// --
 		$instance = array(
@@ -943,7 +943,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 				'visual' => true,
 			)
 		);
-		$this->assertSame( $expected, $result, 'Updating a widget with filter=content (from WP 4.8.0) upgrades to filter=true&visual=true.' );
+		$this->assertSameSets( $expected, $result, 'Updating a widget with filter=content (from WP 4.8.0) upgrades to filter=true&visual=true.' );
 	}
 
 	/**
