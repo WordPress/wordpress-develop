@@ -25,9 +25,14 @@ $preload_paths = array(
 block_editor_rest_api_preload( $preload_paths, $block_editor_context );
 
 $editor_settings = get_block_editor_settings(
-	get_legacy_widget_block_editor_settings(),
+	array_merge( get_legacy_widget_block_editor_settings(), array( 'styles' => get_block_editor_theme_styles() ) ),
 	$block_editor_context
 );
+
+// The widgets editor does not support the Block Directory, so don't load any of
+// its assets. This also prevents 'wp-editor' from being enqueued which we
+// cannot load in the widgets screen because many widget scripts rely on `wp.editor`.
+remove_action( 'enqueue_block_editor_assets', 'wp_enqueue_editor_block_directory_assets' );
 
 wp_add_inline_script(
 	'wp-edit-widgets',
@@ -67,7 +72,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 do_action( 'widgets_admin_page' );
 ?>
 
-<div id="widgets-editor" class="blocks-widgets-container"></div> 
+<div id="widgets-editor" class="blocks-widgets-container"></div>
 
 <?php
 /** This action is documented in wp-admin/widgets-form.php */

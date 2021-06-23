@@ -157,8 +157,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		switch_theme( 'fse' );
 		$fse = WP_Theme_JSON_Resolver::theme_has_support();
 
-		$this->assertSame( false, $default );
-		$this->assertSame( true, $fse );
+		$this->assertFalse( $default );
+		$this->assertTrue( $fse );
 	}
 
 }
