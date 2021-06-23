@@ -223,8 +223,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( ! isset( $metadata['editor_style'] ) ) {
-			$metadata['editor_style'] = "wp-block-$block_name-editor";
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-$block_name-editor";
 		}
 	}
 
