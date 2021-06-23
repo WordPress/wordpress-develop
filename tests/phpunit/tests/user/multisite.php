@@ -124,7 +124,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 			$this->assertTrue( is_blog_user( $blog_id ) );
 			$this->assertTrue( remove_user_from_blog( $user1_id, $blog_id ) );
 			$this->assertFalse( is_blog_user( $blog_id ) );
@@ -156,7 +156,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create( array( 'user_id' => get_current_user_id() ) );
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			// Current user gets added to new blogs.
 			$this->assertTrue( is_user_member_of_blog( $user1_id, $blog_id ) );

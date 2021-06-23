@@ -286,7 +286,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		);
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertTrue( $this->_last_response_parsed['success'] );
-		$this->assertInternalType( 'array', $this->_last_response_parsed['data'] );
+		$this->assertIsArray( $this->_last_response_parsed['data'] );
 
 		$this->assertSame( 'publish', $this->_last_response_parsed['data']['changeset_status'] );
 		$this->assertArrayHasKey( 'next_changeset_uuid', $this->_last_response_parsed['data'] );
@@ -325,7 +325,7 @@ class Tests_Ajax_CustomizeManager extends WP_Ajax_UnitTestCase {
 		$_POST['customize_changeset_title']  = 'Published';
 		$this->make_ajax_call( 'customize_save' );
 		$this->assertTrue( $this->_last_response_parsed['success'] );
-		$this->assertInternalType( 'array', $this->_last_response_parsed['data'] );
+		$this->assertIsArray( $this->_last_response_parsed['data'] );
 
 		$this->assertSame( 'publish', $this->_last_response_parsed['data']['changeset_status'] );
 		$this->assertArrayHasKey( 'next_changeset_uuid', $this->_last_response_parsed['data'] );

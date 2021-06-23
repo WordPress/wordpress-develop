@@ -206,7 +206,7 @@ if ( is_multisite() ) :
 
 			// `dirsize_cache` should now be filled after upload and recurse_dirsize() call.
 			$cache_path = untrailingslashit( $upload_dir['path'] );
-			$this->assertInternalType( 'array', get_transient( 'dirsize_cache' ) );
+			$this->assertIsArray( get_transient( 'dirsize_cache' ) );
 			$this->assertSame( $size, get_transient( 'dirsize_cache' )[ $cache_path ] );
 
 			// Cleanup.
