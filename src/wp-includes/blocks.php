@@ -166,7 +166,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
-	if ( $style_file ) {
+	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
