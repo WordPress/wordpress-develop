@@ -7,10 +7,10 @@ class Tests_Post_GetPostTypeLabels extends WP_UnitTestCase {
 	public function test_returns_an_object() {
 		$this->assertIsObject(
 			get_post_type_labels(
-				(object)array(
-					'name' => 'foo',
-					'labels' => array(),
-					'hierarchical' => false,
+				(object) array(
+					'name' 			=> 'foo',
+					'labels' 		=> array(),
+					'hierarchical' 	=> false,
 				)
 			)
 		);
