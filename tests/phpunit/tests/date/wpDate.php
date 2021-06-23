@@ -69,7 +69,7 @@ class Tests_Date_wpDate extends WP_UnitTestCase {
 	 */
 	public function test_no_timestamp() {
 
-		$this->assertSame( (string) strtotime( 'now' ), wp_date( 'U' ) );
+		$this->assertSame( (string) time(), wp_date( 'U' ) );
 	}
 
 	/**
