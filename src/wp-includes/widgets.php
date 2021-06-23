@@ -1801,14 +1801,24 @@ function wp_widgets_init() {
 
 	register_widget( 'WP_Widget_Block' );
 
-	add_theme_support( 'widgets-block-editor' );
-
 	/**
 	 * Fires after all default WordPress widgets have been registered.
 	 *
 	 * @since 2.2.0
 	 */
 	do_action( 'widgets_init' );
+}
+
+/**
+ * Enables the widgets block editor. This is hooked into 'after_setup_theme' so
+ * that the block editor is enabled by default but can be disabled by themes.
+ *
+ * @since 5.8.0
+ *
+ * @access private
+ */
+function wp_setup_widgets_block_editor() {
+	add_theme_support( 'widgets-block-editor' );
 }
 
 /**
@@ -1995,17 +2005,4 @@ function wp_render_widget_control( $id ) {
 	}
 
 	return ob_get_clean();
-}
-
-// Needed until src/blocks/legacy-widget/index.php in @wordpress/block-library
-// is updated to use the 'wp_' functions.
-function gutenberg_find_widgets_sidebar( $widget_id ) {
-	return wp_find_widgets_sidebar( $widget_id );
-}
-function gutenberg_render_widget( $widget_id, $sidebar_id ) {
-	return wp_render_widget( $widget_id, $sidebar_id );
-}
-function gutenberg_get_widget_object( $id_base ) {
-	global $wp_widget_factory;
-	return $wp_widget_factory->get_widget_object( $id_base );
 }

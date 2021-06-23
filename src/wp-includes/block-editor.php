@@ -10,7 +10,7 @@
 /**
  * Returns the list of default categories for block types.
  *
- * @since 5.8.0.
+ * @since 5.8.0
  *
  * @return array[] Array of categories for block types.
  */
@@ -310,27 +310,27 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 
 	$editor_settings['__experimentalFeatures'] = $theme_json->get_settings();
 	// These settings may need to be updated based on data coming from theme.json sources.
-	if ( isset( $settings['__experimentalFeatures']['color']['palette'] ) ) {
-		$colors_by_origin   = $settings['__experimentalFeatures']['color']['palette'];
-		$settings['colors'] = isset( $colors_by_origin['user'] ) ?
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['palette'] ) ) {
+		$colors_by_origin          = $editor_settings['__experimentalFeatures']['color']['palette'];
+		$editor_settings['colors'] = isset( $colors_by_origin['user'] ) ?
 			$colors_by_origin['user'] : (
 				isset( $colors_by_origin['theme'] ) ?
 					$colors_by_origin['theme'] :
 					$colors_by_origin['core']
 			);
 	}
-	if ( isset( $settings['__experimentalFeatures']['color']['gradients'] ) ) {
-		$gradients_by_origin   = $settings['__experimentalFeatures']['color']['gradients'];
-		$settings['gradients'] = isset( $gradients_by_origin['user'] ) ?
+	if ( isset( $editor_settings['__experimentalFeatures']['color']['gradients'] ) ) {
+		$gradients_by_origin          = $editor_settings['__experimentalFeatures']['color']['gradients'];
+		$editor_settings['gradients'] = isset( $gradients_by_origin['user'] ) ?
 			$gradients_by_origin['user'] : (
 				isset( $gradients_by_origin['theme'] ) ?
 					$gradients_by_origin['theme'] :
 					$gradients_by_origin['core']
 			);
 	}
-	if ( isset( $settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
-		$font_sizes_by_origin  = $settings['__experimentalFeatures']['typography']['fontSizes'];
-		$settings['fontSizes'] = isset( $font_sizes_by_origin['user'] ) ?
+	if ( isset( $editor_settings['__experimentalFeatures']['typography']['fontSizes'] ) ) {
+		$font_sizes_by_origin         = $editor_settings['__experimentalFeatures']['typography']['fontSizes'];
+		$editor_settings['fontSizes'] = isset( $font_sizes_by_origin['user'] ) ?
 			$font_sizes_by_origin['user'] : (
 				isset( $font_sizes_by_origin['theme'] ) ?
 					$font_sizes_by_origin['theme'] :
@@ -354,11 +354,7 @@ function get_block_editor_settings( array $custom_settings, $block_editor_contex
 		unset( $editor_settings['__experimentalFeatures']['typography']['customLineHeight'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
-		if ( ! is_array( $editor_settings['__experimentalFeatures']['spacing']['units'] ) ) {
-			$editor_settings['enableCustomUnits'] = false;
-		} else {
-			$editor_settings['enableCustomUnits'] = count( $editor_settings['__experimentalFeatures']['spacing']['units'] ) > 0;
-		}
+		$editor_settings['enableCustomUnits'] = $editor_settings['__experimentalFeatures']['spacing']['units'];
 		unset( $editor_settings['__experimentalFeatures']['spacing']['units'] );
 	}
 	if ( isset( $editor_settings['__experimentalFeatures']['spacing']['customPadding'] ) ) {
