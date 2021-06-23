@@ -56,7 +56,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 */
 	function test_get_available_languages() {
 		$array = get_available_languages();
-		$this->assertIsArray( $arra );
+		$this->assertIsArray( $array );
 
 		$array = get_available_languages( '.' );
 		$this->assertEmpty( $array );
