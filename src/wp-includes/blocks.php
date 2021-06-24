@@ -151,8 +151,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir    = dirname( $metadata['file'] );
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$block_dir      = dirname( $metadata['file'] );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
 	$version        = ! $is_core_block && $has_style_file ? filemtime( $style_file ) : false;
