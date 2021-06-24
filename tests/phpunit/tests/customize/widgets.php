@@ -145,6 +145,85 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Tests the label and description controls when registering sidebars with Customizer.
+	 *
+	 * @ticket       53487
+	 * @dataProvider data_customize_register_control_label_and_description
+	 * @covers       WP_Customize_Widgets::customize_register
+	 */
+	public function test_customize_register_control_label_and_description( $sidebars, $use_classic_widgets, $expected ) {
+		if ( $use_classic_widgets ) {
+			add_filter( 'use_widgets_block_editor', '__return_false' );
+		}
+
+		foreach ( $sidebars as $args ) {
+			register_sidebar( $args );
+		}
+
+		$this->manager->widgets->customize_register();
+
+		$label       = array();
+		$description = array();
+		foreach ( array_keys( $sidebars ) as $sidebar_id ) {
+			$control_id    = "sidebars_widgets[{$sidebar_id}]";
+			$control       = $this->manager->get_control( $control_id );
+			$label[]       = $control->label;
+			$description[] = $control->description;
+		}
+
+		$this->assertSame( $expected['label'], $label );
+		$this->assertSame( $expected['description'], $description );
+	}
+
+	public function data_customize_register_control_label_and_description() {
+		return array(
+			'with widgets block editor' => array(
+				'sidebars'            => array(
+					'footer-1' => array(
+						'id'          => 'footer-1',
+						'name'        => 'Footer 1',
+						'description' => 'This is the Footer 1 sidebar.',
+					),
+					'footer-2' => array(
+						'id'          => 'footer-2',
+						'name'        => 'Footer 2',
+						'description' => 'This is the Footer 2 sidebar.',
+					),
+				),
+				'use_classic_widgets' => false,
+				'expected'            => array(
+					'label'       => array( 'Footer 1', 'Footer 2' ),
+					'description' => array( '', '' ),
+				),
+			),
+			'with classic widgets'      => array(
+				'sidebars'            => array(
+					'classic-1' => array(
+						'id'          => 'classic-1',
+						'name'        => 'Classic 1',
+						'description' => 'This is the Classic 1 sidebar.',
+					),
+					'classic-2' => array(
+						'id'          => 'classic-2',
+						'name'        => 'Classic 2',
+						'description' => 'This is the Classic 2 sidebar.',
+					),
+					'classic-3' => array(
+						'id'          => 'classic-3',
+						'name'        => 'Classic 3',
+						'description' => 'This is the Classic 3 sidebar.',
+					),
+				),
+				'use_classic_widgets' => true,
+				'expected'            => array(
+					'label'       => array( '', '', '' ),
+					'description' => array( '', '', '' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * Tests WP_Customize_Widgets::get_selective_refreshable_widgets().
 	 *
 	 * @see WP_Customize_Widgets::get_selective_refreshable_widgets()
