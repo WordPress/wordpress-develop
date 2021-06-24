@@ -4,7 +4,7 @@
 	"title": "File",
 	"category": "media",
 	"description": "Add a link to a downloadable file.",
-	"keywords": [ "document", "pdf", "download" ],
+	"keywords": ["document", "pdf", "download"],
 	"textdomain": "default",
 	"attributes": {
 		"id": {

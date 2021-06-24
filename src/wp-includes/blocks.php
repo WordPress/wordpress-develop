@@ -42,12 +42,16 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
+		if ( 0 === strpos( $field_name, 'view' ) ) {
+			$asset_handle .= '-view';
+		}
 		return $asset_handle;
 	}
 
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
+		'viewScript'   => 'view-script',
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
@@ -96,12 +100,16 @@ function register_block_script_handle( $metadata, $field_name ) {
 		);
 		return false;
 	}
-	$script_asset = require $script_asset_path;
-	$result       = wp_register_script(
+	$is_core_block = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	$script_uri    = $is_core_block ?
+		includes_url( str_replace( ABSPATH . WPINC, '', realpath( dirname( $metadata['file'] ) . '/' . $script_path ) ) ) :
+		plugins_url( $script_path, $metadata['file'] );
+	$script_asset  = require $script_asset_path;
+	$result        = wp_register_script(
 		$script_handle,
-		plugins_url( $script_path, $metadata['file'] ),
-		$script_asset['dependencies'],
-		$script_asset['version']
+		$script_uri,
+		isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array(),
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false
 	);
 	if ( ! $result ) {
 		return false;
@@ -136,7 +144,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	}
 
 	// Check whether styles should have a ".min" suffix or not.
-	$suffix = SCRIPT_DEBUG ? '' : '.min';
+	$suffix = SCRIPT_DEBUG ? '.css' : '.min.css';
 
 	$style_handle = $metadata[ $field_name ];
 	$style_path   = remove_block_asset_path_prefix( $metadata[ $field_name ] );
@@ -147,8 +155,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 
 	$style_uri = plugins_url( $style_path, $metadata['file'] );
 	if ( $is_core_block ) {
-		$style_path = "style$suffix.css";
-		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
+		$style_path = "style$suffix";
+		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix" );
 	}
 
 	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
@@ -163,14 +171,14 @@ function register_block_style_handle( $metadata, $field_name ) {
 		array(),
 		$version
 	);
-	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
+	$rtl_file = str_replace( $suffix, "-rtl$suffix", $style_file );
+	if ( file_exists( $rtl_file ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
 	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
-	$rtl_file = str_replace( "$suffix.css", "-rtl$suffix.css", $style_file );
 	if ( is_rtl() && file_exists( $rtl_file ) ) {
 		wp_style_add_data( $style_handle, 'path', $rtl_file );
 	}
@@ -301,6 +309,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$settings['script'] = register_block_script_handle(
 			$metadata,
 			'script'
+		);
+	}
+
+	if ( ! empty( $metadata['viewScript'] ) ) {
+		$settings['view_script'] = register_block_script_handle(
+			$metadata,
+			'viewScript'
 		);
 	}
 
