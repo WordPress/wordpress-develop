@@ -12,6 +12,7 @@
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
+ * @group widgets
  * @covers WP_REST_Sidebars_Controller
  */
 class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase {
@@ -25,6 +26,14 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @var int
 	 */
 	protected static $author_id;
+
+	/**
+	 * Starting state of the registered widgets.
+	 * Used to reset state between tests.
+	 *
+	 * @var array
+	 */
+	private $original_widgets;
 
 	/**
 	 * Create fake data before our tests run.
@@ -59,6 +68,16 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$wp_registered_sidebars = array();
 		$_wp_sidebars_widgets   = array();
 		update_option( 'sidebars_widgets', array() );
+
+		// Capture registered widgets for restoring between tests.
+		global $wp_registered_widgets;
+		$this->original_widgets = $wp_registered_widgets;
+	}
+
+	public function tearDown() {
+		// Restore the registered widgets.
+		global $wp_registered_widgets;
+		$wp_registered_widgets = $this->original_widgets;
 	}
 
 	private function setup_widget( $option_name, $number, $settings ) {
@@ -236,6 +255,63 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 						'rss-1',
 					),
 				),
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 53489
+	 */
+	public function test_get_items_when_registering_new_sidebars() {
+		register_sidebar(
+			array(
+				'name'          => 'New Sidebar',
+				'id'            => 'new-sidebar',
+				'before_widget' => '',
+				'after_widget'  => '',
+				'before_title'  => '',
+				'after_title'   => '',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(
+						'block-5',
+						'block-6',
+					),
+				),
+				array(
+					'id'            => 'new-sidebar',
+					'name'          => 'New Sidebar',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(
+						'block-2',
+						'block-3',
+						'block-4',
+					),
+				),				
 			),
 			$data
 		);

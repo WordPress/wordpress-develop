@@ -99,7 +99,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 */
 	public function get_items( $request ) {
 		$data = array();
-		foreach ( (array) wp_get_sidebars_widgets() as $id => $widgets ) {
+		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
 			if ( ! $sidebar ) {
