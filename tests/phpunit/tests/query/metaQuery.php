@@ -274,8 +274,16 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 	public function test_meta_query_single_query_compare_startswith() {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
+		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+		$p5 = self::factory()->post->create();
+		$p6 = self::factory()->post->create();
 
-		add_post_meta( $p1, 'foo', 'bar' );
+		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
+		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
+		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $p4, 'foo', 'nomatch' );
+		add_post_meta( $p5, 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -285,14 +293,14 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_query'             => array(
 					array(
 						'key'     => 'foo',
-						'value'   => 'ba',
+						'value'   => 'bar',
 						'compare' => 'STARTSWITH',
 					),
 				),
 			)
 		);
 
-		$expected = array( $p1 );
+		$expected = array( $p1, $p5 );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
@@ -300,9 +308,15 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+		$p5 = self::factory()->post->create();
+		$p6 = self::factory()->post->create();
 
-		add_post_meta( $p1, 'foo', 'bar' );
-		add_post_meta( $p2, 'foo', 'rab' );
+		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
+		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
+		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $p4, 'foo', 'nomatch' );
+		add_post_meta( $p5, 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -312,14 +326,14 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_query'             => array(
 					array(
 						'key'     => 'foo',
-						'value'   => 'ba',
+						'value'   => 'bar',
 						'compare' => 'NOT STARTSWITH',
 					),
 				),
 			)
 		);
 
-		$expected = array( $p2 );
+		$expected = array( $p2, $p3, $p4 );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
@@ -327,9 +341,15 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+		$p5 = self::factory()->post->create();
+		$p6 = self::factory()->post->create();
 
-		add_post_meta( $p1, 'foo', 'bar' );
-		add_post_meta( $p2, 'foo', 'foobar' );
+		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
+		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
+		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $p4, 'foo', 'nomatch' );
+		add_post_meta( $p5, 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -346,7 +366,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$expected = array( $p1, $p2 );
+		$expected = array( $p2, $p5 );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
@@ -354,9 +374,15 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$p1 = self::factory()->post->create();
 		$p2 = self::factory()->post->create();
 		$p3 = self::factory()->post->create();
+		$p4 = self::factory()->post->create();
+		$p5 = self::factory()->post->create();
+		$p6 = self::factory()->post->create();
 
-		add_post_meta( $p1, 'foo', 'bar' );
-		add_post_meta( $p2, 'foo', 'rab' );
+		add_post_meta( $p1, 'foo', 'barSTARTSWITH' );
+		add_post_meta( $p2, 'foo', 'ENDSWITHbar' );
+		add_post_meta( $p3, 'foo', 'CONTAINSbarCONTAINS' );
+		add_post_meta( $p4, 'foo', 'nomatch' );
+		add_post_meta( $p5, 'foo', 'barbar' );
 
 		$query = new WP_Query(
 			array(
@@ -366,14 +392,14 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 				'meta_query'             => array(
 					array(
 						'key'     => 'foo',
-						'value'   => 'ar',
+						'value'   => 'bar',
 						'compare' => 'NOT ENDSWITH',
 					),
 				),
 			)
 		);
 
-		$expected = array( $p2 );
+		$expected = array( $p1, $p3, $p4 );
 		$this->assertSameSets( $expected, $query->posts );
 	}
 
