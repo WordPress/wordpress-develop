@@ -155,8 +155,8 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$block_dir    = dirname( $metadata['file'] );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
-	$version      = ! $is_core_block && $has_style_file ? filemtime( $style_file ) : false;
-	$style_uri    = ( $is_core_block && $style_file ) || ! $is_core_block ? $style_uri : false;
+	$version        = ! $is_core_block && $has_style_file ? filemtime( $style_file ) : false;
+	$style_uri      = ( $is_core_block && $style_file ) || ! $is_core_block ? $style_uri : false;
 	$result       = wp_register_style(
 		$style_handle,
 		$style_uri,
