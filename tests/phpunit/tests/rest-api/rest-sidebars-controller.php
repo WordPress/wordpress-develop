@@ -8,7 +8,7 @@
  */
 
 /**
- * Tests for REST API for Menus.
+ * Tests for REST API for Widgets.
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
@@ -26,14 +26,6 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @var int
 	 */
 	protected static $author_id;
-
-	/**
-	 * Starting state of the registered widgets.
-	 * Used to reset state between tests.
-	 *
-	 * @var array
-	 */
-	private $original_widgets;
 
 	/**
 	 * Create fake data before our tests run.
@@ -68,16 +60,18 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$wp_registered_sidebars = array();
 		$_wp_sidebars_widgets   = array();
 		update_option( 'sidebars_widgets', array() );
-
-		// Capture registered widgets for restoring between tests.
-		global $wp_registered_widgets;
-		$this->original_widgets = $wp_registered_widgets;
 	}
 
-	public function tearDown() {
-		// Restore the registered widgets.
-		global $wp_registered_widgets;
-		$wp_registered_widgets = $this->original_widgets;
+	function clean_up_global_scope() {
+		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
+
+		$wp_registered_sidebars        = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		$wp_widget_factory->widgets    = array();
+
+		parent::clean_up_global_scope();
 	}
 
 	private function setup_widget( $option_name, $number, $settings ) {
@@ -147,6 +141,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items() {
+		wp_widgets_init();
+
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -212,6 +208,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items_active_sidebar_with_widgets() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,
@@ -291,10 +289,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 					'before_title'  => '',
 					'after_title'   => '',
 					'status'        => 'inactive',
-					'widgets'       => array(
-						'block-5',
-						'block-6',
-					),
+					'widgets'       => array(),
 				),
 				array(
 					'id'            => 'new-sidebar',
@@ -306,12 +301,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 					'before_title'  => '',
 					'after_title'   => '',
 					'status'        => 'active',
-					'widgets'       => array(
-						'block-2',
-						'block-3',
-						'block-4',
-					),
-				),				
+					'widgets'       => array(),
+				),
 			),
 			$data
 		);
@@ -393,6 +384,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,
@@ -458,6 +451,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item_removes_widget_from_existing_sidebar() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_text',
 			1,
@@ -499,6 +494,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item_moves_omitted_widget_to_inactive_sidebar() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_text',
 			1,
@@ -541,6 +538,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items_inactive_widgets() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,
