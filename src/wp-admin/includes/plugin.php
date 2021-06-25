@@ -2473,3 +2473,74 @@ function paused_plugins_notice() {
 		__( 'Go to the Plugins screen' )
 	);
 }
+
+/**
+ * Renders an admin notice in case some plugins deactivated.
+ *
+ * Displays an admin notice in case a plugin has been deactivated during an
+ * upgrade due to incompatibility with the current version of WordPress.
+ *
+ * @since 5.8.0
+ * @access private
+ *
+ * @global string $pagenow
+ */
+function wp_deactivated_plugins_notice() {
+	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'activate_plugins' ) ) {
+		return;
+	}
+
+	$deactivated_plugins = get_option( 'wp_deactivated_plugins' );
+
+	if ( false === $deactivated_plugins ) {
+		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
+		update_option( 'wp_deactivated_plugins', array() );
+		return;
+	}
+
+	if ( empty( $deactivated_plugins ) ) {
+		// No deactivated plugins.
+		return;
+	}
+
+	foreach ( $deactivated_plugins as $plugin ) {
+		if ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) ) {
+			$explanation = sprintf(
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version, 4: Compatible plugin version */
+				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s, please upgrade to %1$s %4$s or later.' ),
+				$plugin['plugin_name'],
+				$plugin['version_deactivated'],
+				$GLOBALS['wp_version'],
+				$plugin['version_compatible']
+			);
+		} else {
+			$explanation = sprintf(
+				/* translators: 1: Name of deactivated plugin, 2: Plugin version deactivated, 3: Current WP version */
+				__( '%1$s %2$s was deactivated due to incompatibility with WordPress %3$s.' ),
+				$plugin['plugin_name'],
+				! empty( $plugin['version_deactivated'] ) ? $plugin['version_deactivated'] : '',
+				$GLOBALS['wp_version'],
+				$plugin['version_compatible']
+			);
+		}
+
+		printf(
+			'<div class="notice notice-warning"><p><strong>%s</strong><br>%s</p><p><a href="%s">%s</a></p></div>',
+			sprintf(
+				/* translators: %s: Name of deactivated plugin */
+				__( '%s plugin deactivated during WordPress upgrade.' ),
+				$plugin['plugin_name']
+			),
+			$explanation,
+			esc_url( admin_url( 'plugins.php?plugin_status=inactive' ) ),
+			__( 'Go to the Plugins screen' )
+		);
+	}
+
+	// Empty the option.
+	update_option( 'wp_deactivated_plugins', array() );
+}
