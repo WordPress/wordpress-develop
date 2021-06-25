@@ -202,6 +202,7 @@ class WP_Block_Type {
 	 *     however the ones described below are supported by default. Default empty array.
 	 *
 	 *
+	 *     @type string        $api_version      Block API version.
 	 *     @type string        $title            Human-readable block type label.
 	 *     @type string|null   $category         Block type category classification, used in
 	 *                                           search interfaces to arrange block types by category.
