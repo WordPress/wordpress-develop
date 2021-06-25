@@ -2256,6 +2256,36 @@ function wp_common_block_scripts_and_styles() {
 }
 
 /**
+ * Maybe enqueue global styles in the header.
+ *
+ * @link https://core.trac.wordpress.org/ticket/53494
+ *
+ * @since 5.8.0
+ *
+ * @return void
+ */
+function wp_maybe_enqueue_global_styles_in_head() {
+	if ( ! wp_should_load_separate_core_block_assets() ) {
+		wp_enqueue_global_styles();
+	}
+}
+
+/**
+ * Maybe enqueue global styles in the footer.
+ *
+ * @link https://core.trac.wordpress.org/ticket/53494
+ *
+ * @since 5.8.0
+ *
+ * @return void
+ */
+function wp_maybe_enqueue_global_styles_in_footer() {
+	if ( wp_should_load_separate_core_block_assets() ) {
+		wp_enqueue_global_styles();
+	}
+}
+
+/**
  * Enqueues the global styles defined via theme.json.
  *
  * @since 5.8.0
