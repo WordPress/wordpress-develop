@@ -193,8 +193,8 @@ class WP_Automatic_Updater {
 		 *  - `auto_update_theme`
 		 *  - `auto_update_translation`
 		 *
-		 * Generally speaking, plugins, themes, and major core versions are not updated
-		 * by default, while translations and minor and development versions for core
+		 * Generally speaking, plugins and themes are not updated by default,
+		 * while translations and core (minor, major, and development)
 		 * are updated by default.
 		 *
 		 * See the {@see 'allow_dev_auto_core_updates'}, {@see 'allow_minor_auto_core_updates'},
