@@ -1273,6 +1273,18 @@ function uninstall_plugin( $plugin ) {
 	}
 }
 
+/**
+ * Determines whether a plugin is toggled to auto update.
+ *
+ * @since 5.8.0
+ *
+ * @param string $plugin Path to the plugin file relative to the plugins directory.
+ * @return bool True, if in the auto update list. False, not in the list.
+ */
+function does_plugin_auto_updates( $plugin ) {
+	return in_array( $plugin, (array) get_option( 'auto_update_plugins', array() ), true );
+}
+
 //
 // Menu.
 //
