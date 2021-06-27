@@ -112,6 +112,7 @@ class WP_Test_REST_Widget_Types_Controller extends WP_Test_REST_Controller_Testc
 	 * @ticket 41683
 	 */
 	public function test_get_items() {
+		wp_widgets_init();
 		wp_set_current_user( self::$admin_id );
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widget-types' );
 		$response = rest_get_server()->dispatch( $request );

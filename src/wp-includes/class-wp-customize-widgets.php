@@ -480,8 +480,10 @@ final class WP_Customize_Widgets {
 							$this->manager,
 							$setting_id,
 							array(
-								'section'    => $section_id,
-								'sidebar_id' => $sidebar_id,
+								'section'     => $section_id,
+								'sidebar_id'  => $sidebar_id,
+								'label'       => $section_args['title'],
+								'description' => $section_args['description'],
 							)
 						);
 					} else {
@@ -1411,7 +1413,7 @@ final class WP_Customize_Widgets {
 		global $wp_widget_factory;
 
 		if ( array() === $value ) {
-			return;
+			return $value;
 		}
 
 		if ( isset( $value['raw_instance'] ) && $id_base && wp_use_widgets_block_editor() ) {
