@@ -234,6 +234,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		global $wp_widget_factory;
 
+		retrieve_widgets();
+
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
 
@@ -294,6 +296,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item( $request ) {
 		global $wp_registered_widget_updates;
+
+		retrieve_widgets();
 
 		$widget_id  = $request['id'];
 		$sidebar_id = wp_find_widgets_sidebar( $widget_id );
