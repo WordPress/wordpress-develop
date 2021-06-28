@@ -1678,7 +1678,11 @@ function _upgrade_580_force_deactivate_incompatible_plugins() {
 			'version_deactivated' => GUTENBERG_VERSION,
 			'version_compatible'  => '10.8',
 		);
-		update_option( 'wp_deactivated_plugins', $deactivated_plugins );
+		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
+			update_site_option( 'wp_deactivated_plugins', $deactivated_plugins );
+		} else {
+			update_option( 'wp_deactivated_plugins', $deactivated_plugins );
+		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}
 }
