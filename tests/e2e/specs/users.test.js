@@ -10,11 +10,11 @@ async function deleteNonDefaultUsers() {
 
 	const allUsersRows = await page.$$( '#the-list tr' );
 	if( allUsersRows.length > 1 ) {
-		await page.click( '[id^=cb-select-all-]' );
+		await page.click( '#cb-select-all-1' );
 		await page.select( '#bulk-action-selector-top', 'delete' );
 
 		// Do not delete the defaut admin user
-		await page.click( '[id^=user_1]' );
+		await page.click( '#user_1' );
 
 		await page.click( '#doaction' );
 
@@ -151,5 +151,31 @@ describe( 'Core Users', () => {
 			`//td[contains( @class, "column-name" )][contains( text(), "Test User" )]`
 		);
 		expect( editedUserFullName.length ).toBe( 1 );
+	} );
+
+	it( 'Correctly changes the role of a user', async () => {
+		await goToNewCreatedUserProfilePage();
+
+		// Wait for the role field to appears
+		await page.waitForSelector( 'select#role' );
+
+		// Change the user role to author
+		await page.select( 'select#role', 'author' );
+
+		// Focus on the submit button and save the changes
+		await page.focus( 'input#submit' );
+		await page.keyboard.press( 'Enter' );
+
+		// Wait for the success notice message to show
+		await page.waitForSelector( '#message' );
+
+		// Go back to the users list page
+		await visitAdminPage( 'users.php' );
+
+		// Check that the new user role name is "author"
+		const editedUserRole = await page.$x(
+			`//td[contains( @class, "column-role" )][contains( text(), "Author" )]`
+		);
+		expect( editedUserRole.length ).toBe( 1 );
 	} );
 } );
