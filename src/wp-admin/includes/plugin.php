@@ -2475,7 +2475,7 @@ function paused_plugins_notice() {
 }
 
 /**
- * Renders an admin notice in case some plugins deactivated.
+ * Renders an admin notice when a plugin was deactivated during an update.
  *
  * Displays an admin notice in case a plugin has been deactivated during an
  * upgrade due to incompatibility with the current version of WordPress.
