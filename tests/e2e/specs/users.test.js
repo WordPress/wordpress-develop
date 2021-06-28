@@ -41,12 +41,12 @@ async function createBasicUser() {
 	await page.click( 'input#createusersub' );
 }
 
-async function goToNewCreatedUserProfilePage() {
+async function goToUserProfilePage( username ) {
 	// Wait for the username to appears before focus on it
 	await page.waitForSelector( 'td.column-username' );
 
 	const [ newUserLink ] = await page.$x(
-		`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
+		`//td[contains( @class, "column-username" )]//a[contains( text(), "${ username }" )]`
 	);
 
 	// Focus on the new user link and move to the edit link
@@ -123,7 +123,7 @@ describe( 'Core Users', () => {
 	} );
 
 	it( 'Correctly edit a user first and last names', async () => {
-		await goToNewCreatedUserProfilePage();
+		await goToUserProfilePage( "testuser" );
 
 		// Wait for the user first name input to appears
 		await page.waitForSelector( 'input#first_name' );
@@ -154,7 +154,7 @@ describe( 'Core Users', () => {
 	} );
 
 	it( 'Correctly changes the role of a user', async () => {
-		await goToNewCreatedUserProfilePage();
+		await goToUserProfilePage( "testuser" );
 
 		// Wait for the role field to appears
 		await page.waitForSelector( 'select#role' );
@@ -177,5 +177,16 @@ describe( 'Core Users', () => {
 			`//td[contains( @class, "column-role" )][contains( text(), "Author" )]`
 		);
 		expect( editedUserRole.length ).toBe( 1 );
+	} );
+
+	it( 'Should not allows the main admin user to change their role', async () => {
+		await goToUserProfilePage( "admin" );
+		await page.waitForNavigation();
+
+		// Check that there is no field to change the admin role
+		const changeUserRoleField = await page.$x(
+			`//select[contains( @id, "role" )]`
+		);
+		expect( changeUserRoleField.length ).toBe( 0 );
 	} );
 } );
