@@ -41,6 +41,22 @@ async function createBasicUser() {
 	await page.click( 'input#createusersub' );
 }
 
+async function goToNewCreatedUserProfilePage() {
+	// Wait for the username to appears before focus on it
+	await page.waitForSelector( 'td.column-username' );
+
+	const [ newUserLink ] = await page.$x(
+		`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
+	);
+
+	// Focus on the new user link and move to the edit link
+	newUserLink.focus();
+	await page.keyboard.press( 'Tab' );
+
+	// Click on the edit link
+	await page.keyboard.press( 'Enter' );
+}
+
 describe( 'Core Users', () => {
 	beforeEach( async () => {
 		await deleteNonDefaultUsers();
@@ -107,19 +123,7 @@ describe( 'Core Users', () => {
 	} );
 
 	it( 'Correctly edit a user first and last names', async () => {
-		// Wait for the username to appears before focus on it
-		await page.waitForSelector( 'td.column-username' );
-
-		const [ newUserLink ] = await page.$x(
-			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
-		);
-
-		// Focus on the new user link and move to the edit link
-		newUserLink.focus();
-		await page.keyboard.press( 'Tab' );
-
-		// Click on the edit link
-		await page.keyboard.press( 'Enter' );
+		await goToNewCreatedUserProfilePage();
 
 		// Wait for the user first name input to appears
 		await page.waitForSelector( 'input#first_name' );
