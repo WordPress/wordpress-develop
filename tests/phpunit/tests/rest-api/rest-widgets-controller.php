@@ -95,20 +95,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function setUp() {
-		global $wp_registered_widgets, $wp_registered_sidebars, $_wp_sidebars_widgets, $wp_widget_factory;
+		global $wp_widget_factory;
 
 		parent::setUp();
 
 		wp_set_current_user( self::$admin_id );
 
-		// Unregister all widgets and sidebars.
-		$wp_registered_widgets  = array();
-		$wp_registered_sidebars = array();
-		$_wp_sidebars_widgets   = array();
-		update_option( 'sidebars_widgets', array() );
-
 		// Re-register core widgets.
-		$wp_widget_factory->_register_widgets();
+		wp_widgets_init();
 
 		// Register a non-multi widget for testing.
 		wp_register_widget_control(
@@ -147,6 +141,27 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 				'description' => 'A non-multi widget for testing.',
 			)
 		);
+	}
+
+	public function clean_up_global_scope() {
+		global
+			$wp_widget_factory,
+			$wp_registered_sidebars,
+			$wp_registered_widgets,
+			$wp_registered_widget_controls,
+			$wp_registered_widget_updates,
+			$_wp_sidebars_widgets;
+
+		$wp_registered_sidebars        = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		$wp_widget_factory->widgets    = array();
+		$_wp_sidebars_widgets          = array();
+
+		update_option( 'sidebars_widgets', array() );
+
+		parent::clean_up_global_scope();
 	}
 
 	private function setup_widget( $id_base, $number, $settings ) {
