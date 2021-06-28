@@ -2494,18 +2494,28 @@ function deactivated_plugins_notice() {
 		return;
 	}
 
-	$deactivated_plugins = get_option( 'wp_deactivated_plugins' );
+	$blog_deactivated_plugins = get_option( 'wp_deactivated_plugins' );
+	$site_deactivated_plugins = array();
 
-	if ( false === $deactivated_plugins ) {
+	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
 		update_option( 'wp_deactivated_plugins', array() );
-		return;
 	}
 
-	if ( empty( $deactivated_plugins ) ) {
+	if ( is_multisite() ) {
+		$site_deactivated_plugins = get_site_option( 'wp_deactivated_plugins' );
+		if ( false === $site_deactivated_plugins ) {
+			// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
+			update_site_option( 'wp_deactivated_plugins', array() );
+		}
+	}
+
+	if ( empty( $blog_deactivated_plugins ) && empty( $site_deactivated_plugins ) ) {
 		// No deactivated plugins.
 		return;
 	}
+
+	$deactivated_plugins = array_merge( $blog_deactivated_plugins, $site_deactivated_plugins );
 
 	foreach ( $deactivated_plugins as $plugin ) {
 		if ( ! empty( $plugin['version_compatible'] ) && ! empty( $plugin['version_deactivated'] ) ) {
@@ -2541,6 +2551,9 @@ function deactivated_plugins_notice() {
 		);
 	}
 
-	// Empty the option.
+	// Empty the options.
 	update_option( 'wp_deactivated_plugins', array() );
+	if ( is_multisite() ) {
+			update_site_option( 'wp_deactivated_plugins', array() );
+	}
 }
