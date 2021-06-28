@@ -2485,7 +2485,7 @@ function paused_plugins_notice() {
  *
  * @global string $pagenow
  */
-function wp_deactivated_plugins_notice() {
+function deactivated_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
 		return;
 	}
