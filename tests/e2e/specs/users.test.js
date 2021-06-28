@@ -107,6 +107,9 @@ describe( 'Core Users', () => {
 	} );
 
 	it( 'Correctly edit a user first and last names', async () => {
+		// Wait for the username to appears before focus on it
+		await page.waitForSelector( 'td.column-username' );
+
 		const [ newUserLink ] = await page.$x(
 			`//td[contains( @class, "column-username" )]//a[contains( text(), "testuser" )]`
 		);
