@@ -832,10 +832,6 @@ function upgrade_all() {
 		upgrade_560();
 	}
 
-	if ( $wp_current_db_version < 51256 ) {
-		upgrade_580();
-	}
-
 	maybe_disable_link_manager();
 
 	maybe_disable_automattic_widgets();
@@ -2250,64 +2246,6 @@ function upgrade_560() {
 			update_network_option( $network_id, WP_Application_Passwords::OPTION_KEY_IN_USE, 1 );
 		}
 	}
-}
-
-/**
- * Executes changes made in WordPress 5.8.0.
- *
- * @ignore
- * @since 5.8.0
- */
-function upgrade_580() {
-	_upgrade_580_force_deactivate_incompatible_plugins();
-	if ( false === get_option( 'wp_force_deactivated_plugins') ) {
-		add_option( 'wp_force_deactivated_plugins', array() );
-	}
-	if ( false === get_site_option( 'wp_force_deactivated_plugins') ) {
-		add_site_option( 'wp_force_deactivated_plugins', array() );
-	}
-}
-
-/**
- * Duplicate of function in `upgrade-core.php` as it's unavailable during upgrades.
- *
- * @since 5.8.0
- * @ignore
- */
-function _upgrade_580_force_deactivate_incompatible_plugins() {
-	if ( ! file_exists( WP_PLUGIN_DIR . '/gutenberg/gutenberg.php' ) ) {
-		// Gutenberg is not installed.
-		return;
-	}
-
-	$gutenberg_data    = get_plugin_data( WP_PLUGIN_DIR . '/gutenberg/gutenberg.php' );
-	$gutenberg_version = ! empty( $gutenberg_data['Version'] ) ? $gutenberg_data['Version'] : false;
-
-	if ( ! $gutenberg_version ) {
-		// This may not be Gutenberg.
-		return;
-	}
-
-	if ( ! version_compare( $gutenberg_version, '10.7', '<=' ) ) {
-		// This version of Gutenberg is compatible with WP 5.8.
-		return;
-	}
-
-	$deactivated_gutenberg['gutenberg'] = array(
-		'plugin_name'         => 'Gutenberg',
-		'version_deactivated' => $gutenberg_version,
-		'version_compatible'  => '10.8',
-	);
-	if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
-		$deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins', array() );
-		$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-		update_site_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
-	} else {
-		$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
-		$deactivated_plugins = array_merge( $deactivated_plugins, $deactivated_gutenberg );
-		update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
-	}
-	deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 }
 
 /**
