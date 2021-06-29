@@ -23,13 +23,12 @@ $credits = wp_credits();
 	<div class="about__header">
 		<div class="about__header-title">
 			<h1>
-				<?php _e( 'WordPress' ); ?>
-				<?php echo $display_version; ?>
+				<?php _e( 'Contributors' ); ?>
 			</h1>
 		</div>
 
 		<div class="about__header-text">
-			<?php _e( 'The next stop on the road to full site editing' ); ?>
+			<?php _e( 'WordPress 5.8 was created by a worldwide team of passionate individuals' ); ?>
 		</div>
 
 		<nav class="about__header-navigation nav-tab-wrapper wp-clearfix" aria-label="<?php esc_attr_e( 'Secondary menu' ); ?>">
@@ -42,8 +41,6 @@ $credits = wp_credits();
 
 	<div class="about__section is-feature">
 		<div class="column">
-			<h1><?php _e( 'Credits' ); ?></h1>
-
 			<?php if ( ! $credits ) : ?>
 
 			<p>
