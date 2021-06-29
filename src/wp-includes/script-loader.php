@@ -2267,6 +2267,13 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
+	$separate_assets = wp_should_load_separate_core_block_assets();
+
+	// Global styles should be displayed in the header when loading combined and the footer when loaded individually.
+	if ( ! $separate_assets && doing_action( 'wp_footer' ) || $separate_assets && doing_action( 'wp_head' ) ) {
+		return;
+	}
+
 	$can_use_cache = (
 		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
 		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
