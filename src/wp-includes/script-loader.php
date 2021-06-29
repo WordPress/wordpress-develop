@@ -2328,6 +2328,15 @@ function wp_should_load_block_editor_scripts_and_styles() {
 /**
  * Checks whether separate assets should be loaded for core blocks on-render.
  *
+ * This function is used to decide whether seperate styles for blocks
+ * should be loaded. When this function returns true, other functions ensure that
+ * Core blocks only load their styles on-render, and each block loads its own,
+ * individual stylesheet. This doesn't affect blocks that come from outside of
+ * WordPress Core.
+ *
+ * @see wp_enqueue_registered_block_scripts_and_styles()
+ * @see register_block_style_handle()
+ *
  * @since 5.8.0
  *
  * @return bool Whether separate assets will be loaded.
