@@ -2484,6 +2484,7 @@ function paused_plugins_notice() {
  * @access private
  *
  * @global string $pagenow
+ * @global string $wp_version
  */
 function deactivated_plugins_notice() {
 	if ( 'plugins.php' === $GLOBALS['pagenow'] ) {
