@@ -42,12 +42,16 @@ function generate_block_asset_handle( $block_name, $field_name ) {
 		if ( 0 === strpos( $field_name, 'editor' ) ) {
 			$asset_handle .= '-editor';
 		}
+		if ( 0 === strpos( $field_name, 'view' ) ) {
+			$asset_handle .= '-view';
+		}
 		return $asset_handle;
 	}
 
 	$field_mappings = array(
 		'editorScript' => 'editor-script',
 		'script'       => 'script',
+		'viewScript'   => 'view-script',
 		'editorStyle'  => 'editor-style',
 		'style'        => 'style',
 	);
@@ -96,18 +100,23 @@ function register_block_script_handle( $metadata, $field_name ) {
 		);
 		return false;
 	}
-	$script_asset = require $script_asset_path;
-	$result       = wp_register_script(
+	$is_core_block       = isset( $metadata['file'] ) && 0 === strpos( $metadata['file'], ABSPATH . WPINC );
+	$script_uri          = $is_core_block ?
+		includes_url( str_replace( ABSPATH . WPINC, '', realpath( dirname( $metadata['file'] ) . '/' . $script_path ) ) ) :
+		plugins_url( $script_path, $metadata['file'] );
+	$script_asset        = require $script_asset_path;
+	$script_dependencies = isset( $script_asset['dependencies'] ) ? $script_asset['dependencies'] : array();
+	$result              = wp_register_script(
 		$script_handle,
-		plugins_url( $script_path, $metadata['file'] ),
-		$script_asset['dependencies'],
-		$script_asset['version']
+		$script_uri,
+		$script_dependencies,
+		isset( $script_asset['version'] ) ? $script_asset['version'] : false
 	);
 	if ( ! $result ) {
 		return false;
 	}
 
-	if ( ! empty( $metadata['textdomain'] ) ) {
+	if ( ! empty( $metadata['textdomain'] ) && in_array( 'wp-i18n', $script_dependencies ) ) {
 		wp_set_script_translations( $script_handle, $metadata['textdomain'] );
 	}
 
@@ -151,11 +160,13 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir    = dirname( $metadata['file'] );
-	$style_file   = realpath( "$block_dir/$style_path" );
-	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
-	$result       = wp_register_style(
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$block_dir      = dirname( $metadata['file'] );
+	$style_file     = realpath( "$block_dir/$style_path" );
+	$has_style_file = false !== $style_file;
+	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
+	$style_uri      = $has_style_file ? $style_uri : false;
+	$result         = wp_register_style(
 		$style_handle,
 		$style_uri,
 		array(),
@@ -164,7 +175,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
-	if ( file_exists( $style_file ) ) {
+	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
@@ -221,8 +232,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( ! isset( $metadata['editor_style'] ) ) {
-			$metadata['editor_style'] = "wp-block-$block_name-editor";
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
 		}
 	}
 
@@ -301,6 +312,13 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		$settings['script'] = register_block_script_handle(
 			$metadata,
 			'script'
+		);
+	}
+
+	if ( ! empty( $metadata['viewScript'] ) ) {
+		$settings['view_script'] = register_block_script_handle(
+			$metadata,
+			'viewScript'
 		);
 	}
 
