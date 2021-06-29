@@ -208,7 +208,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			</div>
 			<div class="column">
 				<h3>
-					<?php _e( 'Dropping support for Internet Explorer 11' ); ?>
+					<?php _e( 'Adding Additional Block Supports' ); ?>
 				</h3>
 				<p>
 					<?php
