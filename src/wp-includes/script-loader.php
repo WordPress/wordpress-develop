@@ -2281,7 +2281,7 @@ function wp_enqueue_global_styles() {
 		! is_admin()
 	);
 
-	if ( doing_action( 'wp_head' ) ) {
+	if ( doing_action( 'wp_enqueue_scripts' ) ) {
 		$stylesheet = null;
 		if ( $can_use_cache ) {
 			$cache = get_transient( 'global_styles' );
@@ -2309,7 +2309,7 @@ function wp_enqueue_global_styles() {
 	}
 
 	// Enqueue styles in the header when assets are not loaded separate and the footer when they are.
-	if ( ( ! $separate_assets && doing_action( 'wp_head' ) ) || ( $separate_assets && doing_action( 'wp_footer' ) ) ) {
+	if ( ( ! $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) || ( $separate_assets && doing_action( 'wp_footer' ) ) ) {
 		wp_enqueue_style( 'global-styles' );
 	}
 }
