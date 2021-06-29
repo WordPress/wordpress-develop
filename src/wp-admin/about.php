@@ -78,7 +78,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php
 					printf(
 						/* translators: %s: Query Loop dev note link. */
-						__( 'This advanced block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want. For our theme authors, learn more about experimenting with this awesome tool in the <a href="%s">Query Loop Block dev note</a>.' ),
+						__( 'The Query Loop Block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want. For our theme authors, learn more about experimenting with this awesome tool in the <a href="%s">Query Loop Block dev note</a>.' ),
 						'#'
 					);
 					?>
@@ -134,7 +134,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</h3>
 				<p>
 					<?php
-					_e( 'Starting in this release the Pattern Transformations tool will suggest block patterns based on the block you are using. Right now, you can give it a try in the Heading Block, Query Block, Social Icon Block, Buttons Block, and Paragraph Block. As more patterns are added, you will be able to get inspiration for how to style your site without ever leaving the editor!' );
+					_e( 'Starting in this release the Pattern Transformations tool will suggest block patterns based on the block you are using. Right now, you can give it a try in the Query Block and Social Icon Block. As more patterns are added, you will be able to get inspiration for how to style your site without ever leaving the editor!' );
 					?>
 				</p>
 			</div>
