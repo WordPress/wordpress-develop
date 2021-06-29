@@ -215,6 +215,7 @@ add_filter( 'widget_text_content', 'wp_replace_insecure_home_url' );
 add_filter( 'widget_text_content', 'do_shortcode', 11 ); // Runs after wpautop(); note that $post global will be null when shortcodes run.
 
 add_filter( 'widget_block_content', 'do_blocks', 9 );
+add_filter( 'widget_block_content', 'wp_filter_content_tags' );
 add_filter( 'widget_block_content', 'do_shortcode', 11 );
 
 add_filter( 'block_type_metadata', 'wp_migrate_old_typography_shape' );
@@ -596,6 +597,7 @@ add_filter( 'plupload_default_settings', 'wp_show_heic_upload_error' );
 add_filter( 'nav_menu_item_id', '_nav_menu_item_id_use_once', 10, 2 );
 
 // Widgets.
+add_action( 'after_setup_theme', 'wp_setup_widgets_block_editor', 1 );
 add_action( 'init', 'wp_widgets_init', 1 );
 
 // Admin Bar.
@@ -657,5 +659,6 @@ add_filter( 'user_has_cap', 'wp_maybe_grant_site_health_caps', 1, 4 );
 add_filter( 'render_block_context', '_block_template_render_without_post_block_context' );
 add_filter( 'pre_wp_unique_post_slug', 'wp_filter_wp_template_unique_post_slug', 10, 5 );
 add_action( 'wp_footer', 'the_block_template_skip_link' );
+add_action( 'setup_theme', 'wp_enable_block_templates' );
 
 unset( $filter, $action );

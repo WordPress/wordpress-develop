@@ -212,6 +212,8 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		this.observers.push( attachments );
 
 		attachments.on( 'add change remove', this._validateHandler, this );
+		attachments.on( 'add', this._addToTotalAttachments, this );
+		attachments.on( 'remove', this._removeFromTotalAttachments, this );
 		attachments.on( 'reset', this._validateAllHandler, this );
 		this.validateAll( attachments );
 		return this;
@@ -235,6 +237,30 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 		}
 
 		return this;
+	},
+	/**
+	 * Update total attachment count when items are added to a collection.
+	 *
+	 * @access private
+	 *
+	 * @since 5.8.0
+	 */
+	_removeFromTotalAttachments: function() {
+		if ( this.mirroring ) {
+			this.mirroring.totalAttachments = this.mirroring.totalAttachments - 1;
+		}
+	},
+	/**
+	 * Update total attachment count when items are added to a collection.
+	 *
+	 * @access private
+	 *
+	 * @since 5.8.0
+	 */
+	_addToTotalAttachments: function() {
+		if ( this.mirroring ) {
+			this.mirroring.totalAttachments = this.mirroring.totalAttachments + 1;
+		}
 	},
 	/**
 	 * @access private
@@ -375,21 +401,15 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 	 * passing through the JSON response. We override this to add attributes to
 	 * the collection items.
 	 *
-	 * @since 5.8.0 The response returns the attachments under `response.attachments` and
-	 *              `response.totalAttachments` holds the total number of attachments found.
-	 *
 	 * @param {Object|Array} response The raw response Object/Array.
 	 * @param {Object} xhr
 	 * @return {Array} The array of model attributes to be added to the collection
 	 */
 	parse: function( response, xhr ) {
-		if ( ! _.isArray( response.attachments ) ) {
-			response = [ response.attachments ];
+		if ( ! _.isArray( response ) ) {
+			  response = [response];
 		}
-
-		this.totalAttachments = parseInt( response.totalAttachments, 10 );
-
-		return _.map( response.attachments, function( attrs ) {
+		return _.map( response, function( attrs ) {
 			var id, attachment, newAttributes;
 
 			if ( attrs instanceof Backbone.Model ) {
@@ -409,9 +429,10 @@ var Attachments = Backbone.Collection.extend(/** @lends wp.media.model.Attachmen
 			return attachment;
 		});
 	},
+
 	/**
 	 * If the collection is a query, create and mirror an Attachments Query collection.
-	 * 
+	 *
 	 * @access private
 	 * @param {Boolean} refresh Deprecated, refresh parameter no longer used.
 	 */

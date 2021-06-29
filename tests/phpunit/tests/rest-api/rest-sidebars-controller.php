@@ -8,10 +8,11 @@
  */
 
 /**
- * Tests for REST API for Menus.
+ * Tests for REST API for Widgets.
  *
  * @see WP_Test_REST_Controller_Testcase
  * @group restapi
+ * @group widgets
  * @covers WP_REST_Sidebars_Controller
  */
 class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase {
@@ -59,6 +60,18 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$wp_registered_sidebars = array();
 		$_wp_sidebars_widgets   = array();
 		update_option( 'sidebars_widgets', array() );
+	}
+
+	function clean_up_global_scope() {
+		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
+
+		$wp_registered_sidebars        = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		$wp_widget_factory->widgets    = array();
+
+		parent::clean_up_global_scope();
 	}
 
 	private function setup_widget( $option_name, $number, $settings ) {
@@ -128,6 +141,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items() {
+		wp_widgets_init();
+
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
@@ -193,6 +208,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items_active_sidebar_with_widgets() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,
@@ -235,6 +252,56 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 						'text-1',
 						'rss-1',
 					),
+				),
+			),
+			$data
+		);
+	}
+
+	/**
+	 * @ticket 53489
+	 */
+	public function test_get_items_when_registering_new_sidebars() {
+		register_sidebar(
+			array(
+				'name'          => 'New Sidebar',
+				'id'            => 'new-sidebar',
+				'before_widget' => '',
+				'after_widget'  => '',
+				'before_title'  => '',
+				'after_title'   => '',
+			)
+		);
+
+		$request  = new WP_REST_Request( 'GET', '/wp/v2/sidebars' );
+		$response = rest_get_server()->dispatch( $request );
+		$data     = $response->get_data();
+		$data     = $this->remove_links( $data );
+		$this->assertSame(
+			array(
+				array(
+					'id'            => 'wp_inactive_widgets',
+					'name'          => 'Inactive widgets',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'inactive',
+					'widgets'       => array(),
+				),
+				array(
+					'id'            => 'new-sidebar',
+					'name'          => 'New Sidebar',
+					'description'   => '',
+					'class'         => '',
+					'before_widget' => '',
+					'after_widget'  => '',
+					'before_title'  => '',
+					'after_title'   => '',
+					'status'        => 'active',
+					'widgets'       => array(),
 				),
 			),
 			$data
@@ -317,6 +384,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,
@@ -382,6 +451,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item_removes_widget_from_existing_sidebar() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_text',
 			1,
@@ -423,6 +494,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_update_item_moves_omitted_widget_to_inactive_sidebar() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_text',
 			1,
@@ -465,6 +538,8 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	 * @ticket 41683
 	 */
 	public function test_get_items_inactive_widgets() {
+		wp_widgets_init();
+
 		$this->setup_widget(
 			'widget_rss',
 			1,

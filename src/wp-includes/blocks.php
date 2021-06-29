@@ -84,13 +84,16 @@ function register_block_script_handle( $metadata, $field_name ) {
 		substr_replace( $script_path, '.asset.php', - strlen( '.js' ) )
 	);
 	if ( ! file_exists( $script_asset_path ) ) {
-		$message = sprintf(
-			/* translators: %1: field name. %2: block name */
-			__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.', 'default' ),
-			$field_name,
-			$metadata['name']
+		_doing_it_wrong(
+			__FUNCTION__,
+			sprintf(
+				/* translators: 1: Field name, 2: Block name. */
+				__( 'The asset file for the "%1$s" defined in "%2$s" block definition is missing.' ),
+				$field_name,
+				$metadata['name']
+			),
+			'5.5.0'
 		);
-		_doing_it_wrong( __FUNCTION__, $message, '5.5.0' );
 		return false;
 	}
 	$script_asset = require $script_asset_path;
@@ -148,11 +151,13 @@ function register_block_style_handle( $metadata, $field_name ) {
 		$style_uri  = includes_url( 'blocks/' . str_replace( 'core/', '', $metadata['name'] ) . "/style$suffix.css" );
 	}
 
-	$style_handle = generate_block_asset_handle( $metadata['name'], $field_name );
-	$block_dir    = dirname( $metadata['file'] );
-	$style_file   = realpath( "$block_dir/$style_path" );
-	$version      = file_exists( $style_file ) ? filemtime( $style_file ) : false;
-	$result       = wp_register_style(
+	$style_handle   = generate_block_asset_handle( $metadata['name'], $field_name );
+	$block_dir      = dirname( $metadata['file'] );
+	$style_file     = realpath( "$block_dir/$style_path" );
+	$has_style_file = false !== $style_file;
+	$version        = ! $is_core_block && $has_style_file ? filemtime( $style_file ) : false;
+	$style_uri      = $has_style_file ? $style_uri : false;
+	$result         = wp_register_style(
 		$style_handle,
 		$style_uri,
 		array(),
@@ -161,7 +166,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	if ( file_exists( str_replace( '.css', '-rtl.css', $style_file ) ) ) {
 		wp_style_add_data( $style_handle, 'rtl', 'replace' );
 	}
-	if ( file_exists( $style_file ) ) {
+	if ( $has_style_file ) {
 		wp_style_add_data( $style_handle, 'path', $style_file );
 	}
 
@@ -211,8 +216,6 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 
 	/**
 	 * Add `style` and `editor_style` for core blocks if missing.
-	 *
-	 * @since 5.8.0
 	 */
 	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
@@ -220,8 +223,8 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 		if ( ! isset( $metadata['style'] ) ) {
 			$metadata['style'] = "wp-block-$block_name";
 		}
-		if ( ! isset( $metadata['editor_style'] ) ) {
-			$metadata['editor_style'] = "wp-block-$block_name-editor";
+		if ( ! isset( $metadata['editorStyle'] ) ) {
+			$metadata['editorStyle'] = "wp-block-{$block_name}-editor";
 		}
 	}
 
@@ -972,7 +975,21 @@ function block_has_support( $block_type, $feature, $default = false ) {
 	return true === $block_support || is_array( $block_support );
 }
 
+/**
+ * Converts typography keys declared under `supports.*` to `supports.typography.*`.
+ *
+ * Displays a `_doing_it_wrong()` notice when a block using the older format is detected.
+ *
+ * @since 5.8.0
+ *
+ * @param array $metadata Metadata for registering a block type.
+ * @return array Filtered metadata for registering a block type.
+ */
 function wp_migrate_old_typography_shape( $metadata ) {
+	if ( ! isset( $metadata['supports'] ) ) {
+		return $metadata;
+	}
+
 	$typography_keys = array(
 		'__experimentalFontFamily',
 		'__experimentalFontStyle',
@@ -983,18 +1000,30 @@ function wp_migrate_old_typography_shape( $metadata ) {
 		'fontSize',
 		'lineHeight',
 	);
+
 	foreach ( $typography_keys as $typography_key ) {
 		$support_for_key = _wp_array_get( $metadata['supports'], array( $typography_key ), null );
+
 		if ( null !== $support_for_key ) {
-			trigger_error(
-				/* translators: %1$s: Block type, %2$s: typography supports key e.g: fontSize, lineHeight etc... */
-				sprintf( __( 'Block %1$s is declaring %2$s support on block.json under supports.%2$s. %2$s support is now declared under supports.typography.%2$s.', 'gutenberg' ), $metadata['name'], $typography_key ),
-				headers_sent() || WP_DEBUG ? E_USER_WARNING : E_USER_NOTICE
+			_doing_it_wrong(
+				'register_block_type_from_metadata()',
+				sprintf(
+					/* translators: 1: Block type, 2: Typography supports key, e.g: fontSize, lineHeight, etc. 3: block.json, 4: Old metadata key, 5: New metadata key. */
+					__( 'Block "%1$s" is declaring %2$s support in %3$s file under %4$s. %2$s support is now declared under %5$s.' ),
+					$metadata['name'],
+					"<code>$typography_key</code>",
+					'<code>block.json</code>',
+					"<code>supports.$typography_key</code>",
+					"<code>supports.typography.$typography_key</code>"
+				),
+				'5.8.0'
 			);
-			gutenberg_experimental_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
+
+			_wp_array_set( $metadata['supports'], array( 'typography', $typography_key ), $support_for_key );
 			unset( $metadata['supports'][ $typography_key ] );
 		}
 	}
+
 	return $metadata;
 }
 

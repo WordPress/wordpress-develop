@@ -213,6 +213,14 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			$widget['id']       = $parsed_id['id_base'];
 			$widget['is_multi'] = (bool) $widget_object;
 
+			if ( isset( $widget['name'] ) ) {
+				$widget['name'] = html_entity_decode( $widget['name'], ENT_QUOTES, get_bloginfo( 'charset' ) );
+			}
+
+			if ( isset( $widget['description'] ) ) {
+				$widget['description'] = html_entity_decode( $widget['description'], ENT_QUOTES, get_bloginfo( 'charset' ) );
+			}
+
 			unset( $widget['callback'] );
 
 			$classname = '';
@@ -463,6 +471,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		}
 
 		$serialized_instance = serialize( $instance );
+		$widget_key          = $wp_widget_factory->get_widget_key( $id );
 
 		$response = array(
 			'form'     => trim(
@@ -473,7 +482,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 			),
 			'preview'  => trim(
 				$this->get_widget_preview(
-					$widget_object,
+					$widget_key,
 					$instance
 				)
 			),
@@ -495,13 +504,13 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * Returns the output of WP_Widget::widget() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget.
 
-	 * @param WP_Widget $widget_object Widget object to call widget() on.
+	 * @param string    $widget   The widget's PHP class name (see class-wp-widget.php).
 	 * @param array     $instance Widget instance settings.
 	 * @return string
 	 */
-	private function get_widget_preview( $widget_object, $instance ) {
+	private function get_widget_preview( $widget, $instance ) {
 		ob_start();
-		the_widget( get_class( $widget_object ), $instance );
+		the_widget( $widget, $instance );
 		return ob_get_clean();
 	}
 
