@@ -22,6 +22,9 @@ async function deleteAllCategories() {
 		await page.focus( '#doaction' );
 		await page.keyboard.press( 'Enter' );
 	}
+
+	// Make sure that all the categories have been deleted
+	await page.waitForSelector( '#the-list tr:only-child' );
 }
 
 async function createNewCategory() {
@@ -42,6 +45,22 @@ async function createNewCategory() {
 
 	// Wait for the two categories rows to be present
 	await page.waitForSelector( '#the-list tr + tr' );
+}
+
+async function searchForCategory( categoryToSearch ) {
+	// Wait for the search field to appear and focus it
+	const categorySearchInput = await page.waitForSelector( '#tag-search-input' );
+	categorySearchInput.focus();
+
+	// Type the new category title in the search input
+	await page.keyboard.type( categoryToSearch );
+
+	// Move to the search button and click on it
+	await page.keyboard.press( 'Tab' );
+	await page.keyboard.press( 'Enter' );
+
+	// Wait for the search indication text to appears
+	await page.waitForSelector( 'span.subtitle' );
 }
 
 describe( 'Core Categories', () => {
@@ -105,18 +124,7 @@ describe( 'Core Categories', () => {
 
 	it( 'Returns the appropriate result when searching for an existing category', async () => {
 		await createNewCategory();
-
-		// Wait for the search field to appear and focus it
-		const categorySearchInput = await page.waitForSelector( '#tag-search-input' );
-		categorySearchInput.focus();
-
-		// Type the new category title in the search input
-		await page.keyboard.type( 'New category' );
-
-		// Move to the search button and click on it
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Enter' );
-		await page.waitForNavigation();
+		await searchForCategory( 'New Category' );
 
 		// Check that there is only one category row
 		const allCategoriesRows = await page.$$( '#the-list tr' );
@@ -130,17 +138,7 @@ describe( 'Core Categories', () => {
 	} );
 
 	it( 'Should return No categories found. when searching for a category that does not exist', async () => {
-		// Wait for the search field to appear and focus it
-		const categorySearchInput = await page.waitForSelector( '#tag-search-input' );
-		categorySearchInput.focus();
-
-		// Type the new category title in the search input
-		await page.keyboard.type( 'New category' );
-
-		// Move to the search button and click on it
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Enter' );
-		await page.waitForNavigation();
+		await searchForCategory( 'New Category' );
 
 		// Check that there is only one category row
 		const allCategoriesRows = await page.$$( '#the-list tr.no-items' );
