@@ -2554,6 +2554,6 @@ function deactivated_plugins_notice() {
 	// Empty the options.
 	update_option( 'wp_force_deactivated_plugins', array() );
 	if ( is_multisite() ) {
-			update_site_option( 'wp_force_deactivated_plugins', array() );
+		update_site_option( 'wp_force_deactivated_plugins', array() );
 	}
 }
