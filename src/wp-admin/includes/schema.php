@@ -544,7 +544,7 @@ function populate_options( array $options = array() ) {
 		'auto_update_core_major'          => 'enabled',
 
 		// 5.8.0
-		'wp_deactivated_plugins'          => array(),
+		'wp_force_deactivated_plugins'    => array(),
 	);
 
 	// 3.3.0

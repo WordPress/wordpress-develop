@@ -1672,16 +1672,16 @@ function _upgrade_440_force_deactivate_incompatible_plugins() {
  */
 function _upgrade_580_force_deactivate_incompatible_plugins() {
 	if ( defined( 'GUTENBERG_VERSION' ) && version_compare( GUTENBERG_VERSION, '10.7', '<=' ) ) {
-		$deactivated_plugins = get_option( 'wp_deactivated_plugins', array() );
+		$deactivated_plugins = get_option( 'wp_force_deactivated_plugins', array() );
 		$deactivated_plugins['gutenberg'] = array(
 			'plugin_name'         => 'Gutenberg',
 			'version_deactivated' => GUTENBERG_VERSION,
 			'version_compatible'  => '10.8',
 		);
 		if ( is_plugin_active_for_network( 'gutenberg/gutenberg.php' ) ) {
-			update_site_option( 'wp_deactivated_plugins', $deactivated_plugins );
+			update_site_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
 		} else {
-			update_option( 'wp_deactivated_plugins', $deactivated_plugins );
+			update_option( 'wp_force_deactivated_plugins', $deactivated_plugins );
 		}
 		deactivate_plugins( array( 'gutenberg/gutenberg.php' ), true );
 	}

@@ -2494,19 +2494,19 @@ function deactivated_plugins_notice() {
 		return;
 	}
 
-	$blog_deactivated_plugins = get_option( 'wp_deactivated_plugins' );
+	$blog_deactivated_plugins = get_option( 'wp_force_deactivated_plugins' );
 	$site_deactivated_plugins = array();
 
 	if ( false === $blog_deactivated_plugins ) {
 		// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-		update_option( 'wp_deactivated_plugins', array() );
+		update_option( 'wp_force_deactivated_plugins', array() );
 	}
 
 	if ( is_multisite() ) {
-		$site_deactivated_plugins = get_site_option( 'wp_deactivated_plugins' );
+		$site_deactivated_plugins = get_site_option( 'wp_force_deactivated_plugins' );
 		if ( false === $site_deactivated_plugins ) {
 			// Option not in database, add an empty array to avoid extra DB queries on subsequent loads.
-			update_site_option( 'wp_deactivated_plugins', array() );
+			update_site_option( 'wp_force_deactivated_plugins', array() );
 		}
 	}
 
@@ -2552,8 +2552,8 @@ function deactivated_plugins_notice() {
 	}
 
 	// Empty the options.
-	update_option( 'wp_deactivated_plugins', array() );
+	update_option( 'wp_force_deactivated_plugins', array() );
 	if ( is_multisite() ) {
-			update_site_option( 'wp_deactivated_plugins', array() );
+			update_site_option( 'wp_force_deactivated_plugins', array() );
 	}
 }
