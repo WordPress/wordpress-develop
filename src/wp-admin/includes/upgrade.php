@@ -2260,10 +2260,10 @@ function upgrade_560() {
  */
 function upgrade_580() {
 	_upgrade_580_force_deactivate_incompatible_plugins();
-	if ( false === get_option( 'wp_force_deactivated_plugins' ) ) {
+	if ( false === get_option( 'wp_force_deactivated_plugins') ) {
 		add_option( 'wp_force_deactivated_plugins', array() );
 	}
-	if ( false === get_site_option( 'wp_force_deactivated_plugins' ) ) {
+	if ( false === get_site_option( 'wp_force_deactivated_plugins') ) {
 		add_site_option( 'wp_force_deactivated_plugins', array() );
 	}
 }
