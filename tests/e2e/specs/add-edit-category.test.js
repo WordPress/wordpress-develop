@@ -80,9 +80,6 @@ describe( 'Core Categories', () => {
 	it( 'Allows an existing category to be deleted using the delete link', async () => {
 		await createNewCategory();
 
-		// Wait for the new category row to appear
-		await page.waitForSelector( '#the-list tr:first-child .row-title' );
-
 		// Check that the new category is added and shows correctly
 		const newCategoryLink = await page.waitForSelector( '#the-list tr:first-child .row-title' )
 		
