@@ -59,13 +59,6 @@
 	padding: 0 24px;
 }
 
-.about-php #wpcontent {
-	background-position: bottom center;
-	background-repeat: no-repeat;
-	background-size: contain;
-	background-image: url('../images/about-background.svg'), linear-gradient(180deg, #fff 50%, #f0f7ff 100%);
-}
-
 @media screen and (max-width: 782px) {
 	.about-php.auto-fold #wpcontent,
 	.credits-php.auto-fold #wpcontent,
@@ -620,12 +613,24 @@
 .about__header {
 	margin-bottom: var(--gap);
 	padding-top: 0;
-	background-position: top center;
+	background-position: center;
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-image: url('../images/about-header-about.svg');
 	background-color: var(--accent-2);
 	color: var(--text-light);
+}
+
+.credits-php .about__header {
+	background-image: url('../images/about-header-credits.svg');
+}
+
+.freedoms-php .about__header {
+	background-image: url('../images/about-header-freedoms.svg');
+}
+
+.privacy-php .about__header {
+	background-image: url('../images/about-header-privacy.svg');
 }
 
 .about__header-image {
@@ -640,15 +645,16 @@
 .about__header-title h1 {
 	margin: 0 0 0.5rem;
 	padding: 0;
-	font-size: 6rem;
+	font-size: 4.5rem;
 	line-height: 1;
+	font-weight: 400;
 }
 
 .about__header-text {
-	max-width: 25rem;
-	margin: 0 0 6em;
+	max-width: 42rem;
+	margin: 0 0 5em;
 	padding: 0 2rem;
-	font-size: 2.5rem;
+	font-size: 2rem;
 	line-height: 1.15;
 }
 
@@ -715,6 +721,7 @@
 		margin-right: calc(var(--gap) / 2);
 	}
 
+	.about__header-text,
 	.about__header-navigation .nav-tab {
 		margin-top: 0;
 		margin-right: 0;
