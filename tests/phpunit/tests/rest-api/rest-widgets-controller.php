@@ -1139,16 +1139,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$base_id = 'custom-widget';
 		$sidebar = 'sidebar-1';
 
-		$custom_widget = new class( $base_id, $base_id ) extends \WP_Widget {
-
-			public function widget( $args, $instance ) {}
-
-			public function update( $new_instance, $old_instance ) {
-				$new_instance['sidebar'] = $_POST['sidebar'];
-
-				return $new_instance;
-			}
-		};
+		$custom_widget = new Test_WP_Widget_For_53452( $base_id, $base_id );
 
 		register_widget( $custom_widget );
 		$wp_widget_factory->_register_widgets();
@@ -1171,12 +1162,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
-				'id_base'   => $base_id,
-				'instance'  => array(
+				'id_base'  => $base_id,
+				'instance' => array(
 					'encoded' => base64_encode( serialize( $instance ) ),
 					'hash'    => wp_hash( serialize( $instance ) ),
 				),
-				'sidebar'   => $sidebar,
+				'sidebar'  => $sidebar,
 			)
 		);
 		rest_get_server()->dispatch( $request );
@@ -1485,3 +1476,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		return $data;
 	}
 }
+
+class Test_WP_Widget_For_53452 extends \WP_Widget {
+
+	public function widget( $args, $instance ) {}
+
+	public function update( $new_instance, $old_instance ) {
+		$new_instance['sidebar'] = $_POST['sidebar'];
+
+		return $new_instance;
+	}
+};
