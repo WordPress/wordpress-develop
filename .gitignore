@@ -29,6 +29,9 @@ wp-tests-config.php
 /src/wp-includes/css/*.min.css
 /src/wp-includes/css/*-rtl.css
 /src/wp-includes/blocks/**/*.css
+/src/wp-includes/blocks/**/*.js
+/src/wp-includes/blocks/**/*.js.map
+/src/wp-includes/blocks/**/*.asset.php
 /packagehash.txt
 /artifacts
 
