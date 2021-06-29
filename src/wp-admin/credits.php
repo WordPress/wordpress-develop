@@ -40,7 +40,7 @@ $credits = wp_credits();
 	</div>
 
 	<div class="about__section is-feature">
-		<div class="column">
+		<div class="column aligncenter">
 			<?php if ( ! $credits ) : ?>
 
 			<p>
@@ -84,7 +84,7 @@ if ( ! $credits ) {
 	<hr />
 
 	<div class="about__section">
-		<div class="column has-subtle-background-color">
+		<div class="column is-edge-to-edge">
 			<?php wp_credits_section_title( $credits['groups']['core-developers'] ); ?>
 			<?php wp_credits_section_list( $credits, 'core-developers' ); ?>
 			<?php wp_credits_section_list( $credits, 'contributing-developers' ); ?>

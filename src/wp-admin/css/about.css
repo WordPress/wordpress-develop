@@ -762,46 +762,59 @@
   2.0 - Credits Page
 ------------------------------------------------------------------------------*/
 
+.about__section .wp-people-group-title {
+	margin-bottom: calc(var(--gap) * 2);
+	text-align: center;
+
+}
+
 .about__section .wp-people-group {
 	margin: 0;
+	display: flex;
+	flex-wrap: wrap;
 }
 
 .about__section .wp-person {
 	display: inline-block;
 	vertical-align: top;
 	box-sizing: border-box;
-	padding: 0 1em 1em 0;
-	height: 6em;
-	width: calc( 33% - 4px );
-	min-width: 280px;
+	margin-bottom: var(--gap);
+	width: 25%;
+	text-align: center;
 }
 
 .about__section .compact .wp-person {
 	height: auto;
-	width: calc( 25% - 4px );
-	min-width: 220px;
-	padding-bottom: 0.5em;
+	width: 20%;
+}
+
+.about__section .wp-person-avatar {
+	display: block;
+	margin: 0 auto calc(var(--gap) / 2);
+	width: 160px;
+	height: 160px;
+	border-radius: 100%;
+	overflow: hidden;
+	background: var(--accent-1);
 }
 
 .about__section .wp-person .gravatar {
-	float: left;
-	margin: -4px 0.85em 0.85em 0;
-	padding: 1px;
-	width: 80px;
-	height: 80px;
-	border-radius: 100%;
+	width: 160px;
+	height: 160px;
+	filter: grayscale(100%);
+	mix-blend-mode: screen;
 }
 
+.about__section .compact .wp-person-avatar,
 .about__section .compact .wp-person .gravatar {
-	width: 40px;
-	height: 40px;
+	width: 80px;
+	height: 80px;
 }
 
 .about__section .wp-person .web {
 	font-size: 1.4em;
 	font-weight: 600;
 	text-decoration: none;
-	color: var(--text);
 }
 
 .about__section .wp-person .web:hover {
@@ -817,14 +830,39 @@
 	margin-top: 0.5em;
 }
 
+@media screen and (max-width: 782px) {
+	.about__section .wp-person {
+		width: 33%;
+	}
+
+	.about__section .compact .wp-person {
+		width: 25%;
+	}
+
+	.about__section .wp-person-avatar,
+	.about__section .wp-person .gravatar {
+		width: 120px;
+		height: 120px;
+	}
+}
+
+@media screen and (max-width: 600px) {
+	.about__section .wp-person {
+		width: 50%;
+	}
+
+	.about__section .compact .wp-person {
+		width: 33%;
+	}
+
+	.about__section .wp-person .web {
+		font-size: 1.2em;
+	}
+}
+
 @media screen and (max-width: 480px) {
 	.about__section .wp-person {
 		min-width: 100%;
-	}
-
-	.about__section .wp-person .gravatar {
-		width: 60px;
-		height: 60px;
 	}
 
 	.about__section .wp-person .web {
