@@ -1,5 +1,6 @@
 import { 
 	visitAdminPage,
+	pressKeyTimes,
 } from "@wordpress/e2e-test-utils";
 import { addQueryArgs } from "@wordpress/url";
 
@@ -87,9 +88,7 @@ describe( 'Core Categories', () => {
 		
 		// Focus on the new category link and move to the delete link
 		newCategoryLink.focus();
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
+		await pressKeyTimes( 'Tab', 3 ); 
 
 		// Click on the delete link
 		await page.keyboard.press( 'Enter' );
@@ -165,8 +164,7 @@ describe( 'Core Categories', () => {
 		
 		// Focus on the new category link and move to the quick edit link
 		newCategoryLink.focus();
-		await page.keyboard.press( 'Tab' );
-		await page.keyboard.press( 'Tab' );
+		await pressKeyTimes( 'Tab', 2 ); 
 
 		// Click on the quick edit link
 		await page.keyboard.press( 'Enter' );
