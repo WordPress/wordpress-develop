@@ -126,6 +126,9 @@ describe( 'Core Categories', () => {
 		await createNewCategory();
 		await searchForCategory( 'New Category' );
 
+		// Wait for the categories rows to appear
+		await page.waitForSelector( '#the-list tr' );
+
 		// Check that there is only one category row
 		const allCategoriesRows = await page.$$( '#the-list tr' );
 		expect( allCategoriesRows.length ).toBe( 1 );
@@ -139,6 +142,9 @@ describe( 'Core Categories', () => {
 
 	it( 'Should return No categories found. when searching for a category that does not exist', async () => {
 		await searchForCategory( 'New Category' );
+
+		// Wait for the not found categories rows to appear
+		await page.waitForSelector( '#the-list tr.no-items' );
 
 		// Check that there is only one category row
 		const allCategoriesRows = await page.$$( '#the-list tr.no-items' );
