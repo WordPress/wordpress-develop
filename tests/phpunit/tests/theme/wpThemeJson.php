@@ -16,7 +16,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_settings() {
+	public function test_get_settings() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -67,7 +67,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 53397
 	 */
-	function test_get_settings_presets_are_keyed_by_origin() {
+	public function test_get_settings_presets_are_keyed_by_origin() {
 		$core_origin = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -195,7 +195,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 53175
 	 */
-	function test_get_stylesheet() {
+	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -316,7 +316,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
+	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -346,7 +346,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 53175
 	 */
-	function test_get_stylesheet_preset_rules_come_after_block_rules() {
+	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
@@ -670,7 +670,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_from_editor_settings() {
+	public function test_get_from_editor_settings() {
 		$input = array(
 			'disableCustomColors'    => true,
 			'disableCustomGradients' => true,
@@ -746,7 +746,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_no_theme_support() {
+	public function test_get_editor_settings_no_theme_support() {
 		$input = array(
 			'__unstableEnableFullSiteEditingBlocks' => false,
 			'disableCustomColors'                   => false,
@@ -801,7 +801,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_blank() {
+	public function test_get_editor_settings_blank() {
 		$expected = array(
 			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 			'settings' => array(),
@@ -814,7 +814,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_disabled() {
+	public function test_get_editor_settings_custom_units_can_be_disabled() {
 		add_theme_support( 'custom-units', array() );
 		$input = get_default_block_editor_settings();
 
@@ -831,7 +831,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_enabled() {
+	public function test_get_editor_settings_custom_units_can_be_enabled() {
 		add_theme_support( 'custom-units' );
 		$input = get_default_block_editor_settings();
 
@@ -848,7 +848,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_get_editor_settings_custom_units_can_be_filtered() {
+	public function test_get_editor_settings_custom_units_can_be_filtered() {
 		add_theme_support( 'custom-units', 'rem', 'em' );
 		$input = get_default_block_editor_settings();
 
