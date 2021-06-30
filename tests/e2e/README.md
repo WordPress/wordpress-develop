@@ -7,14 +7,7 @@ End-To-End (E2E) tests for WordPress.
 
 The e2e tests require a production-like environment to run. By default, they will assume an environment is available at `http://localhost:8889`, with username=admin and password=password.
 
-If you’re using a custom setup, you can provide the base URL, username and password like this:
-
-```
-npm run test-e2e -- --wordpress-base-url=http://mycustomurl --wordpress-username=username --wordpress-password=password
-```
-**DO NOT run these tests in an actual production environment, as they will delete all your content.**
-
-Once your environment is ready, you can launch the e2e tests suite by running:
+You can launch the tests by running:
 
 ```
 npm run test:e2e
@@ -22,13 +15,20 @@ npm run test:e2e
 
 This will run the test suite using a headless browser. 
 
+If your environment has a different url, username or password to the default, you can provide the base URL, username and password like this:
+
+```
+npm run test:e2e -- --wordpress-base-url=http://mycustomurl --wordpress-username=username --wordpress-password=password
+```
+**DO NOT run these tests in an actual production environment, as they will delete all your content.**
+
 For debugging purposes, you might want to follow the test visually. You can do so by running the tests in an interactive mode.
 
 ```
 npm run test:e2e -- --puppeteer-interactive
 ```
 
-You can also run a given test file separately:
+You can also run a single test file separately:
 
 ```
 npm run test:e2e tests/e2e/specs/hello.test.js
