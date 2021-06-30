@@ -25,8 +25,40 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		require_once ABSPATH . WPINC . '/class-wp-customize-manager.php';
 
 		add_theme_support( 'customize-selective-refresh-widgets' );
+		add_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		wp_set_current_user( $user_id );
+
+		update_option(
+			'widget_search',
+			array(
+				2              => array( 'title' => '' ),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'widget_categories',
+			array(
+				2              => array(
+					'title'        => '',
+					'count'        => 0,
+					'hierarchical' => 0,
+					'dropdown'     => 0,
+				),
+				'_multiwidget' => 1,
+			)
+		);
+		update_option(
+			'sidebars_widgets',
+			array(
+				'wp_inactive_widgets' => array(),
+				'sidebar-1'           => array( 'search-2' ),
+				'sidebar-2'           => array( 'categories-2' ),
+				'array_version'       => 3,
+			)
+		);
+
 		$GLOBALS['wp_customize'] = new WP_Customize_Manager();
 		$this->manager           = $GLOBALS['wp_customize'];
 
@@ -85,6 +117,10 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		do_action( 'wp', $GLOBALS['wp'] );
 	}
 
+	function remove_widgets_block_editor() {
+		remove_theme_support( 'widgets-block-editor' );
+	}
+
 	/**
 	 * Test WP_Customize_Widgets::__construct()
 	 */
@@ -106,6 +142,85 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		register_sidebar( array( 'id' => $sidebar_id ) );
 		$this->manager->widgets->customize_register();
 		$this->assertSame( array_fill_keys( array( 'wp_inactive_widgets', $sidebar_id ), array() ), wp_get_sidebars_widgets() );
+	}
+
+	/**
+	 * Tests the label and description controls when registering sidebars with Customizer.
+	 *
+	 * @ticket       53487
+	 * @dataProvider data_customize_register_control_label_and_description
+	 * @covers       WP_Customize_Widgets::customize_register
+	 */
+	public function test_customize_register_control_label_and_description( $sidebars, $use_classic_widgets, $expected ) {
+		if ( $use_classic_widgets ) {
+			add_filter( 'use_widgets_block_editor', '__return_false' );
+		}
+
+		foreach ( $sidebars as $args ) {
+			register_sidebar( $args );
+		}
+
+		$this->manager->widgets->customize_register();
+
+		$label       = array();
+		$description = array();
+		foreach ( array_keys( $sidebars ) as $sidebar_id ) {
+			$control_id    = "sidebars_widgets[{$sidebar_id}]";
+			$control       = $this->manager->get_control( $control_id );
+			$label[]       = $control->label;
+			$description[] = $control->description;
+		}
+
+		$this->assertSame( $expected['label'], $label );
+		$this->assertSame( $expected['description'], $description );
+	}
+
+	public function data_customize_register_control_label_and_description() {
+		return array(
+			'with widgets block editor' => array(
+				'sidebars'            => array(
+					'footer-1' => array(
+						'id'          => 'footer-1',
+						'name'        => 'Footer 1',
+						'description' => 'This is the Footer 1 sidebar.',
+					),
+					'footer-2' => array(
+						'id'          => 'footer-2',
+						'name'        => 'Footer 2',
+						'description' => 'This is the Footer 2 sidebar.',
+					),
+				),
+				'use_classic_widgets' => false,
+				'expected'            => array(
+					'label'       => array( 'Footer 1', 'Footer 2' ),
+					'description' => array( '', '' ),
+				),
+			),
+			'with classic widgets'      => array(
+				'sidebars'            => array(
+					'classic-1' => array(
+						'id'          => 'classic-1',
+						'name'        => 'Classic 1',
+						'description' => 'This is the Classic 1 sidebar.',
+					),
+					'classic-2' => array(
+						'id'          => 'classic-2',
+						'name'        => 'Classic 2',
+						'description' => 'This is the Classic 2 sidebar.',
+					),
+					'classic-3' => array(
+						'id'          => 'classic-3',
+						'name'        => 'Classic 3',
+						'description' => 'This is the Classic 3 sidebar.',
+					),
+				),
+				'use_classic_widgets' => true,
+				'expected'            => array(
+					'label'       => array( '', '', '' ),
+					'description' => array( '', '', '' ),
+				),
+			),
+		);
 	}
 
 	/**
@@ -258,31 +373,31 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		add_filter( 'widget_customizer_setting_args', array( $this, 'filter_widget_customizer_setting_args' ), 10, 2 );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'refresh',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'refresh',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_foo[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'WIDGET_FOO[2]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_widget_instance' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_widget_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 
 		remove_theme_support( 'customize-selective-refresh-widgets' );
 		$args = $this->manager->widgets->get_setting_args( 'widget_search[2]' );
@@ -304,17 +419,17 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 'WIDGET_BAR[3]', $args['uppercase_id_set_by_filter'] );
 
 		$default_args = array(
-			'type'                 => 'option',
-			'capability'           => 'edit_theme_options',
-			'transport'            => 'postMessage',
-			'default'              => array(),
-			'sanitize_callback'    => array( $this->manager->widgets, 'sanitize_sidebar_widgets' ),
-			'sanitize_js_callback' => array( $this->manager->widgets, 'sanitize_sidebar_widgets_js_instance' ),
+			'type'       => 'option',
+			'capability' => 'edit_theme_options',
+			'transport'  => 'postMessage',
+			'default'    => array(),
 		);
 		$args         = $this->manager->widgets->get_setting_args( 'sidebars_widgets[sidebar-1]' );
 		foreach ( $default_args as $key => $default_value ) {
 			$this->assertSame( $default_value, $args[ $key ] );
 		}
+		$this->assertTrue( is_callable( $args['sanitize_callback'] ), 'sanitize_callback is callable' );
+		$this->asserttrue( is_callable( $args['sanitize_js_callback'] ), 'sanitize_js_callback is callable' );
 		$this->assertSame( 'SIDEBARS_WIDGETS[SIDEBAR-1]', $args['uppercase_id_set_by_filter'] );
 
 		$override_args = array(
@@ -363,6 +478,75 @@ class Tests_WP_Customize_Widgets extends WP_UnitTestCase {
 
 		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );
 		$this->assertSame( $unsanitized_from_js, $new_categories_instance );
+	}
+
+	/**
+	 * There should be a 'raw_instance' key when the block editor is enabled and
+	 * the widget supports them via `show_instance_in_rest`.
+	 *
+	 * @ticket 53489
+	 */
+	function test_sanitize_widget_instance_raw_instance() {
+		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+		$this->do_customize_boot_actions();
+
+		$block_instance = array(
+			'content' => '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->',
+		);
+
+		$sanitized_for_js = $this->manager->widgets->sanitize_widget_js_instance( $block_instance, 'block' );
+		$this->assertArrayHasKey( 'encoded_serialized_instance', $sanitized_for_js );
+		$this->assertTrue( is_serialized( base64_decode( $sanitized_for_js['encoded_serialized_instance'] ), true ) );
+		$this->assertSame( '', $sanitized_for_js['title'] );
+		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
+		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+		$this->assertEquals( (object) $block_instance, $sanitized_for_js['raw_instance'] );
+
+		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );
+		$this->assertSame( $unsanitized_from_js, $block_instance );
+	}
+
+	/**
+	 * There should NOT be a 'raw_instance' key when the block editor is enabled
+	 * but the widget does not support them because `show_instance_in_rest` on
+	 * the widget is set to false.
+	 *
+	 * @ticket 53489
+	 */
+	function test_sanitize_widget_instance_with_no_show_instance_in_rest() {
+		global $wp_widget_factory;
+
+		remove_action( 'widgets_init', array( $this, 'remove_widgets_block_editor' ) );
+		$this->do_customize_boot_actions();
+
+		$widget_object = $wp_widget_factory->get_widget_object( 'block' );
+		$widget_object->widget_options['show_instance_in_rest'] = false;
+
+		$block_instance = array(
+			'content' => '<!-- wp:paragraph --><p>Hello</p><!-- /wp:paragraph -->',
+		);
+
+		$sanitized_for_js = $this->manager->widgets->sanitize_widget_js_instance( $block_instance, 'block' );
+		$this->assertArrayHasKey( 'encoded_serialized_instance', $sanitized_for_js );
+		$this->assertTrue( is_serialized( base64_decode( $sanitized_for_js['encoded_serialized_instance'] ), true ) );
+		$this->assertSame( '', $sanitized_for_js['title'] );
+		$this->assertTrue( $sanitized_for_js['is_widget_customizer_js_value'] );
+		$this->assertArrayHasKey( 'instance_hash_key', $sanitized_for_js );
+		$this->assertArrayNotHasKey( 'raw_instance', $sanitized_for_js );
+
+		$unsanitized_from_js = $this->manager->widgets->sanitize_widget_instance( $sanitized_for_js );
+		$this->assertSame( $unsanitized_from_js, $block_instance );
+	}
+
+	/**
+	 * Empty instances, seen when inserting a new widget, should be left alone
+	 * when sanitized.
+	 *
+	 * @ticket 53479
+	 */
+	function test_sanitize_widget_instance_empty_instance() {
+		$this->do_customize_boot_actions();
+		$this->assertSame( $this->manager->widgets->sanitize_widget_instance( array() ), array() );
 	}
 
 	/**

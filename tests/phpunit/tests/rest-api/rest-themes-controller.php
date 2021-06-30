@@ -219,7 +219,7 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 			'theme_uri',
 			'version',
 		);
-		$this->assertEqualSets( $fields, array_keys( $data[0] ) );
+		$this->assertSameSets( $fields, array_keys( $data[0] ) );
 
 		$this->assertContains( 'twentytwenty', wp_list_pluck( $data, 'stylesheet' ) );
 		$this->assertNotContains( get_stylesheet(), wp_list_pluck( $data, 'stylesheet' ) );
@@ -1236,8 +1236,8 @@ class WP_Test_REST_Themes_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 		$fields_links = array( 'collection', 'self' );
 
-		$this->assertEqualSets( $fields, array_keys( $data ) );
-		$this->assertEqualSets( $fields_links, array_keys( $links ) );
+		$this->assertSameSets( $fields, array_keys( $data ) );
+		$this->assertSameSets( $fields_links, array_keys( $links ) );
 	}
 
 	/**

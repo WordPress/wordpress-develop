@@ -138,7 +138,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * After a test method runs, reset any state in WordPress the test method might have changed.
+	 * After a test method runs, resets any state in WordPress the test method might have changed.
 	 */
 	public function tearDown() {
 		global $wpdb, $wp_query, $wp;
@@ -179,7 +179,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped on some automated runs.
+	 * Allows tests to be skipped on some automated runs.
 	 *
 	 * For test runs on GitHub Actions for something other than trunk/master,
 	 * we want to skip tests that only need to run for master.
@@ -200,7 +200,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped when Multisite is not in use.
+	 * Allows tests to be skipped when Multisite is not in use.
 	 *
 	 * Use in conjunction with the ms-required group.
 	 */
@@ -211,7 +211,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped when Multisite is in use.
+	 * Allows tests to be skipped when Multisite is in use.
 	 *
 	 * Use in conjunction with the ms-excluded group.
 	 */
@@ -222,7 +222,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Allow tests to be skipped if the HTTP request times out.
+	 * Allows tests to be skipped if the HTTP request times out.
 	 *
 	 * @param array|WP_Error $response HTTP response.
 	 */
@@ -245,7 +245,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister existing post types and register defaults.
+	 * Unregisters existing post types and register defaults.
 	 *
 	 * Run before each test in order to clean up the global scope, in case
 	 * a test forgets to unregister a post type on its own, or fails before
@@ -261,7 +261,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister existing taxonomies and register defaults.
+	 * Unregisters existing taxonomies and register defaults.
 	 *
 	 * Run before each test in order to clean up the global scope, in case
 	 * a test forgets to unregister a taxonomy on its own, or fails before
@@ -275,7 +275,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Unregister non-built-in post statuses.
+	 * Unregisters non-built-in post statuses.
 	 */
 	protected function reset_post_statuses() {
 		foreach ( get_post_stati( array( '_builtin' => false ) ) as $post_status ) {
@@ -284,7 +284,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Reset `$_SERVER` variables
+	 * Resets `$_SERVER` variables
 	 */
 	protected function reset__SERVER() {
 		tests_reset__SERVER();
@@ -352,7 +352,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Clean up any registered meta keys.
+	 * Cleans up any registered meta keys.
 	 *
 	 * @since 5.1.0
 	 *
@@ -384,7 +384,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Commit the queries in a transaction.
+	 * Commits the queries in a transaction.
 	 *
 	 * @since 4.1.0
 	 */
@@ -509,7 +509,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Detect post-test failure conditions.
+	 * Detects post-test failure conditions.
 	 *
 	 * We use this method to detect expectedDeprecated and expectedIncorrectUsage annotations.
 	 *
@@ -520,7 +520,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Declare an expected `_deprecated_function()` or `_deprecated_argument()` call from within a test.
+	 * Declares an expected `_deprecated_function()` or `_deprecated_argument()` call from within a test.
 	 *
 	 * @since 4.2.0
 	 *
@@ -532,7 +532,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Declare an expected `_doing_it_wrong()` call from within a test.
+	 * Declares an expected `_doing_it_wrong()` call from within a test.
 	 *
 	 * @since 4.2.0
 	 *
@@ -626,7 +626,7 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * @param string $message Optional. Message to display when the assertion fails.
 	 */
 	public function assertNotIXRError( $actual, $message = '' ) {
-		if ( $actual instanceof IXR_Error && '' === $message ) {
+		if ( '' === $message && $actual instanceof IXR_Error ) {
 			$message = $actual->message;
 		}
 		$this->assertNotInstanceOf( 'IXR_Error', $actual, $message );
@@ -660,12 +660,27 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * Asserts that two values have the same type and value, with EOL differences discarded.
 	 *
 	 * @since 5.6.0
+	 * @since 5.8.0 Added support for nested arrays.
 	 *
-	 * @param string $expected The expected value.
-	 * @param string $actual   The actual value.
+	 * @param string|array $expected The expected value.
+	 * @param string|array $actual   The actual value.
 	 */
 	public function assertSameIgnoreEOL( $expected, $actual ) {
-		$this->assertSame( str_replace( "\r\n", "\n", $expected ), str_replace( "\r\n", "\n", $actual ) );
+		$expected = map_deep(
+			$expected,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$actual = map_deep(
+			$actual,
+			function ( $value ) {
+				return str_replace( "\r\n", "\n", $value );
+			}
+		);
+
+		$this->assertSame( $expected, $actual );
 	}
 
 	/**
@@ -1155,8 +1170,8 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	}
 
 	/**
-	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property. Hidden
-	 * directories are ignored.
+	 * Retrieves all directories contained inside a directory and stores them in the `$matched_dirs` property.
+	 * Hidden directories are ignored.
 	 *
 	 * This is a helper for the `delete_folders()` method.
 	 *

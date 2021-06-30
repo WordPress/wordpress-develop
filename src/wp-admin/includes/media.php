@@ -993,7 +993,7 @@ function wp_media_upload_handler() {
 function media_sideload_image( $file, $post_id = 0, $desc = null, $return = 'html' ) {
 	if ( ! empty( $file ) ) {
 
-		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif' );
+		$allowed_extensions = array( 'jpg', 'jpeg', 'jpe', 'png', 'gif', 'webp' );
 
 		/**
 		 * Filters the list of allowed file extensions when sideloading an image from a URL.
@@ -2196,6 +2196,11 @@ function media_upload_form( $errors = null ) {
 		strpos( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' ) !== false
 	) {
 		$plupload_init['multi_selection'] = false;
+	}
+
+	// Check if WebP images can be edited.
+	if ( ! wp_image_editor_supports( array( 'mime_type' => 'image/webp' ) ) ) {
+		$plupload_init['webp_upload_error'] = true;
 	}
 
 	/**
