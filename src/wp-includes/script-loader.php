@@ -2269,7 +2269,12 @@ function wp_enqueue_global_styles() {
 
 	$separate_assets = wp_should_load_separate_core_block_assets();
 
-	// Global styles should be displayed in the header when loading combined.
+	/*
+	 * Global styles should be displayed in the header when loading combined.
+	 * The footer is should only be used to print global styles for classic themes with separate core assets enabled.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/53494.
+	 */
 	if ( ! $separate_assets && doing_action( 'wp_footer' ) ) {
 		return;
 	}
