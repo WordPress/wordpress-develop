@@ -165,19 +165,20 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	private function setup_widget( $id_base, $number, $settings ) {
+		$this->setup_widgets( $id_base, array( $number => $settings ) );
+	}
+
+	private function setup_widgets( $id_base, $settings ) {
 		global $wp_widget_factory;
 
 		$option_name = "widget_$id_base";
-		update_option(
-			$option_name,
-			array(
-				$number => $settings,
-			)
-		);
+		update_option( $option_name, $settings );
 
 		$widget_object = $wp_widget_factory->get_widget_object( $id_base );
-		$widget_object->_set( $number );
-		$widget_object->_register_one( $number );
+		foreach ( array_keys( $settings ) as $number ) {
+			$widget_object->_set( $number );
+			$widget_object->_register_one( $number );
+		}
 	}
 
 	private function setup_sidebar( $id, $attrs = array(), $widgets = array() ) {
@@ -1376,6 +1377,61 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_do_request( $request );
 
 		$this->assertErrorResponse( 'rest_cannot_manage_widgets', $response, 403 );
+	}
+
+	/**
+	 * @ticket 53557
+	 */
+	public function test_delete_item_multiple() {
+		$this->setup_widgets(
+			'text',
+			array(
+				2 => array( 'text' => 'Text widget' ),
+				3 => array( 'text' => 'Text widget' ),
+				4 => array( 'text' => 'Text widget' ),
+			)
+		);
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-2', 'text-3', 'text-4' )
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'DELETE',
+						'path'   => '/wp/v2/widgets/text-2?force=1',
+					),
+					array(
+						'method' => 'DELETE',
+						'path'   => '/wp/v2/widgets/text-3?force=1',
+					),
+					array(
+						'method' => 'DELETE',
+						'path'   => '/wp/v2/widgets/text-4?force=1',
+					),
+				),
+			)
+		);
+		$response = rest_do_request( $request );
+
+		$this->assertSame(
+			array(
+				'sidebar-1' => array(),
+			),
+			wp_get_sidebars_widgets()
+		);
+		$this->assertSame(
+			array(
+				'_multiwidget' => 1,
+			),
+			get_option( 'widget_text' )
+		);
 	}
 
 	/**
