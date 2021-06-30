@@ -339,7 +339,7 @@ if ( ! function_exists( 'twenty_twenty_one_setup' ) ) {
 		// This was removed in WordPress 5.6 but is still required to properly support WP 5.5.
 		add_theme_support( 'custom-units' );
 
-		// Add support for block templates. 
+		// Add support for block templates.
 		add_theme_support( 'block-templates' );
 	}
 }
@@ -639,7 +639,7 @@ add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
  * @return string (block template markup)
  */
 function twenty_twenty_one_default_block_template() {
-	add_filter( 'block_editor_settings_all', 
+	add_filter( 'block_editor_settings_all',
 		function( $settings ) {
 			$settings['defaultBlockTemplate'] = file_get_contents( get_theme_file_path( 'block-templates/default.html' ) );
 			return $settings;
