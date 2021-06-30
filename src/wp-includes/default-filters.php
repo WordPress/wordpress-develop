@@ -328,7 +328,6 @@ add_action( 'wp_head', 'rel_canonical' );
 add_action( 'wp_head', 'wp_shortlink_wp_head', 10, 0 );
 add_action( 'wp_head', 'wp_custom_css_cb', 101 );
 add_action( 'wp_head', 'wp_site_icon', 99 );
-add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 add_action( 'wp_footer', 'wp_print_footer_scripts', 20 );
 add_action( 'template_redirect', 'wp_shortlink_header', 11, 0 );
 add_action( 'wp_print_footer_scripts', '_wp_footer_scripts' );
@@ -554,7 +553,6 @@ add_action( 'wp_default_scripts', 'wp_default_packages' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
@@ -567,6 +565,10 @@ add_action( 'admin_print_scripts-index.php', 'wp_localize_community_events' );
 add_filter( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_filter( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
+
+// Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
+add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );
