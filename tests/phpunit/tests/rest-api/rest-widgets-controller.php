@@ -95,20 +95,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	public function setUp() {
-		global $wp_registered_widgets, $wp_registered_sidebars, $_wp_sidebars_widgets, $wp_widget_factory;
+		global $wp_widget_factory;
 
 		parent::setUp();
 
 		wp_set_current_user( self::$admin_id );
 
-		// Unregister all widgets and sidebars.
-		$wp_registered_widgets  = array();
-		$wp_registered_sidebars = array();
-		$_wp_sidebars_widgets   = array();
-		update_option( 'sidebars_widgets', array() );
-
 		// Re-register core widgets.
-		$wp_widget_factory->_register_widgets();
+		wp_widgets_init();
 
 		// Register a non-multi widget for testing.
 		wp_register_widget_control(
@@ -147,6 +141,27 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 				'description' => 'A non-multi widget for testing.',
 			)
 		);
+	}
+
+	public function clean_up_global_scope() {
+		global
+			$wp_widget_factory,
+			$wp_registered_sidebars,
+			$wp_registered_widgets,
+			$wp_registered_widget_controls,
+			$wp_registered_widget_updates,
+			$_wp_sidebars_widgets;
+
+		$wp_registered_sidebars        = array();
+		$wp_registered_widgets         = array();
+		$wp_registered_widget_controls = array();
+		$wp_registered_widget_updates  = array();
+		$wp_widget_factory->widgets    = array();
+		$_wp_sidebars_widgets          = array();
+
+		update_option( 'sidebars_widgets', array() );
+
+		parent::clean_up_global_scope();
 	}
 
 	private function setup_widget( $id_base, $number, $settings ) {
@@ -211,7 +226,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( array(), $data );
+		$this->assertSame( array(), $data );
 	}
 
 	/**
@@ -272,11 +287,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				array(
 					'id'       => 'block-1',
+					'id_base'  => 'block',
 					'sidebar'  => 'sidebar-1',
+					'rendered' => '<p>Block test</p>',
 					'instance' => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -296,12 +313,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'content' => $block_content,
 						),
 					),
-					'id_base'  => 'block',
-					'rendered' => '<p>Block test</p>',
 				),
 				array(
 					'id'       => 'rss-1',
+					'id_base'  => 'rss',
 					'sidebar'  => 'sidebar-1',
+					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
 					'instance' => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -320,15 +337,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							)
 						),
 					),
-					'id_base'  => 'rss',
-					'rendered' => '<a class="rsswidget" href="https://wordpress.org/news/feed"><img class="rss-widget-icon" style="border:0" width="14" height="14" src="http://example.org/wp-includes/images/rss.png" alt="RSS" /></a> <a class="rsswidget" href="https://wordpress.org/news">RSS test</a><ul><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/introducing-learn-wordpress/\'>Introducing Learn WordPress</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/simone/\'>WordPress 5.6 “Simone”</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/state-of-the-word-2020/\'>State of the Word 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/the-month-in-wordpress-november-2020/\'>The Month in WordPress: November 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/12/wordpress-5-6-release-candidate-2/\'>WordPress 5.6 Release Candidate 2</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-release-candidate/\'>WordPress 5.6 Release Candidate</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-4/\'>WordPress 5.6 Beta 4</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/wordpress-5-6-beta-3/\'>WordPress 5.6 Beta 3</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/11/the-month-in-wordpress-october-2020/\'>The Month in WordPress: October 2020</a></li><li><a class=\'rsswidget\' href=\'https://wordpress.org/news/2020/10/wordpress-5-5-3-maintenance-release/\'>WordPress 5.5.3 Maintenance Release</a></li></ul>',
 				),
 				array(
 					'id'       => 'testwidget',
-					'sidebar'  => 'sidebar-1',
-					'instance' => null,
 					'id_base'  => 'testwidget',
+					'sidebar'  => 'sidebar-1',
 					'rendered' => '<h1>Default id</h1><span>Default text</span>',
+					'instance' => null,
 				),
 			),
 			$data
@@ -381,11 +396,17 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response           = rest_get_server()->dispatch( $request );
 		$data               = $response->get_data();
 		$data               = $this->remove_links( $data );
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				array(
 					'id'            => 'text-1',
+					'id_base'       => 'text',
 					'sidebar'       => 'sidebar-1',
+					'rendered'      => '<div class="textwidget">Custom text test</div>',
+					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 					'instance'      => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -405,20 +426,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'text' => 'Custom text test',
 						),
 					),
-					'id_base'       => 'text',
-					'rendered'      => '<div class="textwidget">Custom text test</div>',
-					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 				),
 				array(
 					'id'            => 'testwidget',
-					'sidebar'       => 'sidebar-1',
-					'instance'      => null,
 					'id_base'       => 'testwidget',
+					'sidebar'       => 'sidebar-1',
 					'rendered'      => '<h1>Default id</h1><span>Default text</span>',
 					'rendered_form' => 'WP test widget form',
+					'instance'      => null,
 				),
 			),
 			$data
@@ -447,10 +462,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/widgets/text-1' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEqualSets(
+		$this->assertSameSets(
 			array(
 				'id'       => 'text-1',
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
+				'rendered' => '<div class="textwidget">Custom text test</div>',
 				'instance' => array(
 					'encoded' => base64_encode(
 						serialize(
@@ -470,8 +487,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 						'text' => 'Custom text test',
 					),
 				),
-				'id_base'  => 'text',
-				'rendered' => '<div class="textwidget">Custom text test</div>',
 			),
 			$data
 		);
@@ -541,6 +556,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'encoded' => base64_encode(
@@ -558,14 +574,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 						)
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'text-2', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-2', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -589,6 +604,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'encoded' => base64_encode(
@@ -600,7 +616,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 					),
 					'hash'    => 'badhash',
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -621,9 +636,9 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -644,24 +659,24 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'block',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array(
 						'content' => '<!-- wp:paragraph --><p>Block test</p><!-- /wp:paragraph -->',
 					),
 				),
-				'id_base'  => 'block',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'block-2', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'block-7', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSets(
 			array(
 				'content' => '<!-- wp:paragraph --><p>Block test</p><!-- /wp:paragraph -->',
 			),
-			get_option( 'widget_block' )[2]
+			get_option( 'widget_block' )[7]
 		);
 	}
 
@@ -683,13 +698,13 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array(
 						'title' => 'Updated text test',
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -712,16 +727,16 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'   => 'text',
 				'sidebar'   => 'sidebar-1',
 				'form_data' => 'widget-text[2][text]=Updated+text+test',
-				'id_base'   => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'text-2', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-2', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -745,18 +760,18 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array( 'text' => 'Text 1' ),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'text-2', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-2', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Text 1',
 				'title'  => '',
@@ -768,18 +783,18 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array( 'text' => 'Text 2' ),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'text-3', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-3', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Text 2',
 				'title'  => '',
@@ -814,20 +829,20 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/widgets' );
 		$request->set_body_params(
 			array(
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array(
 						'text' => 'Updated text test',
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertEquals( 'text-2', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-2', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -860,21 +875,21 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params(
 			array(
 				'id'       => 'text-1',
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array(
 						'text' => 'Updated text test',
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'text-1', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-1', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -919,7 +934,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$error    = $response->as_error();
 		$this->assertNotWPError( $error, $error ? $error->get_error_message() : '' );
-		$this->assertEquals( 'sidebar-2', $response->get_data()['sidebar'] );
+		$this->assertSame( 'sidebar-2', $response->get_data()['sidebar'] );
 
 		$sidebar1 = rest_do_request( '/wp/v2/sidebars/sidebar-1' );
 		$this->assertNotContains( 'text-1', $sidebar1->get_data()['widgets'] );
@@ -961,9 +976,9 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEquals( 'text-1', $data['id'] );
-		$this->assertEquals( 'sidebar-1', $data['sidebar'] );
-		$this->assertEqualSets(
+		$this->assertSame( 'text-1', $data['id'] );
+		$this->assertSame( 'sidebar-1', $data['sidebar'] );
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated text test',
 				'title'  => '',
@@ -978,12 +993,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	 */
 	public function test_store_html_as_admin() {
 		if ( is_multisite() ) {
-			$this->assertEquals(
+			$this->assertSame(
 				'<div class="textwidget">alert(1)</div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
 		} else {
-			$this->assertEquals(
+			$this->assertSame(
 				'<div class="textwidget"><script>alert(1)</script></div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
@@ -996,12 +1011,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	public function test_store_html_as_superadmin() {
 		wp_set_current_user( self::$superadmin_id );
 		if ( is_multisite() ) {
-			$this->assertEquals(
+			$this->assertSame(
 				'<div class="textwidget"><script>alert(1)</script></div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
 		} else {
-			$this->assertEquals(
+			$this->assertSame(
 				'<div class="textwidget"><script>alert(1)</script></div>',
 				$this->update_text_widget_with_raw_html( '<script>alert(1)</script>' )
 			);
@@ -1028,12 +1043,12 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params(
 			array(
 				'id'       => 'text-1',
+				'id_base'  => 'text',
 				'instance' => array(
 					'raw' => array(
 						'text' => $html,
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
@@ -1065,14 +1080,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'            => 'testwidget',
+				'id_base'       => 'testwidget',
 				'sidebar'       => 'sidebar-1',
-				'instance'      => null,
 				'rendered'      => '<h1>My test id</h1><span>My test title</span>',
 				'rendered_form' => 'WP test widget form',
-				'id_base'       => 'testwidget',
+				'instance'      => null,
 			),
 			$data
 		);
@@ -1102,14 +1117,14 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$data     = $this->remove_links( $data );
-		$this->assertEquals(
+		$this->assertSame(
 			array(
 				'id'            => 'testwidget',
+				'id_base'       => 'testwidget',
 				'sidebar'       => 'sidebar-1',
-				'instance'      => null,
 				'rendered'      => '<h1>My test id</h1><span>My test title</span>',
 				'rendered_form' => 'WP test widget form',
-				'id_base'       => 'testwidget',
+				'instance'      => null,
 			),
 			$data
 		);
@@ -1158,19 +1173,19 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_body_params(
 			array(
 				'id'       => 'text-1',
+				'id_base'  => 'text',
 				'sidebar'  => 'sidebar-1',
 				'instance' => array(
 					'raw' => array(
 						'text' => 'Updated \\" \\\' text test',
 					),
 				),
-				'id_base'  => 'text',
 			)
 		);
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 
-		$this->assertEqualSets(
+		$this->assertSameSetsWithIndex(
 			array(
 				'text'   => 'Updated \\" \\\' text test',
 				'title'  => '',
@@ -1179,7 +1194,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 			$data['instance']['raw']
 		);
 
-		$this->assertEquals(
+		$this->assertSame(
 			'<div class="textwidget">Updated \\" \\\' text test</div>',
 			$data['rendered']
 		);
@@ -1207,10 +1222,16 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request  = new WP_REST_Request( 'DELETE', '/wp/v2/widgets/text-1' );
 		$response = rest_do_request( $request );
 
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				'id'            => 'text-1',
+				'id_base'       => 'text',
 				'sidebar'       => 'wp_inactive_widgets',
+				'rendered'      => '',
+				'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+								'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+								'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+								'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 				'instance'      => array(
 					'encoded' => base64_encode(
 						serialize(
@@ -1230,12 +1251,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 						'text' => 'Custom text test',
 					),
 				),
-				'id_base'       => 'text',
-				'rendered'      => '',
-				'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-								'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-								'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-								'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 			),
 			$response->get_data()
 		);
@@ -1264,13 +1279,19 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_query_params( array( 'force' => true ) );
 		$response = rest_do_request( $request );
 
-		$this->assertEqualSets(
+		$this->assertSameIgnoreEOL(
 			array(
 				'deleted'  => true,
 				'previous' => array(
 
 					'id'            => 'text-1',
+					'id_base'       => 'text',
 					'sidebar'       => 'sidebar-1',
+					'rendered'      => '<div class="textwidget">Custom text test</div>',
+					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
+									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
+									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
+									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 					'instance'      => array(
 						'encoded' => base64_encode(
 							serialize(
@@ -1290,12 +1311,6 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 							'text' => 'Custom text test',
 						),
 					),
-					'id_base'       => 'text',
-					'rendered'      => '<div class="textwidget">Custom text test</div>',
-					'rendered_form' => '<input id="widget-text-1-title" name="widget-text[1][title]" class="title sync-input" type="hidden" value="">' . "\n" .
-									'			<textarea id="widget-text-1-text" name="widget-text[1][text]" class="text sync-input" hidden>Custom text test</textarea>' . "\n" .
-									'			<input id="widget-text-1-filter" name="widget-text[1][filter]" class="filter sync-input" type="hidden" value="on">' . "\n" .
-									'			<input id="widget-text-1-visual" name="widget-text[1][visual]" class="visual sync-input" type="hidden" value="on">',
 
 				),
 			),
@@ -1303,7 +1318,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		);
 
 		$response = rest_do_request( '/wp/v2/widgets/text-1' );
-		$this->assertEquals( 404, $response->get_status() );
+		$this->assertSame( 404, $response->get_status() );
 
 		$this->assertArrayNotHasKey( 'text-1', get_option( 'sidebars_widgets' )['sidebar-1'] );
 		$this->assertArrayNotHasKey( 1, get_option( 'widget_text' ) );
@@ -1379,7 +1394,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 
-		$this->assertEquals( 7, count( $properties ) );
+		$this->assertSame( 7, count( $properties ) );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'id_base', $properties );
 		$this->assertArrayHasKey( 'sidebar', $properties );

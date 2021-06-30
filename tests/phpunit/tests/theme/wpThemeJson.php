@@ -61,7 +61,132 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
+	}
+
+	function test_get_settings_presets_are_keyed_by_origin() {
+		$core_origin = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'       => array(
+						'palette' => array(
+							array(
+								'slug'  => 'white',
+								'color' => 'white',
+							),
+						),
+					),
+					'invalid/key' => 'value',
+					'blocks'      => array(
+						'core/group' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'white',
+										'color' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+			'core'
+		);
+		$no_origin   = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'       => array(
+						'palette' => array(
+							array(
+								'slug'  => 'black',
+								'color' => 'black',
+							),
+						),
+					),
+					'invalid/key' => 'value',
+					'blocks'      => array(
+						'core/group' => array(
+							'color' => array(
+								'palette' => array(
+									array(
+										'slug'  => 'black',
+										'color' => 'black',
+									),
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		$actual_core      = $core_origin->get_raw_data();
+		$actual_no_origin = $no_origin->get_raw_data();
+
+		$expected_core      = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'palette' => array(
+						'core' => array(
+							array(
+								'slug'  => 'white',
+								'color' => 'white',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/group' => array(
+						'color' => array(
+							'palette' => array(
+								'core' => array(
+									array(
+										'slug'  => 'white',
+										'color' => 'white',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+		$expected_no_origin = array(
+			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+			'settings' => array(
+				'color'  => array(
+					'palette' => array(
+						'theme' => array(
+							array(
+								'slug'  => 'black',
+								'color' => 'black',
+							),
+						),
+					),
+				),
+				'blocks' => array(
+					'core/group' => array(
+						'color' => array(
+							'palette' => array(
+								'theme' => array(
+									array(
+										'slug'  => 'black',
+										'color' => 'black',
+									),
+								),
+							),
+						),
+					),
+				),
+			),
+		);
+
+		$this->assertEqualSetsWithIndex( $expected_core, $actual_core );
+		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
 	function test_get_stylesheet() {
@@ -69,7 +194,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			array(
 				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
 				'settings' => array(
-					'color'  => array(
+					'color'      => array(
 						'text'    => 'value',
 						'palette' => array(
 							array(
@@ -78,8 +203,20 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 							),
 						),
 					),
-					'misc'   => 'value',
-					'blocks' => array(
+					'typography' => array(
+						'fontFamilies' => array(
+							array(
+								'slug'       => 'small',
+								'fontFamily' => '14px',
+							),
+							array(
+								'slug'       => 'big',
+								'fontFamily' => '41px',
+							),
+						),
+					),
+					'misc'       => 'value',
+					'blocks'     => array(
 						'core/group' => array(
 							'custom' => array(
 								'base-font'   => 16,
@@ -156,15 +293,15 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
-		$this->assertEquals(
-			'body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{color: var(--wp--preset--color--grey);}a{background-color: #333;color: #111;}.wp-block-group{padding-top: 12px;padding-bottom: 24px;}.wp-block-group a{color: #111;}h1,h2,h3,h4,h5,h6{color: #123456;}h1 a,h2 a,h3 a,h4 a,h5 a,h6 a{background-color: #333;color: #111;font-size: 60px;}.wp-block-post-date{color: #123456;}.wp-block-post-date a{background-color: #777;color: #555;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
-		$this->assertEquals(
+		$this->assertSame(
 			'body{--wp--preset--color--grey: grey;}.wp-block-group{--wp--custom--base-font: 16;--wp--custom--line-height--small: 1.2;--wp--custom--line-height--medium: 1.4;--wp--custom--line-height--large: 1.8;}',
 			$theme_json->get_stylesheet( 'css_variables' )
 		);
@@ -191,8 +328,8 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: #fff !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: #fff !important;}',
+		$this->assertSame(
+			'h1.has-white-color,h2.has-white-color,h3.has-white-color,h4.has-white-color,h5.has-white-color,h6.has-white-color{color: var(--wp--preset--color--white) !important;}h1.has-white-background-color,h2.has-white-background-color,h3.has-white-background-color,h4.has-white-background-color,h5.has-white-background-color,h6.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
 	}
@@ -227,12 +364,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertEquals(
-			'.wp-block-group{--wp--preset--color--grey: grey;}.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'.wp-block-group{--wp--preset--color--grey: grey;}.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
-		$this->assertEquals(
-			'.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: grey !important;}.wp-block-group.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'.wp-block-group{color: red;}.wp-block-group.has-grey-color{color: var(--wp--preset--color--grey) !important;}.wp-block-group.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet( 'block_styles' )
 		);
 	}
@@ -265,11 +402,12 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 						),
 					),
 				),
-			)
+			),
+			'core'
 		);
 
-		$this->assertEquals(
-			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: grey !important;}.has-grey-background-color{background-color: grey !important;}',
+		$this->assertSame(
+			'body{--wp--preset--color--grey: grey;}p{background-color: blue;color: red;font-size: 12px;line-height: 1.3;}.has-grey-color{color: var(--wp--preset--color--grey) !important;}.has-grey-background-color{background-color: var(--wp--preset--color--grey) !important;}',
 			$theme_json->get_stylesheet()
 		);
 	}
@@ -278,35 +416,37 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 	 * @ticket 52991
 	 */
 	public function test_merge_incoming_data() {
-		$initial = array(
-			'version'  => WP_Theme_JSON::LATEST_SCHEMA,
-			'settings' => array(
-				'color'  => array(
-					'custom'  => false,
-					'palette' => array(
-						array(
-							'slug'  => 'red',
-							'color' => 'red',
+		$theme_json = new WP_Theme_JSON(
+			array(
+				'version'  => WP_Theme_JSON::LATEST_SCHEMA,
+				'settings' => array(
+					'color'  => array(
+						'custom'  => false,
+						'palette' => array(
+							array(
+								'slug'  => 'red',
+								'color' => 'red',
+							),
+							array(
+								'slug'  => 'green',
+								'color' => 'green',
+							),
 						),
-						array(
-							'slug'  => 'green',
-							'color' => 'green',
+					),
+					'blocks' => array(
+						'core/paragraph' => array(
+							'color' => array(
+								'custom' => false,
+							),
 						),
 					),
 				),
-				'blocks' => array(
-					'core/paragraph' => array(
-						'color' => array(
-							'custom' => false,
-						),
+				'styles'   => array(
+					'typography' => array(
+						'fontSize' => '12',
 					),
 				),
-			),
-			'styles'   => array(
-				'typography' => array(
-					'fontSize' => '12',
-				),
-			),
+			)
 		);
 
 		$add_new_block = array(
@@ -436,31 +576,29 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 					'custom'         => true,
 					'customGradient' => true,
 					'palette'        => array(
-						array(
-							'slug'  => 'red',
-							'color' => 'red',
-						),
-						array(
-							'slug'  => 'green',
-							'color' => 'green',
-						),
-						array(
-							'slug'  => 'blue',
-							'color' => 'blue',
+						'theme' => array(
+							array(
+								'slug'  => 'blue',
+								'color' => 'blue',
+							),
 						),
 					),
 					'gradients'      => array(
-						array(
-							'slug'     => 'gradient',
-							'gradient' => 'gradient',
+						'theme' => array(
+							array(
+								'slug'     => 'gradient',
+								'gradient' => 'gradient',
+							),
 						),
 					),
 				),
 				'typography' => array(
 					'fontSizes' => array(
-						array(
-							'slug' => 'fontSize',
-							'size' => 'fontSize',
+						'theme' => array(
+							array(
+								'slug' => 'fontSize',
+								'size' => 'fontSize',
+							),
 						),
 					),
 				),
@@ -502,7 +640,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 			),
 		);
 
-		$theme_json = new WP_Theme_JSON( $initial );
 		$theme_json->merge( new WP_Theme_JSON( $add_new_block ) );
 		$theme_json->merge( new WP_Theme_JSON( $add_key_in_settings ) );
 		$theme_json->merge( new WP_Theme_JSON( $update_key_in_settings ) );
@@ -656,7 +793,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 		$actual   = WP_Theme_JSON::get_from_editor_settings( array() );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual );
+		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
 	/**
@@ -673,7 +810,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
@@ -690,7 +827,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 	/**
@@ -707,7 +844,7 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 
 		$actual = WP_Theme_JSON::get_from_editor_settings( $input );
 
-		$this->assertEqualSetsWithIndex( $expected, $actual['settings']['spacing'] );
+		$this->assertSameSetsWithIndex( $expected, $actual['settings']['spacing'] );
 	}
 
 }

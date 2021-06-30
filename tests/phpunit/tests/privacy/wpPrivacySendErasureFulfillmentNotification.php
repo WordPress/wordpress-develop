@@ -210,7 +210,7 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_email_subject_should_be_filterable() {
-		add_filter( 'user_erasure_complete_email_subject', array( $this, 'filter_email_subject' ) );
+		add_filter( 'user_erasure_fulfillment_email_subject', array( $this, 'filter_email_subject' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -236,7 +236,7 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44234
 	 */
 	public function test_email_body_text_should_be_filterable() {
-		add_filter( 'user_confirmed_action_email_content', array( $this, 'filter_email_body_text' ) );
+		add_filter( 'user_erasure_fulfillment_email_content', array( $this, 'filter_email_body_text' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();
@@ -264,7 +264,7 @@ class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitT
 	 * @ticket 44501
 	 */
 	public function test_email_headers_should_be_filterable() {
-		add_filter( 'user_erasure_complete_email_headers', array( $this, 'modify_email_headers' ) );
+		add_filter( 'user_erasure_fulfillment_email_headers', array( $this, 'modify_email_headers' ) );
 		_wp_privacy_send_erasure_fulfillment_notification( self::$request_id );
 
 		$mailer = tests_retrieve_phpmailer_instance();

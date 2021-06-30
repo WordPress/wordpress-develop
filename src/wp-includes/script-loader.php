@@ -80,8 +80,9 @@ function wp_default_packages_vendor( $scripts ) {
 	$suffix = wp_scripts_get_suffix();
 
 	$vendor_scripts = array(
-		'react'     => array( 'wp-polyfill' ),
-		'react-dom' => array( 'react' ),
+		'react'       => array( 'wp-polyfill' ),
+		'react-dom'   => array( 'react' ),
+		'regenerator-runtime',
 		'moment',
 		'lodash',
 		'wp-polyfill-fetch',
@@ -91,12 +92,13 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect',
 		'wp-polyfill-element-closest',
 		'wp-polyfill-object-fit',
-		'wp-polyfill',
+		'wp-polyfill' => array( 'regenerator-runtime' ),
 	);
 
 	$vendor_scripts_versions = array(
 		'react'                       => '16.13.1',
 		'react-dom'                   => '16.13.1',
+		'regenerator-runtime'         => '0.13.7',
 		'moment'                      => '2.29.1',
 		'lodash'                      => '4.17.19',
 		'wp-polyfill-fetch'           => '3.0.0',
@@ -106,7 +108,7 @@ function wp_default_packages_vendor( $scripts ) {
 		'wp-polyfill-dom-rect'        => '3.104.0',
 		'wp-polyfill-element-closest' => '2.0.2',
 		'wp-polyfill-object-fit'      => '2.3.5',
-		'wp-polyfill'                 => '7.4.4',
+		'wp-polyfill'                 => '3.15.0',
 	);
 
 	foreach ( $vendor_scripts as $handle => $dependencies ) {
@@ -120,8 +122,6 @@ function wp_default_packages_vendor( $scripts ) {
 
 		$scripts->add( $handle, $path, $dependencies, $version, 1 );
 	}
-
-	$scripts->add( 'wp-polyfill', null, array( 'wp-polyfill' ) );
 
 	did_action( 'init' ) && $scripts->add_inline_script( 'lodash', 'window.lodash = _.noConflict();' );
 
@@ -140,11 +140,11 @@ function wp_default_packages_vendor( $scripts ) {
 						'dow' => (int) get_option( 'start_of_week', 0 ),
 					),
 					'longDateFormat' => array(
-						'LT'   => get_option( 'time_format', __( 'g:i a', 'default' ) ),
+						'LT'   => get_option( 'time_format', __( 'g:i a' ) ),
 						'LTS'  => null,
 						'L'    => null,
-						'LL'   => get_option( 'date_format', __( 'F j, Y', 'default' ) ),
-						'LLL'  => __( 'F j, Y g:i a', 'default' ),
+						'LL'   => get_option( 'date_format', __( 'F j, Y' ) ),
+						'LLL'  => __( 'F j, Y g:i a' ),
 						'LLLL' => null,
 					),
 				)
@@ -262,7 +262,7 @@ function wp_default_packages_scripts( $scripts ) {
 		 * is called before wp.i18n is defined.
 		 */
 		if ( 'wp-i18n' === $handle ) {
-			$ltr    = _x( 'ltr', 'text direction', 'default' );
+			$ltr    = _x( 'ltr', 'text direction' );
 			$script = sprintf( "wp.i18n.setLocaleData( { 'text direction\u0004ltr': [ '%s' ] } );", $ltr );
 			$scripts->add_inline_script( $handle, $script, 'after' );
 		}
@@ -824,7 +824,7 @@ function wp_default_scripts( $scripts ) {
 	// It sets jQuery as a dependency, as the theme may have been implicitly loading it this way.
 	$scripts->add( 'imagesloaded', '/wp-includes/js/imagesloaded.min.js', array(), '4.1.4', 1 );
 	$scripts->add( 'masonry', '/wp-includes/js/masonry.min.js', array( 'imagesloaded' ), '4.2.2', 1 );
-	$scripts->add( 'jquery-masonry', "/wp-includes/js/jquery/jquery.masonry$dev_suffix.js", array( 'jquery', 'masonry' ), '3.1.2b', 1 );
+	$scripts->add( 'jquery-masonry', '/wp-includes/js/jquery/jquery.masonry.min.js', array( 'jquery', 'masonry' ), '3.1.2b', 1 );
 
 	$scripts->add( 'thickbox', '/wp-includes/js/thickbox/thickbox.js', array( 'jquery' ), '3.1-20121105', 1 );
 	did_action( 'init' ) && $scripts->localize(
@@ -875,6 +875,7 @@ function wp_default_scripts( $scripts ) {
 		/* translators: %s: File name. */
 		'error_uploading'           => __( '&#8220;%s&#8221; has failed to upload.' ),
 		'unsupported_image'         => __( 'This image cannot be displayed in a web browser. For best results convert it to JPEG before uploading.' ),
+		'noneditable_image'         => __( 'This image cannot be processed by the web server. Convert it to JPEG or PNG before uploading.' ),
 		'file_url_copied'           => __( 'The file URL has been copied to your clipboard' ),
 	);
 
@@ -1553,15 +1554,18 @@ function wp_default_styles( $styles ) {
 		'list-reusable-blocks' => array( 'wp-components' ),
 		'reusable-blocks'      => array( 'wp-components' ),
 		'nux'                  => array( 'wp-components' ),
-		'edit-widgets'         => array(
+		'widgets'              => array(
 			'wp-components',
+		),
+		'edit-widgets'         => array(
+			'wp-widgets',
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
 			'wp-reusable-blocks',
 		),
 		'customize-widgets'    => array(
-			'wp-components',
+			'wp-widgets',
 			'wp-block-editor',
 			'wp-edit-blocks',
 			'wp-block-library',
@@ -1622,12 +1626,15 @@ function wp_default_styles( $styles ) {
 		'wp-block-library',
 		'wp-block-directory',
 		'wp-components',
+		'wp-customize-widgets',
 		'wp-edit-post',
+		'wp-edit-widgets',
 		'wp-editor',
 		'wp-format-library',
 		'wp-list-reusable-blocks',
 		'wp-reusable-blocks',
 		'wp-nux',
+		'wp-widgets',
 		// Deprecated CSS.
 		'deprecated-media',
 		'farbtastic',
@@ -2319,7 +2326,21 @@ function wp_should_load_block_editor_scripts_and_styles() {
 }
 
 /**
- * Checks whether separate assets should be loaded for core blocks on-render.
+ * Checks whether separate styles should be loaded for core blocks on-render.
+ *
+ * When this function returns true, other functions ensure that core blocks
+ * only load their assets on-render, and each block loads its own, individual
+ * assets. Third-party blocks only load their assets when rendered.
+ *
+ * When this function returns false, all core block assets are loaded regardless
+ * of whether they are rendered in a page or not, because they are all part of
+ * the `block-library/style.css` file. Assets for third-party blocks are always
+ * enqueued regardless of whether they are rendered or not.
+ *
+ * This only affects front end and not the block editor screens.
+ *
+ * @see wp_enqueue_registered_block_scripts_and_styles()
+ * @see register_block_style_handle()
  *
  * @since 5.8.0
  *
@@ -2331,13 +2352,15 @@ function wp_should_load_separate_core_block_assets() {
 	}
 
 	/**
-	 * Filters the flag that decides whether separate scripts and styles
-	 * will be loaded for core blocks on-render.
+	 * Filters whether block styles should be loaded separately.
+	 *
+	 * Returning false loads all core block assets, regardless of whether they are rendered
+	 * in a page or not. Returning true loads core block assets only when they are rendered.
 	 *
 	 * @since 5.8.0
 	 *
 	 * @param bool $load_separate_assets Whether separate assets will be loaded.
-	 *                                   Default false.
+	 *                                   Default false (all block assets are loaded, even when not used).
 	 */
 	return apply_filters( 'should_load_separate_core_block_assets', false );
 }
@@ -2597,7 +2620,7 @@ function wp_maybe_inline_styles() {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param int $total_inline_limit The file-size threshold, in bytes. Defaults to 20000.
+	 * @param int $total_inline_limit The file-size threshold, in bytes. Default 20000.
 	 */
 	$total_inline_limit = apply_filters( 'styles_inline_size_limit', $total_inline_limit );
 

@@ -30,6 +30,7 @@ wp-tests-config.php
 /src/wp-includes/css/*-rtl.css
 /src/wp-includes/blocks/**/*.css
 /packagehash.txt
+/artifacts
 
 # Files and folders that get created in wp-content
 /src/wp-content/blogs.dir
