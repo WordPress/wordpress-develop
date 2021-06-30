@@ -639,9 +639,11 @@ add_action( 'wp_footer', 'twentytwentyone_add_ie_class' );
  * @return string (block template markup)
  */
 function twenty_twenty_one_default_block_template() {
-	add_filter( 'block_editor_settings_all', function( $settings ) {
-	     $settings['defaultBlockTemplate'] = file_get_contents( get_theme_file_path( 'block-templates/default.html' ) );
-	     return $settings;
-	});
+	add_filter( 'block_editor_settings_all', 
+		function( $settings ) {
+			$settings['defaultBlockTemplate'] = file_get_contents( get_theme_file_path( 'block-templates/default.html' ) );
+			return $settings;
+		}
+	);
 }
 add_action( 'after_setup_theme', 'twenty_twenty_one_default_block_template', 0 );
