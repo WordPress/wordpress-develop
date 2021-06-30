@@ -1353,7 +1353,7 @@ class WP_Test_REST_Widgets_Controller extends WP_Test_REST_Controller_Testcase {
 	}
 
 	/**
-	 * @ticket XXXXX
+	 * @ticket 53557
 	 */
 	public function test_delete_item_multiple() {
 		$this->setup_widgets(
