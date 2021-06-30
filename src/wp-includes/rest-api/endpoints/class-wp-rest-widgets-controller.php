@@ -303,26 +303,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global WP_Widget_Factory $wp_widget_factory
 	 * @global array             $wp_registered_widget_updates The registered widget update functions.
+	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		global $wp_widget_factory, $wp_registered_widget_updates;
-
-		/*
-		 * retrieve_widgets() contains logic to move "hidden" or "lost" widgets to the
-		 * wp_inactive_widgets sidebar based on the contents of the $sidebars_widgets global.
-		 *
-		 * When batch requests are processed, this global is not properly updated by previous
-		 * calls, resulting in widgets incorrectly being moved to the wp_inactive_widgets
-		 * sidebar.
-		 *
-		 * See https://core.trac.wordpress.org/ticket/53657.
-		 */
-		wp_get_sidebars_widgets();
+		global $wp_registered_widget_updates, $wp_widget_factory;
 
 		retrieve_widgets();
 
