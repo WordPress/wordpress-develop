@@ -48,7 +48,6 @@
 	},
 	"editorScript": "tests-notice-editor-script",
 	"script": "tests-notice-script",
-	"viewScript": "tests-notice-view-script",
 	"editorStyle": "tests-notice-editor-style",
 	"style": "tests-notice-style"
 }
