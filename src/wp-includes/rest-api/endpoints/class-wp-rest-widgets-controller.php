@@ -295,7 +295,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		global $wp_registered_widget_updates;
+		global $wp_registered_widget_updates, $wp_widget_factory;
 
 		retrieve_widgets();
 
@@ -343,6 +343,15 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 			$_POST    = $original_post;
 			$_REQUEST = $original_request;
+
+			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+			if ( $widget_object ) {
+				// WP_Widget sets updated = true after an update to prevent more
+				// than one widget from being saved per request. This isn't what
+				// we want in the REST API, though, as we support batch
+				// requests.
+				$widget_object->updated = false;
+			}
 
 			wp_assign_widget_to_sidebar( $widget_id, '' );
 
