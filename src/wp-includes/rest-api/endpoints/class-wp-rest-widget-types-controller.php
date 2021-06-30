@@ -197,7 +197,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_widgets The list of registered widgets.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widgets The list of registered widgets.
 	 *
 	 * @return array Array of widgets.
 	 */
@@ -412,6 +413,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * - form:     The widget's admin form after updating the widget with the
 	 *             given form data.
 	 *
+	 * @since 5.8.0
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -504,6 +509,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * Returns the output of WP_Widget::widget() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget.
 
+	 * @since 5.8.0
+	 *
 	 * @param string    $widget   The widget's PHP class name (see class-wp-widget.php).
 	 * @param array     $instance Widget instance settings.
 	 * @return string
@@ -517,6 +524,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Returns the output of WP_Widget::form() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget's form.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_Widget $widget_object Widget object to call widget() on.
 	 * @param array     $instance Widget instance settings.
