@@ -55,9 +55,9 @@ async function searchForCategory( categoryToSearch ) {
 	// Type the new category title in the search input
 	await page.keyboard.type( categoryToSearch );
 
-	// Move to the search button and click on it
-	await page.keyboard.press( 'Tab' );
-	await page.keyboard.press( 'Enter' );
+	// Click on the search button
+	await page.waitForSelector( '#search-submit' );
+	await page.click( '#search-submit' );
 
 	// Wait for the search indication text to appears
 	await page.waitForSelector( 'span.subtitle' );
@@ -124,7 +124,7 @@ describe( 'Core Categories', () => {
 
 	it( 'Returns the appropriate result when searching for an existing category', async () => {
 		await createNewCategory();
-		await searchForCategory( 'New Category' );
+		await searchForCategory( 'New category' );
 
 		// Wait for the categories rows to appear
 		await page.waitForSelector( '#the-list tr' );
@@ -141,7 +141,7 @@ describe( 'Core Categories', () => {
 	} );
 
 	it( 'Should return No categories found. when searching for a category that does not exist', async () => {
-		await searchForCategory( 'New Category' );
+		await searchForCategory( 'Non existing category' );
 
 		// Wait for the not found categories rows to appear
 		await page.waitForSelector( '#the-list tr.no-items' );
