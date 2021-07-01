@@ -66,6 +66,7 @@ Twenty Twenty-One is distributed under the terms of the GNU GPL.
  * Quote................Specific styles for the quote block.
  * Search...............Specific styles for the search block.
  * Separator............Specific styles for the separator block.
+ * Site title...........Specific styles for the site title block.
  * Spacer...............Specific styles for the spacer block.
  * Table................Specific styles for the table block.
  * Verse................Specific styles for the verse block.
@@ -3444,6 +3445,42 @@ hr.wp-block-separator.is-style-dots:before {
 	border-color: currentColor;
 }
 
+.wp-block-site-title {
+	color: var(--branding--color-link);
+	font-family: var(--branding--title--font-family);
+	font-size: var(--branding--title--font-size-mobile);
+	letter-spacing: normal;
+	text-transform: var(--branding--title--text-transform);
+	line-height: var(--global--line-height-heading);
+	margin-bottom: calc(var(--global--spacing-vertical) / 6);
+}
+
+.wp-block-site-title a {
+	color: currentColor;
+	font-weight: var(--branding--title--font-weight);
+}
+
+.wp-block-site-title a:link,
+.wp-block-site-title a:visited,
+.wp-block-site-title a:active {
+	color: currentColor;
+}
+
+.wp-block-site-title a:hover,
+.wp-block-site-title a:focus {
+	color: var(--branding--color-link-hover);
+}
+
+.wp-block-site-title > a {
+	text-decoration-color: var(--global--color-secondary);
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-site-title {
+		font-size: var(--branding--title--font-size);
+	}
+}
+
 .wp-block-social-links a:focus {
 	color: var(--global--color-primary);
 }
@@ -3854,6 +3891,10 @@ table.wp-calendar-table caption {
 .site-title a:focus {
 	color: var(--branding--color-link-hover);
 }
+
+.site-title > a {
+	text-decoration-color: var(--global--color-secondary);
+}
 @media only screen and (min-width: 482px) {
 
 	.site-title {
@@ -3866,10 +3907,6 @@ table.wp-calendar-table caption {
 	font-family: var(--branding--description--font-family);
 	font-size: var(--branding--description--font-size);
 	line-height: 1.4;
-}
-
-.site-title > a {
-	text-decoration-color: var(--global--color-secondary);
 }
 
 .site-logo {

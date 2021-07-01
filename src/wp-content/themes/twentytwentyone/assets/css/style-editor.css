@@ -2016,6 +2016,42 @@ hr.is-style-dots:before {
 	border-color: currentColor;
 }
 
+.wp-block-site-title {
+	color: var(--branding--color-link);
+	font-family: var(--branding--title--font-family);
+	font-size: var(--branding--title--font-size-mobile);
+	letter-spacing: normal;
+	text-transform: var(--branding--title--text-transform);
+	line-height: var(--global--line-height-heading);
+	margin-bottom: calc(var(--global--spacing-vertical) / 6);
+}
+
+.wp-block-site-title a {
+	color: currentColor;
+	font-weight: var(--branding--title--font-weight);
+}
+
+.wp-block-site-title a:link,
+.wp-block-site-title a:visited,
+.wp-block-site-title a:active {
+	color: currentColor;
+}
+
+.wp-block-site-title a:hover,
+.wp-block-site-title a:focus {
+	color: var(--branding--color-link-hover);
+}
+
+.wp-block-site-title > a {
+	text-decoration-color: var(--global--color-secondary);
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-site-title {
+		font-size: var(--branding--title--font-size);
+	}
+}
+
 .wp-block-social-links [data-block] {
 	margin-top: 0;
 	margin-bottom: 0;

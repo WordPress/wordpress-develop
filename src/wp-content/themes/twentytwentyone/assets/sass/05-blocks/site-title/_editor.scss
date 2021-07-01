@@ -1,0 +1,4 @@
+// Site title
+.wp-block-site-title {
+	@include site-title-style();
+}

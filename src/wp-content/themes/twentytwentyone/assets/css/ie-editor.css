@@ -2567,6 +2567,45 @@ hr.is-style-dots:before {
 	border-color: currentColor;
 }
 
+.wp-block-site-title {
+	color: #28303d;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+	font-size: 1.5rem;
+	letter-spacing: normal;
+	text-transform: uppercase;
+	line-height: 1.3;
+	margin-bottom: 5px;
+}
+
+.wp-block-site-title a {
+	color: currentColor;
+	font-weight: normal;
+}
+
+.wp-block-site-title a:link,
+.wp-block-site-title a:visited,
+.wp-block-site-title a:active {
+	color: currentColor;
+}
+
+.wp-block-site-title a:hover {
+	color: #39414d;
+}
+
+.wp-block-site-title a:focus {
+	color: #39414d;
+}
+
+.wp-block-site-title > a {
+	text-decoration-color: #39414d;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-site-title {
+		font-size: 1.5rem;
+	}
+}
+
 .wp-block-social-links [data-block] {
 	margin-top: 0;
 	margin-bottom: 0;
