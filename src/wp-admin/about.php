@@ -173,7 +173,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				</h3>
 				<p>
 					<?php
-					_e( 'Introducing the Global Styles and Global Settings APIs: control the editor settings, available customization tools, and style blocks using a theme.json file in the active theme. This configuration file enables or disables features and sets default styles for both a website and blocks. If you build themes, you can experiment with this early iteration of a useful new feature. For more about what is currently available and how it works, check out this dev note.' );
+					printf(
+						/* translators: %s: Theme.json dev note link. */
+						__( 'Introducing the Global Styles and Global Settings APIs: control the editor settings, available customization tools, and style blocks using a theme.json file in the active theme. This configuration file enables or disables features and sets default styles for both a website and blocks. If you build themes, you can experiment with this early iteration of a useful new feature. For more about what is currently available and how it works, <a href="%s">check out this dev note</a>.' ),
+						'#'
+					);
 					?>
 				</p>
 			</div>
