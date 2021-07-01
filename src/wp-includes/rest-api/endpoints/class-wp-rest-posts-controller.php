@@ -326,7 +326,7 @@ class WP_REST_Posts_Controller extends WP_REST_Controller {
 		$args['post_type'] = $this->post_type;
 
 		/**
-		 * Filters WP_Query arguments when querying users via the REST API.
+		 * Filters WP_Query arguments when querying posts via the REST API.
 		 *
 		 * The dynamic portion of the hook name, `$this->post_type`, refers to the post type slug.
 		 *
