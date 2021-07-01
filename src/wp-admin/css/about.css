@@ -879,8 +879,9 @@
   3.0 - Freedoms Page
 ------------------------------------------------------------------------------*/
 
-.about__section .column .freedoms-image {
-	margin-bottom: 1em;
+.about__section .column .freedom-image {
+	margin-bottom: var(--gap);
+	max-height: 140px;
 }
 
 
