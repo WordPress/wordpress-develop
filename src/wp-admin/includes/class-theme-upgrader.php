@@ -314,6 +314,7 @@ class Theme_Upgrader extends WP_Upgrader {
 		$r = $current->response[ $theme ];
 
 		add_filter( 'upgrader_pre_install', array( $this, 'current_before' ), 10, 2 );
+		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_post_install', array( $this, 'current_after' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ), 10, 4 );
 		if ( $parsed_args['clear_update_cache'] ) {
