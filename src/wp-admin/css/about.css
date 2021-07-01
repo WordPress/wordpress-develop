@@ -791,16 +791,16 @@
 .about__section .wp-person-avatar {
 	display: block;
 	margin: 0 auto calc(var(--gap) / 2);
-	width: 160px;
-	height: 160px;
+	width: 140px;
+	height: 140px;
 	border-radius: 100%;
 	overflow: hidden;
 	background: var(--accent-1);
 }
 
 .about__section .wp-person .gravatar {
-	width: 160px;
-	height: 160px;
+	width: 140px;
+	height: 140px;
 	filter: grayscale(100%);
 	mix-blend-mode: screen;
 }
