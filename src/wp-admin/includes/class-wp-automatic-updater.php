@@ -193,7 +193,7 @@ class WP_Automatic_Updater {
 		 *  - `auto_update_theme`
 		 *  - `auto_update_translation`
 		 *
-		 * Before version 5.6, the plugins, themes, and major core versions 
+		 * Before version 5.6, the plugins, themes, and major core versions
 		 * were not updated by default. New installs on 5.6 and higher will
 		 * only not update plugins and themes by default, while translations
 		 * and core (minor, major, and development) are updated by default.
