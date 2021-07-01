@@ -217,8 +217,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 				<p>
 					<?php
 					printf(
-						/* translators: %1$s: Link to 5.6's block dev notes. %2$s: Link to 5.7's block dev notes. %1$s: Link to 5.8's block dev notes. */
-						__( 'Expanding on previously implemented block supports in WordPress <a href="%1$s">5.6</a> and <a href="%2$s">5.7</a>, WordPress 5.8 introduces several new block <code>supports</code> flags and new options to customize your registered blocks. More information is available in the <a href="%3$s">block supports dev note</a>.' ),
+						/* translators: %1$s: Link to 5.6's block dev notes. %2$s: Link to 5.7's block dev notes. %3$s: Link to 5.8's block dev notes. */
+						__( 'Expanding on previously implemented block supports in WordPress <a href="%1$s">5.6</a> and <a href="%2$s">5.7</a>, WordPress 5.8 introduces several new block support flags and new options to customize your registered blocks. More information is available in the <a href="%3$s">block supports dev note</a>.' ),
 						'https://make.wordpress.org/core/2020/11/18/block-supports-in-wordpress-5-6/',
 						'https://make.wordpress.org/core/2021/02/24/changes-to-block-editor-components-and-blocks/',
 						'https://make.wordpress.org/core/2021/06/25/block-supports-api-updates-for-wordpress-5-8/'
