@@ -1937,23 +1937,23 @@ input[type=reset]:disabled,
 	clear: both;
 }
 
-.wp-block-columns .wp-block-column > * {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
 	margin-top: calc(0.66 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.66 * var(--global--spacing-vertical));
 }
 @media only screen and (min-width: 482px) {
 
-	.wp-block-columns .wp-block-column > * {
+	.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
 		margin-top: var(--global--spacing-vertical);
 		margin-bottom: var(--global--spacing-vertical);
 	}
 }
 
-.wp-block-columns .wp-block-column > *:first-child {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):first-child {
 	margin-top: 0;
 }
 
-.wp-block-columns .wp-block-column > *:last-child {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):last-child {
 	margin-bottom: 0;
 }
 

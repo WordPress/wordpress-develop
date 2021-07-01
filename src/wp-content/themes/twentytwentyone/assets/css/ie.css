@@ -2671,23 +2671,23 @@ input[type=reset]:disabled {
 	clear: both;
 }
 
-.wp-block-columns .wp-block-column > * {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
 	margin-top: 20px;
 	margin-bottom: 20px;
 }
 @media only screen and (min-width: 482px) {
 
-	.wp-block-columns .wp-block-column > * {
+	.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
 		margin-top: 30px;
 		margin-bottom: 30px;
 	}
 }
 
-.wp-block-columns .wp-block-column > *:first-child {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):first-child {
 	margin-top: 0;
 }
 
-.wp-block-columns .wp-block-column > *:last-child {
+.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):last-child {
 	margin-bottom: 0;
 }
 
