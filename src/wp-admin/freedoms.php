@@ -47,7 +47,7 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		<?php
 		printf(
 			/* translators: %s: https://wordpress.org/about/license/ */
-			__( 'WordPress is Free and open source software, built by a distributed community of mostly volunteer developers from around the world. WordPress comes with some awesome, worldview-changing rights courtesy of its <a href="%s">license</a>, the GPL.' ),
+			__( 'WordPress comes with some awesome, worldview-changing rights courtesy of its <a href="%s">license</a>, the GPL.' ),
 			__( 'https://wordpress.org/about/license/' )
 		);
 		?>
