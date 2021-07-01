@@ -210,6 +210,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		add_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ), 10, 2 );
 		add_filter( 'upgrader_pre_install', array( $this, 'active_before' ), 10, 2 );
+		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'active_after' ), 10, 2 );
 		// There's a Trac ticket to move up the directory for zips which are made a bit differently, useful for non-.org plugins.

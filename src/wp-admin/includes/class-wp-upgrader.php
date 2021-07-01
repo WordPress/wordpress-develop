@@ -166,6 +166,11 @@ class WP_Upgrader {
 
 		$this->strings['maintenance_start'] = __( 'Enabling Maintenance mode&#8230;' );
 		$this->strings['maintenance_end']   = __( 'Disabling Maintenance mode&#8230;' );
+
+		$this->strings['rollback_mkdir_failed']   = __( 'Could not create rollbacks directory.' );
+		$this->strings['rollback_move_failed']    = __( 'Could not move old version to the rollbacks directory.' );
+		$this->strings['rollback_restore_failed'] = __( 'Could not restore original version.' );
+
 	}
 
 	/**
@@ -811,6 +816,7 @@ class WP_Upgrader {
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
+			$this->restore_rollback( $options['hook_extra'] );
 			$this->skin->error( $result );
 
 			if ( ! method_exists( $this->skin, 'hide_process_failed' ) || ! $this->skin->hide_process_failed( $result ) ) {
@@ -948,6 +954,85 @@ class WP_Upgrader {
 		return delete_option( $lock_name . '.lock' );
 	}
 
+	/**
+	 * Move the plugin/theme being upgraded into a rollback directory.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param bool  $response   Boolean response to 'upgrader_pre_install' filter.
+	 *                          Default is true.
+	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function move_to_rollbacks_dir( $response, $hook_extra ) {
+		global $wp_filesystem;
+
+		// Early exit if $hook_extra is empty,
+		// or if this is an installation and not update.
+		if ( empty( $hook_extra ) || ( isset( $hook_extra['action'] ) && 'install' === $hook_extra['action'] ) ) {
+			return $response;
+		}
+
+		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
+			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+			$src                = isset( $hook_extra['plugin'] ) ? $wp_filesystem->wp_plugins_dir() . '/' . $slug : get_theme_root() . '/' . $slug;
+
+			// Create the rollbacks dir if it doesn't exist.
+			if ( ! $wp_filesystem->mkdir( $rollback_dir ) || ! $wp_filesystem->mkdir( "$rollback_dir/$rollback_subfolder/" ) ) {
+				return new WP_Error( 'fs_rollback_mkdir', $this->strings['rollback_mkdir_failed'] );
+			}
+
+			// Move the plugin or theme to its rollback folder.
+			if ( ! $wp_filesystem->move( $src, "$rollback_dir/$rollback_subfolder/$slug", true ) ) {
+				return new WP_Error( 'fs_rollback_move', $this->strings['rollback_move_failed'] );
+			}
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Restore the plugin/theme from the rollbacks directory.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function restore_rollback( $hook_extra ) {
+		global $wp_filesystem;
+		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
+			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+			$destination_dir    = isset( $hook_extra['plugin'] ) ? $wp_filesystem->wp_plugins_dir() . '/' . $slug : get_theme_root() . '/' . $slug;
+			$src                = "$rollback_dir/$rollback_subfolder/$slug";
+
+			if ( $wp_filesystem->is_dir( $src ) ) {
+
+				// Cleanup.
+				if ( $wp_filesystem->is_dir( $destination_dir ) ) {
+					if ( ! $wp_filesystem->delete( $destination_dir, true ) ) {
+						return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
+					}
+				}
+
+				// Move it.
+				if ( ! $wp_filesystem->move( $src, $destination_dir, true ) ) {
+					return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
+				}
+			}
+		}
+		return true;
+	}
 }
 
 /** Plugin_Upgrader class */
