@@ -2308,8 +2308,9 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
-	wp_enqueue_style( 'global-styles', false, array(), true, true );
+	wp_register_style( 'global-styles', false, array(), true, true );
 	wp_add_inline_style( 'global-styles', $stylesheet );
+	wp_enqueue_style( 'global-styles' );
 }
 
 /**
