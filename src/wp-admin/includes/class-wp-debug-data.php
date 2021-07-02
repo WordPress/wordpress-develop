@@ -925,6 +925,8 @@ class WP_Debug_Data {
 			'private' => true,
 		);
 
+		include_once ABSPATH . 'wp-admin/includes/plugin-install.php'; // For plugins_api().
+
 		// List must use plugins if there are any.
 		$mu_plugins = get_mu_plugins();
 
@@ -979,6 +981,16 @@ class WP_Debug_Data {
 			$plugin_version = $plugin['Version'];
 			$plugin_author  = $plugin['Author'];
 
+			$plugin_slug                 = explode( '/', $plugin_path );
+			$plugin_info                 = plugins_api(
+				'plugin_information',
+				array(
+					'slug'   => $plugin_slug[0],
+					'fields' => array(
+						'last_updated',
+					),
+				)
+			);
 			$plugin_version_string       = __( 'No version or author information is available.' );
 			$plugin_version_string_debug = 'author: (undefined), version: (undefined)';
 
@@ -1059,12 +1071,20 @@ class WP_Debug_Data {
 				$plugin_version_string_debug .= ', ' . $auto_updates_string;
 			}
 
+			if ( isset( $plugin_info->last_updated ) ) {
+				/* translators: %s: Plugin last released time. */
+				$plugin_version_string       .= sprintf( __( ' | Last Plugin release: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+				$plugin_version_string_debug .= sprintf( __( ', last plugin release: %s ago' ), human_time_diff( strtotime( $plugin_info->last_updated ), current_time( 'timestamp' ) ) );
+			}
+
 			$info[ $plugin_part ]['fields'][ sanitize_text_field( $plugin['Name'] ) ] = array(
 				'label' => $plugin['Name'],
 				'value' => $plugin_version_string,
 				'debug' => $plugin_version_string_debug,
 			);
 		}
+
+		include_once ABSPATH . 'wp-admin/includes/theme.php'; // For themes_api().
 
 		// Populate the section for the currently active theme.
 		global $_wp_theme_features;
@@ -1088,6 +1108,14 @@ class WP_Debug_Data {
 		if ( $auto_updates_enabled ) {
 			$auto_updates = (array) get_site_option( 'auto_update_themes', array() );
 		}
+
+		$active_theme_info = themes_api(
+			'theme_information',
+			array(
+				'slug'   => $active_theme->template,
+				'fields' => 'last_updated',
+			)
+		);
 
 		if ( array_key_exists( $active_theme->stylesheet, $theme_updates ) ) {
 			$theme_update_new_version = $theme_updates[ $active_theme->stylesheet ]->update['new_version'];
@@ -1192,6 +1220,14 @@ class WP_Debug_Data {
 				'label' => __( 'Auto-updates' ),
 				'value' => $auto_updates_string,
 				'debug' => $auto_updates_string,
+			);
+		}
+
+		if ( isset( $active_theme->last_updated ) ) {
+			$info['wp-active-theme']['fields']['last_release'] = array(
+				'label' => __( 'Last Theme Release' ),
+				'value' => sprintf( __( '%s ago' ), human_time_diff( strtotime( $active_theme_info->last_updated ), current_time( 'timestamp' ) ) ),
+				'debug' => sprintf( __( '%s ago' ), human_time_diff( strtotime( $active_theme_info->last_updated ), current_time( 'timestamp' ) ) ),
 			);
 		}
 
@@ -1305,6 +1341,14 @@ class WP_Debug_Data {
 			$theme_version_string       = __( 'No version or author information is available.' );
 			$theme_version_string_debug = 'undefined';
 
+			$theme_info = themes_api(
+				'theme_information',
+				array(
+					'slug'   => $theme_slug,
+					'fields' => 'last_updated',
+				)
+			);
+
 			if ( ! empty( $theme_version ) && ! empty( $theme_author ) ) {
 				/* translators: 1: Theme version number. 2: Theme author name. */
 				$theme_version_string       = sprintf( __( 'Version %1$s by %2$s' ), $theme_version, $theme_author );
@@ -1372,6 +1416,12 @@ class WP_Debug_Data {
 
 				$theme_version_string       .= ' | ' . $auto_updates_string;
 				$theme_version_string_debug .= ', ' . $auto_updates_string;
+			}
+
+			if ( isset( $theme_info->last_updated ) ) {
+				/* translators: %s: Theme last released time. */
+				$theme_version_string       .= sprintf( __( ' | Last Theme release: %s ago' ), human_time_diff( strtotime( $theme_info->last_updated ), current_time( 'timestamp' ) ) );
+				$theme_version_string_debug .= sprintf( __( ', last theme release: %s ago' ), human_time_diff( strtotime( $theme_info->last_updated ), current_time( 'timestamp' ) ) );
 			}
 
 			$info['wp-themes-inactive']['fields'][ sanitize_text_field( $theme->name ) ] = array(
@@ -1659,4 +1709,5 @@ class WP_Debug_Data {
 
 		return $all_sizes;
 	}
+
 }
