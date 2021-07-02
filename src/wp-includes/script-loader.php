@@ -2275,7 +2275,7 @@ function wp_enqueue_global_styles() {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/53494.
 	 */
-	if ( ! $separate_assets && doing_action( 'wp_footer' ) ) {
+	if ( ! $separate_assets && doing_action( 'wp_footer' ) || $separate_assets && doing_action('wp_enqueue_scripts') ) {
 		return;
 	}
 
@@ -2309,13 +2309,8 @@ function wp_enqueue_global_styles() {
 			return;
 		}
 
-		wp_register_style( 'global-styles', false, array(), true, true );
+		wp_enqueue_style( 'global-styles', false, array(), true, true );
 		wp_add_inline_style( 'global-styles', $stylesheet );
-	}
-
-	// Enqueue styles in the header when assets are not loaded separate and the footer when they are.
-	if ( ( ! $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) || ( $separate_assets && doing_action( 'wp_footer' ) ) ) {
-		wp_enqueue_style( 'global-styles' );
 	}
 }
 
