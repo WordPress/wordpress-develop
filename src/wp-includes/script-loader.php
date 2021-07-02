@@ -2275,7 +2275,7 @@ function wp_enqueue_global_styles() {
 	 *
 	 * See https://core.trac.wordpress.org/ticket/53494.
 	 */
-	if ( ! $separate_assets && doing_action( 'wp_footer' ) || $separate_assets && doing_action('wp_enqueue_scripts') ) {
+	if ( ! $separate_assets && doing_action( 'wp_footer' ) || $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) {
 		return;
 	}
 
