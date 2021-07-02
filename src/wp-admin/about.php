@@ -146,7 +146,9 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image has-subtle-background-color"></div>
+			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
+				<img src="https://make.wordpress.org/core/files/2021/07/about-58-pattern-suggestions.png" alt="" />
+			</div>
 		</div>
 
 		<hr />
