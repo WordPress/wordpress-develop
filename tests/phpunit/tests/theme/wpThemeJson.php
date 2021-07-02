@@ -64,9 +64,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex( $expected, $actual );
 	}
 
-	/**
-	 * @ticket 53397
-	 */
 	public function test_get_settings_presets_are_keyed_by_origin() {
 		$core_origin = new WP_Theme_JSON(
 			array(
@@ -192,9 +189,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected_no_origin, $actual_no_origin );
 	}
 
-	/**
-	 * @ticket 53175
-	 */
 	public function test_get_stylesheet() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -313,9 +307,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @ticket 52991
-	 */
 	public function test_get_stylesheet_preset_classes_work_with_compounded_selectors() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -343,9 +334,6 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		);
 	}
 
-	/**
-	 * @ticket 53175
-	 */
 	public function test_get_stylesheet_preset_rules_come_after_block_rules() {
 		$theme_json = new WP_Theme_JSON(
 			array(
