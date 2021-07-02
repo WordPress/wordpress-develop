@@ -202,6 +202,8 @@ function twenty_twenty_one_get_icon_svg( $group, $icon, $size = 24 ) {
 /**
  * Changes the default navigation arrows to svg icons
  *
+ * @since Twenty Twenty-One 1.0
+ *
  * @param string $calendar_output The generated HTML of the calendar.
  * @return string
  */
@@ -217,7 +219,9 @@ add_filter( 'get_calendar', 'twenty_twenty_one_change_calendar_nav_arrows' );
  *
  * Return CSS for non-latin language, if available, or null
  *
- * @param string $type Whether to return CSS for the "front-end", "block-editor" or "classic-editor".
+ * @since Twenty Twenty-One 1.0
+ *
+ * @param string $type Whether to return CSS for the "front-end", "block-editor", or "classic-editor".
  * @return string
  */
 function twenty_twenty_one_get_non_latin_css( $type = 'front-end' ) {
