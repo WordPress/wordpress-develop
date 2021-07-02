@@ -303,14 +303,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array             $wp_registered_widget_updates The registered widget update functions.
 	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widget_updates The registered widget update functions.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		global $wp_registered_widget_updates, $wp_widget_factory;
+		global $wp_widget_factory, $wp_registered_widget_updates;
 
 		retrieve_widgets();
 

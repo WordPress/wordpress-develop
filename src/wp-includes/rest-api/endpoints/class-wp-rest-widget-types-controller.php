@@ -413,8 +413,6 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * - form:     The widget's admin form after updating the widget with the
 	 *             given form data.
 	 *
-	 * @since 5.8.0
-	 *
 	 * @global WP_Widget_Factory $wp_widget_factory
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
