@@ -18,7 +18,7 @@
 class WP_Query {
 
 	/**
-	 * Query vars set by the user
+	 * Query vars set by the user.
 	 *
 	 * @since 1.5.0
 	 * @var array
@@ -26,7 +26,7 @@ class WP_Query {
 	public $query;
 
 	/**
-	 * Query vars, after parsing
+	 * Query vars, after parsing.
 	 *
 	 * @since 1.5.0
 	 * @var array
@@ -34,7 +34,7 @@ class WP_Query {
 	public $query_vars = array();
 
 	/**
-	 * Taxonomy query, as passed to get_tax_sql()
+	 * Taxonomy query, as passed to get_tax_sql().
 	 *
 	 * @since 3.1.0
 	 * @var WP_Tax_Query A taxonomy query instance.
@@ -42,7 +42,7 @@ class WP_Query {
 	public $tax_query;
 
 	/**
-	 * Metadata query container
+	 * Metadata query container.
 	 *
 	 * @since 3.2.0
 	 * @var WP_Meta_Query A meta query instance.
@@ -50,7 +50,7 @@ class WP_Query {
 	public $meta_query = false;
 
 	/**
-	 * Date query container
+	 * Date query container.
 	 *
 	 * @since 3.7.0
 	 * @var WP_Date_Query A date query instance.
@@ -92,7 +92,7 @@ class WP_Query {
 	public $posts;
 
 	/**
-	 * The amount of posts for the current query.
+	 * The number of posts for the current query.
 	 *
 	 * @since 1.5.0
 	 * @var int
@@ -135,7 +135,7 @@ class WP_Query {
 	public $comments;
 
 	/**
-	 * The amount of comments for the posts.
+	 * The number of comments for the posts.
 	 *
 	 * @since 2.2.0
 	 * @var int
@@ -159,7 +159,7 @@ class WP_Query {
 	public $comment;
 
 	/**
-	 * The amount of found posts for the current query.
+	 * The number of found posts for the current query.
 	 *
 	 * If limit clause was not used, equals $post_count.
 	 *
@@ -169,7 +169,7 @@ class WP_Query {
 	public $found_posts = 0;
 
 	/**
-	 * The amount of pages.
+	 * The number of pages.
 	 *
 	 * @since 2.1.0
 	 * @var int
@@ -177,7 +177,7 @@ class WP_Query {
 	public $max_num_pages = 0;
 
 	/**
-	 * The amount of comment pages.
+	 * The number of comment pages.
 	 *
 	 * @since 2.7.0
 	 * @var int
@@ -2547,7 +2547,7 @@ class WP_Query {
 					// Public statuses.
 					$public_statuses = get_post_stati( array( 'public' => true ) );
 					$status_clauses  = array();
-					foreach ( (array) $public_statuses as $public_status ) {
+					foreach ( $public_statuses as $public_status ) {
 						$status_clauses[] = "{$wpdb->posts}.post_status = '$public_status'";
 					}
 					$type_where .= implode( ' OR ', $status_clauses );
@@ -2560,7 +2560,7 @@ class WP_Query {
 								'show_in_admin_all_list' => true,
 							)
 						);
-						foreach ( (array) $admin_all_statuses as $admin_all_status ) {
+						foreach ( $admin_all_statuses as $admin_all_status ) {
 							$type_where .= " OR {$wpdb->posts}.post_status = '$admin_all_status'";
 						}
 					}
@@ -2569,7 +2569,7 @@ class WP_Query {
 					if ( is_user_logged_in() && $queried_post_type_object instanceof WP_Post_Type ) {
 						$read_private_cap = $queried_post_type_object->cap->read_private_posts;
 						$private_statuses = get_post_stati( array( 'private' => true ) );
-						foreach ( (array) $private_statuses as $private_status ) {
+						foreach ( $private_statuses as $private_status ) {
 							$type_where .= current_user_can( $read_private_cap ) ? " \nOR {$wpdb->posts}.post_status = '$private_status'" : " \nOR ({$wpdb->posts}.post_author = $user_id AND {$wpdb->posts}.post_status = '$private_status')";
 						}
 					}

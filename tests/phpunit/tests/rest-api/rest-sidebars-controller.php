@@ -62,7 +62,7 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		update_option( 'sidebars_widgets', array() );
 	}
 
-	function clean_up_global_scope() {
+	public function clean_up_global_scope() {
 		global $wp_widget_factory, $wp_registered_sidebars, $wp_registered_widgets, $wp_registered_widget_controls, $wp_registered_widget_updates;
 
 		$wp_registered_sidebars        = array();
