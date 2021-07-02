@@ -647,6 +647,9 @@ class WP_Theme_JSON {
 	 *
 	 * @since 5.8.0
 	 *
+	 * @param string $selector Original selector.
+	 * @param string $to_append Selector to append.
+	 *
 	 * @param string $selector  Original selector.
 	 * @param string $to_append Selector to append.
 	 * @return string
