@@ -398,6 +398,8 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
 		// settings.spacing.customPadding
 		$this->assertTrue( $settings['enableCustomSpacing'] );
+
+		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	/**
