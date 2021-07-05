@@ -12,7 +12,7 @@
  */
 class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
-	function setUp() {
+	public function setUp() {
 		parent::setUp();
 		$this->theme_root = realpath( DIR_TESTDATA . '/themedir1' );
 
@@ -29,25 +29,25 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		unset( $GLOBALS['wp_themes'] );
 	}
 
-	function tearDown() {
+	public function tearDown() {
 		$GLOBALS['wp_theme_directories'] = $this->orig_theme_dir;
 		wp_clean_themes_cache();
 		unset( $GLOBALS['wp_themes'] );
 		parent::tearDown();
 	}
 
-	function filter_set_theme_root() {
+	public function filter_set_theme_root() {
 		return $this->theme_root;
 	}
 
-	function filter_set_locale_to_polish() {
+	public function filter_set_locale_to_polish() {
 		return 'pl_PL';
 	}
 
 	/**
 	 * @ticket 52991
 	 */
-	function test_fields_are_extracted() {
+	public function test_fields_are_extracted() {
 		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
 
 		$expected = array(
@@ -94,7 +94,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_translations_are_applied() {
+	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 		load_textdomain( 'fse', realpath( DIR_TESTDATA . '/languages/themes/fse-pl_PL.mo' ) );
 
@@ -148,7 +148,7 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	/**
 	 * @ticket 52991
 	 */
-	function test_switching_themes_recalculates_data() {
+	public function test_switching_themes_recalculates_data() {
 		// By default, the theme for unit tests is "default",
 		// which doesn't have theme.json support.
 		$default = WP_Theme_JSON_Resolver::theme_has_support();
