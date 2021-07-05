@@ -32,17 +32,17 @@ get_current_screen()->add_help_tab(
 		'title'   => __( 'Default Data' ),
 		'content' =>
 					'<p>' . __( 'Personal data that is collected by WordPress and is displayed in the export files include:' ) . '</p>' .
-					'<p>' . __( '<strong>Profile Information</strong> &mdash; user email address, username, display name, nickname, first name, last name, description/bio, and registration date.' ) . '</p>' .
-					'<p>' . __( '<strong>Community Events Location</strong> &mdash; The IP Address of the user used for the Upcoming Community Events shown in the dashboard widget.' ) . '</p>' .
-					'<p>' . __( '<strong>Session Tokens</strong> &mdash; User login information, IP Addresses, Expiration Date, User Agent (Browser/OS), and Last Login.' ) . '</p>' .
-					'<p>' . __( '<strong>Comments</strong> &mdash; For any comments made by the user, Email Address, IP Address, User Agent (Browser/OS), Date/Time, Comment Content, and Content URL.' ) . '</p>' .
+					'<p>' . __( '<strong>Profile Information</strong> &mdash; User email address, login name, display name, nice name, nickname, first name, last name, description, and registration date.' ) . '</p>' .
+					'<p>' . __( '<strong>Community Events Location</strong> &mdash; The anonymized IP address of the user or location user has submitted, used for the Community Events in the WordPress Events and News dashboard widget.' ) . '</p>' .
+					'<p>' . __( '<strong>Session Tokens</strong> &mdash; IP address, expiration date, user agent, and last login date (for any session token of the user(.' ) . '</p>' .
+					'<p>' . __( '<strong>Comments</strong> &mdash; Author name, email address, IP address, URL, user agent, date, and content (for any comments made by the user).' ) . '</p>' .
 					'<p>' . __( '<strong>Media</strong> &mdash; A list of URLs for all media file uploads made by the user.' ) . '</p>',
 	)
 );
 
 $privacy_policy_guide = '<p>' . sprintf(
 	/* translators: %s: URL to Privacy Policy Guide screen. */
-	__( 'If you are not sure, check the plugin documentation or contact the plugin author to see if the plugin collects data and if it supports the Data Exporter tool. This information may be available in the <a href="%s">Privacy Policy Guide</a>.' ),
+	__( 'If you are not sure, check the plugin documentation or contact the plugin author to see if the plugin collects data and if it supports the Personal Data Exporter tool. This information may be available in the <a href="%s">Privacy Policy Guide</a>.' ),
 	admin_url( 'options-privacy.php?tab=policyguide' )
 ) . '</p>';
 
