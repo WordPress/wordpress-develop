@@ -159,7 +159,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$result = $this->myxmlrpcserver->wp_getPost( array( 1, 'author', 'author', $post_id ) );
 		$this->assertNotIXRError( $result );
 		$this->assertArrayHasKey( 'post_thumbnail', $result );
-		$this->assertInternalType( 'array', $result['post_thumbnail'] );
+		$this->assertIsArray( $result['post_thumbnail'] );
 		$this->assertEquals( $attachment_id, $result['post_thumbnail']['attachment_id'] );
 
 		// Edit the post without supplying a post_thumbnail and check that it didn't change.

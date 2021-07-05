@@ -73,7 +73,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		$this->assertNull( $setting->previous_post_id );
 		$this->assertNull( $setting->update_status );
 		$this->assertNull( $setting->update_error );
-		$this->assertInternalType( 'array', $setting->default );
+		$this->assertIsArray( $setting->default );
 
 		$default = array(
 			'object_id'        => 0,
@@ -533,7 +533,7 @@ class Test_WP_Customize_Nav_Menu_Item_Setting extends WP_UnitTestCase {
 		);
 		foreach ( $valid_urls as $valid_url ) {
 			$url_setting = $setting->sanitize( array( 'url' => $valid_url ) );
-			$this->assertInternalType( 'array', $url_setting );
+			$this->assertIsArray( $url_setting );
 			$this->assertSame( $valid_url, $url_setting['url'] );
 		}
 
