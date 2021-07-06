@@ -39,7 +39,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// get_the_terms() does prime the cache.
 		$terms = get_the_terms( $post_id, $this->taxonomy );
 		$cache = wp_cache_get( $post_id, $this->taxonomy . '_relationships' );
-		$this->assertInternalType( 'array', $cache );
+		$this->assertIsArray( $cache );
 
 		// Cache should be empty after a set.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
@@ -248,7 +248,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_id ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
@@ -283,7 +283,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 }

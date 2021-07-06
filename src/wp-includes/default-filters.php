@@ -335,6 +335,7 @@ add_action( 'init', '_register_core_block_patterns_and_categories' );
 add_action( 'current_screen', '_load_remote_block_patterns' );
 add_action( 'init', 'check_theme_switched', 99 );
 add_action( 'init', array( 'WP_Block_Supports', 'init' ), 22 );
+add_action( 'switch_theme', array( 'WP_Theme_JSON_Resolver', 'clean_cached_data' ) );
 add_action( 'after_switch_theme', '_wp_menus_changed' );
 add_action( 'after_switch_theme', '_wp_sidebars_changed' );
 add_action( 'wp_print_styles', 'print_emoji_styles' );
@@ -553,7 +554,6 @@ add_action( 'wp_default_scripts', 'wp_default_packages' );
 
 add_action( 'wp_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'wp_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
-add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
 add_action( 'admin_enqueue_scripts', 'wp_localize_jquery_ui_datepicker', 1000 );
 add_action( 'admin_enqueue_scripts', 'wp_common_block_scripts_and_styles' );
 add_action( 'enqueue_block_assets', 'wp_enqueue_registered_block_scripts_and_styles' );
@@ -566,6 +566,10 @@ add_action( 'admin_print_scripts-index.php', 'wp_localize_community_events' );
 add_filter( 'wp_print_scripts', 'wp_just_in_time_script_localization' );
 add_filter( 'print_scripts_array', 'wp_prototype_before_jquery' );
 add_filter( 'customize_controls_print_styles', 'wp_resource_hints', 1 );
+
+// Global styles can be enqueued in both the header and the footer. See https://core.trac.wordpress.org/ticket/53494.
+add_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
+add_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
 
 add_action( 'wp_default_styles', 'wp_default_styles' );
 add_filter( 'style_loader_src', 'wp_style_loader_src', 10, 2 );

@@ -381,7 +381,7 @@ https://w.org</a>',
 		$post = get_post( $id );
 
 		$prepped = wp_prepare_attachment_for_js( $post );
-		$this->assertInternalType( 'array', $prepped );
+		$this->assertIsArray( $prepped );
 		$this->assertSame( 0, $prepped['uploadedTo'] );
 		$this->assertSame( '', $prepped['mime'] );
 		$this->assertSame( '', $prepped['type'] );
@@ -1164,7 +1164,7 @@ VIDEO;
 	 */
 	function test_attachment_url_to_postid_with_empty_url() {
 		$post_id = attachment_url_to_postid( '' );
-		$this->assertInternalType( 'int', $post_id );
+		$this->assertIsInt( $post_id );
 		$this->assertSame( 0, $post_id );
 	}
 

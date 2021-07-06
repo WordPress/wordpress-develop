@@ -70,7 +70,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$this->assertNull( $setting->previous_term_id );
 		$this->assertNull( $setting->update_status );
 		$this->assertNull( $setting->update_error );
-		$this->assertInternalType( 'array', $setting->default );
+		$this->assertIsArray( $setting->default );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $setting->default );
 		}
@@ -149,7 +149,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$setting    = new WP_Customize_Nav_Menu_Setting( $this->wp_customize, $setting_id );
 
 		$value = $setting->value();
-		$this->assertInternalType( 'array', $value );
+		$this->assertIsArray( $value );
 		foreach ( array( 'name', 'description', 'parent' ) as $key ) {
 			$this->assertArrayHasKey( $key, $value );
 		}
@@ -225,7 +225,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
 		$i         = array_search( $menu_id, $menus_ids, true );
-		$this->assertInternalType( 'int', $i, 'Update-previewed menu does not appear in wp_get_nav_menus()' );
+		$this->assertIsInt( $i, 'Update-previewed menu does not appear in wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertSame( 'Name 2 \\o/', $filtered_menu->name );
 	}
@@ -270,7 +270,7 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 		$menus     = wp_get_nav_menus();
 		$menus_ids = wp_list_pluck( $menus, 'term_id' );
 		$i         = array_search( $menu_id, $menus_ids, true );
-		$this->assertInternalType( 'int', $i, 'Insert-previewed menu was not injected into wp_get_nav_menus()' );
+		$this->assertIsInt( $i, 'Insert-previewed menu was not injected into wp_get_nav_menus()' );
 		$filtered_menu = $menus[ $i ];
 		$this->assertSame( 'New Menu Name 1 \\o/', $filtered_menu->name );
 	}
@@ -304,8 +304,8 @@ class Test_WP_Customize_Nav_Menu_Setting extends WP_UnitTestCase {
 
 		$this->wp_customize->set_post_value( $setting_id, false );
 
-		$this->assertInternalType( 'array', $setting->value() );
-		$this->assertInternalType( 'object', wp_get_nav_menu_object( $menu_id ) );
+		$this->assertIsArray( $setting->value() );
+		$this->assertIsObject( wp_get_nav_menu_object( $menu_id ) );
 		$setting->preview();
 		$this->assertFalse( $setting->value() );
 		$this->assertFalse( wp_get_nav_menu_object( $menu_id ) );

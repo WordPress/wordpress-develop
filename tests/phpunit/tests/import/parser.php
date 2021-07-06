@@ -58,7 +58,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertEquals(
 				array(
@@ -151,7 +151,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertSame( $result['categories'][0]['category_nicename'], 'alpha', $message );
 			$this->assertSame( $result['categories'][0]['cat_name'], 'alpha', $message );

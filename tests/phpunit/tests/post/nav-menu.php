@@ -551,22 +551,22 @@ class Tests_Post_Nav_Menu extends WP_UnitTestCase {
 	 * Run tests required to confrim Walker_Nav_Menu receives an $args object.
 	 */
 	function _confirm_nav_menu_item_args_object( $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $args;
 	}
 
 	function _confirm_second_param_args_object( $ignored_1, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_third_param_args_object( $ignored_1, $ignored_2, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 
 	function _confirm_forth_param_args_object( $ignored_1, $ignored_2, $ignored_3, $args ) {
-		$this->assertTrue( is_object( $args ) );
+		$this->assertIsObject( $args );
 		return $ignored_1;
 	}
 

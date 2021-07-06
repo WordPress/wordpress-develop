@@ -381,7 +381,7 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 			)
 		);
 		$this->assertSame( $count + 1, $this->filter_count_customize_nav_menu_searched_items );
-		$this->assertInternalType( 'array', $results );
+		$this->assertIsArray( $results );
 		$this->assertCount( 3, $results );
 		remove_filter( 'customize_nav_menu_searched_items', array( $this, 'filter_search' ), 10 );
 
@@ -465,8 +465,8 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 	 * @return array Items.
 	 */
 	function filter_search( $items, $args ) {
-		$this->assertInternalType( 'array', $items );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $items );
+		$this->assertIsArray( $args );
 		$this->assertArrayHasKey( 's', $args );
 		$this->assertArrayHasKey( 'pagenum', $args );
 		$this->filter_count_customize_nav_menu_searched_items += 1;
@@ -804,13 +804,13 @@ class Test_WP_Customize_Nav_Menus extends WP_UnitTestCase {
 		do_action( 'customize_register', $this->wp_customize );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', false, 'nav_menu_instance[68b329da9893e34099c7d8ad5cb9c940]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'nav_menu_instance', $args['type'] );
 		$this->assertSame( array( $this->wp_customize->nav_menus, 'render_nav_menu_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
 
 		$args = apply_filters( 'customize_dynamic_partial_args', array( 'fallback_refresh' => false ), 'nav_menu_instance[4099c7d8ad5cb9c94068b329da9893e3]' );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSame( 'nav_menu_instance', $args['type'] );
 		$this->assertSame( array( $this->wp_customize->nav_menus, 'render_nav_menu_partial' ), $args['render_callback'] );
 		$this->assertTrue( $args['container_inclusive'] );
