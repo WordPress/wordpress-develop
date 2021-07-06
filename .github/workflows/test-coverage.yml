@@ -43,8 +43,10 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests as a single site.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the single site code coverage report to Codecov.io.
   # - Run the PHPUnit tests as a multisite.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
@@ -121,6 +123,9 @@ jobs:
         if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite }}
         uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
@@ -131,6 +136,9 @@ jobs:
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite }}
