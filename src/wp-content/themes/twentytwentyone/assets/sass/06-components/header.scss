@@ -39,6 +39,7 @@
 // Site title
 .site-title {
 	@include site-title-style();
+	margin-bottom: calc(var(--global--spacing-vertical) / 6);
 }
 
 // Site description

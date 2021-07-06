@@ -1937,23 +1937,23 @@ input[type=reset]:disabled,
 	clear: both;
 }
 
-.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
+.wp-block-columns .wp-block-column > * {
 	margin-top: calc(0.66 * var(--global--spacing-vertical));
 	margin-bottom: calc(0.66 * var(--global--spacing-vertical));
 }
 @media only screen and (min-width: 482px) {
 
-	.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
+	.wp-block-columns .wp-block-column > * {
 		margin-top: var(--global--spacing-vertical);
 		margin-bottom: var(--global--spacing-vertical);
 	}
 }
 
-.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):first-child {
+.wp-block-columns .wp-block-column > *:first-child {
 	margin-top: 0;
 }
 
-.wp-block-columns .wp-block-column > *:not(.wp-block-site-title):not(.wp-block-site-tagline):last-child {
+.wp-block-columns .wp-block-column > *:last-child {
 	margin-bottom: 0;
 }
 
@@ -2905,6 +2905,17 @@ p.has-text-color a {
 	color: var(--wp--style--color--link, var(--global--color-primary));
 }
 
+.wp-block-post-title {
+	line-height: var(--heading--line-height-h1);
+	font-weight: var(--heading--font-weight-page-title);
+	font-size: var(--global--font-size-page-title);
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
+.entry-header .wp-block-post-title {
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre;
@@ -3452,7 +3463,6 @@ hr.wp-block-separator.is-style-dots:before {
 	letter-spacing: normal;
 	text-transform: var(--branding--title--text-transform);
 	line-height: var(--global--line-height-heading);
-	margin-bottom: calc(var(--global--spacing-vertical) / 6);
 }
 
 .wp-block-site-title a {
@@ -3479,6 +3489,10 @@ hr.wp-block-separator.is-style-dots:before {
 	.wp-block-site-title {
 		font-size: var(--branding--title--font-size);
 	}
+}
+
+header .wp-block-site-title {
+	margin-bottom: calc(var(--global--spacing-vertical) / 14);
 }
 
 .wp-block-social-links a:focus {

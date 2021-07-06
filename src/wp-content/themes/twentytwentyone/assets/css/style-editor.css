@@ -1433,6 +1433,17 @@ p.has-background {
 	padding: var(--global--spacing-unit);
 }
 
+.wp-block-post-title {
+	line-height: var(--heading--line-height-h1);
+	font-weight: var(--heading--font-weight-page-title);
+	font-size: var(--global--font-size-page-title);
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
+.entry-header .wp-block-post-title {
+	margin-bottom: calc(2 * var(--global--spacing-vertical));
+}
+
 pre.wp-block-preformatted {
 	overflow-x: auto;
 	white-space: pre !important;
@@ -2024,7 +2035,6 @@ hr.is-style-dots:before {
 	letter-spacing: normal;
 	text-transform: var(--branding--title--text-transform);
 	line-height: var(--global--line-height-heading);
-	margin-bottom: calc(var(--global--spacing-vertical) / 6);
 }
 
 .wp-block-site-title a {
@@ -2051,6 +2061,10 @@ hr.is-style-dots:before {
 	.wp-block-site-title {
 		font-size: var(--branding--title--font-size);
 	}
+}
+
+header .wp-block-site-title {
+	margin-bottom: calc(var(--global--spacing-vertical) / 6);
 }
 
 .wp-block-social-links [data-block] {

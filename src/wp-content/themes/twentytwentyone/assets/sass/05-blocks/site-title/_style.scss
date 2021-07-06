@@ -2,3 +2,7 @@
 .wp-block-site-title {
 	@include site-title-style();
 }
+
+header .wp-block-site-title {
+	margin-bottom: calc(var(--global--spacing-vertical) / 14);
+}

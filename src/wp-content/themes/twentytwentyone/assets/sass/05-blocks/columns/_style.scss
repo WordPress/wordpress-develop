@@ -6,8 +6,7 @@
 
 	.wp-block-column {
 
-		// Add extra padding, but not for the site title and tagline. 
-		> *:not(.wp-block-site-title):not(.wp-block-site-tagline) {
+		> * {
 			margin-top: calc(0.66 * var(--global--spacing-vertical));
 			margin-bottom: calc(0.66 * var(--global--spacing-vertical));
 
