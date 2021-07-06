@@ -248,7 +248,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_id ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 
@@ -283,7 +283,7 @@ class Tests_Term_GetTheTerms extends WP_UnitTestCase {
 		// Re-activate term counting so this doesn't affect other tests.
 		wp_defer_term_counting( false );
 
-		$this->assertTrue( is_array( $terms ) );
+		$this->assertIsArray( $terms );
 		$this->assertSame( array( $term_ids[1] ), wp_list_pluck( $terms, 'term_id' ) );
 	}
 }

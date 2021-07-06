@@ -28,7 +28,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertTrue( is_object( $tax ) );
-			$this->assertTrue( is_array( $tax->object_type ) );
+			$this->assertIsArray( $tax->object_type );
 			$this->assertSame( array( 'post' ), $tax->object_type );
 		}
 	}
@@ -110,7 +110,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 			$tax = get_taxonomy( $taxonomy );
 			// Should return an object with the correct taxonomy object type.
 			$this->assertTrue( is_object( $tax ) );
-			$this->assertTrue( is_array( $tax->object_type ) );
+			$this->assertIsArray( $tax->object_type );
 			$this->assertSame( array( 'link' ), $tax->object_type );
 		}
 	}

@@ -72,7 +72,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 	public function test_expected_routes_in_schema() {
 		$routes = rest_get_server()->get_routes();
 
-		$this->assertTrue( is_array( $routes ), '`get_routes` should return an array.' );
+		$this->assertIsArray( $routes, '`get_routes` should return an array.' );
 		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
 
 		$routes = array_filter( array_keys( $routes ), array( $this, 'is_builtin_route' ) );

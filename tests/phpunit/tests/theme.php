@@ -145,16 +145,16 @@ class Tests_Theme extends WP_UnitTestCase {
 			$this->assertNotEmpty( $theme['Stylesheet'] );
 
 			// Template files should all exist.
-			$this->assertTrue( is_array( $theme['Template Files'] ) );
-			$this->assertTrue( count( $theme['Template Files'] ) > 0 );
+			$this->assertIsArray( $theme['Template Files'] );
+			$this->assertNotEmpty( $theme['Template Files'] );
 			foreach ( $theme['Template Files'] as $file ) {
 				$this->assertTrue( is_file( $dir . $file ) );
 				$this->assertTrue( is_readable( $dir . $file ) );
 			}
 
 			// CSS files should all exist.
-			$this->assertTrue( is_array( $theme['Stylesheet Files'] ) );
-			$this->assertTrue( count( $theme['Stylesheet Files'] ) > 0 );
+			$this->assertIsArray( $theme['Stylesheet Files'] );
+			$this->assertNotEmpty( $theme['Stylesheet Files'] );
 			foreach ( $theme['Stylesheet Files'] as $file ) {
 				$this->assertTrue( is_file( $dir . $file ) );
 				$this->assertTrue( is_readable( $dir . $file ) );

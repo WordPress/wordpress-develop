@@ -155,7 +155,7 @@ class Tests_User extends WP_UnitTestCase {
 		);
 
 		// There is already some stuff in the array.
-		$this->assertTrue( is_array( get_user_meta( self::$author_id ) ) );
+		$this->assertIsArray( get_user_meta( self::$author_id ) );
 
 		foreach ( $vals as $k => $v ) {
 			update_user_meta( self::$author_id, $k, $v );
