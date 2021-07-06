@@ -99,7 +99,7 @@ if ( is_multisite() ) :
 
 		function test_with_another_site() {
 			$user_id = self::factory()->user->create();
-			$this->assertInternalType( 'integer', $user_id );
+			$this->assertIsInt( $user_id );
 
 			$blog_id = self::factory()->blog->create(
 				array(
@@ -107,7 +107,7 @@ if ( is_multisite() ) :
 					'public'  => 1,
 				)
 			);
-			$this->assertInternalType( 'integer', $blog_id );
+			$this->assertIsInt( $blog_id );
 
 			$key    = __FUNCTION__ . '_key1';
 			$key2   = __FUNCTION__ . '_key2';

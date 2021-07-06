@@ -2267,6 +2267,18 @@ function wp_enqueue_global_styles() {
 		return;
 	}
 
+	$separate_assets = wp_should_load_separate_core_block_assets();
+
+	/*
+	 * Global styles should be printed in the head when loading all styles combined.
+	 * The footer should only be used to print global styles for classic themes with separate core assets enabled.
+	 *
+	 * See https://core.trac.wordpress.org/ticket/53494.
+	 */
+	if ( ( ! $separate_assets && doing_action( 'wp_footer' ) ) || ( $separate_assets && doing_action( 'wp_enqueue_scripts' ) ) ) {
+		return;
+	}
+
 	$can_use_cache = (
 		( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) &&
 		( ! defined( 'SCRIPT_DEBUG' ) || ! SCRIPT_DEBUG ) &&
@@ -2326,7 +2338,21 @@ function wp_should_load_block_editor_scripts_and_styles() {
 }
 
 /**
- * Checks whether separate assets should be loaded for core blocks on-render.
+ * Checks whether separate styles should be loaded for core blocks on-render.
+ *
+ * When this function returns true, other functions ensure that core blocks
+ * only load their assets on-render, and each block loads its own, individual
+ * assets. Third-party blocks only load their assets when rendered.
+ *
+ * When this function returns false, all core block assets are loaded regardless
+ * of whether they are rendered in a page or not, because they are all part of
+ * the `block-library/style.css` file. Assets for third-party blocks are always
+ * enqueued regardless of whether they are rendered or not.
+ *
+ * This only affects front end and not the block editor screens.
+ *
+ * @see wp_enqueue_registered_block_scripts_and_styles()
+ * @see register_block_style_handle()
  *
  * @since 5.8.0
  *
@@ -2338,13 +2364,15 @@ function wp_should_load_separate_core_block_assets() {
 	}
 
 	/**
-	 * Filters the flag that decides whether separate scripts and styles
-	 * will be loaded for core blocks on-render.
+	 * Filters whether block styles should be loaded separately.
+	 *
+	 * Returning false loads all core block assets, regardless of whether they are rendered
+	 * in a page or not. Returning true loads core block assets only when they are rendered.
 	 *
 	 * @since 5.8.0
 	 *
 	 * @param bool $load_separate_assets Whether separate assets will be loaded.
-	 *                                   Default false.
+	 *                                   Default false (all block assets are loaded, even when not used).
 	 */
 	return apply_filters( 'should_load_separate_core_block_assets', false );
 }

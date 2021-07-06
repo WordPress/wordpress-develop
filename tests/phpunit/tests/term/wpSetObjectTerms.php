@@ -106,7 +106,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, $this->taxonomy );
-			$this->assertInternalType( 'array', $result );
+			$this->assertIsArray( $result );
 			$term_id[ $term ] = $result['term_id'];
 		}
 
@@ -254,7 +254,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, $this->taxonomy );
-			$this->assertInternalType( 'array', $result );
+			$this->assertIsArray( $result );
 			$terms_1[ $i ] = $result['term_id'];
 		}
 

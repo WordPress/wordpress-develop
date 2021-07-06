@@ -219,7 +219,7 @@ class Test_WP_Widget_Media extends WP_UnitTestCase {
 		$this->filter_instance_schema_args = null;
 		add_filter( 'widget_mocked_instance_schema', array( $this, 'filter_instance_schema' ), 10, 2 );
 		$schema = $widget->get_instance_schema();
-		$this->assertInternalType( 'array', $this->filter_instance_schema_args );
+		$this->assertIsArray( $this->filter_instance_schema_args );
 		$this->assertSame( $widget, $this->filter_instance_schema_args['widget'] );
 		$this->assertSameSets( array( 'attachment_id', 'title', 'url' ), array_keys( $this->filter_instance_schema_args['schema'] ) );
 		$this->assertArrayHasKey( 'injected', $schema );

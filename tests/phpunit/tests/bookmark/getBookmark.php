@@ -349,8 +349,8 @@ class Tests_Bookmark_GetBookmark extends WP_UnitTestCase {
 		foreach ( $contexts as $context ) {
 			$bookmark = get_bookmark( self::$bookmark->link_id, OBJECT, $context );
 
-			$this->assertInternalType( 'int', $bookmark->link_id );
-			$this->assertInternalType( 'int', $bookmark->link_rating );
+			$this->assertIsInt( $bookmark->link_id );
+			$this->assertIsInt( $bookmark->link_rating );
 		}
 	}
 

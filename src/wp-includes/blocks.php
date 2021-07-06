@@ -155,7 +155,7 @@ function register_block_style_handle( $metadata, $field_name ) {
 	$block_dir      = dirname( $metadata['file'] );
 	$style_file     = realpath( "$block_dir/$style_path" );
 	$has_style_file = false !== $style_file;
-	$version        = ! $is_core_block && $has_style_file ? filemtime( $style_file ) : false;
+	$version        = ! $is_core_block && isset( $metadata['version'] ) ? $metadata['version'] : false;
 	$style_uri      = $has_style_file ? $style_uri : false;
 	$result         = wp_register_style(
 		$style_handle,
@@ -214,9 +214,7 @@ function register_block_type_from_metadata( $file_or_folder, $args = array() ) {
 	 */
 	$metadata = apply_filters( 'block_type_metadata', $metadata );
 
-	/**
-	 * Add `style` and `editor_style` for core blocks if missing.
-	 */
+	// Add `style` and `editor_style` for core blocks if missing.
 	if ( ! empty( $metadata['name'] ) && 0 === strpos( $metadata['name'], 'core/' ) ) {
 		$block_name = str_replace( 'core/', '', $metadata['name'] );
 
@@ -962,9 +960,8 @@ function unregister_block_style( $block_name, $block_style_name ) {
  *
  * @param WP_Block_Type $block_type Block type to check for support.
  * @param string        $feature    Name of the feature to check support for.
- * @param mixed         $default    Fallback value for feature support, defaults to false.
- *
- * @return boolean                  Whether or not the feature is supported.
+ * @param mixed         $default    Optional. Fallback value for feature support. Default false.
+ * @return bool Whether the feature is supported.
  */
 function block_has_support( $block_type, $feature, $default = false ) {
 	$block_support = $default;

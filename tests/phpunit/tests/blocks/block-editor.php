@@ -172,7 +172,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 		$this->assertCount( 16, $settings );
 		$this->assertFalse( $settings['alignWide'] );
-		$this->assertInternalType( 'array', $settings['allowedMimeTypes'] );
+		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
@@ -264,7 +264,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			),
 			$settings['imageSizes']
 		);
-		$this->assertInternalType( 'int', $settings['maxUploadFileSize'] );
+		$this->assertIsInt( $settings['maxUploadFileSize'] );
 	}
 
 	/**

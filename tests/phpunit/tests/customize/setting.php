@@ -730,7 +730,7 @@ class Tests_WP_Customize_Setting extends WP_UnitTestCase {
 	 */
 	public function filter_validate_for_test_validate( $validity, $value ) {
 		$this->assertInstanceOf( 'WP_Error', $validity );
-		$this->assertInternalType( 'string', $value );
+		$this->assertIsString( $value );
 		if ( sanitize_key( $value ) !== $value ) {
 			$validity->add( 'invalid_key', 'Invalid key' );
 		}

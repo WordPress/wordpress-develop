@@ -228,6 +228,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -289,13 +291,14 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_widget_updates The registered widget update functions.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widget_updates The registered widget update functions.
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function delete_item( $request ) {
-		global $wp_registered_widget_updates;
+		global $wp_widget_factory, $wp_registered_widget_updates;
 
 		retrieve_widgets();
 
@@ -343,6 +346,17 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 
 			$_POST    = $original_post;
 			$_REQUEST = $original_request;
+
+			$widget_object = $wp_widget_factory->get_widget_object( $id_base );
+
+			if ( $widget_object ) {
+				/*
+				 * WP_Widget sets `updated = true` after an update to prevent more than one widget
+				 * from being saved per request. This isn't what we want in the REST API, though,
+				 * as we support batch requests.
+				 */
+				$widget_object->updated = false;
+			}
 
 			wp_assign_widget_to_sidebar( $widget_id, '' );
 
@@ -405,9 +419,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widget_updates The registered widget update functions.
+	 *
 	 * @param WP_REST_Request $request    Full details about the request.
 	 * @param string          $sidebar_id ID of the sidebar the widget belongs to.
-	 *
 	 * @return string|WP_Error The saved widget ID.
 	 */
 	protected function save_widget( $request, $sidebar_id ) {
@@ -520,9 +536,11 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 			$widget_object->_set( $number );
 			$widget_object->_register_one( $number );
 
-			// WP_Widget sets updated = true after an update to prevent more
-			// than one widget from being saved per request. This isn't what we
-			// want in the REST API, though, as we support batch requests.
+			/*
+			 * WP_Widget sets `updated = true` after an update to prevent more than one widget
+			 * from being saved per request. This isn't what we want in the REST API, though,
+			 * as we support batch requests.
+			 */
 			$widget_object->updated = false;
 		}
 
@@ -546,9 +564,8 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_sidebars        The registered sidebars.
-	 * @global array $wp_registered_widgets         The registered widgets.
-	 * @global array $wp_registered_widget_controls The registered widget controls.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widgets The registered widgets.
 	 *
 	 * @param array           $item    An array containing a widget_id and sidebar_id.
 	 * @param WP_REST_Request $request Request object.
