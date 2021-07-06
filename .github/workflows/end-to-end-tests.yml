@@ -45,6 +45,7 @@ jobs:
   # - Logs Docker debug information (about both the Docker installation within the runner and the WordPress container).
   # - Install WordPress within the Docker container.
   # - Run the E2E tests.
+  # - Ensures version-controlled files are not modified or deleted.
   # - todo: Configure Slack notifications for failing tests.
   e2e-tests:
     name: E2E Tests
@@ -113,3 +114,6 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code
