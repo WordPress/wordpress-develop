@@ -55,6 +55,7 @@ jobs:
   # - Logs PHP_CodeSniffer debug information.
   # - Runs PHPCS on the full codebase with warnings suppressed.
   # - Runs PHPCS on the `tests` directory without warnings suppressed.
+  # - Ensures version-controlled files are not modified or deleted.
   # - todo: Configure Slack notifications for failing scans.
   phpcs:
     name: PHP coding standards
@@ -108,6 +109,7 @@ jobs:
   # - Logs updated debug information.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Run the WordPress JSHint checks.
+  # - Ensures version-controlled files are not modified or deleted.
   # - todo: Configure Slack notifications for failing tests.
   jshint:
     name: JavaScript coding standards
@@ -144,5 +146,5 @@ jobs:
       - name: Run JSHint
         run: npm run grunt jshint
 
-      - name: Ensure version-controlled files are not modified during the tests
+      - name: Ensure version-controlled files are not modified or deleted
         run: git diff --exit-code

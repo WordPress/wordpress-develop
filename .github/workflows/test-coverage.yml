@@ -43,8 +43,10 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests as a single site.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the single site code coverage report to Codecov.io.
   # - Run the PHPUnit tests as a multisite.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
