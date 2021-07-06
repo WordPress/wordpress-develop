@@ -713,7 +713,7 @@ function excerpt_remove_blocks( $content ) {
 	$allowed_wrapper_blocks = array(
 		'core/columns',
 		'core/column',
-		'core/group'
+		'core/group',
 	);
 
 	$allowed_blocks = array_merge( $allowed_inner_blocks, $allowed_wrapper_blocks );
