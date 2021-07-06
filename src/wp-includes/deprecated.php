@@ -4221,6 +4221,6 @@ function wp_sensitive_page_meta() {
  * @return string The rendered inner blocks.
  */
 function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
-	_deprecated_function( __FUNCTION__, '5.7.0', '_excerpt_render_inner_blocks()' );
+	_deprecated_function( __FUNCTION__, '5.8.0', '_excerpt_render_inner_blocks()' );
 	return _excerpt_render_inner_blocks( $columns, $allowed_blocks );
 }
