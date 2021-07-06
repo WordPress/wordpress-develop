@@ -122,3 +122,6 @@ jobs:
 
       - name: Run E2E tests
         run: npm run test:e2e
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

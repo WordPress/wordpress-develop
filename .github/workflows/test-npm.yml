@@ -108,6 +108,9 @@ jobs:
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
 
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
   # This is a separate job in order to that more strict conditions can be used.
@@ -164,3 +167,6 @@ jobs:
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

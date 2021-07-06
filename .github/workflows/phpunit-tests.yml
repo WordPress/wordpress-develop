@@ -242,3 +242,6 @@ jobs:
         env:
           WPT_REPORT_API_KEY: "${{ secrets.WPT_REPORT_API_KEY }}"
         run: docker-compose run --rm -e WPT_REPORT_API_KEY -e WPT_PREPARE_DIR=/var/www -e WPT_TEST_DIR=/var/www php php test-runner/report.php
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

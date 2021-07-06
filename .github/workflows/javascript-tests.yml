@@ -91,3 +91,6 @@ jobs:
 
       - name: Run QUnit tests
         run: npm run grunt qunit:compiled
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

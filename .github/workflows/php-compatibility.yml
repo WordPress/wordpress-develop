@@ -84,3 +84,6 @@ jobs:
 
       - name: Run PHP compatibility tests
         run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
