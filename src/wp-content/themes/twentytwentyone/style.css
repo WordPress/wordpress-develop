@@ -3417,6 +3417,7 @@ hr.wp-block-separator {
 }
 
 hr.wp-block-separator:not(.is-style-dots):not(.alignwide) {
+	width: 100%;
 	max-width: var(--responsive--aligndefault-width);
 }
 
@@ -3454,6 +3455,10 @@ hr.wp-block-separator.is-style-dots:before {
 [style*=background-color] hr.wp-block-separator,
 .wp-block-cover[style*=background-image] hr.wp-block-separator {
 	border-color: currentColor;
+}
+
+header .wp-block-site-tagline {
+	margin-top: 0;
 }
 
 .wp-block-site-title {

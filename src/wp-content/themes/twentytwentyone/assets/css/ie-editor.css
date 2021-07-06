@@ -2497,6 +2497,11 @@ hr {
 	opacity: 1;
 }
 
+.wp-block-separator:not(.is-style-wide):not(.is-style-dots),
+hr:not(.is-style-wide):not(.is-style-dots) {
+	width: 100%;
+}
+
 .wp-block-separator[style*="text-align:right"] {
 	border-right-color: #28303d;
 }
@@ -2596,6 +2601,10 @@ hr.is-style-dots:before {
 [style*=background-color] hr,
 .wp-block-cover[style*=background-image] hr {
 	border-color: currentColor;
+}
+
+header .wp-block-site-tagline {
+	margin-top: 0;
 }
 
 .wp-block-site-title {
