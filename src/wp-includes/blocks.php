@@ -773,10 +773,14 @@ function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
 	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
-		if ( in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
-			$output .= empty( $inner_block['innerBlocks'] )
-				? render_block( $inner_block )
-				: _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
+		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
+			continue;
+		}
+
+		if ( empty( $inner_block['innerBlocks'] ) ) {
+			$output .= render_block( $inner_block );
+		} else {
+			$output .= _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
 		}
 	}
 
