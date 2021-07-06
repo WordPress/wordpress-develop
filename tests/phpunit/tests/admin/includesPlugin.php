@@ -27,7 +27,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 			'DomainPath'  => '',
 		);
 
-		$this->assertTrue( is_array( $data ) );
+		$this->assertIsArray( $data );
 
 		foreach ( $default_headers as $name => $value ) {
 			$this->assertTrue( isset( $data[ $name ] ) );
