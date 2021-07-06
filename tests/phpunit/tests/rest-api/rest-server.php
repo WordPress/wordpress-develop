@@ -545,7 +545,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 		$this->assertCount( 2, $alternate );
 		$this->assertEmpty( $alternate[0] );
 
-		$this->assertInternalType( 'array', $alternate[1] );
+		$this->assertIsArray( $alternate[1] );
 		$this->assertArrayNotHasKey( 'code', $alternate[1] );
 		$this->assertTrue( $alternate[1]['hello'] );
 
@@ -1571,6 +1571,7 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 
 	/**
 	 * @ticket 50244
+	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_callbacks_are_not_executed_if_request_validation_fails() {
 		$callback = $this->createPartialMock( 'stdClass', array( '__invoke' ) );

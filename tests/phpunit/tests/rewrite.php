@@ -482,7 +482,7 @@ class Tests_Rewrite extends WP_UnitTestCase {
 		$this->set_permalink_structure( '/%year%/%monthnum%/%day%/%postname%/' );
 
 		$rewrite_rules = get_option( 'rewrite_rules' );
-		$this->assertInternalType( 'array', $rewrite_rules );
+		$this->assertIsArray( $rewrite_rules );
 		$this->assertNotEmpty( $rewrite_rules );
 	}
 }

@@ -216,7 +216,7 @@ class Tests_User extends WP_UnitTestCase {
 			$user->filter = $context;
 			$user->init( $user->data );
 
-			$this->assertInternalType( 'int', $user->ID );
+			$this->assertIsInt( $user->ID );
 		}
 	}
 
@@ -870,7 +870,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', $u );
+		$this->assertIsInt( $u );
 		$this->assertGreaterThan( 0, $u );
 
 		$user = new WP_User( $u );
@@ -1493,7 +1493,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user();
 		$user    = get_user_by( 'ID', $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertInstanceOf( 'WP_User', $user );
 		$this->assertSame( 'nickname1', $user->nickname );
 
@@ -1504,7 +1504,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$user_id = edit_user( $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( 'nickname_updated', $user->nickname );
 
 		// Check not to change an old password if a new password contains only spaces. Ticket #42766.
@@ -1516,7 +1516,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 		$user    = get_user_by( 'ID', $user_id );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( $old_pass, $user->user_pass );
 
 		// Check updating user with missing second password.
@@ -1535,7 +1535,7 @@ class Tests_User extends WP_UnitTestCase {
 		$user_id = edit_user( $user_id );
 		remove_action( 'check_passwords', array( $this, 'action_check_passwords_blank_password' ) );
 
-		$this->assertInternalType( 'int', $user_id );
+		$this->assertIsInt( $user_id );
 		$this->assertSame( 'nickname_updated2', $user->nickname );
 	}
 

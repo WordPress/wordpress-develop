@@ -1315,7 +1315,7 @@ class WP_Rewrite {
 		/**
 		 * Filters rewrite rules used for date archives.
 		 *
-		 * Likely date archives would include /yyyy/, /yyyy/mm/, and /yyyy/mm/dd/.
+		 * Likely date archives would include `/yyyy/`, `/yyyy/mm/`, and `/yyyy/mm/dd/`.
 		 *
 		 * @since 1.5.0
 		 *
@@ -1330,7 +1330,7 @@ class WP_Rewrite {
 		 * Filters rewrite rules used for root-level archives.
 		 *
 		 * Likely root-level archives would include pagination rules for the homepage
-		 * as well as site-wide post feeds (e.g. /feed/, and /feed/atom/).
+		 * as well as site-wide post feeds (e.g. `/feed/`, and `/feed/atom/`).
 		 *
 		 * @since 1.5.0
 		 *
@@ -1344,7 +1344,7 @@ class WP_Rewrite {
 		/**
 		 * Filters rewrite rules used for comment feed archives.
 		 *
-		 * Likely comments feed archives include /comments/feed/, and /comments/feed/atom/.
+		 * Likely comments feed archives include `/comments/feed/` and `/comments/feed/atom/`.
 		 *
 		 * @since 1.5.0
 		 *
@@ -1359,7 +1359,7 @@ class WP_Rewrite {
 		/**
 		 * Filters rewrite rules used for search archives.
 		 *
-		 * Likely search-related archives include /search/search+query/ as well as
+		 * Likely search-related archives include `/search/search+query/` as well as
 		 * pagination and feed paths for a search.
 		 *
 		 * @since 1.5.0
@@ -1374,7 +1374,7 @@ class WP_Rewrite {
 		/**
 		 * Filters rewrite rules used for author archives.
 		 *
-		 * Likely author archives would include /author/author-name/, as well as
+		 * Likely author archives would include `/author/author-name/`, as well as
 		 * pagination and feed paths for author archives.
 		 *
 		 * @since 1.5.0
@@ -1411,8 +1411,13 @@ class WP_Rewrite {
 			 * Filters rewrite rules used for individual permastructs.
 			 *
 			 * The dynamic portion of the hook name, `$permastructname`, refers
-			 * to the name of the registered permastruct, e.g. 'post_tag' (tags),
-			 * 'category' (categories), etc.
+			 * to the name of the registered permastruct.
+			 *
+			 * Possible hook names include:
+			 *
+			 *  - `category_rewrite_rules`
+			 *  - `post_format_rewrite_rules`
+			 *  - `post_tag_rewrite_rules`
 			 *
 			 * @since 3.1.0
 			 *
