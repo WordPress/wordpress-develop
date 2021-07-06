@@ -150,7 +150,7 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 	 * @ticket 53604
 	 */
 	public function test_inner_blocks_excerpt() {
-		$post_content = '<!-- wp:group -->
+		$content_1 = '<!-- wp:group -->
 <div class="wp-block-group"><!-- wp:columns -->
 <div class="wp-block-columns"><!-- wp:column -->
 <div class="wp-block-column"><!-- wp:paragraph -->
@@ -169,18 +169,39 @@ class Tests_Post_GetTheExcerpt extends WP_UnitTestCase {
 <!-- wp:paragraph -->
 <p></p>
 <!-- /wp:paragraph -->';
-		$post = self::factory()->post->create_and_get(
+
+		$content_2 = '<!-- wp:group -->
+<div class="wp-block-group"><!-- wp:paragraph -->
+<p>Paragraph inside group block</p>
+<!-- /wp:paragraph --></div>
+<!-- /wp:group -->
+
+<!-- wp:paragraph -->
+<p></p>
+<!-- /wp:paragraph -->';
+
+		$post_1 = self::factory()->post->create_and_get(
 			array(
-				'post_content' => $post_content,
+				'post_content' => $content_1,
 				'post_excerpt' => '',
 			)
 		);
-		$query  = new WP_Query(
+
+		$post_2 = self::factory()->post->create_and_get(
 			array(
-				'p' => $post->ID,
+				'post_content' => $content_2,
+				'post_excerpt' => '',
 			)
 		);
 
-		$this->assertSame( 'Column 1 Column 2', get_the_excerpt( $query->posts[0] ) );
+		$this->assertSame(
+			'Column 1 Column 2',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_1->ID ) ) )->posts[0] )
+		);
+
+		$this->assertSame(
+			'Paragraph inside group block',
+			get_the_excerpt( ( new WP_Query( array( 'p' => $post_2->ID ) ) )->posts[0] )
+		);
 	}
 }
