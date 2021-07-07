@@ -2432,10 +2432,13 @@ function enqueue_block_styles_assets() {
 
 				// If the site loads separate styles per-block, enqueue the stylesheet on render.
 				if ( wp_should_load_separate_core_block_assets() ) {
-					add_filter( 'render_block', function( $html, $block ) use ( $style_properties ) {
-						wp_enqueue_style( $style_properties['style_handle'] );
-						return $html;
-					} );
+					add_filter(
+						'render_block',
+						function( $html, $block ) use ( $style_properties ) {
+							wp_enqueue_style( $style_properties['style_handle'] );
+							return $html;
+						}
+					);
 				} else {
 					wp_enqueue_style( $style_properties['style_handle'] );
 				}
