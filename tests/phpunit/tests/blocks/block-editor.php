@@ -347,7 +347,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	 * @ticket 53458
 	 */
 	function test_get_block_editor_settings_theme_json_settings() {
-		switch_theme( 'fse' );
+		switch_theme( 'block-theme' );
 
 		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 
