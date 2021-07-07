@@ -312,7 +312,7 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 
 	// If post password required and it doesn't match the cookie.
 	if ( post_password_required( $_post ) ) {
-		return get_the_password_form( $_post );
+		return apply_filters( 'get_the_content', get_the_password_form( $_post ), $_post );
 	}
 
 	// If the requested page doesn't exist.
@@ -372,7 +372,15 @@ function get_the_content( $more_link_text = null, $strip_teaser = false, $post =
 		}
 	}
 
-	return $output;
+	/**
+	 * Filters the retrieved post content.
+	 *
+	 * @since 5.8
+	 *
+	 * @param string  $output The post content.
+	 * @param WP_Post $post   Post object.
+	 */
+	return apply_filters( 'get_the_content', $output, $_post );
 }
 
 /**
