@@ -31,7 +31,7 @@ require ABSPATH . WPINC . '/functions.wp-scripts.php';
 /** WordPress Styles Class */
 require ABSPATH . WPINC . '/class.wp-styles.php';
 
-/** WordPress Styles Function */
+/** WordPress Styles Functions */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
 /**
