@@ -33,7 +33,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	public function setup_admin() {
 		add_action( 'current_screen', array( $this, 'add_hooks' ) );
 
-		// Add the privacy policy content.
+		// Add the privacy policy content. This is done here because current_screen is too late.
 		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
 	}
 
@@ -43,7 +43,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @since Twenty Twenty-One 1.4
 	 */
 	public function add_hooks() {
-		// Disable dark-mode in the widgets editor.
+		// Disable Dark Mode in the widgets editor.
 		if ( is_admin() && 'widgets' === get_current_screen()->base ) {
 			return;
 		}
