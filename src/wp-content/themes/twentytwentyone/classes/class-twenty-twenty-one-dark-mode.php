@@ -18,6 +18,35 @@ class Twenty_Twenty_One_Dark_Mode {
 	 * @since Twenty Twenty-One 1.0
 	 */
 	public function __construct() {
+		if ( is_admin() ) {
+			$this->setup_admin();
+		} else {
+			$this->add_hooks();
+		}
+	}
+
+	/**
+	 * Sets up Dark Mode for use within the admin area.
+	 *
+	 * @since Twenty Twenty-One 1.4
+	 */
+	public function setup_admin() {
+		add_action( 'current_screen', array( $this, 'add_hooks' ) );
+
+		// Add the privacy policy content.
+		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
+	}
+
+	/**
+	 * Adds the needed hooks to support Dark Mode.
+	 *
+	 * @since Twenty Twenty-One 1.4
+	 */
+	public function add_hooks() {
+		// Disable dark-mode in the widgets editor.
+		if ( is_admin() && 'widgets' === get_current_screen()->base ) {
+			return;
+		}
 
 		// Enqueue assets for the block-editor.
 		add_action( 'enqueue_block_editor_assets', array( $this, 'editor_custom_color_variables' ) );
@@ -39,9 +68,6 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		// Add the switch on the frontend & customizer.
 		add_action( 'wp_footer', array( $this, 'the_switch' ) );
-
-		// Add the privacy policy content.
-		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
 	}
 
 	/**
