@@ -536,7 +536,10 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		);
 		rest_get_server()->dispatch( $request );
 
-		$this->assertEquals( ['text-4', 'text-5', 'text-6'], rest_do_request( '/wp/v2/sidebars/sidebar-1' )->get_data()['widgets'] );
+		$this->assertEquals(
+			array( 'text-4', 'text-5', 'text-6' ),
+			rest_do_request( '/wp/v2/sidebars/sidebar-1' )->get_data()['widgets']
+		);
 	}
 
 	/**
