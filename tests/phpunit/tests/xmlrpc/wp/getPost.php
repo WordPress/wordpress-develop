@@ -85,7 +85,7 @@ class Tests_XMLRPC_wp_getPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertNotIXRError( $result );
 
 		// When no fields are requested, only the IDs should be returned.
-		$this->assertSame( 1, count( $result ) );
+		$this->assertCount( 1, $result );
 		$this->assertSame( array( 'post_id' ), array_keys( $result ) );
 	}
 

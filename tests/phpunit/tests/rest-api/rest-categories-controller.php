@@ -183,7 +183,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'hide_empty', true );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Season 5', $data[0]['name'] );
 		$this->assertSame( 'The Be Sharps', $data[1]['name'] );
 
@@ -191,7 +191,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'hide_empty', 'false' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( $total_categories, count( $data ) );
+		$this->assertCount( $total_categories, $data );
 	}
 
 	public function test_get_items_parent_zero_arg() {
@@ -291,14 +291,14 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'include', array( $id2, $id1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
 	}
 
@@ -339,7 +339,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Uncategorized', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
@@ -349,7 +349,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 	}
 
@@ -439,7 +439,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 3, count( $data ) );
+		$this->assertCount( 3, $data );
 
 		// Check ordered by name by default.
 		$names = wp_list_pluck( $data, 'name' );
@@ -457,7 +457,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 3, count( $data ) );
+		$this->assertCount( 3, $data );
 		$names = wp_list_pluck( $data, 'name' );
 		$this->assertSame( array( 'Image', 'Marvel', 'DC' ), $names, 'Terms should be ordered by description' );
 
@@ -467,7 +467,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 3, count( $data ) );
+		$this->assertCount( 3, $data );
 		$names = wp_list_pluck( $data, 'name' );
 		$this->assertSame( array( 'DC', 'Marvel', 'Image' ), $names, 'Terms should be reverse-ordered by description' );
 	}
@@ -482,7 +482,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 3, count( $data ) );
+		$this->assertCount( 3, $data );
 		$names = wp_list_pluck( $data, 'name' );
 		$this->assertSame( array( 'DC', 'Marvel', 'Image' ), $names );
 	}
@@ -518,7 +518,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Cape', $data[0]['name'] );
 	}
 
@@ -535,7 +535,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/categories' );
@@ -543,7 +543,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 0, count( $data ) );
+		$this->assertCount( 0, $data );
 	}
 
 	public function test_get_items_slug_arg() {
@@ -555,7 +555,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 	}
 
@@ -572,7 +572,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$request->set_param( 'parent', $category1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Child', $data[0]['name'] );
 	}
 
@@ -1130,7 +1130,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 9, count( $properties ) );
+		$this->assertCount( 9, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'count', $properties );
 		$this->assertArrayHasKey( 'description', $properties );

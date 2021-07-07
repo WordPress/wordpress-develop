@@ -349,7 +349,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( --$count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertCount( --$count_before, $wp_rewrite->rewritereplace ); // Array was reduced by one value.
 	}
 
 	/**
@@ -461,7 +461,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'future_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['future_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['future_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'future_foo', $wp_filter );
 	}
@@ -481,7 +481,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'add_meta_boxes_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['add_meta_boxes_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['add_meta_boxes_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'add_meta_boxes_foo', $wp_filter );
 	}

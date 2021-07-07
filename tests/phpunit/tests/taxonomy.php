@@ -862,7 +862,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( --$count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertCount( --$count_before, $wp_rewrite->rewritereplace ); // Array was reduced by one value.
 	}
 
 	/**
@@ -891,7 +891,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 		register_taxonomy( 'foo', 'post' );
 
 		$this->assertArrayHasKey( 'wp_ajax_add-foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['wp_ajax_add-foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['wp_ajax_add-foo']->callbacks );
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 		$this->assertArrayNotHasKey( 'wp_ajax_add-foo', $wp_filter );
 	}

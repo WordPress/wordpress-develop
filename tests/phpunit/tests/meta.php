@@ -100,7 +100,7 @@ class Tests_Meta extends WP_UnitTestCase {
 		$this->updated_mids = array();
 
 		foreach ( $found as $action => $mids ) {
-			$this->assertSame( 2, count( $mids ) );
+			$this->assertCount( 2, $mids );
 		}
 	}
 
@@ -137,7 +137,7 @@ class Tests_Meta extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $u ) );
+		$this->assertCount( 1, $u );
 
 		// User found is not locally defined author (it's the admin).
 		$this->assertNotEquals( $this->author->user_login, $u[0]->user_login );

@@ -341,7 +341,7 @@ class REST_Block_Type_Controller_Test extends WP_Test_REST_Controller_Testcase {
 		$data     = $response->get_data();
 		$this->assertSame( $block_type, $data['name'] );
 		$this->assertArrayHasKey( 'variations', $data );
-		$this->assertSame( 1, count( $data['variations'] ) );
+		$this->assertCount( 1, $data['variations'] );
 		$variation = $data['variations'][0];
 		$this->assertSame( 'variation title', $variation['title'] );
 		$this->assertSame( 'variation description', $variation['description'] );

@@ -391,7 +391,7 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 		$this->assertSame( $screen->get_help_tab( $tab_4 ), $tab_4_args );
 
 		$tabs = $screen->get_help_tabs();
-		$this->assertSame( 4, count( $tabs ) );
+		$this->assertCount( 4, $tabs );
 		$this->assertArrayHasKey( $tab_1, $tabs );
 		$this->assertArrayHasKey( $tab_2, $tabs );
 		$this->assertArrayHasKey( $tab_3, $tabs );
@@ -411,19 +411,19 @@ class Tests_Admin_includesScreen extends WP_UnitTestCase {
 
 		$screen->remove_help_tab( $tab_1 );
 		$this->assertNull( $screen->get_help_tab( $tab_1 ) );
-		$this->assertSame( 3, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 3, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_2 );
 		$this->assertNull( $screen->get_help_tab( $tab_2 ) );
-		$this->assertSame( 2, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 2, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_3 );
 		$this->assertNull( $screen->get_help_tab( $tab_3 ) );
-		$this->assertSame( 1, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 1, $screen->get_help_tabs() );
 
 		$screen->remove_help_tab( $tab_4 );
 		$this->assertNull( $screen->get_help_tab( $tab_4 ) );
-		$this->assertSame( 0, count( $screen->get_help_tabs() ) );
+		$this->assertCount( 0, $screen->get_help_tabs() );
 
 		$screen->remove_help_tabs();
 		$this->assertSame( array(), $screen->get_help_tabs() );

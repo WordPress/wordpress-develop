@@ -442,7 +442,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $enclosure );
 
 		// Verify that there is only a single value in the array and that a duplicate is not present.
-		$this->assertSame( 1, count( get_post_meta( $post_id, 'enclosure' ) ) );
+		$this->assertCount( 1, get_post_meta( $post_id, 'enclosure' ) );
 
 		// For good measure, check that the expected value is in the array.
 		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
@@ -451,7 +451,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $new_enclosure );
 
 		// Having added the new enclosure, 2 values are expected in the array.
-		$this->assertSame( 2, count( get_post_meta( $post_id, 'enclosure' ) ) );
+		$this->assertCount( 2, get_post_meta( $post_id, 'enclosure' ) );
 
 		// Check that the new enclosure is in the enclosure meta.
 		$new_enclosure_string = "{$new_enclosure['url']}\n{$new_enclosure['length']}\n{$new_enclosure['type']}\n";
