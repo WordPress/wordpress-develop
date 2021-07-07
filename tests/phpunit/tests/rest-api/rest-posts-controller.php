@@ -509,7 +509,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'per_page', self::$per_page );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertCount( $total_posts,  $response->get_data() );
+		$this->assertCount( $total_posts, $response->get_data() );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/posts' );
 		$request->set_param( 'search', 'Search Result' );

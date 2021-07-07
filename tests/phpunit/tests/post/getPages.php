@@ -277,7 +277,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertCount( 3,  get_pages( array( 'meta_key' => 'some-meta-key' ) ) );
+		$this->assertCount( 3, get_pages( array( 'meta_key' => 'some-meta-key' ) ) );
 	}
 
 	/**

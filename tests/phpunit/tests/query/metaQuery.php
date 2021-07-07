@@ -1704,7 +1704,7 @@ class Tests_Query_MetaQuery extends WP_UnitTestCase {
 		$this->assertSameSets( array( $post_id, $post_id3, $post_id4, $post_id5, $post_id6 ), $posts );
 
 		$posts = get_posts( array( 'meta_value' => '0' ) );
-		$this->assertCount( 5,  $posts );
+		$this->assertCount( 5, $posts );
 		foreach ( $posts as $post ) {
 			$this->assertInstanceOf( 'WP_Post', $post );
 			$this->assertSame( 'raw', $post->filter );
