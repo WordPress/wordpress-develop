@@ -31,7 +31,7 @@ require ABSPATH . WPINC . '/functions.wp-scripts.php';
 /** WordPress Styles Class */
 require ABSPATH . WPINC . '/class.wp-styles.php';
 
-/** WordPress Styles Functions */
+/** WordPress Styles Function */
 require ABSPATH . WPINC . '/functions.wp-styles.php';
 
 /**
@@ -379,6 +379,16 @@ function wp_default_packages_inline_scripts( $scripts ) {
 	$scripts->add_inline_script(
 		'editor',
 		'window.wp.oldEditor = window.wp.editor;',
+		'after'
+	);
+
+	// wp-editor module is exposed as window.wp.editor
+	// Problem: there is quite some code expecting window.wp.oldEditor object available under window.wp.editor
+	// Solution: fuse the two objects together to maintain backward compatibility
+	// For more context, see https://github.com/WordPress/gutenberg/issues/33203
+	$scripts->add_inline_script(
+		'wp-editor',
+		'Object.assign(window.wp.editor, window.wp.oldEditor);',
 		'after'
 	);
 }
