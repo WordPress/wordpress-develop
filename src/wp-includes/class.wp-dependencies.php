@@ -389,16 +389,14 @@ class WP_Dependencies {
 		$this->all_queued_deps = $all_deps;
 
 		if (
-			in_array( 'wp-editor', $this->all_queued_deps ) &&
-			(
-				in_array( 'wp-edit-widgets-js', $this->all_queued_deps ) ||
-				in_array( 'wp-customize-widgets-js', $this->all_queued_deps )
+			array_key_exists( 'wp-editor', $this->all_queued_deps ) && (
+				array_key_exists( 'wp-edit-widgets', $this->all_queued_deps ) ||
+				array_key_exists( 'wp-customize-widgets', $this->all_queued_deps )
 			)
 		) {
 			_doing_it_wrong(
 				'enqueue_script',
-				'"wp-editor" script should not be enqueued together with "wp-edit-widgets-js" ' .
-				'and "wp-customize-widgets-js" as it replaces the window.wp.editor variable.',
+				'"wp-editor" script should not be enqueued together with the new widgets editor (wp-edit-widgets or wp-customize-widgets).',
 				'5.8.0'
 			);
 		}
