@@ -211,7 +211,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'post', $types[0] );
 		$this->assertArrayHasKey( 1, $types );
 		$this->assertSame( 'attachment', $types[1] );
-		$this->assertSame( 2, count( $types ) );
+		$this->assertCount( 2, $types );
 	}
 
 	public function test_get_item_schema() {
@@ -219,7 +219,7 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 10, count( $properties ) );
+		$this->assertCount( 10, $properties );
 		$this->assertArrayHasKey( 'capabilities', $properties );
 		$this->assertArrayHasKey( 'description', $properties );
 		$this->assertArrayHasKey( 'hierarchical', $properties );

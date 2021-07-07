@@ -44,7 +44,7 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->mw_getRecentPosts( array( 1, 'author', 'author' ) );
 		$this->assertNotIXRError( $result );
-		$this->assertSame( 0, count( $result ) );
+		$this->assertCount( 0, $result );
 	}
 
 	function test_valid_post() {

@@ -767,7 +767,7 @@ class Tests_User extends WP_UnitTestCase {
 
 		$response = wpmu_validate_user_signup( $user_data['user_login'], $user_data['user_email'] );
 		$this->assertInstanceOf( 'WP_Error', $response['errors'] );
-		$this->assertSame( 0, count( $response['errors']->get_error_codes() ) );
+		$this->assertCount( 0, $response['errors']->get_error_codes() );
 	}
 
 	function _illegal_user_logins_data() {
@@ -1728,10 +1728,10 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties.
-		$this->assertSame( 11, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 11, $actual['data'][0]['data'] );
 	}
 
 	/**
@@ -1862,11 +1862,11 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties (the 11 core properties,
 		// plus 1 additional from the filter).
-		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the item added by the filter was retained.
 		$this->assertSame(
@@ -1894,11 +1894,11 @@ class Tests_User extends WP_UnitTestCase {
 		$this->assertTrue( $actual['done'] );
 
 		// Number of exported users.
-		$this->assertSame( 1, count( $actual['data'] ) );
+		$this->assertCount( 1, $actual['data'] );
 
 		// Number of exported user properties
 		// (the 11 core properties, plus 1 additional from the filter).
-		$this->assertSame( 12, count( $actual['data'][0]['data'] ) );
+		$this->assertCount( 12, $actual['data'][0]['data'] );
 
 		// Check that the duplicate 'name' => 'User ID' was stripped.
 		$this->assertSame(

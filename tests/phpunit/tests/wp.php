@@ -21,7 +21,7 @@ class Tests_WP extends WP_UnitTestCase {
 		$this->wp->add_query_var( 'test2' );
 		$this->wp->add_query_var( 'test' );
 
-		$this->assertSame( $public_qv_count + 2, count( $this->wp->public_query_vars ) );
+		$this->assertCount( $public_qv_count + 2, $this->wp->public_query_vars );
 		$this->assertTrue( in_array( 'test', $this->wp->public_query_vars, true ) );
 		$this->assertTrue( in_array( 'test2', $this->wp->public_query_vars, true ) );
 	}
@@ -33,6 +33,6 @@ class Tests_WP extends WP_UnitTestCase {
 		$this->assertTrue( in_array( 'test', $this->wp->public_query_vars, true ) );
 		$this->wp->remove_query_var( 'test' );
 
-		$this->assertSame( $public_qv_count, count( $this->wp->public_query_vars ) );
+		$this->assertCount( $public_qv_count, $this->wp->public_query_vars );
 	}
 }

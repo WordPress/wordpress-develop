@@ -200,7 +200,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'hide_empty', true );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Season 5', $data[0]['name'] );
 		$this->assertSame( 'The Be Sharps', $data[1]['name'] );
 
@@ -220,14 +220,14 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$request->set_param( 'include', array( $id2, $id1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
 
 		// Invalid 'include' should error.
@@ -302,7 +302,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Zucchini', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -312,7 +312,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 
 		// Invalid 'orderby' should error.
@@ -387,7 +387,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'DC', $data[0]['name'] );
 
 		// Invalid 'post' should error.
@@ -474,7 +474,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 200, $response->get_status() );
 
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( 'Cape', $data[0]['name'] );
 	}
 
@@ -491,7 +491,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 
 		$request = new WP_REST_Request( 'GET', '/wp/v2/tags' );
@@ -499,7 +499,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 0, count( $data ) );
+		$this->assertCount( 0, $data );
 	}
 
 	public function test_get_items_slug_arg() {
@@ -511,7 +511,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( 'Apple', $data[0]['name'] );
 	}
 
@@ -1224,7 +1224,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 8, count( $properties ) );
+		$this->assertCount( 8, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'count', $properties );
 		$this->assertArrayHasKey( 'description', $properties );

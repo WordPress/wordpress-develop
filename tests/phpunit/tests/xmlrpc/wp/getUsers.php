@@ -102,7 +102,7 @@ class Tests_XMLRPC_wp_getUsers extends WP_XMLRPC_UnitTestCase {
 		} while ( count( $presults ) > 0 );
 
 		// Verify that $user_ids matches $users_found.
-		$this->assertSame( 0, count( array_diff( $user_ids, $users_found ) ) );
+		$this->assertCount( 0, array_diff( $user_ids, $users_found ) );
 	}
 
 	function test_order_filters() {

@@ -20,7 +20,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		// Set the initial terms.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertSame( 3, count( $tt_1 ) );
+		$this->assertCount( 3, $tt_1 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(

@@ -113,17 +113,17 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$post    = get_post( $post_id );
 
 		$this->assertIsArray( $post->post_category );
-		$this->assertSame( 1, count( $post->post_category ) );
+		$this->assertCount( 1, $post->post_category );
 		$this->assertEquals( get_option( 'default_category' ), $post->post_category[0] );
 		$term1 = wp_insert_term( 'Foo', 'category' );
 		$term2 = wp_insert_term( 'Bar', 'category' );
 		$term3 = wp_insert_term( 'Baz', 'category' );
 		wp_set_post_categories( $post_id, array( $term1['term_id'], $term2['term_id'], $term3['term_id'] ) );
-		$this->assertSame( 3, count( $post->post_category ) );
+		$this->assertCount( 3, $post->post_category );
 		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post->post_category );
 
 		$post = get_post( $post_id, ARRAY_A );
-		$this->assertSame( 3, count( $post['post_category'] ) );
+		$this->assertCount( 3, $post['post_category'] );
 		$this->assertSame( array( $term2['term_id'], $term3['term_id'], $term1['term_id'] ), $post['post_category'] );
 	}
 
@@ -135,12 +135,12 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 		$this->assertEmpty( $post->tags_input );
 		wp_set_post_tags( $post_id, 'Foo, Bar, Baz' );
 		$this->assertIsArray( $post->tags_input );
-		$this->assertSame( 3, count( $post->tags_input ) );
+		$this->assertCount( 3, $post->tags_input );
 		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post->tags_input );
 
 		$post = get_post( $post_id, ARRAY_A );
 		$this->assertIsArray( $post['tags_input'] );
-		$this->assertSame( 3, count( $post['tags_input'] ) );
+		$this->assertCount( 3, $post['tags_input'] );
 		$this->assertSame( array( 'Bar', 'Baz', 'Foo' ), $post['tags_input'] );
 	}
 

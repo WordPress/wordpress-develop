@@ -106,7 +106,7 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		$context       = array();
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 
-		$this->assertSame( 1, count( $blocks ) );
+		$this->assertCount( 1, $blocks );
 	}
 
 }

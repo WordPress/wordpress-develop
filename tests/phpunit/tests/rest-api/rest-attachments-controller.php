@@ -415,27 +415,27 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		// All attachments.
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 2, count( $response->get_data() ) );
+		$this->assertCount( 2, $response->get_data() );
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		// Attachments without a parent.
 		$request->set_param( 'parent', 0 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $attachment_id2, $data[0]['id'] );
 		// Attachments with parent=post_id.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'parent', $post_id );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $attachment_id, $data[0]['id'] );
 		// Attachments with invalid parent.
 		$request = new WP_REST_Request( 'GET', '/wp/v2/media' );
 		$request->set_param( 'parent', REST_TESTS_IMPOSSIBLY_HIGH_NUMBER );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 0, count( $data ) );
+		$this->assertCount( 0, $data );
 	}
 
 	public function test_get_items_invalid_status_param_is_error_response() {
@@ -509,7 +509,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response = rest_get_server()->dispatch( $request );
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$ids = array(
 			$data[0]['id'],
 			$data[1]['id'],
@@ -1465,7 +1465,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 27, count( $properties ) );
+		$this->assertCount( 27, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'alt_text', $properties );
 		$this->assertArrayHasKey( 'caption', $properties );

@@ -156,7 +156,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( $num, count( $result ) );
+		$this->assertCount( $num, $result );
 
 	}
 
