@@ -370,6 +370,7 @@ class WP_Dependencies {
 		$all_deps = array_fill_keys( $queue, true );
 		$queues   = array();
 		$done     = array();
+		$old_deps = $all_deps;
 
 		while ( $queue ) {
 			foreach ( $queue as $queued ) {
@@ -386,6 +387,20 @@ class WP_Dependencies {
 		}
 
 		$this->all_queued_deps = $all_deps;
+
+		if (
+			in_array( 'wp-editor', $this->all_queued_deps ) &&
+			gutenberg_use_widgets_block_editor() &&
+			is_callable( 'get_current_screen' )
+		) {
+			if ( in_array( get_current_screen()->base, array( 'widgets', 'customize' ), true ) ) {
+				_doing_it_wrong(
+					'enqueue_script',
+					'"wp-editor" script should not be enqueued inside on the widgets editor page as it replaces the window.wp.editor variable.',
+					'5.8.0'
+				);
+			}
+		}
 
 		return isset( $this->all_queued_deps[ $handle ] );
 	}
