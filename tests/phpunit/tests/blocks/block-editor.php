@@ -347,7 +347,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 	 * @ticket 53458
 	 */
 	function test_get_block_editor_settings_theme_json_settings() {
-		switch_theme( 'theme-json' );
+		switch_theme( 'fse' );
 
 		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
 
@@ -357,9 +357,14 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 		$this->assertSameSetsWithIndex(
 			array(
 				array(
-					'slug'  => 'custom-color',
-					'name'  => 'Custom color',
-					'color' => '#123456',
+					'slug'  => 'light',
+					'name'  => 'Light',
+					'color' => '#f5f7f9',
+				),
+				array(
+					'slug'  => 'dark',
+					'name'  => 'Dark',
+					'color' => '#000',
 				),
 			),
 			$settings['colors']

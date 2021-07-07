@@ -108,8 +108,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'fse' );
 		$this->assertSame(
 			array(
-				'color'  => array(
-					'palette' => array(
+				'color'      => array(
+					'palette'        => array(
 						'theme' => array(
 							array(
 								'slug'  => 'light',
@@ -123,9 +123,38 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 							),
 						),
 					),
-					'custom'  => false,
+					'gradients'      => array(
+						'theme' => array(
+							array(
+								'name'     => 'Custom gradient',
+								'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+								'slug'     => 'custom-gradient',
+							),
+						),
+					),
+					'custom'         => false,
+					'customGradient' => false,
 				),
-				'blocks' => array(
+				'typography' => array(
+					'fontSizes'        => array(
+						'theme' => array(
+							array(
+								'name' => 'Custom',
+								'slug' => 'custom',
+								'size' => '100px',
+							),
+						),
+					),
+					'customFontSize'   => false,
+					'customLineHeight' => true,
+				),
+				'spacing'    => array(
+					'units'         => array(
+						'rem',
+					),
+					'customPadding' => true,
+				),
+				'blocks'     => array(
 					'core/paragraph' => array(
 						'color' => array(
 							'palette' => array(
