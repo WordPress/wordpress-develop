@@ -96,16 +96,16 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
-		load_textdomain( 'fse', realpath( DIR_TESTDATA . '/languages/themes/fse-pl_PL.mo' ) );
+		load_textdomain( 'block-theme', realpath( DIR_TESTDATA . '/languages/themes/block-theme-pl_PL.mo' ) );
 
-		switch_theme( 'fse' );
+		switch_theme( 'block-theme' );
 
 		$actual = WP_Theme_JSON_Resolver::get_theme_data();
 
-		unload_textdomain( 'fse' );
+		unload_textdomain( 'block-theme' );
 		remove_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
 
-		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'fse' );
+		$this->assertSame( wp_get_theme()->get( 'TextDomain' ), 'block-theme' );
 		$this->assertSame(
 			array(
 				'color'      => array(
@@ -183,11 +183,11 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 		$default = WP_Theme_JSON_Resolver::theme_has_support();
 
 		// Switch to a theme that does have support.
-		switch_theme( 'fse' );
-		$fse = WP_Theme_JSON_Resolver::theme_has_support();
+		switch_theme( 'block-theme' );
+		$has_theme_json_support = WP_Theme_JSON_Resolver::theme_has_support();
 
 		$this->assertFalse( $default );
-		$this->assertTrue( $fse );
+		$this->assertTrue( $has_theme_json_support );
 	}
 
 }
