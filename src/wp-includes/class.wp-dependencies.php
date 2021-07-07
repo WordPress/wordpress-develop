@@ -390,16 +390,17 @@ class WP_Dependencies {
 
 		if (
 			in_array( 'wp-editor', $this->all_queued_deps ) &&
-			gutenberg_use_widgets_block_editor() &&
-			is_callable( 'get_current_screen' )
+			(
+				in_array( 'wp-edit-widgets-js', $this->all_queued_deps ) ||
+				in_array( 'wp-customize-widgets-js', $this->all_queued_deps )
+			)
 		) {
-			if ( in_array( get_current_screen()->base, array( 'widgets', 'customize' ), true ) ) {
-				_doing_it_wrong(
-					'enqueue_script',
-					'"wp-editor" script should not be enqueued inside on the widgets editor page as it replaces the window.wp.editor variable.',
-					'5.8.0'
-				);
-			}
+			_doing_it_wrong(
+				'enqueue_script',
+				'"wp-editor" script should not be enqueued together with "wp-edit-widgets-js" ' .
+				'and "wp-customize-widgets-js" as it replaces the window.wp.editor variable.',
+				'5.8.0'
+			);
 		}
 
 		return isset( $this->all_queued_deps[ $handle ] );
