@@ -722,7 +722,7 @@ function excerpt_remove_blocks( $content ) {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param string[] $allowed_wrapper_blocks The list of names of allowed wrapper blocks.
+	 * @param array $allowed_wrapper_blocks The list of allowed wrapper blocks.
 	 */
 	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
 
@@ -772,7 +772,7 @@ function excerpt_remove_blocks( $content ) {
  * Render inner blocks from the allowed wrapper blocks
  * for generating an excerpt.
  *
- * @since 5.8.0
+ * @since 5.8
  * @access private
  *
  * @param array $parsed_block   The parsed block.
