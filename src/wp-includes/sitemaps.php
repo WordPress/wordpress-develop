@@ -101,6 +101,20 @@ function wp_sitemaps_get_max_urls( $object_type ) {
  * @return string|false The sitemap URL or false if the sitemap doesn't exist.
  */
 function get_sitemap_url( $name, $subtype_name = '', $page = 1 ) {
+	/**
+	 * Short-circuits the retrieval of the sitemap URL.
+	 *
+	 * @since 5.5.2
+	 *
+	 * @param string $name         The sitemap name.
+	 * @param string $subtype_name The sitemap subtype name.
+	 * @param int    $page         The page of the sitemap.
+	 */
+	$check = apply_filters( 'pre_get_sitemap_url', null, $name, $subtype_name, $page );
+	if ( null !== $check ) {
+		return $check;
+	}
+
 	$sitemaps = wp_sitemaps_get_server();
 
 	if ( ! $sitemaps ) {
