@@ -642,7 +642,8 @@ jQuery( document ).ready( function( $ ) {
 		});
 
 		uploader.bind( 'FileUploaded', function( up, file, response ) {
-			uploadSuccess( file, response.response );
+			var data = JSON.parse( response.response );
+      uploadSuccess( file, '' + data.id );
 		});
 
 		uploader.bind( 'UploadComplete', function() {
