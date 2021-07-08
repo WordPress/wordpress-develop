@@ -388,7 +388,7 @@ function wp_default_packages_inline_scripts( $scripts ) {
 	// For more context, see https://github.com/WordPress/gutenberg/issues/33203
 	$scripts->add_inline_script(
 		'wp-editor',
-		'Object.assign(window.wp.editor, window.wp.oldEditor);',
+		'Object.assign( window.wp.editor, window.wp.oldEditor );',
 		'after'
 	);
 }
