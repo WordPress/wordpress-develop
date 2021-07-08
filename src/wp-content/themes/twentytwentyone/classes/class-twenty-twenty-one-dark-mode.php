@@ -35,6 +35,9 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		// Add the privacy policy content. This is done here because current_screen is too late.
 		add_action( 'admin_init', array( $this, 'add_privacy_policy_content' ) );
+
+		// Add customizer controls.
+		add_action( 'customize_register', array( $this, 'customizer_controls' ) );
 	}
 
 	/**
@@ -44,7 +47,7 @@ class Twenty_Twenty_One_Dark_Mode {
 	 */
 	public function add_hooks() {
 		// Disable Dark Mode in the widgets editor.
-		if ( is_admin() && 'widgets' === get_current_screen()->base ) {
+		if ( ( is_admin() && 'widgets' === get_current_screen()->base ) || is_customize_preview() ) {
 			return;
 		}
 
@@ -56,9 +59,6 @@ class Twenty_Twenty_One_Dark_Mode {
 
 		// Add scripts for customizer controls.
 		add_action( 'customize_controls_enqueue_scripts', array( $this, 'customize_controls_enqueue_scripts' ) );
-
-		// Add customizer controls.
-		add_action( 'customize_register', array( $this, 'customizer_controls' ) );
 
 		// Add HTML classes.
 		add_filter( 'twentytwentyone_html_classes', array( $this, 'html_classes' ) );
