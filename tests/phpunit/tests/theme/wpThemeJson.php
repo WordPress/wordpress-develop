@@ -667,6 +667,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 53175
+	 */
 	public function test_merge_incoming_data_empty_presets() {
 		$theme_json = new WP_Theme_JSON(
 			array(
@@ -755,6 +758,9 @@ class Tests_Theme_wpThemeJson extends WP_UnitTestCase {
 		$this->assertEqualSetsWithIndex( $expected, $actual );
 	}
 
+	/**
+	 * @ticket 53175
+	 */
 	public function test_merge_incoming_data_null_presets() {
 		$theme_json = new WP_Theme_JSON(
 			array(
