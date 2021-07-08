@@ -2020,21 +2020,21 @@ function wp_render_widget_control( $id ) {
 function wp_check_widget_editor_deps() {
 	global $wp_scripts, $wp_styles;
 	if (
-			$wp_scripts->query( 'wp-edit-widgets', 'enqueued' ) ||
-			$wp_scripts->query( 'wp-customize-widgets', 'enqueued' )
+		$wp_scripts->query( 'wp-edit-widgets', 'enqueued' ) ||
+		$wp_scripts->query( 'wp-customize-widgets', 'enqueued' )
 	) {
 		if ( $wp_scripts->query( 'wp-editor', 'enqueued' ) ) {
 			_doing_it_wrong(
-					'enqueue_script',
-					'"wp-editor" script should not be enqueued together with the new widgets editor (wp-edit-widgets or wp-customize-widgets).',
-					'5.8.0'
+				'enqueue_script',
+				'"wp-editor" script should not be enqueued together with the new widgets editor (wp-edit-widgets or wp-customize-widgets).',
+				'5.8.0'
 			);
 		}
 		if ( $wp_styles->query( 'wp-edit-post', 'enqueued' ) ) {
 			_doing_it_wrong(
-					'enqueue_style',
-					'"wp-edit-post" style should not be enqueued together with the new widgets editor (wp-edit-widgets or wp-customize-widgets).',
-					'5.8.0'
+				'enqueue_style',
+				'"wp-edit-post" style should not be enqueued together with the new widgets editor (wp-edit-widgets or wp-customize-widgets).',
+				'5.8.0'
 			);
 		}
 	}
