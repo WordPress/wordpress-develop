@@ -97,13 +97,13 @@ class Tests_Post extends WP_UnitTestCase {
 
 			update_object_term_cache( $id, $post_type );
 			$tcache = wp_cache_get( $id, 'post_tag_relationships' );
-			$this->assertInternalType( 'array', $tcache );
-			$this->assertSame( 2, count( $tcache ) );
+			$this->assertIsArray( $tcache );
+			$this->assertCount( 2, $tcache );
 
 			$tcache = wp_cache_get( $id, 'ctax_relationships' );
 			if ( 'cpt' === $post_type ) {
-				$this->assertInternalType( 'array', $tcache );
-				$this->assertSame( 2, count( $tcache ) );
+				$this->assertIsArray( $tcache );
+				$this->assertCount( 2, $tcache );
 			} else {
 				$this->assertFalse( $tcache );
 			}
@@ -917,7 +917,7 @@ class Tests_Post extends WP_UnitTestCase {
 		);
 
 		preg_match_all( '|href="([^"]+)"|', $wp_tag_cloud, $matches );
-		$this->assertSame( 1, count( $matches[1] ) );
+		$this->assertCount( 1, $matches[1] );
 
 		$terms = get_terms( $tax );
 		$term  = reset( $terms );

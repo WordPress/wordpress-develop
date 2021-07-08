@@ -161,7 +161,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Internationalized Theme',
 			'camelCase',
 			'REST Theme',
-			'FSE Theme',
+			'Block Theme',
 		);
 
 		sort( $theme_names );

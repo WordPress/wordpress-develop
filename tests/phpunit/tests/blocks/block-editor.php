@@ -172,7 +172,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 
 		$this->assertCount( 16, $settings );
 		$this->assertFalse( $settings['alignWide'] );
-		$this->assertInternalType( 'array', $settings['allowedMimeTypes'] );
+		$this->assertIsArray( $settings['allowedMimeTypes'] );
 		$this->assertTrue( $settings['allowedBlockTypes'] );
 		$this->assertSameSets(
 			array(
@@ -264,7 +264,7 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			),
 			$settings['imageSizes']
 		);
-		$this->assertInternalType( 'int', $settings['maxUploadFileSize'] );
+		$this->assertIsInt( $settings['maxUploadFileSize'] );
 	}
 
 	/**
@@ -341,6 +341,70 @@ class WP_Test_Block_Editor extends WP_UnitTestCase {
 			$settings['blockCategories']
 		);
 		$this->assertSame( 12345, $settings['maxUploadFileSize'] );
+	}
+
+	/**
+	 * @ticket 53458
+	 */
+	function test_get_block_editor_settings_theme_json_settings() {
+		switch_theme( 'block-theme' );
+
+		$post_editor_context = new WP_Block_Editor_Context( array( 'post' => get_post() ) );
+
+		$settings = get_block_editor_settings( array(), $post_editor_context );
+
+		// Related entry in theme.json: settings.color.palette
+		$this->assertSameSetsWithIndex(
+			array(
+				array(
+					'slug'  => 'light',
+					'name'  => 'Light',
+					'color' => '#f5f7f9',
+				),
+				array(
+					'slug'  => 'dark',
+					'name'  => 'Dark',
+					'color' => '#000',
+				),
+			),
+			$settings['colors']
+		);
+		// settings.color.gradients
+		$this->assertSameSetsWithIndex(
+			array(
+				array(
+					'name'     => 'Custom gradient',
+					'gradient' => 'linear-gradient(135deg,rgba(0,0,0) 0%,rgb(0,0,0) 100%)',
+					'slug'     => 'custom-gradient',
+				),
+			),
+			$settings['gradients']
+		);
+		// settings.typography.fontSizes
+		$this->assertSameSetsWithIndex(
+			array(
+				array(
+					'name' => 'Custom',
+					'slug' => 'custom',
+					'size' => '100px',
+				),
+			),
+			$settings['fontSizes']
+		);
+		// settings.color.custom
+		$this->assertTrue( $settings['disableCustomColors'] );
+		// settings.color.customGradient
+		$this->assertTrue( $settings['disableCustomGradients'] );
+		// settings.typography.customFontSize
+		$this->assertTrue( $settings['disableCustomFontSizes'] );
+		// settings.typography.customLineHeight
+		$this->assertTrue( $settings['enableCustomLineHeight'] );
+		// settings.spacing.enableCustomUnits
+		$this->assertSameSets( array( 'rem' ), $settings['enableCustomUnits'] );
+		// settings.spacing.customPadding
+		$this->assertTrue( $settings['enableCustomSpacing'] );
+
+		switch_theme( WP_DEFAULT_THEME );
 	}
 
 	/**

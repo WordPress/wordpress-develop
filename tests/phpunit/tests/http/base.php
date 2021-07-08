@@ -452,7 +452,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 		$res = wp_remote_head( $url, array( 'timeout' => 30 ) );
 
 		$this->skipTestOnTimeout( $res );
-		$this->assertInternalType( 'array', wp_remote_retrieve_header( $res, 'location' ) );
+		$this->assertIsArray( wp_remote_retrieve_header( $res, 'location' ) );
 		$this->assertCount( 2, wp_remote_retrieve_header( $res, 'location' ) );
 
 		$res = wp_remote_get( $url, array( 'timeout' => 30 ) );

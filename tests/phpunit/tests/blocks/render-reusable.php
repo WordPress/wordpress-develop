@@ -100,26 +100,6 @@ class WP_Test_Render_Reusable_Blocks extends WP_UnitTestCase {
 		$this->assertSame( '<p>Hello world!</p><p>Hello world!</p>', $output );
 	}
 
-	/**
-	 * Throw a warning if blocks are recursively nested.
-	 *
-	 * @ticket 52364
-	 */
-	public function test_recursive_render_warning() {
-		$recursive_reusable_block = array(
-			'ID'           => self::$block_id,
-			'post_content' => '<!-- wp:block {"ref":' . self::$block_id . '} /-->',
-		);
-		wp_update_post( $recursive_reusable_block );
-
-		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
-
-		// The block_render method for `core/block` triggers a user warning if it
-		// encounters a recursively nested block.
-		$this->expectException( 'PHPUnit_Framework_Error_Warning' );
-		$block_type->render( array( 'ref' => self::$block_id ) );
-	}
-
 	public function test_ref_empty() {
 		$block_type = WP_Block_Type_Registry::get_instance()->get_registered( 'core/block' );
 		$output     = $block_type->render( array() );

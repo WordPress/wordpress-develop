@@ -710,7 +710,23 @@ function excerpt_remove_blocks( $content ) {
 		'core/verse',
 	);
 
-	$allowed_blocks = array_merge( $allowed_inner_blocks, array( 'core/columns' ) );
+	$allowed_wrapper_blocks = array(
+		'core/columns',
+		'core/column',
+		'core/group',
+	);
+
+	/**
+	 * Filters the list of blocks that can be used as wrapper blocks, allowing
+	 * excerpts to be generated from the `innerBlocks` of these wrappers.
+	 *
+	 * @since 5.8.0
+	 *
+	 * @param array $allowed_wrapper_blocks The list of allowed wrapper blocks.
+	 */
+	$allowed_wrapper_blocks = apply_filters( 'excerpt_allowed_wrapper_blocks', $allowed_wrapper_blocks );
+
+	$allowed_blocks = array_merge( $allowed_inner_blocks, $allowed_wrapper_blocks );
 
 	/**
 	 * Filters the list of blocks that can contribute to the excerpt.
@@ -729,8 +745,8 @@ function excerpt_remove_blocks( $content ) {
 	foreach ( $blocks as $block ) {
 		if ( in_array( $block['blockName'], $allowed_blocks, true ) ) {
 			if ( ! empty( $block['innerBlocks'] ) ) {
-				if ( 'core/columns' === $block['blockName'] ) {
-					$output .= _excerpt_render_inner_columns_blocks( $block, $allowed_inner_blocks );
+				if ( in_array( $block['blockName'], $allowed_wrapper_blocks, true ) ) {
+					$output .= _excerpt_render_inner_blocks( $block, $allowed_blocks );
 					continue;
 				}
 
@@ -753,23 +769,28 @@ function excerpt_remove_blocks( $content ) {
 }
 
 /**
- * Render inner blocks from the `core/columns` block for generating an excerpt.
+ * Render inner blocks from the allowed wrapper blocks
+ * for generating an excerpt.
  *
- * @since 5.2.0
+ * @since 5.8
  * @access private
  *
- * @param array $columns        The parsed columns block.
+ * @param array $parsed_block   The parsed block.
  * @param array $allowed_blocks The list of allowed inner blocks.
  * @return string The rendered inner blocks.
  */
-function _excerpt_render_inner_columns_blocks( $columns, $allowed_blocks ) {
+function _excerpt_render_inner_blocks( $parsed_block, $allowed_blocks ) {
 	$output = '';
 
-	foreach ( $columns['innerBlocks'] as $column ) {
-		foreach ( $column['innerBlocks'] as $inner_block ) {
-			if ( in_array( $inner_block['blockName'], $allowed_blocks, true ) && empty( $inner_block['innerBlocks'] ) ) {
-				$output .= render_block( $inner_block );
-			}
+	foreach ( $parsed_block['innerBlocks'] as $inner_block ) {
+		if ( ! in_array( $inner_block['blockName'], $allowed_blocks, true ) ) {
+			continue;
+		}
+
+		if ( empty( $inner_block['innerBlocks'] ) ) {
+			$output .= render_block( $inner_block );
+		} else {
+			$output .= _excerpt_render_inner_blocks( $inner_block, $allowed_blocks );
 		}
 	}
 
@@ -1046,8 +1067,11 @@ function build_query_vars_from_query_block( $block, $page ) {
 	);
 
 	if ( isset( $block->context['query'] ) ) {
-		if ( isset( $block->context['query']['postType'] ) ) {
-			$query['post_type'] = $block->context['query']['postType'];
+		if ( ! empty( $block->context['query']['postType'] ) ) {
+			$post_type_param = $block->context['query']['postType'];
+			if ( is_post_type_viewable( $post_type_param ) ) {
+				$query['post_type'] = $post_type_param;
+			}
 		}
 		if ( isset( $block->context['query']['sticky'] ) && ! empty( $block->context['query']['sticky'] ) ) {
 			$sticky = get_option( 'sticky_posts' );
@@ -1057,29 +1081,54 @@ function build_query_vars_from_query_block( $block, $page ) {
 				$query['post__not_in'] = array_merge( $query['post__not_in'], $sticky );
 			}
 		}
-		if ( isset( $block->context['query']['exclude'] ) ) {
-			$query['post__not_in'] = array_merge( $query['post__not_in'], $block->context['query']['exclude'] );
+		if ( ! empty( $block->context['query']['exclude'] ) ) {
+			$excluded_post_ids     = array_map( 'intval', $block->context['query']['exclude'] );
+			$excluded_post_ids     = array_filter( $excluded_post_ids );
+			$query['post__not_in'] = array_merge( $query['post__not_in'], $excluded_post_ids );
 		}
-		if ( isset( $block->context['query']['perPage'] ) ) {
-			$query['offset']         = ( $block->context['query']['perPage'] * ( $page - 1 ) ) + $block->context['query']['offset'];
-			$query['posts_per_page'] = $block->context['query']['perPage'];
+		if (
+			isset( $block->context['query']['perPage'] ) &&
+			is_numeric( $block->context['query']['perPage'] )
+		) {
+			$per_page = absint( $block->context['query']['perPage'] );
+			$offset   = 0;
+
+			if (
+				isset( $block->context['query']['offset'] ) &&
+				is_numeric( $block->context['query']['offset'] )
+			) {
+				$offset = absint( $block->context['query']['offset'] );
+			}
+
+			$query['offset']         = ( $per_page * ( $page - 1 ) ) + $offset;
+			$query['posts_per_page'] = $per_page;
 		}
-		if ( isset( $block->context['query']['categoryIds'] ) ) {
-			$query['category__in'] = $block->context['query']['categoryIds'];
+		if ( ! empty( $block->context['query']['categoryIds'] ) ) {
+			$term_ids              = array_map( 'intval', $block->context['query']['categoryIds'] );
+			$term_ids              = array_filter( $term_ids );
+			$query['category__in'] = $term_ids;
 		}
-		if ( isset( $block->context['query']['tagIds'] ) ) {
-			$query['tag__in'] = $block->context['query']['tagIds'];
+		if ( ! empty( $block->context['query']['tagIds'] ) ) {
+			$term_ids         = array_map( 'intval', $block->context['query']['tagIds'] );
+			$term_ids         = array_filter( $term_ids );
+			$query['tag__in'] = $term_ids;
 		}
-		if ( isset( $block->context['query']['order'] ) ) {
+		if (
+			isset( $block->context['query']['order'] ) &&
+				in_array( strtoupper( $block->context['query']['order'] ), array( 'ASC', 'DESC' ), true )
+		) {
 			$query['order'] = strtoupper( $block->context['query']['order'] );
 		}
 		if ( isset( $block->context['query']['orderBy'] ) ) {
 			$query['orderby'] = $block->context['query']['orderBy'];
 		}
-		if ( isset( $block->context['query']['author'] ) ) {
-			$query['author'] = $block->context['query']['author'];
+		if (
+			isset( $block->context['query']['author'] ) &&
+			(int) $block->context['query']['author'] > 0
+		) {
+			$query['author'] = (int) $block->context['query']['author'];
 		}
-		if ( isset( $block->context['query']['search'] ) ) {
+		if ( ! empty( $block->context['query']['search'] ) ) {
 			$query['s'] = $block->context['query']['search'];
 		}
 	}

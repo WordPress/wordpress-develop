@@ -106,7 +106,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 
 		$this->assertSame( '2.0', $rss[0]['attributes']['version'] );
 		$this->assertSame( 'http://purl.org/rss/1.0/modules/content/', $rss[0]['attributes']['xmlns:content'] );
@@ -114,7 +114,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$this->assertSame( 'http://purl.org/dc/elements/1.1/', $rss[0]['attributes']['xmlns:dc'] );
 
 		// RSS should have exactly one child element (channel).
-		$this->assertSame( 1, count( $rss[0]['child'] ) );
+		$this->assertCount( 1, $rss[0]['child'] );
 	}
 
 	/**
@@ -320,7 +320,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -348,7 +348,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -381,7 +381,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -409,7 +409,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -437,7 +437,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/*
@@ -465,7 +465,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$rss = xml_find( $xml, 'rss' );
 
 		// There should only be one <rss> child element.
-		$this->assertSame( 1, count( $rss ) );
+		$this->assertCount( 1, $rss );
 	}
 
 	/**

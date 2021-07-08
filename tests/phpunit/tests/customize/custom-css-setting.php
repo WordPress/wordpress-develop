@@ -344,10 +344,10 @@ class Test_WP_Customize_Custom_CSS_Setting extends WP_UnitTestCase {
 	 * @return array Data.
 	 */
 	function filter_update_custom_css_data( $data, $args ) {
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertSameSets( array( 'css', 'preprocessed' ), array_keys( $data ) );
 		$this->assertSame( '', $data['preprocessed'] );
-		$this->assertInternalType( 'array', $args );
+		$this->assertIsArray( $args );
 		$this->assertSameSets( array( 'css', 'preprocessed', 'stylesheet' ), array_keys( $args ) );
 		$this->assertSame( $args['css'], $data['css'] );
 		$this->assertSame( $args['preprocessed'], $data['preprocessed'] );

@@ -488,14 +488,14 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$request->set_param( 'include', array( $id2, $id1 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 
 		// 'orderby' => 'include'.
 		$request->set_param( 'orderby', 'include' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
 
 		// Invalid 'orderby' should error.
@@ -2903,7 +2903,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$actual_output = $response->get_data();
 
 		// Compare expected API output to actual API output.
-		$this->assertInternalType( 'array', $actual_output['content'] );
+		$this->assertIsArray( $actual_output['content'] );
 		$this->assertArrayHasKey( 'raw', $actual_output['content'] );
 		$this->assertSame( $expected_output['content']['raw'], $actual_output['content']['raw'] );
 		$this->assertSame( $expected_output['content']['rendered'], trim( $actual_output['content']['rendered'] ) );
@@ -3156,7 +3156,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 17, count( $properties ) );
+		$this->assertCount( 17, $properties );
 		$this->assertArrayHasKey( 'id', $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'author_avatar_urls', $properties );

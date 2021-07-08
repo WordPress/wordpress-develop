@@ -97,29 +97,29 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 
 	public function test_output_object() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertInternalType( 'object', get_term( $t, 'wptests_tax', OBJECT ) );
+		$this->assertIsObject( get_term( $t, 'wptests_tax', OBJECT ) );
 	}
 
 	public function test_output_array_a() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_A );
-		$this->assertInternalType( 'array', $term );
+		$this->assertIsArray( $term );
 		$this->assertTrue( isset( $term['term_id'] ) );
 	}
 
 	public function test_output_array_n() {
 		$t    = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 		$term = get_term( $t, 'wptests_tax', ARRAY_N );
-		$this->assertInternalType( 'array', $term );
+		$this->assertIsArray( $term );
 		$this->assertFalse( isset( $term['term_id'] ) );
 		foreach ( $term as $k => $v ) {
-			$this->assertInternalType( 'integer', $k );
+			$this->assertIsInt( $k );
 		}
 	}
 
 	public function test_output_should_fall_back_to_object_for_invalid_input() {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
-		$this->assertInternalType( 'object', get_term( $t, 'wptests_tax', 'foo' ) );
+		$this->assertIsObject( get_term( $t, 'wptests_tax', 'foo' ) );
 	}
 
 	/**
@@ -140,11 +140,11 @@ class Tests_Term_GetTerm extends WP_UnitTestCase {
 			$found = get_term( $term_data, '', OBJECT, $context );
 
 			$this->assertInstanceOf( 'WP_Term', $found );
-			$this->assertInternalType( 'int', $found->term_id );
-			$this->assertInternalType( 'int', $found->term_taxonomy_id );
-			$this->assertInternalType( 'int', $found->parent );
-			$this->assertInternalType( 'int', $found->count );
-			$this->assertInternalType( 'int', $found->term_group );
+			$this->assertIsInt( $found->term_id );
+			$this->assertIsInt( $found->term_taxonomy_id );
+			$this->assertIsInt( $found->parent );
+			$this->assertIsInt( $found->count );
+			$this->assertIsInt( $found->term_group );
 		}
 	}
 

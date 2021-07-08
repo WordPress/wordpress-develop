@@ -38,7 +38,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 	 */
 	function test_construct_default_args() {
 		$section = new WP_Customize_Section( $this->manager, 'foo' );
-		$this->assertInternalType( 'int', $section->instance_number );
+		$this->assertIsInt( $section->instance_number );
 		$this->assertSame( $this->manager, $section->manager );
 		$this->assertSame( 'foo', $section->id );
 		$this->assertSame( 160, $section->priority );
@@ -139,7 +139,7 @@ class Tests_WP_Customize_Section extends WP_UnitTestCase {
 		}
 		$this->assertEmpty( $data['content'] );
 		$this->assertTrue( $data['active'] );
-		$this->assertInternalType( 'int', $data['instanceNumber'] );
+		$this->assertIsInt( $data['instanceNumber'] );
 	}
 
 	/**

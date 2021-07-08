@@ -156,7 +156,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 			}
 		}
 
-		$this->assertSame( $num, count( $result ) );
+		$this->assertCount( $num, $result );
 
 	}
 
@@ -624,7 +624,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$this->assertSame( 1, $option_value['_multiwidget'] );
 		$this->assertArrayHasKey( 2, $option_value );
 		$instance = $option_value[2];
-		$this->assertInternalType( 'array', $instance );
+		$this->assertIsArray( $instance );
 		$this->assertArrayHasKey( 'content', $instance );
 		unset( $option_value['_multiwidget'] );
 
@@ -875,11 +875,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$result = retrieve_widgets( true );
 
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
@@ -924,11 +924,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$result = retrieve_widgets( true );
 
 		// $sidebars_widgets matches registered sidebars.
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
@@ -963,11 +963,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$result = retrieve_widgets( true );
 
 		$_wp_sidebars_widgets = array();
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		// Current theme doesn't have a fantasy-sidebar.
@@ -1005,11 +1005,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$result = retrieve_widgets();
 
 		$_wp_sidebars_widgets = array();
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		// This sidebar is not registered anymore.
@@ -1056,11 +1056,11 @@ class Tests_Widgets extends WP_UnitTestCase {
 		$result = retrieve_widgets( 'customize' );
 
 		$_wp_sidebars_widgets = array();
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertSame( $result, $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		$this->assertContains( 'tag_cloud-1', $sidebars_widgets['sidebar-1'] );
@@ -1124,10 +1124,10 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		retrieve_widgets();
 
-		$this->assertInternalType( 'array', $sidebars_widgets );
+		$this->assertIsArray( $sidebars_widgets );
 
 		foreach ( $sidebars_widgets as $widgets ) {
-			$this->assertInternalType( 'array', $widgets );
+			$this->assertIsArray( $widgets );
 		}
 
 		// 5 default widgets + 1 orphaned calendar widget = 6.
@@ -1157,12 +1157,12 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		$filtered_widgets = _wp_remove_unregistered_widgets( $widgets, $allowed_widgets );
 
-		$this->assertInternalType( 'array', $filtered_widgets );
+		$this->assertIsArray( $filtered_widgets );
 		$this->assertArrayHasKey( 'fantasy', $filtered_widgets );
 		$this->assertEmpty( $filtered_widgets['fantasy'] );
 		$this->assertArrayHasKey( 'array_version', $filtered_widgets );
 		$this->assertSame( 3, $filtered_widgets['array_version'] );
-		$this->assertInternalType( 'integer', $filtered_widgets['array_version'] );
+		$this->assertIsInt( $filtered_widgets['array_version'] );
 	}
 
 	/**

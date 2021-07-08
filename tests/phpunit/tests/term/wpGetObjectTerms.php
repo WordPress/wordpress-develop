@@ -20,7 +20,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 
 		// Set the initial terms.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertSame( 3, count( $tt_1 ) );
+		$this->assertCount( 3, $tt_1 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(
@@ -73,12 +73,12 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$term       = array_shift( $terms );
 		$int_fields = array( 'parent', 'term_id', 'count', 'term_group', 'term_taxonomy_id', 'object_id' );
 		foreach ( $int_fields as $field ) {
-			$this->assertInternalType( 'int', $term->$field, $field );
+			$this->assertIsInt( $term->$field, $field );
 		}
 
 		$terms = wp_get_object_terms( $post_id, $this->taxonomy, array( 'fields' => 'ids' ) );
 		$term  = array_shift( $terms );
-		$this->assertInternalType( 'int', $term, 'term' );
+		$this->assertIsInt( $term, 'term' );
 	}
 
 	/**
@@ -93,7 +93,7 @@ class Tests_Term_WpGetObjectTerms extends WP_UnitTestCase {
 		$terms = wp_get_object_terms( $post_id, $this->taxonomy );
 		remove_filter( 'wp_get_object_terms', array( $this, 'filter_get_object_terms' ) );
 		foreach ( $terms as $term ) {
-			$this->assertInternalType( 'object', $term );
+			$this->assertIsObject( $term );
 		}
 	}
 
