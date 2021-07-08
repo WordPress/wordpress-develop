@@ -1795,6 +1795,18 @@ class Tests_Functions extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test current_datetime.
+	 *
+	 * @ticket 53484
+	 *
+	 * @covers ::current_datetime
+	 */
+	public function test_current_datetime() {
+
+		$this->assertInstanceOf( 'DateTimeImmutable', current_datetime() );
+	}
+
+	/**
 	 * Data provider for stream URL validation.
 	 *
 	 * @return array {
