@@ -286,6 +286,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$current = get_site_transient( 'update_plugins' );
 
+		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 
 		$this->skin->header();
