@@ -596,6 +596,24 @@ template {
 	}
 }
 
+.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+	max-width: calc(100vw - 30px);
+	margin-left: auto;
+	margin-right: auto;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 100px), 610px);
+	}
+}
+@media only screen and (min-width: 822px) {
+
+	.wp-site-blocks > *:not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 200px), 610px);
+	}
+}
+
 *[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
 	max-width: calc(100vw - 30px);
 	margin-left: auto;
@@ -610,6 +628,24 @@ template {
 @media only screen and (min-width: 822px) {
 
 	*[class*=inner-container] > *:not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 200px), 610px);
+	}
+}
+
+.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+	max-width: calc(100vw - 30px);
+	margin-left: auto;
+	margin-right: auto;
+}
+@media only screen and (min-width: 482px) {
+
+	.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
+		max-width: min(calc(100vw - 100px), 610px);
+	}
+}
+@media only screen and (min-width: 822px) {
+
+	.wp-block-group > *:not([class*=inner-container]):not(.entry-content):not(.alignwide):not(.alignfull):not(.alignleft):not(.alignright):not(.wp-block-separator):not(.woocommerce) {
 		max-width: min(calc(100vw - 200px), 610px);
 	}
 }
@@ -5232,7 +5268,7 @@ table.wp-calendar-table caption {
 /* Block Alignments */
 
 /**
- * These selectors set the default max width for content appearing inside a post or page.
+ * These selectors set the default max width for content appearing inside a post, page, or group.
  */
 
 /**
