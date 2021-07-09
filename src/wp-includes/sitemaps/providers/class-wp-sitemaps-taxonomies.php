@@ -109,6 +109,31 @@ class WP_Sitemaps_Taxonomies extends WP_Sitemaps_Provider {
 					'loc' => $term_link,
 				);
 
+				// Get last modified date from the latest post in this taxonomy.
+				$post = new WP_Query(
+					array(
+						'post_type'              => 'any',
+						'post_status'            => 'publish',
+						'posts_per_page'         => 1,
+						'no_found_rows'          => true,
+						'update_post_meta_cache' => false,
+						'orderby'                => 'modified',
+						'order'                  => 'DESC',
+						'tax_query'              => array(
+							array(
+								'taxonomy'         => $taxonomy,
+								'field'            => 'term_id',
+								'terms'            => $term,
+								'include_children' => false,
+							),
+						),
+					)
+				);
+
+				if ( ! empty( $post->posts ) ) {
+					$sitemap_entry['lastmod'] = gmdate( 'c', strtotime( end( $post->posts )->post_modified_gmt ) );
+				}
+
 				/**
 				 * Filters the sitemap entry for an individual term.
 				 *
