@@ -2008,13 +2008,14 @@ function wp_render_widget_control( $id ) {
 }
 
 /**
- * Wp-editor JS module is exposed as window.wp.editor. This overrides the legacy TinyMCE editor module which
- * is required by the widgets editor. Because of that conflict, these two shouldn't be enqueued together.
+ * Wp-editor JS module is exposed as window.wp.editor. This overrides the legacy
+ * TinyMCE editor module which is required by the widgets editor. Because of
+ * that conflict, these two shouldn't be enqueued together.
  *
  * For more context, see https://github.com/WordPress/gutenberg/issues/33203
  *
- * There is also another conflict related to styles where the block widgets editor is hidden if a block
- * enqueues 'wp-edit-post' stylesheet:
+ * There is also another conflict related to styles where the block widgets
+ * editor is hidden if a block enqueues 'wp-edit-post' stylesheet:
  * https://core.trac.wordpress.org/ticket/53569
  */
 function wp_check_widget_editor_deps() {
@@ -2039,5 +2040,3 @@ function wp_check_widget_editor_deps() {
 		}
 	}
 }
-add_action( 'wp_print_scripts', 'wp_check_widget_editor_deps' );
-

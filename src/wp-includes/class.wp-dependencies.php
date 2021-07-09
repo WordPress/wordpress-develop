@@ -370,7 +370,6 @@ class WP_Dependencies {
 		$all_deps = array_fill_keys( $queue, true );
 		$queues   = array();
 		$done     = array();
-		$old_deps = $all_deps;
 
 		while ( $queue ) {
 			foreach ( $queue as $queued ) {
