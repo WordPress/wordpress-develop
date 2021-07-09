@@ -2006,3 +2006,57 @@ function wp_render_widget_control( $id ) {
 
 	return ob_get_clean();
 }
+
+/**
+ * Displays a _doing_it_wrong() message for conflicting widget editor scripts.
+ *
+ * The 'wp-editor' script module is exposed as window.wp.editor. This overrides
+ * the legacy TinyMCE editor module which is required by the widgets editor.
+ * Because of that conflict, these two shouldn't be enqueued together.
+ * See https://core.trac.wordpress.org/ticket/53569.
+ *
+ * There is also another conflict related to styles where the block widgets
+ * editor is hidden if a block enqueues 'wp-edit-post' stylesheet.
+ * See https://core.trac.wordpress.org/ticket/53569.
+ *
+ * @since 5.8.0
+ * @access private
+ *
+ * @global WP_Scripts $wp_scripts
+ * @global WP_Styles  $wp_styles
+ */
+function wp_check_widget_editor_deps() {
+	global $wp_scripts, $wp_styles;
+
+	if (
+		$wp_scripts->query( 'wp-edit-widgets', 'enqueued' ) ||
+		$wp_scripts->query( 'wp-customize-widgets', 'enqueued' )
+	) {
+		if ( $wp_scripts->query( 'wp-editor', 'enqueued' ) ) {
+			_doing_it_wrong(
+				'wp_enqueue_script()',
+				sprintf(
+					/* translators: 1: 'wp-editor', 2: 'wp-edit-widgets', 3: 'wp-customize-widgets'. */
+					__( '"%1$s" script should not be enqueued together with the new widgets editor (%2$s or %3$s).' ),
+					'wp-editor',
+					'wp-edit-widgets',
+					'wp-customize-widgets'
+				),
+				'5.8.0'
+			);
+		}
+		if ( $wp_styles->query( 'wp-edit-post', 'enqueued' ) ) {
+			_doing_it_wrong(
+				'wp_enqueue_style()',
+				sprintf(
+					/* translators: 1: 'wp-edit-post', 2: 'wp-edit-widgets', 3: 'wp-customize-widgets'. */
+					__( '"%1$s" style should not be enqueued together with the new widgets editor (%2$s or %3$s).' ),
+					'wp-edit-post',
+					'wp-edit-widgets',
+					'wp-customize-widgets'
+				),
+				'5.8.0'
+			);
+		}
+	}
+}
