@@ -1915,6 +1915,9 @@ function remove_accents( $string ) {
 			// Grave accent.
 			'Ǜ' => 'U',
 			'ǜ' => 'u',
+			// Persian.
+			'‌' => '-',
+			'‍' => '-',
 		);
 
 		// Used for locale-specific rules.
