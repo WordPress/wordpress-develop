@@ -75,12 +75,16 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 	}
 
 	private function setup_widget( $option_name, $number, $settings ) {
-		update_option(
+		$this->setup_widgets(
 			$option_name,
 			array(
 				$number => $settings,
 			)
 		);
+	}
+
+	private function setup_widgets( $option_name, $settings ) {
+		update_option( $option_name, $settings );
 	}
 
 	private function setup_sidebar( $id, $attrs = array(), $widgets = array() ) {
@@ -488,6 +492,54 @@ class WP_Test_REST_Sidebars_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertContains( 'text-1', $data['widgets'] );
 
 		$this->assertNotContains( 'text-1', rest_do_request( '/wp/v2/sidebars/sidebar-1' )->get_data()['widgets'] );
+	}
+
+	/**
+	 * @ticket 53612
+	 */
+	public function test_batch_remove_widgets_from_existing_sidebar() {
+		wp_widgets_init();
+
+		$this->setup_widgets(
+			'widget_text',
+			array(
+				2 => array( 'text' => 'Text widget' ),
+				3 => array( 'text' => 'Text widget' ),
+				4 => array( 'text' => 'Text widget' ),
+				5 => array( 'text' => 'Text widget' ),
+				6 => array( 'text' => 'Text widget' ),
+			)
+		);
+
+		$this->setup_sidebar(
+			'sidebar-1',
+			array(
+				'name' => 'Test sidebar',
+			),
+			array( 'text-2', 'text-3', 'text-4', 'text-5', 'text-6' )
+		);
+
+		$request = new WP_REST_Request( 'POST', '/batch/v1' );
+		$request->set_body_params(
+			array(
+				'requests' => array(
+					array(
+						'method' => 'DELETE',
+						'path'   => '/wp/v2/widgets/text-2?force=1',
+					),
+					array(
+						'method' => 'DELETE',
+						'path'   => '/wp/v2/widgets/text-3?force=1',
+					),
+				),
+			)
+		);
+		rest_get_server()->dispatch( $request );
+
+		$this->assertSame(
+			array( 'text-4', 'text-5', 'text-6' ),
+			rest_do_request( '/wp/v2/sidebars/sidebar-1' )->get_data()['widgets']
+		);
 	}
 
 	/**
