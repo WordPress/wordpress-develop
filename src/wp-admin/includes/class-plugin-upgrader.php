@@ -140,7 +140,7 @@ class Plugin_Upgrader extends WP_Upgrader {
 				'clear_working'     => true,
 				'hook_extra'        => array(
 					'type'   => 'plugin',
-					'action' => 'install',
+					'action' => $this->get_hook_extra_action( 'plugin' ),
 				),
 			)
 		);
