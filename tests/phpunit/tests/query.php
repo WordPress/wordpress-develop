@@ -696,4 +696,48 @@ class Tests_Query extends WP_UnitTestCase {
 		$this->assertSame( 'tax1', get_query_var( 'taxonomy' ) );
 		$this->assertSame( 'term1', get_query_var( 'term' ) );
 	}
+
+	/**
+	 * @ticket 52252
+	 * @dataProvider data_malformed_date_queries
+	 *
+	 * @param array $query_vars
+	 */
+	public function test_malformed_date_queries( $permalink_structure, $query_vars ) {
+		$this->set_permalink_structure( $permalink_structure );
+		$this->go_to( add_query_arg( $query_vars, home_url() ) );
+
+		// $this->assertQueryTrue( 'is_home' );
+	}
+
+	public function data_malformed_date_queries() {
+		$permalink_structures = array(
+			'/%postname%/',
+			'/%year%/%postname%/',
+			'/%year%/%month%/%postname%/',
+		);
+
+		$queries = array(
+			// 0. Missing year.
+			array(
+				'monthnum' => 1,
+				'day'      => 15,
+			),
+
+			// 1. Missing month.
+			array(
+				'year' => 2020,
+				'day'  => 15,
+			),
+		);
+
+		$data = array();
+		foreach ( $permalink_structures as $permalink_structure ) {
+			foreach ( $queries as $query ) {
+				$data[] = array( $permalink_structure, $query );
+			}
+		}
+
+		return $data;
+	}
 }
