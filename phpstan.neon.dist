@@ -73,7 +73,7 @@ parameters:
       path: src/wp-includes/template.php
       count: 1
     # Uses func_get_args():
-    - '#Function apply_filters invoked with [3-9] parameters, 2 required#'
+    - '#Function apply_filters invoked with [0-9] parameters, 2 required#'
     # Not worried about unused parameters for now:
     - '# unused parameter #'
     # Constants that use `@var`:
