@@ -152,6 +152,7 @@ class WP_Widget_Tag_Cloud extends WP_Widget {
 			<input type="text" class="widefat" id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo esc_attr( $title ); ?>" />
 		</p>
 		<?php
+		/** @var WP_Taxonomy[] $taxonomies */
 		$taxonomies       = get_taxonomies( array( 'show_tagcloud' => true ), 'object' );
 		$current_taxonomy = $this->_get_current_taxonomy( $instance );
 
