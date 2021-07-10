@@ -74,8 +74,12 @@ parameters:
       message: '#Undefined variable: \$s#'
       path: src/wp-includes/template.php
       count: 1
+    # Uses func_get_args():
+    - '#Function apply_filters invoked with [3-9] parameters, 2 required#'
     # Not worried about unused parameters for now:
     - '# unused parameter #'
+    # Constants that use `@var`:
+    - '#PHPDoc tag @var does not specify variable name#'
     # These are too noisy at the moment:
     - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
     - '#Call to function compact\(\) contains possibly undefined variable#'
