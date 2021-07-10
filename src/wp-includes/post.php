@@ -5501,6 +5501,8 @@ function get_page_by_path( $page_path, $output = OBJECT, $post_type = 'page' ) {
 	if ( $foundid ) {
 		return get_post( $foundid, $output );
 	}
+
+	return null;
 }
 
 /**
@@ -5558,6 +5560,8 @@ function get_page_by_title( $page_title, $output = OBJECT, $post_type = 'page' )
 	if ( $page ) {
 		return get_post( $page, $output );
 	}
+
+	return null;
 }
 
 /**
