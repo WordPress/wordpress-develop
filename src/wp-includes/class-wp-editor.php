@@ -1261,8 +1261,8 @@ final class _WP_Editors {
 				'Url'                                  => __( 'URL' ),
 				'The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?' =>
 					__( 'The URL you entered seems to be an email address. Do you want to add the required mailto: prefix?' ),
-				'The URL you entered seems to be an external link. Do you want to add the required http:// prefix?' =>
-					__( 'The URL you entered seems to be an external link. Do you want to add the required http:// prefix?' ),
+				'The URL you entered seems to be an external link. Do you want to add the required https:// prefix?' =>
+					__( 'The URL you entered seems to be an external link. Do you want to add the required https:// prefix?' ),
 
 				'Color'                                => __( 'Color' ),
 				'Custom color'                         => __( 'Custom color' ),
