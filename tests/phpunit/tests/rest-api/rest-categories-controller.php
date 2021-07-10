@@ -747,7 +747,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertFalse( isset( $meta['test_tag_meta'] ) );
+		$this->assertArrayNotHasKey( 'test_tag_meta', $meta );
 	}
 
 	public function test_get_term_invalid_taxonomy() {
@@ -942,7 +942,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$this->assertSame( 'new-slug', $data['slug'] );
 		$this->assertSame( 'just meta', $data['meta']['test_single'] );
 		$this->assertSame( 'category-specific meta', $data['meta']['test_cat_single'] );
-		$this->assertFalse( isset( $data['meta']['test_tag_meta'] ) );
+		$this->assertArrayNotHasKey( 'test_tag_meta', $data['meta'] );
 	}
 
 	public function test_update_item_invalid_taxonomy() {
@@ -1209,7 +1209,7 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		if ( $taxonomy->hierarchical ) {
 			$this->assertSame( $term->parent, $data['parent'] );
 		} else {
-			$this->assertFalse( isset( $term->parent ) );
+			$this->assertObjectNotHasProperty( 'parent', $term );
 		}
 
 		$relations = array(

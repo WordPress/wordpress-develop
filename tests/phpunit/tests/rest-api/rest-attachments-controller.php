@@ -691,7 +691,7 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		remove_image_size( 'rest-api-test' );
 
 		$this->assertIsArray( $data['media_details']['sizes'], 'Could not retrieve the sizes data.' );
-		$this->assertFalse( isset( $data['media_details']['sizes']['rest-api-test']['source_url'] ) );
+		$this->assertArrayNotHasKey( 'source_url', $data['media_details']['sizes']['rest-api-test'] );
 	}
 
 	public function test_get_item_private_post_not_authenticated() {
@@ -1686,10 +1686,10 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 			$this->assertSame( $attachment->post_excerpt, $data['caption']['raw'] );
 			$this->assertSame( $attachment->post_content, $data['description']['raw'] );
 		} else {
-			$this->assertFalse( isset( $data['caption']['raw'] ) );
-			$this->assertFalse( isset( $data['description']['raw'] ) );
+			$this->assertArrayNotHasKey( 'raw', $data['caption'] );
+			$this->assertArrayNotHasKey( 'raw', $data['description'] );
 		}
-		$this->assertTrue( isset( $data['media_details'] ) );
+		$this->assertArrayHasKey( 'media_details', $data );
 
 		if ( $attachment->post_parent ) {
 			$this->assertSame( $attachment->post_parent, $data['post'] );

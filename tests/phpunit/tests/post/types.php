@@ -394,9 +394,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $post_type_meta_caps['read_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['delete_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['edit_bar'] ) );
+		$this->assertArrayNotHasKey( 'read_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'delete_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'edit_bar', $post_type_meta_caps );
 	}
 
 	/**
@@ -422,7 +422,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			$_wp_post_type_features['foo']
 		);
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( isset( $_wp_post_type_features['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $_wp_post_type_features );
 	}
 
 	/**
@@ -504,7 +504,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $wp_post_types['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_post_types );
 		$this->assertNull( get_post_type_object( 'foo' ) );
 	}
 

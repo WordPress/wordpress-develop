@@ -131,7 +131,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				'Theme Root URI' => 'Theme Root URI',
 			);
 			foreach ( $default_headers as $name => $value ) {
-				$this->assertTrue( isset( $theme[ $name ] ) );
+				$this->assertArrayHasKey( $name, $theme );
 			}
 
 			// Make the tests work both for WordPress 2.8.5 and WordPress 2.9-rare.

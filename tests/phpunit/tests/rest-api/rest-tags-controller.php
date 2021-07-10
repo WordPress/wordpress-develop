@@ -700,7 +700,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertArrayHasKey( 'meta', $data );
 
 		$meta = (array) $data['meta'];
-		$this->assertFalse( isset( $meta['test_cat_meta'] ) );
+		$this->assertArrayNotHasKey( 'test_cat_meta', $meta );
 	}
 
 	public function test_get_term_invalid_term() {
@@ -874,7 +874,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$this->assertSame( 'new-slug', $data['slug'] );
 		$this->assertSame( 'just meta', $data['meta']['test_single'] );
 		$this->assertSame( 'tag-specific meta', $data['meta']['test_tag_single'] );
-		$this->assertFalse( isset( $data['meta']['test_cat_meta'] ) );
+		$this->assertArrayNotHasKey( 'test_cat_meta', $data['meta'] );
 	}
 
 	public function test_update_item_no_change() {
@@ -1242,7 +1242,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
 		$this->assertArrayHasKey( 'id', $properties );
-		$this->assertFalse( isset( $properties['parent'] ) );
+		$this->assertArrayNotHasKey( 'parent', $properties );
 	}
 
 	public function test_get_additional_field_registration() {
@@ -1427,7 +1427,7 @@ class WP_Test_REST_Tags_Controller extends WP_Test_REST_Controller_Testcase {
 		if ( $taxonomy->hierarchical ) {
 			$this->assertSame( $term->parent, $data['parent'] );
 		} else {
-			$this->assertFalse( isset( $data['parent'] ) );
+			$this->assertArrayNotHasKey( 'parent', $data );
 		}
 		$expected_links = array(
 			'self',
