@@ -63,6 +63,15 @@ parameters:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
     # PHP 8:
     - '#Class GdImage not found#'
+    # `$s` is extracted in `load_template()`:
+    -
+      message: '#Variable \$s in isset\(\) is never defined#'
+      path: src/wp-includes/template.php
+      count: 1
+    -
+      message: '#Undefined variable: \$s#'
+      path: src/wp-includes/template.php
+      count: 1
     # Not worried about unused parameters for now:
     - '# unused parameter #'
     # These are too noisy at the moment:
