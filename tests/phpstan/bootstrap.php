@@ -91,3 +91,7 @@ define( 'EP_AUTHORS', 1 );
 define( 'EP_PAGES', 1 );
 define( 'EP_ALL_ARCHIVES', 1 );
 define( 'EP_ALL', 1 );
+
+if ( ! class_exists( 'GdImage' ) ) {
+	class GdImage {}
+}

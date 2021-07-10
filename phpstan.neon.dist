@@ -61,8 +61,6 @@ parameters:
     - '#(ParagonIE_Sodium_Compat|PclZip|getID3|Requests|PHPMailer|SimplePie|Text_Diff)#'
     # Classes in excluded files:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
-    # PHP 8:
-    - '#Class GdImage not found#'
     # Gutenberg compat functions:
     - '#(gutenberg_get_widget_key|gutenberg_get_widget_object)#'
     # `$s` is extracted in `load_template()`:
