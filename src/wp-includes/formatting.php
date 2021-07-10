@@ -2740,7 +2740,7 @@ function addslashes_gpc( $gpc ) {
  * @since 2.0.0
  *
  * @phpstan-template T
- * @phpstan-param T<string|array> $value
+ * @phpstan-param T $value
  * @phpstan-return T
  *
  * @param mixed $value The value to be stripped.
@@ -5536,7 +5536,7 @@ function sanitize_trackback_urls( $to_ping ) {
  * @since 5.5.0 Non-string values are left untouched.
  *
  * @phpstan-template T
- * @phpstan-param T<string|array> $value
+ * @phpstan-param T $value
  * @phpstan-return T
  *
  * @param string|array $value String or array of data to slash.
@@ -5563,7 +5563,7 @@ function wp_slash( $value ) {
  * @since 3.6.0
  *
  * @phpstan-template T
- * @phpstan-param T<string|array> $value
+ * @phpstan-param T $value
  * @phpstan-return T
  *
  * @param string|array $value String or array of data to unslash.
