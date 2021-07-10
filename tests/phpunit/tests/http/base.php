@@ -255,11 +255,14 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			$headers[ $parts[0] ] = $parts[1];
 		}
 
-		$this->assertTrue( isset( $headers['test1'] ) && 'test' === $headers['test1'] );
-		$this->assertTrue( isset( $headers['test2'] ) && '0' === $headers['test2'] );
+		$this->assertArrayHasKey( 'test1', $headers );
+		$this->assertSame( 'test', $headers['test1'] );
+		$this->assertArrayHasKey( 'test2', $headers );
+		$this->assertSame( '0', $headers['test2'] );
 		// cURL/HTTP Extension Note: Will never pass, cURL does not pass headers with an empty value.
 		// Should it be that empty headers with empty values are NOT sent?
-		// $this->assertTrue( isset( $headers['test3'] ) && '' === $headers['test3'] );
+		// $this->assertArrayHasKey( 'test3', $headers );
+		// $this->assertSame( '', $headers['test3'] );
 	}
 
 	/**

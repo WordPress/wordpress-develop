@@ -134,7 +134,7 @@ class Tests_Widgets extends WP_UnitTestCase {
 
 		register_sidebars( 1, array( 'id' => 'wp-unit-test' ) );
 
-		$this->assertTrue( isset( $wp_registered_sidebars['wp-unit-test'] ) );
+		$this->assertArrayHasKey( 'wp-unit-test', $wp_registered_sidebars );
 
 	}
 

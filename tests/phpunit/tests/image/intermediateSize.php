@@ -59,7 +59,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$this->assertSame( 75, $image['height'] );
 		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
-		$this->assertFalse( isset( $image['path'] ) );
+		$this->assertArrayNotHasKey( 'path', $image );
 	}
 
 	/**

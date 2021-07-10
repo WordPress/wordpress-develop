@@ -1118,12 +1118,12 @@ class Tests_REST_Server extends WP_Test_REST_TestCase {
 				continue;
 			}
 
-			$this->assertTrue( isset( $headers[ $header ] ), sprintf( 'Header %s is not present in the response.', $header ) );
+			$this->assertArrayHasKey( $header, $headers, sprintf( 'Header %s is not present in the response.', $header ) );
 			$this->assertSame( $value, $headers[ $header ] );
 		}
 
 		// Last-Modified should be unset as per #WP23021.
-		$this->assertFalse( isset( $headers['Last-Modified'] ), 'Last-Modified should not be sent.' );
+		$this->assertArrayNotHasKey( 'Last-Modified', $headers, 'Last-Modified should not be sent.' );
 	}
 
 	public function test_no_nocache_headers_on_unauthenticated_requests() {

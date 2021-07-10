@@ -43,7 +43,7 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 		$this->check_post_type_obj( 'view', $post_types['post'], $data['post'], $data['post']['_links'] );
 		$this->assertSame( $post_types['page']->name, $data['page']['slug'] );
 		$this->check_post_type_obj( 'view', $post_types['page'], $data['page'], $data['page']['_links'] );
-		$this->assertFalse( isset( $data['revision'] ) );
+		$this->assertArrayNotHasKey( 'revision', $data );
 	}
 
 	public function test_get_items_invalid_permission_for_context() {
@@ -218,10 +218,10 @@ class WP_Test_REST_Post_Types_Controller extends WP_Test_REST_Controller_Testcas
 			$this->assertSame( $viewable, $data['viewable'] );
 			$this->assertSame( get_all_post_type_supports( $post_type_obj->name ), $data['supports'] );
 		} else {
-			$this->assertFalse( isset( $data['capabilities'] ) );
-			$this->assertFalse( isset( $data['viewable'] ) );
-			$this->assertFalse( isset( $data['labels'] ) );
-			$this->assertFalse( isset( $data['supports'] ) );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'viewable', $data );
+			$this->assertArrayNotHasKey( 'labels', $data );
+			$this->assertArrayNotHasKey( 'supports', $data );
 		}
 	}
 

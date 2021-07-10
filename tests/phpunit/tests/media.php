@@ -446,7 +446,7 @@ https://w.org</a>',
 
 		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
 
-		$this->assertTrue( isset( $prepped['sizes'] ) );
+		$this->assertArrayHasKey( 'sizes', $prepped );
 	}
 
 	/**

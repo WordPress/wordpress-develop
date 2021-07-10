@@ -58,7 +58,7 @@ class Test_WP_Sitemaps_Posts extends WP_UnitTestCase {
 		$url_list      = $posts_provider->get_url_list( 1, 'page' );
 		$sitemap_entry = array_shift( $url_list );
 
-		$this->assertTrue( isset( $sitemap_entry['lastmod'] ) );
+		$this->assertArrayHasKey( 'lastmod', $sitemap_entry );
 	}
 
 	/**

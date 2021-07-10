@@ -266,10 +266,10 @@ class WP_Test_REST_Taxonomies_Controller extends WP_Test_REST_Controller_Testcas
 			$this->assertSame( $tax_obj->show_in_quick_edit, $data['visibility']['show_in_quick_edit'] );
 			$this->assertSame( $tax_obj->show_ui, $data['visibility']['show_ui'] );
 		} else {
-			$this->assertFalse( isset( $data['capabilities'] ) );
-			$this->assertFalse( isset( $data['labels'] ) );
-			$this->assertFalse( isset( $data['show_cloud'] ) );
-			$this->assertFalse( isset( $data['visibility'] ) );
+			$this->assertArrayNotHasKey( 'capabilities', $data );
+			$this->assertArrayNotHasKey( 'labels', $data );
+			$this->assertArrayNotHasKey( 'show_cloud', $data );
+			$this->assertArrayNotHasKey( 'visibility', $data );
 		}
 	}
 

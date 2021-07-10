@@ -56,6 +56,6 @@ class Tests_Option_SiteTransient extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ '_site_transient_' . $key ] ) );
+		$this->assertArrayNotHasKey( '_site_transient_' . $key, $options );
 	}
 }

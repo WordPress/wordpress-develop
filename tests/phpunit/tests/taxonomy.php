@@ -842,7 +842,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertIsArray( $wp_rewrite->extra_permastructs['foo'] );
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
-		$this->assertFalse( isset( $wp_rewrite->extra_permastructs['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_rewrite->extra_permastructs );
 	}
 
 	/**
@@ -878,7 +878,7 @@ class Tests_Taxonomy extends WP_UnitTestCase {
 
 		$this->assertTrue( unregister_taxonomy( 'foo' ) );
 
-		$this->assertFalse( isset( $wp_taxonomies['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_taxonomies );
 		$this->assertFalse( get_taxonomy( 'foo' ) );
 	}
 
