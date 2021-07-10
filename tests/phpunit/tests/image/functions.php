@@ -337,7 +337,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 		// First, test with deprecated wp_load_image function.
 		$editor1 = wp_load_image( DIR_TESTDATA );
-		$this->assertInternalType( 'string', $editor1 );
+		$this->assertIsString( $editor1 );
 
 		$editor2 = wp_get_image_editor( DIR_TESTDATA );
 		$this->assertInstanceOf( 'WP_Error', $editor2 );
@@ -647,7 +647,7 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		);
 
 		$metadata = wp_generate_attachment_metadata( $attachment_id, $test_file );
-		$this->assertTrue( isset( $metadata['sizes']['test-size'] ), 'The `test-size` was not added to the metadata.' );
+		$this->assertArrayHasKey( 'test-size', $metadata['sizes'], 'The `test-size` was not added to the metadata.' );
 		$this->assertSame( $metadata['sizes']['test-size'], $expected );
 
 		remove_image_size( 'test-size' );

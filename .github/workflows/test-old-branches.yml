@@ -28,12 +28,14 @@ jobs:
             'test-npm.yml'
         ]
         branch: [
-            '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
+            '5.8', '5.7', '5.6', '5.5', '5.4', '5.3', '5.2', '5.1', '5.0',
             '4.9', '4.8', '4.7', '4.6', '4.5', '4.4', '4.3', '4.2', '4.1', '4.0',
             '3.9', '3.8', '3.7'
         ]
         include:
           # PHP Compatibility testing was introduced in 5.5.
+          - branch: '5.8'
+            workflow: 'php-compatibility.yml'
           - branch: '5.7'
             workflow: 'php-compatibility.yml'
           - branch: '5.6'
@@ -44,7 +46,7 @@ jobs:
           # End to End testing was introduced in 5.3 but later removed as there were no meaningful assertions.
           # Only the officially supported major branch runs E2E tests so that more assertions can be added, and the
           # workflow does not continue to run needlessly on old branches.
-          - branch: '5.7'
+          - branch: '5.8'
             workflow: 'end-to-end-tests.yml'
         exclude:
           # Coding standards and JavaScript testing did not take place in 3.7.
@@ -67,3 +69,6 @@ jobs:
               workflow_id: '${{ matrix.workflow }}',
               ref: '${{ matrix.branch }}'
             });
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code

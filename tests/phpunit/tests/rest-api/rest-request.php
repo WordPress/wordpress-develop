@@ -491,7 +491,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -754,7 +754,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 		$this->assertWPError( $valid );
 		$data = $valid->get_error_data();
 
-		$this->assertInternalType( 'array', $data );
+		$this->assertIsArray( $data );
 		$this->assertArrayHasKey( 'params', $data );
 		$this->assertArrayHasKey( 'failparam', $data['params'] );
 		$this->assertSame( 'Invalid. Super Invalid. Broken.', $data['params']['failparam'] );
@@ -1008,6 +1008,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
+	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback() {
 		$request = new WP_REST_Request();
@@ -1032,6 +1033,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
+	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback_no_parameter_callbacks() {
 		$request = new WP_REST_Request();
@@ -1051,6 +1053,7 @@ class Tests_REST_Request extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 51255
+	 * @requires PHPUnit >= 5.5
 	 */
 	public function test_route_level_validate_callback_is_not_executed_if_parameter_validation_fails() {
 		$request = new WP_REST_Request();

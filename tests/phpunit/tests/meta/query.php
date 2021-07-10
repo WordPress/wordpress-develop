@@ -146,7 +146,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**
@@ -163,7 +163,7 @@ class Tests_Meta_Query extends WP_UnitTestCase {
 		$query = new WP_Meta_Query();
 		$query->parse_query_vars( $qv );
 
-		$this->assertTrue( ! isset( $query->queries[0]['value'] ) );
+		$this->assertArrayNotHasKey( 'value', $query->queries[0] );
 	}
 
 	/**

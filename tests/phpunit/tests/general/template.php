@@ -304,7 +304,7 @@ class Tests_General_Template extends WP_UnitTestCase {
 		$this->_set_custom_logo();
 		$custom_logo = get_custom_logo();
 		$this->assertNotEmpty( $custom_logo );
-		$this->assertInternalType( 'string', $custom_logo );
+		$this->assertIsString( $custom_logo );
 
 		$this->_remove_custom_logo();
 		$this->assertEmpty( get_custom_logo() );

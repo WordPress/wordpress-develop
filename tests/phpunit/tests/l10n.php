@@ -56,7 +56,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 */
 	function test_get_available_languages() {
 		$array = get_available_languages();
-		$this->assertInternalType( 'array', $array );
+		$this->assertIsArray( $array );
 
 		$array = get_available_languages( '.' );
 		$this->assertEmpty( $array );
@@ -70,7 +70,7 @@ class Tests_L10n extends WP_UnitTestCase {
 	 */
 	function test_wp_get_installed_translations_for_core() {
 		$installed_translations = wp_get_installed_translations( 'core' );
-		$this->assertInternalType( 'array', $installed_translations );
+		$this->assertIsArray( $installed_translations );
 		$textdomains_expected = array( 'admin', 'admin-network', 'continents-cities', 'default' );
 		$this->assertSameSets( $textdomains_expected, array_keys( $installed_translations ) );
 

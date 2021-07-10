@@ -106,7 +106,7 @@ class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $found );
+		$this->assertIsArray( $found );
 		$this->assertContains( '>' . $tags[0]->name . '<', $found[0] );
 	}
 

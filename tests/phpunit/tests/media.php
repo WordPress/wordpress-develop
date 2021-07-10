@@ -381,7 +381,7 @@ https://w.org</a>',
 		$post = get_post( $id );
 
 		$prepped = wp_prepare_attachment_for_js( $post );
-		$this->assertInternalType( 'array', $prepped );
+		$this->assertIsArray( $prepped );
 		$this->assertSame( 0, $prepped['uploadedTo'] );
 		$this->assertSame( '', $prepped['mime'] );
 		$this->assertSame( '', $prepped['type'] );
@@ -446,7 +446,7 @@ https://w.org</a>',
 
 		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
 
-		$this->assertTrue( isset( $prepped['sizes'] ) );
+		$this->assertArrayHasKey( 'sizes', $prepped );
 	}
 
 	/**
@@ -1164,7 +1164,7 @@ VIDEO;
 	 */
 	function test_attachment_url_to_postid_with_empty_url() {
 		$post_id = attachment_url_to_postid( '' );
-		$this->assertInternalType( 'int', $post_id );
+		$this->assertIsInt( $post_id );
 		$this->assertSame( 0, $post_id );
 	}
 
@@ -3022,6 +3022,7 @@ EOF;
 
 	/**
 	 * @ticket 50425
+	 * @ticket 53463
 	 * @dataProvider data_wp_lazy_loading_enabled_context_defaults
 	 *
 	 * @param string $context  Function context.
@@ -3041,6 +3042,7 @@ EOF;
 			'the_content => true'             => array( 'the_content', true ),
 			'the_excerpt => true'             => array( 'the_excerpt', true ),
 			'widget_text_content => true'     => array( 'widget_text_content', true ),
+			'widget_block_content => true'    => array( 'widget_block_content', true ),
 			'get_avatar => true'              => array( 'get_avatar', true ),
 			'arbitrary context => true'       => array( 'something_completely_arbitrary', true ),
 		);

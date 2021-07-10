@@ -2,29 +2,11 @@
 /**
  * REST API: WP_REST_Sidebars_Controller class
  *
+ * Original code from {@link https://github.com/martin-pettersson/wp-rest-api-sidebars Martin Pettersson (martin_pettersson@outlook.com)}.
+ *
  * @package WordPress
  * @subpackage REST_API
  * @since 5.8.0
- *
- * Copyright (C) 2015  Martin Pettersson
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * @author    Martin Pettersson <martin_pettersson@outlook.com>
- * @copyright 2015 Martin Pettersson
- * @license   GPLv2
- * @link      https://github.com/martin-pettersson/wp-rest-api-sidebars
  */
 
 /**
@@ -116,8 +98,10 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
+		retrieve_widgets();
+
 		$data = array();
-		foreach ( (array) wp_get_sidebars_widgets() as $id => $widgets ) {
+		foreach ( wp_get_sidebars_widgets() as $id => $widgets ) {
 			$sidebar = $this->get_sidebar( $id );
 
 			if ( ! $sidebar ) {
@@ -153,6 +137,8 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
+		retrieve_widgets();
+
 		$sidebar = $this->get_sidebar( $request['id'] );
 
 		if ( ! $sidebar ) {
@@ -282,7 +268,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 *
 	 * @param array           $raw_sidebar Sidebar instance.
 	 * @param WP_REST_Request $request     Full details about the request.
-	 *
 	 * @return WP_REST_Response Prepared response object.
 	 */
 	public function prepare_item_for_response( $raw_sidebar, $request ) {
@@ -319,7 +304,7 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 				}
 			);
 
-			$sidebar['widgets'] = $widgets;
+			$sidebar['widgets'] = array_values( $widgets );
 		}
 
 		$schema = $this->get_item_schema();
@@ -358,7 +343,6 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param array $sidebar Sidebar.
-	 *
 	 * @return array Links for the given widget.
 	 */
 	protected function prepare_links( $sidebar ) {
@@ -378,6 +362,8 @@ class WP_REST_Sidebars_Controller extends WP_REST_Controller {
 
 	/**
 	 * Retrieves the block type' schema, conforming to JSON Schema.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @return array Item schema data.
 	 */
