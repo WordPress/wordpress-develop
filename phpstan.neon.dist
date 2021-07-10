@@ -63,6 +63,8 @@ parameters:
     - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
     # PHP 8:
     - '#Class GdImage not found#'
+    # Not worried about unused parameters for now:
+    - '# unused parameter #'
     # These are too noisy at the moment:
     - '#Variable \$[a-zA-Z0-9_]+ might not be defined.#'
     - '#Call to function compact\(\) contains possibly undefined variable#'
