@@ -590,6 +590,22 @@ class wpdb {
 	private $has_connected = false;
 
 	/**
+	 * Undocumented variable
+	 *
+	 * @since ?.?.?
+	 * @var float
+	 */
+	public $time_start = null;
+
+	/**
+	 * Undocumented variable
+	 *
+	 * @since ?.?.?
+	 * @var WP_Error|string
+	 */
+	public $error = null;
+
+	/**
 	 * Connects to the database server and selects a database.
 	 *
 	 * PHP5 style constructor for compatibility with PHP5. Does the actual setting up
