@@ -48,7 +48,7 @@ parameters:
     - tests/phpstan/bootstrap.php
   ignoreErrors:
     # These are imported by including wp-includes/version.php:
-    - '#Undefined variable: \$(wp_version|required_php_version|required_mysql_version|wp_local_package)#'
+    - '#(wp_version|required_php_version|required_mysql_version|wp_local_package)#'
     # Inner functions aren't supported:
     - '#Inner named functions are not supported by PHPStan#'
     # mysql_* functions are used within appropriate compat checks:
