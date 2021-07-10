@@ -137,7 +137,7 @@ class WP_Widget {
 	 * @since 2.8.0
 	 *
 	 * @param array $instance Current settings.
-	 * @return string Default return is 'noform'.
+	 * @return string|void Default return is 'noform'.
 	 */
 	public function form( $instance ) {
 		echo '<p class="no-options-widget">' . __( 'There are no options for this widget.' ) . '</p>';
