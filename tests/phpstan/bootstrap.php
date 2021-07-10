@@ -1,4 +1,5 @@
 <?php
+// phpcs:ignoreFile
 
 define( 'ABSPATH', '' );
 define( 'BLOGUPLOADDIR', '' );
