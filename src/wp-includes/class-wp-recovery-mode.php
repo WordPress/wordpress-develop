@@ -454,7 +454,6 @@ class WP_Recovery_Mode {
 	 * next request again. Otherwise it will create a redirect loop.
 	 *
 	 * @since 5.2.0
-	 * @phpstan-return never
 	 */
 	protected function redirect_protected() {
 		// Pluggable is usually loaded after plugins, so we manually include it here for redirection functionality.

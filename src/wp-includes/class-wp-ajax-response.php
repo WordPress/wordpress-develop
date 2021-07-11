@@ -147,7 +147,6 @@ class WP_Ajax_Response {
 	 * Sets the content type header to text/xml.
 	 *
 	 * @since 2.1.0
-	 * @phpstan-return never
 	 */
 	public function send() {
 		header( 'Content-Type: text/xml; charset=' . get_option( 'blog_charset' ) );
