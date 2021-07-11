@@ -829,6 +829,36 @@ function fetch_feed( $url ) {
 	$feed->init();
 	$feed->set_output_encoding( get_option( 'blog_charset' ) );
 
+	// todo explain why it's doing this
+	$link = $feed->data['headers']->offsetGet( 'link' );
+
+	if ( is_array( $link ) ) {
+		$feed->data['headers']->offsetSet( 'link', $link[0] );
+
+		/* todo
+		 * is this the best solution?
+		 * should simplepie handle this scenario, or is core passing it invalid data?
+		 *      core it outputting 2 feeds, simplepie expects 1. is that a valid expectation for simplepie?
+		 * is this back-compat?
+		 *
+		 * props: NicolasKulka, Tonya Mork , mbabker, Toni Viemerö , sergey, jonathan, timothy, anyone else?
+		 *      also add folks from 51056?
+		 *
+		 * what should be done w/ the 2nd link? just ignore it?
+		 *      should the wp/v2/categories/id link actually e the ones that's used? i guess so, since it's a category feed
+		 *      what's most reliable way to detect which link is the correct one? just hardcode a search for "category" etc, or just assume the 2nd/last one?
+		 *           neither seems reliable
+		 *
+		 * if #51056 is not a duplicate, then it should also be tested for php8 compat, and given the php8 keyword if it fatals
+		 *      todo: er, wait, maybe it is? https://core.trac.wordpress.org/ticket/51956#comment:17
+		 *      if so, then need to determine if the patch there is better solution than this
+		 *      it seems like 51056 is better,based on https://core.trac.wordpress.org/ticket/51056#comment:3
+		 *      it's valid for simplepie to expect a string instead of array, b/c its parser combined multiple headers into a command-separated string
+		 *      if that's the case, then close 51956 as duplicate, and mention that on both tickets
+		 *      iterate on 51056 patch if necessary & commit, include props from 51956
+		 */
+	}
+
 	if ( $feed->error() ) {
 		return new WP_Error( 'simplepie-error', $feed->error() );
 	}

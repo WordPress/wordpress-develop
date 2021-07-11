@@ -2615,6 +2615,8 @@ class SimplePie
 			}
 		}
 
+		// todo is it correct for this to assume that there's only 1 `link` header? doesn't seem like it
+		// if not, then need to fix upstream instead, then merge to core
 		if (isset($this->data['headers']['link']) &&
 		    preg_match('/<([^>]+)>; rel='.preg_quote($rel).'/',
 		               $this->data['headers']['link'], $match))
