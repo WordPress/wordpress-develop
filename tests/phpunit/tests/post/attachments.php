@@ -18,7 +18,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = rand_str();
 
 		$upload = wp_upload_bits( $filename, null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 	}
 
 	function test_insert_image_no_thumb() {
@@ -28,7 +28,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -65,7 +65,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -119,7 +119,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
@@ -176,7 +176,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id      = $this->_make_attachment( $upload );
 		$uploads = wp_upload_dir();
@@ -219,13 +219,13 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$upload['url'] = '';
 		$id            = $this->_make_attachment( $upload );
 
 		$guid = get_the_guid( $id );
-		$this->assertFalse( empty( $guid ) );
+		$this->assertNotEmpty( $guid );
 	}
 
 	/**
@@ -236,7 +236,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$id = $this->_make_attachment( $upload );
 
@@ -262,7 +262,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		$attachment_id = $this->_make_attachment( $upload );
 
@@ -294,7 +294,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -319,7 +319,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -344,7 +344,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -372,7 +372,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -400,7 +400,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );
@@ -427,7 +427,7 @@ class Tests_Post_Attachments extends WP_UnitTestCase {
 		$contents = file_get_contents( $filename );
 
 		$upload = wp_upload_bits( wp_basename( $filename ), null, $contents );
-		$this->assertTrue( empty( $upload['error'] ) );
+		$this->assertEmpty( $upload['error'] );
 
 		// Set attachment ID.
 		$attachment_id = $this->_make_attachment( $upload );

@@ -225,7 +225,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-		$this->assertTrue( ! empty( $res['headers']['location'] ) );
+		$this->assertNotEmpty( $res['headers']['location'] );
 	}
 
 	/**

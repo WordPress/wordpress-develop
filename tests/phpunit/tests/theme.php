@@ -288,7 +288,7 @@ class Tests_Theme extends WP_UnitTestCase {
 				$this->assertTrue( is_dir( $root_fs ) );
 
 				$root_uri = get_theme_root_uri();
-				$this->assertTrue( ! empty( $root_uri ) );
+				$this->assertNotEmpty( $root_uri );
 
 				$this->assertSame( $root_fs . '/' . get_stylesheet(), get_stylesheet_directory() );
 				$this->assertSame( $root_uri . '/' . get_stylesheet(), get_stylesheet_directory_uri() );

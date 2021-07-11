@@ -260,7 +260,7 @@ class WP_Test_REST_Users_Controller extends WP_Test_REST_Controller_Testcase {
 		$rest_post_types = array_values( get_post_types( array( 'show_in_rest' => true ), 'names' ) );
 
 		foreach ( $users as $user ) {
-			$this->assertTrue( count_user_posts( $user['id'], $rest_post_types ) > 0 );
+			$this->assertNotEmpty( count_user_posts( $user['id'], $rest_post_types ) );
 
 			// Ensure we don't expose non-public data.
 			$this->assertArrayNotHasKey( 'capabilities', $user );

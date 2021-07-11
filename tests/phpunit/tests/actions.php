@@ -279,7 +279,7 @@ class Tests_Actions extends WP_UnitTestCase {
 		$this->assertSame( $args[0][0], $obj );
 		// Just in case we don't trust assertSame().
 		$obj->foo = true;
-		$this->assertFalse( empty( $args[0][0]->foo ) );
+		$this->assertNotEmpty( $args[0][0]->foo );
 	}
 
 	/**
