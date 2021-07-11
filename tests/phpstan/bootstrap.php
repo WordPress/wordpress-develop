@@ -96,3 +96,5 @@ define( 'EP_ALL', 1 );
 if ( ! class_exists( 'GdImage' ) ) {
 	class GdImage {}
 }
+
+require_once dirname( __DIR__, 2 ) . '/src/wp-includes/class-phpmailer.php';

@@ -8,42 +8,44 @@ parameters:
   scanDirectories:
     - src/wp-includes
     - src/wp-admin
-  excludes_analyse:
-    - src/wp-admin/includes/class-ftp.php
-    - src/wp-admin/includes/class-ftp-pure.php
-    - src/wp-admin/includes/class-ftp-sockets.php
-    - src/wp-admin/includes/class-pclzip.php
-    - src/wp-admin/includes/deprecated.php
-    - src/wp-admin/includes/noop.php
-    - src/wp-admin/includes/ms-deprecated.php
-    - src/wp-content
-    - src/wp-includes/atomlib.php
-    - src/wp-includes/class-json.php
-    - src/wp-includes/class-phpmailer.php
-    - src/wp-includes/class-requests.php
-    - src/wp-includes/class-simplepie.php
-    - src/wp-includes/class-smtp.php
-    - src/wp-includes/class-snoopy.php
-    - src/wp-includes/class-wp-http-ixr-client.php
-    - src/wp-includes/class-wp-http-requests-hooks.php
-    - src/wp-includes/class-wp-http-requests-response.php
-    - src/wp-includes/class-wp-simplepie-file.php
-    - src/wp-includes/class-wp-simplepie-sanitize-kses.php
-    - src/wp-includes/class-wp-text-diff-renderer-inline.php
-    - src/wp-includes/class-wp-text-diff-renderer-table.php
-    - src/wp-includes/class-wp-feed-cache.php
-    - src/wp-includes/deprecated.php
-    - src/wp-includes/ms-deprecated.php
-    - src/wp-includes/pluggable-deprecated.php
-    - src/wp-includes/rss.php
-    - src/wp-includes/ID3
-    - src/wp-includes/PHPMailer
-    - src/wp-includes/pomo
-    - src/wp-includes/random_compat
-    - src/wp-includes/Requests
-    - src/wp-includes/SimplePie
-    - src/wp-includes/sodium_compat
-    - src/wp-includes/Text
+  excludePaths:
+    analyseAndScan:
+      - src/wp-admin/includes/deprecated.php
+      - src/wp-admin/includes/ms-deprecated.php
+      - src/wp-admin/includes/noop.php
+      - src/wp-content
+      - src/wp-includes/deprecated.php
+      - src/wp-includes/ms-deprecated.php
+      - src/wp-includes/pluggable-deprecated.php
+    analyse:
+      - src/wp-admin/includes/class-ftp-pure.php
+      - src/wp-admin/includes/class-ftp-sockets.php
+      - src/wp-admin/includes/class-ftp.php
+      - src/wp-admin/includes/class-pclzip.php
+      - src/wp-includes/atomlib.php
+      - src/wp-includes/class-json.php
+      - src/wp-includes/class-phpmailer.php
+      - src/wp-includes/class-requests.php
+      - src/wp-includes/class-simplepie.php
+      - src/wp-includes/class-smtp.php
+      - src/wp-includes/class-snoopy.php
+      - src/wp-includes/class-wp-feed-cache.php
+      - src/wp-includes/class-wp-http-ixr-client.php
+      - src/wp-includes/class-wp-http-requests-hooks.php
+      - src/wp-includes/class-wp-http-requests-response.php
+      - src/wp-includes/class-wp-simplepie-file.php
+      - src/wp-includes/class-wp-simplepie-sanitize-kses.php
+      - src/wp-includes/class-wp-text-diff-renderer-inline.php
+      - src/wp-includes/class-wp-text-diff-renderer-table.php
+      - src/wp-includes/ID3
+      - src/wp-includes/PHPMailer
+      - src/wp-includes/pomo
+      - src/wp-includes/random_compat
+      - src/wp-includes/Requests
+      - src/wp-includes/rss.php
+      - src/wp-includes/SimplePie
+      - src/wp-includes/sodium_compat
+      - src/wp-includes/Text
   bootstrapFiles:
     - tests/phpstan/bootstrap.php
   ignoreErrors:
@@ -57,10 +59,8 @@ parameters:
     - '#Function wxr_[a-z_]+ not found#'
     # Only defined by an object cache dropin:
     - '#Function wp_cache_postload not found#'
-    # Not worried about any external libs for now:
-    - '#(ParagonIE_Sodium_Compat|PclZip|getID3|Requests|PHPMailer|SimplePie|Text_Diff)#'
-    # Classes in excluded files:
-    - '#Instantiated class (ftp|WP_HTTP_IXR_Client|MO|NOOP_Translations|WP_Press_This_Plugin) not found#'
+    # Classes in external files:
+    - '#(WP_Press_This_Plugin)#'
     # Gutenberg compat functions:
     - '#(gutenberg_get_widget_key|gutenberg_get_widget_object)#'
     # `$s` is extracted in `load_template()`:
