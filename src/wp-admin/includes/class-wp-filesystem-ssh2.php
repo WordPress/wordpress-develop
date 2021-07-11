@@ -664,6 +664,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 */
 	public function touch( $file, $time = 0, $atime = 0 ) {
 		// Not implemented.
+		return false;
 	}
 
 	/**
