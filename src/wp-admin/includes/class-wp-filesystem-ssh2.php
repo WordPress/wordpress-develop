@@ -60,7 +60,7 @@ class WP_Filesystem_SSH2 extends WP_Filesystem_Base {
 	 *
 	 * @param array $opt
 	 */
-	public function __construct( $opt = '' ) {
+	public function __construct( $opt = array() ) {
 		$this->method = 'ssh2';
 		$this->errors = new WP_Error();
 
