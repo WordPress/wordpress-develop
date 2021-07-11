@@ -3804,7 +3804,7 @@ function _get_term_children( $term_id, $terms, $taxonomy, &$ancestors = array() 
 	foreach ( (array) $terms as $term ) {
 		$use_id = false;
 		if ( ! is_object( $term ) ) {
-			/** @var WP_Term[]|WP_Error $term */
+			/** @var WP_Term|WP_Error $term */
 			$term = get_term( $term, $taxonomy );
 			if ( is_wp_error( $term ) ) {
 				return $term;
