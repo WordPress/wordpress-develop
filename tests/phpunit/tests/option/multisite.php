@@ -144,26 +144,6 @@ if ( is_multisite() ) :
 			// $this->assertFalse( get_option( $key2 ) );                        // Check get_option().
 		}
 
-		/**
-		 * @group multisite
-		 */
-		function test_site_notoptions() {
-			$network_id     = get_current_network_id();
-			$notoptions_key = "{$network_id}:notoptions";
-
-			$_notoptions = wp_cache_get( 'notoptions', 'site-options' );
-			$this->assertEmpty( $_notoptions );
-			$_notoptions1 = wp_cache_get( $notoptions_key, 'site-options' );
-			$this->assertEmpty( $_notoptions1 );
-
-			get_site_option( 'burrito' );
-
-			$notoptions = wp_cache_get( 'notoptions', 'site-options' );
-			$this->assertEmpty( $notoptions );
-			$notoptions1 = wp_cache_get( $notoptions_key, 'site-options' );
-			$this->assertNotEmpty( $notoptions1 );
-		}
-
 		function test_users_can_register_signup_filter() {
 
 			$registration = get_site_option( 'registration' );
