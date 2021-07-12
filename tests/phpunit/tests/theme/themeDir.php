@@ -208,7 +208,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$this->assertNotEmpty( $theme );
 
 		$templates = $theme['Template Files'];
-		$this->assertTrue( in_array( $this->theme_root . '/page-templates/template-top-level.php', $templates, true ) );
+		$this->assertContains( $this->theme_root . '/page-templates/template-top-level.php', $templates );
 	}
 
 	/**

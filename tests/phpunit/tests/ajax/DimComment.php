@@ -103,7 +103,7 @@ class Tests_Ajax_DimComment extends WP_Ajax_UnitTestCase {
 		$total = $_POST['_total'] - 1;
 
 		// Check for either possible total.
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), true ) );
+		$this->assertContains( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ) );
 	}
 
 	/**

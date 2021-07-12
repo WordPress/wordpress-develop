@@ -302,9 +302,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$data           = $response->get_data();
 		$this->assertCount( 2, $data );
 		$ids = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
-		$this->assertTrue( in_array( $id3, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
+		$this->assertContains( $id3, $ids );
 
 		$this->check_get_posts_response( $response );
 	}
@@ -343,9 +343,9 @@ class WP_Test_REST_Attachments_Controller extends WP_Test_REST_Post_Type_Control
 		$data = $response->get_data();
 		$this->assertCount( 3, $data );
 		$ids = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
-		$this->assertTrue( in_array( $id3, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
+		$this->assertContains( $id3, $ids );
 	}
 
 	public function test_get_items_media_type() {

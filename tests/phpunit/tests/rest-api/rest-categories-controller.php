@@ -311,15 +311,15 @@ class WP_Test_REST_Categories_Controller extends WP_Test_REST_Controller_Testcas
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
 
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 	}
 
 	public function test_get_items_orderby_args() {

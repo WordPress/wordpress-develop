@@ -265,7 +265,7 @@ class Tests_REST_API extends WP_UnitTestCase {
 	 */
 	function test_rest_route_query_var() {
 		rest_api_init();
-		$this->assertTrue( in_array( 'rest_route', $GLOBALS['wp']->public_query_vars, true ) );
+		$this->assertContains( 'rest_route', $GLOBALS['wp']->public_query_vars );
 	}
 
 	public function test_route_method() {

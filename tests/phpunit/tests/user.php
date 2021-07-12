@@ -1113,7 +1113,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_url() {
@@ -1124,7 +1124,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_email() {
@@ -1135,7 +1135,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_nicename() {
@@ -1146,7 +1146,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_display_name() {
@@ -1157,7 +1157,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	/**

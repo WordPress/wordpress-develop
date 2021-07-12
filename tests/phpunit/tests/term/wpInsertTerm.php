@@ -822,7 +822,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t ] );
-		$this->assertTrue( in_array( $found['term_id'], $cached_children[ $t ], true ) );
+		$this->assertContains( $found['term_id'], $cached_children[ $t ] );
 	}
 
 	/**
