@@ -1484,7 +1484,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$ids   = wp_list_pluck( $posts, 'id' );
 		$this->assertContains( $id1, $ids );
 		$this->assertNotContains( $id2, $ids );
-		$this->assertNotContains( $id3, $ids);
+		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
