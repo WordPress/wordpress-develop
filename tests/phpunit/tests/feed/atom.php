@@ -186,7 +186,7 @@ class Tests_Feeds_Atom extends WP_UnitTestCase {
 			}
 			$categories = xml_find( $entries[ $key ]['child'], 'category' );
 			foreach ( $categories as $category ) {
-				$this->assertTrue( in_array( $category['attributes']['term'], $terms, true ) );
+				$this->assertContains( $category['attributes']['term'], $terms );
 			}
 			unset( $terms );
 

@@ -579,7 +579,7 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 
 		if ( isset( $post_args['search'] ) && 'test' === $post_args['search'] ) {
 			$this->assertTrue( $response['success'] );
-			$this->assertSame( 6, count( $response['data']['items'] ) );
+			$this->assertCount( 6, $response['data']['items'] );
 			$item_ids = wp_list_pluck( $response['data']['items'], 'id' );
 			$this->assertContains( 'post-' . $included_auto_draft_post->ID, $item_ids );
 			$this->assertNotContains( 'post-' . $excluded_auto_draft_post->ID, $item_ids );

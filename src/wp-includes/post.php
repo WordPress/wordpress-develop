@@ -1233,7 +1233,7 @@ function get_post_status_object( $post_status ) {
  * @param string       $operator Optional. The logical operation to perform. 'or' means only one element
  *                               from the array needs to match; 'and' means all elements must match.
  *                               Default 'and'.
- * @return array A list of post status names or objects.
+ * @return string[]|stdClass[] A list of post status names or objects.
  */
 function get_post_stati( $args = array(), $output = 'names', $operator = 'and' ) {
 	global $wp_post_statuses;
@@ -1391,7 +1391,7 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *     @type bool         $public                Whether a post type is intended for use publicly either via
  *                                               the admin interface or by front-end users. While the default
  *                                               settings of $exclude_from_search, $publicly_queryable, $show_ui,
- *                                               and $show_in_nav_menus are inherited from public, each does not
+ *                                               and $show_in_nav_menus are inherited from $public, each does not
  *                                               rely on this relationship and controls a very specific intention.
  *                                               Default false.
  *     @type bool         $hierarchical          Whether the post type is hierarchical (e.g. page). Default false.
@@ -1417,17 +1417,17 @@ function get_post_types( $args = array(), $output = 'names', $operator = 'and' )
  *                                               of $show_in_menu.
  *     @type bool         $show_in_rest          Whether to include the post type in the REST API. Set this to true
  *                                               for the post type to be available in the block editor.
- *     @type string       $rest_base             To change the base url of REST API route. Default is $post_type.
- *     @type string       $rest_controller_class REST API Controller class name. Default is 'WP_REST_Posts_Controller'.
+ *     @type string       $rest_base             To change the base URL of REST API route. Default is $post_type.
+ *     @type string       $rest_controller_class REST API controller class name. Default is 'WP_REST_Posts_Controller'.
  *     @type int          $menu_position         The position in the menu order the post type should appear. To work,
  *                                               $show_in_menu must be true. Default null (at the bottom).
- *     @type string       $menu_icon             The url to the icon to be used for this menu. Pass a base64-encoded
+ *     @type string       $menu_icon             The URL to the icon to be used for this menu. Pass a base64-encoded
  *                                               SVG using a data URI, which will be colored to match the color scheme
  *                                               -- this should begin with 'data:image/svg+xml;base64,'. Pass the name
  *                                               of a Dashicons helper class to use a font icon, e.g.
  *                                               'dashicons-chart-pie'. Pass 'none' to leave div.wp-menu-image empty
  *                                               so an icon can be added via CSS. Defaults to use the posts icon.
- *     @type string       $capability_type       The string to use to build the read, edit, and delete capabilities.
+ *     @type string|array $capability_type       The string to use to build the read, edit, and delete capabilities.
  *                                               May be passed as an array to allow for alternative plurals when using
  *                                               this argument as a base to construct the capabilities, e.g.
  *                                               array('story', 'stories'). Default 'post'.
@@ -3794,7 +3794,7 @@ function wp_get_recent_posts( $args = array(), $output = ARRAY_A ) {
  *     @type string $post_date             The date of the post. Default is the current time.
  *     @type string $post_date_gmt         The date of the post in the GMT timezone. Default is
  *                                         the value of `$post_date`.
- *     @type mixed  $post_content          The post content. Default empty.
+ *     @type string $post_content          The post content. Default empty.
  *     @type string $post_content_filtered The filtered post content. Default empty.
  *     @type string $post_title            The post title. Default empty.
  *     @type string $post_excerpt          The post excerpt. Default empty.
@@ -4411,6 +4411,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 		 * The dynamic portion of the hook name, `$post->post_type`, refers to
 		 * the post type slug.
 		 *
+		 * Possible hook names include:
+		 *
+		 *  - `edit_post_post`
+		 *  - `edit_post_page`
+		 *
 		 * @since 5.1.0
 		 *
 		 * @param int     $post_ID Post ID.
@@ -4447,6 +4452,11 @@ function wp_insert_post( $postarr, $wp_error = false, $fire_after_hooks = true )
 	 *
 	 * The dynamic portion of the hook name, `$post->post_type`, refers to
 	 * the post type slug.
+	 *
+	 * Possible hook names include:
+	 *
+	 *  - `save_post_post`
+	 *  - `save_post_page`
 	 *
 	 * @since 3.7.0
 	 *

@@ -49,6 +49,7 @@ jobs:
   # - Make Composer packages available globally.
   # - Logs PHP_CodeSniffer debug information.
   # - Runs the PHP compatibility tests.
+  # - Ensures version-controlled files are not modified or deleted.
   # - todo: Configure Slack notifications for failing scans.
   php-comatibility:
     name: Check PHP compatibility
@@ -84,3 +85,6 @@ jobs:
 
       - name: Run PHP compatibility tests
         run: phpcs --standard=phpcompat.xml.dist -q --report=checkstyle | cs2pr
+
+      - name: Ensure version-controlled files are not modified or deleted
+        run: git diff --exit-code

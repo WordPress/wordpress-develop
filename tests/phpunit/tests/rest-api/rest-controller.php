@@ -249,7 +249,7 @@ class WP_Test_REST_Controller extends WP_Test_REST_TestCase {
 		$args       = rest_get_endpoint_args_for_schema( $controller->get_item_schema() );
 
 		$this->assertSame( 'A pretty string.', $args['somestring']['description'] );
-		$this->assertFalse( isset( $args['someinteger']['description'] ) );
+		$this->assertArrayNotHasKey( 'description', $args['someinteger'] );
 	}
 
 	public function test_get_endpoint_args_for_item_schema_arg_options() {

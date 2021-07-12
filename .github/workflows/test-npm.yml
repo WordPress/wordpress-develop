@@ -42,12 +42,13 @@ jobs:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
   # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
+  # - Ensures version-controlled files are not modified or deleted.
   test-npm:
     name: Test NPM on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -70,28 +71,10 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
         with:
           node-version: 14
-
-      - name: Cache NodeJS modules (Ubuntu & MacOS)
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        if: ${{ matrix.os != 'windows-latest' }}
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Get NPM cache directory (Windows only)
-        if: ${{ matrix.os == 'windows-latest' }}
-        id: npm-cache
-        run: echo "::set-output name=dir::$(npm config get cache)"
-
-      - name: Cache NodeJS modules (Windows only)
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        if: ${{ matrix.os == 'windows-latest' }}
-        with:
-          path: ${{ steps.npm-cache.outputs.dir }}
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
@@ -102,11 +85,17 @@ jobs:
       - name: Clean after building
         run: npm run grunt clean
 
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
       - name: Build WordPress in /src
         run: npm run build:dev
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
 
   # Verifies that installing NPM dependencies and building WordPress works as expected on MacOS.
   #
@@ -116,12 +105,13 @@ jobs:
   # - Checks out the repository.
   # - Logs debug information about the runner container.
   # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Builds WordPress to run from the `build` directory.
   # - Cleans up after building WordPress to the `build` directory.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Builds WordPress to run from the `src` directory.
   # - Cleans up after building WordPress to the `src` directory.
+  # - Ensures version-controlled files are not modified or deleted.
   test-npm-macos:
     name: Test NPM on MacOS
     runs-on: macos-latest
@@ -139,16 +129,10 @@ jobs:
           svn --version
 
       - name: Install NodeJS
-        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
         with:
           node-version: 14
-
-      - name: Cache NodeJS modules
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        if: ${{ matrix.os != 'windows-latest' }}
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
@@ -159,8 +143,14 @@ jobs:
       - name: Clean after building
         run: npm run grunt clean
 
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code
+
       - name: Build WordPress in /src
         run: npm run build:dev
 
       - name: Clean after building in /src
         run: npm run grunt clean -- --dev
+
+      - name: Ensure version-controlled files are not modified or deleted during building and cleaning
+        run: git diff --exit-code

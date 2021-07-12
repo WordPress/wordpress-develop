@@ -84,6 +84,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 		'moment.js': 'moment/moment.js',
 		'react.js': 'react/umd/react.development.js',
 		'react-dom.js': 'react-dom/umd/react-dom.development.js',
+		'regenerator-runtime.js': 'regenerator-runtime/runtime.js',
 	};
 
 	const minifiedVendors = {
@@ -98,6 +99,7 @@ module.exports = function( env = { environment: 'production', watch: false, buil
 	};
 
 	const minifyVendors = {
+		'regenerator-runtime.min.js': 'regenerator-runtime/runtime.js',
 		'wp-polyfill-fetch.min.js': 'whatwg-fetch/dist/fetch.umd.js',
 		'wp-polyfill-element-closest.min.js': 'element-closest/element-closest.js',
 		'wp-polyfill-node-contains.min.js': 'polyfill-library/polyfills/__dist/Node.prototype.contains/raw.js',

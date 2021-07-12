@@ -15,7 +15,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 			),
 			$mo->headers
 		);
-		$this->assertSame( 2, count( $mo->entries ) );
+		$this->assertCount( 2, $mo->entries );
 		$this->assertSame( array( 'dyado' ), $mo->entries['baba']->translations );
 		$this->assertSame( array( 'yes' ), $mo->entries["kuku\nruku"]->translations );
 	}
@@ -23,7 +23,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 	function test_mo_plural() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/plural.mo' );
-		$this->assertSame( 1, count( $mo->entries ) );
+		$this->assertCount( 1, $mo->entries );
 		$this->assertSame( array( 'oney dragoney', 'twoey dragoney', 'manyey dragoney', 'manyeyey dragoney', 'manyeyeyey dragoney' ), $mo->entries['one dragon']->translations );
 
 		$this->assertSame( 'oney dragoney', $mo->translate_plural( 'one dragon', '%d dragons', 1 ) );
@@ -49,7 +49,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 	function test_mo_context() {
 		$mo = new MO();
 		$mo->import_from_file( DIR_TESTDATA . '/pomo/context.mo' );
-		$this->assertSame( 2, count( $mo->entries ) );
+		$this->assertCount( 2, $mo->entries );
 		$plural_entry = new Translation_Entry(
 			array(
 				'singular'     => 'one dragon',
@@ -81,7 +81,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$guest->add_entry( new Translation_Entry( array( 'singular' => 'green' ) ) );
 		$guest->add_entry( new Translation_Entry( array( 'singular' => 'red' ) ) );
 		$host->merge_with( $guest );
-		$this->assertSame( 3, count( $host->entries ) );
+		$this->assertCount( 3, $host->entries );
 		$this->assertSame( array(), array_diff( array( 'pink', 'green', 'red' ), array_keys( $host->entries ) ) );
 	}
 
@@ -159,7 +159,7 @@ class Tests_POMO_MO extends WP_UnitTestCase {
 		$again = new MO();
 		$again->import_from_file( $temp_fn );
 
-		$this->assertSame( 0, count( $again->entries ) );
+		$this->assertCount( 0, $again->entries );
 	}
 
 	function test_nplurals_with_backslashn() {

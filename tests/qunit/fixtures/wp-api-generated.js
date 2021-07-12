@@ -7531,7 +7531,8 @@ mockedApiResponse.Schema = {
                 ]
             }
         }
-    }
+    },
+    "site_logo": false
 };
 
 mockedApiResponse.oembed = {

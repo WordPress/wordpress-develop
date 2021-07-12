@@ -108,7 +108,7 @@ class Tests_Ajax_DeleteComment extends WP_Ajax_UnitTestCase {
 
 		// Check for either possible total.
 		$message = sprintf( 'returned value: %1$d $total: %2$d  $recalc_total: %3$d', (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], $total, $recalc_total );
-		$this->assertTrue( in_array( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), true ), $message );
+		$this->assertContains( (int) $xml->response[0]->comment[0]->supplemental[0]->total[0], array( $total, $recalc_total ), $message );
 	}
 
 	/**

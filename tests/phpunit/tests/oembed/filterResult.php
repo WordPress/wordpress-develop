@@ -19,8 +19,8 @@ class Tests_Filter_oEmbed_Result extends WP_UnitTestCase {
 		$matches = array();
 		preg_match( '|src=".*#\?secret=([\w\d]+)" data-secret="([\w\d]+)"|', $actual, $matches );
 
-		$this->assertTrue( isset( $matches[1] ) );
-		$this->assertTrue( isset( $matches[2] ) );
+		$this->assertArrayHasKey( 1, $matches );
+		$this->assertArrayHasKey( 2, $matches );
 		$this->assertSame( $matches[1], $matches[2] );
 	}
 
@@ -63,8 +63,8 @@ EOD;
 		$matches = array();
 		preg_match( '|src="https://wordpress.org#\?secret=([\w\d]+)" data-secret="([\w\d]+)"|', $actual, $matches );
 
-		$this->assertTrue( isset( $matches[1] ) );
-		$this->assertTrue( isset( $matches[2] ) );
+		$this->assertArrayHasKey( 1, $matches );
+		$this->assertArrayHasKey( 2, $matches );
 		$this->assertSame( $matches[1], $matches[2] );
 	}
 

@@ -106,14 +106,14 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, $this->taxonomy );
-			$this->assertInternalType( 'array', $result );
+			$this->assertIsArray( $result );
 			$term_id[ $term ] = $result['term_id'];
 		}
 
 		foreach ( $ids as $id ) {
 			$tt = wp_set_object_terms( $id, array_values( $term_id ), $this->taxonomy );
 			// Should return three term taxonomy IDs.
-			$this->assertSame( 3, count( $tt ) );
+			$this->assertCount( 3, $tt );
 		}
 
 		// Each term should be associated with every post.
@@ -141,7 +141,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		foreach ( $ids as $id ) {
 			$tt = wp_set_object_terms( $id, $terms, $this->taxonomy );
 			// Should return three term taxonomy IDs.
-			$this->assertSame( 3, count( $tt ) );
+			$this->assertCount( 3, $tt );
 			// Remember which term has which term_id.
 			for ( $i = 0; $i < 3; $i++ ) {
 				$term                    = get_term_by( 'name', $terms[ $i ], $this->taxonomy );
@@ -254,7 +254,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 		for ( $i = 0; $i < 3; $i++ ) {
 			$term   = "term_{$i}";
 			$result = wp_insert_term( $term, $this->taxonomy );
-			$this->assertInternalType( 'array', $result );
+			$this->assertIsArray( $result );
 			$terms_1[ $i ] = $result['term_id'];
 		}
 
@@ -268,7 +268,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// Set the initial terms.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertSame( 3, count( $tt_1 ) );
+		$this->assertCount( 3, $tt_1 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(
@@ -283,7 +283,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// Change the terms.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
-		$this->assertSame( 2, count( $tt_2 ) );
+		$this->assertCount( 2, $tt_2 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(
@@ -312,7 +312,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// Set the initial terms.
 		$tt_1 = wp_set_object_terms( $post_id, $terms_1, $this->taxonomy );
-		$this->assertSame( 3, count( $tt_1 ) );
+		$this->assertCount( 3, $tt_1 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(
@@ -327,7 +327,7 @@ class Tests_Term_WpSetObjectTerms extends WP_UnitTestCase {
 
 		// Change the terms.
 		$tt_2 = wp_set_object_terms( $post_id, $terms_2, $this->taxonomy );
-		$this->assertSame( 2, count( $tt_2 ) );
+		$this->assertCount( 2, $tt_2 );
 
 		// Make sure they're correct.
 		$terms = wp_get_object_terms(

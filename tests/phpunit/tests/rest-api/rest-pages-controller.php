@@ -109,7 +109,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 	}
 
@@ -132,13 +132,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 
 		// Filter to parent.
 		$request->set_param( 'parent', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $id2, $data[0]['id'] );
 
 		// Invalid 'parent' should error.
@@ -179,13 +179,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 4, count( $data ) );
+		$this->assertCount( 4, $data );
 
 		// Filter to parents.
 		$request->set_param( 'parent', array( $id1, $id3 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 		$this->assertSameSets( array( $id2, $id4 ), wp_list_pluck( $data, 'id' ) );
 	}
 
@@ -208,13 +208,13 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', '/wp/v2/pages' );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 2, count( $data ) );
+		$this->assertCount( 2, $data );
 
 		// Filter to parent.
 		$request->set_param( 'parent_exclude', $id1 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertSame( 1, count( $data ) );
+		$this->assertCount( 1, $data );
 		$this->assertSame( $id1, $data[0]['id'] );
 
 		// Invalid 'parent_exclude' should error.
@@ -558,7 +558,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$this->assertSame( 2, $headers['X-WP-TotalPages'] );
 
 		$all_data = $response->get_data();
-		$this->assertSame( 4, count( $all_data ) );
+		$this->assertCount( 4, $all_data );
 		foreach ( $all_data as $post ) {
 			$this->assertSame( 'page', $post['type'] );
 		}
@@ -737,7 +737,7 @@ class WP_Test_REST_Pages_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response   = rest_get_server()->dispatch( $request );
 		$data       = $response->get_data();
 		$properties = $data['schema']['properties'];
-		$this->assertSame( 24, count( $properties ) );
+		$this->assertCount( 24, $properties );
 		$this->assertArrayHasKey( 'author', $properties );
 		$this->assertArrayHasKey( 'comment_status', $properties );
 		$this->assertArrayHasKey( 'content', $properties );

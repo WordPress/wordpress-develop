@@ -62,7 +62,7 @@ class Tests_Pluggable extends WP_UnitTestCase {
 		foreach ( $expected as $function => $sig ) {
 			$msg = 'Function: ' . $function . '()';
 			$this->assertTrue( function_exists( $function ), $msg );
-			$this->assertTrue( in_array( $function, $defined, true ), $msg );
+			$this->assertContains( $function, $defined, $msg );
 		}
 
 	}
