@@ -657,4 +657,32 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		return true;
 	}
+
+	/**
+	 * Get a rollback param.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param string $param      The parameter to get.
+	 * @param array  $hook_extra Extra params.
+	 *
+	 * @return string|null
+	 */
+	public function get_rollback_param( $param, $hook_extra = array() ) {
+		if ( empty( $hook_extra['plugin'] ) ) {
+			return;
+		}
+		global $wp_filesystem;
+		$params = array(
+			'type'                => 'plugin',
+			'rollbacks_subfolder' => 'plugins',
+			'destination_dir'     => $wp_filesystem->wp_plugins_dir(),
+			'slug'                => dirname( $hook_extra['plugin'] ),
+		);
+		if ( isset( $params[ $param ] ) ) {
+			return $params[ $param ];
+		}
+	}
 }
