@@ -560,6 +560,11 @@ function populate_options( array $options = array() ) {
 		$defaults['permalink_structure'] = '/%year%/%monthnum%/%day%/%postname%/';
 	}
 
+	// 5.6.0
+	if ( ! is_multisite() ) {
+		$defaults['WPLANG'] = '';
+	}
+
 	$options = wp_parse_args( $options, $defaults );
 
 	// Set autoload to no for these options.
