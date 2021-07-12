@@ -220,7 +220,10 @@ final class WP_Screen {
 		if ( $hook_name ) {
 			$id = $hook_name;
 		} else {
-			$id = $GLOBALS['hook_suffix'];
+			// AJAX requests do not load wp-admin/admin.php, which sets value for global $hook_suffix
+			$id = wp_doing_ajax()
+				? 'wp_ajax_' . esc_attr( $_REQUEST['action'] )
+				: $GLOBALS['hook_suffix'];
 		}
 
 		// For those pesky meta boxes.
