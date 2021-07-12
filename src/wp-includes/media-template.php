@@ -339,6 +339,11 @@ function wp_print_media_templates() {
 		<span class="upload-error-message">{{ data.message }}</span>
 	</script>
 
+	<?php // Template for attachment query errors. ?>
+	<script type="text/html" id="tmpl-attachment-query-error">
+		<span class="upload-error-message">{{ data.message }}</span>
+	</script>
+
 	<?php // Template for the Attachment Details layout in the media browser. ?>
 	<script type="text/html" id="tmpl-edit-attachment-frame">
 		<div class="edit-media-header">
@@ -399,6 +404,7 @@ function wp_print_media_templates() {
 			</div>
 		</div>
 		<div class="attachment-info">
+			<div class="upload-errors"></div>
 			<span class="settings-save-status" role="status">
 				<span class="spinner"></span>
 				<span class="saved"><?php esc_html_e( 'Saved.' ); ?></span>

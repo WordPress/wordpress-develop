@@ -122,6 +122,7 @@ media.view.Sidebar = require( '../../../media/views/sidebar.js' );
 media.view.Attachment = require( '../../../media/views/attachment.js' );
 media.view.Attachment.Library = require( '../../../media/views/attachment/library.js' );
 media.view.Attachment.EditLibrary = require( '../../../media/views/attachment/edit-library.js' );
+media.view.AttachmentQueryError = require( '../../../media/views/query-error.js' );
 media.view.Attachments = require( '../../../media/views/attachments.js' );
 media.view.Search = require( '../../../media/views/search.js' );
 media.view.AttachmentFilters = require( '../../../media/views/attachment-filters.js' );
