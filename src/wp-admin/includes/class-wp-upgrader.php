@@ -829,6 +829,9 @@ class WP_Upgrader {
 
 		$this->skin->after();
 
+		// Cleanup backup kept in the rollbacks folder.
+		$this->delete_rollback( $options['hook_extra'] );
+
 		if ( ! $options['is_multi'] ) {
 
 			/**
@@ -1032,6 +1035,31 @@ class WP_Upgrader {
 			}
 		}
 		return true;
+	}
+	/**
+	 * Deletes a rollback.
+	 *
+ 	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 *
+	 * @return bool|WP_Error
+	 */
+	public function delete_rollback( $hook_extra ) {
+		global $wp_filesystem;
+		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
+			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
+			$src                = "$rollback_dir/$rollback_subfolder/$slug";
+
+			if ( $wp_filesystem->is_dir( $src ) ) {
+				return $wp_filesystem->delete( $src, true );
+			}
+		}
+		return false;
 	}
 }
 
