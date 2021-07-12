@@ -112,7 +112,8 @@ class WP_Theme_JSON_Resolver {
 	 * @since 5.8.0
 	 *
 	 * @param array $i18n_partial A tree that follows the format of i18n-theme.json.
-	 * @param array $current_path Keeps track of the path as we walk down the given tree.
+	 * @param array $current_path Optional. Keeps track of the path as we walk down the given tree.
+	 *                            Default empty array.
 	 * @return array A linear array containing the paths to translate.
 	 */
 	private static function extract_paths_to_translate( $i18n_partial, $current_path = array() ) {
@@ -265,7 +266,8 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param array $theme_support_data Theme support data in theme.json format.
+	 * @param array $theme_support_data Optional. Theme support data in theme.json format.
+	 *                                  Default empty array.
 	 * @return WP_Theme_JSON Entity that holds theme data.
 	 */
 	public static function get_theme_data( $theme_support_data = array() ) {
@@ -301,8 +303,7 @@ class WP_Theme_JSON_Resolver {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @param array $settings Existing block editor settings.
-	 *                         Empty array by default.
+	 * @param array $settings Optional. Existing block editor settings. Default empty array.
 	 * @return WP_Theme_JSON
 	 */
 	public static function get_merged_data( $settings = array() ) {
@@ -318,7 +319,9 @@ class WP_Theme_JSON_Resolver {
 	/**
 	 * Whether the current theme has a theme.json file.
 	 *
-	 * @return boolean
+	 * @since 5.8.0
+	 *
+	 * @return bool
 	 */
 	public static function theme_has_support() {
 		if ( ! isset( self::$theme_has_support ) ) {
@@ -367,5 +370,3 @@ class WP_Theme_JSON_Resolver {
 	}
 
 }
-
-add_action( 'switch_theme', array( 'WP_Theme_JSON_Resolver', 'clean_cached_data' ) );

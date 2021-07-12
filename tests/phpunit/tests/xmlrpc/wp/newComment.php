@@ -210,7 +210,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
 		$this->assertNotIXRError( $result );
-		$this->assertInternalType( 'int', $result );
+		$this->assertIsInt( $result );
 	}
 
 	/**
@@ -292,7 +292,7 @@ class Tests_XMLRPC_wp_newComment extends WP_XMLRPC_UnitTestCase {
 
 		$result = $this->myxmlrpcserver->wp_newComment( $comment_args );
 		if ( $expected ) {
-			$this->assertInternalType( 'int', $result );
+			$this->assertIsInt( $result );
 			return;
 		}
 

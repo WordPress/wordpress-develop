@@ -34,7 +34,6 @@ jobs:
   # - Checks out the WordPress Importer plugin (needed for the Core PHPUnit tests).
   # - Logs debug information about the runner container.
   # - Installs NodeJS 14.
-  # - Sets up caching for NPM.
   # _ Installs NPM dependencies using install-changed to hash the `package.json` file.
   # - Logs Docker debug information (about the Docker installation within the runner).
   # - Starts the WordPress Docker container.
@@ -44,8 +43,10 @@ jobs:
   # - Logs debug information about what's installed within the WordPress Docker containers.
   # - Install WordPress within the Docker container.
   # - Run the PHPUnit tests as a single site.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the single site code coverage report to Codecov.io.
   # - Run the PHPUnit tests as a multisite.
+  # - Ensures version-controlled files are not modified or deleted.
   # - Upload the multisite code coverage report to Codecov.io.
   test-coverage-report:
     name: ${{ matrix.multisite && 'Multisite' || 'Single site' }} report
@@ -79,18 +80,10 @@ jobs:
           locale -a
 
       - name: Install NodeJS
-        uses: actions/setup-node@46071b5c7a2e0c34e49c3cb8a0e792e86e18d5ea # v2.1.5
+        uses: actions/setup-node@38d90ce44d5275ad62cc48384b3d8a58c500bb5f # v2.2.2
         with:
           node-version: 14
-
-      - name: Cache NodeJS modules
-        uses: actions/cache@26968a09c0ea4f3e233fdddbafd1166051a095f6 # v2.1.4
-        env:
-          cache-name: cache-node-modules
-        with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          path: ~/.npm
-          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
 
       - name: Install Dependencies
         run: npm ci
@@ -130,6 +123,9 @@ jobs:
         if: ${{ ! matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c phpunit.xml.dist --coverage-clover wp-code-coverage-single-clover-${{ github.sha }}.xml
 
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
+
       - name: Upload single site report to Codecov
         if: ${{ ! matrix.multisite }}
         uses: codecov/codecov-action@e156083f13aff6830c92fc5faa23505779fbf649 # v1.2.1
@@ -140,6 +136,9 @@ jobs:
       - name: Run tests as a multisite install
         if: ${{ matrix.multisite }}
         run: npm run test:${{ env.PHPUNIT_SCRIPT }} -- --verbose -c tests/phpunit/multisite.xml --coverage-clover wp-code-coverage-multisite-clover-${{ github.sha }}.xml
+
+      - name: Ensure version-controlled files are not modified during the tests
+        run: git diff --exit-code
 
       - name: Upload multisite report to Codecov
         if: ${{ matrix.multisite }}

@@ -760,11 +760,11 @@ abstract class WP_UnitTestCase_Base extends PHPUnit\Framework\TestCase {
 	 * @param array $array Array to check.
 	 */
 	public function assertNonEmptyMultidimensionalArray( $array ) {
-		$this->assertTrue( is_array( $array ) );
+		$this->assertIsArray( $array );
 		$this->assertNotEmpty( $array );
 
 		foreach ( $array as $sub_array ) {
-			$this->assertTrue( is_array( $sub_array ) );
+			$this->assertIsArray( $sub_array );
 			$this->assertNotEmpty( $sub_array );
 		}
 	}

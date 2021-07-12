@@ -48,7 +48,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$theme  = get_theme( 'WordPress Default' );
 		$this->assertSame( $themes['WordPress Default'], $theme );
 
-		$this->assertFalse( empty( $theme ) );
+		$this->assertNotEmpty( $theme );
 
 		// echo gen_tests_array( 'theme', $theme );
 
@@ -80,7 +80,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 	function test_theme_sandbox() {
 		$theme = get_theme( 'Sandbox' );
 
-		$this->assertFalse( empty( $theme ) );
+		$this->assertNotEmpty( $theme );
 
 		// echo gen_tests_array( 'theme', $theme );
 
@@ -119,7 +119,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$themes = get_themes();
 
 		$theme = $themes['Stylesheet Only'];
-		$this->assertFalse( empty( $theme ) );
+		$this->assertNotEmpty( $theme );
 
 		// echo gen_tests_array( 'theme', $theme );
 
@@ -171,7 +171,7 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 			'Internationalized Theme',
 			'camelCase',
 			'REST Theme',
-			'FSE Theme',
+			'Block Theme',
 		);
 
 		sort( $theme_names );
@@ -220,10 +220,10 @@ class Tests_Theme_ThemeDir extends WP_UnitTestCase {
 		$themes = get_themes();
 
 		$theme = $themes['Page Template Theme'];
-		$this->assertFalse( empty( $theme ) );
+		$this->assertNotEmpty( $theme );
 
 		$templates = $theme['Template Files'];
-		$this->assertTrue( in_array( $this->theme_root . '/page-templates/template-top-level.php', $templates, true ) );
+		$this->assertContains( $this->theme_root . '/page-templates/template-top-level.php', $templates );
 	}
 
 	/**

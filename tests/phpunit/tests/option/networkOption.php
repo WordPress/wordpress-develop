@@ -69,7 +69,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ $key ] ) );
+		$this->assertArrayNotHasKey( $key, $options );
 	}
 
 	/**
@@ -85,7 +85,7 @@ class Tests_Option_NetworkOption extends WP_UnitTestCase {
 
 		$options = wp_load_alloptions();
 
-		$this->assertFalse( isset( $options[ $key ] ) );
+		$this->assertArrayNotHasKey( $key, $options );
 	}
 
 	/**

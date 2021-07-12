@@ -97,7 +97,7 @@ if ( is_multisite() ) :
 			$this->assertSame( array(), $_wp_switched_stack );
 			$this->assertFalse( ms_is_switched() );
 			$current_blog_id = get_current_blog_id();
-			$this->assertInternalType( 'integer', $current_blog_id );
+			$this->assertIsInt( $current_blog_id );
 
 			wp_cache_set( 'switch-test', $current_blog_id, 'switch-test' );
 			$this->assertSame( $current_blog_id, wp_cache_get( 'switch-test', 'switch-test' ) );
@@ -146,7 +146,7 @@ if ( is_multisite() ) :
 
 			$blog_id = self::factory()->blog->create();
 
-			$this->assertInternalType( 'int', $blog_id );
+			$this->assertIsInt( $blog_id );
 			$prefix = $wpdb->get_blog_prefix( $blog_id );
 
 			// $get_all = false, only retrieve details from the blogs table.
@@ -1486,7 +1486,7 @@ if ( is_multisite() ) :
 			remove_action( 'wp_initialize_site', 'wp_initialize_site', 10 );
 			$site_id = wp_insert_site( $site_data );
 
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			foreach ( $expected_data as $key => $value ) {
@@ -1594,7 +1594,7 @@ if ( is_multisite() ) :
 
 			remove_action( 'clean_site_cache', array( $this, 'action_database_insert_on_clean_site_cache' ) );
 
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 		}
 
@@ -1999,7 +1999,7 @@ if ( is_multisite() ) :
 					'network_id' => 1,
 				)
 			);
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			$this->assertEqualsWithDelta( strtotime( $first_date ), strtotime( $site->registered ), 2, 'The dates should be equal' );
@@ -2007,7 +2007,7 @@ if ( is_multisite() ) :
 
 			$second_date = current_time( 'mysql', true );
 			$site_id     = wp_update_site( $site_id, array() );
-			$this->assertInternalType( 'integer', $site_id );
+			$this->assertIsInt( $site_id );
 
 			$site = get_site( $site_id );
 			$this->assertEqualsWithDelta( strtotime( $first_date ), strtotime( $site->registered ), 2, 'The dates should be equal' );

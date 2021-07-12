@@ -313,7 +313,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $query->terms ) );
+		$this->assertCount( 1, $query->terms );
 		$this->assertSame( $t, reset( $query->terms )->term_id );
 	}
 
@@ -339,7 +339,7 @@ class Tests_Term_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $query->terms ) );
+		$this->assertCount( 2, $query->terms );
 		foreach ( $query->terms as $term ) {
 			$this->assertSame( $t, $term->term_id );
 		}

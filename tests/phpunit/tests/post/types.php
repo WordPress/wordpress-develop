@@ -365,7 +365,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', array_search( 'bar', $wp->public_query_vars, true ) );
+		$this->assertIsInt( array_search( 'bar', $wp->public_query_vars, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertFalse( array_search( 'bar', $wp->public_query_vars, true ) );
 	}
@@ -395,7 +395,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertNotContains( '%foo%', $wp_rewrite->rewritecode );
 		$this->assertNotContains( 'bar=', $wp_rewrite->queryreplace );
-		$this->assertSame( --$count_before, count( $wp_rewrite->rewritereplace ) ); // Array was reduced by one value.
+		$this->assertCount( --$count_before, $wp_rewrite->rewritereplace ); // Array was reduced by one value.
 	}
 
 	/**
@@ -444,9 +444,9 @@ class Tests_Post_Types extends WP_UnitTestCase {
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $post_type_meta_caps['read_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['delete_bar'] ) );
-		$this->assertFalse( isset( $post_type_meta_caps['edit_bar'] ) );
+		$this->assertArrayNotHasKey( 'read_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'delete_bar', $post_type_meta_caps );
+		$this->assertArrayNotHasKey( 'edit_bar', $post_type_meta_caps );
 	}
 
 	/**
@@ -474,7 +474,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			$_wp_post_type_features['foo']
 		);
 		$this->assertTrue( unregister_post_type( 'foo' ) );
-		$this->assertFalse( isset( $_wp_post_type_features['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $_wp_post_type_features );
 	}
 
 	/**
@@ -493,8 +493,8 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
-		$this->assertInternalType( 'int', array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
+		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
+		$this->assertIsInt( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertFalse( array_search( 'foo', $wp_taxonomies['category']->object_type, true ) );
 		$this->assertFalse( array_search( 'foo', $wp_taxonomies['post_tag']->object_type, true ) );
@@ -517,7 +517,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'future_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['future_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['future_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'future_foo', $wp_filter );
 	}
@@ -539,7 +539,7 @@ class Tests_Post_Types extends WP_UnitTestCase {
 		);
 
 		$this->assertArrayHasKey( 'add_meta_boxes_foo', $wp_filter );
-		$this->assertSame( 1, count( $wp_filter['add_meta_boxes_foo']->callbacks ) );
+		$this->assertCount( 1, $wp_filter['add_meta_boxes_foo']->callbacks );
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 		$this->assertArrayNotHasKey( 'add_meta_boxes_foo', $wp_filter );
 	}
@@ -559,12 +559,12 @@ class Tests_Post_Types extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'object', $wp_post_types['foo'] );
-		$this->assertInternalType( 'object', get_post_type_object( 'foo' ) );
+		$this->assertIsObject( $wp_post_types['foo'] );
+		$this->assertIsObject( get_post_type_object( 'foo' ) );
 
 		$this->assertTrue( unregister_post_type( 'foo' ) );
 
-		$this->assertFalse( isset( $wp_post_types['foo'] ) );
+		$this->assertArrayNotHasKey( 'foo', $wp_post_types );
 		$this->assertNull( get_post_type_object( 'foo' ) );
 	}
 

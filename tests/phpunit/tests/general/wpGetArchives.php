@@ -32,7 +32,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$time1 = wp_cache_get( 'last_changed', 'posts' );
 		$this->assertNotEmpty( $time1 );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
@@ -46,7 +46,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -58,7 +58,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'order' => 'ASC',
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -72,7 +72,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'order' => 'ASC',
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -85,7 +85,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -98,7 +98,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -109,7 +109,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -122,7 +122,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -133,7 +133,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -146,7 +146,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 
@@ -157,7 +157,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 
@@ -170,7 +170,7 @@ class Tests_General_wpGetArchives extends WP_UnitTestCase {
 				'echo' => false,
 			)
 		);
-		$this->assertInternalType( 'string', $result );
+		$this->assertIsString( $result );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 	}

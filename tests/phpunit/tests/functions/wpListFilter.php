@@ -52,7 +52,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'AND'
 		);
-		$this->assertSame( 2, count( $list ) );
+		$this->assertCount( 2, $list );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'bar', $list );
 	}
@@ -70,7 +70,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'OR'
 		);
-		$this->assertSame( 3, count( $list ) );
+		$this->assertCount( 3, $list );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'bar', $list );
 		$this->assertArrayHasKey( 'baz', $list );
@@ -89,7 +89,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'NOT'
 		);
-		$this->assertSame( 1, count( $list ) );
+		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
@@ -331,7 +331,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_filter_object_list_nested_array_and() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'AND' );
-		$this->assertSame( 1, count( $list ) );
+		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 
@@ -341,7 +341,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_filter_object_list_nested_array_not() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'red' ) ), 'NOT' );
-		$this->assertSame( 2, count( $list ) );
+		$this->assertCount( 2, $list );
 		$this->assertArrayHasKey( 'bar', $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
@@ -359,7 +359,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 			),
 			'OR'
 		);
-		$this->assertSame( 2, count( $list ) );
+		$this->assertCount( 2, $list );
 		$this->assertArrayHasKey( 'foo', $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
@@ -370,7 +370,7 @@ class Tests_Functions_wpListFilter extends WP_UnitTestCase {
 	 */
 	function test_filter_object_list_nested_array_or_singular() {
 		$list = wp_filter_object_list( $this->object_list, array( 'field4' => array( 'blue' ) ), 'OR' );
-		$this->assertSame( 1, count( $list ) );
+		$this->assertCount( 1, $list );
 		$this->assertArrayHasKey( 'baz', $list );
 	}
 

@@ -1027,7 +1027,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$posts = $query->get_posts();
-		$this->assertSame( 0, count( $posts ) );
+		$this->assertCount( 0, $posts );
 	}
 
 	/**
@@ -1062,7 +1062,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 		);
 
 		$posts = $query->get_posts();
-		$this->assertSame( 0, count( $posts ) );
+		$this->assertCount( 0, $posts );
 	}
 
 	public function test_tax_query_include_children() {
@@ -1114,7 +1114,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 4, count( $posts ) );
+		$this->assertCount( 4, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1132,7 +1132,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1149,7 +1149,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 3, count( $posts ) );
+		$this->assertCount( 3, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1167,7 +1167,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1184,7 +1184,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 
 		$posts = get_posts(
 			array(
@@ -1202,7 +1202,7 @@ class Tests_Query_TaxQuery extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $posts ) );
+		$this->assertCount( 1, $posts );
 	}
 
 	public function test_tax_query_taxonomy_with_attachments() {

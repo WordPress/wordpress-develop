@@ -87,7 +87,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 				'orderby'     => 'ID',
 			)
 		);
-		$this->assertSame( 11, count( $posts ) );
+		$this->assertCount( 11, $posts );
 
 		$post = $posts[0];
 		$this->assertSame( 'Many Categories', $post->post_title );
@@ -97,7 +97,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 27, count( $cats ) );
+		$this->assertCount( 27, $cats );
 
 		$post = $posts[1];
 		$this->assertSame( 'Non-standard post format', $post->post_title );
@@ -107,7 +107,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertTrue( has_post_format( 'aside', $post->ID ) );
 
 		$post = $posts[2];
@@ -118,7 +118,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID, array( 'fields' => 'all' ) );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertSame( 'foo', $cats[0]->slug );
 
 		$post = $posts[3];
@@ -129,7 +129,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID, array( 'fields' => 'all' ) );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$this->assertSame( 'foo-bar', $cats[0]->slug );
 
 		$post = $posts[4];
@@ -140,9 +140,9 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'private', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 		$tags = wp_get_post_tags( $post->ID );
-		$this->assertSame( 3, count( $tags ) );
+		$this->assertCount( 3, $tags );
 		$this->assertSame( 'tag1', $tags[0]->slug );
 		$this->assertSame( 'tag2', $tags[1]->slug );
 		$this->assertSame( 'tag3', $tags[2]->slug );
@@ -200,7 +200,7 @@ class Tests_Import_Import extends WP_Import_UnitTestCase {
 		$this->assertSame( 'publish', $post->post_status );
 		$this->assertSame( 0, $post->post_parent );
 		$cats = wp_get_post_categories( $post->ID );
-		$this->assertSame( 1, count( $cats ) );
+		$this->assertCount( 1, $cats );
 	}
 
 	function test_double_import() {

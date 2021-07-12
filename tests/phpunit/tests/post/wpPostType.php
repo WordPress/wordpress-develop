@@ -134,7 +134,7 @@ class Tests_Post_WP_Post_Type extends WP_UnitTestCase {
 		);
 		$post_type_object->add_rewrite_rules();
 
-		$this->assertFalse( in_array( 'foobar', $wp->public_query_vars, true ) );
+		$this->assertNotContains( 'foobar', $wp->public_query_vars );
 	}
 
 	/**

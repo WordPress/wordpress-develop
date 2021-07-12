@@ -913,7 +913,7 @@ function validate_theme_requirements( $stylesheet ) {
 
 	if ( ! empty( $theme_tags ) && in_array( 'full-site-editing', $theme_tags, true ) && ! function_exists( 'gutenberg_is_fse_theme' ) ) {
 		return new WP_Error(
-			'theme_requires_fse',
+			'theme_requires_gutenberg_plugin',
 			sprintf(
 					/* translators: %s: Theme name. */
 				_x( '<strong>Error:</strong> This theme (%s) uses Full Site Editing, which requires the Gutenberg plugin to be activated.', 'theme' ),
@@ -2479,6 +2479,7 @@ function get_theme_starter_content() {
  * @since 5.5.0 The `core-block-patterns` feature was added and is enabled by default.
  * @since 5.5.0 The `custom-logo` feature now also accepts 'unlink-homepage-logo'.
  * @since 5.6.0 The `post-formats` feature warns if no array is passed.
+ * @since 5.8.0 The `widgets-block-editor` feature enables the Widgets block editor.
  *
  * @global array $_wp_theme_features
  *
@@ -2511,6 +2512,7 @@ function get_theme_starter_content() {
  *                          - 'title-tag'
  *                          - 'wp-block-styles'
  *                          - 'widgets'
+ *                          - 'widgets-block-editor'
  * @param mixed  ...$args Optional extra arguments to pass along with certain features.
  * @return void|false Void on success, false on failure.
  */

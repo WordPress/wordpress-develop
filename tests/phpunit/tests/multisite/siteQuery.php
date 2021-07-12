@@ -141,7 +141,7 @@ if ( is_multisite() ) :
 				)
 			);
 
-			$this->assertSame( 3, count( $found ) );
+			$this->assertCount( 3, $found );
 		}
 
 		/**

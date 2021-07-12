@@ -121,7 +121,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$t = self::factory()->term->create( array( 'taxonomy' => 'wptests_tax' ) );
 
 		$actual = update_term_meta( $t, 'foo', 'bar' );
-		$this->assertInternalType( 'int', $actual );
+		$this->assertIsInt( $actual );
 		$this->assertNotEmpty( $actual );
 
 		$meta = get_term_meta( $t, 'foo', true );
@@ -509,7 +509,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 		$term_meta_id = add_term_meta( $t, 'foo', 'bar' );
 		$meta         = has_term_meta( $t );
 
-		$this->assertSame( 1, count( $meta ) );
+		$this->assertCount( 1, $meta );
 
 		$expected = array(
 			'meta_key'   => 'foo',
@@ -611,7 +611,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', add_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( add_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 
@@ -625,7 +625,7 @@ class Tests_Term_Meta extends WP_UnitTestCase {
 
 		wp_cache_delete( 'last_changed', 'terms' );
 
-		$this->assertInternalType( 'integer', update_metadata( 'term', $term_id, 'foo', 'bar' ) );
+		$this->assertIsInt( update_metadata( 'term', $term_id, 'foo', 'bar' ) );
 		$this->assertNotFalse( wp_cache_get_last_changed( 'terms' ) );
 	}
 

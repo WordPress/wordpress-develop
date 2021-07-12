@@ -158,7 +158,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = $users->get_results();
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
@@ -170,7 +170,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
@@ -560,7 +560,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		// +1 for the default user created by the test suite.
 		$users = new WP_User_Query( array( 'blog_id' => get_current_blog_id() ) );
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -569,7 +569,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -578,7 +578,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 
 		$users = new WP_User_Query(
 			array(
@@ -587,7 +587,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 		$users = $users->get_results();
-		$this->assertSame( 13, count( $users ) );
+		$this->assertCount( 13, $users );
 	}
 
 	/**
@@ -1430,7 +1430,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$wp_user_search = new WP_User_Query( array( 'role' => 'subscriber' ) );
 		$users          = $wp_user_search->get_results();
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1441,7 +1441,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 	public function test_get_multiple_roles_by_user_query() {
 		$wp_user_search = new WP_User_Query( array( 'role__in' => array( 'subscriber', 'editor' ) ) );
 		$users          = $wp_user_search->get_results();
-		$this->assertSame( 5, count( $users ) );
+		$this->assertCount( 5, $users );
 	}
 
 	/**
@@ -1456,7 +1456,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1496,7 +1496,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1518,7 +1518,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = new WP_User_Query( array( 'role' => array( 'subscriber', 'editor' ) ) );
 		$users = $users->get_results();
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
@@ -1535,7 +1535,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		$users = $users->get_results();
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 8, count( $users ) );
+		$this->assertCount( 8, $users );
 		foreach ( $users as $user ) {
 			$this->assertInstanceOf( 'WP_User', $user );
 		}
@@ -1566,7 +1566,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 2, count( $users ) );
+		$this->assertCount( 2, $users );
 	}
 
 	/**
@@ -1614,7 +1614,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// Check results.
-		$this->assertSame( 1, count( $users ) );
+		$this->assertCount( 1, $users );
 		$this->assertSame( self::$editor_ids[0], (int) $users[0]->ID );
 	}
 
@@ -1631,7 +1631,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 11, count( $users ) );
+		$this->assertCount( 11, $users );
 
 		$users = get_users(
 			array(
@@ -1640,7 +1640,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 	}
 
 	/**
@@ -1660,7 +1660,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 5, count( $users ) );
+		$this->assertCount( 5, $users );
 
 		$users = get_users(
 			array(
@@ -1669,7 +1669,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 3, count( $users ) );
+		$this->assertCount( 3, $users );
 	}
 
 	/**
@@ -1688,7 +1688,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $users ) );
+		$this->assertCount( 1, $users );
 	}
 
 	/**
@@ -1708,7 +1708,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 12, count( $users ) );
+		$this->assertCount( 12, $users );
 
 		$users = get_users(
 			array(
@@ -1717,7 +1717,7 @@ class Tests_User_Query extends WP_UnitTestCase {
 		);
 
 		// +1 for the default user created during installation.
-		$this->assertSame( 10, count( $users ) );
+		$this->assertCount( 10, $users );
 	}
 
 	/**

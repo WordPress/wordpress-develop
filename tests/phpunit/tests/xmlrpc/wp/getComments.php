@@ -200,7 +200,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result2 );
+		$this->assertIsArray( $result2 );
 		$this->assertCount( 1, $result2 );
 
 		$result3 = $this->myxmlrpcserver->wp_getComments(
@@ -227,7 +227,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result4 );
+		$this->assertIsArray( $result4 );
 		$this->assertCount( 1, $result4 );
 	}
 
@@ -278,7 +278,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $result );
+		$this->assertIsArray( $result );
 		$this->assertCount( 1, $result );
 
 		$result2 = $this->myxmlrpcserver->wp_getComments(
@@ -293,7 +293,7 @@ class Tests_XMLRPC_wp_getComments extends WP_XMLRPC_UnitTestCase {
 			)
 		);
 
-		$this->assertInternalType( 'array', $result2 );
+		$this->assertIsArray( $result2 );
 		$this->assertCount( 1, $result2 );
 	}
 }

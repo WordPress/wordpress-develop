@@ -176,7 +176,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		// Get primary blog.
 		$primary = get_active_blog_for_user( self::$editor_id );
-		$this->assertInternalType( 'object', $primary );
+		$this->assertIsObject( $primary );
 
 		// No Site menu as the user isn't a member of this blog.
 		$this->assertNull( $node_site_name );
@@ -752,7 +752,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must not display for a regular user.', $id ) );
+			$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %s must not display for a regular user.', $id ) );
 		}
 	}
 
@@ -771,7 +771,7 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
-			$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %s must display for a super admin.', $id ) );
+			$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %s must display for a super admin.', $id ) );
 		}
 	}
 
@@ -799,9 +799,9 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$nodes = $wp_admin_bar->get_nodes();
 		foreach ( $this->get_my_sites_network_menu_items() as $id => $cap ) {
 			if ( in_array( $cap, $network_user_caps, true ) ) {
-				$this->assertTrue( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
+				$this->assertArrayHasKey( $id, $nodes, sprintf( 'Menu item %1$s must display for a user with the %2$s cap.', $id, $cap ) );
 			} else {
-				$this->assertFalse( isset( $nodes[ $id ] ), sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
+				$this->assertArrayNotHasKey( $id, $nodes, sprintf( 'Menu item %1$s must not display for a user without the %2$s cap.', $id, $cap ) );
 			}
 		}
 	}

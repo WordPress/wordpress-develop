@@ -134,7 +134,7 @@ class Tests_Term_Tax_Query extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 1, count( $q->queries ) );
+		$this->assertCount( 1, $q->queries );
 	}
 
 	/**

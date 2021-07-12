@@ -18,7 +18,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		$this->assertFalse( wp_cache_get( 'last_changed', 'posts' ) );
 
 		$pages = get_pages();
-		$this->assertSame( 3, count( $pages ) );
+		$this->assertCount( 3, $pages );
 		$time1 = wp_cache_get( 'last_changed', 'posts' );
 		$this->assertNotEmpty( $time1 );
 		$num_queries = $wpdb->num_queries;
@@ -28,7 +28,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages();
-		$this->assertSame( 3, count( $pages ) );
+		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -38,7 +38,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 		// Again with different args. last_changed should not increment because of
 		// different args to get_pages(). num_queries should bump by 1.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $pages ) );
+		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -49,7 +49,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// Again. num_queries and last_changed should remain the same.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $pages ) );
+		$this->assertCount( 2, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -58,7 +58,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// Do the first query again. The interim queries should not affect it.
 		$pages = get_pages();
-		$this->assertSame( 3, count( $pages ) );
+		$this->assertCount( 3, $pages );
 		$this->assertSame( $time1, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -73,7 +73,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// last_changed bumped so num_queries should increment.
 		$pages = get_pages( array( 'number' => 2 ) );
-		$this->assertSame( 2, count( $pages ) );
+		$this->assertCount( 2, $pages );
 		$this->assertSame( $time2, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -93,7 +93,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		// num_queries should bump after wp_delete_post() bumps last_changed.
 		$pages = get_pages();
-		$this->assertSame( 2, count( $pages ) );
+		$this->assertCount( 2, $pages );
 		$this->assertSame( $last_changed, wp_cache_get( 'last_changed', 'posts' ) );
 		$this->assertSame( $num_queries + 1, $wpdb->num_queries );
 		foreach ( $pages as $page ) {
@@ -289,7 +289,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 				)
 			)
 		);
-		$this->assertSame( 3, count( get_pages( array( 'meta_key' => 'some-meta-key' ) ) ) );
+		$this->assertCount( 3, get_pages( array( 'meta_key' => 'some-meta-key' ) ) );
 	}
 
 	/**
@@ -390,7 +390,7 @@ class Tests_Post_GetPages extends WP_UnitTestCase {
 
 		preg_match_all( '#<option#', wp_dropdown_pages( 'echo=0' ), $matches );
 
-		$this->assertSame( 5, count( $matches[0] ) );
+		$this->assertCount( 5, $matches[0] );
 	}
 
 	/**
