@@ -744,4 +744,32 @@ class Theme_Upgrader extends WP_Upgrader {
 		return $theme;
 	}
 
+	/**
+	 * Get a rollback param.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
+	 *
+	 * @param string $param      The parameter to get.
+	 * @param array  $hook_extra Extra params.
+	 *
+	 * @return string|null
+	 */
+	public function get_rollback_param( $param, $hook_extra = array() ) {
+		if ( empty( $hook_extra['theme'] ) ) {
+			return;
+		}
+		global $wp_filesystem;
+		$params = array(
+			'type'                => 'theme',
+			'rollbacks_subfolder' => 'themes',
+			'destination_dir'     => get_theme_root(),
+			'slug'                => $hook_extra['theme'],
+		);
+		if ( isset( $params[ $param ] ) ) {
+			return $params[ $param ];
+		}
+	}
+
 }

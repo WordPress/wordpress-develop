@@ -979,11 +979,11 @@ class WP_Upgrader {
 			return $response;
 		}
 
-		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
 			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
-			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-			$src                = isset( $hook_extra['plugin'] ) ? $wp_filesystem->wp_plugins_dir() . '/' . $slug : get_theme_root() . '/' . $slug;
+			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
+			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
+			$src                = $this->get_rollback_param( 'destination_dir', $hook_extra ) . '/' . $slug;
 
 			// Create the rollbacks dir if it doesn't exist.
 			if ( ! $wp_filesystem->mkdir( $rollback_dir ) || ! $wp_filesystem->mkdir( "$rollback_dir/$rollback_subfolder/" ) ) {
@@ -1012,11 +1012,11 @@ class WP_Upgrader {
 	 */
 	public function restore_rollback( $hook_extra ) {
 		global $wp_filesystem;
-		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
 			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
-			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-			$destination_dir    = isset( $hook_extra['plugin'] ) ? $wp_filesystem->wp_plugins_dir() . '/' . $slug : get_theme_root() . '/' . $slug;
+			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
+			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
+			$destination_dir    = $this->get_rollback_param( 'destination_dir', $hook_extra ) . '/' . $slug;
 			$src                = "$rollback_dir/$rollback_subfolder/$slug";
 
 			if ( $wp_filesystem->is_dir( $src ) ) {
@@ -1049,17 +1049,29 @@ class WP_Upgrader {
 	 */
 	public function delete_rollback( $hook_extra ) {
 		global $wp_filesystem;
-		if ( isset( $hook_extra['plugin'] ) || isset( $hook_extra['theme'] ) ) {
+		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
 			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = isset( $hook_extra['plugin'] ) ? 'plugins' : 'themes';
-			$slug               = isset( $hook_extra['plugin'] ) ? dirname( $hook_extra['plugin'] ) : $hook_extra['theme'];
-			$src                = "$rollback_dir/$rollback_subfolder/$slug";
+			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
+			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
 
-			if ( $wp_filesystem->is_dir( $src ) ) {
-				return $wp_filesystem->delete( $src, true );
-			}
+			return $wp_filesystem->delete( "$rollback_dir/$rollback_subfolder/$slug", true );
 		}
 		return false;
+	}
+
+	/**
+	 * Get a rollback param.
+	 * Extend this method in child classes to implement rollbacks.
+	 *
+	 * @since 5.9.0
+	 *
+	 * @param string $param      The parameter to get.
+	 * @param array  $hook_extra Extra params.
+	 *
+	 * @return string|null
+	 */
+	public function get_rollback_param( $param, $hook_extra = array() ) {
+		return null;
 	}
 }
 
