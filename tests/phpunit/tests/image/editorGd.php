@@ -53,6 +53,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test resizing an image, not using crop
+	 *
+	 * @requires function imagejpeg
 	 */
 	public function test_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -73,6 +75,8 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 
 	/**
 	 * Test multi_resize with single image resize and no crop
+	 *
+	 * @requires function imagejpeg
 	 */
 	public function test_single_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
@@ -183,6 +187,7 @@ class Tests_Image_Editor_GD extends WP_Image_UnitTestCase {
 	 * Test multi_resize with multiple sizes
 	 *
 	 * @ticket 26823
+	 * @requires function imagejpeg
 	 */
 	public function test_multi_resize() {
 		$file = DIR_TESTDATA . '/images/waffles.jpg';
