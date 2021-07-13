@@ -498,6 +498,13 @@ class WP_Upgrader {
 			return $res;
 		}
 
+		if ( ! empty( $args['hook_extra']['rollback'] ) ) {
+			$rollback = $this->move_to_rollbacks_dir( $args['hook_extra']['rollback'] );
+			if ( is_wp_error( $rollback ) ) {
+				return $rollback;
+			}
+		}
+
 		// Retain the original source and destinations.
 		$remote_source     = $args['source'];
 		$local_destination = $destination;
@@ -816,7 +823,9 @@ class WP_Upgrader {
 
 		$this->skin->set_result( $result );
 		if ( is_wp_error( $result ) ) {
-			$this->restore_rollback( $options['hook_extra'] );
+			if ( ! empty( $options['hook_extra']['rollback'] ) ) {
+				$this->restore_rollback( $options['hook_extra']['rollback'] );
+			}
 			$this->skin->error( $result );
 
 			if ( ! method_exists( $this->skin, 'hide_process_failed' ) || ! $this->skin->hide_process_failed( $result ) ) {
@@ -830,7 +839,9 @@ class WP_Upgrader {
 		$this->skin->after();
 
 		// Cleanup backup kept in the rollbacks folder.
-		$this->delete_rollback( $options['hook_extra'] );
+		if ( ! empty( $options['hook_extra']['rollback'] ) ) {
+			$this->delete_rollback( $options['hook_extra']['rollback'] );
+		}
 
 		if ( ! $options['is_multi'] ) {
 
@@ -964,39 +975,35 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param bool  $response   Boolean response to 'upgrader_pre_install' filter.
-	 *                          Default is true.
-	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function move_to_rollbacks_dir( $response, $hook_extra ) {
+	public function move_to_rollbacks_dir( $args ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+			return false;
+		}
 		global $wp_filesystem;
 
-		// Early exit if $hook_extra is empty,
-		// or if this is an installation and not update.
-		if ( empty( $hook_extra ) || ( isset( $hook_extra['action'] ) && 'install' === $hook_extra['action'] ) ) {
-			return $response;
+		$dest_folder = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
+		// Create the rollbacks dir if it doesn't exist.
+		if ( ! $wp_filesystem->mkdir( $dest_folder ) || ! $wp_filesystem->mkdir( $dest_folder . $args['subfolder'] . '/' ) ) {
+			return new WP_Error( 'fs_rollback_mkdir', $this->strings['rollback_mkdir_failed'] );
 		}
 
-		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
-			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
-			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
-			$src                = $this->get_rollback_param( 'destination_dir', $hook_extra ) . '/' . $slug;
+		$src  = trailingslashit( $args['src'] ) . $args['slug'];
+		$dest = $dest_folder . $args['subfolder'] . '/' . $args['slug'];
 
-			// Create the rollbacks dir if it doesn't exist.
-			if ( ! $wp_filesystem->mkdir( $rollback_dir ) || ! $wp_filesystem->mkdir( "$rollback_dir/$rollback_subfolder/" ) ) {
-				return new WP_Error( 'fs_rollback_mkdir', $this->strings['rollback_mkdir_failed'] );
-			}
-
-			// Move the plugin or theme to its rollback folder.
-			if ( ! $wp_filesystem->move( $src, "$rollback_dir/$rollback_subfolder/$slug", true ) ) {
-				return new WP_Error( 'fs_rollback_move', $this->strings['rollback_move_failed'] );
-			}
+		// Delete rollback folder if it already exists.
+		if ( $wp_filesystem->is_dir( $dest ) ) {
+			$wp_filesystem->delete( $dest, true );
+		}
+		// Move the plugin or theme to its rollback folder.
+		if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
+			return new WP_Error( 'fs_rollback_move', $this->strings['rollback_move_failed'] );
 		}
 
-		return $response;
+		return true;
 	}
 
 	/**
@@ -1006,36 +1013,36 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
 	 *
 	 * @return bool|WP_Error
 	 */
-	public function restore_rollback( $hook_extra ) {
+	public function restore_rollback( $args ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+			return false;
+		}
+
 		global $wp_filesystem;
-		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
-			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
-			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
-			$destination_dir    = $this->get_rollback_param( 'destination_dir', $hook_extra ) . '/' . $slug;
-			$src                = "$rollback_dir/$rollback_subfolder/$slug";
+		$src  = $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'];
+		$dest = $args['src'] . '/' . $args['slug'];
 
-			if ( $wp_filesystem->is_dir( $src ) ) {
+		if ( $wp_filesystem->is_dir( $src ) ) {
 
-				// Cleanup.
-				if ( $wp_filesystem->is_dir( $destination_dir ) ) {
-					if ( ! $wp_filesystem->delete( $destination_dir, true ) ) {
-						return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
-					}
-				}
-
-				// Move it.
-				if ( ! $wp_filesystem->move( $src, $destination_dir, true ) ) {
+			// Cleanup.
+			if ( $wp_filesystem->is_dir( $dest ) ) {
+				if ( ! $wp_filesystem->delete( $dest, true ) ) {
 					return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
 				}
+			}
+
+			// Move it.
+			if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
+				return new WP_Error( 'fs_rollback_delete', $this->strings['rollback_restore_failed'] );
 			}
 		}
 		return true;
 	}
+
 	/**
 	 * Deletes a rollback.
 	 *
@@ -1043,20 +1050,16 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $hook_extra Array of data for plugin/theme being updated.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
 	 *
-	 * @return bool|WP_Error
+	 * @return bool
 	 */
-	public function delete_rollback( $hook_extra ) {
+	public function delete_rollback( $args ) {
 		global $wp_filesystem;
-		if ( $this->get_rollback_param( 'type', $hook_extra ) && ! empty( $hook_extra[ $this->get_rollback_param( 'type', $hook_extra ) ] ) ) {
-			$rollback_dir       = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
-			$rollback_subfolder = $this->get_rollback_param( 'rollbacks_subfolder', $hook_extra );
-			$slug               = $this->get_rollback_param( 'slug', $hook_extra );
-
-			return $wp_filesystem->delete( "$rollback_dir/$rollback_subfolder/$slug", true );
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+			return false;
 		}
-		return false;
+		return $wp_filesystem->delete(  $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'], true );
 	}
 
 	/**
