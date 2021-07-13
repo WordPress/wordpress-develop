@@ -9,7 +9,6 @@
 /** WordPress Administration Bootstrap */
 require_once __DIR__ . '/admin.php';
 
-// Used in the HTML title tag.
 /* translators: Page title of the About WordPress page in the admin. */
 $title = _x( 'About', 'page title' );
 
@@ -48,8 +47,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-widgets-blocks.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-widgets-blocks.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -76,14 +75,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					<?php _e( 'The Query Loop Block makes it possible to display posts based on specified parameters; like a PHP loop without the code. Easily display posts from a specific category, to do things like create a portfolio or a page full of your favorite recipes. Think of it as a more complex and powerful Latest Posts Block! Plus, pattern suggestions make it easier than ever to create a list of posts with the design you want.' ); ?>
 				</p>
 			</div>
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-patterns.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-query-loop.png" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-template.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-template.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -106,8 +105,8 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-list-view.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-list-view.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -132,14 +131,14 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 					?>
 				</p>
 			</div>
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-pattern-suggestions.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-pattern-suggestions.png" alt="" />
 			</div>
 		</div>
 
 		<div class="about__section has-2-columns is-wider-left">
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-duotone.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<img src="https://s.w.org/images/core/5.8/about-duotone.png" alt="" />
 			</div>
 			<div class="column">
 				<h3>
@@ -159,8 +158,11 @@ require_once ABSPATH . 'wp-admin/admin-header.php';
 			<h2 class="aligncenter" style="margin-bottom:0;">
 				<?php _e( 'For Developers to Explore' ); ?>
 			</h2>
-			<div class="column about__image is-vertically-aligned-center is-edge-to-edge">
-				<img src="https://make.wordpress.org/core/files/2021/07/about-58-theme-json.png" alt="" />
+			<div class="column about__image is-vertically-aligned-center">
+				<picture>
+					<source srcset="https://s.w.org/images/core/5.8/about-theme-json.png, https://s.w.org/images/core/5.8/about-theme-json-2x.png 2x">
+					<img src="https://s.w.org/images/core/5.8/about-theme-json.png" alt="">
+				</picture>
 			</div>
 		</div>
 
