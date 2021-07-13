@@ -973,7 +973,7 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
 	 *
 	 * @return bool|WP_Error
 	 */
@@ -1011,7 +1011,7 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
 	 *
 	 * @return bool|WP_Error
 	 */
@@ -1048,7 +1048,7 @@ class WP_Upgrader {
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
-	 * @param array $args Array of data for the rollback. Must include a slug, the source and destination.
+	 * @param array $args Array of data for the rollback. Must include a slug, the source and subfolder.
 	 *
 	 * @return bool
 	 */
