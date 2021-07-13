@@ -314,7 +314,6 @@ class Theme_Upgrader extends WP_Upgrader {
 		$r = $current->response[ $theme ];
 
 		add_filter( 'upgrader_pre_install', array( $this, 'current_before' ), 10, 2 );
-		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_post_install', array( $this, 'current_after' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ), 10, 4 );
 		if ( $parsed_args['clear_update_cache'] ) {
@@ -329,9 +328,14 @@ class Theme_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'theme'  => $theme,
-					'type'   => 'theme',
-					'action' => 'update',
+					'theme'    => $theme,
+					'type'     => 'theme',
+					'action'   => 'update',
+					'rollback' => array(
+						'slug'      => $theme,
+						'src'       => get_theme_root(),
+						'subfolder' => 'themes',
+					),
 				),
 			)
 		);
@@ -387,7 +391,6 @@ class Theme_Upgrader extends WP_Upgrader {
 		$current = get_site_transient( 'update_themes' );
 
 		add_filter( 'upgrader_pre_install', array( $this, 'current_before' ), 10, 2 );
-		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_post_install', array( $this, 'current_after' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_theme' ), 10, 4 );
 
@@ -445,7 +448,12 @@ class Theme_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'theme' => $theme,
+						'theme'    => $theme,
+						'rollback' => array(
+							'slug'      => $theme,
+							'src'       => get_theme_root(),
+							'subfolder' => 'themes',
+						),
 					),
 				)
 			);
@@ -742,34 +750,6 @@ class Theme_Upgrader extends WP_Upgrader {
 		$theme->cache_delete();
 
 		return $theme;
-	}
-
-	/**
-	 * Get a rollback param.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 *
-	 * @param string $param      The parameter to get.
-	 * @param array  $hook_extra Extra params.
-	 *
-	 * @return string|null
-	 */
-	public function get_rollback_param( $param, $hook_extra = array() ) {
-		if ( empty( $hook_extra['theme'] ) ) {
-			return;
-		}
-		global $wp_filesystem;
-		$params = array(
-			'type'                => 'theme',
-			'rollbacks_subfolder' => 'themes',
-			'destination_dir'     => get_theme_root(),
-			'slug'                => $hook_extra['theme'],
-		);
-		if ( isset( $params[ $param ] ) ) {
-			return $params[ $param ];
-		}
 	}
 
 }

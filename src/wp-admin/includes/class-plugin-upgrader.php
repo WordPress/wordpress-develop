@@ -210,7 +210,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		add_filter( 'upgrader_pre_install', array( $this, 'deactivate_plugin_before_upgrade' ), 10, 2 );
 		add_filter( 'upgrader_pre_install', array( $this, 'active_before' ), 10, 2 );
-		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 		add_filter( 'upgrader_post_install', array( $this, 'active_after' ), 10, 2 );
 		// There's a Trac ticket to move up the directory for zips which are made a bit differently, useful for non-.org plugins.
@@ -227,9 +226,14 @@ class Plugin_Upgrader extends WP_Upgrader {
 				'clear_destination' => true,
 				'clear_working'     => true,
 				'hook_extra'        => array(
-					'plugin' => $plugin,
-					'type'   => 'plugin',
-					'action' => 'update',
+					'plugin'   => $plugin,
+					'type'     => 'plugin',
+					'action'   => 'update',
+					'rollback' => array(
+						'slug'      => dirname( $plugin ),
+						'src'       => $wp_filesystem->wp_plugins_dir(),
+						'subfolder' => 'plugins',
+					),
 				),
 			)
 		);
@@ -286,7 +290,6 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 		$current = get_site_transient( 'update_plugins' );
 
-		add_filter( 'upgrader_pre_install', array( $this, 'move_to_rollbacks_dir' ), 10, 2 );
 		add_filter( 'upgrader_clear_destination', array( $this, 'delete_old_plugin' ), 10, 4 );
 
 		$this->skin->header();
@@ -336,6 +339,8 @@ class Plugin_Upgrader extends WP_Upgrader {
 
 			$this->skin->plugin_active = is_plugin_active( $plugin );
 
+			global $wp_filesystem;
+
 			$result = $this->run(
 				array(
 					'package'           => $r->package,
@@ -344,7 +349,12 @@ class Plugin_Upgrader extends WP_Upgrader {
 					'clear_working'     => true,
 					'is_multi'          => true,
 					'hook_extra'        => array(
-						'plugin' => $plugin,
+						'plugin'   => $plugin,
+						'rollback' => array(
+							'slug'      => dirname( $plugin ),
+							'src'       => $wp_filesystem->wp_plugins_dir(),
+							'subfolder' => 'plugins',
+						),
 					),
 				)
 			);
@@ -656,33 +666,5 @@ class Plugin_Upgrader extends WP_Upgrader {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Get a rollback param.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
-	 *
-	 * @param string $param      The parameter to get.
-	 * @param array  $hook_extra Extra params.
-	 *
-	 * @return string|null
-	 */
-	public function get_rollback_param( $param, $hook_extra = array() ) {
-		if ( empty( $hook_extra['plugin'] ) ) {
-			return;
-		}
-		global $wp_filesystem;
-		$params = array(
-			'type'                => 'plugin',
-			'rollbacks_subfolder' => 'plugins',
-			'destination_dir'     => $wp_filesystem->wp_plugins_dir(),
-			'slug'                => dirname( $hook_extra['plugin'] ),
-		);
-		if ( isset( $params[ $param ] ) ) {
-			return $params[ $param ];
-		}
 	}
 }
