@@ -199,8 +199,6 @@ class Tests_URL extends WP_UnitTestCase {
 	}
 
 	function test_home_url_from_admin() {
-		$screen = get_current_screen();
-
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = get_option( 'home' );
@@ -243,13 +241,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $home, home_url() );
 
 		update_option( 'home', set_url_scheme( $home, 'http' ) );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
 	function test_network_home_url_from_admin() {
-		$screen = get_current_screen();
-
 		// Pretend to be in the site admin.
 		set_current_screen( 'dashboard' );
 		$home       = network_home_url();
@@ -268,8 +262,6 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertSame( $home, network_home_url() );
 		$_SERVER['HTTPS'] = 'on';
 		$this->assertSame( $home_https, network_home_url() );
-
-		$GLOBALS['current_screen'] = $screen;
 	}
 
 	function test_set_url_scheme() {

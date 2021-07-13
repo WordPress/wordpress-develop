@@ -400,8 +400,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNull( $node );
 	}
 
@@ -415,8 +413,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
-
 		$this->assertNotNull( $node );
 	}
 
@@ -428,8 +424,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
-
-		set_current_screen( 'front' );
 
 		$this->assertNull( $node );
 	}
@@ -508,7 +502,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -532,7 +525,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -556,7 +548,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'archive' );
 
-		set_current_screen( 'front' );
 		unregister_post_type( 'foo-non-public' );
 
 		$this->assertNull( $node );
@@ -679,7 +670,6 @@ class Tests_AdminBar extends WP_UnitTestCase {
 		);
 		$wp_customize->start_previewing_theme();
 
-		set_current_screen( 'front' );
 		$wp_admin_bar = $this->get_standard_admin_bar();
 		$node         = $wp_admin_bar->get_node( 'customize' );
 		$this->assertNotEmpty( $node );
