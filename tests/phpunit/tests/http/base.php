@@ -20,11 +20,6 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 	function setUp() {
 		parent::setUp();
 
-		if ( is_callable( array( 'WP_Http', '_getTransport' ) ) ) {
-			$this->markTestSkipped( 'The WP_Http tests require a class-http.php file of r17550 or later.' );
-			return;
-		}
-
 		$class = 'WP_Http_' . ucfirst( $this->transport );
 		if ( ! call_user_func( array( $class, 'test' ) ) ) {
 			$this->markTestSkipped( sprintf( 'The transport %s is not supported on this system.', $this->transport ) );
@@ -225,7 +220,7 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 
 		$this->skipTestOnTimeout( $res );
 		$this->assertSame( 'PASS', wp_remote_retrieve_body( $res ) );
-		$this->assertTrue( ! empty( $res['headers']['location'] ) );
+		$this->assertNotEmpty( $res['headers']['location'] );
 	}
 
 	/**
@@ -255,11 +250,14 @@ abstract class WP_HTTP_UnitTestCase extends WP_UnitTestCase {
 			$headers[ $parts[0] ] = $parts[1];
 		}
 
-		$this->assertTrue( isset( $headers['test1'] ) && 'test' === $headers['test1'] );
-		$this->assertTrue( isset( $headers['test2'] ) && '0' === $headers['test2'] );
+		$this->assertArrayHasKey( 'test1', $headers );
+		$this->assertSame( 'test', $headers['test1'] );
+		$this->assertArrayHasKey( 'test2', $headers );
+		$this->assertSame( '0', $headers['test2'] );
 		// cURL/HTTP Extension Note: Will never pass, cURL does not pass headers with an empty value.
 		// Should it be that empty headers with empty values are NOT sent?
-		// $this->assertTrue( isset( $headers['test3'] ) && '' === $headers['test3'] );
+		// $this->assertArrayHasKey( 'test3', $headers );
+		// $this->assertSame( '', $headers['test3'] );
 	}
 
 	/**

@@ -251,7 +251,7 @@ class Tests_Cache extends WP_UnitTestCase {
 
 	function test_switch_to_blog() {
 		if ( ! method_exists( $this->cache, 'switch_to_blog' ) ) {
-			return;
+			$this->markTestSkipped( 'This test requires a switch_to_blog() method on the cache object.' );
 		}
 
 		$key  = __FUNCTION__;

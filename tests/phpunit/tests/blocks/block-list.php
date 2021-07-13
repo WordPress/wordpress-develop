@@ -51,7 +51,7 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 		$blocks        = new WP_Block_List( $parsed_blocks, $context, $this->registry );
 
 		// Test "offsetExists".
-		$this->assertTrue( isset( $blocks[0] ) );
+		$this->assertArrayHasKey( 0, $blocks );
 
 		// Test "offsetGet".
 		$this->assertSame( 'core/example', $blocks[0]->name );
@@ -63,7 +63,7 @@ class WP_Block_List_Test extends WP_UnitTestCase {
 
 		// Test "offsetUnset".
 		unset( $blocks[0] );
-		$this->assertFalse( isset( $blocks[0] ) );
+		$this->assertArrayNotHasKey( 0, $blocks );
 	}
 
 	/**

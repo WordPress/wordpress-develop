@@ -131,7 +131,7 @@ class Tests_Feeds_RSS2 extends WP_UnitTestCase {
 		$channel = xml_find( $xml, 'rss', 'channel' );
 
 		// The channel should be free of attributes.
-		$this->assertTrue( empty( $channel[0]['attributes'] ) );
+		$this->assertArrayNotHasKey( 'attributes', $channel[0] );
 
 		// Verify the channel is present and contains a title child element.
 		$title = xml_find( $xml, 'rss', 'channel', 'title' );

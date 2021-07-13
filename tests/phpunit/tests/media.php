@@ -446,7 +446,7 @@ https://w.org</a>',
 
 		$prepped = wp_prepare_attachment_for_js( get_post( $id ) );
 
-		$this->assertTrue( isset( $prepped['sizes'] ) );
+		$this->assertArrayHasKey( 'sizes', $prepped );
 	}
 
 	/**
@@ -1722,6 +1722,7 @@ EOF;
 
 	/**
 	 * @ticket 33641
+	 * @requires function imagejpeg
 	 */
 	function test_wp_calculate_image_srcset_no_width() {
 		$file       = get_attached_file( self::$large_id );

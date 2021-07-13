@@ -247,7 +247,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertContains( $password_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	/**
@@ -270,7 +270,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertNotContains( $password_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	/**
@@ -310,7 +310,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertNotContains( $password_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	public function test_get_password_items_with_edit_post_permission() {
@@ -329,7 +329,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $password_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertContains( $password_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	public function test_get_items_without_private_post_permission() {
@@ -348,7 +348,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertNotContains( $private_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	public function test_get_items_with_private_post_permission() {
@@ -367,7 +367,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $private_comment, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertContains( $private_comment, wp_list_pluck( $collection_data, 'id' ) );
 	}
 
 	public function test_get_items_with_invalid_post() {
@@ -386,7 +386,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertFalse( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertNotContains( $comment_id, wp_list_pluck( $collection_data, 'id' ) );
 
 		wp_delete_comment( $comment_id );
 	}
@@ -407,7 +407,7 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$this->assertSame( 200, $response->get_status() );
 
 		$collection_data = $response->get_data();
-		$this->assertTrue( in_array( $comment_id, wp_list_pluck( $collection_data, 'id' ), true ) );
+		$this->assertContains( $comment_id, wp_list_pluck( $collection_data, 'id' ) );
 
 		wp_delete_comment( $comment_id );
 	}
@@ -525,15 +525,15 @@ class WP_Test_REST_Comments_Controller extends WP_Test_REST_Controller_Testcase 
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
 
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 
 		// Invalid 'exclude' should error.
 		$request->set_param( 'exclude', array( 'invalid' ) );

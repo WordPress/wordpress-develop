@@ -35,8 +35,8 @@ class Tests_Post_Objects extends WP_UnitTestCase {
 
 		$post = get_post( $id, ARRAY_N );
 		$this->assertIsArray( $post );
-		$this->assertFalse( isset( $post['post_type'] ) );
-		$this->assertTrue( in_array( 'post', $post, true ) );
+		$this->assertArrayNotHasKey( 'post_type', $post );
+		$this->assertContains( 'post', $post );
 
 		$post = get_post( $id );
 		$post = get_post( $post, ARRAY_A );

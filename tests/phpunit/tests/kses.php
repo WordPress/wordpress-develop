@@ -507,7 +507,7 @@ EOF;
 		$this->assertTrue( $tags['a']['rel'] );
 
 		$tags = wp_kses_allowed_html();
-		$this->assertFalse( isset( $tags['a']['rel'] ) );
+		$this->assertArrayNotHasKey( 'rel', $tags['a'] );
 
 		$this->assertSame( array(), wp_kses_allowed_html( 'strip' ) );
 

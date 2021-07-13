@@ -166,7 +166,8 @@ class Tests_User extends WP_UnitTestCase {
 		// For reasons unclear, the resulting array is indexed numerically; meta keys are not included anywhere.
 		// So we'll just check to make sure our values are included somewhere.
 		foreach ( $vals as $k => $v ) {
-			$this->assertTrue( isset( $out[ $k ] ) && $out[ $k ][0] === $v );
+			$this->assertArrayHasKey( $k, $out );
+			$this->assertSame( $v, $out[ $k ][0] );
 		}
 		// Delete one key and check again.
 		$keys          = array_keys( $vals );
@@ -176,9 +177,10 @@ class Tests_User extends WP_UnitTestCase {
 		// Make sure that key is excluded from the results.
 		foreach ( $vals as $k => $v ) {
 			if ( $k === $key_to_delete ) {
-				$this->assertFalse( isset( $out[ $k ] ) );
+				$this->assertArrayNotHasKey( $k, $out );
 			} else {
-				$this->assertTrue( isset( $out[ $k ] ) && $out[ $k ][0] === $v );
+				$this->assertArrayHasKey( $k, $out );
+				$this->assertSame( $v, $out[ $k ][0] );
 			}
 		}
 	}
@@ -1111,7 +1113,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_url() {
@@ -1122,7 +1124,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_email() {
@@ -1133,7 +1135,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_nicename() {
@@ -1144,7 +1146,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	public function test_search_users_display_name() {
@@ -1155,7 +1157,7 @@ class Tests_User extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertTrue( in_array( (string) self::$contrib_id, $users, true ) );
+		$this->assertContains( (string) self::$contrib_id, $users );
 	}
 
 	/**

@@ -30,7 +30,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		$this->assertIsArray( $data );
 
 		foreach ( $default_headers as $name => $value ) {
-			$this->assertTrue( isset( $data[ $name ] ) );
+			$this->assertArrayHasKey( $name, $data );
 			$this->assertSame( $value, $data[ $name ] );
 		}
 	}
@@ -552,7 +552,7 @@ class Tests_Admin_includesPlugin extends WP_UnitTestCase {
 		unlink( $plugin[1] );
 
 		$result = validate_active_plugins();
-		$this->assertTrue( isset( $result[ $plugin[0] ] ) );
+		$this->assertArrayHasKey( $plugin[0], $result );
 	}
 
 	/**

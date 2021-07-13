@@ -381,6 +381,18 @@ function wp_default_packages_inline_scripts( $scripts ) {
 		'window.wp.oldEditor = window.wp.editor;',
 		'after'
 	);
+
+	/*
+	 * wp-editor module is exposed as window.wp.editor.
+	 * Problem: there is quite some code expecting window.wp.oldEditor object available under window.wp.editor.
+	 * Solution: fuse the two objects together to maintain backward compatibility.
+	 * For more context, see https://github.com/WordPress/gutenberg/issues/33203.
+	 */
+	$scripts->add_inline_script(
+		'wp-editor',
+		'Object.assign( window.wp.editor, window.wp.oldEditor );',
+		'after'
+	);
 }
 
 /**
@@ -2259,8 +2271,6 @@ function wp_common_block_scripts_and_styles() {
  * Enqueues the global styles defined via theme.json.
  *
  * @since 5.8.0
- *
- * @return void
  */
 function wp_enqueue_global_styles() {
 	if ( ! WP_Theme_JSON_Resolver::theme_has_support() ) {

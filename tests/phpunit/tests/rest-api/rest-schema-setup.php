@@ -73,7 +73,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 		$routes = rest_get_server()->get_routes();
 
 		$this->assertIsArray( $routes, '`get_routes` should return an array.' );
-		$this->assertTrue( ! empty( $routes ), 'Routes should not be empty.' );
+		$this->assertNotEmpty( $routes, 'Routes should not be empty.' );
 
 		$routes = array_filter( array_keys( $routes ), array( $this, 'is_builtin_route' ) );
 
@@ -472,7 +472,7 @@ class WP_Test_REST_Schema_Initialization extends WP_Test_REST_TestCase {
 				$response->get_status(),
 				"HTTP $status from $route[route]: " . json_encode( $data )
 			);
-			$this->assertTrue( ! empty( $data ), $route['name'] . ' route should return data.' );
+			$this->assertNotEmpty( $data, $route['name'] . ' route should return data.' );
 
 			$fixture           = $this->normalize_fixture( $data, $route['name'] );
 			$mocked_responses .= "\nmockedApiResponse." . $route['name'] . ' = '

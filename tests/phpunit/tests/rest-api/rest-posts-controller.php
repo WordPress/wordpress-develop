@@ -475,22 +475,22 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
 
 		$request->set_param( 'exclude', array( $id2 ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 
 		$request->set_param( 'exclude', (string) $id2 );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
 		$ids      = wp_list_pluck( $data, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
 
 		$request->set_param( 'exclude', 'invalid' );
 		$response = rest_get_server()->dispatch( $request );
@@ -1482,9 +1482,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$posts = $response->get_data();
 		$ids   = wp_list_pluck( $posts, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertFalse( in_array( $id2, $ids, true ) );
-		$this->assertFalse( in_array( $id3, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertNotContains( $id2, $ids );
+		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3,$id2) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
@@ -1508,9 +1508,9 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$posts = $response->get_data();
 		$ids   = wp_list_pluck( $posts, 'id' );
-		$this->assertTrue( in_array( $id1, $ids, true ) );
-		$this->assertTrue( in_array( $id2, $ids, true ) );
-		$this->assertFalse( in_array( $id3, $ids, true ) );
+		$this->assertContains( $id1, $ids );
+		$this->assertContains( $id2, $ids );
+		$this->assertNotContains( $id3, $ids );
 
 		$this->assertPostsWhere( " AND {posts}.ID NOT IN ($id3) AND {posts}.post_type = 'post' AND (({posts}.post_status = 'publish'))" );
 	}
@@ -1777,7 +1777,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 
 		$this->assertSame( rest_url( '/wp/v2/posts/' . self::$post_id . '/revisions' ), $links['version-history'][0]['href'] );
 		$this->assertSame( 0, $links['version-history'][0]['attributes']['count'] );
-		$this->assertFalse( isset( $links['predecessor-version'] ) );
+		$this->assertArrayNotHasKey( 'predecessor-version', $links );
 
 		$attachments_url = rest_url( '/wp/v2/media' );
 		$attachments_url = add_query_arg( 'parent', self::$post_id, $attachments_url );
@@ -1833,7 +1833,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', self::$post_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$links    = $response->get_links();
-		$this->assertFalse( isset( $links['author'] ) );
+		$this->assertArrayNotHasKey( 'author', $links );
 		wp_update_post(
 			array(
 				'ID'          => self::$post_id,
@@ -2030,7 +2030,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		$request  = new WP_REST_Request( 'GET', sprintf( '/wp/v2/posts/%d', $post_id ) );
 		$response = rest_get_server()->dispatch( $request );
 		$data     = $response->get_data();
-		$this->assertFalse( isset( $data['content']['block_version'] ) );
+		$this->assertArrayNotHasKey( 'block_version', $data['content'] );
 	}
 
 	/**
@@ -4157,7 +4157,7 @@ class WP_Test_REST_Posts_Controller extends WP_Test_REST_Post_Type_Controller_Te
 		);
 		create_initial_rest_routes();
 		$routes = rest_get_server()->get_routes();
-		$this->assertFalse( isset( $routes['/wp/v2/invalid-controller'] ) );
+		$this->assertArrayNotHasKey( '/wp/v2/invalid-controller', $routes );
 		_unregister_post_type( 'invalid-controller' );
 
 	}

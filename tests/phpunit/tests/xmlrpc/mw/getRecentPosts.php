@@ -94,6 +94,9 @@ class Tests_XMLRPC_mw_getRecentPosts extends WP_XMLRPC_UnitTestCase {
 		remove_theme_support( 'post-thumbnails' );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 

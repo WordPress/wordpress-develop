@@ -187,7 +187,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 	public function test_wp_insert_term_duplicate_name() {
 		$term = self::factory()->tag->create_and_get( array( 'name' => 'Bozo' ) );
 		$this->assertNotWPError( $term );
-		$this->assertTrue( empty( $term->errors ) );
+		$this->assertEmpty( $term->errors );
 
 		// Test existing term name with unique slug.
 		$term1 = self::factory()->tag->create(
@@ -822,7 +822,7 @@ class Tests_Term_WpInsertTerm extends WP_UnitTestCase {
 
 		$cached_children = get_option( 'wptests_tax_children' );
 		$this->assertNotEmpty( $cached_children[ $t ] );
-		$this->assertTrue( in_array( $found['term_id'], $cached_children[ $t ], true ) );
+		$this->assertContains( $found['term_id'], $cached_children[ $t ] );
 	}
 
 	/**

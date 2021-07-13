@@ -132,6 +132,9 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertEquals( $editor_id, $out->post_author );
 	}
 
+	/**
+	 * @requires function imagejpeg
+	 */
 	function test_post_thumbnail() {
 		add_theme_support( 'post-thumbnails' );
 
@@ -445,7 +448,7 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 		$this->assertCount( 1, get_post_meta( $post_id, 'enclosure' ) );
 
 		// For good measure, check that the expected value is in the array.
-		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
+		$this->assertContains( $enclosure_string, get_post_meta( $post_id, 'enclosure' ) );
 
 		// Attempt to add a brand new enclosure via XML-RPC.
 		$this->myxmlrpcserver->add_enclosure_if_new( $post_id, $new_enclosure );
@@ -455,10 +458,10 @@ class Tests_XMLRPC_wp_editPost extends WP_XMLRPC_UnitTestCase {
 
 		// Check that the new enclosure is in the enclosure meta.
 		$new_enclosure_string = "{$new_enclosure['url']}\n{$new_enclosure['length']}\n{$new_enclosure['type']}\n";
-		$this->assertTrue( in_array( $new_enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
+		$this->assertContains( $new_enclosure_string, get_post_meta( $post_id, 'enclosure' ) );
 
 		// Check that the old enclosure is in the enclosure meta.
-		$this->assertTrue( in_array( $enclosure_string, get_post_meta( $post_id, 'enclosure' ), true ) );
+		$this->assertContains( $enclosure_string, get_post_meta( $post_id, 'enclosure' ) );
 	}
 
 	/**

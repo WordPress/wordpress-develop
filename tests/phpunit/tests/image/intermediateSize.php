@@ -59,7 +59,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 		$this->assertSame( 75, $image['height'] );
 		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
-		$this->assertFalse( isset( $image['path'] ) );
+		$this->assertArrayNotHasKey( 'path', $image );
 	}
 
 	/**
@@ -156,6 +156,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_nearest_false() {
 		// If an exact size is not found, it should be returned.
