@@ -1046,7 +1046,7 @@ class WP_Upgrader {
 	/**
 	 * Deletes a rollback.
 	 *
- 	 * @since 5.9.0
+	 * @since 5.9.0
 	 *
 	 * @global WP_Filesystem_Base $wp_filesystem WordPress filesystem subclass.
 	 *
@@ -1059,7 +1059,7 @@ class WP_Upgrader {
 		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
 			return false;
 		}
-		return $wp_filesystem->delete(  $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'], true );
+		return $wp_filesystem->delete( $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'], true );
 	}
 }
 
