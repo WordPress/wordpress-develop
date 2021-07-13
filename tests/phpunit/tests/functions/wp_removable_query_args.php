@@ -55,8 +55,7 @@ class Tests_Functions_wp_removable_query_args extends WP_UnitTestCase {
 		remove_filter( 'removable_query_args', array( $this, 'removable_query_args_filter' ) );
 	}
 
-	public function removable_query_args_filter($removable_query_args ) {
+	public function removable_query_args_filter() {
 		return 'removable_query_args_filter';
 	}
-
 }
