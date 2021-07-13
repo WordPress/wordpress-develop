@@ -1061,21 +1061,6 @@ class WP_Upgrader {
 		}
 		return $wp_filesystem->delete(  $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'], true );
 	}
-
-	/**
-	 * Get a rollback param.
-	 * Extend this method in child classes to implement rollbacks.
-	 *
-	 * @since 5.9.0
-	 *
-	 * @param string $param      The parameter to get.
-	 * @param array  $hook_extra Extra params.
-	 *
-	 * @return string|null
-	 */
-	public function get_rollback_param( $param, $hook_extra = array() ) {
-		return null;
-	}
 }
 
 /** Plugin_Upgrader class */
