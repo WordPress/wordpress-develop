@@ -1056,10 +1056,13 @@ class WP_Upgrader {
 	 */
 	public function delete_rollback( $args ) {
 		global $wp_filesystem;
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['subfolder'] ) ) {
 			return false;
 		}
-		return $wp_filesystem->delete( $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'], true );
+		return $wp_filesystem->delete(
+			$wp_filesystem->wp_content_dir() . "upgrade/rollback/{$args['subfolder']}/{$args['slug']}",
+			true
+		);
 	}
 }
 
