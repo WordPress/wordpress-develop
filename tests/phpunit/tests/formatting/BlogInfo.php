@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::get_bloginfo
  */
 class Tests_Formatting_BlogInfo extends WP_UnitTestCase {
 

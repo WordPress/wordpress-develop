@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_slash
  */
 class Tests_Formatting_WPSlash extends WP_UnitTestCase {
 

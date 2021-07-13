@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::_wp_specialchars
  */
 class Tests_Formatting_WPSpecialchars extends WP_UnitTestCase {
+
 	function test_wp_specialchars_basics() {
 		$html = '&amp;&lt;hello world&gt;';
 		$this->assertSame( $html, _wp_specialchars( $html ) );

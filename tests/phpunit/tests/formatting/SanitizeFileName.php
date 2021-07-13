@@ -2,8 +2,12 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_file_name
  */
 class Tests_Formatting_SanitizeFileName extends WP_UnitTestCase {
+
+
 	function test_munges_extensions() {
 		// r17990
 		$file_name = sanitize_file_name( 'test.phtml.txt' );

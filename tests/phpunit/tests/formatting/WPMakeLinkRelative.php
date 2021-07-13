@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_make_link_relative
  */
 class Tests_Formatting_WPMakeLinkRelative extends WP_UnitTestCase {
 

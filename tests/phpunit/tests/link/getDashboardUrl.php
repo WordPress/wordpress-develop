@@ -2,6 +2,7 @@
 
 /**
  * @group link
+ *
  * @covers ::get_dashboard_url
  */
 class Tests_Link_GetDashboardUrl extends WP_UnitTestCase {

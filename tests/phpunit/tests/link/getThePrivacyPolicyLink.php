@@ -12,9 +12,10 @@
  *
  * @group link
  * @group privacy
- * @covers ::get_the_privacy_policy_link
  *
  * @since 4.9.6
+ *
+ * @covers ::get_the_privacy_policy_link
  */
 class Tests_Link_GetThePrivacyPolicyLink extends WP_UnitTestCase {
 	/**

@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers WP_Term::get_instance
  */
 class Tests_Term_WpTerm extends WP_UnitTestCase {
 	protected static $term_id;
@@ -41,6 +43,8 @@ class Tests_Term_WpTerm extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37738
+	 *
+	 * @covers WP_Term::get_instance
 	 */
 	public function test_get_instance_should_work_for_numeric_string() {
 		$found = WP_Term::get_instance( (string) self::$term_id );

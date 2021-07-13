@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_iso_descrambler
  */
 class Test_WP_ISO_Descrambler extends WP_UnitTestCase {
 	/*

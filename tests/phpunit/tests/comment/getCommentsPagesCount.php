@@ -3,6 +3,8 @@
  * Validate the logic of get_comments_pages_count
  *
  * @group comment
+ *
+ * @covers ::get_comment_pages_count
  */
 class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	protected $option_page_comments;
@@ -15,10 +17,10 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 */
 	function setUp() {
 		parent::setUp();
-		$this->option_page_comments = get_option( 'page_comments' );
-		$this->option_page_comments = get_option( 'comments_per_page' );
-		$this->option_page_comments = get_option( 'thread_comments' );
-		$this->option_posts_per_rss = get_option( 'posts_per_rss' );
+		$this->option_page_comments     = get_option( 'page_comments' );
+		$this->option_comments_per_page = get_option( 'comments_per_page' );
+		$this->option_thread_comments   = get_option( 'thread_comments' );
+		$this->option_posts_per_rss     = get_option( 'posts_per_rss' );
 
 		update_option( 'page_comments', true );
 	}
@@ -28,8 +30,8 @@ class Tests_Comment_GetCommentsPagesCount extends WP_UnitTestCase {
 	 */
 	function tearDown() {
 		update_option( 'page_comments', $this->option_page_comments );
-		update_option( 'comments_per_page', $this->option_page_comments );
-		update_option( 'thread_comments', $this->option_page_comments );
+		update_option( 'comments_per_page', $this->option_comments_per_page );
+		update_option( 'thread_comments', $this->option_thread_comments );
 		update_option( 'posts_per_rss', $this->option_posts_per_rss );
 		parent::tearDown();
 	}

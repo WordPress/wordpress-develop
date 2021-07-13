@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Stylesheet
  */
 class Test_WP_Sitemaps_Stylesheet extends WP_UnitTestCase {
 	/**

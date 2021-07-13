@@ -280,6 +280,7 @@ class Test_WP_Widget_Media_Audio extends WP_UnitTestCase {
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
+	 *
 	 * @covers WP_Widget_Media_Audio::enqueue_preview_scripts
 	 */
 	function test_enqueue_preview_scripts() {

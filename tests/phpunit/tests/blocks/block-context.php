@@ -76,6 +76,8 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	 * its inner blocks.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::register_block_type
 	 */
 	function test_provides_block_context() {
 		$provided_context = array();
@@ -145,6 +147,8 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	 * render_block.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::render_block
 	 */
 	function test_provides_default_context() {
 		global $post;
@@ -180,6 +184,8 @@ class WP_Block_Context_Test extends WP_UnitTestCase {
 	 * Tests that default block context can be filtered.
 	 *
 	 * @ticket 49927
+	 *
+	 * @covers ::render_block
 	 */
 	function test_default_context_is_filterable() {
 		$provided_context = array();

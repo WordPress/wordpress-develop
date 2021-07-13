@@ -20,6 +20,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 48675
+	 *
+	 * @covers ::get_feed_build_date
 	 */
 	public function test_should_return_correct_feed_build_date() {
 		global $wp_query;
@@ -43,6 +45,8 @@ class Tests_Date_GetFeedBuildDate extends WP_UnitTestCase {
 	 * Test that get_feed_build_date() works with invalid post dates.
 	 *
 	 * @ticket 48957
+	 *
+	 * @covers ::get_feed_build_date
 	 */
 	public function test_should_fall_back_to_last_post_modified() {
 		global $wp_query;

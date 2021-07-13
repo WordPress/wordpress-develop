@@ -46,6 +46,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_fields_to_translate
 	 */
 	public function test_fields_are_extracted() {
 		$actual = WP_Theme_JSON_Resolver::get_fields_to_translate();
@@ -93,6 +95,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers WP_Theme_JSON_Resolver::get_theme_data
 	 */
 	public function test_translations_are_applied() {
 		add_filter( 'locale', array( $this, 'filter_set_locale_to_polish' ) );
@@ -176,6 +180,8 @@ class Tests_Theme_wpThemeJsonResolver extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 52991
+	 *
+	 * @covers WP_Theme_JSON_Resolver::theme_has_support
 	 */
 	public function test_switching_themes_recalculates_data() {
 		// By default, the theme for unit tests is "default",

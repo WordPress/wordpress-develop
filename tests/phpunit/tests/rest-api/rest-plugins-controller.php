@@ -8,6 +8,7 @@
 
 /**
  * @group restapi
+ * @coversDefaultClass WP_REST_Plugins_Controller
  */
 class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
@@ -104,6 +105,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_context_param
 	 */
 	public function test_context_param() {
 		// Collection.
@@ -122,6 +124,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items() {
 		$this->create_test_plugin();
@@ -138,6 +141,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_search() {
 		$this->create_test_plugin();
@@ -156,6 +160,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_status() {
 		$this->create_test_plugin();
@@ -174,6 +179,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_status_multiple() {
 		$this->create_test_plugin();
@@ -190,6 +196,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_status_network_active() {
 		$this->create_test_plugin();
@@ -209,6 +216,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_logged_out() {
 		$response = rest_do_request( self::BASE );
@@ -217,6 +225,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
@@ -227,6 +236,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_cannot_get_items_if_plugins_menu_not_available() {
 		$this->create_test_plugin();
@@ -241,6 +251,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_if_plugins_menu_available() {
 		$this->create_test_plugin();
@@ -254,6 +265,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_excludes_network_only_plugin_if_not_active() {
 		$this->create_test_plugin( true );
@@ -270,6 +282,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-excluded
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_does_not_exclude_network_only_plugin_if_not_active_on_single_site() {
 		$this->create_test_plugin( true );
@@ -286,6 +299,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_items
 	 */
 	public function test_get_items_does_not_exclude_network_only_plugin_if_not_active_but_has_network_caps() {
 		$this->create_test_plugin( true );
@@ -302,6 +316,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_item
 	 */
 	public function test_get_item() {
 		$this->create_test_plugin();
@@ -314,6 +329,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_item
+	 * @covers ::get_item_permissions_check
 	 */
 	public function test_get_item_logged_out() {
 		$response = rest_do_request( self::BASE . '/' . self::PLUGIN );
@@ -322,6 +339,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_item
 	 */
 	public function test_get_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
@@ -332,6 +350,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_item
 	 */
 	public function test_cannot_get_item_if_plugins_menu_not_available() {
 		$this->create_test_plugin();
@@ -346,6 +365,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::get_item
 	 */
 	public function test_get_item_if_plugins_menu_available() {
 		$this->create_test_plugin();
@@ -358,6 +378,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_item
 	 */
 	public function test_get_item_invalid_plugin() {
 		wp_set_current_user( self::$super_admin );
@@ -367,6 +388,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item() {
 		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
@@ -387,6 +409,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_and_activate() {
 		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
@@ -413,6 +436,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_and_activate_errors_if_no_permission_to_activate_plugin() {
 		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
@@ -439,6 +463,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-excluded
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_and_network_activate_rejected_if_not_multisite() {
 		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
@@ -463,6 +488,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_and_network_activate() {
 		if ( isset( get_plugins()['link-manager/link-manager.php'] ) ) {
@@ -489,6 +515,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_logged_out() {
 		$request = new WP_REST_Request( 'POST', self::BASE );
@@ -500,6 +527,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
@@ -513,6 +541,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_cannot_create_item_if_not_super_admin() {
 		$this->create_test_plugin();
@@ -527,6 +556,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_wdotorg_unreachable() {
 		wp_set_current_user( self::$super_admin );
@@ -543,6 +573,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::create_item
 	 */
 	public function test_create_item_unknown_plugin() {
 		wp_set_current_user( self::$super_admin );
@@ -558,6 +589,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item() {
 		$this->create_test_plugin();
@@ -571,6 +603,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_logged_out() {
 		$request  = new WP_REST_Request( 'PUT', self::BASE . '/' . self::PLUGIN );
@@ -581,6 +614,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
@@ -594,6 +628,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_cannot_update_item_if_plugins_menu_not_available() {
 		$this->create_test_plugin();
@@ -607,6 +642,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_activate_plugin() {
 		$this->create_test_plugin();
@@ -622,6 +658,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_activate_plugin_fails_if_no_activate_cap() {
 		$this->create_test_plugin();
@@ -638,6 +675,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-excluded
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_network_activate_plugin_rejected_if_not_multisite() {
 		$this->create_test_plugin();
@@ -653,6 +691,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_network_activate_plugin() {
 		$this->create_test_plugin();
@@ -669,6 +708,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_network_activate_plugin_that_was_active_on_single_site() {
 		$this->create_test_plugin();
@@ -686,6 +726,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_activate_network_only_plugin() {
 		$this->create_test_plugin( true );
@@ -701,6 +742,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_network_activate_network_only_plugin() {
 		$this->create_test_plugin( true );
@@ -717,6 +759,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-excluded
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_activate_network_only_plugin_on_non_multisite() {
 		$this->create_test_plugin( true );
@@ -733,6 +776,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_activate_plugin_for_site_if_menu_item_available() {
 		$this->create_test_plugin();
@@ -751,6 +795,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_network_activate_plugin_for_site_if_menu_item_available() {
 		$this->create_test_plugin();
@@ -766,6 +811,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_deactivate_plugin() {
 		$this->create_test_plugin();
@@ -782,6 +828,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_deactivate_plugin_fails_if_no_deactivate_cap() {
 		$this->create_test_plugin();
@@ -799,6 +846,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_deactivate_network_active_plugin() {
 		$this->create_test_plugin();
@@ -816,6 +864,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::update_item
 	 */
 	public function test_update_item_deactivate_network_active_plugin_if_not_super_admin() {
 		$this->enable_plugins_menu_item();
@@ -832,6 +881,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item() {
 		$this->create_test_plugin();
@@ -849,6 +899,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::delete_item
+	 * @covers ::delete_item_permissions_check
 	 */
 	public function test_delete_item_logged_out() {
 		$request  = new WP_REST_Request( 'DELETE', self::BASE . '/' . self::PLUGIN );
@@ -859,6 +911,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::delete_item
+	 * @covers ::delete_item_permissions_check
 	 */
 	public function test_delete_item_insufficient_permissions() {
 		wp_set_current_user( self::$subscriber_id );
@@ -872,6 +926,8 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::delete_item
+	 * @covers ::delete_item_permissions_check
 	 */
 	public function test_cannot_delete_item_if_plugins_menu_not_available() {
 		wp_set_current_user( self::$admin );
@@ -885,6 +941,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::delete_item
 	 */
 	public function test_cannot_delete_item_if_plugins_menu_is_available() {
 		wp_set_current_user( self::$admin );
@@ -898,6 +955,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::delete_item
 	 */
 	public function test_delete_item_active_plugin() {
 		$this->create_test_plugin();
@@ -912,6 +970,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item() {
 		$this->create_test_plugin();
@@ -931,6 +990,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item_network_active() {
 		$this->create_test_plugin();
@@ -948,6 +1008,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 	/**
 	 * @group ms-required
 	 * @ticket 50321
+	 * @covers ::prepare_item_for_response
 	 */
 	public function test_prepare_item_network_only() {
 		$this->create_test_plugin( true );
@@ -963,6 +1024,7 @@ class WP_REST_Plugins_Controller_Test extends WP_Test_REST_Controller_Testcase {
 
 	/**
 	 * @ticket 50321
+	 * @covers ::get_item_schema
 	 */
 	public function test_get_item_schema() {
 		$request    = new WP_REST_Request( 'OPTIONS', self::BASE );

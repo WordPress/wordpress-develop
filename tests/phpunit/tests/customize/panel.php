@@ -28,6 +28,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::__construct()
+	 *
+	 * @covers WP_Customize_Panel::__construct
 	 */
 	function test_construct_default_args() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
@@ -46,6 +48,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::__construct()
+	 *
+	 * @covers WP_Customize_Panel::__construct
 	 */
 	function test_construct_custom_args() {
 		$args = array(
@@ -66,6 +70,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::__construct()
+	 *
+	 * @covers WP_Customize_Panel::__construct
 	 */
 	function test_construct_custom_type() {
 		$panel = new Custom_Panel_Test( $this->manager, 'foo' );
@@ -75,6 +81,9 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 	/**
 	 * @see WP_Customize_Panel::active()
 	 * @see WP_Customize_Panel::active_callback()
+	 *
+	 * @covers WP_Customize_Panel::active
+	 * @covers WP_Customize_Panel::active_callback
 	 */
 	function test_active() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
@@ -106,6 +115,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::json()
+	 *
+	 * @covers WP_Customize_Panel::json
 	 */
 	function test_json() {
 		$args  = array(
@@ -130,6 +141,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::check_capabilities()
+	 *
+	 * @covers WP_Customize_Panel::check_capabilities
 	 */
 	function test_check_capabilities() {
 		$user_id = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -148,6 +161,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::get_content()
+	 *
+	 * @covers WP_Customize_Panel::get_content
 	 */
 	function test_get_content() {
 		$panel = new WP_Customize_Panel( $this->manager, 'foo' );
@@ -156,6 +171,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::maybe_render()
+	 *
+	 * @covers WP_Customize_Panel::maybe_render
 	 */
 	function test_maybe_render() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -181,6 +198,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::print_template()
+	 *
+	 * @covers WP_Customize_Panel::print_template
 	 */
 	function test_print_templates_standard() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -199,6 +218,8 @@ class Tests_WP_Customize_Panel extends WP_UnitTestCase {
 
 	/**
 	 * @see WP_Customize_Panel::print_template()
+	 *
+	 * @covers WP_Customize_Panel::print_template
 	 */
 	function test_print_templates_custom() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );

@@ -91,6 +91,8 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 * Tests excerpt_remove_blocks().
 	 *
 	 * @ticket 46133
+	 *
+	 * @covers ::excerpt_remove_blocks
 	 */
 	function test_excerpt_remove_blocks() {
 		// Simple dynamic block..
@@ -116,6 +118,8 @@ class Tests_Formatting_ExcerptRemoveBlocks extends WP_UnitTestCase {
 	 * `the_content` gets applied, just like shortcodes.
 	 *
 	 * @ticket 46133
+	 *
+	 * @covers ::do_blocks
 	 */
 	function test_excerpt_infinite_loop() {
 		$query = new WP_Query(

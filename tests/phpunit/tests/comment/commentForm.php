@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::comment_form
  */
 class Tests_Comment_CommentForm extends WP_UnitTestCase {
 	public function test_default_markup_for_submit_button_and_wrapper() {

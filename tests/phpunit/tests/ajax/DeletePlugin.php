@@ -8,6 +8,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * Testing Ajax handler for deleting a plugin.
  *
  * @group ajax
+ *
+ * @covers ::wp_ajax_delete_plugin
  */
 class Tests_Ajax_Delete_Plugin extends WP_Ajax_UnitTestCase {
 

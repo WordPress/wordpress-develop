@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_js
  */
 class Tests_Formatting_JSEscape extends WP_UnitTestCase {
+
 	function test_js_escape_simple() {
 		$out = esc_js( 'foo bar baz();' );
 		$this->assertSame( 'foo bar baz();', $out );

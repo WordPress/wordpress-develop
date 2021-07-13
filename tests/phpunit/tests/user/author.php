@@ -39,6 +39,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		setup_postdata( get_post( self::$post_id ) );
 	}
 
+	/**
+	 * @covers ::get_the_author
+	 */
 	function test_get_the_author() {
 		$author_name = get_the_author();
 		$user        = new WP_User( self::$author_id );
@@ -47,6 +50,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( 'Test Author', $author_name );
 	}
 
+	/**
+	 * @covers ::get_the_author_meta
+	 */
 	function test_get_the_author_meta() {
 		$this->assertSame( 'test_author', get_the_author_meta( 'login' ) );
 		$this->assertSame( 'test_author', get_the_author_meta( 'user_login' ) );
@@ -68,6 +74,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( '', get_the_author_meta( 'does_not_exist' ) );
 	}
 
+	/**
+	 * @covers ::get_the_author_meta
+	 */
 	function test_get_the_author_meta_no_authordata() {
 		unset( $GLOBALS['authordata'] );
 		$this->assertSame( '', get_the_author_meta( 'id' ) );
@@ -75,6 +84,9 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 		$this->assertSame( '', get_the_author_meta( 'does_not_exist' ) );
 	}
 
+	/**
+	 * @covers ::get_the_author_posts
+	 */
 	function test_get_the_author_posts() {
 		// Test with no global post, result should be 0 because no author is found.
 		$this->assertSame( 0, get_the_author_posts() );
@@ -84,6 +96,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30904
+	 *
+	 * @covers ::get_the_author_posts
 	 */
 	function test_get_the_author_posts_with_custom_post_type() {
 		register_post_type( 'wptests_pt' );
@@ -104,6 +118,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30355
+	 *
+	 * @covers ::get_the_author_posts_link
 	 */
 	public function test_get_the_author_posts_link_no_permalinks() {
 		$author = get_userdata( self::$author_id );
@@ -123,6 +139,8 @@ class Tests_User_Author_Template extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30355
+	 *
+	 * @covers ::get_the_author_posts_link
 	 */
 	public function test_get_the_author_posts_link_with_permalinks() {
 		$this->set_permalink_structure( '/%postname%/' );

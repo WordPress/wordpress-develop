@@ -5,6 +5,8 @@
  * @group media
  * @group upload
  * @group resize
+ *
+ * @covers WP_Image_Editor::resize
  */
 require_once __DIR__ . '/base.php';
 

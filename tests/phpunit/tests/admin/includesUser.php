@@ -11,6 +11,8 @@ class Tests_Admin_IncludesUser extends WP_UnitTestCase {
 	 * @dataProvider data_is_authorize_application_password_request_valid
 	 * @param array  $request    The request data to validate.
 	 * @param string $error_code The expected error code, empty if no error.
+	 *
+	 * @covers ::wp_is_authorize_application_password_request_valid
 	 */
 	public function test_is_authorize_application_password_request_valid( $request, $error_code ) {
 		$error = wp_is_authorize_application_password_request_valid( $request, get_userdata( 1 ) );

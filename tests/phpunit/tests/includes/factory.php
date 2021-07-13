@@ -6,6 +6,9 @@ class TestFactoryFor extends WP_UnitTestCase {
 		$this->category_factory = new WP_UnitTest_Factory_For_Term( null, 'category' );
 	}
 
+	/**
+	 * @covers ::get_term_by
+	 */
 	function test_create_creates_a_category() {
 		$id = $this->category_factory->create();
 		$this->assertTrue( (bool) get_term_by( 'id', $id, 'category' ) );

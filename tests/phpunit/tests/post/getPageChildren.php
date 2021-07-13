@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_page_children
  */
 class Tests_Post_GetPageChildren extends WP_UnitTestCase {
 	protected $pages = array();

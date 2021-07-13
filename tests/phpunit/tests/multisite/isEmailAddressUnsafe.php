@@ -4,6 +4,8 @@ if ( is_multisite() ) :
 
 	/**
 	 * @group multisite
+	 *
+	 * @covers ::is_email_address_unsafe
 	 */
 	class Tests_Multisite_IsEmailAddressUnsafe extends WP_UnitTestCase {
 		public function test_string_domain_list_should_be_split_on_line_breaks() {

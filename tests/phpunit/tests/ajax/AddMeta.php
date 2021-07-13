@@ -13,6 +13,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
 class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::add_post_meta
 	 */
 	public function test_post_add_meta_empty_is_allowed_ajax() {
 		$p = self::factory()->post->create();
@@ -39,6 +41,8 @@ class Tests_Ajax_AddMeta extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * @ticket 43559
+	 *
+	 * @covers ::update_post_meta
 	 */
 	public function test_post_update_meta_empty_is_allowed_ajax() {
 		$p = self::factory()->post->create();

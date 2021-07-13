@@ -87,6 +87,8 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 33750
+	 *
+	 * @covers ::the_date
 	 */
 	function test_the_date() {
 		ob_start();
@@ -127,6 +129,8 @@ class Tests_Date_TheDate extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 47354
+	 *
+	 * @covers ::the_weekday_date
 	 */
 	function test_the_weekday_date() {
 		ob_start();

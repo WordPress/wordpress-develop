@@ -2,8 +2,11 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Registry::add_provider
  */
 class Test_WP_Sitemaps_Registry extends WP_UnitTestCase {
+
 	public function test_add_provider() {
 		$provider = new WP_Sitemaps_Test_Provider();
 		$registry = new WP_Sitemaps_Registry();

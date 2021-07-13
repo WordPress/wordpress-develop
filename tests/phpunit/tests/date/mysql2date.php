@@ -16,6 +16,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_returns_false_with_no_date() {
 		$this->assertFalse( mysql2date( 'F j, Y H:i:s', '' ) );
@@ -23,6 +25,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28310
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_returns_gmt_or_unix_timestamp() {
 		$this->assertSame( 441013392, mysql2date( 'G', '1983-12-23 07:43:12' ) );
@@ -31,6 +35,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28992
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_should_format_time() {
 		$timezone = 'Europe/Kiev';
@@ -45,6 +51,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28992
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_should_format_time_with_changed_time_zone() {
 		$timezone = 'Europe/Kiev';
@@ -61,6 +69,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28992
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_should_return_wp_timestamp() {
 		$timezone = 'Europe/Kiev';
@@ -75,6 +85,8 @@ class Tests_Date_mysql2date extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 28992
+	 *
+	 * @covers ::mysql2date
 	 */
 	function test_mysql2date_should_return_unix_timestamp_for_gmt_time() {
 		$timezone = 'Europe/Kiev';

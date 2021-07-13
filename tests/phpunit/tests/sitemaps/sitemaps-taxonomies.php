@@ -2,6 +2,8 @@
 
 /**
  * @group sitemaps
+ *
+ * @covers WP_Sitemaps_Taxonomies
  */
 class Test_WP_Sitemaps_Taxonomies extends WP_UnitTestCase {
 	/**

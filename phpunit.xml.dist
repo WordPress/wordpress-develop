@@ -3,6 +3,7 @@
 		backupGlobals="false"
 		colors="true"
 		beStrictAboutTestsThatDoNotTestAnything="true"
+		forceCoversAnnotation="true"
 		>
 	<testsuites>
 		<!-- Default test suite to run all tests. -->

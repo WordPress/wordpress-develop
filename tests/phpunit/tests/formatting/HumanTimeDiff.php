@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @ticket 38773
+ *
+ * @covers ::human_time_diff
  */
 class Tests_Formatting_HumanTimeDiff extends WP_UnitTestCase {
 

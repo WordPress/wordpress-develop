@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::balanceTags
  */
 class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 
@@ -236,6 +238,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+
 	function test_closes_unclosed_single_tags_having_attributes() {
 		$inputs   = array(
 			'<img src="/images/example.png">',
@@ -250,6 +253,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
+
 
 	function test_allows_validly_closed_single_tags() {
 		$inputs = array(
@@ -284,6 +288,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+
 	function test_allows_adjacent_nestable_tags() {
 		$inputs = array(
 			'<blockquote><blockquote>Example quote</blockquote></blockquote>',
@@ -306,6 +311,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		$this->assertSame( $object, balanceTags( $object, true ) );
 	}
 
+
 	function test_balances_nested_non_nestable_tags() {
 		$inputs   = array(
 			'<b><b>This is bold</b></b>',
@@ -321,6 +327,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 		}
 	}
 
+
 	function test_fixes_improper_closing_tag_sequence() {
 		$inputs   = array(
 			'<p>Here is a <strong class="part">bold <em>and emphasis</p></em></strong>',
@@ -335,6 +342,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
+
 
 	function test_adds_missing_closing_tags() {
 		$inputs   = array(
@@ -356,6 +364,7 @@ class Tests_Formatting_BalanceTags extends WP_UnitTestCase {
 			$this->assertSame( $expected[ $key ], balanceTags( $inputs[ $key ], true ) );
 		}
 	}
+
 
 	function test_removes_extraneous_closing_tags() {
 		$inputs   = array(

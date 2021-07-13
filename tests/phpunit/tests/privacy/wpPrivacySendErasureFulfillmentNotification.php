@@ -11,9 +11,10 @@
  * Tests_Privacy_wpPrivacySendErasureFulfillmentNotification class.
  *
  * @group privacy
- * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  *
  * @since 5.1.0
+ *
+ * @covers ::_wp_privacy_send_erasure_fulfillment_notification
  */
 class Tests_Privacy_wpPrivacySendErasureFulfillmentNotification extends WP_UnitTestCase {
 	/**

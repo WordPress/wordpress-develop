@@ -12,6 +12,8 @@ require_once ABSPATH . 'wp-admin/includes/ajax-actions.php';
  * @subpackage UnitTests
  * @since      3.4.0
  * @group      ajax
+ *
+ * @covers ::wp_ajax_replyto_comment
  */
 class Tests_Ajax_ReplytoComment extends WP_Ajax_UnitTestCase {
 

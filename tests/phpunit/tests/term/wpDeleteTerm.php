@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_delete_term
  */
 class Tests_Term_WpDeleteTerm extends WP_UnitTestCase {
 	protected $deleted_term;

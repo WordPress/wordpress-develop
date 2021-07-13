@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::ent2ncr
  */
 class Tests_Formatting_Ent2NCR extends WP_UnitTestCase {
 	/**

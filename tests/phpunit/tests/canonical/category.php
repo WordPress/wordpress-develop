@@ -24,6 +24,9 @@ class Tests_Canonical_Category extends WP_Canonical_UnitTestCase {
 
 	/**
 	 * @dataProvider data_canonical_category
+	 *
+	 * @covers ::redirect_canonical
+	 * @covers ::home_url
 	 */
 	public function test_canonical_category( $test_url, $expected, $ticket = 0, $expected_doing_it_wrong = array() ) {
 		$this->assertCanonical( $test_url, $expected, $ticket, $expected_doing_it_wrong );

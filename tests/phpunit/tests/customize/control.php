@@ -36,6 +36,8 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 	 * Test WP_Customize_Control::check_capabilities().
 	 *
 	 * @see WP_Customize_Control::check_capabilities()
+	 *
+	 * @covers WP_Customize_Control::check_capabilities
 	 */
 	function test_check_capabilities() {
 		do_action( 'customize_register', $this->wp_customize );
@@ -104,6 +106,8 @@ class Test_WP_Customize_Control extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38164
+	 *
+	 * @covers WP_Customize_Manager::__construct
 	 */
 	function test_dropdown_pages() {
 		do_action( 'customize_register', $this->wp_customize );

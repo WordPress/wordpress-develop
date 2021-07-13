@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers  wp_xmlrpc_server::mw_editPost
  */
 class Tests_XMLRPC_mw_editPost extends WP_XMLRPC_UnitTestCase {
 

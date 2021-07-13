@@ -44,6 +44,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		self::delete_user( self::$author );
 	}
 
+	/**
+	 * @covers ::add_post_meta
+	 */
 	function test_unique_postmeta() {
 		// Add a unique post meta item.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique', 'value', true ) );
@@ -67,6 +70,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::add_post_meta
+	 */
 	function test_nonunique_postmeta() {
 		// Add two non-unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'nonunique', 'value' ) );
@@ -104,6 +110,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertTrue( delete_post_meta_by_key( 'nonunique' ) );
 	}
 
+	/**
+	 * @covers ::update_post_meta
+	 */
 	function test_update_post_meta() {
 		// Add a unique post meta item.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_update', 'value', true ) );
@@ -131,6 +140,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::delete_post_meta
+	 */
 	function test_delete_post_meta() {
 		// Add two unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_delete', 'value', true ) );
@@ -148,6 +160,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * @covers ::delete_post_meta
+	 */
 	function test_delete_post_meta_by_key() {
 		// Add two unique post meta items.
 		$this->assertIsInt( add_post_meta( self::$post_id, 'unique_delete_by_key', 'value', true ) );
@@ -165,6 +180,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertSame( '', get_post_meta( self::$post_id_2, 'unique_delete_by_key', true ) );
 	}
 
+	/**
+	 * @covers ::get_post_meta_by_id
+	 */
 	function test_get_post_meta_by_id() {
 		$mid = add_post_meta( self::$post_id, 'get_post_meta_by_key', 'get_post_meta_by_key_value', true );
 		$this->assertIsInt( $mid );
@@ -185,6 +203,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		delete_metadata_by_mid( 'post', $mid );
 	}
 
+	/**
+	 * @covers ::delete_meta
+	 */
 	function test_delete_meta() {
 		$mid = add_post_meta( self::$post_id, 'delete_meta', 'delete_meta_value', true );
 		$this->assertIsInt( $mid );
@@ -195,6 +216,9 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 		$this->assertFalse( delete_meta( 123456789 ) );
 	}
 
+	/**
+	 * @covers ::update_meta
+	 */
 	function test_update_meta() {
 		// Add a unique post meta item.
 		$mid1 = add_post_meta( self::$post_id, 'unique_update', 'value', true );
@@ -232,6 +256,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 12860
+	 *
+	 * @covers ::add_post_meta
 	 */
 	function test_funky_post_meta() {
 		$classy          = new StdClass();
@@ -255,6 +281,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 38323
 	 * @dataProvider data_register_post_meta
+	 *
+	 * @covers ::register_post_meta
 	 */
 	public function test_register_post_meta( $post_type, $meta_key, $args ) {
 		add_filter( 'register_meta_args', array( $this, 'filter_register_meta_args_set_last_register_meta_call' ), 10, 4 );
@@ -290,6 +318,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 	/**
 	 * @ticket 38323
 	 * @dataProvider data_unregister_post_meta
+	 *
+	 * @covers ::unregister_post_meta
 	 */
 	public function test_unregister_post_meta( $post_type, $meta_key ) {
 		global $wp_meta_keys;
@@ -315,6 +345,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::add_metadata
 	 */
 	public function test_add_metadata_sets_posts_last_changed() {
 		$post_id = self::factory()->post->create();
@@ -327,6 +359,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::update_metadata
 	 */
 	public function test_update_metadata_sets_posts_last_changed() {
 		$post_id = self::factory()->post->create();
@@ -339,6 +373,8 @@ class Tests_Post_Meta extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44467
+	 *
+	 * @covers ::delete_metadata
 	 */
 	public function test_delete_metadata_sets_posts_last_changed() {
 		$post_id = self::factory()->post->create();

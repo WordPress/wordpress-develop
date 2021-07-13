@@ -6,6 +6,7 @@
  * @ticket 38101
  *
  * @group functions.php
+ *
  * @covers ::_cleanup_header_comment
  */
 class Tests_Functions_CleanupHeaderComment extends WP_UnitTestCase {

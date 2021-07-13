@@ -11,9 +11,10 @@
  * Tests_Privacy_wpPrivacyProcessPersonalDataExportPage class.
  *
  * @group privacy
- * @covers ::wp_privacy_process_personal_data_export_page
  *
  * @since 5.2.0
+ *
+ * @covers ::wp_privacy_process_personal_data_export_page
  */
 class Tests_Privacy_wpPrivacyProcessPersonalDataExportPage extends WP_UnitTestCase {
 	/**

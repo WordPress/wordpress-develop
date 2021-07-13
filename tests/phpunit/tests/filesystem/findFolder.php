@@ -8,6 +8,9 @@ require_once __DIR__ . '/base.php';
  */
 class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase {
 
+	/**
+	 * WP_Filesystem_MockFS::find_folder
+	 */
 	function test_ftp_has_root_access() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
@@ -27,6 +30,9 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 
 	}
 
+	/**
+	 * WP_Filesystem_MockFS::find_folder
+	 */
 	function test_sibling_wordpress_in_subdir() {
 		global $wp_filesystem;
 		$fs = $wp_filesystem;
@@ -56,6 +62,8 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	 * FTP / = /var/www/example.com/ on Disk
 	 * example.com at /
 	 * wp.example.com at /wp.example.com/wordpress/
+	 *
+	 * @covers WP_Filesystem_MockFS::abspath
 	 */
 	function test_subdir_of_another() {
 		global $wp_filesystem;
@@ -83,6 +91,8 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 	 * Test the WordPress ABSPATH containing TWO tokens (www) of which exists in the current FTP home.
 	 *
 	 * @ticket 20934
+	 *
+	 * @covers WP_Filesystem_MockFS::abspath
 	 */
 	function test_multiple_tokens_in_path1() {
 		global $wp_filesystem;
@@ -93,7 +103,7 @@ class WP_Filesystem_find_folder_UnitTestCases extends WP_Filesystem_UnitTestCase
 			/example.com/www/index.php
 			/example.com/www/wp-includes/
 			/example.com/www/wp-content/plugins/
-			
+
 			# sub.example.com
 			/example.com/sub/index.php
 			/example.com/sub/wp-includes/

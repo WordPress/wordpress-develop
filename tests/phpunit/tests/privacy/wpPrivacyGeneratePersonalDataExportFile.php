@@ -11,9 +11,10 @@
  * Test cases for `wp_privacy_generate_personal_data_export_file()`.
  *
  * @group privacy
- * @covers ::wp_privacy_generate_personal_data_export_file
  *
  * @since 5.2.0
+ *
+ * @covers ::wp_privacy_generate_personal_data_export_file
  */
 class Tests_Privacy_wpPrivacyGeneratePersonalDataExportFile extends WP_UnitTestCase {
 	/**

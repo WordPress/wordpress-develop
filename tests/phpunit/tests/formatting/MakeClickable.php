@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::make_clickable
  */
 class Tests_Formatting_MakeClickable extends WP_UnitTestCase {
+
 	function test_mailto_xss() {
 		$in = 'testzzz@"STYLE="behavior:url(\'#default#time2\')"onBegin="alert(\'refresh-XSS\')"';
 		$this->assertSame( $in, make_clickable( $in ) );

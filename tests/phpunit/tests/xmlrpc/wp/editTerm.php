@@ -2,6 +2,8 @@
 
 /**
  * @group xmlrpc
+ *
+ * @covers wp_xmlrpc_server::wp_editTerm
  */
 class Tests_XMLRPC_wp_editTerm extends WP_XMLRPC_UnitTestCase {
 	protected static $parent_term;

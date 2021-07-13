@@ -8,6 +8,8 @@
  *
  * @group query
  * @group rewrite
+ *
+ * @covers WP_Query
  */
 class Tests_Query_Conditionals extends WP_UnitTestCase {
 

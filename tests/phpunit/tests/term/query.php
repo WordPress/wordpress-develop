@@ -6,6 +6,8 @@
 class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 37545
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_taxonomy_should_accept_single_taxonomy_as_string() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -25,6 +27,9 @@ class Tests_Term_Query extends WP_UnitTestCase {
 		$this->assertSameSets( array( $term_2 ), $q->terms );
 	}
 
+	/**
+	 * @covers WP_Term_Query
+	 */
 	public function test_taxonomy_should_accept_taxonomy_array() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
 		register_taxonomy( 'wptests_tax_2', 'post' );
@@ -45,6 +50,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37074
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_term_taxonomy_id_single() {
 		global $wpdb;
@@ -73,6 +80,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37074
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_term_taxonomy_id_array() {
 		global $wpdb;
@@ -107,6 +116,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37151
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_order_by_meta_value_num() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -133,6 +144,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37378
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_order_by_keyword_should_not_be_duplicated_when_filtered() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -157,6 +170,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37198
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_order_by_term_order_should_fall_back_on_term_id_when_relationship_table_is_not_being_joined() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -177,6 +192,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37591
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_terms_is_set() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -205,6 +222,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 23261
 	 * @ticket 37904
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_orderby_include_with_comma_separated_list() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -226,6 +245,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37198
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_object_ids_single() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -248,6 +269,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37198
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_object_ids_array() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -270,6 +293,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37198
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_duplicates_should_be_removed_for_fields_all() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -294,6 +319,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37198
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_duplicates_should_not_be_removed_for_fields_all_with_object_id() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -320,6 +347,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 44221
+	 *
+	 * @covers WP_Term_Query::query
 	 */
 	public function test_all_with_object_id_should_return_term_objects() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -356,6 +385,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 37198
 	 * @group cache
+	 *
+	 * @covers ::wp_set_object_terms
 	 */
 	public function test_object_ids_cache_should_be_invalidated_by_term_relationship_change() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -393,6 +424,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 38295
 	 * @group cache
+	 *
+	 * @covers WP_Term_Query::get_terms
 	 */
 	public function test_count_query_should_be_cached() {
 		global $wpdb;
@@ -428,6 +461,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 38295
 	 * @group cache
+	 *
+	 * @covers WP_Term_Query::get_terms
 	 */
 	public function test_count_query_cache_should_be_invalidated_with_incrementor_bump() {
 		register_taxonomy( 'wptests_tax_1', 'post' );
@@ -459,6 +494,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40496
+	 *
+	 * @covers ::get_the_terms
 	 */
 	public function test_get_the_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
@@ -489,6 +526,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 40496
+	 *
+	 * @covers ::wp_get_object_terms
 	 */
 	public function test_wp_get_object_terms_should_respect_taxonomy_orderby() {
 		register_taxonomy(
@@ -519,6 +558,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41293
+	 *
+	 * @covers ::wp_get_object_terms
 	 */
 	public function test_should_allow_same_args_with_the_get_terms() {
 		register_post_type( 'wptests_pt' );
@@ -593,6 +634,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * The query method should return zero for field as count and parent set.
 	 *
 	 * @ticket 42327
+	 *
+	 * @covers WP_Term_Query::query
 	 */
 	public function test_query_should_return_zero_for_field_count_and_parent_set() {
 		$post_id = self::factory()->post->create();
@@ -618,6 +661,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * The query method should return zero for field as count and child_of set.
 	 *
 	 * @ticket 42327
+	 *
+	 * @covers WP_Term_Query::query
 	 */
 	public function test_query_should_return_zero_for_field_as_count_and_child_of_set() {
 		$post_id = self::factory()->post->create();
@@ -643,6 +688,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 	 * The terms property should be an empty array for fields not as count and parent set.
 	 *
 	 * @ticket 42327
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_terms_property_should_be_empty_array_for_field_not_as_count_and_parent_set() {
 		$post_id = self::factory()->post->create();
@@ -666,6 +713,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42691
+	 *
+	 * @covers ::get_terms
 	 */
 	public function test_null_term_object_should_be_discarded() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -703,6 +752,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42691
+	 *
+	 * @covers ::get_terms
 	 */
 	public function test_error_term_object_should_be_discarded() {
 		register_taxonomy( 'wptests_tax', 'post' );
@@ -740,6 +791,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41246
+	 *
+	 * @covers WP_Term_Query::query
 	 */
 	public function test_terms_pre_query_filter_should_bypass_database_query() {
 		global $wpdb;
@@ -770,6 +823,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37728
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_hide_empty_should_include_empty_parents_of_nonempty_children() {
 		register_taxonomy(
@@ -810,6 +865,8 @@ class Tests_Term_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 37728
+	 *
+	 * @covers WP_Term_Query
 	 */
 	public function test_hide_empty_should_include_empty_parents_of_nonempty_children_when_category_is_unspecified() {
 		register_taxonomy(

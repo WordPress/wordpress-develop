@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::get_term
  */
 class Tests_Term_GetTerm extends WP_UnitTestCase {
 	public function setUp() {

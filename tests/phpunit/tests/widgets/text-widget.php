@@ -75,6 +75,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 * Test register in customize preview.
 	 *
 	 * @global WP_Customize_Manager $wp_customize
+	 *
 	 * @covers WP_Widget_Text::__construct
 	 * @covers WP_Widget_Text::_register
 	 */
@@ -105,6 +106,7 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 *
 	 * @global WP_Scripts $wp_scripts
 	 * @global WP_Styles $wp_styles
+	 *
 	 * @covers WP_Widget_Text::enqueue_preview_scripts
 	 */
 	function test_enqueue_preview_scripts() {
@@ -1006,6 +1008,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 * Ensure that rel="noopener" is added to links with a target.
 	 *
 	 * @ticket 46421
+	 *
+	 * @covers WP_Widget_Text::widget
 	 */
 	function test_render_links_with_target() {
 		$widget = new WP_Widget_Text();
@@ -1033,6 +1037,8 @@ class Test_WP_Widget_Text extends WP_UnitTestCase {
 	 * Ensure that rel="noopener" is not added to links without a target.
 	 *
 	 * @ticket 46421
+	 *
+	 * @covers WP_Widget_Text::widget
 	 */
 	function test_render_links_without_target() {
 		$widget = new WP_Widget_Text();

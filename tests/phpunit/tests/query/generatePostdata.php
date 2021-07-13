@@ -2,6 +2,7 @@
 
 /**
  * @group query
+ *
  * @covers ::generate_postdata
  */
 class Tests_Query_GeneratePostdata extends WP_UnitTestCase {

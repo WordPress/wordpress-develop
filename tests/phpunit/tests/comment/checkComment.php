@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::check_comment
  */
 class Tests_Comment_CheckComment extends WP_UnitTestCase {
 	public function test_should_return_true_when_comment_previously_approved_is_disabled() {

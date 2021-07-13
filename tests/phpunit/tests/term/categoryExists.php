@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @group taxonomy
+ *
+ * @covers ::category_exists
+ */
 class Tests_Term_CategoryExists extends WP_UnitTestCase {
 	/**
 	 * @ticket 30975

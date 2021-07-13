@@ -9,6 +9,8 @@ if ( is_multisite() ) :
 	 * environment. Tests for `get_space_used()` are handled elsewhere.
 	 *
 	 * @group multisite
+	 *
+	 * @covers ::is_upload_space_available
 	 */
 	class Tests_Multisite_Is_Upload_Space_Available extends WP_UnitTestCase {
 		protected $suppress = false;

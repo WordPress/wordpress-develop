@@ -12,9 +12,10 @@
  *
  * @group url
  * @group privacy
- * @covers ::get_privacy_policy_url
  *
  * @since 4.9.6
+ *
+ * @covers ::get_privacy_policy_url
  */
 class Tests_Url_GetPrivacyPolicyUrl extends WP_UnitTestCase {
 	/**

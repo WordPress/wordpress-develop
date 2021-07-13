@@ -2,6 +2,8 @@
 
 /**
  * @group sanitize_sql_orderby
+ *
+ * @covers ::sanitize_sql_orderby
  */
 class Tests_Formatting_SanitizeOrderby extends WP_UnitTestCase {
 

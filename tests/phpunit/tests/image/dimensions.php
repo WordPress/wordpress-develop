@@ -4,8 +4,11 @@
  * @group image
  * @group media
  * @group upload
+ *
+ * @covers ::image_resize_dimensions
  */
 class Tests_Image_Dimensions extends WP_UnitTestCase {
+
 	function test_400x400_no_crop() {
 		// Landscape: resize 640x480 to fit 400x400: 400x300.
 		$out = image_resize_dimensions( 640, 480, 400, 400, false );
@@ -78,8 +81,9 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		$this->assertFalse( $out );
 	}
 
-	// Cropped versions.
-
+	/**
+	 *  Cropped versions.
+	 */
 	function test_400x400_crop() {
 		// Landscape: crop 640x480 to fit 400x400: 400x400 taken from a 480x480 crop at (80. 0).
 		$out = image_resize_dimensions( 640, 480, 400, 400, true );
@@ -181,5 +185,4 @@ class Tests_Image_Dimensions extends WP_UnitTestCase {
 		// dst_x, dst_y, src_x, src_y, dst_w, dst_h, src_w, src_h.
 		$this->assertSame( array( 0, 0, 0, 40, 400, 500, 480, 600 ), $out );
 	}
-
 }

@@ -2,6 +2,8 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::wp_trim_words
  */
 class Tests_Formatting_WPTrimWords extends WP_UnitTestCase {
 

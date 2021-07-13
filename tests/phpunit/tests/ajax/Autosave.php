@@ -49,6 +49,8 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests autosaving a post.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_post() {
 		// The original post_author.
@@ -90,6 +92,8 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests autosaving a locked post.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_autosave_locked_post() {
 		// Lock the post to another user.
@@ -141,6 +145,8 @@ class Tests_Ajax_Autosave extends WP_Ajax_UnitTestCase {
 
 	/**
 	 * Tests with an invalid nonce.
+	 *
+	 * @covers ::wp_ajax_heartbeat
 	 */
 	public function test_with_invalid_nonce() {
 

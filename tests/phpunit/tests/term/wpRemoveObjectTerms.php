@@ -2,6 +2,8 @@
 
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_remove_object_terms
  */
 class Tests_Term_WpRemoveObjectTerms extends WP_UnitTestCase {
 	/**

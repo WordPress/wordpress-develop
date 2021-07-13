@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::wp_check_comment_disallowed_list
  */
 class Tests_WP_Blocklist_Check extends WP_UnitTestCase {
 

@@ -3,6 +3,8 @@
 /**
  * @group formatting
  * @ticket 43187
+ *
+ * @covers ::wp_targeted_link_rel
  */
 class Tests_Targeted_Link_Rel extends WP_UnitTestCase {
 

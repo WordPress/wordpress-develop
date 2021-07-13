@@ -221,6 +221,10 @@ class Tests_TestHelpers extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::register_post_status
+	 * @covers ::_unregister_post_status
+	 */
 	public function test__unregister_post_status() {
 		register_post_status( 'foo' );
 		_unregister_post_status( 'foo' );

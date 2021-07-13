@@ -6,8 +6,6 @@
  * @group general
  * @group template
  * @group document-title
- * @covers ::wp_get_document_title
- * @covers ::_wp_render_title_tag
  */
 class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 
@@ -57,6 +55,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		add_theme_support( 'title-tag' );
 	}
 
+	/**
+	 * @covers ::_wp_render_title_tag
+	 */
 	function test__wp_render_title_tag() {
 		$this->go_to( '/' );
 
@@ -64,6 +65,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		_wp_render_title_tag();
 	}
 
+	/**
+	 * @covers ::_wp_render_title_tag
+	 */
 	function test__wp_render_title_no_theme_support() {
 		$this->go_to( '/' );
 
@@ -73,6 +77,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		_wp_render_title_tag();
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_short_circuiting_title() {
 		$this->go_to( '/' );
 
@@ -85,6 +92,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return 'A Wild Title';
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_front_page_title() {
 		update_option( 'show_on_front', 'page' );
 		update_option(
@@ -115,6 +125,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return $parts;
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_home_title() {
 		$blog_page_id = $this->factory->post->create(
 			array(
@@ -130,6 +143,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( 'blog-page &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_paged_title() {
 		$this->go_to( '?page=4' );
 
@@ -147,6 +163,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return $parts;
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_singular_title() {
 		$this->go_to( '?p=' . self::$post_id );
 
@@ -163,24 +182,36 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return $parts;
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_category_title() {
 		$this->go_to( '?cat=' . self::$category_id );
 
 		$this->assertSame( sprintf( 'test_category &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_search_title() {
 		$this->go_to( '?s=test_title' );
 
 		$this->assertSame( sprintf( 'Search Results for &#8220;test_title&#8221; &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_author_title() {
 		$this->go_to( '?author=' . self::$author_id );
 
 		$this->assertSame( sprintf( 'test_author &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_post_type_archive_title() {
 		register_post_type(
 			'cpt',
@@ -204,30 +235,45 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		$this->assertSame( sprintf( 'test_cpt &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_year_title() {
 		$this->go_to( '?year=2015' );
 
 		$this->assertSame( sprintf( '2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_month_title() {
 		$this->go_to( '?monthnum=09' );
 
 		$this->assertSame( sprintf( 'September 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_day_title() {
 		$this->go_to( '?day=22' );
 
 		$this->assertSame( sprintf( 'September 22, 2015 &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_404_title() {
 		$this->go_to( '?m=404' );
 
 		$this->assertSame( sprintf( 'Page not found &#8211; %s', $this->blog_name ), wp_get_document_title() );
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_paged_post_title() {
 		$this->go_to( '?paged=4&p=' . self::$post_id );
 
@@ -245,6 +291,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return $parts;
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_rearrange_title_parts() {
 		$this->go_to( '?p=' . self::$post_id );
 
@@ -262,6 +311,9 @@ class Tests_General_wpGetDocumentTitle extends WP_UnitTestCase {
 		return $parts;
 	}
 
+	/**
+	 * @covers ::wp_get_document_title
+	 */
 	function test_change_title_separator() {
 		$this->go_to( '?p=' . self::$post_id );
 

@@ -2,6 +2,8 @@
 
 /**
  * @group menu
+ *
+ * @covers ::_wp_ajax_menu_quick_search
  */
 class Tests_Menu_WpAjaxMenuQuickSeach extends WP_UnitTestCase {
 

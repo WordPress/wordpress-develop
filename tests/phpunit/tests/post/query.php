@@ -7,6 +7,8 @@
 class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @group taxonomy
+	 *
+	 * @covers WP_Query::get
 	 */
 	function test_category__and_var() {
 		$q = new WP_Query();
@@ -49,6 +51,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	/**
 	 * @ticket 28099
 	 * @group taxonomy
+	 *
+	 * @covers WP_Query::get
 	 */
 	function test_empty_category__in() {
 		$cat_id  = self::factory()->category->create();
@@ -78,6 +82,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 22448
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	function test_the_posts_filter() {
 		// Create posts and clear their caches.
@@ -128,6 +134,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		return $posts;
 	}
 
+	/**
+	 * @covers WP_Query::__construct
+	 */
 	function test_post__in_ordering() {
 		$post_id1 = self::factory()->post->create(
 			array(
@@ -176,6 +185,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38034
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_orderby_post__in_array() {
 		$posts = self::factory()->post->create_many( 4 );
@@ -194,6 +205,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38034
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_orderby_post__in_array_with_implied_order() {
 		$posts = self::factory()->post->create_many( 4 );
@@ -210,6 +223,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'ID' ) );
 	}
 
+	/**
+	 * @covers WP_Query::__construct
+	 */
 	function test_post__in_attachment_ordering() {
 		$post_id    = self::factory()->post->create();
 		$att_ids    = array();
@@ -273,6 +289,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36515
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_post_name__in_ordering() {
 		$post_id1 = self::factory()->post->create(
@@ -308,6 +326,9 @@ class Tests_Post_Query extends WP_UnitTestCase {
 		$this->assertSame( $ordered, wp_list_pluck( $q->posts, 'post_name' ) );
 	}
 
+	/**
+	 * @covers WP_Query::__construct
+	 */
 	function test_post_status() {
 		$statuses1 = get_post_stati();
 		$this->assertContains( 'auto-draft', $statuses1 );
@@ -330,6 +351,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17065
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	function test_orderby_array() {
 		global $wpdb;
@@ -366,6 +389,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17065
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	function test_order() {
 		global $wpdb;
@@ -406,6 +431,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 29629
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	function test_orderby() {
 		// 'rand' is a valid value.
@@ -441,6 +468,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35692
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_orderby_rand_with_seed() {
 		$q = new WP_Query(
@@ -454,6 +483,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35692
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_orderby_rand_should_ignore_invalid_seed() {
 		$q = new WP_Query(
@@ -467,6 +498,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 35692
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_orderby_rand_with_seed_should_be_case_insensitive() {
 		$q = new WP_Query(
@@ -482,6 +515,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * Tests the post_name__in attribute of WP_Query.
 	 *
 	 * @ticket 33065
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_post_name__in() {
 		$q = new WP_Query();
@@ -534,6 +569,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_posts_pre_query_filter_should_bypass_database_query() {
 		global $wpdb;
@@ -560,6 +597,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_posts_pre_query_filter_should_respect_set_found_posts() {
 		global $wpdb;
@@ -595,6 +634,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_set_found_posts_fields_ids() {
 		register_post_type( 'wptests_pt' );
@@ -619,6 +660,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_set_found_posts_fields_idparent() {
 		register_post_type( 'wptests_pt' );
@@ -642,6 +685,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_set_found_posts_fields_split_the_query() {
 		register_post_type( 'wptests_pt' );
@@ -668,6 +713,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 36687
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_set_found_posts_fields_not_split_the_query() {
 		register_post_type( 'wptests_pt' );
@@ -707,6 +754,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 	 * @ticket 42860
 	 *
 	 * @dataProvider set_found_posts_provider
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_set_found_posts_not_posts_as_an_array( $posts, $expected ) {
 		$q = new WP_Query(
@@ -727,6 +776,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42469
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_found_posts_should_be_integer_not_string() {
 		$this->post_id = self::factory()->post->create();
@@ -742,6 +793,8 @@ class Tests_Post_Query extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 42469
+	 *
+	 * @covers WP_Query::__construct
 	 */
 	public function test_found_posts_should_be_integer_even_if_found_posts_filter_returns_string_value() {
 		$this->post_id = self::factory()->post->create();

@@ -2,6 +2,8 @@
 
 /**
  * @group post
+ *
+ * @covers ::get_lastpostdate
  */
 class Tests_Post_GetLastPostDate extends WP_UnitTestCase {
 

@@ -12,9 +12,10 @@
  *
  * @group privacy
  * @group user
- * @covers ::_wp_privacy_send_request_confirmation_notification
  *
  * @since 4.9.8
+ *
+ * @covers ::_wp_privacy_send_request_confirmation_notification
  */
 class Tests_Privacy_wpPrivacySendRequestConfirmationNotification extends WP_UnitTestCase {
 	/**

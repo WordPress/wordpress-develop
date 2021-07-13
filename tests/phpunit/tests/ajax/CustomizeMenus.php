@@ -79,6 +79,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param string $role              The role we're checking caps against.
 	 * @param array  $expected_results  Expected results.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test_ajax_load_available_items_cap_check( $role, $expected_results ) {
 
@@ -157,6 +159,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $post_args POST args.
 	 * @param mixed $expected_results Expected results.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test_ajax_load_available_items_error_messages( $post_args, $expected_results ) {
 
@@ -267,6 +271,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $post_args       POST args.
 	 * @param array $success_status  Success status.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test_ajax_load_available_items_success_status( $post_args, $success_status ) {
 
@@ -357,6 +363,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 * @dataProvider data_ajax_load_available_items_structure
 	 *
 	 * @param array $post_args POST args.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test2_ajax_load_available_items_structure( $post_args ) {
 		do_action( 'customize_register', $this->wp_customize );
@@ -466,6 +474,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param string $role             Role.
 	 * @param array  $expected_results Expected results.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test_ajax_search_available_items_caps_check( $role, $expected_results ) {
 
@@ -545,6 +555,8 @@ class Tests_Ajax_CustomizeMenus extends WP_Ajax_UnitTestCase {
 	 *
 	 * @param array $post_args        POST args.
 	 * @param array $expected_results Expected results.
+	 *
+	 * @covers ::ajax_load_available_items
 	 */
 	function test_ajax_search_available_items_results( $post_args, $expected_results ) {
 		do_action( 'customize_register', $this->wp_customize );

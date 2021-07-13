@@ -13,6 +13,8 @@
  * @since 5.5.0
  *
  * @group blocks
+ *
+ * @covers WP_Block::__construct
  */
 class WP_Block_Test extends WP_UnitTestCase {
 
@@ -47,6 +49,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_assigns_properties_from_parsed_block() {
 		$this->registry->register( 'core/example', array() );
@@ -65,6 +69,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_assigns_block_type_from_registry() {
 		$block_type_settings = array(
@@ -90,6 +96,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_lazily_assigns_attributes_with_defaults() {
 		$this->registry->register(
@@ -124,6 +132,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_lazily_assigns_attributes_with_only_defaults() {
 		$this->registry->register(
@@ -152,6 +162,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_assigns_context_from_block_type() {
 		$this->registry->register(
@@ -173,6 +185,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_maps_inner_blocks() {
 		$this->registry->register( 'core/example', array() );
@@ -189,6 +203,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_prepares_context_for_inner_blocks() {
 		$this->registry->register(
@@ -225,6 +241,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::__construct
 	 */
 	function test_constructor_assigns_merged_context() {
 		$this->registry->register(
@@ -269,6 +287,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_render_static_block_type_returns_own_content() {
 		$this->registry->register( 'core/static', array() );
@@ -291,6 +311,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_render_passes_block_for_render_callback() {
 		$this->registry->register(
@@ -312,6 +334,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_render_applies_render_block_filter() {
 		$this->registry->register( 'core/example', array() );
@@ -332,6 +356,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 46187
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_render_applies_dynamic_render_block_filter() {
 		$this->registry->register( 'core/example', array() );
@@ -352,6 +378,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_passes_attributes_to_render_callback() {
 		$this->registry->register(
@@ -386,6 +414,8 @@ class WP_Block_Test extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 49927
+	 *
+	 * @covers WP_Block::render
 	 */
 	function test_passes_content_to_render_callback() {
 		$this->registry->register(

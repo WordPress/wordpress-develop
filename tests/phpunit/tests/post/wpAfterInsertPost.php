@@ -121,6 +121,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when updating a post object.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_update_post
 	 */
 	public function test_update_via_wp_update_post() {
 		$post               = get_post( self::$post_id, ARRAY_A );
@@ -135,6 +137,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when publishing a post object.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_publish_post
 	 */
 	public function test_update_via_wp_publish_post() {
 		wp_publish_post( self::$post_id );
@@ -147,6 +151,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when inserting a new post.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	public function test_new_post_via_wp_insert_post() {
 		wp_insert_post(
@@ -165,6 +171,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when updating post via REST API.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_update_post
 	 */
 	public function test_update_via_rest_contoller() {
 		wp_set_current_user( self::$admin_id );
@@ -183,6 +191,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when creating post via REST API.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_insert_post
 	 */
 	public function test_new_post_via_rest_contoller() {
 		wp_set_current_user( self::$admin_id );
@@ -205,6 +215,8 @@ class Tests_Post_wpAfterInsertPost extends WP_UnitTestCase {
 	 * Ensure before post is correct when updating post via REST API.
 	 *
 	 * @ticket 45114
+	 *
+	 * @covers ::wp_update_post
 	 */
 	public function test_update_attachment_via_rest_contoller() {
 		wp_set_current_user( self::$admin_id );

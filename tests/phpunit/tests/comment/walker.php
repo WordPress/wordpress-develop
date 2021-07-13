@@ -2,6 +2,8 @@
 
 /**
  * @group comment
+ *
+ * @covers ::wp_list_comments
  */
 class Tests_Comment_Walker extends WP_UnitTestCase {
 

@@ -60,9 +60,9 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 	/**
 	 * Test schema filtering.
 	 *
-	 * @covers WP_Widget_Media_Image::get_instance_schema
-	 *
 	 * @ticket 45029
+	 *
+	 * @covers WP_Widget_Media_Image::get_instance_schema
 	 */
 	function test_get_instance_schema_filtering() {
 		$widget = new WP_Widget_Media_Image();
@@ -406,9 +406,9 @@ class Test_WP_Widget_Media_Image extends WP_UnitTestCase {
 
 	/**
 	 * Test render_media method.
+	 * @requires function imagejpeg
 	 *
 	 * @covers WP_Widget_Media_Image::render_media
-	 * @requires function imagejpeg
 	 */
 	function test_render_media() {
 		$widget = new WP_Widget_Media_Image();

@@ -4,6 +4,8 @@
  * Tests related to sticky functionality in WP_Query.
  *
  * @group query
+ *
+ * @covers ::stick_post
  */
 class Tests_Query_Stickies extends WP_UnitTestCase {
 	public static $posts = array();

@@ -3,6 +3,8 @@
 /**
  * @group post
  * @group formatting
+ *
+ * @covers ::get_the_content
  */
 class Tests_Post_GetTheContent extends WP_UnitTestCase {
 	/**

@@ -14,6 +14,8 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @dataProvider data_is_ssl
+	 *
+	 * @covers ::is_ssl
 	 */
 	function test_is_ssl( $value, $expected ) {
 		$_SERVER['HTTPS'] = $value;
@@ -47,6 +49,9 @@ class Tests_URL extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::is_ssl
+	 */
 	function test_is_ssl_by_port() {
 		unset( $_SERVER['HTTPS'] );
 		$_SERVER['SERVER_PORT'] = '443';
@@ -55,6 +60,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$this->assertTrue( $is_ssl );
 	}
 
+	/**
+	 * @covers ::is_ssl
+	 */
 	function test_is_ssl_with_no_value() {
 		unset( $_SERVER['HTTPS'] );
 
@@ -67,6 +75,8 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @param string $url      Test URL.
 	 * @param string $expected Expected result.
+	 *
+	 * @covers ::admin_url
 	 */
 	function test_admin_url( $url, $expected ) {
 		$siteurl_http   = get_option( 'siteurl' );
@@ -135,6 +145,8 @@ class Tests_URL extends WP_UnitTestCase {
 	 *
 	 * @param string $url      Test URL.
 	 * @param string $expected Expected result.
+	 *
+	 * @covers ::home_url
 	 */
 	function test_home_url( $url, $expected ) {
 		$homeurl_http  = get_option( 'home' );
@@ -198,6 +210,9 @@ class Tests_URL extends WP_UnitTestCase {
 		);
 	}
 
+	/**
+	 * @covers ::home_url
+	 */
 	function test_home_url_from_admin() {
 		$screen = get_current_screen();
 
@@ -247,6 +262,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$GLOBALS['current_screen'] = $screen;
 	}
 
+	/**
+	 * @covers ::network_home_url
+	 */
 	function test_network_home_url_from_admin() {
 		$screen = get_current_screen();
 
@@ -272,6 +290,9 @@ class Tests_URL extends WP_UnitTestCase {
 		$GLOBALS['current_screen'] = $screen;
 	}
 
+	/**
+	 * @covers ::set_url_scheme
+	 */
 	function test_set_url_scheme() {
 		if ( ! function_exists( 'set_url_scheme' ) ) {
 			return;
@@ -336,6 +357,9 @@ class Tests_URL extends WP_UnitTestCase {
 		force_ssl_admin( $forced_admin );
 	}
 
+	/**
+	 * @covers ::get_adjacent_post
+	 */
 	public function test_get_adjacent_post() {
 		$now      = time();
 		$post_id  = self::factory()->post->create( array( 'post_date' => gmdate( 'Y-m-d H:i:s', $now - 1 ) ) );
@@ -370,6 +394,8 @@ class Tests_URL extends WP_UnitTestCase {
 	 * Test get_adjacent_post returns the next private post when the author is the currently logged in user.
 	 *
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_the_current_user() {
 		$u       = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -407,6 +433,8 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_return_private_posts_belonging_to_other_users_if_the_current_user_can_read_private_posts() {
 		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -445,6 +473,8 @@ class Tests_URL extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 30287
+	 *
+	 * @covers ::get_adjacent_post
 	 */
 	public function test_get_adjacent_post_should_not_return_private_posts_belonging_to_other_users_if_the_current_user_cannot_read_private_posts() {
 		$u1      = self::factory()->user->create( array( 'role' => 'author' ) );
@@ -491,6 +521,17 @@ class Tests_URL extends WP_UnitTestCase {
 	 * Test that *_url functions handle paths with ".."
 	 *
 	 * @ticket 19032
+	 *
+	 * @covers ::site_url
+	 * @covers ::home_url
+	 * @covers ::admin_url
+	 * @covers ::network_admin_url
+	 * @covers ::user_admin_url
+	 * @covers ::includes_url
+	 * @covers ::network_site_url
+	 * @covers ::network_home_url
+	 * @covers ::content_url
+	 * @covers ::plugins_url
 	 */
 	public function test_url_functions_for_dots_in_paths() {
 		$functions = array(

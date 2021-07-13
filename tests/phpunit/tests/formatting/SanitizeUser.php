@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_user
  */
 class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
+
 	function test_strips_html() {
 		$input    = 'Captain <strong>Awesome</strong>';
 		$expected = is_multisite() ? 'captain awesome' : 'Captain Awesome';
@@ -36,6 +39,7 @@ class Tests_Formatting_SanitizeUser extends WP_UnitTestCase {
 		$expected = is_multisite() ? 'franois' : 'Franois';
 		$this->assertSame( $expected, sanitize_user( 'Fran%c3%a7ois' ) );
 	}
+
 	function test_optional_strict_mode_reduces_to_safe_ascii_subset() {
 		$this->assertSame( 'abc', sanitize_user( '()~ab~ˆcˆ!', true ) );
 	}

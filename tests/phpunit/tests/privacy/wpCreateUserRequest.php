@@ -11,9 +11,10 @@
  * Tests_Privacy_wpCreateUserRequest class.
  *
  * @group privacy
- * @covers ::wp_create_user_request
  *
  * @since 5.2.0
+ *
+ * @covers ::wp_create_user_request
  */
 class Tests_Privacy_wpCreateUserRequest extends WP_UnitTestCase {
 	/**

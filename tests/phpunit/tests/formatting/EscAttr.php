@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::esc_attr
  */
 class Tests_Formatting_EscAttr extends WP_UnitTestCase {
+
 	function test_esc_attr_quotes() {
 		$attr = '"double quotes"';
 		$this->assertSame( '&quot;double quotes&quot;', esc_attr( $attr ) );

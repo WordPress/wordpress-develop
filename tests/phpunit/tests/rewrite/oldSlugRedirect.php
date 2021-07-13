@@ -3,6 +3,8 @@
 /**
  * @group rewrite
  * @ticket 33920
+ *
+ * @covers ::wp_old_slug_redirect
  */
 class Tests_Rewrite_OldSlugRedirect extends WP_UnitTestCase {
 	protected $old_slug_redirect_url;

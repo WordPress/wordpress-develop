@@ -40,6 +40,8 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * @ticket 41562
 	 * @group external-http
+	 *
+	 * @covers GP_Locales::locales
 	 */
 	public function test_locales_provider() {
 		$locales = self::locales_provider();
@@ -72,6 +74,8 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 * @ticket 41562
 	 * @dataProvider locales_provider
 	 * @group external-http
+	 *
+	 * @covers Plural_Forms::__construct
 	 */
 	public function test_regression( $lang, $nplurals, $expression ) {
 		require_once dirname( dirname( __DIR__ ) ) . '/includes/plural-form-function.php';
@@ -145,6 +149,8 @@ class PluralFormsTest extends WP_UnitTestCase {
 	/**
 	 * @ticket 41562
 	 * @dataProvider simple_provider
+	 *
+	 * @covers Plural_Forms::__construct
 	 */
 	public function test_simple( $expression, $expected ) {
 		$plural_forms = new Plural_Forms( $expression );
@@ -201,6 +207,8 @@ class PluralFormsTest extends WP_UnitTestCase {
 	 *
 	 * @ticket 41562
 	 * @dataProvider data_exceptions
+	 *
+	 * @covers Plural_Forms::__construct
 	 */
 	public function test_exceptions( $expression, $expected_message, $call_get ) {
 		$this->expectException( 'Exception' );

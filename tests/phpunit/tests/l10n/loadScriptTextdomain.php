@@ -3,6 +3,8 @@
 /**
  * @group l10n
  * @group i18n
+ *
+ * @covers ::load_script_textdomain
  */
 class Tests_L10n_LoadScriptTextdomain extends WP_UnitTestCase {
 

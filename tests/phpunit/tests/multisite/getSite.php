@@ -40,6 +40,9 @@ if ( is_multisite() ) :
 			wp_update_network_site_counts();
 		}
 
+		/**
+		 * @covers ::get_site
+		 */
 		public function test_get_site_in_switched_state_returns_switched_site() {
 			switch_to_blog( self::$site_ids['wordpress.org/foo/'] );
 			$site = get_site();

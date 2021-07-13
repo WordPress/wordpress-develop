@@ -2,6 +2,8 @@
 /**
  * @group author
  * @group user
+ *
+ * @covers ::wp_list_authors
  */
 class Tests_User_ListAuthors extends WP_UnitTestCase {
 	public static $user_ids = array();

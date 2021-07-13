@@ -45,6 +45,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		return $mime_type;
 	}
 
+	/**
+	 * @covers ::file_is_valid_image
+	 */
 	function test_is_image_positive() {
 		// These are all image files recognized by PHP.
 		$files = array(
@@ -75,6 +78,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::file_is_valid_image
+	 */
 	function test_is_image_negative() {
 		// These are actually image files but aren't recognized or usable by PHP.
 		$files = array(
@@ -88,6 +94,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::file_is_displayable_image
+	 */
 	function test_is_displayable_image_positive() {
 		// These are all usable in typical web browsers.
 		$files = array(
@@ -122,6 +131,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		}
 	}
 
+	/**
+	 * @covers ::file_is_displayable_image
+	 */
 	function test_is_displayable_image_negative() {
 		// These are image files but aren't suitable for web pages because of compatibility or size issues.
 		$files = array(
@@ -146,6 +158,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 50833
+	 *
+	 * @covers ::is_gd_image
 	 */
 	function test_is_gd_image_invalid_types() {
 		$this->assertFalse( is_gd_image( new stdClass() ) );
@@ -160,6 +174,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @ticket 50833
 	 * @requires extension gd
+	 *
+	 * @covers ::is_gd_image
 	 */
 	function test_is_gd_image_valid_types() {
 		$this->assertTrue( is_gd_image( imagecreate( 5, 5 ) ) );
@@ -170,6 +186,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @requires extension fileinfo
+	 *
+	 * @covers ::wp_save_image_file
 	 */
 	public function test_wp_save_image_file() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
@@ -231,6 +249,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @requires extension fileinfo
+	 *
+	 * @covers WP_Image_Editor_GD::save
+	 * @covers WP_Image_Editor_Imagick::save
 	 */
 	public function test_mime_overrides_filename() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
@@ -273,6 +294,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 6821
 	 * @requires extension fileinfo
+	 *
+	 * @covers WP_Image_Editor_GD::save
+	 * @covers WP_Image_Editor_Imagick::save
 	 */
 	public function test_inferred_mime_types() {
 		$classes = array( 'WP_Image_Editor_GD', 'WP_Image_Editor_Imagick' );
@@ -332,6 +356,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 *
 	 * @ticket 17814
 	 * @expectedDeprecated wp_load_image
+	 *
+	 * @covers WP_Image_Editor_GD::load
+	 * @covers WP_Image_Editor_Imagick::load
 	 */
 	public function test_load_directory() {
 
@@ -367,6 +394,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @requires function imagejpeg
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_file() {
 		$file = wp_crop_image(
@@ -391,6 +420,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	/**
 	 * @requires function imagejpeg
 	 * @requires extension openssl
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_url() {
 		$file = wp_crop_image(
@@ -419,6 +450,9 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 		unlink( $file );
 	}
 
+	/**
+	 * @covers ::wp_crop_image
+	 */
 	public function test_wp_crop_image_file_not_exist() {
 		$file = wp_crop_image(
 			DIR_TESTDATA . '/images/canoladoesnotexist.jpg',
@@ -434,6 +468,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @requires extension openssl
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_url_not_exist() {
 		$file = wp_crop_image(
@@ -454,6 +490,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 23325
+	 *
+	 * @covers ::wp_crop_image
 	 */
 	public function test_wp_crop_image_error_on_saving() {
 		WP_Image_Editor_Mock::$save_return = new WP_Error();
@@ -476,6 +514,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 31050
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_wp_generate_attachment_metadata_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -544,6 +584,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Crop setting for PDF.
 	 *
 	 * @ticket 43226
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_crop_setting_for_pdf() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -611,6 +653,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 39231
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_fallback_intermediate_image_sizes() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {
@@ -671,6 +715,8 @@ class Tests_Image_Functions extends WP_UnitTestCase {
 	 * Test PDF preview doesn't overwrite existing JPEG.
 	 *
 	 * @ticket 39875
+	 *
+	 * @covers ::wp_generate_attachment_metadata
 	 */
 	public function test_pdf_preview_doesnt_overwrite_existing_jpeg() {
 		if ( ! wp_image_editor_supports( array( 'mime_type' => 'application/pdf' ) ) ) {

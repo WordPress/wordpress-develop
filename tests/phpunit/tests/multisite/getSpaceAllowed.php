@@ -6,6 +6,8 @@ if ( is_multisite() ) :
 	 * Tests specific to `get_space_allowed()` in multisite.
 	 *
 	 * @group multisite
+	 *
+	 * @covers ::get_space_allowed
 	 */
 	class Tests_Multisite_Get_Space_Allowed extends WP_UnitTestCase {
 		protected $suppress = false;

@@ -1,6 +1,8 @@
 <?php
 /**
  * @group taxonomy
+ *
+ * @covers ::wp_generate_tag_cloud
  */
 class Tests_WP_Generate_Tag_Cloud extends WP_UnitTestCase {
 	protected $terms = array();

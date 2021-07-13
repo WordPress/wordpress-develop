@@ -2,8 +2,12 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::zeroise
  */
 class Tests_Formatting_Zeroise extends WP_UnitTestCase {
+
+
 	function test_pads_with_leading_zeroes() {
 		$this->assertSame( '00005', zeroise( 5, 5 ) );
 	}

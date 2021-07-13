@@ -2,8 +2,11 @@
 
 /**
  * @group formatting
+ *
+ * @covers ::sanitize_title
  */
 class Tests_Formatting_SanitizeTitle extends WP_UnitTestCase {
+
 	function test_strips_html() {
 		$input    = 'Captain <strong>Awesome</strong>';
 		$expected = 'captain-awesome';

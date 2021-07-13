@@ -41,6 +41,10 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 	 * @ticket 11216
 	 * @expectedDeprecated get_theme
 	 * @expectedDeprecated get_themes
+	 *
+	 * @covers ::get_theme
+	 * @covers ::wp_get_theme
+	 * @covers ::get_page_templates
 	 */
 	function test_page_templates() {
 		$theme = get_theme( 'Page Template Theme' );
@@ -74,6 +78,9 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 18375
+	 *
+	 * @covers ::wp_get_theme
+	 * @covers ::get_page_templates
 	 */
 	function test_page_templates_different_post_types() {
 		$theme = wp_get_theme( 'page-templates' );
@@ -100,6 +107,9 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38766
+	 *
+	 * @covers ::wp_get_theme
+	 * @covers ::get_page_templates
 	 */
 	function test_page_templates_for_post_types_with_trailing_periods() {
 		$theme = wp_get_theme( 'page-templates' );
@@ -132,6 +142,9 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 38696
+	 *
+	 * @covers ::wp_get_theme
+	 * @covers ::get_page_templates
 	 */
 	function test_page_templates_child_theme() {
 		$theme = wp_get_theme( 'page-templates-child' );
@@ -171,6 +184,9 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 41717
+	 *
+	 * @covers ::wp_get_theme
+	 * @covers WP_Theme::get_post_templates
 	 */
 	public function test_get_post_templates_child_theme() {
 		$theme = wp_get_theme( 'page-templates-child' );
@@ -215,6 +231,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 	 *
 	 * @group external-http
 	 * @ticket 28121
+	 *
+	 * @covers ::get_theme_feature_list
 	 */
 	function test_get_theme_featured_list_api() {
 		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
@@ -229,6 +247,8 @@ class Tests_Admin_includesTheme extends WP_UnitTestCase {
 	 *
 	 * @group external-http
 	 * @ticket 28121
+	 *
+	 * @covers ::get_theme_feature_list
 	 */
 	function test_get_theme_featured_list_hardcoded() {
 		$featured_list_hardcoded = get_theme_feature_list( false );
