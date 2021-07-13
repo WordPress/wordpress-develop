@@ -191,7 +191,7 @@ class WP_Theme_JSON {
 		'custom'     => null,
 		'layout'     => array(
 			'contentSize' => null,
- 			'wideSize'    => null,
+			'wideSize'    => null,
 		),
 		'spacing'    => array(
 			'customMargin'  => null,
