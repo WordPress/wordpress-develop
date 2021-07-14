@@ -100,14 +100,17 @@
   max-width: 100%;
 }
 .wp-block-site-logo .components-placeholder {
+  justify-content: flex-start;
   min-height: auto;
   height: 120px;
-  padding: 8px;
+  padding: 12px;
 }
 .wp-block-site-logo .components-placeholder .components-placeholder__label {
+  margin-top: 12px;
   white-space: nowrap;
 }
-.wp-block-site-logo .components-placeholder .components-placeholder__label .block-editor-block-icon {
+.wp-block-site-logo .components-placeholder .components-placeholder__label .block-editor-block-icon,
+.wp-block-site-logo .components-placeholder .components-placeholder__label > svg {
   margin-right: 4px;
 }
 .wp-block-site-logo .components-placeholder .components-form-file-upload {

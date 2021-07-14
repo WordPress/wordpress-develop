@@ -478,7 +478,7 @@ class REST_Block_Renderer_Controller_Test extends WP_Test_REST_Controller_Testca
 		$this->assertSame( 200, $response->get_status() );
 		$data = $response->get_data();
 
-		$this->assertTrue( empty( $data['rendered'] ) );
+		$this->assertEmpty( $data['rendered'] );
 
 		// Now test with post ID.
 		$request->set_param( 'post_id', self::$post_id );

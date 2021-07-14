@@ -541,6 +541,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 *
 	 * @covers WP_Customize_Manager::import_theme_starter_content
 	 * @covers WP_Customize_Manager::_save_starter_content_changeset
+	 * @requires function imagejpeg
 	 */
 	function test_import_theme_starter_content() {
 		wp_set_current_user( self::$admin_user_id );
@@ -677,9 +678,9 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSameSets( $expected_setting_ids, array_keys( $changeset_values ) );
 
 		foreach ( array( 'widget_text[2]', 'widget_meta[2]' ) as $setting_id ) {
-			$this->assertInternalType( 'array', $changeset_values[ $setting_id ] );
+			$this->assertIsArray( $changeset_values[ $setting_id ] );
 			$instance_data = $wp_customize->widgets->sanitize_widget_instance( $changeset_values[ $setting_id ] );
-			$this->assertInternalType( 'array', $instance_data );
+			$this->assertIsArray( $instance_data );
 			$this->assertArrayHasKey( 'title', $instance_data );
 		}
 
@@ -731,7 +732,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertNull( $wp_customize->changeset_post_id() );
 		$this->assertSame( 1000, has_action( 'customize_register', array( $wp_customize, '_save_starter_content_changeset' ) ) );
 		do_action( 'customize_register', $wp_customize ); // This will trigger the changeset save.
-		$this->assertInternalType( 'int', $wp_customize->changeset_post_id() );
+		$this->assertIsInt( $wp_customize->changeset_post_id() );
 		$this->assertNotEmpty( $wp_customize->changeset_data() );
 		foreach ( $wp_customize->changeset_data() as $setting_id => $setting_params ) {
 			$this->assertArrayHasKey( 'starter_content', $setting_params );
@@ -787,7 +788,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$this->assertSame( 'auto-draft', get_post( $posts_by_name['waffles'] )->post_status );
 		$this->assertNotEquals( $changeset_data['blogname']['value'], get_option( 'blogname' ) );
 		$r = $wp_customize->save_changeset_post( array( 'status' => 'publish' ) );
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertSame( 'publish', get_post( $posts_by_name['about'] )->post_status );
 		$this->assertSame( 'inherit', get_post( $posts_by_name['waffles'] )->post_status );
 		$this->assertSame( $changeset_data['blogname']['value'], get_option( 'blogname' ) );
@@ -1041,7 +1042,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'data'     => $pre_saved_data,
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 
 		$this->assertSame( $did_action['customize_save_validation_before'] + 1, did_action( 'customize_save_validation_before' ) );
 
@@ -1098,7 +1099,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		);
 		$this->assertInstanceOf( 'WP_Error', $r );
 		$this->assertSame( 'transaction_fail', $r->get_error_code() );
-		$this->assertInternalType( 'array', $r->get_error_data() );
+		$this->assertIsArray( $r->get_error_data() );
 		$this->assertArrayHasKey( 'setting_validities', $r->get_error_data() );
 		$error_data = $r->get_error_data();
 		$this->assertArrayHasKey( 'blogname', $error_data['setting_validities'] );
@@ -1137,7 +1138,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertArrayHasKey( 'setting_validities', $r );
 		$this->assertTrue( $r['setting_validities']['blogname'] );
 		$this->assertInstanceOf( 'WP_Error', $r['setting_validities']['bar_unknown'] );
@@ -1205,7 +1206,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertSame( 'Do it live \o/', get_option( 'blogname' ) );
 		$this->assertSame( 'trash', get_post_status( $post_id ) ); // Auto-trashed.
 		$this->assertSame( $original_capabilities, wp_list_pluck( $manager->settings(), 'capability' ) );
@@ -1422,8 +1423,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function filter_customize_changeset_save_data( $data, $context ) {
 		$this->customize_changeset_save_data_call_count += 1;
-		$this->assertInternalType( 'array', $data );
-		$this->assertInternalType( 'array', $context );
+		$this->assertIsArray( $data );
+		$this->assertIsArray( $context );
 		$this->assertArrayHasKey( 'uuid', $context );
 		$this->assertArrayHasKey( 'title', $context );
 		$this->assertArrayHasKey( 'status', $context );
@@ -1513,7 +1514,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertSame(
 			array_fill_keys( array( 'blogname', 'scratchpad', 'background_color' ), true ),
 			$r['setting_validities']
@@ -1540,7 +1541,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				),
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertSame(
 			array_fill_keys( array( 'blogname', 'background_color' ), true ),
 			$r['setting_validities']
@@ -1569,7 +1570,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'user_id' => self::$subscriber_user_id,
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 		$this->assertSame(
 			array_fill_keys( array( 'blogname', 'scratchpad' ), true ),
 			$r['setting_validities']
@@ -1888,7 +1889,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 				'autosave' => true,
 			)
 		);
-		$this->assertInternalType( 'array', $r );
+		$this->assertIsArray( $r );
 
 		// Verify that autosave happened.
 		$autosave_revision = wp_get_post_autosave( $changeset_post_id, get_current_user_id() );
@@ -2715,10 +2716,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 		$error->add( 'bad_letter', 'Bad letra', 123 );
 		$error->add( 'bad_number', 'Bad number', array( 'number' => 123 ) );
 		$validity = $this->manager->prepare_setting_validity_for_js( $error );
-		$this->assertInternalType( 'array', $validity );
+		$this->assertIsArray( $validity );
 		foreach ( $error->errors as $code => $messages ) {
 			$this->assertArrayHasKey( $code, $validity );
-			$this->assertInternalType( 'array', $validity[ $code ] );
+			$this->assertIsArray( $validity[ $code ] );
 			$this->assertSame( implode( ' ', $messages ), $validity[ $code ]['message'] );
 			$this->assertArrayHasKey( 'data', $validity[ $code ] );
 			$this->assertSame( $validity[ $code ]['data'], $error->get_error_data( $code ) );
@@ -2910,7 +2911,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return array
 	 */
 	function filter_customize_dynamic_setting_args_for_test_dynamic_settings( $setting_args, $setting_id ) {
-		$this->assertInternalType( 'string', $setting_id );
+		$this->assertIsString( $setting_id );
 		if ( in_array( $setting_id, array( 'foo', 'bar' ), true ) ) {
 			$setting_args = array( 'default' => "dynamic_{$setting_id}_default" );
 		}
@@ -2927,8 +2928,8 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function filter_customize_dynamic_setting_class_for_test_dynamic_settings( $setting_class, $setting_id, $setting_args ) {
 		$this->assertSame( 'WP_Customize_Setting', $setting_class );
-		$this->assertInternalType( 'string', $setting_id );
-		$this->assertInternalType( 'array', $setting_args );
+		$this->assertIsString( $setting_id );
+		$this->assertIsArray( $setting_args );
 		return $setting_class;
 	}
 
@@ -3039,7 +3040,7 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 */
 	function test_nonces() {
 		$nonces = $this->manager->get_nonces();
-		$this->assertInternalType( 'array', $nonces );
+		$this->assertIsArray( $nonces );
 		$this->assertArrayHasKey( 'save', $nonces );
 		$this->assertArrayHasKey( 'preview', $nonces );
 
@@ -3203,10 +3204,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return array Components.
 	 */
 	function return_array_containing_widgets( $components, $customize_manager ) {
-		$this->assertInternalType( 'array', $components );
+		$this->assertIsArray( $components );
 		$this->assertContains( 'widgets', $components );
 		$this->assertContains( 'nav_menus', $components );
-		$this->assertInternalType( 'array', $components );
+		$this->assertIsArray( $components );
 		$this->assertInstanceOf( 'WP_Customize_Manager', $customize_manager );
 		return array( 'widgets' );
 	}
@@ -3220,10 +3221,10 @@ class Tests_WP_Customize_Manager extends WP_UnitTestCase {
 	 * @return array Components.
 	 */
 	function return_array_containing_nav_menus( $components, $customize_manager ) {
-		$this->assertInternalType( 'array', $components );
+		$this->assertIsArray( $components );
 		$this->assertContains( 'widgets', $components );
 		$this->assertContains( 'nav_menus', $components );
-		$this->assertInternalType( 'array', $components );
+		$this->assertIsArray( $components );
 		$this->assertInstanceOf( 'WP_Customize_Manager', $customize_manager );
 		return array( 'nav_menus' );
 	}

@@ -58,7 +58,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertEquals(
 				array(
@@ -106,9 +106,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 				$message
 			);
 
-			$this->assertSame( 2, count( $result['posts'] ), $message );
-			$this->assertSame( 19, count( $result['posts'][0] ), $message );
-			$this->assertSame( 18, count( $result['posts'][1] ), $message );
+			$this->assertCount( 2, $result['posts'], $message );
+			$this->assertCount( 19, $result['posts'][0], $message );
+			$this->assertCount( 18, $result['posts'][1], $message );
 			$this->assertEquals(
 				array(
 					array(
@@ -151,7 +151,7 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$parser  = new $p;
 			$result  = $parser->parse( $file );
 
-			$this->assertTrue( is_array( $result ), $message );
+			$this->assertIsArray( $result, $message );
 			$this->assertSame( 'http://localhost/', $result['base_url'], $message );
 			$this->assertSame( $result['categories'][0]['category_nicename'], 'alpha', $message );
 			$this->assertSame( $result['categories'][0]['cat_name'], 'alpha', $message );
@@ -160,9 +160,9 @@ class Tests_Import_Parser extends WP_Import_UnitTestCase {
 			$this->assertSame( $result['tags'][0]['tag_slug'], 'chicken', $message );
 			$this->assertSame( $result['tags'][0]['tag_name'], 'chicken', $message );
 
-			$this->assertSame( 6, count( $result['posts'] ), $message );
-			$this->assertSame( 19, count( $result['posts'][0] ), $message );
-			$this->assertSame( 18, count( $result['posts'][1] ), $message );
+			$this->assertCount( 6, $result['posts'], $message );
+			$this->assertCount( 19, $result['posts'][0], $message );
+			$this->assertCount( 18, $result['posts'][1], $message );
 
 			$this->assertEquals(
 				array(

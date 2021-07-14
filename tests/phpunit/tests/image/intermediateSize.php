@@ -34,7 +34,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	function test_make_intermediate_size_width() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 100, 0, false );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 	}
 
 	/**
@@ -43,7 +43,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 	function test_make_intermediate_size_height() {
 		$image = image_make_intermediate_size( DIR_TESTDATA . '/images/a2-small.jpg', 0, 75, false );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 	}
 
 	/**
@@ -54,12 +54,12 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 		unlink( DIR_TESTDATA . '/images/a2-small-100x75.jpg' );
 
-		$this->assertInternalType( 'array', $image );
+		$this->assertIsArray( $image );
 		$this->assertSame( 100, $image['width'] );
 		$this->assertSame( 75, $image['height'] );
 		$this->assertSame( 'image/jpeg', $image['mime-type'] );
 
-		$this->assertFalse( isset( $image['path'] ) );
+		$this->assertArrayNotHasKey( 'path', $image );
 	}
 
 	/**
@@ -156,6 +156,7 @@ class Tests_Image_Intermediate_Size extends WP_UnitTestCase {
 
 	/**
 	 * @ticket 17626
+	 * @requires function imagejpeg
 	 */
 	function test_get_intermediate_sizes_by_array_nearest_false() {
 		// If an exact size is not found, it should be returned.

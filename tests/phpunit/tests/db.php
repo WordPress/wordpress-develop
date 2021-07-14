@@ -560,7 +560,7 @@ class Tests_DB extends WP_UnitTestCase {
 		$this->assertNotEmpty( $wpdb->insert_id );
 
 		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $wpdb->users WHERE ID = %d", $wpdb->insert_id ) );
-		$this->assertInternalType( 'object', $row );
+		$this->assertIsObject( $row );
 		$this->assertSame( 'Walter Sobchak', $row->display_name );
 	}
 
@@ -1682,7 +1682,7 @@ class Tests_DB extends WP_UnitTestCase {
 		if ( $expect_bail ) {
 			$this->assertFalse( $data );
 		} else {
-			$this->assertInternalType( 'array', $data );
+			$this->assertIsArray( $data );
 
 			list( $parsed_host, $parsed_port, $parsed_socket, $parsed_is_ipv6 ) = $data;
 

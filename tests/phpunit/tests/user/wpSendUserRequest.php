@@ -79,9 +79,6 @@ class Tests_User_WpSendUserRequest extends WP_UnitTestCase {
 		reset_phpmailer_instance();
 
 		unset( $GLOBALS['locale'] );
-		unset( $GLOBALS['current_screen'] );
-		unset( $GLOBALS['taxnow'] );
-		unset( $GLOBALS['typenow'] );
 
 		restore_previous_locale();
 		parent::tearDown();

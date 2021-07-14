@@ -1291,7 +1291,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post_id, $limit );
 
 		$comments = get_comments( array( 'post_id' => $post_id ) );
-		$this->assertSame( $limit, count( $comments ) );
+		$this->assertCount( $limit, $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertEquals( $post_id, $comment->comment_post_ID );
 		}
@@ -1300,7 +1300,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post_id2, $limit );
 
 		$comments = get_comments( array( 'post_id' => $post_id2 ) );
-		$this->assertSame( $limit, count( $comments ) );
+		$this->assertCount( $limit, $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertEquals( $post_id2, $comment->comment_post_ID );
 		}
@@ -1309,7 +1309,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		self::factory()->comment->create_post_comments( $post_id3, $limit, array( 'comment_approved' => '0' ) );
 
 		$comments = get_comments( array( 'post_id' => $post_id3 ) );
-		$this->assertSame( $limit, count( $comments ) );
+		$this->assertCount( $limit, $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertEquals( $post_id3, $comment->comment_post_ID );
 		}
@@ -1320,7 +1320,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'status'  => 'hold',
 			)
 		);
-		$this->assertSame( $limit, count( $comments ) );
+		$this->assertCount( $limit, $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertEquals( $post_id3, $comment->comment_post_ID );
 		}
@@ -1331,11 +1331,11 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'status'  => 'approve',
 			)
 		);
-		$this->assertSame( 0, count( $comments ) );
+		$this->assertCount( 0, $comments );
 
 		self::factory()->comment->create_post_comments( $post_id3, $limit, array( 'comment_approved' => '1' ) );
 		$comments = get_comments( array( 'post_id' => $post_id3 ) );
-		$this->assertSame( $limit * 2, count( $comments ) );
+		$this->assertCount( $limit * 2, $comments );
 		foreach ( $comments as $comment ) {
 			$this->assertEquals( $post_id3, $comment->comment_post_ID );
 		}
@@ -1362,7 +1362,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'  => array( 'key' ),
 			)
 		);
-		$this->assertSame( 2, count( $comments ) );
+		$this->assertCount( 2, $comments );
 		$this->assertEquals( $comment_id2, $comments[0]->comment_ID );
 		$this->assertEquals( $comment_id, $comments[1]->comment_ID );
 
@@ -1372,7 +1372,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'  => array( 'meta_value' ),
 			)
 		);
-		$this->assertSame( 2, count( $comments ) );
+		$this->assertCount( 2, $comments );
 		$this->assertEquals( $comment_id2, $comments[0]->comment_ID );
 		$this->assertEquals( $comment_id, $comments[1]->comment_ID );
 
@@ -1383,7 +1383,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'order'    => 'ASC',
 			)
 		);
-		$this->assertSame( 2, count( $comments ) );
+		$this->assertCount( 2, $comments );
 		$this->assertEquals( $comment_id, $comments[0]->comment_ID );
 		$this->assertEquals( $comment_id2, $comments[1]->comment_ID );
 
@@ -1394,7 +1394,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'order'    => 'ASC',
 			)
 		);
-		$this->assertSame( 2, count( $comments ) );
+		$this->assertCount( 2, $comments );
 		$this->assertEquals( $comment_id, $comments[0]->comment_ID );
 		$this->assertEquals( $comment_id2, $comments[1]->comment_ID );
 
@@ -1422,7 +1422,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'    => array( 'key' ),
 			)
 		);
-		$this->assertSame( 1, count( $comments ) );
+		$this->assertCount( 1, $comments );
 
 		$comments = get_comments(
 			array(
@@ -1430,7 +1430,7 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 				'orderby'    => array( 'meta_value' ),
 			)
 		);
-		$this->assertSame( 1, count( $comments ) );
+		$this->assertCount( 1, $comments );
 	}
 
 	/**
@@ -1713,9 +1713,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		);
 
 		// Ensure we are dealing with integers, and not objects.
-		$this->assertInternalType( 'integer', $comment_1 );
-		$this->assertInternalType( 'integer', $comment_2 );
-		$this->assertInternalType( 'integer', $comment_3 );
+		$this->assertIsInt( $comment_1 );
+		$this->assertIsInt( $comment_2 );
+		$this->assertIsInt( $comment_3 );
 
 		$comment_ids = get_comments( array( 'fields' => 'ids' ) );
 		$this->assertCount( 3, $comment_ids );
@@ -3331,9 +3331,9 @@ class Tests_Comment_Query extends WP_UnitTestCase {
 		$this->assertNull( $query1->query_vars );
 		$this->assertEmpty( $query1->comments );
 		$comments = $query1->query( array( 'status' => 'all' ) );
-		$this->assertInternalType( 'array', $query1->query_vars );
+		$this->assertIsArray( $query1->query_vars );
 		$this->assertNotEmpty( $query1->comments );
-		$this->assertInternalType( 'array', $query1->comments );
+		$this->assertIsArray( $query1->comments );
 
 		$query2 = new WP_Comment_Query( array( 'status' => 'all' ) );
 		$this->assertNotEmpty( $query2->query_vars );

@@ -107,7 +107,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access, WP_Error object otherwise.
 	 */
 	public function get_items_permissions_check( $request ) {
 		return $this->check_read_permission();
@@ -119,7 +119,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_items( $request ) {
 		$data = array();
@@ -137,7 +137,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|bool True if the request has read access for the item, WP_Error object otherwise.
+	 * @return true|WP_Error True if the request has read access for the item, WP_Error object otherwise.
 	 */
 	public function get_item_permissions_check( $request ) {
 		$check = $this->check_read_permission();
@@ -158,7 +158,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @return WP_Error|bool True if the widget type is visible, WP_Error otherwise.
+	 * @return true|WP_Error True if the widget type is visible, WP_Error otherwise.
 	 */
 	protected function check_read_permission() {
 		if ( ! current_user_can( 'edit_theme_options' ) ) {
@@ -197,7 +197,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 *
 	 * @since 5.8.0
 	 *
-	 * @global array $wp_registered_widgets The list of registered widgets.
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 * @global array             $wp_registered_widgets The list of registered widgets.
 	 *
 	 * @return array Array of widgets.
 	 */
@@ -245,7 +246,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * @since 5.8.0
 	 *
 	 * @param WP_REST_Request $request Full details about the request.
-	 * @return WP_Error|WP_REST_Response Response object on success, or WP_Error object on failure.
+	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
 	public function get_item( $request ) {
 		$widget_id   = $request['id'];
@@ -412,6 +413,10 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * - form:     The widget's admin form after updating the widget with the
 	 *             given form data.
 	 *
+	 * @since 5.8.0
+	 *
+	 * @global WP_Widget_Factory $wp_widget_factory
+	 *
 	 * @param WP_REST_Request $request Full details about the request.
 	 * @return WP_REST_Response|WP_Error Response object on success, or WP_Error object on failure.
 	 */
@@ -471,7 +476,7 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 		}
 
 		$serialized_instance = serialize( $instance );
-		$widget_key = $wp_widget_factory->get_widget_key( $id );
+		$widget_key          = $wp_widget_factory->get_widget_key( $id );
 
 		$response = array(
 			'form'     => trim(
@@ -504,6 +509,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	 * Returns the output of WP_Widget::widget() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget.
 
+	 * @since 5.8.0
+	 *
 	 * @param string    $widget   The widget's PHP class name (see class-wp-widget.php).
 	 * @param array     $instance Widget instance settings.
 	 * @return string
@@ -517,6 +524,8 @@ class WP_REST_Widget_Types_Controller extends WP_REST_Controller {
 	/**
 	 * Returns the output of WP_Widget::form() when called with the provided
 	 * instance. Used by encode_form_data() to preview a widget's form.
+	 *
+	 * @since 5.8.0
 	 *
 	 * @param WP_Widget $widget_object Widget object to call widget() on.
 	 * @param array     $instance Widget instance settings.

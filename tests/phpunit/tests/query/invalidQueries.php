@@ -99,6 +99,25 @@ class Tests_Query_InvalidQueries extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test WP Query with an invalid post type in a mutiple post type query.
+	 *
+	 * @ticket 48556
+	 */
+	public function test_unregistered_post_type_wp_query_multiple_post_types() {
+		global $wpdb;
+
+		$query = new WP_Query(
+			array(
+				'post_type' => array( 'unregistered_cpt', 'page' ),
+			)
+		);
+		$posts = $query->get_posts();
+
+		$this->assertContains( "{$wpdb->posts}.post_type = 'unregistered_cpt'", self::$last_posts_request );
+		$this->assertCount( 1, $posts, 'the valid `page` post type should still return one post' );
+	}
+
+	/**
 	 * Test WP Query with an invalid post type specified in the URL.
 	 *
 	 * @ticket 48556
