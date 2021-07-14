@@ -980,7 +980,7 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function move_to_rollbacks_dir( $args ) {
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['subfolder'] ) ) {
 			return false;
 		}
 		global $wp_filesystem;
@@ -1018,13 +1018,13 @@ class WP_Upgrader {
 	 * @return bool|WP_Error
 	 */
 	public function restore_rollback( $args ) {
-		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['dest'] ) ) {
+		if ( empty( $args['slug'] ) || empty( $args['src'] ) || empty( $args['subfolder'] ) ) {
 			return false;
 		}
 
 		global $wp_filesystem;
-		$src  = $wp_filesystem->wp_content_dir() . '/' . $args['dest'] . '/' . $args['slug'];
-		$dest = $args['src'] . '/' . $args['slug'];
+		$src  = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/' . $args['subfolder'] . '/' . $args['slug'];
+		$dest = trailingslashit( $args['src'] ) . $args['slug'];
 
 		if ( $wp_filesystem->is_dir( $src ) ) {
 
