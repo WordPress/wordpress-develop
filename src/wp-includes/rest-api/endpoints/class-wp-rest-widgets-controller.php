@@ -142,7 +142,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		return $this->permissions_check( $request );
 	}
 
-	/**n create_item
+	/**
 	 * Gets an individual widget.
 	 *
 	 * @since 5.8.0
