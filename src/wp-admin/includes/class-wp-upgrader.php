@@ -318,6 +318,9 @@ class WP_Upgrader {
 		$upgrade_files = $wp_filesystem->dirlist( $upgrade_folder );
 		if ( ! empty( $upgrade_files ) ) {
 			foreach ( $upgrade_files as $file ) {
+				if ( 'rollback' === $file['name'] ) {
+					continue;
+				}
 				$wp_filesystem->delete( $upgrade_folder . $file['name'], true );
 			}
 		}
@@ -987,7 +990,16 @@ class WP_Upgrader {
 
 		$dest_folder = $wp_filesystem->wp_content_dir() . 'upgrade/rollback/';
 		// Create the rollbacks dir if it doesn't exist.
-		if ( ! $wp_filesystem->mkdir( $dest_folder ) || ! $wp_filesystem->mkdir( $dest_folder . $args['subfolder'] . '/' ) ) {
+		if (
+			(
+				! $wp_filesystem->is_dir( $dest_folder ) &&
+				! $wp_filesystem->mkdir( $dest_folder )
+			) ||
+			(
+				! $wp_filesystem->is_dir( $dest_folder . $args['subfolder'] . '/' ) &&
+				! $wp_filesystem->mkdir( $dest_folder . $args['subfolder'] . '/' )
+			)
+		) {
 			return new WP_Error( 'fs_rollback_mkdir', $this->strings['rollback_mkdir_failed'] );
 		}
 
@@ -998,7 +1010,8 @@ class WP_Upgrader {
 		if ( $wp_filesystem->is_dir( $dest ) ) {
 			$wp_filesystem->delete( $dest, true );
 		}
-		// Move the plugin or theme to its rollback folder.
+
+		// Move to the rollbacks folder.
 		if ( ! $wp_filesystem->move( $src, $dest, true ) ) {
 			return new WP_Error( 'fs_rollback_move', $this->strings['rollback_move_failed'] );
 		}
