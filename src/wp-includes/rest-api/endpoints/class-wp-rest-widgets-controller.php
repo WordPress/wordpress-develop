@@ -142,7 +142,7 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 		return $this->permissions_check( $request );
 	}
 
-	/**
+	/**n create_item
 	 * Gets an individual widget.
 	 *
 	 * @since 5.8.0
@@ -236,6 +236,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	public function update_item( $request ) {
 		global $wp_widget_factory;
 
+		// Calling wp_get_sidebars_widgets() here is a safe fix for https://github.com/WordPress/gutenberg/issues/33335
+		// @TODO: Remove this after WP 5.8 RC1 in favor of updating retrieve_widgets and wp_set_sidebars_widgets
+		wp_get_sidebars_widgets();
+
 		retrieve_widgets();
 
 		$widget_id  = $request['id'];
@@ -299,6 +303,10 @@ class WP_REST_Widgets_Controller extends WP_REST_Controller {
 	 */
 	public function delete_item( $request ) {
 		global $wp_widget_factory, $wp_registered_widget_updates;
+
+		// Calling wp_get_sidebars_widgets() here is a safe fix for https://github.com/WordPress/gutenberg/issues/33335
+		// @TODO: Remove this after WP 5.8 RC1 in favor of updating retrieve_widgets and wp_set_sidebars_widgets
+		wp_get_sidebars_widgets();
 
 		retrieve_widgets();
 
